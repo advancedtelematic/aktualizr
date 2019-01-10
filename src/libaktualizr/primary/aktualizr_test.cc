@@ -793,21 +793,58 @@ class HttpFakeCampaign : public HttpFake {
     }
     return HttpFake::get(url, maxsize);
   }
+
+  HttpResponse handle_event(const std::string& url, const Json::Value& data) override {
+    (void)url;
+    for (auto it = data.begin(); it != data.end(); it++) {
+      auto ev = *it;
+      if (ev["eventType"]["id"] == "campaign_accepted") {
+        seen_events.push_back(ev);
+      }
+    }
+    return HttpResponse("", 204, CURLE_OK, "");
+  }
+
+  std::vector<Json::Value> seen_events;
 };
 
 /* Check for campaigns with manual control.
- * Fetch campaigns from the server. */
-TEST(Aktualizr, CampaignCheck) {
+ * Accept a campaign.
+ *   Fetch campaigns from the server.
+ *   Send campaign acceptance report.
+ *   Send CampaignAcceptComplete event.
+ */
+TEST(Aktualizr, CampaignCheckAndAccept) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFakeCampaign>(temp_dir.Path());
   Config conf = makeTestConfig(temp_dir, http->tls_server);
+  bool campaignaccept_seen = false;
 
-  auto storage = INvStorage::newStorage(conf.storage);
-  Aktualizr aktualizr(conf, storage, http);
+  {
+    auto storage = INvStorage::newStorage(conf.storage);
+    Aktualizr aktualizr(conf, storage, http);
 
-  aktualizr.Initialize();
-  auto result = aktualizr.CampaignCheck().get();
-  EXPECT_EQ(result.campaigns.size(), 1);
+    std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb =
+        [&campaignaccept_seen](std::shared_ptr<event::BaseEvent> event) {
+          if (event->variant == "CampaignAcceptComplete") {
+            campaignaccept_seen = true;
+          }
+        };
+    boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
+
+    aktualizr.Initialize();
+
+    // check for campaign
+    auto result = aktualizr.CampaignCheck().get();
+    EXPECT_EQ(result.campaigns.size(), 1);
+
+    // accept the campaign
+    aktualizr.CampaignAccept("c2eb7e8d-8aa0-429d-883f-5ed8fdb2a493").get();
+  }
+
+  ASSERT_EQ(http->seen_events.size(), 1);
+  ASSERT_EQ(http->seen_events[0]["event"]["campaignId"], "c2eb7e8d-8aa0-429d-883f-5ed8fdb2a493");
+  ASSERT_TRUE(campaignaccept_seen);
 }
 
 class HttpFakeNoCorrelationId : public HttpFake {
