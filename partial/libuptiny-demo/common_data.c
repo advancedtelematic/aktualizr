@@ -31,10 +31,10 @@ crypto_hash_ctx_t hash_context;
 #define CRYPTO_CONTEXT_POOL_SIZE 4
 crypto_verify_ctx_t crypto_ctx_pool_data[CRYPTO_CONTEXT_POOL_SIZE];
 crypto_verify_ctx_t* crypto_ctx_pool[] = {
-  &crypto_ctx_pool_data[0],
-  &crypto_ctx_pool_data[1],
-  &crypto_ctx_pool_data[2],
-  &crypto_ctx_pool_data[3],
+    &crypto_ctx_pool_data[0],
+    &crypto_ctx_pool_data[1],
+    &crypto_ctx_pool_data[2],
+    &crypto_ctx_pool_data[3],
 };
 
 const unsigned int crypto_ctx_pool_size = CRYPTO_CONTEXT_POOL_SIZE;
@@ -45,7 +45,7 @@ uint32_t key_pool_mark = 0;
 
 crypto_key_t* alloc_crypto_key(void) {
   for (int i = 0; i < KEY_POOL_SIZE; ++i) {
-    if(!(key_pool_mark & (1 << i))) {
+    if (!(key_pool_mark & (1 << i))) {
       key_pool_mark |= (1 << i);
       return &key_pool[i];
     }
@@ -53,11 +53,9 @@ crypto_key_t* alloc_crypto_key(void) {
   return NULL;
 }
 void free_crypto_key(crypto_key_t* key) {
-  int idx = ((uint32_t) key - (uint32_t)&key_pool) / sizeof(crypto_key_t);
+  int idx = ((uint32_t)key - (uint32_t)&key_pool) / sizeof(crypto_key_t);
   if (idx < KEY_POOL_SIZE) {
     key_pool_mark &= ~(1 << idx);
   }
 }
-void free_all_crypto_keys(void) {
-  key_pool_mark = 0;
-}
+void free_all_crypto_keys(void) { key_pool_mark = 0; }

@@ -1,10 +1,10 @@
-#include "libuptiny/crypto_api.h"
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
-#include "libuptiny/debug.h"
 #include "ed25519/edsign.h"
 #include "ed25519/sha512.h"
+#include "libuptiny/crypto_api.h"
+#include "libuptiny/debug.h"
 #include "libuptiny/utils.h"
 
 typedef struct {
@@ -125,5 +125,5 @@ size_t crypto_get_keylen(crypto_algorithm_t alg) { return keytypes[alg].pub_key_
 
 size_t crypto_get_siglen(crypto_algorithm_t alg) { return keytypes[alg].sig_len; }
 void crypto_sign_data(const char* data, size_t len, crypto_key_and_signature_t* out_sig, const uint8_t* private_key) {
-  edsign_sign(out_sig->sig, out_sig->key->keyval, private_key, (const uint8_t*) data, len);
+  edsign_sign(out_sig->sig, out_sig->key->keyval, private_key, (const uint8_t*)data, len);
 }
