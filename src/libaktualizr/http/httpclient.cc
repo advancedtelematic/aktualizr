@@ -220,10 +220,11 @@ HttpResponse HttpClient::download(const std::string& url, curl_write_callback ca
 std::future<HttpResponse> HttpClient::downloadAsync(const std::string& url, curl_write_callback callback, void* userp,
                                                     curl_off_t from, CurlHandler* easyp) {
   CURL* curl_download = Utils::curlDupHandleWrapper(curl, pkcs11_key);
+
   CurlHandler curlp = CurlHandler(curl_download, curl_easy_cleanup);
 
   if (easyp != nullptr) {
-    *easyp = std::move(curlp);
+    *easyp = curlp;
   }
 
   curlEasySetoptWrapper(curl_download, CURLOPT_URL, url.c_str());
