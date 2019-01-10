@@ -7,7 +7,7 @@ set(SOURCES dequeue_buffer.cc
 set(HEADERS config_utils.h
             dequeue_buffer.h
             exceptions.h
-            fiu-local.h
+            fault_injection.h
             sockaddr_io.h
             timer.h
             types.h

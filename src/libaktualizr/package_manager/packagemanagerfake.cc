@@ -1,7 +1,6 @@
 #include "packagemanagerfake.h"
 
-// fault injection
-#include "utilities/fiu-local.h"
+#include "utilities/fault_injection.h"
 
 Json::Value PackageManagerFake::getInstalledPackages() const {
   Json::Value packages(Json::arrayValue);

@@ -1,3 +1,4 @@
+// This file is a modified version of fiu-local.h, adapted to fit our style conventions
 
 /* libfiu - Fault Injection in Userspace
  *
@@ -13,8 +14,8 @@
  * http://blitiri.com.ar/p/libfiu.
  */
 
-#ifndef _FIU_LOCAL_H
-#define _FIU_LOCAL_H
+#ifndef _FAULT_INJECTION_H
+#define _FAULT_INJECTION_H
 
 /* Only define the stubs when fiu is disabled, otherwise use the real fiu.h
  * header */
@@ -33,4 +34,4 @@
 
 #endif /* FIU_ENABLE */
 
-#endif /* _FIU_LOCAL_H */
+#endif /* _FAULT_INJECTION_H */
