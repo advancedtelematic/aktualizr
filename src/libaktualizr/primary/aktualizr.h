@@ -176,7 +176,7 @@ class Aktualizr {
   FRIEND_TEST(Aktualizr, CheckNoUpdates);
   FRIEND_TEST(Aktualizr, DownloadWithUpdates);
   FRIEND_TEST(Aktualizr, InstallWithUpdates);
-  FRIEND_TEST(Aktualizr, CampaignCheck);
+  FRIEND_TEST(Aktualizr, CampaignCheckAndAccept);
   FRIEND_TEST(Aktualizr, FullNoCorrelationId);
   FRIEND_TEST(Aktualizr, APICheck);
   FRIEND_TEST(Aktualizr, PutManifestError);

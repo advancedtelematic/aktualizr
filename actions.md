@@ -69,10 +69,10 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Fetch campaigns from the server (aktualizr_test.cc)
   - [x] Parse campaigns from JSON (campaign_test.cc)
   - [ ] Send CampaignCheckComplete event with campaign data
-- [ ] Accept a campaign
-  - [ ] Send campaign acceptance report
+- [x] Accept a campaign
+  - [x] Send campaign acceptance report
     - [x] Send an event report (see below)
-  - [ ] Send CampaignAcceptComplete event
+  - [x] Send CampaignAcceptComplete event
 - [x] Fetch metadata from server
   - [x] Generate and send manifest (see below)
   - [x] Fetch metadata from the director (uptane_test.cc, uptane_vector_tests.cc)
