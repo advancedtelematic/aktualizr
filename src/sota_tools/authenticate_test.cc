@@ -112,6 +112,8 @@ TEST(authenticate, invalid_file) {
 
 /* Check if credentials support offline signing. */
 TEST(authenticate, offline_sign_creds) {
+  // Note that these credentials point to the old CI infrastructure that is now
+  // defunct. However, for the sake of this test, that doesn't matter.
   boost::filesystem::path auth_offline = "tests/sota_tools/auth_test_good_offline.zip";
   ServerCredentials creds_offline(auth_offline);
   EXPECT_TRUE(creds_offline.CanSignOffline());
