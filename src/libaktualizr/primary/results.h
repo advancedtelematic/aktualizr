@@ -9,6 +9,7 @@
 #include "uptane/fetcher.h"
 #include "uptane/tuf.h"
 
+/** Results of libaktualizr API calls. */
 namespace result {
 /**
  * Container for information about available campaigns.
