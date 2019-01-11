@@ -23,6 +23,7 @@ option(BUILD_SOTA_TOOLS "Set to ON to build SOTA tools" OFF)
 option(BUILD_OPCUA "Set to ON to compile with OPC-UA protocol support" OFF)
 option(BUILD_SYSTEMD "Set to ON to compile with systemd additional support" ${BUILD_SYSTEMD_DEFAULT})
 option(BUILD_LOAD_TESTS "Set to ON to build load tests" OFF)
+option(FAULT_INJECTION "Set to ON to enable fault injection" OFF)
 option(INSTALL_LIB "Set to ON to install library and headers" OFF)
 
 set(SOTA_PACKED_CREDENTIALS "" CACHE STRING "Credentials.zip for tests involving the server")
@@ -126,6 +127,12 @@ if(BUILD_SYSTEMD)
 else(BUILD_SYSTEMD)
     unset(SYSTEMD_LIBRARY CACHE)
 endif(BUILD_SYSTEMD)
+
+if(FAULT_INJECTION)
+    find_package(Libfiu REQUIRED)
+    add_definitions(-DFIU_ENABLE)
+    link_libraries(fiu)
+endif(FAULT_INJECTION)
 
 # set symbols used when compiling
 #add_definitions(-DBOOST_LOG_DYN_LINK)

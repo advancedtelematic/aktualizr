@@ -172,3 +172,7 @@ server {
     root repo_dir/repo;
 }
 ```
+
+== Inject faults
+
+See link:./fault-injection.adoc[fault-injection.adoc]

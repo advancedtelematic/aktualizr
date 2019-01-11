@@ -7,6 +7,7 @@ set(SOURCES dequeue_buffer.cc
 set(HEADERS config_utils.h
             dequeue_buffer.h
             exceptions.h
+            fault_injection.h
             sockaddr_io.h
             timer.h
             types.h
@@ -22,4 +23,3 @@ add_aktualizr_test(NAME types SOURCES types_test.cc)
 add_aktualizr_test(NAME utils SOURCES utils_test.cc PROJECT_WORKING_DIRECTORY)
 
 aktualizr_source_file_checks(${SOURCES} ${HEADERS} ${TEST_SOURCES})
-

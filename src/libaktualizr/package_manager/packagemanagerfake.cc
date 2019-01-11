@@ -1,5 +1,7 @@
 #include "packagemanagerfake.h"
 
+#include "utilities/fault_injection.h"
+
 Json::Value PackageManagerFake::getInstalledPackages() const {
   Json::Value packages(Json::arrayValue);
   Json::Value package;
@@ -22,6 +24,10 @@ Uptane::Target PackageManagerFake::getCurrent() const {
 }
 
 data::InstallOutcome PackageManagerFake::install(const Uptane::Target &target) const {
+  if (fiu_fail("fake_package_install")) {
+    return data::InstallOutcome(data::UpdateResultCode::kInstallFailed, "Installation failed");
+  }
+
   if (config.fake_need_reboot) {
     storage_->savePrimaryInstalledVersion(target, InstalledVersionUpdateMode::kPending);
 
