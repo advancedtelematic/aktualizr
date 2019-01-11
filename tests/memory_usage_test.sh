@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 TEMP_DIR=$(mktemp -d)/aktualizr
-MEMMORY_LIMIT=104857600 #100 Mib
+MEMMORY_LIMIT=10485760 #10 Mib
 
 trap 'kill %1; rm -rf $TEMP_DIR' EXIT
 
