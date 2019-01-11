@@ -40,6 +40,7 @@ class Fetcher {
   bool fetchLatestRole(std::string* result, int64_t maxsize, RepositoryType repo, Uptane::Role role) {
     return fetchRole(result, maxsize, repo, role, Version());
   }
+  void restoreHasherState(MultiPartHasher& hasher, StorageTargetRHandle* data);
   bool isPaused() {
     std::lock_guard<std::mutex> guard(mutex_);
     return pause_;
@@ -82,7 +83,7 @@ struct DownloadMetaStruct {
         target{std::move(target_in)},
         fetcher{nullptr},
         progress_cb{std::move(progress_cb_in)} {}
-  uint64_t downloaded_length{};
+  uint64_t downloaded_length{0};
   unsigned int last_progress{0};
   std::unique_ptr<StorageTargetWHandle> fhandle;
   const Hash::Type hash_type;
