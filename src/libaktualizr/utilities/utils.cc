@@ -330,7 +330,7 @@ void Utils::writeFile(const boost::filesystem::path &filename, const char *conte
   if (!file.good()) {
     throw std::runtime_error(std::string("Error opening file ") + tmpFilename.string());
   }
-  file.write(content, size);
+  file.write(content, static_cast<std::streamsize>(size));
   file.close();
 
   boost::filesystem::rename(tmpFilename, filename);

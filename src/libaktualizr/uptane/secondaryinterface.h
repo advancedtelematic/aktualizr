@@ -32,6 +32,7 @@ class SecondaryInterface {
   virtual int32_t getRootVersion(bool director) = 0;
   virtual bool putRoot(const std::string& root, bool director) = 0;
 
+  // FIXME: Instead of std::string we should use StorageTargetRHandle
   virtual bool sendFirmware(const std::shared_ptr<std::string>& data) = 0;
   const SecondaryConfig sconfig;
 };
