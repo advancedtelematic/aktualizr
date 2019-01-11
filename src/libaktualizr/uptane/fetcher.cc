@@ -79,6 +79,16 @@ void Fetcher::checkPause() {
   cv_.wait(lk, [this] { return !pause_; });
 }
 
+void Fetcher::restoreHasherState(MultiPartHasher& hasher, StorageTargetRHandle* data) {
+  size_t data_len;
+  size_t buf_len = 1024;
+  uint8_t buf[buf_len];
+  do {
+    data_len = data->rread(buf, buf_len);
+    hasher.update(buf, data_len);
+  } while (data_len != 0);
+}
+
 bool Fetcher::fetchVerifyTarget(const Target& target) {
   bool result = false;
   DownloadCounter counter(&downloading_);
@@ -94,16 +104,14 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
       }
       DownloadMetaStruct ds(target, progress_cb);
       ds.fetcher = this;
-      if (!target_exists) {
-        ds.fhandle = storage->allocateTargetFile(false, target);
-      } else {
+      if (target_exists) {
         ds.downloaded_length = *target_exists;
         auto target_handle = storage->openTargetFile(target);
-        ds.fhandle = target_handle->toWriteHandle();
-        unsigned char buf[ds.downloaded_length];
-        target_handle->rread(buf, ds.downloaded_length);
+        restoreHasherState(ds.hasher(), target_handle.get());
         target_handle->rclose();
-        ds.hasher().update(buf, ds.downloaded_length);
+        ds.fhandle = target_handle->toWriteHandle();
+      } else {
+        ds.fhandle = storage->allocateTargetFile(false, target);
       }
       HttpResponse response;
       do {
