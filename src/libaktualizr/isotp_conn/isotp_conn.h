@@ -19,7 +19,7 @@ class IsoTpSendRecv {
   IsoTpShims isotp_shims{};
 
   bool Recv(std::string* in);
-  static bool canSend(const uint32_t arbitration_id, const uint8_t* data, const uint8_t size, void* private_data);
+  static bool canSend(uint32_t arbitration_id, const uint8_t* data, uint8_t size, void* private_data);
 };
 
 #endif  // UPTANE_ISOTP_SEND_RECV_H_

@@ -48,8 +48,8 @@ class SecondaryConfig {
 
   sockaddr_storage ip_addr{};  // SecondaryType::kIpUptane
 
-  uint16_t can_id;        // SecondaryType::kIsoTpUptane;
-  std::string can_iface;  // SecondaryType::kIsoTpUptane;
+  uint16_t can_id{0x0000};  // SecondaryType::kIsoTpUptane;
+  std::string can_iface;    // SecondaryType::kIsoTpUptane;
 };
 }  // namespace Uptane
 

@@ -229,7 +229,7 @@ static inline int16_t consumed_chars_newtoken(const char *message, int16_t len, 
     // last token was primitive or string. If it was a string, we've got a closing quote to consume. In any case,
     // there can be 'non-tokens' like ':', ',', '}', ']' that are already processed and shouldn't be given to the
     // parser again
-    int16_t res = (size_t)token_pool[idx - 1].end;
+    int16_t res = token_pool[idx - 1].end;
     if (token_pool[idx - 1].type == JSMN_STRING && message[res] == '"') {
       ++res;
     }
@@ -364,14 +364,14 @@ int uptane_parse_targets_feed(const char *message, int16_t len, uptane_targets_t
         } else {
           prev_state = state;
           state = TARGETS_IN_IGNORED;
-          ++idx;                             // consume name token
-          ignored_top_token_pos = (int)idx;  // remember value token number
+          ++idx;                        // consume name token
+          ignored_top_token_pos = idx;  // remember value token number
           break;
         }
         break;
 
       case TARGETS_IN_IGNORED:
-        if (ignored_top_token_pos == (int)idx) {  // the ignored object itself is obviously ignored
+        if (ignored_top_token_pos == idx) {  // the ignored object itself is obviously ignored
           ++idx;
         } else if (token_pool[ignored_top_token_pos].end < 0) {  // not yet reached the end of the top object
           ++idx;  // *.end will never change in this call, so consume all the tokens read

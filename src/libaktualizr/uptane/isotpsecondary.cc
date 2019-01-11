@@ -11,7 +11,7 @@
 
 #define LIBUPTINY_ISOTP_PRIMARY_CANID 0x7D8
 
-constexpr int kChunkSize = 500;
+constexpr size_t kChunkSize = 500;
 
 enum class IsoTpUptaneMesType {
   kGetSerial = 0x01,
@@ -138,22 +138,22 @@ bool IsoTpSecondary::putMetadata(const RawMetaPack& meta_pack) {
 }
 
 bool IsoTpSecondary::sendFirmware(const std::shared_ptr<std::string>& data) {
-  long num_chunks = 1 + (data->length() - 1) / kChunkSize;
+  size_t num_chunks = 1 + (data->length() - 1) / kChunkSize;
 
-  if (num_chunks < 0 || num_chunks > 127) {
+  if (num_chunks > 127) {
     return false;
   }
 
-  for (int i = 0; i < num_chunks; ++i) {
+  for (size_t i = 0; i < num_chunks; ++i) {
     std::string out;
     std::string in;
     out += static_cast<char>(IsoTpUptaneMesType::kPutImageChunk);
     out += static_cast<char>(num_chunks);
     out += static_cast<char>(i + 1);
     if (i == num_chunks - 1) {
-      out += data->substr(i * kChunkSize);
+      out += data->substr(static_cast<size_t>(i * kChunkSize));
     } else {
-      out += data->substr(i * kChunkSize, kChunkSize);
+      out += data->substr(static_cast<size_t>(i * kChunkSize), static_cast<size_t>(kChunkSize));
     }
     if (!conn.SendRecv(out, &in)) {
       return false;

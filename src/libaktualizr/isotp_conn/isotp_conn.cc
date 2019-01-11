@@ -18,7 +18,7 @@
 #include "logging/logging.h"
 
 IsoTpSendRecv::IsoTpSendRecv(std::string can_iface_, uint16_t canaddr_rx_, uint16_t canaddr_tx_)
-    : can_iface{can_iface_}, canaddr_rx{canaddr_rx_}, canaddr_tx{canaddr_tx_} {
+    : can_iface{std::move(can_iface_)}, canaddr_rx{canaddr_rx_}, canaddr_tx{canaddr_tx_} {
   can_socket = socket(PF_CAN, SOCK_RAW, CAN_RAW);
 
   if (can_socket < -1) {
@@ -31,6 +31,7 @@ IsoTpSendRecv::IsoTpSendRecv(std::string can_iface_, uint16_t canaddr_rx_, uint1
   setsockopt(can_socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter));
 
   struct ifreq ifr {};
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
   memcpy(ifr.ifr_name, can_iface.c_str(), IFNAMSIZ);
 
   if (ioctl(can_socket, SIOCGIFINDEX, &ifr) != 0) {
@@ -48,8 +49,7 @@ IsoTpSendRecv::IsoTpSendRecv(std::string can_iface_, uint16_t canaddr_rx_, uint1
   isotp_shims = isotp_init_shims(nullptr, canSend, nullptr, this);
 }
 
-bool IsoTpSendRecv::canSend(const uint32_t arbitration_id, const uint8_t* data, const uint8_t size,
-                            void* private_data) {
+bool IsoTpSendRecv::canSend(uint32_t arbitration_id, const uint8_t* data, uint8_t size, void* private_data) {
   auto* instance = static_cast<IsoTpSendRecv*>(private_data);
 
   if ((instance == nullptr) || size > 8) {
@@ -57,7 +57,7 @@ bool IsoTpSendRecv::canSend(const uint32_t arbitration_id, const uint8_t* data, 
   }
 
   LOG_TRACE << "Sending CAN message AF: 0x" << std::hex << arbitration_id << "; Data:";
-  LOG_TRACE << " " << boost::algorithm::hex(std::string((const char*)data, size));
+  LOG_TRACE << " " << boost::algorithm::hex(std::string(reinterpret_cast<const char*>(data), size));
 
   int can_socket = instance->can_socket;
 
@@ -107,9 +107,10 @@ bool IsoTpSendRecv::Send(const std::string& out) {
           }
 
           LOG_TRACE << "Reveived CAN message in Send method AF: 0x" << std::hex << f.can_id << "; Data:";
-          LOG_TRACE << " " << boost::algorithm::hex(std::string((const char*)f.data, f.can_dlc));
+          LOG_TRACE << " " << boost::algorithm::hex(std::string(reinterpret_cast<const char*>(f.data), f.can_dlc));
 
-          if (!isotp_receive_flowcontrol(&isotp_shims, &send_handle, (uint16_t)f.can_id, f.data, f.can_dlc)) {
+          if (!isotp_receive_flowcontrol(&isotp_shims, &send_handle, static_cast<uint16_t>(f.can_id), f.data,
+                                         f.can_dlc)) {
             std::cerr << "IsoTp receiving error" << std::endl;
             return false;
           }
@@ -179,7 +180,7 @@ bool IsoTpSendRecv::Recv(std::string* in) {
         }
 
         LOG_TRACE << "Reveived CAN message in Recv method AF: 0x" << std::hex << f.can_id << "; Data:";
-        LOG_TRACE << " " << boost::algorithm::hex(std::string((const char*)f.data, f.can_dlc));
+        LOG_TRACE << " " << boost::algorithm::hex(std::string(reinterpret_cast<const char*>(f.data), f.can_dlc));
         // std::this_thread::sleep_for(std::chrono::milliseconds(10)); // hack for RIOT to start waiting for flow
         // control
         IsoTpMessage message_rx = isotp_continue_receive(&isotp_shims, &recv_handle, f.can_id, f.data, f.can_dlc);
