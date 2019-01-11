@@ -137,10 +137,6 @@ bool IsoTpSecondary::putMetadata(const RawMetaPack& meta_pack) {
   return conn.Send(out);
 }
 
-std::future<bool> IsoTpSecondary::sendFirmwareAsync(const std::shared_ptr<std::string>& data) {
-  return std::async(std::launch::async, &IsoTpSecondary::sendFirmware, this, data);
-}
-
 bool IsoTpSecondary::sendFirmware(const std::shared_ptr<std::string>& data) {
   long num_chunks = 1 + (data->length() - 1) / kChunkSize;
 

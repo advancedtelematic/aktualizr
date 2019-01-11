@@ -15,12 +15,11 @@ class IsoTpSecondary : public SecondaryInterface {
   bool putMetadata(const RawMetaPack& meta_pack) override;
   int getRootVersion(bool director) override;
   bool putRoot(const std::string& root, bool director) override;
-  std::future<bool> sendFirmwareAsync(const std::shared_ptr<std::string>& data) override;
+  bool sendFirmware(const std::shared_ptr<std::string>& data) override;
   Json::Value getManifest() override;
 
  private:
   IsoTpSendRecv conn;
-  bool sendFirmware(const std::shared_ptr<std::string>& data);
 };
 }  // namespace Uptane
 #endif  // UPTANE_ISOTPSECONDARY_H_
