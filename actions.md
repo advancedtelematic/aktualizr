@@ -79,7 +79,7 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Check metadata from the director (uptane_test.cc, uptane_vector_tests.cc)
     - [x] Validate Uptane metadata (see below)
   - [x] Identify targets for known ECUs (uptane_test.cc, uptane_vector_tests.cc)
-  - [?] Ignore updates for unrecognized ECUs (uptane_test.cc)
+  - [x] Ignore updates for unrecognized ECUs (uptane_test.cc uptane_vector_tests.cc)
   - [x] Fetch metadata from the images repo (uptane_test.cc, uptane_vector_tests.cc)
   - [x] Check metadata from the images repo (uptane_test.cc, uptane_vector_tests.cc)
     - [x] Validate Uptane metadata (see below)
@@ -87,7 +87,7 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Check metadata from the director (uptane_test.cc, uptane_vector_tests.cc)
     - [x] Validate Uptane metadata (see below)
   - [x] Identify updates for known ECUs (uptane_test.cc, uptane_vector_tests.cc)
-  - [ ] Ignore updates for unrecognized ECUs
+  - [x] Ignore updates for unrecognized ECUs (uptane_test.cc uptane_vector_tests.cc)
   - [x] Check metadata from the images repo (uptane_test.cc, uptane_vector_tests.cc)
     - [x] Validate Uptane metadata (see below)
   - [x] Send UpdateCheckComplete event with available updates (aktualizr_test.cc)
@@ -124,7 +124,7 @@ These are the primary actions that a user of libaktualizr can perform through th
 - [x] Install updates
   - [x] Send metadata to secondary ECUs (uptane_test.cc)
   - [x] Identify ECU for each target (uptane_test.cc, aktualizr_test.cc)
-    - [ ] Reject targets which do not match a known ECU
+    - [x] Reject targets which do not match a known ECU (uptane_test.cc)
   - [x] Install updates on primary
     - [x] Check if there are updates to install for the primary (uptane_test.cc, aktualizr_test.cc)
     - [x] Check if an update is already installed (uptane_test.cc)

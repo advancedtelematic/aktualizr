@@ -1092,9 +1092,9 @@ TEST(Uptane, offlineIteration) {
 }
 /*
  Ignore updates for unrecognized ECUs.
+ Reject targets which do not match a known ECU
 */
-TEST(Uptane, DISABLED_IgnoreUnknownUpdate) {
-  // FIXME This test is disabled because it conflicts with some tests in uptane_vector_tests.cc
+TEST(Uptane, IgnoreUnknownUpdate) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
   Config config("tests/config/basic.toml");
@@ -1113,12 +1113,18 @@ TEST(Uptane, DISABLED_IgnoreUnknownUpdate) {
   EXPECT_NO_THROW(sota_client->initialize());
   sota_client->AssembleManifest();
 
-  std::vector<Uptane::Target> targets;
-  EXPECT_TRUE(sota_client->uptaneIteration());
-  EXPECT_TRUE(sota_client->getNewTargets(&targets));
-
-  EXPECT_EQ(targets.size(), 1);
-  EXPECT_EQ(targets[0].filename(), "secondary_firmware.txt");
+  auto result = sota_client->fetchMeta();
+  EXPECT_EQ(result.status, result::UpdateStatus::kError);
+  EXPECT_STREQ(sota_client->getLastException().what(),
+               "The target had an ECU ID that did not match the client's configured ECU id.");
+  sota_client->last_exception = Uptane::Exception{"", ""};
+  result = sota_client->checkUpdates();
+  EXPECT_EQ(result.status, result::UpdateStatus::kError);
+  EXPECT_STREQ(sota_client->getLastException().what(),
+               "The target had an ECU ID that did not match the client's configured ECU id.");
+  std::vector<Uptane::Target> packages_to_install = UptaneTestCommon::makePackage("testecuserial", "testecuhwid");
+  auto report = sota_client->uptaneInstall(packages_to_install);
+  EXPECT_EQ(report.reports.size(), 0);
 }
 
 #ifdef BUILD_P11
