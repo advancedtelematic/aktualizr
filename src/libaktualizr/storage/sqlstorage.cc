@@ -1109,20 +1109,8 @@ class SQLTargetWHandle : public StorageTargetWHandle {
         sha512Hash = hash.HashString();
       }
     }
-    auto statement = db_.prepareStatement<std::string>("SELECT rowid FROM target_images_data WHERE filename = ?;",
-                                                       target_.filename());
 
-    if (statement.step() == SQLITE_ROW) {
-      statement =
-          db_.prepareStatement<std::string>("DELETE FROM target_images_data WHERE filename=?;", target_.filename());
-
-      if (statement.step() != SQLITE_DONE) {
-        LOG_ERROR << "Statement step failure: " << db_.errmsg();
-        throw std::runtime_error("Could not remove old target file");
-      }
-    }
-
-    statement = db_.prepareStatement<std::string, SQLZeroBlob>(
+    auto statement = db_.prepareStatement<std::string, SQLZeroBlob>(
         "INSERT OR REPLACE INTO target_images_data (filename, image_data) VALUES (?,?);", target_.filename(),
         SQLZeroBlob{target_.length()});
 
@@ -1177,8 +1165,9 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     if (blob_ != nullptr) {
       sqlite3_blob_close(blob_);
       blob_ = nullptr;
-      auto statement = db_.prepareStatement<int64_t, int64_t>("UPDATE target_images SET real_size = ? WHERE rowid = ?;",
-                                                              static_cast<int64_t>(written_size_), row_id_);
+      auto statement =
+          db_.prepareStatement<int64_t, std::string>("UPDATE target_images SET real_size = ? WHERE filename = ?;",
+                                                     static_cast<int64_t>(written_size_), target_.filename());
 
       int err = statement.step();
       if (err != SQLITE_DONE) {

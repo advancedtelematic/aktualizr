@@ -79,14 +79,18 @@ class StorageTargetRHandle {
   virtual void rclose() = 0;
 
   void writeToFile(const boost::filesystem::path& path) {
-    std::array<uint8_t, 1024 * 1024 * 4> arr{};
+    std::array<uint8_t, 1024> arr{};
     size_t written = 0;
+    std::ofstream file(path.c_str());
+    if (!file.good()) {
+      throw std::runtime_error(std::string("Error opening file ") + path.string());
+    }
     while (written < rsize()) {
       size_t nread = rread(arr.data(), arr.size());
-
-      Utils::writeFile(path, reinterpret_cast<char*>(arr.data()), nread);
+      file.write(reinterpret_cast<char*>(arr.data()), static_cast<std::streamsize>(nread));
       written += nread;
     }
+    file.close();
   }
 
   // FIXME this function loads the whole image to the memory
