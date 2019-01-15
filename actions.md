@@ -13,7 +13,7 @@ These are the primary actions that a user of libaktualizr can perform through th
       - [x] Parse secondary config files in JSON format (config_test.cc)
       - [x] Create secondary object
         - [x] Create a virtual secondary for testing (uptane_secondary_test.cc)
-    - [ ] Add secondaries via API
+    - [x] Add secondaries via API (aktualizr_test.cc)
     - [x] Adding multiple secondaries with the same serial throws an error (uptane_test.cc)
   - [x] Initialize device ID
     - [x] Use a provided device ID (OTA-985, uptane_init_test.cc)
@@ -68,7 +68,7 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Check for campaigns with manual control (aktualizr_test.cc)
   - [x] Fetch campaigns from the server (aktualizr_test.cc)
   - [x] Parse campaigns from JSON (campaign_test.cc)
-  - [ ] Send CampaignCheckComplete event with campaign data
+  - [x] Send CampaignCheckComplete event with campaign data (aktualizr_test.cc)
 - [x] Accept a campaign
   - [x] Send campaign acceptance report
     - [x] Send an event report (see below)
@@ -79,7 +79,7 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Check metadata from the director (uptane_test.cc, uptane_vector_tests.cc)
     - [x] Validate Uptane metadata (see below)
   - [x] Identify targets for known ECUs (uptane_test.cc, uptane_vector_tests.cc)
-  - [ ] Ignore updates for unrecognized ECUs
+  - [x] Ignore updates for unrecognized ECUs (uptane_test.cc uptane_vector_tests.cc)
   - [x] Fetch metadata from the images repo (uptane_test.cc, uptane_vector_tests.cc)
   - [x] Check metadata from the images repo (uptane_test.cc, uptane_vector_tests.cc)
     - [x] Validate Uptane metadata (see below)
@@ -87,7 +87,7 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Check metadata from the director (uptane_test.cc, uptane_vector_tests.cc)
     - [x] Validate Uptane metadata (see below)
   - [x] Identify updates for known ECUs (uptane_test.cc, uptane_vector_tests.cc)
-  - [ ] Ignore updates for unrecognized ECUs
+  - [x] Ignore updates for unrecognized ECUs (uptane_test.cc uptane_vector_tests.cc)
   - [x] Check metadata from the images repo (uptane_test.cc, uptane_vector_tests.cc)
     - [x] Validate Uptane metadata (see below)
   - [x] Send UpdateCheckComplete event with available updates (aktualizr_test.cc)
@@ -122,12 +122,12 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [ ] Send AllDownloadsComplete event if all downloads are unsuccessful
 - [x] Access downloaded binaries via API (aktualizr_test.cc)
 - [x] Install updates
-  - [ ] Send metadata to secondary ECUs
+  - [x] Send metadata to secondary ECUs (uptane_test.cc)
   - [x] Identify ECU for each target (uptane_test.cc, aktualizr_test.cc)
-    - [ ] Reject targets which do not match a known ECU
+    - [x] Reject targets which do not match a known ECU (uptane_test.cc)
   - [x] Install updates on primary
     - [x] Check if there are updates to install for the primary (uptane_test.cc, aktualizr_test.cc)
-    - [ ] Check if an update is already installed
+    - [x] Check if an update is already installed (uptane_test.cc)
     - [ ] Set boot count to 0 and rollback flag to 0 to indicate system update
     - [x] Send InstallStarted event for primary (aktualizr_test.cc)
     - [x] Send EcuInstallationStartedReport to server for primary (uptane_test.cc, aktualizr_test.cc)
@@ -146,7 +146,7 @@ These are the primary actions that a user of libaktualizr can perform through th
       - [x] Send an event report (see below)
   - [x] Install updates on secondaries
     - [x] Send InstallStarted event for secondaries (aktualizr_test.cc)
-    - [ ] Send EcuInstallationStartedReport to server for secondaries
+    - [x] Send EcuInstallationStartedReport to server for secondaries (uptane_test.cc)
       - [x] Send an event report (see below)
     - [x] Send images to secondary ECUs (aktualizr_test.cc)
     - [x] Send InstallTargetComplete event for secondaries (aktualizr_test.cc)
@@ -156,7 +156,7 @@ These are the primary actions that a user of libaktualizr can perform through th
 - [x] Send installation report
   - [x] Generate and send manifest (see below)
   - [x] Send PutManifestComplete event if send is successful (aktualizr_test.cc)
-  - [ ] Send PutManifestComplete event if send is unsuccessful
+  - [x] Send PutManifestComplete event if send is unsuccessful (uptane_test.cc)
 
 ### Internal and common actions
 
@@ -310,21 +310,21 @@ These tools all link with libaktualizr, although they do not necessary use the A
   - [x] Parse config files in TOML format (aktualizr_info_config_test.cc)
   - [x] Write its config to file or to the log (aktualizr_info_config_test.cc)
 - [x] Print information from libaktualizr storage (run_aktualizr_info_tests.sh)
-  - [ ] Print device ID
-  - [ ] Print primary ECU serial
-  - [ ] Print primary ECU hardware ID
+  - [x] Print device ID (aktualizr_info/CMakeLists.txt)
+  - [x] Print primary ECU serial (aktualizr_info/CMakeLists.txt)
+  - [x] Print primary ECU hardware ID (aktualizr_info/CMakeLists.txt)
   - [ ] Print secondary ECU serials
   - [ ] Print secondary ECU hardware IDs
   - [ ] Print secondary ECUs no longer accessible
   - [ ] Print secondary ECUs registered after provisioning
-  - [ ] Print provisioning status
-  - [ ] Print whether metadata has been fetched from the server
-  - [ ] Print root metadata from images repository
-  - [ ] Print targets metadata from images repository
-  - [ ] Print root metadata from director repository
-  - [ ] Print targets metadata from director repository
-  - [ ] Print TLS credentials
-  - [ ] Print primary ECU keys
+  - [x] Print provisioning status (aktualizr_info/CMakeLists.txt)
+  - [x] Print whether metadata has been fetched from the server (aktualizr_info/CMakeLists.txt)
+  - [x] Print root metadata from images repository (aktualizr_info/CMakeLists.txt)
+  - [x] Print targets metadata from images repository (aktualizr_info/CMakeLists.txt)
+  - [x] Print root metadata from director repository (aktualizr_info/CMakeLists.txt)
+  - [x] Print targets metadata from director repository (aktualizr_info/CMakeLists.txt)
+  - [x] Print TLS credentials (aktualizr_info/CMakeLists.txt)
+  - [x] Print primary ECU keys (aktualizr_info/CMakeLists.txt)
 
 ### aktualizr-repo
 

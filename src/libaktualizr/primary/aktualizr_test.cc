@@ -13,6 +13,7 @@
 #include "primary/aktualizr.h"
 #include "primary/events.h"
 #include "primary/sotauptaneclient.h"
+#include "uptane/secondaryfactory.h"
 #include "uptane_test_common.h"
 #include "utilities/utils.h"
 
@@ -103,6 +104,53 @@ TEST(Aktualizr, FullNoUpdates) {
   }
 
   verifyNothingInstalled(aktualizr.uptane_client_->AssembleManifest());
+}
+
+/*
+ * Add secondaries via API
+ */
+TEST(Aktualizr, AddSecondary) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates");
+  Config conf = makeTestConfig(temp_dir, http->tls_server);
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  Aktualizr aktualizr(conf, storage, http);
+
+  Uptane::SecondaryConfig ecu_config;
+  ecu_config.secondary_type = Uptane::SecondaryType::kVirtual;
+  ecu_config.partial_verifying = false;
+  ecu_config.full_client_dir = temp_dir.Path();
+  ecu_config.ecu_serial = "ecuserial3";
+  ecu_config.ecu_hardware_id = "hw_id3";
+  ecu_config.ecu_private_key = "sec.priv";
+  ecu_config.ecu_public_key = "sec.pub";
+  ecu_config.firmware_path = temp_dir / "firmware.txt";
+  ecu_config.target_name_path = temp_dir / "firmware_name.txt";
+  ecu_config.metadata_path = temp_dir / "secondary_metadata";
+
+  aktualizr.AddSecondary(Uptane::SecondaryFactory::makeSecondary(ecu_config));
+
+  aktualizr.Initialize();
+
+  EcuSerials serials;
+  storage->loadEcuSerials(&serials);
+
+  std::vector<std::string> expected_ecus = {"CA:FE:A6:D2:84:9D", "ecuserial3", "secondary_ecu_serial"};
+  EXPECT_EQ(serials.size(), 3);
+  for (const auto& ecu : serials) {
+    auto found = std::find(expected_ecus.begin(), expected_ecus.end(), ecu.first.ToString());
+    if (found != expected_ecus.end()) {
+      expected_ecus.erase(found);
+    } else {
+      FAIL() << "Unknown ecu: " << ecu.first.ToString();
+    }
+  }
+  EXPECT_EQ(expected_ecus.size(), 0);
+
+  ecu_config.ecu_serial = "ecuserial4";
+  auto sec4 = Uptane::SecondaryFactory::makeSecondary(ecu_config);
+  EXPECT_THROW(aktualizr.AddSecondary(sec4), std::logic_error);
 }
 
 class HttpFakeEventCounter : public HttpFake {
@@ -808,30 +856,39 @@ class HttpFakeCampaign : public HttpFake {
   std::vector<Json::Value> seen_events;
 };
 
+bool campaignaccept_seen = false;
+void CampaignCheck_events(const std::shared_ptr<event::BaseEvent>& event) {
+  std::cout << event->variant << "\n";
+  if (event->variant == "CampaignCheckComplete") {
+    auto concrete_event = std::static_pointer_cast<event::CampaignCheckComplete>(event);
+    EXPECT_EQ(concrete_event->result.campaigns.size(), 1);
+    EXPECT_EQ(concrete_event->result.campaigns[0].name, "campaign1");
+    EXPECT_EQ(concrete_event->result.campaigns[0].id, "c2eb7e8d-8aa0-429d-883f-5ed8fdb2a493");
+    EXPECT_EQ(concrete_event->result.campaigns[0].size, 62470);
+    EXPECT_EQ(concrete_event->result.campaigns[0].autoAccept, true);
+    EXPECT_EQ(concrete_event->result.campaigns[0].description, "this is my message to show on the device");
+  } else if (event->variant == "CampaignAcceptComplete") {
+    campaignaccept_seen = true;
+  }
+}
+
 /* Check for campaigns with manual control.
  * Accept a campaign.
- *   Fetch campaigns from the server.
- *   Send campaign acceptance report.
- *   Send CampaignAcceptComplete event.
+ * Fetch campaigns from the server.
+ * Send campaign acceptance report.
+ * Send CampaignAcceptComplete event.
+ * Send CampaignCheckComplete event with campaign data.
  */
 TEST(Aktualizr, CampaignCheckAndAccept) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFakeCampaign>(temp_dir.Path());
   Config conf = makeTestConfig(temp_dir, http->tls_server);
-  bool campaignaccept_seen = false;
 
   {
     auto storage = INvStorage::newStorage(conf.storage);
     Aktualizr aktualizr(conf, storage, http);
-
-    std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb =
-        [&campaignaccept_seen](std::shared_ptr<event::BaseEvent> event) {
-          if (event->variant == "CampaignAcceptComplete") {
-            campaignaccept_seen = true;
-          }
-        };
-    boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
-
+    std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = CampaignCheck_events;
+    aktualizr.SetSignalHandler(f_cb);
     aktualizr.Initialize();
 
     // check for campaign
@@ -972,11 +1029,11 @@ class HttpPutManifestFail : public HttpFake {
 };
 
 /* Send UpdateCheckComplete event after failure */
-TEST(Aktualizr, PutManifestError) {
+TEST(Aktualizr, UpdateCheckCompleteError) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpPutManifestFail>(temp_dir.Path());
 
-  Config conf = makeTestConfig(temp_dir, "http://putmanifesterror");
+  Config conf = makeTestConfig(temp_dir, "http://updatefail");
 
   auto storage = INvStorage::newStorage(conf.storage);
   CountUpdateCheckEvents counter;

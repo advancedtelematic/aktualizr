@@ -1,3 +1,4 @@
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <unistd.h>
@@ -19,6 +20,7 @@
 #include "storage/fsstorage_read.h"
 #include "storage/invstorage.h"
 #include "test_utils.h"
+#include "uptane/secondaryinterface.h"
 #include "uptane/tuf.h"
 #include "uptane/uptanerepository.h"
 #include "uptane_test_common.h"
@@ -227,6 +229,58 @@ TEST(Uptane, PutManifest) {
             "test-package");
 }
 
+class HttpPutManifestFail : public HttpFake {
+ public:
+  HttpPutManifestFail(const boost::filesystem::path &test_dir_in) : HttpFake(test_dir_in) {}
+  HttpResponse put(const std::string &url, const Json::Value &data) override {
+    (void)data;
+    return HttpResponse(url, 504, CURLE_OK, "");
+  }
+};
+
+int num_events_PutManifestError = 0;
+void process_events_PutManifestError(const std::shared_ptr<event::BaseEvent> &event) {
+  std::cout << event->variant << "\n";
+  if (event->variant == "PutManifestComplete") {
+    EXPECT_FALSE(std::static_pointer_cast<event::PutManifestComplete>(event)->success);
+    num_events_PutManifestError++;
+  }
+}
+
+/*
+ * Send PutManifestComplete event if send is unsuccessful
+ */
+TEST(Uptane, PutManifestError) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpPutManifestFail>(temp_dir.Path());
+
+  Config conf("tests/config/basic.toml");
+  conf.storage.path = temp_dir.Path();
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  auto events_channel = std::make_shared<event::Channel>();
+  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_PutManifestError;
+  events_channel->connect(f_cb);
+  num_events_PutManifestError = 0;
+  auto sota_client = SotaUptaneClient::newTestClient(conf, storage, http, events_channel);
+  EXPECT_NO_THROW(sota_client->initialize());
+  auto result = sota_client->putManifest();
+  EXPECT_FALSE(result);
+  EXPECT_EQ(num_events_PutManifestError, 1);
+}
+
+unsigned int num_events_Install = 0;
+void process_events_Install(const std::shared_ptr<event::BaseEvent> &event) {
+  if (event->variant == "InstallTargetComplete") {
+    auto concrete_event = std::static_pointer_cast<event::InstallTargetComplete>(event);
+    if (num_events_Install == 0) {
+      EXPECT_TRUE(concrete_event->success);
+    } else {
+      EXPECT_FALSE(concrete_event->success);
+    }
+    num_events_Install++;
+  }
+}
 /*
  * Verify successful installation of a provided fake package. Skip fetching and
  * downloading.
@@ -234,6 +288,7 @@ TEST(Uptane, PutManifest) {
  * Check if there are updates to install for the primary.
  * Install a binary update on the primary.
  * Store installation result for primary.
+ * Check if an update is already installed
  */
 TEST(Uptane, InstallFake) {
   Config conf("tests/config/basic.toml");
@@ -247,7 +302,10 @@ TEST(Uptane, InstallFake) {
   conf.tls.server = http->tls_server;
 
   auto storage = INvStorage::newStorage(conf.storage);
-  auto up = SotaUptaneClient::newTestClient(conf, storage, http);
+  auto events_channel = std::make_shared<event::Channel>();
+  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_Install;
+  events_channel->connect(f_cb);
+  auto up = SotaUptaneClient::newTestClient(conf, storage, http, events_channel);
   EXPECT_NO_THROW(up->initialize());
   std::vector<Uptane::Target> packages_to_install = UptaneTestCommon::makePackage("testecuserial", "testecuhwid");
   up->uptaneInstall(packages_to_install);
@@ -262,6 +320,120 @@ TEST(Uptane, InstallFake) {
   EXPECT_EQ(manifest["testecuserial"]["signed"]["installed_image"]["filepath"].asString(), "testecuserial");
   // Verify nothing has installed for the secondary.
   EXPECT_FALSE(manifest["secondary_ecu_serial"]["signed"].isMember("installed_image"));
+  EXPECT_EQ(num_events_Install, 1);
+  up->uptaneInstall(packages_to_install);
+  EXPECT_EQ(num_events_Install, 2);
+  manifest = up->AssembleManifest();
+  EXPECT_EQ(manifest["testecuserial"]["signed"]["custom"]["operation_result"]["id"].asString(), "testecuserial");
+  EXPECT_EQ(manifest["testecuserial"]["signed"]["custom"]["operation_result"]["result_code"].asInt(),
+            static_cast<int>(data::UpdateResultCode::kAlreadyProcessed));
+  EXPECT_EQ(manifest["testecuserial"]["signed"]["custom"]["operation_result"]["result_text"].asString(),
+            "Package already installed");
+}
+
+bool EcuInstallationStartedReportGot = false;
+class HttpFakeEvents : public HttpFake {
+ public:
+  HttpFakeEvents(const boost::filesystem::path &test_dir_in, std::string flavor = "")
+      : HttpFake(test_dir_in, std::move(flavor)) {}
+
+  virtual HttpResponse handle_event(const std::string &url, const Json::Value &data) override {
+    for (const auto &event : data) {
+      if (event["eventType"]["id"].asString() == "EcuInstallationStarted") {
+        if (event["event"]["ecu"].asString() == "secondary_ecu_serial") {
+          EcuInstallationStartedReportGot = true;
+        }
+      }
+    }
+    return HttpResponse(url, 200, CURLE_OK, "");
+  }
+};
+
+class SecondaryInterfaceMock : public Uptane::SecondaryInterface {
+ public:
+  explicit SecondaryInterfaceMock(Uptane::SecondaryConfig sconfig_in)
+      : Uptane::SecondaryInterface(std::move(sconfig_in)) {
+    std::string private_key, public_key;
+    Crypto::generateKeyPair(sconfig.key_type, &public_key, &private_key);
+    public_key_ = PublicKey(public_key, sconfig.key_type);
+    Json::Value manifest_unsigned;
+    manifest_unsigned["key"] = "value";
+
+    std::string b64sig = Utils::toBase64(
+        Crypto::Sign(sconfig.key_type, nullptr, private_key, Json::FastWriter().write(manifest_unsigned)));
+    Json::Value signature;
+    signature["method"] = "rsassa-pss";
+    signature["sig"] = b64sig;
+    signature["keyid"] = public_key_.KeyId();
+    manifest_["signed"] = manifest_unsigned;
+    manifest_["signatures"].append(signature);
+  }
+  PublicKey getPublicKey() { return public_key_; };
+
+  Json::Value getManifest() { return manifest_; }
+  MOCK_METHOD1(putMetadata, bool(const Uptane::RawMetaPack &));
+  MOCK_METHOD1(getRootVersion, int32_t(bool));
+  bool putRoot(const std::string &, bool) { return true; }
+  bool sendFirmware(const std::shared_ptr<std::string> &) { return true; }
+  PublicKey public_key_;
+  Json::Value manifest_;
+};
+
+MATCHER_P(matchMeta, meta, "") {
+  return (arg.director_root == meta.director_root) && (arg.image_root == meta.image_root) &&
+         (arg.director_targets == meta.director_targets) && (arg.image_timestamp == meta.image_timestamp) &&
+         (arg.image_snapshot == meta.image_snapshot) && (arg.image_targets == meta.image_targets);
+}
+
+/*
+ * Send metadata to secondary ECUs
+ * Send EcuInstallationStartedReport to server for secondaries
+ */
+TEST(Uptane, SendMetadataToSeconadry) {
+  Config conf("tests/config/basic.toml");
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFakeEvents>(temp_dir.Path(), "hasupdates");
+  conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
+  conf.provision.primary_ecu_hardware_id = "primary_hw";
+  conf.uptane.director_server = http->tls_server + "/director";
+  conf.uptane.repo_server = http->tls_server + "/repo";
+  conf.storage.path = temp_dir.Path();
+  conf.tls.server = http->tls_server;
+
+  Uptane::SecondaryConfig ecu_config;
+  ecu_config.secondary_type = Uptane::SecondaryType::kVirtual;
+  ecu_config.partial_verifying = false;
+  ecu_config.full_client_dir = temp_dir.Path();
+  ecu_config.ecu_serial = "secondary_ecu_serial";
+  ecu_config.ecu_hardware_id = "secondary_hw";
+  ecu_config.ecu_private_key = "sec.priv";
+  ecu_config.ecu_public_key = "sec.pub";
+  ecu_config.firmware_path = temp_dir / "firmware.txt";
+  ecu_config.target_name_path = temp_dir / "firmware_name.txt";
+  ecu_config.metadata_path = temp_dir / "secondary_metadata";
+
+  auto sec = std::make_shared<SecondaryInterfaceMock>(ecu_config);
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  auto up = SotaUptaneClient::newTestClient(conf, storage, http);
+
+  up->addNewSecondary(sec);
+  EXPECT_NO_THROW(up->initialize());
+  up->fetchMeta();
+  std::vector<Uptane::Target> packages_to_install =
+      UptaneTestCommon::makePackage("secondary_ecu_serial", "secondary_hw");
+
+  Uptane::RawMetaPack meta;
+  storage->loadLatestRoot(&meta.director_root, Uptane::RepositoryType::Director());
+  storage->loadNonRoot(&meta.director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets());
+  storage->loadLatestRoot(&meta.image_root, Uptane::RepositoryType::Image());
+  storage->loadNonRoot(&meta.image_timestamp, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp());
+  storage->loadNonRoot(&meta.image_snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot());
+  storage->loadNonRoot(&meta.image_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets());
+
+  EXPECT_CALL(*sec, putMetadata(matchMeta(meta)));
+  up->uptaneInstall(packages_to_install);
+  EXPECT_TRUE(EcuInstallationStartedReportGot);
 }
 
 /* Register secondary ECUs with director. */
@@ -917,6 +1089,42 @@ TEST(Uptane, offlineIteration) {
   std::vector<Uptane::Target> targets_offline;
   EXPECT_TRUE(sota_client->uptaneOfflineIteration(&targets_offline, nullptr));
   EXPECT_EQ(targets_online, targets_offline);
+}
+/*
+ Ignore updates for unrecognized ECUs.
+ Reject targets which do not match a known ECU
+*/
+TEST(Uptane, IgnoreUnknownUpdate) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
+  Config config("tests/config/basic.toml");
+  config.storage.path = temp_dir.Path();
+  config.uptane.director_server = http->tls_server + "director";
+  config.uptane.repo_server = http->tls_server + "repo";
+  config.pacman.type = PackageManager::kNone;
+  config.provision.primary_ecu_serial = "primary_ecu";
+  config.provision.primary_ecu_hardware_id = "primary_hw";
+  UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hw");
+  config.postUpdateValues();
+
+  auto storage = INvStorage::newStorage(config.storage);
+  auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+
+  EXPECT_NO_THROW(sota_client->initialize());
+  sota_client->AssembleManifest();
+
+  auto result = sota_client->fetchMeta();
+  EXPECT_EQ(result.status, result::UpdateStatus::kError);
+  EXPECT_STREQ(sota_client->getLastException().what(),
+               "The target had an ECU ID that did not match the client's configured ECU id.");
+  sota_client->last_exception = Uptane::Exception{"", ""};
+  result = sota_client->checkUpdates();
+  EXPECT_EQ(result.status, result::UpdateStatus::kError);
+  EXPECT_STREQ(sota_client->getLastException().what(),
+               "The target had an ECU ID that did not match the client's configured ECU id.");
+  std::vector<Uptane::Target> packages_to_install = UptaneTestCommon::makePackage("testecuserial", "testecuhwid");
+  auto report = sota_client->uptaneInstall(packages_to_install);
+  EXPECT_EQ(report.reports.size(), 0);
 }
 
 #ifdef BUILD_P11

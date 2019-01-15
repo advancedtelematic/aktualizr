@@ -1,4 +1,4 @@
 ignore:
   - "third_party"
   - "tests"
-  - "*_test.cc"
+  - "**/*_test.cc"
