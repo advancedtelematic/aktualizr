@@ -534,7 +534,7 @@ bool SotaUptaneClient::updateImagesMeta() {
       local_version = -1;
     }
 
-    if (!images_repo.verifyTargets(images_targets)) {
+    if (!images_repo.verifyTargets(images_targets, "targets")) {
       last_exception = images_repo.getLastException();
       return false;
     }
@@ -545,11 +545,53 @@ bool SotaUptaneClient::updateImagesMeta() {
       storage->storeNonRoot(images_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets());
     }
 
-    if (images_repo.targetsExpired()) {
+    if (images_repo.targetsExpired("targets")) {
       last_exception = Uptane::ExpiredMetadata("repo", "targets");
       return false;
     }
   }
+
+  // Update Images delegated Targets Metadata
+  for (const Uptane::Delegation &delegation : images_repo.delegations("targets")) {
+    std::string images_delegated;
+
+    if (!uptane_fetcher->fetchLatestRole(&images_delegated, Uptane::kMaxImagesTargetsSize,
+                                         Uptane::RepositoryType::Image(), Uptane::Role::Delegated(delegation.name_))) {
+      return false;
+    }
+    int remote_version = Uptane::extractVersionUntrusted(images_delegated);
+
+    int local_version;
+    std::string images_delegated_stored;
+    // TODO: will this work?
+    if (storage->loadNonRoot(&images_delegated_stored, Uptane::RepositoryType::Image(),
+                             Uptane::Role::Delegated(delegation.name_))) {
+      local_version = Uptane::extractVersionUntrusted(images_delegated_stored);
+    } else {
+      local_version = -1;
+    }
+
+    if (!images_repo.verifyTargets(images_delegated, delegation.name_)) {
+      last_exception = images_repo.getLastException();
+      return false;
+    }
+
+    if (local_version > remote_version) {
+      return false;
+    } else if (local_version < remote_version) {
+      // TODO: will this work?
+      // Store the metadata (in meta table? with new meta_type with delegated name?)
+      // Maybe better to use a separate table.
+      storage->storeNonRoot(images_delegated, Uptane::RepositoryType::Image(),
+                            Uptane::Role::Delegated(delegation.name_));
+    }
+
+    if (images_repo.targetsExpired(delegation.name_)) {
+      last_exception = Uptane::ExpiredMetadata("repo", "delegated targets");
+      return false;
+    }
+  }
+
   return true;
 }
 
@@ -659,16 +701,27 @@ bool SotaUptaneClient::checkImagesMetaOffline() {
       return false;
     }
 
-    if (!images_repo.verifyTargets(images_targets)) {
+    if (!images_repo.verifyTargets(images_targets, "targets")) {
       last_exception = images_repo.getLastException();
       return false;
     }
 
-    if (images_repo.targetsExpired()) {
+    if (images_repo.targetsExpired("targets")) {
       last_exception = Uptane::ExpiredMetadata("repo", "targets");
       return false;
     }
   }
+
+  // TODO: delegations
+  // Is rechecking for delegations necessary, or how do we know if we need to
+  // check/look for them?
+  // Check for delegations in targets.json.
+  //    Store keys
+  //    Store roles
+  // Update delegated_targets metadata
+  //    Load delegated targets metadata
+  //    Verify targets
+  //    Check expiration
   return true;
 }
 
@@ -729,7 +782,6 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
   result::Download result;
   std::vector<Uptane::Target> downloaded_targets;
   for (auto it = targets.cbegin(); it != targets.cend(); ++it) {
-    // TODO: delegations
     auto images_target = images_repo.getTarget(*it);
     if (images_target == nullptr) {
       last_exception = Uptane::TargetHashMismatch(it->filename());

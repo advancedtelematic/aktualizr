@@ -8,6 +8,7 @@
 #include <functional>
 #include <ostream>
 #include <set>
+#include <vector>
 #include "uptane/exceptions.h"
 
 #include "crypto/crypto.h"
@@ -60,6 +61,7 @@ class Role {
   static Role Timestamp() { return Role{RoleEnum::kTimestamp}; }
   static Role Delegated(const std::string &name) { return Role(name, true); }
   static Role InvalidRole() { return Role{RoleEnum::kInvalidRole}; }
+  // TODO: add delegated?
   static std::vector<Role> Roles() { return {Root(), Snapshot(), Targets(), Timestamp()}; }
 
   explicit Role(const std::string &role_name, bool delegation = false);
@@ -359,22 +361,33 @@ class Root : public BaseMeta {
   std::map<Role, int64_t> thresholds_for_role_;
 };
 
+struct Delegation {
+  std::string name_;
+  std::vector<KeyId> key_ids_;
+  std::vector<std::string> paths_;
+  bool terminating_{true};
+  int64_t threshold_{0};
+};
+
 class Targets : public BaseMeta {
  public:
   explicit Targets(const Json::Value &json);
   Targets(RepositoryType repo, const Json::Value &json, Root &root);
   Targets() = default;
 
-  std::vector<Uptane::Target> targets;
   bool operator==(const Targets &rhs) const {
     return version_ == rhs.version() && expiry_ == rhs.expiry() && targets == rhs.targets;
   }
   const std::string &correlation_id() const { return correlation_id_; }
 
+  std::vector<Uptane::Target> targets;
+  std::vector<Delegation> delegations_;
+
  private:
   void init(const Json::Value &json);
 
-  std::string correlation_id_;  // custom non-tuf
+  std::map<KeyId, PublicKey> keys_;  // for delegated roles
+  std::string correlation_id_;       // custom non-tuf
 };
 
 class TimestampMeta : public BaseMeta {
