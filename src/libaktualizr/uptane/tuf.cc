@@ -265,10 +265,40 @@ void Uptane::Targets::init(const Json::Value &json) {
     throw Uptane::InvalidMetadata("", "targets", "invalid targets.json");
   }
 
-  Json::Value target_list = json["signed"]["targets"];
+  const Json::Value target_list = json["signed"]["targets"];
   for (Json::ValueIterator t_it = target_list.begin(); t_it != target_list.end(); t_it++) {
     Target t(t_it.key().asString(), *t_it);
     targets.push_back(t);
+  }
+
+  if (json["signed"]["delegations"].isObject()) {
+    const Json::Value key_list = json["signed"]["delegations"]["keys"];
+    for (Json::ValueIterator k_it = key_list.begin(); k_it != key_list.end(); k_it++) {
+      const std::string key_type = boost::algorithm::to_lower_copy((*k_it)["keytype"].asString());
+      if (key_type != "rsa" && key_type != "ed25519") {
+        throw SecurityException("image", "Unsupported key type: " + (*k_it)["keytype"].asString());
+      }
+      const KeyId keyid = k_it.key().asString();
+      PublicKey key(*k_it);
+      keys_[keyid] = key;
+    }
+
+    const Json::Value role_list = json["signed"]["delegations"]["roles"];
+    for (Json::ValueIterator r_it = role_list.begin(); r_it != role_list.end(); r_it++) {
+      Delegation delegate;
+      delegate.name_ = (*r_it)["name"].asString();
+      const Json::Value keyid_list = (*r_it)["keyids"];
+      for (Json::ValueIterator kid_it = keyid_list.begin(); kid_it != keyid_list.end(); kid_it++) {
+        delegate.key_ids_.emplace_back(kid_it.key().asString());
+      }
+      const Json::Value paths_list = (*r_it)["paths"];
+      for (Json::ValueIterator p_it = paths_list.begin(); p_it != paths_list.end(); p_it++) {
+        delegate.paths_.emplace_back(p_it.key().asString());
+      }
+      delegate.terminating_ = (*r_it)["terminating"].asBool();
+      delegate.threshold_ = (*r_it)["threshold"].asInt64();
+      delegations_.push_back(delegate);
+    }
   }
 
   if (json["signed"]["custom"].isObject()) {
