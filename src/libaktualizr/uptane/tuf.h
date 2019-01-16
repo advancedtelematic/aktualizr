@@ -204,6 +204,8 @@ class Target {
   std::string filename() const { return filename_; }
   std::string sha256Hash() const;
   std::vector<Hash> hashes() const { return hashes_; };
+  std::vector<HardwareIdentifier> hardwareIds() const { return hwids_; };
+  std::string custom_version() const { return custom_version_; }
   std::string correlation_id() const { return correlation_id_; };
   void setCorrelationId(std::string correlation_id) { correlation_id_ = std::move(correlation_id); };
 
@@ -262,6 +264,8 @@ class Target {
   std::string type_;
   std::map<EcuSerial, HardwareIdentifier> ecus_;
   std::vector<Hash> hashes_;
+  std::vector<HardwareIdentifier> hwids_;
+  std::string custom_version_;
   uint64_t length_{0};
   std::string correlation_id_;
 };
