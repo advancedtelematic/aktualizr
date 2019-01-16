@@ -55,6 +55,8 @@ class SotaUptaneClient {
   result::CampaignCheck campaignCheck();
   void campaignAccept(const std::string &campaign_id);
 
+  const std::vector<Uptane::Target> GetRepoTargets();
+
  private:
   FRIEND_TEST(Aktualizr, FullNoUpdates);
   FRIEND_TEST(Aktualizr, FullMultipleSecondaries);

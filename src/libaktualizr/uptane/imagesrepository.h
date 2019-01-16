@@ -23,6 +23,8 @@ class ImagesRepository : public RepositoryCommon {
   bool snapshotExpired() { return snapshot.isExpired(TimeStamp::Now()); }
   int64_t snapshotSize() { return timestamp.snapshot_size(); }
 
+  const std::vector<Target> getTargets() { return targets.targets; }
+
   Exception getLastException() const { return last_exception; }
 
  private:
