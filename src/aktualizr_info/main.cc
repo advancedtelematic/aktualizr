@@ -149,6 +149,8 @@ int main(int argc, char **argv) {
 
     if (current_target.IsValid()) {
       std::cout << "Current primary ecu running version: " << current_target.sha256Hash() << std::endl;
+    } else {
+      std::cout << "No currently running version on primary ecu" << std::endl;
     }
 
     std::vector<Uptane::Target> installed_versions;
