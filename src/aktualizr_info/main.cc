@@ -104,22 +104,22 @@ int main(int argc, char **argv) {
     if (has_metadata) {
       if (vm.count("images-root") != 0u) {
         std::cout << "image root.json content:" << std::endl;
-        std::cout << images_root;
+        std::cout << images_root << std::endl;
       }
 
       if (vm.count("images-target") != 0u) {
         std::cout << "image targets.json content:" << std::endl;
-        std::cout << images_targets;
+        std::cout << images_targets << std::endl;
       }
 
       if (vm.count("director-root") != 0u) {
         std::cout << "director root.json content:" << std::endl;
-        std::cout << director_root;
+        std::cout << director_root << std::endl;
       }
 
       if (vm.count("director-target") != 0u) {
         std::cout << "director targets.json content:" << std::endl;
-        std::cout << director_targets;
+        std::cout << director_targets << std::endl;
       }
     }
 
