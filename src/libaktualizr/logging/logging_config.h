@@ -1,7 +1,7 @@
 #ifndef LOGGING_CONFIG_H
 #define LOGGING_CONFIG_H
 
-#include <boost/property_tree/ini_parser.hpp>
+#include <boost/property_tree/ptree_fwd.hpp>
 #include <ostream>
 
 struct LoggerConfig {

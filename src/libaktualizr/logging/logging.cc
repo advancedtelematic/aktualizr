@@ -1,25 +1,18 @@
 #include "logging.h"
-#include "utilities/config_utils.h"
 
-#include <boost/log/utility/setup/console.hpp>
-
-namespace logging = boost::log;
 using boost::log::trivial::severity_level;
 
 static severity_level gLoggingThreshold;
 
-void LoggerConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  CopyFromConfig(loglevel, "loglevel", pt);
-}
-
-void LoggerConfig::writeToStream(std::ostream& out_stream) const { writeOption(out_stream, loglevel, "loglevel"); }
+extern void logger_init_sink();
 
 int64_t get_curlopt_verbose() { return gLoggingThreshold <= boost::log::trivial::trace ? 1L : 0L; }
 
 void logger_init() {
   gLoggingThreshold = boost::log::trivial::info;
-  logging::add_console_log(std::cout, boost::log::keywords::format = "%Message%",
-                           boost::log::keywords::auto_flush = true);
+
+  logger_init_sink();
+
   boost::log::core::get()->set_filter(boost::log::trivial::severity >= gLoggingThreshold);
 }
 

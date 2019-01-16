@@ -1,12 +1,12 @@
-if(LOGGING_TYPE STREQUAL "boost")
-  set(SOURCES boost_logging.cc)
-elseif(LOGGING_TYPE STREQUAL "android")
-  set(SOURCES android_logging.cc)
+set(SOURCES logging.cc logging_config.cc)
+
+if(ANDROID)
+  list(APPEND SOURCES android_log_sink.cc)
 else()
-  message(FATAL_ERROR "Unknown logger type: ${logger_type}")
+  list(APPEND SOURCES default_log_sink.cc)
 endif()
 
 set(HEADERS logging_config.h logging.h)
 
 add_library(logging OBJECT ${SOURCES})
-aktualizr_source_file_checks(${SOURCES} ${HEADERS})
+aktualizr_source_file_checks(logging.cc logging_config.cc android_log_sink.cc default_log_sink.cc ${HEADERS})

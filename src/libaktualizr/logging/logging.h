@@ -1,6 +1,8 @@
 #ifndef SOTA_CLIENT_TOOLS_LOGGING_H_
 #define SOTA_CLIENT_TOOLS_LOGGING_H_
 
+#include <boost/log/core.hpp>
+#include <boost/log/expressions.hpp>
 #include <boost/log/trivial.hpp>
 
 #include "logging_config.h"

@@ -31,7 +31,6 @@ set(SOTA_PACKED_CREDENTIALS "" CACHE STRING "Credentials.zip for tests involving
 set(TESTSUITE_ONLY "" CACHE STRING "Only run tests matching this list of labels")
 set(TESTSUITE_EXCLUDE "" CACHE STRING "Exclude tests matching this list of labels")
 
-set(LOGGING_TYPE "boost" CACHE STRING "")
 set(STORAGE_TYPE "sqlite" CACHE STRING "")
 
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
@@ -285,6 +284,11 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
 
     if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9")
         add_definitions(-Wshadow)
+        if (CMAKE_SYSTEM_NAME MATCHES "Android")
+            # treat boost headers as system to ignore warnings,
+            # this is alternative to in-code diagnostics disabling
+            add_definitions(--system-header-prefix=boost/)
+        endif ()
     endif ()
 
     if (WARNING_AS_ERROR)
