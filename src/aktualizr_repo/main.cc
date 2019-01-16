@@ -15,9 +15,9 @@ int main(int argc, char **argv) {
   // clang-format off
   desc.add_options()
     ("help,h", "print usage")
-    ("command", po::value<std::string>(), "generate|sign|image|addtarget|emptytargets|oldtargets|signtargets")
+    ("command", po::value<std::string>(), "generate|sign|image|addtarget|adddelegation|emptytargets|oldtargets|signtargets")
     ("path", po::value<boost::filesystem::path>(), "path to the repository")
-    ("filename", po::value<std::string>(), "path to the image")
+    ("filename", po::value<boost::filesystem::path>(), "path to the image")
     ("hwid", po::value<std::string>(), "target hardware identifier")
     ("serial", po::value<std::string>(), "target ECU serial")
     ("expires", po::value<std::string>(), "expiration time")
@@ -28,7 +28,10 @@ int main(int argc, char **argv) {
     ("targetname", po::value<std::string>(), "target's name (for adding metadata without an actual file)")
     ("targetsha256", po::value<std::string>(), "target's SHA256 hash (for adding metadata without an actual file)")
     ("targetsha512", po::value<std::string>(), "target's SHA512 hash (for adding metadata without an actual file)")
-    ("targetlength", po::value<uint64_t>(), "target's length (for adding metadata without an actual file)");
+    ("targetlength", po::value<uint64_t>(), "target's length (for adding metadata without an actual file)")
+    ("dname", po::value<std::string>(), "delegation name")
+    ("dpattern", po::value<std::string>(), "delegation pattern");
+
   // clang-format on
 
   po::positional_options_description positionalOptions;
@@ -68,7 +71,14 @@ int main(int argc, char **argv) {
         repo.generateRepo(key_type);
       } else if (command == "image") {
         if (vm.count("filename") > 0) {
-          repo.addImage(vm["filename"].as<std::string>());
+          Delegation delegation;
+          if (vm.count("dname") != 0) {
+            delegation = Delegation(vm["path"].as<boost::filesystem::path>(), vm["dname"].as<std::string>());
+            if (!delegation.isMatched(vm["filename"].as<boost::filesystem::path>())) {
+              throw std::runtime_error("Image path doesn't match delegation!");
+            }
+          }
+          repo.addImage(vm["filename"].as<boost::filesystem::path>(), delegation);
         } else if (vm.count("targetname") > 0 && (vm.count("targetsha256") > 0 || vm.count("targetsha512") > 0) &&
                    vm.count("targetlength") > 0) {
           std::unique_ptr<Uptane::Hash> hash;
@@ -84,7 +94,14 @@ int main(int argc, char **argv) {
           exit(EXIT_FAILURE);
         }
       } else if (command == "addtarget") {
-        repo.addTarget(vm["filename"].as<std::string>(), vm["hwid"].as<std::string>(), vm["serial"].as<std::string>());
+        repo.addTarget(vm["filename"].as<boost::filesystem::path>().filename().string(), vm["hwid"].as<std::string>(),
+                       vm["serial"].as<std::string>());
+      } else if (command == "adddelegation") {
+        if (vm.count("dname") == 0 || vm.count("dpattern") == 0) {
+          std::cerr << "--dname and/or -- dpattern is missing\n";
+          exit(EXIT_FAILURE);
+        }
+        repo.addDelegation(Uptane::Role(vm["dname"].as<std::string>(), true), vm["dpattern"].as<std::string>());
       } else if (command == "signtargets") {
         repo.signTargets();
       } else if (command == "emptytargets") {

@@ -78,7 +78,7 @@ TEST(aktualizr_repo, add_image) {
   TemporaryDirectory temp_dir;
   UptaneRepo repo(temp_dir.Path(), "", "");
   repo.generateRepo(key_type);
-  repo.addImage(temp_dir.Path() / "repo/director/manifest");
+  repo.addImage(temp_dir.Path() / "repo/director/manifest", {});
   Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
   EXPECT_EQ(image_targets["signed"]["targets"].size(), 1);
   Json::Value director_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/targets.json");
@@ -89,7 +89,7 @@ TEST(aktualizr_repo, copy_image) {
   TemporaryDirectory temp_dir;
   UptaneRepo repo(temp_dir.Path(), "", "");
   repo.generateRepo(key_type);
-  repo.addImage(temp_dir.Path() / "repo/director/manifest");
+  repo.addImage(temp_dir.Path() / "repo/director/manifest", {});
   repo.addTarget("manifest", "test-hw", "test-serial");
   repo.signTargets();
   Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
