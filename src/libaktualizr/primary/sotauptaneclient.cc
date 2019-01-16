@@ -772,7 +772,7 @@ result::Pause SotaUptaneClient::pause() {
 }
 
 result::Pause SotaUptaneClient::resume() {
-  result::Pause res = uptane_fetcher->setPause(true);
+  result::Pause res = uptane_fetcher->setPause(false);
 
   sendEvent<event::DownloadResumed>(res);
 
