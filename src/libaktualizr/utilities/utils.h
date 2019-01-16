@@ -23,6 +23,8 @@ struct Utils {
   static std::string jsonToCanonicalStr(const Json::Value &json);
   static std::string genPrettyName();
   static std::string readFile(const boost::filesystem::path &filename, bool trim = false);
+
+  static void writeFile(const boost::filesystem::path &filename, const char *content, size_t size);
   static void writeFile(const boost::filesystem::path &filename, const std::string &content,
                         bool create_directories = true);
   static void writeFile(const boost::filesystem::path &filename, const Json::Value &content,

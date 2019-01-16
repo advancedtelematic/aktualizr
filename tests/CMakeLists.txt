@@ -104,6 +104,8 @@ if(SOTA_PACKED_CREDENTIALS)
 endif(SOTA_PACKED_CREDENTIALS)
 
 
+add_test(NAME memory_test COMMAND ${PROJECT_SOURCE_DIR}/tests/memory_usage_test.sh ${PROJECT_BINARY_DIR}
+            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 ###############################################################################
 # The test feature of cmake checks the return value when the program
 # exits. If the return value is zero, the testcase passes.

@@ -78,6 +78,22 @@ class StorageTargetRHandle {
   virtual size_t rread(uint8_t* buf, size_t size) = 0;
   virtual void rclose() = 0;
 
+  void writeToFile(const boost::filesystem::path& path) {
+    std::array<uint8_t, 1024> arr{};
+    size_t written = 0;
+    std::ofstream file(path.c_str());
+    if (!file.good()) {
+      throw std::runtime_error(std::string("Error opening file ") + path.string());
+    }
+    while (written < rsize()) {
+      size_t nread = rread(arr.data(), arr.size());
+      file.write(reinterpret_cast<char*>(arr.data()), static_cast<std::streamsize>(nread));
+      written += nread;
+    }
+    file.close();
+  }
+
+  // FIXME this function loads the whole image to the memory
   friend std::ostream& operator<<(std::ostream& os, StorageTargetRHandle& handle) {
     std::array<uint8_t, 256> arr{};
     size_t written = 0;
@@ -157,7 +173,7 @@ class INvStorage {
   virtual void storeInstallationResult(const data::OperationResult& result) = 0;
   virtual bool loadInstallationResult(data::OperationResult* result) = 0;
   virtual void clearInstallationResult() = 0;
-  virtual boost::optional<std::pair<int64_t, size_t>> checkTargetFile(const Uptane::Target& target) const = 0;
+  virtual boost::optional<size_t> checkTargetFile(const Uptane::Target& target) const = 0;
 
   // Incremental file API
   virtual std::unique_ptr<StorageTargetWHandle> allocateTargetFile(bool from_director,

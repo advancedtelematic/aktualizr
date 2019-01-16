@@ -88,7 +88,7 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
         throw Exception("image", "No hash defined for the target");
       }
       auto target_exists = storage->checkTargetFile(target);
-      if (target_exists && target_exists->second == target.length()) {
+      if (target_exists && *target_exists == target.length()) {
         LOG_INFO << "Image already downloaded skipping download";
         return true;
       }
@@ -97,7 +97,7 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
       if (!target_exists) {
         ds.fhandle = storage->allocateTargetFile(false, target);
       } else {
-        ds.downloaded_length = target_exists->second;
+        ds.downloaded_length = *target_exists;
         auto target_handle = storage->openTargetFile(target);
         ds.fhandle = target_handle->toWriteHandle();
         unsigned char buf[ds.downloaded_length];
