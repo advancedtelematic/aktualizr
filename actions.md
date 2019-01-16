@@ -325,6 +325,7 @@ These tools all link with libaktualizr, although they do not necessary use the A
   - [x] Print targets metadata from director repository (aktualizr_info/CMakeLists.txt)
   - [x] Print TLS credentials (aktualizr_info/CMakeLists.txt)
   - [x] Print primary ECU keys (aktualizr_info/CMakeLists.txt)
+  - [ ] Print primary ECU current and pending versions
 
 ### aktualizr-repo
 

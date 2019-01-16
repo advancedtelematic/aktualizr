@@ -51,6 +51,7 @@ void AktualizrInfoConfig::updateFromPropertyTree(const boost::property_tree::ptr
   }
 
   // from aktualizr config
+  CopySubtreeFromConfig(pacman, "pacman", pt);
   CopySubtreeFromConfig(storage, "storage", pt);
 }
 
@@ -58,6 +59,7 @@ void AktualizrInfoConfig::writeToStream(std::ostream& sink) const {
   // Keep this order the same as in aktualizr_info_config.h and
   // AktualizrInfoConfig::updateFromPropertyTree().
   WriteSectionToStream(logger, "logger", sink);
+  WriteSectionToStream(pacman, "pacman", sink);
   WriteSectionToStream(storage, "storage", sink);
 }
 
