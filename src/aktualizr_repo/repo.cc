@@ -164,7 +164,7 @@ void Repo::generateRepo(KeyType key_type) {
   timestamp["meta"]["snapshot.json"]["length"] = static_cast<Json::UInt>(signed_snapshot.length());
   timestamp["meta"]["snapshot.json"]["version"] = 1;
   Utils::writeFile(repo_dir / "timestamp.json",
-                   Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Snapshot(), timestamp)));
+                   Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Timestamp(), timestamp)));
   if (repo_type_ == Uptane::RepositoryType::Director()) {
     Utils::writeFile(path_ / "repo/director/manifest", std::string());  // just empty file to work with put method
   }
