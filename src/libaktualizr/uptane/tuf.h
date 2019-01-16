@@ -198,6 +198,8 @@ class Target {
   // Internal, does not have type or ecu types informations
   Target(std::string filename, std::vector<Hash> hashes, uint64_t length, std::string correlation_id = "");
 
+  static Target Unknown();
+
   const std::map<EcuSerial, HardwareIdentifier> &ecus() const { return ecus_; }
   std::string filename() const { return filename_; }
   std::string sha256Hash() const;
@@ -208,6 +210,8 @@ class Target {
   bool MatchWith(const Hash &hash) const;
 
   uint64_t length() const { return length_; }
+
+  bool IsValid() const { return valid; }
 
   bool IsForSecondary(const EcuSerial &ecuIdentifier) const {
     return (std::find_if(ecus_.cbegin(), ecus_.cend(), [&ecuIdentifier](std::pair<EcuSerial, HardwareIdentifier> pair) {
@@ -253,6 +257,7 @@ class Target {
   friend std::ostream &operator<<(std::ostream &os, const Target &t);
 
  private:
+  bool valid{true};
   std::string filename_;
   std::string type_;
   std::map<EcuSerial, HardwareIdentifier> ecus_;

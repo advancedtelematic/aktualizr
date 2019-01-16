@@ -16,12 +16,6 @@ class PackageManagerInterface {
   virtual data::InstallOutcome install(const Uptane::Target& target) const = 0;
   virtual data::InstallOutcome finalizeInstall(const Uptane::Target& target) const = 0;
   virtual bool imageUpdated() = 0;
-  static Uptane::Target getUnknown() {
-    Json::Value t_json;
-    t_json["hashes"]["sha256"] = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("")));
-    t_json["length"] = 0;
-    return Uptane::Target("unknown", t_json);
-  }
   Json::Value getManifest(const Uptane::EcuSerial& ecu_serial) const {
     Uptane::Target installed_target = getCurrent();
     Json::Value installed_image;

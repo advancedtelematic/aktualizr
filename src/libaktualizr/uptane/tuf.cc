@@ -152,6 +152,17 @@ Target::Target(std::string filename, std::vector<Hash> hashes, uint64_t length, 
   std::sort(hashes_.begin(), hashes_.end(), [](const Hash &l, const Hash &r) { return l.type() < r.type(); });
 }
 
+Target Target::Unknown() {
+  Json::Value t_json;
+  t_json["hashes"]["sha256"] = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("")));
+  t_json["length"] = 0;
+  Uptane::Target target{"unknown", t_json};
+
+  target.valid = false;
+
+  return target;
+}
+
 bool Target::MatchWith(const Hash &hash) const {
   return (std::find(hashes_.begin(), hashes_.end(), hash) != hashes_.end());
 }

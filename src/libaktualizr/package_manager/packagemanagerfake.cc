@@ -20,7 +20,7 @@ Uptane::Target PackageManagerFake::getCurrent() const {
     return installed_versions.at(current_k);
   }
 
-  return getUnknown();
+  return Uptane::Target::Unknown();
 }
 
 data::InstallOutcome PackageManagerFake::install(const Uptane::Target &target) const {

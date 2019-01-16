@@ -61,5 +61,5 @@ Uptane::Target DebianManager::getCurrent() const {
     return installed_versions.at(current_k);
   }
 
-  return getUnknown();
+  return Uptane::Target::Unknown();
 }
