@@ -513,6 +513,61 @@ void SQLStorage::clearMetadata() {
   }
 }
 
+void SQLStorage::storeDelegation(const std::string& data, const Uptane::Role role) {
+  SQLite3Guard db = dbConnection();
+
+  if (!db.beginTransaction()) {
+    LOG_ERROR << "Can't start transaction: " << db.errmsg();
+    return;
+  }
+
+  auto del_statement = db.prepareStatement<std::string>("DELETE FROM delegations WHERE role_name=?;", role.ToString());
+
+  if (del_statement.step() != SQLITE_DONE) {
+    LOG_ERROR << "Can't clear delegation metadata: " << db.errmsg();
+    return;
+  }
+
+  auto ins_statement = db.prepareStatement<SQLBlob, std::string>("INSERT INTO delegations VALUES (?, ?);",
+                                                                 SQLBlob(data), role.ToString());
+
+  if (ins_statement.step() != SQLITE_DONE) {
+    LOG_ERROR << "Can't add delegation metadata: " << db.errmsg();
+    return;
+  }
+
+  db.commitTransaction();
+}
+
+bool SQLStorage::loadDelegation(std::string* data, const Uptane::Role role) {
+  SQLite3Guard db = dbConnection();
+
+  auto statement = db.prepareStatement<std::string>(
+      "SELECT meta FROM delegations WHERE role_name=? ORDER BY role_name DESC LIMIT 1;", role.ToString());
+  int result = statement.step();
+
+  if (result == SQLITE_DONE) {
+    LOG_TRACE << "Delegations metadata not present";
+    return false;
+  } else if (result != SQLITE_ROW) {
+    LOG_ERROR << "Can't get delegations metadata: " << db.errmsg();
+    return false;
+  }
+  if (data != nullptr) {
+    *data = std::string(reinterpret_cast<const char*>(sqlite3_column_blob(statement.get(), 0)));
+  }
+
+  return true;
+}
+
+void SQLStorage::clearDelegations() {
+  SQLite3Guard db = dbConnection();
+
+  if (db.exec("DELETE FROM delegations;", nullptr, nullptr) != SQLITE_OK) {
+    LOG_ERROR << "Can't clear delegations metadata: " << db.errmsg();
+  }
+}
+
 void SQLStorage::storeDeviceId(const std::string& device_id) {
   SQLite3Guard db = dbConnection();
 
