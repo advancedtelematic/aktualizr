@@ -1,9 +1,9 @@
 -- Don't modify this! Create a new migration instead--see docs/schema-migrations.adoc
 SAVEPOINT MIGRATION;
 
-CREATE TABLE rollback_migrations(version_from INT PRIMARY KEY, migration TEXT NOT NULL);
+CREATE TABLE delegations(meta BLOB NOT NULL, role_name TEXT NOT NULL, UNIQUE(role_name));
 
 DELETE FROM version;
-INSERT INTO version VALUES(15);
+INSERT INTO version VALUES(17);
 
 RELEASE MIGRATION;

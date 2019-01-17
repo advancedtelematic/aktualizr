@@ -42,6 +42,9 @@ class SQLStorage : public SQLStorageBase, public INvStorage {
   bool loadNonRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Role role) override;
   void clearNonRootMeta(Uptane::RepositoryType repo) override;
   void clearMetadata() override;
+  void storeDelegation(const std::string& data, const Uptane::Role role) override;
+  bool loadDelegation(std::string* data, const Uptane::Role role) override;
+  void clearDelegations() override;
 
   void storeDeviceId(const std::string& device_id) override;
   bool loadDeviceId(std::string* device_id) override;

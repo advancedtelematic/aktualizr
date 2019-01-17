@@ -136,6 +136,9 @@ class INvStorage {
   virtual bool loadNonRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Role role) = 0;
   virtual void clearNonRootMeta(Uptane::RepositoryType repo) = 0;
   virtual void clearMetadata() = 0;
+  virtual void storeDelegation(const std::string& data, const Uptane::Role role) = 0;
+  virtual bool loadDelegation(std::string* data, const Uptane::Role role) = 0;
+  virtual void clearDelegations() = 0;
 
   virtual void storeDeviceId(const std::string& device_id) = 0;
   virtual bool loadDeviceId(std::string* device_id) = 0;

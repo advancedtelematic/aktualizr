@@ -1,3 +1,4 @@
+-- Don't modify this! Create a new migration instead--see docs/schema-migrations.adoc
 SAVEPOINT MIGRATION;
 
 DROP TABLE installation_result;
