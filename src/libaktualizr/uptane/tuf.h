@@ -58,10 +58,11 @@ class Role {
   static Role Snapshot() { return Role{RoleEnum::kSnapshot}; }
   static Role Targets() { return Role{RoleEnum::kTargets}; }
   static Role Timestamp() { return Role{RoleEnum::kTimestamp}; }
+  static Role Delegated(const std::string &name) { return Role(name, true); }
   static Role InvalidRole() { return Role{RoleEnum::kInvalidRole}; }
   static std::vector<Role> Roles() { return {Root(), Snapshot(), Targets(), Timestamp()}; }
 
-  explicit Role(const std::string & /*role_name*/);
+  explicit Role(const std::string &role_name, bool delegation = false);
   std::string ToString() const;
   int ToInt() const { return static_cast<int>(role_); }
   bool operator==(const Role &other) const { return role_ == other.role_; }
@@ -72,11 +73,12 @@ class Role {
 
  private:
   /** This must match the meta_types table in sqlstorage */
-  enum class RoleEnum { kRoot = 0, kSnapshot = 1, kTargets = 2, kTimestamp = 3, kInvalidRole = -1 };
+  enum class RoleEnum { kRoot = 0, kSnapshot = 1, kTargets = 2, kTimestamp = 3, kDelegated = 4, kInvalidRole = -1 };
 
   explicit Role(RoleEnum role) : role_(role) {}
 
   RoleEnum role_;
+  std::string name_;
 };
 
 std::ostream &operator<<(std::ostream &os, const Role &t);

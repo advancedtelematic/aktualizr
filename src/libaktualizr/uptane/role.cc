@@ -5,7 +5,7 @@
 using Uptane::Role;
 using Uptane::Version;
 
-Role::Role(const std::string &role_name) {
+Role::Role(const std::string &role_name, const bool delegation) {
   std::string role_name_lower;
   std::transform(role_name.begin(), role_name.end(), std::back_inserter(role_name_lower), ::tolower);
   if (role_name_lower == "root") {
@@ -16,6 +16,9 @@ Role::Role(const std::string &role_name) {
     role_ = RoleEnum::kTargets;
   } else if (role_name_lower == "timestamp") {
     role_ = RoleEnum::kTimestamp;
+  } else if (delegation) {
+    role_ = RoleEnum::kDelegated;
+    name_ = role_name;
   } else {
     role_ = RoleEnum::kInvalidRole;
   }
@@ -31,6 +34,8 @@ std::string Role::ToString() const {
       return "targets";
     case RoleEnum::kTimestamp:
       return "timestamp";
+    case RoleEnum::kDelegated:
+      return name_;
     default:
       return "invalidrole";
   }
