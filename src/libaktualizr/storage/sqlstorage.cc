@@ -402,7 +402,7 @@ void SQLStorage::storeRoot(const std::string& data, Uptane::RepositoryType repo,
   db.commitTransaction();
 }
 
-void SQLStorage::storeNonRoot(const std::string& data, Uptane::RepositoryType repo, Uptane::Role role) {
+void SQLStorage::storeNonRoot(const std::string& data, Uptane::RepositoryType repo, const Uptane::Role role) {
   SQLite3Guard db = dbConnection();
 
   if (!db.beginTransaction()) {
@@ -472,7 +472,7 @@ bool SQLStorage::loadRoot(std::string* data, Uptane::RepositoryType repo, Uptane
   return true;
 }
 
-bool SQLStorage::loadNonRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Role role) {
+bool SQLStorage::loadNonRoot(std::string* data, Uptane::RepositoryType repo, const Uptane::Role role) {
   SQLite3Guard db = dbConnection();
 
   auto statement = db.prepareStatement<int, int>(
