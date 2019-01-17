@@ -265,7 +265,7 @@ Uptane::Target OstreeManager::getCurrent() const {
     }
   }
 
-  return getUnknown();
+  return Uptane::Target::Unknown();
 }
 
 // used for bootloader rollback

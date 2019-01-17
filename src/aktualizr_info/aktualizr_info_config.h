@@ -6,6 +6,7 @@
 #include <boost/property_tree/ini_parser.hpp>
 
 #include "logging/logging_config.h"
+#include "package_manager/packagemanagerconfig.h"
 #include "storage/storage_config.h"
 #include "utilities/config_utils.h"
 
@@ -24,6 +25,7 @@ class AktualizrInfoConfig : public BaseConfig {
 
   // from primary config
   LoggerConfig logger;
+  PackageConfig pacman;
   StorageConfig storage;
 
  private:

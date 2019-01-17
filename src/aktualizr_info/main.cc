@@ -6,6 +6,7 @@
 
 #include "aktualizr_info_config.h"
 #include "logging/logging.h"
+#include "package_manager/packagemanagerfactory.h"
 #include "storage/invstorage.h"
 #include "storage/sql_utils.h"
 
@@ -103,22 +104,22 @@ int main(int argc, char **argv) {
     if (has_metadata) {
       if (vm.count("images-root") != 0u) {
         std::cout << "image root.json content:" << std::endl;
-        std::cout << images_root;
+        std::cout << images_root << std::endl;
       }
 
       if (vm.count("images-target") != 0u) {
         std::cout << "image targets.json content:" << std::endl;
-        std::cout << images_targets;
+        std::cout << images_targets << std::endl;
       }
 
       if (vm.count("director-root") != 0u) {
         std::cout << "director root.json content:" << std::endl;
-        std::cout << director_root;
+        std::cout << director_root << std::endl;
       }
 
       if (vm.count("director-target") != 0u) {
         std::cout << "director targets.json content:" << std::endl;
-        std::cout << director_targets;
+        std::cout << director_targets << std::endl;
       }
     }
 
@@ -140,6 +141,24 @@ int main(int argc, char **argv) {
       storage->loadPrimaryKeys(&pub, &priv);
       std::cout << "Public key:" << std::endl << pub << std::endl;
       std::cout << "Private key:" << std::endl << priv << std::endl;
+    }
+
+    auto pacman = PackageManagerFactory::makePackageManager(config.pacman, storage, nullptr);
+
+    Uptane::Target current_target = pacman->getCurrent();
+
+    if (current_target.IsValid()) {
+      std::cout << "Current primary ecu running version: " << current_target.sha256Hash() << std::endl;
+    } else {
+      std::cout << "No currently running version on primary ecu" << std::endl;
+    }
+
+    std::vector<Uptane::Target> installed_versions;
+    size_t pending = SIZE_MAX;
+    storage->loadInstalledVersions("", &installed_versions, nullptr, &pending);
+
+    if (pending != SIZE_MAX) {
+      std::cout << "Pending primary ecu version: " << installed_versions[pending].sha256Hash() << std::endl;
     }
 
   } catch (const po::error &o) {
