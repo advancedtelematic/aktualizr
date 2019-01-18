@@ -137,14 +137,22 @@ endif(FAULT_INJECTION)
 #add_definitions(-DBOOST_LOG_DYN_LINK)
 
 if(NOT CMAKE_BUILD_TYPE)
-    message(STATUS "No CMAKE_BUILD_TYPE specified, defaulting to Valgrind")
-    set(CMAKE_BUILD_TYPE Valgrind)
+    set(CMAKE_BUILD_TYPE "Release")
+    message(STATUS "No CMAKE_BUILD_TYPE specified, defaulting to ${CMAKE_BUILD_TYPE}")
 endif(NOT CMAKE_BUILD_TYPE)
 
 set(CMAKE_CXX_FLAGS_DEBUG "-Og -g")
 
 SET(CMAKE_CXX_FLAGS_VALGRIND "-O1 -g")
 SET(CMAKE_C_FLAGS_VALGRIND "-O1 -g")
+
+SET(CMAKE_CXX_FLAGS_ASAN "-O1 -g -fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-omit-frame-pointer")
+SET(CMAKE_C_FLAGS_ASAN "-O1 -g -fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-omit-frame-pointer")
+SET(CMAKE_EXE_LINKER_FLAGS_ASAN "-O1 -g -fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-omit-frame-pointer")
+
+SET(CMAKE_CXX_FLAGS_TSAN "-O1 -g -fsanitize=thread -fno-omit-frame-pointer")
+SET(CMAKE_C_FLAGS_TSAN "-O1 -g -fsanitize=thread -fno-omit-frame-pointer")
+SET(CMAKE_EXE_LINKER_FLAGS_TSAN "-O1 -g -fsanitize=thread -fno-omit-frame-pointer")
 
 # prevent visibility warnings from the linker
 if (APPLE)

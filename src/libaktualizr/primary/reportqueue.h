@@ -76,11 +76,10 @@ class ReportQueue {
   std::shared_ptr<HttpInterface> http;
   std::thread thread_;
   std::condition_variable cv_;
-  std::mutex thread_mutex_;
-  std::mutex queue_mutex_;
+  std::mutex m_;
   std::queue<std::unique_ptr<ReportEvent>> report_queue_;
   Json::Value report_array{Json::arrayValue};
-  bool shutdown_;
+  bool shutdown_{false};
 };
 
 #endif  // REPORTQUEUE_H_
