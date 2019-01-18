@@ -137,8 +137,8 @@ endif(FAULT_INJECTION)
 #add_definitions(-DBOOST_LOG_DYN_LINK)
 
 if(NOT CMAKE_BUILD_TYPE)
-    message(STATUS "No CMAKE_BUILD_TYPE specified, defaulting to Valgrind")
-    set(CMAKE_BUILD_TYPE Valgrind)
+    set(CMAKE_BUILD_TYPE "Release")
+    message(STATUS "No CMAKE_BUILD_TYPE specified, defaulting to ${CMAKE_BUILD_TYPE}")
 endif(NOT CMAKE_BUILD_TYPE)
 
 set(CMAKE_CXX_FLAGS_DEBUG "-Og -g")
