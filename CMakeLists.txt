@@ -146,6 +146,14 @@ set(CMAKE_CXX_FLAGS_DEBUG "-Og -g")
 SET(CMAKE_CXX_FLAGS_VALGRIND "-O1 -g")
 SET(CMAKE_C_FLAGS_VALGRIND "-O1 -g")
 
+SET(CMAKE_CXX_FLAGS_ASAN "-O1 -g -fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-omit-frame-pointer")
+SET(CMAKE_C_FLAGS_ASAN "-O1 -g -fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-omit-frame-pointer")
+SET(CMAKE_EXE_LINKER_FLAGS_ASAN "-O1 -g -fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-omit-frame-pointer")
+
+SET(CMAKE_CXX_FLAGS_TSAN "-O1 -g -fsanitize=thread -fno-omit-frame-pointer")
+SET(CMAKE_C_FLAGS_TSAN "-O1 -g -fsanitize=thread -fno-omit-frame-pointer")
+SET(CMAKE_EXE_LINKER_FLAGS_TSAN "-O1 -g -fsanitize=thread -fno-omit-frame-pointer")
+
 # prevent visibility warnings from the linker
 if (APPLE)
   link_libraries("-Wl,-w")
