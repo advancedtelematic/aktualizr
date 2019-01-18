@@ -98,6 +98,48 @@ TEST(aktualizr_repo, copy_image) {
   EXPECT_EQ(director_targets["signed"]["targets"].size(), 1);
 }
 
+/*
+ * Add simple delegation
+ * Add image with delegation
+ */
+TEST(aktualizr_repo, delegation) {
+  TemporaryDirectory temp_dir;
+  std::ostringstream keytype_stream;
+  keytype_stream << key_type;
+  std::string cmd = generate_repo_exec + " generate " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
+  std::string output;
+  int retval = Utils::shell(cmd, &output);
+  if (retval) {
+    FAIL() << "'" << cmd << "' exited with error code\n";
+  }
+  cmd = generate_repo_exec + " adddelegation " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
+  cmd += " --dname test_delegate --dpattern 'tests/test_data/*.txt' ";
+  retval = Utils::shell(cmd, &output);
+  if (retval) {
+    FAIL() << "'" << cmd << "' exited with error code\n";
+  }
+
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/image/test_delegate.json"));
+  auto targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
+  EXPECT_EQ(targets["signed"]["delegations"]["roles"][0]["name"].asString(), "test_delegate");
+  EXPECT_EQ(targets["signed"]["delegations"]["roles"][0]["paths"][0].asString(), "tests/test_data/*.txt");
+
+  cmd = generate_repo_exec + " image " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
+  cmd += " --dname test_delegate --filename tests/test_data/firmware.txt";
+  retval = Utils::shell(cmd, &output);
+  if (retval) {
+    FAIL() << "'" << cmd << "' exited with error code\n";
+  }
+  Uptane::Root root(Uptane::RepositoryType::Image(), Utils::parseJSONFile(temp_dir.Path() / "repo/image/root.json"));
+  auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/test_delegate.json");
+  Uptane::Targets delegate_targets(Uptane::RepositoryType::Image(), test_delegate, root);
+  EXPECT_EQ(delegate_targets.targets.size(), 1);
+  EXPECT_EQ(delegate_targets.targets[0].filename(), "tests/test_data/firmware.txt");
+  EXPECT_EQ(delegate_targets.targets[0].length(), 17);
+  EXPECT_EQ(delegate_targets.targets[0].sha256Hash(),
+            "d8e9caba8c1697fcbade1057f9c2488044192ff76bb64d4aba2c20e53dc33033");
+}
+
 TEST(aktualizr_repo, sign) {
   TemporaryDirectory temp_dir;
   std::ostringstream keytype_stream;

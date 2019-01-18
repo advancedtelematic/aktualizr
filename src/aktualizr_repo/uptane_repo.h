@@ -10,7 +10,8 @@ class UptaneRepo {
   void generateRepo(KeyType key_type = KeyType::kRSA2048);
   void addTarget(const std::string &target_name, const std::string &hardware_id, const std::string &ecu_serial);
   void addImage(const boost::filesystem::path &image_path, const Delegation &delegation);
-  void addDelegation(const Uptane::Role &name, const std::string &path, KeyType key_type = KeyType::kRSA2048);
+  void addDelegation(const Uptane::Role &name, const std::string &path, KeyType key_type = KeyType::kRSA2048,
+                     bool terminating = false);
   void addCustomImage(const std::string &name, const Uptane::Hash &hash, uint64_t length);
   void signTargets();
   void emptyTargets();

@@ -62,7 +62,7 @@ void ImageRepo::addImage(const std::string &name, const Json::Value &target, con
                    Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Timestamp(), timestamp)));
 }
 
-void ImageRepo::addDelegation(const Uptane::Role &name, const std::string &path, KeyType key_type) {
+void ImageRepo::addDelegation(const Uptane::Role &name, const std::string &path, KeyType key_type, bool terminating) {
   if (keys_.count(name) != 0) {
     throw std::runtime_error("Delegation with the same name already exist.");
   }
@@ -89,7 +89,7 @@ void ImageRepo::addDelegation(const Uptane::Role &name, const std::string &path,
   role["keyids"].append(keypair.public_key.KeyId());
   role["paths"].append(path);
   role["threshold"] = 1;
-  role["terminating"] = false;
+  role["terminating"] = terminating;
   targets_notsigned["delegations"]["roles"].append(role);
 
   std::string signed_targets = Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Targets(), targets_notsigned));

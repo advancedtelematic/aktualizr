@@ -51,7 +51,7 @@ struct Delegation {
     }
     return false;
   }
-  static bool isBadName(std::string delegation_name) {
+  static bool isBadName(const std::string &delegation_name) {
     return (delegation_name == "root" || delegation_name == "targets" || delegation_name == "snapshot" ||
             delegation_name == "timestamp");
   }
