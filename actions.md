@@ -335,6 +335,8 @@ These tools all link with libaktualizr, although they do not necessary use the A
 - [x] Add an image to the images repo (repo_test.cc)
 - [x] Copy an image to the director repo (repo_test.cc)
 - [x] Sign director repo targets (repo_test.cc)
+- [x] Add simple delegation (repo_test.cc)
+- [x] Add image with delegation (repo_test.cc)
 
 ### aktualizr-cert-provider
 

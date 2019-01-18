@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
                        vm["serial"].as<std::string>());
       } else if (command == "adddelegation") {
         if (vm.count("dname") == 0 || vm.count("dpattern") == 0) {
-          std::cerr << "--dname and/or -- dpattern is missing\n";
+          std::cerr << "--dname and/or --dpattern is missing\n";
           exit(EXIT_FAILURE);
         }
         repo.addDelegation(Uptane::Role(vm["dname"].as<std::string>(), true), vm["dpattern"].as<std::string>());
