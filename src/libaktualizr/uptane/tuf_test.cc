@@ -47,6 +47,20 @@ TEST(Root, RootJsonRsassaPssSha256) {
   EXPECT_NO_THROW(Uptane::Root(Uptane::RepositoryType::Director(), initial_root, root));
 }
 
+/* Reject delegated role names that are identical to other roles. */
+TEST(Role, InvalidDelegationName) {
+  EXPECT_THROW(Uptane::Role::Delegated("root"), Uptane::Exception);
+  EXPECT_THROW(Uptane::Role::Delegated("snapshot"), Uptane::Exception);
+  EXPECT_THROW(Uptane::Role::Delegated("targets"), Uptane::Exception);
+  EXPECT_THROW(Uptane::Role::Delegated("timestamp"), Uptane::Exception);
+}
+
+/* Delegated role has custom name. */
+TEST(Role, ValidDelegationName) {
+  Uptane::Role delegated = Uptane::Role::Delegated("whatever");
+  EXPECT_EQ(delegated.ToString(), "whatever");
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
