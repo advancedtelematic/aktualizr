@@ -14,6 +14,7 @@ RUN apt-get update && apt-get -y install \
   cmake \
   curl \
   e2fslibs-dev \
+  fiu-utils \
   g++ \
   gcc \
   git \
@@ -33,6 +34,7 @@ RUN apt-get update && apt-get -y install \
   libengine-pkcs11-openssl \
   libexpat1-dev \
   libffi-dev \
+  libfiu-dev \
   libfuse-dev \
   libglib2.0-dev \
   libgpgme11-dev \
