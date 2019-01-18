@@ -11,8 +11,9 @@ void ImagesRepository::resetMeta() {
 
 bool ImagesRepository::verifyTimestamp(const std::string& timestamp_raw) {
   try {
+    // Verify the signature:
     timestamp =
-        TimestampMeta(RepositoryType::Image(), Utils::parseJSON(timestamp_raw), root);  // signature verification
+        TimestampMeta(RepositoryType::Image(), Utils::parseJSON(timestamp_raw), std::make_shared<MetaWithKeys>(root));
   } catch (const Exception& e) {
     LOG_ERROR << "Signature verification for timestamp metadata failed";
     last_exception = e;
@@ -49,7 +50,8 @@ bool ImagesRepository::verifySnapshot(const std::string& snapshot_raw) {
       LOG_ERROR << "No hash found for shapshot.json";
       return false;
     }
-    snapshot = Snapshot(RepositoryType::Image(), Utils::parseJSON(snapshot_raw), root);  // signature verification
+    // Verify the signature:
+    snapshot = Snapshot(RepositoryType::Image(), Utils::parseJSON(snapshot_raw), std::make_shared<MetaWithKeys>(root));
     if (snapshot.version() != timestamp.snapshot_version()) {
       return false;
     }
@@ -90,7 +92,9 @@ bool ImagesRepository::verifyTargets(const std::string& targets_raw, const std::
       LOG_ERROR << "No hash found for targets.json";
       return false;
     }
-    targets[role_name] = Targets(RepositoryType::Image(), targets_json, root);  // signature verification
+    // Verify the signature:
+    // TODO: delegated targets are checked with parent Targets, not Root.
+    targets[role_name] = Targets(RepositoryType::Image(), targets_json, std::make_shared<MetaWithKeys>(root));
     // Only compare targets version in snapshot metadata for top-level
     // targets.json. Delegated target metadata versions are not tracked outside
     // of their own metadata.

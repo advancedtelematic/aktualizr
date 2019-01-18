@@ -9,7 +9,8 @@ void DirectorRepository::resetMeta() {
 
 bool DirectorRepository::verifyTargets(const std::string& targets_raw) {
   try {
-    targets = Targets(RepositoryType::Director(), Utils::parseJSON(targets_raw), root);  // signature verification
+    // Verify the signature:
+    targets = Targets(RepositoryType::Director(), Utils::parseJSON(targets_raw), std::make_shared<MetaWithKeys>(root));
   } catch (const Uptane::Exception& e) {
     LOG_ERROR << "Signature verification for director targets metadata failed";
     last_exception = e;
