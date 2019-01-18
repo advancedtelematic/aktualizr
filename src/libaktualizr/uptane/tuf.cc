@@ -120,6 +120,12 @@ Target::Target(std::string filename, const Json::Value &content) : filename_(std
   if (content.isMember("custom")) {
     Json::Value custom = content["custom"];
 
+    Json::Value hwids = custom["hardwareIds"];
+    for (Json::ValueIterator i = hwids.begin(); i != hwids.end(); ++i) {
+      hwids_.emplace_back(HardwareIdentifier((*i).asString()));
+    }
+    custom_version_ = custom["version"].asString();
+
     Json::Value ecus = custom["ecuIdentifiers"];
     for (Json::ValueIterator i = ecus.begin(); i != ecus.end(); ++i) {
       ecus_.insert({EcuSerial(i.key().asString()), HardwareIdentifier((*i)["hardwareId"].asString())});
