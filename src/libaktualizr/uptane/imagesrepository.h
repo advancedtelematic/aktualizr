@@ -17,7 +17,7 @@ class ImagesRepository : public RepositoryCommon {
   bool verifyTargets(const std::string& targets_raw, const std::string& role_name);
   bool targetsExpired(const std::string& role_name) { return targets[role_name].isExpired(TimeStamp::Now()); }
   int64_t targetsSize() { return snapshot.targets_size(); }
-  std::vector<Delegation> delegations(const std::string& role_name) { return targets[role_name].delegations_; }
+  std::set<std::string> delegations(const std::string& role_name) { return targets[role_name].delegated_role_names_; }
   std::unique_ptr<Uptane::Target> getTarget(const Uptane::Target& director_target);
 
   bool verifyTimestamp(const std::string& timestamp_raw);

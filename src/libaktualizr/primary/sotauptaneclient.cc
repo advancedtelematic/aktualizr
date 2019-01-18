@@ -552,24 +552,24 @@ bool SotaUptaneClient::updateImagesMeta() {
   }
 
   // Update Images delegated Targets Metadata
-  for (const Uptane::Delegation &delegation : images_repo.delegations("targets")) {
+  for (const std::string &delegation : images_repo.delegations("targets")) {
     std::string images_delegated;
 
     if (!uptane_fetcher->fetchLatestRole(&images_delegated, Uptane::kMaxImagesTargetsSize,
-                                         Uptane::RepositoryType::Image(), Uptane::Role::Delegated(delegation.name_))) {
+                                         Uptane::RepositoryType::Image(), Uptane::Role::Delegated(delegation))) {
       return false;
     }
     int remote_version = Uptane::extractVersionUntrusted(images_delegated);
 
     int local_version;
     std::string images_delegated_stored;
-    if (storage->loadDelegation(&images_delegated_stored, Uptane::Role::Delegated(delegation.name_))) {
+    if (storage->loadDelegation(&images_delegated_stored, Uptane::Role::Delegated(delegation))) {
       local_version = Uptane::extractVersionUntrusted(images_delegated_stored);
     } else {
       local_version = -1;
     }
 
-    if (!images_repo.verifyTargets(images_delegated, delegation.name_)) {
+    if (!images_repo.verifyTargets(images_delegated, delegation)) {
       last_exception = images_repo.getLastException();
       return false;
     }
@@ -577,11 +577,11 @@ bool SotaUptaneClient::updateImagesMeta() {
     if (local_version > remote_version) {
       return false;
     } else if (local_version < remote_version) {
-      storage->storeDelegation(images_delegated, Uptane::Role::Delegated(delegation.name_));
+      storage->storeDelegation(images_delegated, Uptane::Role::Delegated(delegation));
     }
 
-    if (images_repo.targetsExpired(delegation.name_)) {
-      last_exception = Uptane::ExpiredMetadata("repo", delegation.name_);
+    if (images_repo.targetsExpired(delegation)) {
+      last_exception = Uptane::ExpiredMetadata("repo", delegation);
       return false;
     }
   }
@@ -707,19 +707,19 @@ bool SotaUptaneClient::checkImagesMetaOffline() {
   }
 
   // Update Images delegated Targets Metadata
-  for (const Uptane::Delegation &delegation : images_repo.delegations("targets")) {
+  for (const std::string &delegation : images_repo.delegations("targets")) {
     std::string images_delegated;
-    if (!storage->loadDelegation(&images_delegated, Uptane::Role::Delegated(delegation.name_))) {
+    if (!storage->loadDelegation(&images_delegated, Uptane::Role::Delegated(delegation))) {
       return false;
     }
 
-    if (!images_repo.verifyTargets(images_delegated, delegation.name_)) {
+    if (!images_repo.verifyTargets(images_delegated, delegation)) {
       last_exception = images_repo.getLastException();
       return false;
     }
 
-    if (images_repo.targetsExpired(delegation.name_)) {
-      last_exception = Uptane::ExpiredMetadata("repo", delegation.name_);
+    if (images_repo.targetsExpired(delegation)) {
+      last_exception = Uptane::ExpiredMetadata("repo", delegation);
       return false;
     }
   }

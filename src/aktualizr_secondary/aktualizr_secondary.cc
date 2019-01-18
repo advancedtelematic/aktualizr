@@ -70,7 +70,8 @@ bool AktualizrSecondary::putMetadataResp(const Uptane::RawMetaPack& meta_pack) {
 
   // TODO: proper partial verification
   root_ = Uptane::Root(Uptane::RepositoryType::Director(), Utils::parseJSON(meta_pack.director_root), root_);
-  Uptane::Targets targets(Uptane::RepositoryType::Director(), Utils::parseJSON(meta_pack.director_targets), root_);
+  Uptane::Targets targets(Uptane::RepositoryType::Director(), Utils::parseJSON(meta_pack.director_targets),
+                          std::make_shared<Uptane::Root>(root_));
   if (meta_targets_.version() > targets.version()) {
     detected_attack_ = "Rollback attack detected";
     return true;
