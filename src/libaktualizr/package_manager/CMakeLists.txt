@@ -10,6 +10,8 @@ set(HEADERS packagemanagerconfig.h
 add_library(package_manager OBJECT ${SOURCES})
 aktualizr_source_file_checks(${SOURCES} ${HEADERS})
 
+add_aktualizr_test(NAME packagemanagerfake SOURCES packagemanagerfake_test.cc)
+
 # Debian backend
 if(BUILD_DEB)
     target_sources(package_manager PRIVATE debianmanager.cc)
@@ -41,7 +43,7 @@ endif(BUILD_OSTREE)
 add_aktualizr_test(NAME packagemanager_factory SOURCES packagemanagerfactory_test.cc NO_VALGRIND
                    ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
 
-aktualizr_source_file_checks(packagemanagerfactory_test.cc ostreemanager_test.cc)
+aktualizr_source_file_checks(packagemanagerfake_test.cc packagemanagerfactory_test.cc ostreemanager_test.cc)
 
 aktualizr_source_file_checks(ostreemanager.cc ostreereposync.cc
                              ostreemanager.h ostreereposync.h)

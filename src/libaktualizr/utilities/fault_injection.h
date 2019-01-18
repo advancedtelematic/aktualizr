@@ -1,4 +1,5 @@
 // This file is a modified version of fiu-local.h, adapted to fit our style conventions
+// + some custom additions
 
 /* libfiu - Fault Injection in Userspace
  *
@@ -28,9 +29,22 @@
 #define fiu_exit_on(name)
 #define fiu_return_on(name, retval)
 
+#define fault_injection_get_parameter(name) ""
+
 #else
 
 #include <fiu.h>
+#include <stdlib.h>
+
+static inline void fault_injection_set_parameter(const char *name, const char *value) { setenv(name, value, 1); }
+
+static inline const char *fault_injection_get_parameter(const char *name) {
+  const char *out = getenv(name);
+  if (out == nullptr) {
+    return "";
+  }
+  return getenv(name);
+}
 
 #endif /* FIU_ENABLE */
 
