@@ -29,7 +29,12 @@
 #define fiu_exit_on(name)
 #define fiu_return_on(name, retval)
 
-#define fault_injection_get_parameter(name) ""
+// Note: was `#define fault_injection_get_parameter(name) ""` but it triggers
+// clang-tidy false positives
+static inline const char *fault_injection_get_parameter(const char *name) {
+  (void)name;
+  return "";
+}
 
 #else
 
