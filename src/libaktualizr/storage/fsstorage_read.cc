@@ -141,7 +141,7 @@ bool FSStorageRead::loadRoot(std::string* data, Uptane::RepositoryType repo, Upt
   return true;
 }
 
-bool FSStorageRead::loadNonRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Role role) {
+bool FSStorageRead::loadNonRoot(std::string* data, Uptane::RepositoryType repo, const Uptane::Role& role) {
   boost::filesystem::path metafile;
   switch (repo) {
     case (Uptane::RepositoryType::Director()):
@@ -283,7 +283,7 @@ bool FSStorageRead::splitNameRoleVersion(const std::string& full_name, std::stri
   return true;
 }
 
-Uptane::Version FSStorageRead::findMaxVersion(const boost::filesystem::path& meta_directory, Uptane::Role role) {
+Uptane::Version FSStorageRead::findMaxVersion(const boost::filesystem::path& meta_directory, const Uptane::Role& role) {
   int version = -1;
   if (!boost::filesystem::exists(meta_directory)) {
     return {};
@@ -335,7 +335,7 @@ void FSStorageRead::clearNonRootMeta(Uptane::RepositoryType repo) {
 
   boost::filesystem::directory_iterator it{meta_path};
   for (; it != boost::filesystem::directory_iterator(); ++it) {
-    for (auto role : Uptane::Role::Roles()) {
+    for (const auto& role : Uptane::Role::Roles()) {
       if (role == Uptane::Role::Root()) {
         continue;
       }

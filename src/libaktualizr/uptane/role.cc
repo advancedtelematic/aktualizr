@@ -41,12 +41,12 @@ std::string Role::ToString() const {
   }
 }
 
-std::ostream &Uptane::operator<<(std::ostream &os, const Role &t) {
-  os << t.ToString();
+std::ostream &Uptane::operator<<(std::ostream &os, const Role &role) {
+  os << role.ToString();
   return os;
 }
 
-std::string Version::RoleFileName(Role role) const {
+std::string Version::RoleFileName(const Role &role) const {
   std::stringstream ss;
   if (version_ != Version::ANY_VERSION) {
     ss << version_ << ".";

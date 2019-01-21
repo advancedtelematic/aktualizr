@@ -75,7 +75,7 @@ class SQLStorage : public SQLStorageBase, public INvStorage {
   StorageType type() override { return StorageType::kSqlite; };
 
  private:
-  void cleanMetaVersion(Uptane::RepositoryType repo, Uptane::Role role);
+  void cleanMetaVersion(Uptane::RepositoryType repo, const Uptane::Role& role);
 };
 
 #endif  // SQLSTORAGE_H_
