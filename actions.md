@@ -333,10 +333,14 @@ These tools all link with libaktualizr, although they do not necessary use the A
 
 - [x] Generate images and director repos (repo_test.cc)
 - [x] Add an image to the images repo (repo_test.cc)
+  - [x] Add custom image metadata without an actual file (repo_test.cc)
 - [x] Copy an image to the director repo (repo_test.cc)
+  - [x] Clear the staged director targets metadata (repo_test.cc)
+  - [x] Populate the director targets metadata with the currently signed metadata (repo_test.cc)
 - [x] Sign director repo targets (repo_test.cc)
 - [x] Add simple delegation (repo_test.cc)
 - [x] Add image with delegation (repo_test.cc)
+- [x] Sign arbitrary metadata (repo_test.cc)
 
 ### aktualizr-cert-provider
 

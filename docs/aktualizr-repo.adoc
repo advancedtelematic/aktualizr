@@ -1,10 +1,10 @@
 = Aktualizr repo
 
-aktualizr-repo director contains a basic implementation of Uptane server. It is comprised of three tools:
+The aktualizr-repo directory contains a basic implementation of an Uptane server. It is comprised of three tools:
 
-. `create_repo.sh` is a script to generate a new repo
-. `serve_repo.py` is a minimalistic Uptane server
-. `aktualizr-repo` itself is a tool to control the repo once created with `create_repo.sh`
+. link:../src/aktualizr_repo/run/create_repo.sh[`create_repo.sh`] is a script to generate a new Uptane metadata repository, an OSTree repository, and all associated credentials and configuration.
+. link:../src/aktualizr_repo/run/serve_repo.py[`serve_repo.py`] is a script for running a minimalistic Uptane server.
+. link:../src/aktualizr_repo/main.cc[`aktualizr-repo`] is a low-level tool to generate and control an Uptane repository. It can be used to manipulate the repo created with `create_repo.sh`, or it can be used entirely independently.
 
 == create_repo.sh
 
@@ -12,12 +12,13 @@ aktualizr-repo director contains a basic implementation of Uptane server. It is 
 
 === Usage
 
-`create_repo.sh /path/to/repo/to/create hostname`
-Make sure that the path to create doesn't exist and the machine where `serve_repo.py` will be running is accessible from the device under given `hostname`
+`create_repo.sh <repo path> <hostname>`
+
+Make sure that the repository path doesn't already exist and the machine where `serve_repo.py` will be running is accessible from the device specified by `<hostname>`.
 
 === Integration with bitbake
 
-`create_repo.sh` can work with bitbake running on the same machine. Copy `site.conf` from the generated directory to your `build/conf` or append it to your existing `site.conf` and `bitbake` should commit built rootfs to the generated OSTree repository and provision devices to automatically connect to `serve_repo.py`.
+`create_repo.sh` can work with bitbake running on the same machine. Copy `site.conf` from the generated directory to your `build/conf` or append it to your existing `site.conf`. `bitbake` will then commit the built rootfs to the generated OSTree repository and provision devices to automatically connect to `serve_repo.py`.
 
 == serve_repo.py
 
@@ -25,14 +26,74 @@ Make sure that the path to create doesn't exist and the machine where `serve_rep
 
 === Usage
 
-`serve_repo.py <port number> /path/to/created/repo` 
+`serve_repo.py <port number> <repo path>`
 
 == aktualizr-repo
 
-See `aktualizr-repo --help` for details.
+`aktualizr-repo` can generate and control Uptane metadata. It is used by `create_repo.sh` and many aktualizr tests, but can also be used manually. See `aktualizr-repo --help` for basic usage details or the examples below for greater detail.
 
-=== Example usage scenario
+=== Basic usage example
 
-. Add target to images metadata `aktualizr-repo --path /path/to/created/repo/uptane --command image --filename firmware_image.fmw`
-. Prepare director targets `aktaulizr-repo --path /path/to/created/repo/uptane --command addtarget --filename firmware_image.fmw --hwid my-hardware-id --serial my-ecu-serial`
-. Schedule the prepared update `aktualizr-repo --path /path/to/created/repo/uptane --command signtargets`
+1. Generate a new Uptane repository:
++
+```
+aktualizr-repo --path <repo path> --command generate
+```
+
+2. Add a target to the images metadata (this can be done as many times as necessary):
++
+```
+aktualizr-repo --path <repo path> --command image --filename <image name>
+```
+
+3. Prepare director targets metadata for a given device (this can be done as many times as necessary):
++
+```
+aktualizr-repo --path <repo path> --command addtarget --filename <image name> --hwid <hardware ID> --serial <ECU serial>
+```
+
+4. Sign the director targets metadata and schedule the prepared update:
++
+```
+aktualizr-repo --path <repo path> --command signtargets
+```
+
+=== Advanced usage examples
+
+==== Delegations
+
+`aktualizr-repo` supports first-order delegations. All delegations are therefore marked as terminating. To add a delegated role, use this:
+```
+aktualizr-repo --path <repo path> --command adddelegation --dname <delegated role name> --dpattern <delegated path pattern>
+```
+
+To add a target to a delegated role, add the `--dname` parameter to the `image` command. The filename must match the pattern supplied in `--dpattern` to the `adddelegation` command.
+```
+aktualizr-repo --path <repo path> --command image --filename <image name> --dname <delegated role name>
+```
+
+==== Generating metadata without a real file
+
+To add a target to the images metadata without providing an actual file, you can supply alternative parameters to the `image` command:
+```
+aktualizr-repo --path <repo path> --command image --targetname <target name> --targetsha256 <target SHA256 hash> --targetsha512 <target SHA512 hash> --targetlength <target length>
+```
+
+==== Advanced director metadata control
+
+To reset the director targets metadata or to prepare empty targets metadata, use the `emptytargets` command. If you then sign this metadata with `signtargets`, it will schedule an empty update.
+```
+aktualizr-repo --path <repo path> --command emptytargets
+```
+
+To populate the director targets metadata with the currently signed metadata (with the previous signature removed), use the `oldtargets` command. You can then add more targets with `addtarget` and re-sign with `signtargets`.
+```
+aktualizr-repo --path <repo path> --command oldtargets
+```
+
+==== Sign arbitrary metadata
+
+To sign arbitrary metadata with one of the Uptane keys, use the `sign` command:
+```
+aktualizr-repo --path <repo path> --command sign --repotype <director|image> --keyname <role name of key> < <input data>
+```

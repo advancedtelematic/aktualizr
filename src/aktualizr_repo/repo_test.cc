@@ -13,6 +13,9 @@
 KeyType key_type = KeyType::kED25519;
 std::string generate_repo_exec;
 
+/*
+ * Generate images and director repos.
+ */
 TEST(aktualizr_repo, generate_repo) {
   TemporaryDirectory temp_dir;
   UptaneRepo repo(temp_dir.Path(), "", "correlation");
@@ -73,6 +76,9 @@ TEST(aktualizr_repo, generate_repo) {
   EXPECT_EQ(director_targets["signed"]["custom"]["correlationId"], "correlation");
 }
 
+/*
+ * Add an image to the images repo.
+ */
 TEST(aktualizr_repo, add_image) {
   TemporaryDirectory temp_dir;
   UptaneRepo repo(temp_dir.Path(), "", "");
@@ -84,6 +90,9 @@ TEST(aktualizr_repo, add_image) {
   EXPECT_EQ(director_targets["signed"]["targets"].size(), 0);
 }
 
+/*
+ * Copy an image to the director repo.
+ */
 TEST(aktualizr_repo, copy_image) {
   TemporaryDirectory temp_dir;
   UptaneRepo repo(temp_dir.Path(), "", "");
@@ -98,8 +107,8 @@ TEST(aktualizr_repo, copy_image) {
 }
 
 /*
- * Add simple delegation
- * Add image with delegation
+ * Add simple delegation.
+ * Add image with delegation.
  */
 TEST(aktualizr_repo, delegation) {
   TemporaryDirectory temp_dir;
@@ -158,6 +167,9 @@ TEST(aktualizr_repo, delegation) {
   }
 }
 
+/*
+ * Sign arbitrary metadata.
+ */
 TEST(aktualizr_repo, sign) {
   TemporaryDirectory temp_dir;
   std::ostringstream keytype_stream;
@@ -184,6 +196,9 @@ TEST(aktualizr_repo, sign) {
   EXPECT_NO_THROW(root.UnpackSignedObject(Uptane::RepositoryType::Director(), json));
 }
 
+/*
+ * Add custom image metadata without an actual file.
+ */
 TEST(aktualizr_repo, image_custom) {
   TemporaryDirectory temp_dir;
   std::ostringstream keytype_stream;
@@ -208,6 +223,9 @@ TEST(aktualizr_repo, image_custom) {
   EXPECT_EQ(image_targets["signed"]["targets"]["target1"]["length"].asUInt(), 123);
 }
 
+/*
+ * Clear the staged director targets metadata.
+ */
 TEST(aktualizr_repo, emptytargets) {
   TemporaryDirectory temp_dir;
   std::ostringstream keytype_stream;
@@ -251,6 +269,9 @@ TEST(aktualizr_repo, emptytargets) {
   EXPECT_EQ(empty_targets["targets"].size(), 0);
 }
 
+/*
+ * Populate the director targets metadata with the currently signed metadata.
+ */
 TEST(aktualizr_repo, oldtargets) {
   TemporaryDirectory temp_dir;
   UptaneRepo repo(temp_dir.Path(), "", "");
