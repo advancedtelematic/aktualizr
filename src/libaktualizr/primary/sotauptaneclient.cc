@@ -883,10 +883,16 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
 
 void SotaUptaneClient::pauseFetching() {
   uptane_fetcher->setPause(true);
+
+  const std::string &correlation_id = director_repo.getCorrelationId();
+  report_queue->enqueue(std_::make_unique<DevicePausedReport>(correlation_id));
 }
 
 void SotaUptaneClient::resumeFetching() {
   uptane_fetcher->setPause(false);
+
+  const std::string &correlation_id = director_repo.getCorrelationId();
+  report_queue->enqueue(std_::make_unique<DeviceResumedReport>(correlation_id));
 }
 
 std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target target) {

@@ -37,6 +37,16 @@ class CampaignAcceptedReport : public ReportEvent {
   CampaignAcceptedReport(const std::string& campaign_id);
 };
 
+class DevicePausedReport : public ReportEvent {
+ public:
+  DevicePausedReport(const std::string& correlation_id);
+};
+
+class DeviceResumedReport : public ReportEvent {
+ public:
+  DeviceResumedReport(const std::string& correlation_id);
+};
+
 class EcuDownloadStartedReport : public ReportEvent {
  public:
   EcuDownloadStartedReport(const Uptane::EcuSerial& ecu, const std::string& correlation_id);

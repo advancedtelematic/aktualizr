@@ -1062,9 +1062,38 @@ TEST(Aktualizr, UpdateCheckCompleteError) {
  * Suspend API calls during pause.
  * Catch up with calls queue after resume.
  */
+
+class HttpFakePauseCounter : public HttpFake {
+ public:
+  HttpFakePauseCounter(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in, "noupdates") {}
+
+  HttpResponse handle_event(const std::string& url, const Json::Value& data) override {
+    (void)url;
+    for (const Json::Value& event : data) {
+      ++events_seen;
+      std::string event_type = event["eventType"]["id"].asString();
+
+      std::cout << "got event #" << events_seen << ": " << event_type << "\n";
+      if (events_seen == 1) {
+        EXPECT_EQ(event_type, "DevicePaused");
+        EXPECT_EQ(event["event"]["correlationId"], "id0");
+      } else if (events_seen == 2) {
+        EXPECT_EQ(event_type, "DeviceResumed");
+        EXPECT_EQ(event["event"]["correlationId"], "id0");
+      } else {
+        std::cout << "Unexpected event";
+        EXPECT_EQ(0, 1);
+      }
+    }
+    return HttpResponse("", 200, CURLE_OK, "");
+  }
+
+  unsigned int events_seen{0};
+};
+
 TEST(Aktualizr, PauseResumeQueue) {
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates");
+  auto http = std::make_shared<HttpFakePauseCounter>(temp_dir.Path());
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
