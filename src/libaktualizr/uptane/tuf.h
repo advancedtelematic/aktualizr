@@ -69,7 +69,7 @@ class Role {
   bool operator!=(const Role &other) const { return !(*this == other); }
   bool operator<(const Role &other) const { return role_ < other.role_; }
 
-  friend std::ostream &operator<<(std::ostream &os, const Role &t);
+  friend std::ostream &operator<<(std::ostream &os, const Role &role);
 
  private:
   /** This must match the meta_types table in sqlstorage */
@@ -81,7 +81,7 @@ class Role {
   std::string name_;
 };
 
-std::ostream &operator<<(std::ostream &os, const Role &t);
+std::ostream &operator<<(std::ostream &os, const Role &role);
 
 /**
  * Metadata version numbers
@@ -90,7 +90,7 @@ class Version {
  public:
   Version() : version_(ANY_VERSION) {}
   explicit Version(int v) : version_(v) {}
-  std::string RoleFileName(Role role) const;
+  std::string RoleFileName(const Role &role) const;
   int version() { return version_; }
 
  private:

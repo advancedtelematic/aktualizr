@@ -86,7 +86,7 @@ class SQLStorage : public INvStorage {
  private:
   SQLite3Guard dbConnection() const;
   // request info
-  void cleanMetaVersion(Uptane::RepositoryType repo, Uptane::Role role);
+  void cleanMetaVersion(Uptane::RepositoryType repo, const Uptane::Role& role);
   bool readonly_{false};
 };
 

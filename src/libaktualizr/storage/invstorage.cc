@@ -249,7 +249,7 @@ void INvStorage::FSSToSQLS(FSStorageRead& fs_storage, SQLStorage& sql_storage) {
   }
 
   // migrate latest versions of all metadata
-  for (auto role : Uptane::Role::Roles()) {
+  for (const auto& role : Uptane::Role::Roles()) {
     if (role == Uptane::Role::Root()) {
       continue;
     }

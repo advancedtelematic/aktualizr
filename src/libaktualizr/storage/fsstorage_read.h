@@ -21,7 +21,7 @@ class FSStorageRead {
   bool loadLatestRoot(std::string* data, Uptane::RepositoryType repo) {
     return loadRoot(data, repo, Uptane::Version());
   };
-  bool loadNonRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Role role);
+  bool loadNonRoot(std::string* data, Uptane::RepositoryType repo, const Uptane::Role& role);
 
   bool loadDeviceId(std::string* device_id);
   bool loadEcuSerials(EcuSerials* serials);
@@ -43,7 +43,7 @@ class FSStorageRead {
   bool loadTlsCommon(std::string* data, const BasedPath& path_in);
 
   bool splitNameRoleVersion(const std::string& full_name, std::string* role_name, int* version);
-  Uptane::Version findMaxVersion(const boost::filesystem::path& meta_directory, Uptane::Role role);
+  Uptane::Version findMaxVersion(const boost::filesystem::path& meta_directory, const Uptane::Role& role);
 
   void clearPrimaryKeys();
   void clearTlsCreds();
