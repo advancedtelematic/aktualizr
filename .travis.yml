@@ -7,7 +7,7 @@ branches:
     - /^\d\d\d\d\.\d+$/
 env:
 - DOCKERFILE=docker/Dockerfile.ubuntu.bionic CACHE=latest SCRIPT=src/scripts/test.sh
-  DARGS="-eTEST_CMAKE_BUILD_TYPE=Valgrind -eTEST_WITH_COVERAGE=1 -eTEST_WITH_P11=1 -eTEST_TESTSUITE_EXCLUDE=credentials -eTEST_SOTA_PACKED_CREDENTIALS=dummy-credentials"
+  DARGS="-eTEST_CMAKE_BUILD_TYPE=Valgrind -eTEST_WITH_COVERAGE=1 -eTEST_WITH_P11=1 -eTEST_WITH_FAULT_INJECTION=1 -eTEST_TESTSUITE_EXCLUDE=credentials -eTEST_SOTA_PACKED_CREDENTIALS=dummy-credentials"
 - DOCKERFILE=docker/Dockerfile.debian.testing CACHE=latest-deb-unstable SCRIPT=src/scripts/test.sh
   DARGS="-eTEST_CC=clang -eTEST_WITH_LOAD_TESTS=1 -eTEST_WITH_TESTSUITE=0 -eTEST_WITH_STATICTESTS=1 -eTEST_WITH_OPCUA=1"
 - DEPLOY_PKGS=1 RELEASE_NAME=ubuntu_18.04 DOCKERFILE=docker/Dockerfile.ubuntu.bionic INSTALL_DOCKERFILE=docker/Dockerfile-test-install.ubuntu.bionic CACHE=latest SCRIPT=src/scripts/build_ubuntu.sh DARGS="-eTEST_INSTALL_RELEASE_NAME=-ubuntu_18.04"
