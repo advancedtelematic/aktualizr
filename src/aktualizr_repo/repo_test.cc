@@ -130,9 +130,8 @@ TEST(aktualizr_repo, delegation) {
   if (retval) {
     FAIL() << "'" << cmd << "' exited with error code\n";
   }
-  Uptane::Root root(Uptane::RepositoryType::Image(), Utils::parseJSONFile(temp_dir.Path() / "repo/image/root.json"));
   auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/test_delegate.json");
-  Uptane::Targets delegate_targets(Uptane::RepositoryType::Image(), test_delegate, root);
+  Uptane::Targets delegate_targets(test_delegate);
   EXPECT_EQ(delegate_targets.targets.size(), 1);
   EXPECT_EQ(delegate_targets.targets[0].filename(), "tests/test_data/firmware.txt");
   EXPECT_EQ(delegate_targets.targets[0].length(), 17);
