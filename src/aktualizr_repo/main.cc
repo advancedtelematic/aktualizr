@@ -70,14 +70,16 @@ int main(int argc, char **argv) {
         key_type_str >> key_type;
         repo.generateRepo(key_type);
       } else if (command == "image") {
-        if (vm.count("filename") > 0) {
-          Delegation delegation;
-          if (vm.count("dname") != 0) {
-            delegation = Delegation(vm["path"].as<boost::filesystem::path>(), vm["dname"].as<std::string>());
-            if (!delegation.isMatched(vm["filename"].as<boost::filesystem::path>())) {
-              throw std::runtime_error("Image path doesn't match delegation!");
-            }
+        Delegation delegation;
+        if (vm.count("dname") != 0) {
+          delegation = Delegation(vm["path"].as<boost::filesystem::path>(), vm["dname"].as<std::string>());
+          auto path =
+              vm.count("filename") ? vm["filename"].as<boost::filesystem::path>() : vm["targetname"].as<std::string>();
+          if (!delegation.isMatched(path)) {
+            throw std::runtime_error("Image path doesn't match delegation!");
           }
+        }
+        if (vm.count("filename") > 0) {
           repo.addImage(vm["filename"].as<boost::filesystem::path>(), delegation);
         } else if (vm.count("targetname") > 0 && (vm.count("targetsha256") > 0 || vm.count("targetsha512") > 0) &&
                    vm.count("targetlength") > 0) {
@@ -87,7 +89,7 @@ int main(int argc, char **argv) {
           } else {
             hash = std_::make_unique<Uptane::Hash>(Uptane::Hash::Type::kSha512, vm["targetsha512"].as<std::string>());
           }
-          repo.addCustomImage(vm["targetname"].as<std::string>(), *hash, vm["targetlength"].as<uint64_t>());
+          repo.addCustomImage(vm["targetname"].as<std::string>(), *hash, vm["targetlength"].as<uint64_t>(), delegation);
         } else {
           std::cerr
               << "You shoud provide --filename or --targetname, --targetsha256 or --targetsha512, and --targetlength\n";

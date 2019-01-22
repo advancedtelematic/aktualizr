@@ -1,7 +1,7 @@
 #ifndef REPO_H_
 #define REPO_H_
 
-#include <glob.h>
+#include <fnmatch.h>
 
 #include <crypto/crypto.h>
 #include <boost/filesystem.hpp>
@@ -25,7 +25,7 @@ struct Delegation {
     boost::filesystem::path delegation_path(((repo_path / "repo/image") / name).string() + ".json");
     boost::filesystem::path targets_path(repo_path / "repo/image/targets.json");
     if (!boost::filesystem::exists(delegation_path) || !boost::filesystem::exists(targets_path)) {
-      throw std::runtime_error(std::string("delegation ") + name + "does not exists");
+      throw std::runtime_error(std::string("delegation ") + delegation_path.string() + " does not exists");
     }
     Json::Value delegations = Utils::parseJSONFile(targets_path)["signed"]["delegations"];
     for (const auto &role : delegations["roles"]) {
@@ -39,17 +39,7 @@ struct Delegation {
     }
   }
   bool isMatched(const boost::filesystem::path &image_path) {
-    glob_t globbuf;
-    glob(pattern.c_str(), 0, nullptr, &globbuf);
-    if (globbuf.gl_pathc == 0) {
-      return false;
-    }
-    for (uint i = 0; i < globbuf.gl_pathc; ++i) {
-      if (image_path.string() == globbuf.gl_pathv[i]) {  // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-        return true;
-      }
-    }
-    return false;
+    return (fnmatch(pattern.c_str(), image_path.c_str(), 0) == 0);
   }
   static bool isBadName(const std::string &delegation_name) {
     return (delegation_name == "root" || delegation_name == "targets" || delegation_name == "snapshot" ||
