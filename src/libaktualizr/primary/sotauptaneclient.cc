@@ -287,12 +287,12 @@ Json::Value SotaUptaneClient::AssembleManifest() {
 
       installation_report["items"].append(item);
     }
+
+    manifest["installation_report"]["content_type"] = "application/vnd.com.here.otac.installationReport.v1";
+    manifest["installation_report"]["report"] = installation_report;
   } else {
     LOG_DEBUG << "No installation result to report in manifest";
   }
-
-  manifest["installation_report"]["content_type"] = "application/vnd.com.here.otac.installationReport.v1";
-  manifest["installation_report"]["report"] = installation_report;
 
   return manifest;
 }
