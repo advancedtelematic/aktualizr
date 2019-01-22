@@ -36,7 +36,8 @@ void ImageRepo::addImage(const std::string &name, const Json::Value &target, con
   targets["targets"][name] = target;
   targets["version"] = (targets["version"].asUInt()) + 1;
 
-  std::string signed_targets = Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Targets(), targets));
+  auto role = delegation ? Uptane::Role(delegation.name, true) : Uptane::Role::Targets();
+  std::string signed_targets = Utils::jsonToCanonicalStr(signTuf(role, targets));
   Utils::writeFile(targets_path, signed_targets);
 
   Json::Value snapshot = Utils::parseJSONFile(repo_dir / "snapshot.json")["signed"];
