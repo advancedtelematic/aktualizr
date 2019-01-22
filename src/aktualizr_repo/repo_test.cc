@@ -128,15 +128,34 @@ TEST(aktualizr_repo, delegation) {
   cmd += " --dname test_delegate --filename tests/test_data/firmware.txt";
   retval = Utils::shell(cmd, &output);
   if (retval) {
+    FAIL() << "'" << output << "' exited with error code\n";
+  }
+  {
+    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/test_delegate.json");
+    Uptane::Targets delegate_targets(test_delegate);
+    EXPECT_EQ(delegate_targets.targets.size(), 1);
+    EXPECT_EQ(delegate_targets.targets[0].filename(), "tests/test_data/firmware.txt");
+    EXPECT_EQ(delegate_targets.targets[0].length(), 17);
+    EXPECT_EQ(delegate_targets.targets[0].sha256Hash(),
+              "d8e9caba8c1697fcbade1057f9c2488044192ff76bb64d4aba2c20e53dc33033");
+  }
+  cmd = generate_repo_exec + " image " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
+  cmd +=
+      " --dname test_delegate --targetname tests/test_data/firmware2.txt --targetsha256 "
+      "d8e9caba8c1697fcbade1057f9c2488044192ff76bb64d4aba2c20e53dc33033 --targetlength 17";
+  retval = Utils::shell(cmd, &output);
+  if (retval) {
     FAIL() << "'" << cmd << "' exited with error code\n";
   }
-  auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/test_delegate.json");
-  Uptane::Targets delegate_targets(test_delegate);
-  EXPECT_EQ(delegate_targets.targets.size(), 1);
-  EXPECT_EQ(delegate_targets.targets[0].filename(), "tests/test_data/firmware.txt");
-  EXPECT_EQ(delegate_targets.targets[0].length(), 17);
-  EXPECT_EQ(delegate_targets.targets[0].sha256Hash(),
-            "d8e9caba8c1697fcbade1057f9c2488044192ff76bb64d4aba2c20e53dc33033");
+  {
+    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/test_delegate.json");
+    Uptane::Targets delegate_targets(test_delegate);
+    EXPECT_EQ(delegate_targets.targets.size(), 2);
+    EXPECT_EQ(delegate_targets.targets[1].filename(), "tests/test_data/firmware2.txt");
+    EXPECT_EQ(delegate_targets.targets[1].length(), 17);
+    EXPECT_EQ(delegate_targets.targets[1].sha256Hash(),
+              "d8e9caba8c1697fcbade1057f9c2488044192ff76bb64d4aba2c20e53dc33033");
+  }
 }
 
 TEST(aktualizr_repo, sign) {
@@ -161,6 +180,7 @@ TEST(aktualizr_repo, sign) {
   auto json = Utils::parseJSON(output);
   Uptane::Root root(Uptane::RepositoryType::Director(),
                     Utils::parseJSONFile(temp_dir.Path() / "repo/director/root.json"));
+  root.UnpackSignedObject(Uptane::RepositoryType::Director(), json);
   EXPECT_NO_THROW(root.UnpackSignedObject(Uptane::RepositoryType::Director(), json));
 }
 

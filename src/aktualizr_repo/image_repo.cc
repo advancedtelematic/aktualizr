@@ -6,17 +6,11 @@ void ImageRepo::addImage(const boost::filesystem::path &image_path, const Delega
   boost::filesystem::path targets_path = repo_dir / "targets";
   boost::filesystem::create_directories(targets_path);
 
-  if (!delegation) {
-    if (image_path != targets_path / image_path.filename()) {
-      boost::filesystem::copy_file(image_path, targets_path / image_path.filename(),
-                                   boost::filesystem::copy_option::overwrite_if_exists);
-    }
-  } else {
-    auto image_dir = image_path.parent_path();
-    boost::filesystem::create_directories(targets_path / image_dir);
-    boost::filesystem::copy_file(image_path, targets_path / image_dir / image_path.filename(),
-                                 boost::filesystem::copy_option::overwrite_if_exists);
-  }
+  auto image_dir = image_path.parent_path();
+  boost::filesystem::create_directories(targets_path / image_dir);
+  boost::filesystem::copy_file(image_path, targets_path / image_dir / image_path.filename(),
+                               boost::filesystem::copy_option::overwrite_if_exists);
+
   std::string image = Utils::readFile(image_path);
 
   std::string target_name = delegation ? image_path.string() : image_path.filename().string();
@@ -97,7 +91,8 @@ void ImageRepo::addDelegation(const Uptane::Role &name, const std::string &path,
   Utils::writeFile(repo_dir / "targets.json", signed_targets);
 }
 
-void ImageRepo::addCustomImage(const std::string &name, const Uptane::Hash &hash, const uint64_t length) {
+void ImageRepo::addCustomImage(const std::string &name, const Uptane::Hash &hash, const uint64_t length,
+                               const Delegation &delegation) {
   Json::Value target;
   target["length"] = Json::UInt(length);
   if (hash.type() == Uptane::Hash::Type::kSha256) {
@@ -105,5 +100,5 @@ void ImageRepo::addCustomImage(const std::string &name, const Uptane::Hash &hash
   } else if (hash.type() == Uptane::Hash::Type::kSha512) {
     target["hashes"]["sha512"] = hash.HashString();
   }
-  addImage(name, target);
+  addImage(name, target, delegation);
 }
