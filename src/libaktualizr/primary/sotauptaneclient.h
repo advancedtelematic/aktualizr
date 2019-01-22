@@ -115,6 +115,7 @@ class SotaUptaneClient {
                                               const Uptane::ImagesRepository &images_repo, INvStorage &storage,
                                               Uptane::Fetcher &fetcher);
   bool updateImagesMeta();  // TODO: make private once aktualizr has a proper TUF API
+  data::InstallationResult PackageInstall(const Uptane::Target &target);
 
  private:
   FRIEND_TEST(Aktualizr, FullNoUpdates);
@@ -147,7 +148,6 @@ class SotaUptaneClient {
   Uptane::Exception getLastException() const { return last_exception; }
   bool isInstalledOnPrimary(const Uptane::Target &target);
   std::vector<Uptane::Target> findForEcu(const std::vector<Uptane::Target> &targets, const Uptane::EcuSerial &ecu_id);
-  data::InstallationResult PackageInstall(const Uptane::Target &target);
   data::InstallationResult PackageInstallSetResult(const Uptane::Target &target);
   void finalizeAfterReboot();
   void reportHwInfo();
