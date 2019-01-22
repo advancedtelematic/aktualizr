@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
           exit(EXIT_FAILURE);
         }
       } else if (command == "addtarget") {
-        repo.addTarget(vm["filename"].as<boost::filesystem::path>().filename().string(), vm["hwid"].as<std::string>(),
+        repo.addTarget(vm["filename"].as<boost::filesystem::path>().string(), vm["hwid"].as<std::string>(),
                        vm["serial"].as<std::string>());
       } else if (command == "adddelegation") {
         if (vm.count("dname") == 0 || vm.count("dpattern") == 0) {

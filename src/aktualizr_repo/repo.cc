@@ -173,7 +173,20 @@ void Repo::generateRepo(KeyType key_type) {
 Json::Value Repo::getTarget(const std::string &target_name) {
   const Json::Value image_targets =
       Utils::parseJSONFile(path_ / "repo" / repo_type_.toString() / "targets.json")["signed"];
-  return image_targets["targets"][target_name];
+  if (image_targets["targets"].isMember(target_name)) {
+    return image_targets["targets"][target_name];
+  } else {
+    for (auto &p : boost::filesystem::directory_iterator(path_ / "repo" / repo_type_.toString())) {
+      if (!Delegation::isBadName(p.path().stem().string())) {
+        auto targets = Utils::parseJSONFile(p)["signed"];
+        if (targets["targets"].isMember(target_name)) {
+          return targets["targets"][target_name];
+        }
+      }
+    }
+    throw std::runtime_error(std::string("No target with name: ") + target_name);
+  }
+  return {};
 }
 
 void Repo::readKeys() {
