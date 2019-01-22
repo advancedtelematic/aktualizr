@@ -9,8 +9,6 @@
 #include "invstorage.h"
 #include "sqlstorage_base.h"
 
-// enum class SQLReqId { kGetSimple, kGetTable };
-
 extern const std::vector<std::string> libaktualizr_schema_migrations;
 extern const std::string libaktualizr_current_schema;
 extern const int libaktualizr_current_schema_version;
