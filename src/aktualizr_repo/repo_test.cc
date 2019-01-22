@@ -123,6 +123,7 @@ TEST(aktualizr_repo, delegation) {
   EXPECT_EQ(targets["signed"]["delegations"]["roles"][0]["name"].asString(), "test_delegate");
   EXPECT_EQ(targets["signed"]["delegations"]["roles"][0]["paths"][0].asString(), "tests/test_data/*.txt");
 
+  std::cout << "KEYTYPE: " << keytype_stream.str() << "\n";
   cmd = generate_repo_exec + " image " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
   cmd += " --dname test_delegate --filename tests/test_data/firmware.txt";
   retval = Utils::shell(cmd, &output);
