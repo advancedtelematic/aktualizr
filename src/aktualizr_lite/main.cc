@@ -22,12 +22,40 @@ static int status_main(Config &config, const bpo::variables_map &unused) {
   return 0;
 }
 
+static int list_main(Config &config, const bpo::variables_map &unused) {
+  (void)unused;
+  auto storage = INvStorage::newStorage(config.storage);
+  auto client = SotaUptaneClient::newDefaultClient(config, storage);
+  Uptane::HardwareIdentifier hwid(config.provision.primary_ecu_hardware_id);
+
+  LOG_INFO << "Refreshing target metadata";
+  if (!client->updateImagesMeta()) {
+    LOG_ERROR << "Unable to update latest metadata, using local copy";
+  }
+
+  LOG_INFO << "Updates for available to " << hwid << ":";
+  for (auto &t : client->allTargets()) {
+    for (auto const &it : t.hardwareIds()) {
+      if (it == hwid) {
+        auto name = t.filename();
+        if (t.custom_version().length() > 0) {
+          name = t.custom_version();
+        }
+        LOG_INFO << name << "\tsha256:" << t.sha256Hash();
+        break;
+      }
+    }
+  }
+  return 0;
+}
+
 struct SubCommand {
   const char *name;
   int (*main)(Config &, const bpo::variables_map &);
 };
 static SubCommand commands[] = {
     {"status", status_main},
+    {"list", list_main},
 };
 
 void check_info_options(const bpo::options_description &description, const bpo::variables_map &vm) {
