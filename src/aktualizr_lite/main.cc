@@ -10,11 +10,25 @@
 
 namespace bpo = boost::program_options;
 
+static int status_main(Config &config, const bpo::variables_map &unused) {
+  (void)unused;
+  GObjectUniquePtr<OstreeSysroot> sysroot_smart = OstreeManager::LoadSysroot(config.pacman.sysroot);
+  OstreeDeployment *deployment = ostree_sysroot_get_booted_deployment(sysroot_smart.get());
+  if (deployment == nullptr) {
+    LOG_INFO << "No active deployment found";
+  } else {
+    LOG_INFO << "Active image is: " << ostree_deployment_get_csum(deployment);
+  }
+  return 0;
+}
+
 struct SubCommand {
   const char *name;
   int (*main)(Config &, const bpo::variables_map &);
 };
-static SubCommand commands[] = {};
+static SubCommand commands[] = {
+    {"status", status_main},
+};
 
 void check_info_options(const bpo::options_description &description, const bpo::variables_map &vm) {
   if (vm.count("help") != 0 || vm.count("command") == 0) {
