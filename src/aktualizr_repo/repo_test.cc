@@ -49,7 +49,6 @@ TEST(aktualizr_repo, generate_repo) {
   std::function<void(const boost::filesystem::path &path)> recursive_check;
   recursive_check = [&keys, &recursive_check](const boost::filesystem::path &path) {
     for (auto &p : boost::filesystem::directory_iterator(path)) {
-      std::cout << "PATH: " << p.path() << "\n";
       if (p.status().type() == boost::filesystem::file_type::directory_file) {
         recursive_check(p.path());
       } else {
