@@ -127,7 +127,6 @@ void Repo::generateRepo(KeyType key_type) {
   targets["expires"] = expiration_time_;
   targets["version"] = 1;
   targets["targets"] = Json::objectValue;
-  LOG_ERROR << "repo: " << repo_type_.toString();
   if (repo_type_ == Uptane::RepositoryType::Director() && correlation_id_ != "") {
     targets["custom"]["correlationId"] = correlation_id_;
   }
