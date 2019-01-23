@@ -8,9 +8,8 @@ import shutil
 import tempfile
 
 from pathlib import Path
-from time import sleep
 
-from prov_test_common import popen_subprocess, run_subprocess, verify_provisioned
+from prov_test_common import run_subprocess, verify_provisioned
 
 
 def main():
@@ -80,14 +79,9 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module):
     shutil.copyfile(str(src_dir / "tests/test_data/softhsm2.conf"), str(hsm_conf))
 
     akt_input = [str(akt), '--config', str(conf_dir), '--loglevel', '0', '--run-mode', 'once']
-    popen_subprocess(akt_input)
+    run_subprocess(akt_input)
     # Verify that device has NOT yet provisioned.
-    for delay in [1, 2, 5, 10, 15]:
-        sleep(delay)
-        stdout, stderr, retcode = run_subprocess([str(akt_info),
-                                                  '--config', str(conf_dir)])
-        if retcode == 0 and stderr == b'':
-            break
+    stdout, stderr, retcode = run_subprocess([str(akt_info), '--config', str(conf_dir)])
     if (b'Couldn\'t load device ID' not in stdout or
             b'Couldn\'t load ECU serials' not in stdout or
             b'Provisioned on server: no' not in stdout or
@@ -149,7 +143,7 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module):
         return 1
 
     (tmp_dir / 'sql.db').unlink()
-    popen_subprocess(akt_input)
+    run_subprocess(akt_input)
     return verify_provisioned(akt_info, conf_dir)
 
 
