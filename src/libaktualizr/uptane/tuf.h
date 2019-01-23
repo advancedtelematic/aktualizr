@@ -65,9 +65,9 @@ class Role {
   explicit Role(const std::string &role_name, bool delegation = false);
   std::string ToString() const;
   int ToInt() const { return static_cast<int>(role_); }
-  bool operator==(const Role &other) const { return role_ == other.role_; }
+  bool operator==(const Role &other) const { return name_ == other.name_; }
   bool operator!=(const Role &other) const { return !(*this == other); }
-  bool operator<(const Role &other) const { return role_ < other.role_; }
+  bool operator<(const Role &other) const { return name_ < other.name_; }
 
   friend std::ostream &operator<<(std::ostream &os, const Role &role);
 
@@ -75,7 +75,20 @@ class Role {
   /** This must match the meta_types table in sqlstorage */
   enum class RoleEnum { kRoot = 0, kSnapshot = 1, kTargets = 2, kTimestamp = 3, kDelegated = 4, kInvalidRole = -1 };
 
-  explicit Role(RoleEnum role) : role_(role) {}
+  explicit Role(RoleEnum role) : role_(role) {
+    if (role_ == RoleEnum::kRoot) {
+      name_ = "root";
+    } else if (role_ == RoleEnum::kSnapshot) {
+      name_ = "snapshot";
+    } else if (role_ == RoleEnum::kTargets) {
+      name_ = "targets";
+    } else if (role_ == RoleEnum::kTimestamp) {
+      name_ = "timestamp";
+    } else {
+      role_ = RoleEnum::kInvalidRole;
+      name_ = "invalidrole";
+    }
+  }
 
   RoleEnum role_;
   std::string name_;
