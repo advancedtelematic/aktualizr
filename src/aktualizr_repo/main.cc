@@ -78,7 +78,8 @@ int main(int argc, char **argv) {
         repo.generateRepo(key_type);
       } else if (command == "image") {
         if (vm.count("targetname") == 0 && vm.count("filename") == 0) {
-          throw std::runtime_error("--targetname or --filename is required for this command");
+          std::cerr << "image command requires --targetname or --filename\n";
+          exit(EXIT_FAILURE);
         }
         auto targetname = (vm.count("targetname") > 0) ? vm["targetname"].as<std::string>()
                                                        : vm["filename"].as<boost::filesystem::path>();
@@ -87,14 +88,17 @@ int main(int argc, char **argv) {
         if (vm.count("dname") != 0) {
           delegation = Delegation(vm["path"].as<boost::filesystem::path>(), vm["dname"].as<std::string>());
           if (!delegation.isMatched(targetname)) {
-            throw std::runtime_error("Image path doesn't match delegation!");
+            std::cerr << "Image path doesn't match delegation!\n";
+            exit(EXIT_FAILURE);
           }
         }
         if (vm.count("filename") > 0) {
           repo.addImage(vm["filename"].as<boost::filesystem::path>(), targetname, delegation);
         } else {
           if ((vm.count("targetsha256") == 0 && vm.count("targetsha512") == 0) || vm.count("targetlength") == 0) {
-            throw std::runtime_error("You shoud provide --targetsha256 or --targetsha512, and --targetlength");
+            std::cerr << "image command requires --targetsha256 or --targetsha512, and --targetlength when --filename "
+                         "is not supplied.\n";
+            exit(EXIT_FAILURE);
           }
           std::unique_ptr<Uptane::Hash> hash;
           if (vm.count("targetsha256") > 0) {
