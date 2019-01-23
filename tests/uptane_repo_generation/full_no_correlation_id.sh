@@ -29,8 +29,8 @@ SECONDARY_FIRMWARE="$IMAGES/secondary.txt"
 echo "secondary" > "$SECONDARY_FIRMWARE"
 
 akrepo --command generate --expires 2021-07-04T16:33:27Z
-akrepo --command image --filename "$PRIMARY_FIRMWARE"
-akrepo --command image --filename "$SECONDARY_FIRMWARE"
+akrepo --command image --filename "$PRIMARY_FIRMWARE" --targetname primary.txt
+akrepo --command image --filename "$SECONDARY_FIRMWARE" --targetname secondary.txt
 akrepo --command addtarget --hwid primary_hw --serial CA:FE:A6:D2:84:9D --filename primary.txt
 akrepo --command addtarget --hwid secondary_hw --serial secondary_ecu_serial --filename secondary.txt
 akrepo --command signtargets
