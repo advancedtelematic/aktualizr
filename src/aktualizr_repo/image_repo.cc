@@ -82,7 +82,11 @@ void ImageRepo::addDelegation(const Uptane::Role &name, const std::string &path,
   Json::Value role;
   role["name"] = name.ToString();
   role["keyids"].append(keypair.public_key.KeyId());
-  role["paths"].append(path);
+  auto pattern = path;
+  if (pattern.back() == '/') {
+    pattern.append("**");
+  }
+  role["paths"].append(pattern);
   role["threshold"] = 1;
   role["terminating"] = terminating;
   targets_notsigned["delegations"]["roles"].append(role);
