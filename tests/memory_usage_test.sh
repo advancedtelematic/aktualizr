@@ -27,7 +27,7 @@ EOF
 
 dpkg-deb -Znone -b $TEMP_DIR/deb $TEMP_DIR/good.deb
 PATH="tests/test_data/fake_dpkg":$PATH
-$1/src/aktualizr_repo/aktualizr-repo image --filename $TEMP_DIR/good.deb --path $TEMP_DIR/uptane
+$1/src/aktualizr_repo/aktualizr-repo image --filename $TEMP_DIR/good.deb --targetname good.deb --path $TEMP_DIR/uptane
 $1/src/aktualizr_repo/aktualizr-repo addtarget --filename good.deb --path $TEMP_DIR/uptane --hwid desktop --serial serial1
 $1/src/aktualizr_repo/aktualizr-repo signtargets  --path $TEMP_DIR/uptane
 

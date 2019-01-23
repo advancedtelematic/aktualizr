@@ -88,7 +88,7 @@ TEST(aktualizr_repo, copy_image) {
   TemporaryDirectory temp_dir;
   UptaneRepo repo(temp_dir.Path(), "", "");
   repo.generateRepo(key_type);
-  repo.addImage(temp_dir.Path() / "repo/director/manifest", "repo/director/manifest", {});
+  repo.addImage(temp_dir.Path() / "repo/director/manifest", "manifest", {});
   repo.addTarget("manifest", "test-hw", "test-serial");
   repo.signTargets();
   Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
