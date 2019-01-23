@@ -8,6 +8,7 @@ using Uptane::Version;
 Role::Role(const std::string &role_name, const bool delegation) {
   std::string role_name_lower;
   std::transform(role_name.begin(), role_name.end(), std::back_inserter(role_name_lower), ::tolower);
+  name_ = role_name_lower;
   if (role_name_lower == "root") {
     role_ = RoleEnum::kRoot;
   } else if (role_name_lower == "snapshot") {
@@ -21,25 +22,11 @@ Role::Role(const std::string &role_name, const bool delegation) {
     name_ = role_name;
   } else {
     role_ = RoleEnum::kInvalidRole;
+    name_ = "invalidrole";
   }
 }
 
-std::string Role::ToString() const {
-  switch (role_) {
-    case RoleEnum::kRoot:
-      return "root";
-    case RoleEnum::kSnapshot:
-      return "snapshot";
-    case RoleEnum::kTargets:
-      return "targets";
-    case RoleEnum::kTimestamp:
-      return "timestamp";
-    case RoleEnum::kDelegated:
-      return name_;
-    default:
-      return "invalidrole";
-  }
-}
+std::string Role::ToString() const { return name_; }
 
 std::ostream &Uptane::operator<<(std::ostream &os, const Role &role) {
   os << role.ToString();
