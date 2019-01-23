@@ -68,6 +68,7 @@ aktualizr-repo --path <repo path> --command adddelegation --dname <delegated rol
 ```
 
 To add a target to a delegated role, add the `--dname` parameter to the `image` command. The filename must match the pattern supplied in `--dpattern` to the `adddelegation` command.
+Additionally you could set a custom target name, suppling `--targetname` argument.
 ```
 aktualizr-repo --path <repo path> --command image --filename <image name> --dname <delegated role name>
 ```
