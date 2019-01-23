@@ -1,24 +1,24 @@
 #include "image_repo.h"
 
-void ImageRepo::addImage(const boost::filesystem::path &image_path, const Delegation &delegation) {
+void ImageRepo::addImage(const boost::filesystem::path &image_path, const boost::filesystem::path &targetname,
+                         const Delegation &delegation) {
   boost::filesystem::path repo_dir(path_ / "repo/image");
 
   boost::filesystem::path targets_path = repo_dir / "targets";
   boost::filesystem::create_directories(targets_path);
 
-  auto image_dir = image_path.parent_path();
-  boost::filesystem::create_directories(targets_path / image_dir);
-  boost::filesystem::copy_file(image_path, targets_path / image_dir / image_path.filename(),
+  auto targetname_dir = targetname.parent_path();
+  boost::filesystem::create_directories(targets_path / targetname_dir);
+  boost::filesystem::copy_file(image_path, targets_path / targetname_dir / image_path.filename(),
                                boost::filesystem::copy_option::overwrite_if_exists);
 
   std::string image = Utils::readFile(image_path);
 
-  std::string target_name = delegation ? image_path.string() : image_path.filename().string();
   Json::Value target;
   target["length"] = Json::UInt64(image.size());
   target["hashes"]["sha256"] = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(image)));
   target["hashes"]["sha512"] = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(image)));
-  addImage(target_name, target, delegation);
+  addImage(targetname.string(), target, delegation);
 }
 
 void ImageRepo::addImage(const std::string &name, const Json::Value &target, const Delegation &delegation) {

@@ -70,30 +70,32 @@ int main(int argc, char **argv) {
         key_type_str >> key_type;
         repo.generateRepo(key_type);
       } else if (command == "image") {
+        if (vm.count("targetname") == 0 && vm.count("filename") == 0) {
+          throw std::runtime_error("--targetname or --filename is required for this command");
+        }
+        auto targetname = (vm.count("targetname") > 0) ? vm["targetname"].as<std::string>()
+                                                       : vm["filename"].as<boost::filesystem::path>();
+
         Delegation delegation;
         if (vm.count("dname") != 0) {
           delegation = Delegation(vm["path"].as<boost::filesystem::path>(), vm["dname"].as<std::string>());
-          auto path =
-              vm.count("filename") ? vm["filename"].as<boost::filesystem::path>() : vm["targetname"].as<std::string>();
-          if (!delegation.isMatched(path)) {
+          if (!delegation.isMatched(targetname)) {
             throw std::runtime_error("Image path doesn't match delegation!");
           }
         }
         if (vm.count("filename") > 0) {
-          repo.addImage(vm["filename"].as<boost::filesystem::path>(), delegation);
-        } else if (vm.count("targetname") > 0 && (vm.count("targetsha256") > 0 || vm.count("targetsha512") > 0) &&
-                   vm.count("targetlength") > 0) {
+          repo.addImage(vm["filename"].as<boost::filesystem::path>(), targetname, delegation);
+        } else {
+          if ((vm.count("targetsha256") == 0 && vm.count("targetsha512") == 0) || vm.count("targetlength") == 0) {
+            throw std::runtime_error("You shoud provide --targetsha256 or --targetsha512, and --targetlength");
+          }
           std::unique_ptr<Uptane::Hash> hash;
           if (vm.count("targetsha256") > 0) {
             hash = std_::make_unique<Uptane::Hash>(Uptane::Hash::Type::kSha256, vm["targetsha256"].as<std::string>());
           } else {
             hash = std_::make_unique<Uptane::Hash>(Uptane::Hash::Type::kSha512, vm["targetsha512"].as<std::string>());
           }
-          repo.addCustomImage(vm["targetname"].as<std::string>(), *hash, vm["targetlength"].as<uint64_t>(), delegation);
-        } else {
-          std::cerr
-              << "You shoud provide --filename or --targetname, --targetsha256 or --targetsha512, and --targetlength\n";
-          exit(EXIT_FAILURE);
+          repo.addCustomImage(targetname.string(), *hash, vm["targetlength"].as<uint64_t>(), delegation);
         }
       } else if (command == "addtarget") {
         repo.addTarget(vm["filename"].as<boost::filesystem::path>().string(), vm["hwid"].as<std::string>(),

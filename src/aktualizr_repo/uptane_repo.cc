@@ -22,8 +22,9 @@ void UptaneRepo::addDelegation(const Uptane::Role &name, const std::string &path
   image_repo_.addDelegation(name, path, key_type, terminating);
 }
 
-void UptaneRepo::addImage(const boost::filesystem::path &image_path, const Delegation &delegation) {
-  image_repo_.addImage(image_path, delegation);
+void UptaneRepo::addImage(const boost::filesystem::path &image_path, const boost::filesystem::path &targetname,
+                          const Delegation &delegation) {
+  image_repo_.addImage(image_path, targetname, delegation);
 }
 void UptaneRepo::addCustomImage(const std::string &name, const Uptane::Hash &hash, uint64_t length,
                                 const Delegation &delegation) {
