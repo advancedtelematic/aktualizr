@@ -103,7 +103,7 @@ void RequestPool::LoopListen() {
         timeout.tv_usec = 1000 * (timeoutms % 1000);
       }
       select(maxfd + 1, &fdread, &fdwrite, &fdexcept, &timeout);
-    } else {
+    } else if (timeoutms > 0) {
       // If maxfd == -1, then wait the lesser of timeoutms and 100 ms.
       long nofd_timeoutms = std::min(timeoutms, static_cast<long>(100));  // NOLINT(google-runtime-int)
       LOG_DEBUG << "Waiting " << nofd_timeoutms << " ms for curl";

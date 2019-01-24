@@ -14,10 +14,8 @@
 bool CheckPoolState(const OSTreeObject::ptr &root_object, const RequestPool &request_pool) {
   switch (request_pool.run_mode()) {
     case RunMode::kWalkTree:
-      return !request_pool.is_stopped() && !request_pool.is_idle();
     case RunMode::kPushTree:
-      return root_object->is_on_server() != PresenceOnServer::kObjectPresent && !request_pool.is_stopped() &&
-             !request_pool.is_idle();
+      return !request_pool.is_stopped() && !request_pool.is_idle();
     case RunMode::kDefault:
     case RunMode::kDryRun:
     default:

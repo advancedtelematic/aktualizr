@@ -8,6 +8,10 @@
 #include "ostree_repo.h"
 #include "server_credentials.h"
 
+/*
+ * Check current state of the request pool depending on the run mode.
+ * @return true if active, false if finished/inactive
+ */
 bool CheckPoolState(const OSTreeObject::ptr& root_object, const RequestPool& request_pool);
 
 /**
