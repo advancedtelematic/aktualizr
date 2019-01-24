@@ -424,13 +424,13 @@ class Targets : public MetaWithKeys {
 
   std::vector<Uptane::Target> targets;
   std::set<std::string> delegated_role_names_;
+  std::map<Role, std::vector<std::string> > paths_for_role_;
+  std::map<Role, bool> terminating_role_;
 
  private:
   void init(const Json::Value &json);
 
   std::string name_;
-  std::map<Role, std::vector<std::string> > paths_for_role_;
-  std::map<Role, bool> terminating_role_;
   std::string correlation_id_;  // custom non-tuf
 };
 

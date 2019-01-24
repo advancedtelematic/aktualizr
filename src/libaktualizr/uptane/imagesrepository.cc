@@ -1,5 +1,7 @@
 #include "imagesrepository.h"
 
+#include <fnmatch.h>
+
 namespace Uptane {
 
 void ImagesRepository::resetMeta() {
@@ -92,9 +94,18 @@ bool ImagesRepository::verifyTargets(const std::string& targets_raw, const std::
       LOG_ERROR << "No hash found for targets.json";
       return false;
     }
+
     // Verify the signature:
-    // TODO: delegated targets are checked with parent Targets, not Root.
-    targets[role_name] = Targets(RepositoryType::Image(), targets_json, std::make_shared<MetaWithKeys>(root));
+    std::shared_ptr<MetaWithKeys> signer;
+    if (role_name == "targets") {
+      signer = std::make_shared<MetaWithKeys>(root);
+    } else {
+      // TODO: support nested delegations here. This currently assumes that all
+      // delegated targets are signed by the top-level targets.
+      signer = std::make_shared<MetaWithKeys>(targets["targets"]);
+    }
+    targets[role_name] = Targets(RepositoryType::Image(), targets_json, signer);
+
     // Only compare targets version in snapshot metadata for top-level
     // targets.json. Delegated target metadata versions are not tracked outside
     // of their own metadata.
@@ -109,11 +120,33 @@ bool ImagesRepository::verifyTargets(const std::string& targets_raw, const std::
   return true;
 }
 
-// TODO: Delegation support.
 std::unique_ptr<Uptane::Target> ImagesRepository::getTarget(const Uptane::Target& director_target) {
-  auto it = std::find(targets["targets"].targets.cbegin(), targets["targets"].targets.cend(), director_target);
-  if (it == targets["targets"].targets.cend()) {
-    // TODO: check delegation paths, etc.
+  // Search for the target in the top-level targets metadata.
+  Uptane::Targets toplevel = targets["targets"];
+  auto it = std::find(toplevel.targets.cbegin(), toplevel.targets.cend(), director_target);
+  if (it == toplevel.targets.cend()) {
+    // Check if the target matches any of the delegation paths.
+    for (const auto& delegate_name : toplevel.delegated_role_names_) {
+      Role delegate_role = Role::Delegated(delegate_name);
+      std::vector<std::string> patterns = toplevel.paths_for_role_[delegate_role];
+      for (const auto& pattern : patterns) {
+        if (fnmatch(pattern.c_str(), director_target.filename().c_str(), 0) == 0) {
+          // Match! Check delegation.
+          Uptane::Targets delegate = targets[delegate_name];
+          auto d_it = std::find(delegate.targets.cbegin(), delegate.targets.cend(), director_target);
+          if (d_it == delegate.targets.cend()) {
+            // TODO: recurse here if the delegation is non-terminating. For now,
+            // assume that all delegations are terminating.
+            if (!toplevel.terminating_role_[delegate_role]) {
+              LOG_ERROR << "Nested delegations are not currently supported.";
+            }
+            return std::unique_ptr<Uptane::Target>(nullptr);
+          } else {
+            return std_::make_unique<Uptane::Target>(*d_it);
+          }
+        }
+      }
+    }
     return std::unique_ptr<Uptane::Target>(nullptr);
   } else {
     return std_::make_unique<Uptane::Target>(*it);
