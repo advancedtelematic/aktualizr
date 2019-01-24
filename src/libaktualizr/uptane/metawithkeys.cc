@@ -5,8 +5,8 @@
 using Uptane::MetaWithKeys;
 
 MetaWithKeys::MetaWithKeys(const Json::Value &json) : BaseMeta(json) {}
-MetaWithKeys::MetaWithKeys(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &root)
-    : BaseMeta(repo, json, root) {}
+MetaWithKeys::MetaWithKeys(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &signer)
+    : BaseMeta(repo, json, signer) {}
 
 void Uptane::MetaWithKeys::ParseKeys(const RepositoryType repo, const Json::Value &keys) {
   for (Json::ValueIterator it = keys.begin(); it != keys.end(); ++it) {
@@ -104,17 +104,5 @@ void Uptane::MetaWithKeys::UnpackSignedObject(const RepositoryType repo, const J
   }
   if (valid_signatures < threshold) {
     throw UnmetThreshold(repository, role.ToString());
-  }
-
-  // TODO: fix for delegated targets.
-  // Actually, just fix this for everything; it's broken.
-  // It just checks the an object is equal to itself. role should come from the
-  // roles of this object, not the signed_object.
-  const Uptane::Role actual_role(Uptane::Role(signed_object["signed"]["_type"].asString()));
-  if (role != actual_role) {
-    LOG_ERROR << "Object was signed for a different role";
-    LOG_TRACE << "  role:" << role;
-    LOG_TRACE << "  actual_role:" << actual_role;
-    throw SecurityException(repository, "Object was signed for a different role");
   }
 }

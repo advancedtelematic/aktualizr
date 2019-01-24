@@ -328,7 +328,7 @@ class MetaWithKeys : public BaseMeta {
    * @param json - The contents of the 'signed' portion
    */
   MetaWithKeys(const Json::Value &json);
-  MetaWithKeys(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &root);
+  MetaWithKeys(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &signer);
 
   virtual ~MetaWithKeys() = default;
 
@@ -412,7 +412,8 @@ class Root : public MetaWithKeys {
 class Targets : public MetaWithKeys {
  public:
   explicit Targets(const Json::Value &json);
-  Targets(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &root);
+  Targets(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &signer,
+          std::string name = "targets");
   Targets() = default;
   ~Targets() override = default;
 
@@ -427,6 +428,7 @@ class Targets : public MetaWithKeys {
  private:
   void init(const Json::Value &json);
 
+  std::string name_;
   std::map<Role, std::vector<std::string> > paths_for_role_;
   std::map<Role, bool> terminating_role_;
   std::string correlation_id_;  // custom non-tuf

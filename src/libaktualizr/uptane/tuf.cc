@@ -280,9 +280,7 @@ void Uptane::Targets::init(const Json::Value &json) {
       const std::string role_name = (*it)["name"].asString();
       const Role role = Role(role_name);
       delegated_role_names_.insert(role_name);
-      // TODO: use actual parent object role name, don't just assume "targets"
-      // (for printing errors only though)
-      ParseRole(Uptane::RepositoryType::Image(), it, role, "targets");
+      ParseRole(Uptane::RepositoryType::Image(), it, role, name_);
 
       const Json::Value paths_list = (*it)["paths"];
       std::vector<std::string> paths;
@@ -304,8 +302,9 @@ void Uptane::Targets::init(const Json::Value &json) {
 
 Uptane::Targets::Targets(const Json::Value &json) : MetaWithKeys(json) { init(json); }
 
-Uptane::Targets::Targets(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &root)
-    : MetaWithKeys(repo, json, root) {
+Uptane::Targets::Targets(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &signer,
+                         std::string name)
+    : MetaWithKeys(repo, json, signer), name_(std::move(name)) {
   init(json);
 }
 
