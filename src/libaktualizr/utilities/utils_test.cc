@@ -12,7 +12,6 @@
 
 #include <boost/algorithm/hex.hpp>
 #include <boost/archive/iterators/dataflow_exception.hpp>
-#include <boost/random/uniform_smallint.hpp>
 
 #include "utilities/utils.h"
 
@@ -122,9 +121,9 @@ TEST(Utils, FromBase64Wrong) {
 
 TEST(Utils, Base64RoundTrip) {
   std::mt19937 gen;
-  boost::random::uniform_smallint<char> chars(std::numeric_limits<char>::min(), std::numeric_limits<char>::max());
+  std::uniform_int_distribution<char> chars(std::numeric_limits<char>::min(), std::numeric_limits<char>::max());
 
-  boost::random::uniform_smallint<int> length(0, 20);
+  std::uniform_int_distribution<int> length(0, 20);
 
   for (int test = 0; test < 100; test++) {
     int len = length(gen);

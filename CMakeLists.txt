@@ -42,9 +42,12 @@ configure_file(CTestCustom.cmake CTestCustom.cmake)
 
 unset(AKTUALIZR_CHECKED_SRCS CACHE)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # find all required libraries
-set(Boost_USE_STATIC_LIBS ON)
 set(BOOST_COMPONENTS log_setup log filesystem program_options)
+set(Boost_USE_STATIC_LIBS OFF)
+add_definitions(-DBOOST_LOG_DYN_LINK)
 
 if(BUILD_OPCUA)
     list(APPEND BOOST_COMPONENTS serialization iostreams)
