@@ -237,8 +237,16 @@ if (BUILD_SOTA_TOOLS)
         # Support dry run with auth plus using a real server.
         add_test(NAME garage-push-dry-run
             COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-dry-run $<TARGET_FILE:garage-push>
-            ${SOTA_PACKED_CREDENTIALS} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/tests/)
+            ${SOTA_PACKED_CREDENTIALS} master
+            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/tests/)
         set_tests_properties(garage-push-dry-run PROPERTIES LABELS "credentials")
+
+        # Parse OSTree ref or commit refhash.
+        add_test(NAME garage-push-dry-run-commit
+            COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-dry-run $<TARGET_FILE:garage-push>
+            ${SOTA_PACKED_CREDENTIALS} 16ef2f2629dc9263fdf3c0f032563a2d757623bbc11cf99df25c3c3f258dccbe
+            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/tests/)
+        set_tests_properties(garage-push-dry-run-commit PROPERTIES LABELS "credentials")
 
         # Support debug logging.
         add_test(NAME garage-push-verbose-logging
