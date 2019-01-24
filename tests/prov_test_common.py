@@ -30,7 +30,3 @@ def run_subprocess(command, **kwargs):
     print('> Running {}'.format(' '.join(command)))
     s = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False, **kwargs)
     return s.stdout, s.stderr, s.returncode
-
-def popen_subprocess(command, **kwargs):
-    print('> Running {}'.format(' '.join(command)))
-    return subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
