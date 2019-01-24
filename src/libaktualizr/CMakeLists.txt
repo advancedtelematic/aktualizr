@@ -13,7 +13,10 @@ add_subdirectory("storage")
 add_subdirectory("socket_activation")
 add_subdirectory("package_manager")
 add_subdirectory("telemetry")
-add_subdirectory("isotp_conn")
+
+if(BUILD_ISOTP)
+    add_subdirectory("isotp_conn")
+endif(BUILD_ISOTP)
 
 if (BUILD_OPCUA)
     add_subdirectory("opcuabridge")
@@ -36,12 +39,15 @@ add_library(aktualizr_static_lib STATIC
     $<TARGET_OBJECTS:storage>
     $<TARGET_OBJECTS:uptane>
     $<TARGET_OBJECTS:socket_activation>
-    $<TARGET_OBJECTS:telemetry>
-    $<TARGET_OBJECTS:isotp_conn>)
+    $<TARGET_OBJECTS:telemetry>)
 
 if (BUILD_OPCUA)
     target_sources(aktualizr_static_lib PRIVATE $<TARGET_OBJECTS:opcua_bridge>)
 endif (BUILD_OPCUA)
+
+if (BUILD_ISOTP)
+    target_sources(aktualizr_static_lib PRIVATE $<TARGET_OBJECTS:isotp_conn>)
+endif (BUILD_ISOTP)
 
 target_include_directories(aktualizr_static_lib PUBLIC
     $<TARGET_PROPERTY:package_manager,INCLUDE_DIRECTORIES>)
