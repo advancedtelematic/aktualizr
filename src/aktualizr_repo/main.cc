@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
     ("repotype", po::value<std::string>(), "director|image")
     ("correlationid", po::value<std::string>()->default_value(""), "correlation id")
     ("keytype", po::value<std::string>()->default_value("RSA2048"), "UPTANE key type")
-    ("targetname", po::value<std::string>(), "target's name (for adding metadata without an actual file)")
+    ("targetname", po::value<std::string>(), "target's name (if different than filename)")
     ("targetsha256", po::value<std::string>(), "target's SHA256 hash (for adding metadata without an actual file)")
     ("targetsha512", po::value<std::string>(), "target's SHA512 hash (for adding metadata without an actual file)")
     ("targetlength", po::value<uint64_t>(), "target's length (for adding metadata without an actual file)")
