@@ -29,6 +29,19 @@ struct UptaneTestCommon {
     return ecu_config;
   }
 
+  static Config makeTestConfig(const TemporaryDirectory& temp_dir, const std::string& url) {
+    Config conf("tests/config/basic.toml");
+    conf.uptane.director_server = url + "/director";
+    conf.uptane.repo_server = url + "/repo";
+    conf.provision.server = url;
+    conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
+    conf.provision.primary_ecu_hardware_id = "primary_hw";
+    conf.storage.path = temp_dir.Path();
+    conf.tls.server = url;
+    UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "secondary_ecu_serial", "secondary_hw");
+    return conf;
+  }
+
   static std::vector<Uptane::Target> makePackage(const std::string &serial, const std::string &hw_id) {
     std::vector<Uptane::Target> packages_to_install;
     Json::Value ot_json;

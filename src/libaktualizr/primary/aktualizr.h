@@ -182,6 +182,7 @@ class Aktualizr {
   FRIEND_TEST(Aktualizr, UpdateCheckCompleteError);
   FRIEND_TEST(Aktualizr, PauseResumeEvents);
   FRIEND_TEST(Aktualizr, AddSecondary);
+  FRIEND_TEST(Delegation, Basic);
 
   // This constructor is only being used in tests
   Aktualizr(Config& config, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<HttpInterface> http_in);
