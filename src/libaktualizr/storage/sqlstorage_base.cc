@@ -70,7 +70,7 @@ bool SQLStorageBase::dbMigrate() {
   }
 
   auto schema_num_version = static_cast<int32_t>(schema_version);
-  if (schema_num_version == current_schema_version_) {
+  if (schema_num_version == current_schema_version) {
     return true;
   }
 
@@ -79,23 +79,46 @@ bool SQLStorageBase::dbMigrate() {
     return false;
   }
 
-  if (schema_num_version > current_schema_version_) {
-    LOG_ERROR << "Only forward migrations are supported. You cannot migrate to an older schema.";
-    return false;
-  }
-
   SQLite3Guard db = dbConnection();
-  for (int32_t k = schema_num_version + 1; k <= current_schema_version_; k++) {
-    if (db.exec(schema_migrations_.at(static_cast<size_t>(k)), nullptr, nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Can't migrate db from version " << (k - 1) << " to version " << k << ": " << db.errmsg();
-      return false;
+  if (schema_version != DbVersion::kEmpty && schema_num_version > current_schema_version) {
+    for (int ver = schema_num_version; ver > current_schema_version; --ver) {
+      auto statement = db.prepareStatement("SELECT migration FROM migrations WHERE version_from=?;", ver);
+      if (statement.step() != SQLITE_ROW) {
+        LOG_ERROR << "Can't extract migration script: " << db.errmsg();
+        return false;
+      }
+      auto migration = statement.get_result_col_str(0);
+      statement.step();
+      if (db.exec(*migration, nullptr, nullptr) != SQLITE_OK) {
+        LOG_ERROR << "Can't migrate db from version " << (ver) << " to version " << ver - 1 << ": " << db.errmsg();
+        return false;
+      }
+      if (db.exec(std::string("DELETE FROM migrations WHERE version_from=") + std::to_string(ver) + ";", nullptr,
+                  nullptr) != SQLITE_OK) {
+        LOG_ERROR << "Can't clear old migration script: " << db.errmsg();
+        return false;
+      }
+    }
+  } else {
+    for (int32_t k = schema_num_version + 1; k <= current_schema_version; k++) {
+      if (db.exec(schema_migrations.at(static_cast<size_t>(k)), nullptr, nullptr) != SQLITE_OK) {
+        LOG_ERROR << "Can't migrate db from version " << (k - 1) << " to version " << k << ": " << db.errmsg();
+        return false;
+      }
+      if (schema_rollback_migrations.count(k) != 0) {
+        auto statement =
+            db.prepareStatement("INSERT INTO migrations VALUES (?,?);", k, schema_rollback_migrations.at(k));
+        if (statement.step() != SQLITE_DONE) {
+          LOG_ERROR << "Can't insert rollback migration script: " << db.errmsg();
+          return false;
+        }
+      }
     }
   }
-
   return true;
 }
 
-DbVersion SQLStorageBase::getVersion() {
+DbVersion SQLStorage::getVersion() {
   SQLite3Guard db = dbConnection();
 
   try {
