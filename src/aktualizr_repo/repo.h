@@ -31,6 +31,9 @@ struct Delegation {
     for (const auto &role : delegations["roles"]) {
       if (role["name"].asString() == name) {
         pattern = role["paths"][0].asString();
+        if (pattern.back() == '/') {
+          pattern.append("**");
+        }
       }
     }
 
