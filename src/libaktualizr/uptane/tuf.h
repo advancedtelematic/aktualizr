@@ -298,7 +298,7 @@ class BaseMeta {
  public:
   BaseMeta() = default;
   explicit BaseMeta(const Json::Value &json);
-  BaseMeta(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &root);
+  BaseMeta(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &signer);
   int version() const { return version_; }
   TimeStamp expiry() const { return expiry_; }
   bool isExpired(const TimeStamp &now) const { return expiry_.IsExpiredAt(now); }
@@ -437,7 +437,7 @@ class Targets : public MetaWithKeys {
 class TimestampMeta : public BaseMeta {
  public:
   explicit TimestampMeta(const Json::Value &json);
-  TimestampMeta(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &root);
+  TimestampMeta(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &signer);
   TimestampMeta() = default;
   std::vector<Hash> snapshot_hashes() const { return snapshot_hashes_; };
   int64_t snapshot_size() const { return snapshot_size_; };
@@ -454,7 +454,7 @@ class TimestampMeta : public BaseMeta {
 class Snapshot : public BaseMeta {
  public:
   explicit Snapshot(const Json::Value &json);
-  Snapshot(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &root);
+  Snapshot(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &signer);
   Snapshot() = default;
   std::vector<Hash> targets_hashes() const { return targets_hashes_; };
   int64_t targets_size() const { return targets_size_; };

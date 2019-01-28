@@ -250,12 +250,12 @@ void Uptane::BaseMeta::init(const Json::Value &json) {
 }
 Uptane::BaseMeta::BaseMeta(const Json::Value &json) { init(json); }
 
-Uptane::BaseMeta::BaseMeta(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &root) {
+Uptane::BaseMeta::BaseMeta(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &signer) {
   if (!json.isObject() || !json.isMember("signed")) {
     throw Uptane::InvalidMetadata("", "", "invalid metadata json");
   }
 
-  root->UnpackSignedObject(repo, json);
+  signer->UnpackSignedObject(repo, json);
 
   init(json);
 }
@@ -328,8 +328,8 @@ void Uptane::TimestampMeta::init(const Json::Value &json) {
 Uptane::TimestampMeta::TimestampMeta(const Json::Value &json) : BaseMeta(json) { init(json); }
 
 Uptane::TimestampMeta::TimestampMeta(RepositoryType repo, const Json::Value &json,
-                                     const std::shared_ptr<MetaWithKeys> &root)
-    : BaseMeta(repo, json, root) {
+                                     const std::shared_ptr<MetaWithKeys> &signer)
+    : BaseMeta(repo, json, signer) {
   init(json);
 }
 
@@ -359,8 +359,8 @@ void Uptane::Snapshot::init(const Json::Value &json) {
 
 Uptane::Snapshot::Snapshot(const Json::Value &json) : BaseMeta(json) { init(json); }
 
-Uptane::Snapshot::Snapshot(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &root)
-    : BaseMeta(repo, json, root) {
+Uptane::Snapshot::Snapshot(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &signer)
+    : BaseMeta(repo, json, signer) {
   init(json);
 }
 
