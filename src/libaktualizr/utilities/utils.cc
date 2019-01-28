@@ -675,7 +675,7 @@ std::string Utils::urlEncode(const std::string &input) {
 
   for (char c : input) {
     if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' || c == '.' ||
-        c == '_' || c == '~') {
+        c == '_' || c == '~' || c == '/') {
       res.push_back(c);
     } else {
       res.push_back('%');
