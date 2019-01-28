@@ -22,17 +22,17 @@ static inline bool parse_keyval(const char *keyval, int len, crypto_key_t *key) 
   }
 }
 
-static inline bool parse_keys(const char *metadata_str, unsigned int *pos) {
-  unsigned int idx = *pos;
+static inline bool parse_keys(const char *metadata_str, int16_t *pos) {
+  int16_t idx = *pos;
 
   if (token_pool[idx].type != JSMN_OBJECT) {
     DEBUG_PRINTF("Object expected\n");
     return false;
   }
-  int size = token_pool[idx].size;
+  int16_t size = token_pool[idx].size;
   ++idx;  // consume object token
 
-  for (int i = 0; i < size; ++i) {
+  for (int16_t i = 0; i < size; ++i) {
     bool keytype_supported = false;
     bool keyval_found = false;
 
@@ -44,14 +44,14 @@ static inline bool parse_keys(const char *metadata_str, unsigned int *pos) {
 
     if (JSON_TOK_LEN(token_pool[idx]) != (2 * CRYPTO_KEYID_LEN)) {
       DEBUG_PRINTF("Invalid key ID length\n");
-      idx = consume_recursive_json(idx + 1);  // consume key
+      idx = consume_recursive_json((int16_t)(idx + 1));  // consume key
       free_crypto_key(keys[num_keys]);
       continue;
     }
 
     if (!hex2bin(metadata_str + token_pool[idx].start, JSON_TOK_LEN(token_pool[idx]), keys[num_keys]->keyid)) {
       DEBUG_PRINTF("Invalid key ID\n");
-      idx = consume_recursive_json(idx + 1);  // consume key
+      idx = consume_recursive_json((int16_t)(idx + 1));  // consume key
       free_crypto_key(keys[num_keys]);
       continue;
     }
@@ -64,17 +64,17 @@ static inline bool parse_keys(const char *metadata_str, unsigned int *pos) {
       free_crypto_key(keys[num_keys]);
     }
 
-    int key_size = token_pool[idx].size;
+    int16_t key_size = token_pool[idx].size;
     ++idx;  // consume object token
 
-    for (int j = 0; j < key_size; ++j) {
-      if (JSON_STR_EQUAL(metadata_str, token_pool[idx], "keytype")) {
+    for (int16_t j = 0; j < key_size; ++j) {
+      if (json_str_equal(metadata_str, idx, "keytype")) {
         ++idx;  // consume name token
         keys[num_keys]->key_type =
             crypto_str_to_keytype(metadata_str + token_pool[idx].start, (size_t)JSON_TOK_LEN(token_pool[idx]));
         keytype_supported = (keys[num_keys]->key_type != CRYPTO_ALG_UNKNOWN);
         ++idx;  // consume keytype
-      } else if (JSON_STR_EQUAL(metadata_str, token_pool[idx], "keyval")) {
+      } else if (json_str_equal(metadata_str, idx, "keyval")) {
         ++idx;  // consume name token
         if (token_pool[idx].type != JSMN_OBJECT) {
           DEBUG_PRINTF("Object expected\n");
@@ -85,7 +85,7 @@ static inline bool parse_keys(const char *metadata_str, unsigned int *pos) {
         int keyval_size = token_pool[idx].size;
 
         for (int k = 0; k < keyval_size; ++k) {
-          if (JSON_STR_EQUAL(metadata_str, token_pool[idx], "public")) {
+          if (json_str_equal(metadata_str, idx, "public")) {
             ++idx;  // consume name token
 
             keyval_found =
@@ -120,9 +120,9 @@ static inline bool parse_keys(const char *metadata_str, unsigned int *pos) {
   return true;
 }
 
-static inline bool parse_role(const char *metadata_str, unsigned int *pos, int32_t *threshold, int32_t *out_key_num,
+static inline bool parse_role(const char *metadata_str, int16_t *pos, int32_t *threshold, int32_t *out_key_num,
                               crypto_key_t **out_keys) {
-  unsigned int idx = *pos;
+  int16_t idx = *pos;
   if (token_pool[idx].type != JSMN_OBJECT) {
     DEBUG_PRINTF("Object expected\n");
     return false;
@@ -134,7 +134,7 @@ static inline bool parse_role(const char *metadata_str, unsigned int *pos, int32
   bool keyids_found = false;
 
   for (int i = 0; i < size; ++i) {
-    if (JSON_STR_EQUAL(metadata_str, token_pool[idx], "threshold")) {
+    if (json_str_equal(metadata_str, idx, "threshold")) {
       ++idx;  // consume name token
 
       int32_t thr;
@@ -143,7 +143,7 @@ static inline bool parse_role(const char *metadata_str, unsigned int *pos, int32
         threshold_found = true;
       }
       ++idx;  // consume threshold token
-    } else if (JSON_STR_EQUAL(metadata_str, token_pool[idx], "keyids")) {
+    } else if (json_str_equal(metadata_str, idx, "keyids")) {
       ++idx;  // consume name token
       if (token_pool[idx].type != JSMN_ARRAY) {
         DEBUG_PRINTF("keyids is not an array\n");
@@ -173,23 +173,23 @@ static inline bool parse_role(const char *metadata_str, unsigned int *pos, int32
   return threshold_found && keyids_found;
 }
 
-static inline bool parse_roles(const char *metadata_str, unsigned int *pos, uptane_root_t *root) {
-  unsigned int idx = *pos;
+static inline bool parse_roles(const char *metadata_str, int16_t *pos, uptane_root_t *root) {
+  int16_t idx = *pos;
   if (token_pool[idx].type != JSMN_OBJECT) {
     DEBUG_PRINTF("Object expected\n");
     return false;
   }
-  int size = token_pool[idx].size;
+  int16_t size = token_pool[idx].size;
   ++idx;  // consume object token
 
   bool root_found = false;
   bool targets_found = false;
 
   for (int i = 0; i < size; ++i) {
-    if (JSON_STR_EQUAL(metadata_str, token_pool[idx], "root")) {
+    if (json_str_equal(metadata_str, idx, "root")) {
       ++idx;  // consume name token
       root_found = parse_role(metadata_str, &idx, &root->root_threshold, &root->root_keys_num, root->root_keys);
-    } else if (JSON_STR_EQUAL(metadata_str, token_pool[idx], "targets")) {
+    } else if (json_str_equal(metadata_str, idx, "targets")) {
       ++idx;  // consume name token
       targets_found =
           parse_role(metadata_str, &idx, &root->targets_threshold, &root->targets_keys_num, root->targets_keys);
@@ -204,8 +204,8 @@ static inline bool parse_roles(const char *metadata_str, unsigned int *pos, upta
   return root_found && targets_found;
 }
 
-bool uptane_parse_root_signed(const char *metadata_str, unsigned int *pos, uptane_root_t *out_root) {
-  unsigned int idx = *pos;
+bool uptane_parse_root_signed(const char *metadata_str, int16_t *pos, uptane_root_t *out_root) {
+  int16_t idx = *pos;
   if (token_pool[idx].type != JSMN_OBJECT) {
     DEBUG_PRINTF("Object expected\n");
     return false;
@@ -213,17 +213,17 @@ bool uptane_parse_root_signed(const char *metadata_str, unsigned int *pos, uptan
   int size = token_pool[idx].size;
   ++idx;  // consume object token
 
-  for (int i = 0; i < size; ++i) {
-    if (JSON_STR_EQUAL(metadata_str, token_pool[idx], "_type")) {
+  for (int16_t i = 0; i < size; ++i) {
+    if (json_str_equal(metadata_str, idx, "_type")) {
       ++idx;  //  consume name token
 
-      if (!JSON_STR_EQUAL(metadata_str, token_pool[idx], "Root")) {
+      if (!json_str_equal(metadata_str, idx, "Root")) {
         DEBUG_PRINTF("Wrong type of root metadata: \"%.*s\"\n", JSON_TOK_LEN(token_pool[idx]),
                      metadata_str + token_pool[idx].start);
         return false;
       }
       ++idx;
-    } else if (JSON_STR_EQUAL(metadata_str, token_pool[idx], "expires")) {
+    } else if (json_str_equal(metadata_str, idx, "expires")) {
       ++idx;  //  consume name token
 
       uptane_time_t expires;
@@ -234,7 +234,7 @@ bool uptane_parse_root_signed(const char *metadata_str, unsigned int *pos, uptan
       }
       out_root->expires = expires;
       ++idx;
-    } else if (JSON_STR_EQUAL(metadata_str, token_pool[idx], "version")) {
+    } else if (json_str_equal(metadata_str, idx, "version")) {
       ++idx;  //  consume name token
       int32_t version_tmp;
       if (!dec2int(metadata_str + token_pool[idx].start, JSON_TOK_LEN(token_pool[idx]), &version_tmp)) {
@@ -244,7 +244,7 @@ bool uptane_parse_root_signed(const char *metadata_str, unsigned int *pos, uptan
       }
       out_root->version = version_tmp;
       ++idx;  // consume value token
-    } else if (JSON_STR_EQUAL(metadata_str, token_pool[idx], "keys")) {
+    } else if (json_str_equal(metadata_str, idx, "keys")) {
       ++idx;  //  consume name token
       if (!parse_keys(metadata_str, &idx)) {
         DEBUG_PRINTF("Failed to parse keys\n");
@@ -255,7 +255,7 @@ bool uptane_parse_root_signed(const char *metadata_str, unsigned int *pos, uptan
         }
         return false;
       }
-    } else if (JSON_STR_EQUAL(metadata_str, token_pool[idx], "roles")) {
+    } else if (json_str_equal(metadata_str, idx, "roles")) {
       ++idx;  //  consume name token
       if (!parse_roles(metadata_str, &idx, out_root)) {
         DEBUG_PRINTF("Failed to parse roles\n");

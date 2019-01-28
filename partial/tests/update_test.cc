@@ -15,7 +15,7 @@ TEST(update, full) {
   uint16_t result = 0x0000;
   uptane_targets_t targets;
 
-  uptane_parse_targets_feed(targets_str.c_str(), targets_str.length(), &targets, &result);
+  uptane_parse_targets_feed(targets_str.c_str(), (int16_t) targets_str.length(), &targets, &result);
   ASSERT_EQ(result, RESULT_END_FOUND);
   state_set_targets(&targets);
 

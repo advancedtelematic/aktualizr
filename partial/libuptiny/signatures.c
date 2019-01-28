@@ -12,8 +12,8 @@ extern const unsigned int token_pool_size;
 crypto_key_t **meta_keys;
 int meta_keys_num;
 
-static inline int parse_sig(const char *json_sig, unsigned int *pos, crypto_key_and_signature_t *sig) {
-  unsigned int idx = *pos;
+static inline int parse_sig(const char *json_sig, int16_t *pos, crypto_key_and_signature_t *sig) {
+  int16_t idx = *pos;
 
   if (token_pool[idx].type != JSMN_OBJECT) {
     DEBUG_PRINTF("Object expected\n");
@@ -26,7 +26,7 @@ static inline int parse_sig(const char *json_sig, unsigned int *pos, crypto_key_
   bool sig_found = false;
   uint8_t sig_buf[CRYPTO_MAX_SIGNATURE_LEN + 2];  // '+2' because base64 operates in 3 byte granularity
   for (int i = 0; i < size; ++i) {
-    if (JSON_STR_EQUAL(json_sig, token_pool[idx], "keyid")) {
+    if (json_str_equal(json_sig, idx, "keyid")) {
       ++idx;  //  consume name token
       if (token_pool[idx].type != JSMN_STRING) {
         DEBUG_PRINTF("Key ID is not a string\n");
@@ -40,11 +40,11 @@ static inline int parse_sig(const char *json_sig, unsigned int *pos, crypto_key_
         }
         ++idx;  // consume key
       }
-    } else if (JSON_STR_EQUAL(json_sig, token_pool[idx], "method")) {
+    } else if (json_str_equal(json_sig, idx, "method")) {
       // method is ignored for now
       ++idx;                              //  consume name token
       idx = consume_recursive_json(idx);  // consume value
-    } else if (JSON_STR_EQUAL(json_sig, token_pool[idx], "sig")) {
+    } else if (json_str_equal(json_sig, idx, "sig")) {
       ++idx;  //  consume name token
       if (token_pool[idx].type != JSMN_STRING) {
         DEBUG_PRINTF("Signature is not a string\n");
@@ -76,7 +76,7 @@ static inline int parse_sig(const char *json_sig, unsigned int *pos, crypto_key_
   return (sig_found && key_found);
 }
 
-int uptane_parse_signatures(uptane_role_t role, const char *signatures, unsigned int *pos,
+int uptane_parse_signatures(uptane_role_t role, const char *signatures, int16_t *pos,
                             crypto_key_and_signature_t *output, unsigned int max_sigs, uptane_root_t *in_root) {
   if (role == ROLE_ROOT) {
     meta_keys = in_root->root_keys;
@@ -86,7 +86,7 @@ int uptane_parse_signatures(uptane_role_t role, const char *signatures, unsigned
     meta_keys_num = in_root->targets_keys_num;
   }
 
-  unsigned int token_idx = *pos;
+  int16_t token_idx = *pos;
   if (token_pool[token_idx].type != JSMN_ARRAY) {
     DEBUG_PRINTF("Array expected\n");
     return -1;

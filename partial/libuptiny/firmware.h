@@ -13,6 +13,8 @@ void uptane_verify_firmware_feed(const uint8_t* data, size_t len);
 bool uptane_verify_firmware_finalize(void);
 void uptane_firmware_confirm(void);
 
+bool uptane_firmware_updated(void);
+
 #ifdef __cplusplus
 }
 #endif

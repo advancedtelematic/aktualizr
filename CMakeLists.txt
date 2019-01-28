@@ -21,6 +21,7 @@ option(BUILD_DEB "Set to ON to compile with debian packages support" OFF)
 option(BUILD_P11 "Support for key storage in a HSM via PKCS#11" OFF)
 option(BUILD_SOTA_TOOLS "Set to ON to build SOTA tools" OFF)
 option(BUILD_OPCUA "Set to ON to compile with OPC-UA protocol support" OFF)
+option(BUILD_ISOTP "Set to ON to compile with ISO/TP protocol support" OFF)
 option(BUILD_SYSTEMD "Set to ON to compile with systemd additional support" ${BUILD_SYSTEMD_DEFAULT})
 option(BUILD_LOAD_TESTS "Set to ON to build load tests" OFF)
 option(FAULT_INJECTION "Set to ON to enable fault injection" OFF)
@@ -122,6 +123,10 @@ if(BUILD_OPCUA)
         message(FATAL_ERROR "BUILD_OPCUA requires BUILD_OSTREE")
     endif(NOT BUILD_OSTREE)
 endif(BUILD_OPCUA)
+
+if(BUILD_ISOTP)
+    add_definitions(-DISOTP_SECONDARY_ENABLED)
+endif(BUILD_ISOTP)
 
 if(BUILD_SYSTEMD)
     find_package(Systemd REQUIRED)
@@ -278,6 +283,8 @@ include_directories(${sodium_INCLUDE_DIR})
 include_directories(${OPENSSL_INCLUDE_DIR})
 include_directories(${LibArchive_INCLUDE_DIR})
 
+include_directories(${PROJECT_SOURCE_DIR}/partial/extern/isotp-c/src)
+
 set_source_files_properties(third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
 add_library(jsoncpp OBJECT third_party/jsoncpp/jsoncpp.cpp)
 
@@ -398,6 +405,11 @@ file(GLOB_RECURSE ALL_SOURCE_FILES RELATIVE ${CMAKE_SOURCE_DIR}
 foreach(FILE ${ALL_SOURCE_FILES})
     # ignore opcuabridge
     string (FIND ${FILE} "/opcuabridge/" EXCLUDE_DIR_FOUND)
+    if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
+      continue()
+    endif()
+
+    string (FIND ${FILE} "/isotp_conn/" EXCLUDE_DIR_FOUND)
     if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
       continue()
     endif()

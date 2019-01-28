@@ -16,6 +16,8 @@ SecondaryConfig::SecondaryConfig(const boost::filesystem::path &config_file) {
     secondary_type = Uptane::SecondaryType::kIpUptane;
   } else if (stype == "opcua_uptane") {
     secondary_type = Uptane::SecondaryType::kOpcuaUptane;
+  } else if (stype == "isotp_uptane") {
+    secondary_type = Uptane::SecondaryType::kIsoTpUptane;
   } else {
     LOG_ERROR << "Unrecognized secondary type: " << stype;
   }
@@ -42,5 +44,12 @@ SecondaryConfig::SecondaryConfig(const boost::filesystem::path &config_file) {
       key_type = KeyType::kED25519;
     }
   }
+
+  try {
+    can_id = static_cast<uint16_t>(stoi(config_json["can_id"].asString(), nullptr, 16));
+  } catch (...) {
+    can_id = 0;
+  }
+  can_iface = config_json["can_interface"].asString();
 }
 }  // namespace Uptane

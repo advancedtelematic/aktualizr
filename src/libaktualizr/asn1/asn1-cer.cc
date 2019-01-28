@@ -237,6 +237,6 @@ uint8_t cer_decode_token(const std::string& ber, int32_t* endpos, int32_t* int_p
     }
     *endpos = len_endpos + 1;
 
-    return static_cast<uint8_t>(tag | type_class);
+    return static_cast<uint8_t>(static_cast<uint8_t>(tag) | static_cast<uint8_t>(type_class));
   }
 }

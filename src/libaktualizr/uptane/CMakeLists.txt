@@ -35,6 +35,12 @@ if (BUILD_OPCUA)
     set_source_files_properties(opcuasecondary.cc PROPERTIES COMPILE_FLAGS "-Wno-unused-parameter -Wno-float-equal")
 endif (BUILD_OPCUA)
 
+if (BUILD_ISOTP)
+    target_sources(uptane PRIVATE isotpsecondary.cc)
+endif (BUILD_ISOTP)
+
+target_include_directories(uptane PRIVATE ${PROJECT_SOURCE_DIR}/partial/extern/isotp-c/src)
+
 get_property(ASN1_INCLUDE_DIRS TARGET asn1_lib PROPERTY INCLUDE_DIRECTORIES)
 target_include_directories(uptane PUBLIC ${ASN1_INCLUDE_DIRS})
 
@@ -74,4 +80,4 @@ add_aktualizr_test(NAME fetcher SOURCES fetcher_test.cc ARGS ${PROJECT_BINARY_DI
 
 add_aktualizr_test(NAME fetcher_death SOURCES fetcher_death_test.cc NO_VALGRIND ARGS PROJECT_WORKING_DIRECTORY)
 
-aktualizr_source_file_checks(${SOURCES} ${HEADERS} opcuasecondary.cc opcuasecondary.h ${TEST_SOURCES})
+aktualizr_source_file_checks(${SOURCES} ${HEADERS} opcuasecondary.cc opcuasecondary.h isotpsecondary.cc isotpsecondary.h ${TEST_SOURCES})

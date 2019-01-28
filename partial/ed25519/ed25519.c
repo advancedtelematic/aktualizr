@@ -108,9 +108,9 @@ void ed25519_pack(uint8_t *c, const uint8_t *x, const uint8_t *y)
 uint8_t ed25519_try_unpack(uint8_t *x, uint8_t *y, const uint8_t *comp)
 {
 	const int parity = comp[31] >> 7;
-	uint8_t a[F25519_SIZE];
-	uint8_t b[F25519_SIZE];
-	uint8_t c[F25519_SIZE];
+	static uint8_t a[F25519_SIZE];
+	static uint8_t b[F25519_SIZE];
+	static uint8_t c[F25519_SIZE];
 
 	/* Unpack y */
 	f25519_copy(y, comp);
@@ -176,14 +176,14 @@ void ed25519_add(struct ed25519_pt *r,
 	 * compute T3 = E H
 	 * compute Z3 = F G
 	 */
-	uint8_t a[F25519_SIZE];
-	uint8_t b[F25519_SIZE];
-	uint8_t c[F25519_SIZE];
-	uint8_t d[F25519_SIZE];
-	uint8_t e[F25519_SIZE];
-	uint8_t f[F25519_SIZE];
-	uint8_t g[F25519_SIZE];
-	uint8_t h[F25519_SIZE];
+	static uint8_t a[F25519_SIZE];
+	static uint8_t b[F25519_SIZE];
+	static uint8_t c[F25519_SIZE];
+	static uint8_t d[F25519_SIZE];
+	static uint8_t e[F25519_SIZE];
+	static uint8_t f[F25519_SIZE];
+	static uint8_t g[F25519_SIZE];
+	static uint8_t h[F25519_SIZE];
 
 	/* A = (Y1-X1)(Y2-X2) */
 	f25519_sub(c, p1->y, p1->x);
@@ -247,13 +247,13 @@ void ed25519_double(struct ed25519_pt *r, const struct ed25519_pt *p)
 	 * compute T3 = E H
 	 * compute Z3 = F G
 	 */
-	uint8_t a[F25519_SIZE];
-	uint8_t b[F25519_SIZE];
-	uint8_t c[F25519_SIZE];
-	uint8_t e[F25519_SIZE];
-	uint8_t f[F25519_SIZE];
-	uint8_t g[F25519_SIZE];
-	uint8_t h[F25519_SIZE];
+	static uint8_t a[F25519_SIZE];
+	static uint8_t b[F25519_SIZE];
+	static uint8_t c[F25519_SIZE];
+	static uint8_t e[F25519_SIZE];
+	static uint8_t f[F25519_SIZE];
+	static uint8_t g[F25519_SIZE];
+	static uint8_t h[F25519_SIZE];
 
 	/* A = X1^2 */
 	f25519_mul__distinct(a, p->x, p->x);
@@ -298,14 +298,14 @@ void ed25519_double(struct ed25519_pt *r, const struct ed25519_pt *p)
 void ed25519_smult(struct ed25519_pt *r_out, const struct ed25519_pt *p,
 		   const uint8_t *e)
 {
-	struct ed25519_pt r;
+	static struct ed25519_pt r;
 	int i;
 
 	ed25519_copy(&r, &ed25519_neutral);
 
 	for (i = 255; i >= 0; i--) {
 		const uint8_t bit = (e[i >> 3] >> (i & 7)) & 1;
-		struct ed25519_pt s;
+		static struct ed25519_pt s;
 
 		ed25519_double(&r, &r);
 		ed25519_add(&s, &r, p);

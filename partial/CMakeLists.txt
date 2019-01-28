@@ -96,7 +96,17 @@ set(LIBUPTINY_HEADERS libuptiny/base64.h
 	libuptiny/utils.h
 	)
 
+set(LIBUPTINY_DEMO_SOURCES libuptiny-demo/common_data.c
+	libuptiny-demo/crypto.c
+	libuptiny-demo/flash.c
+	libuptiny-demo/main.c
+	libuptiny-demo/state.c
+)
+
+set(LIBUPTINY_DEMO_HEADERS libuptiny-demo/flash.h)
+
 aktualizr_source_file_checks(${LIBUPTINY_SOURCES} ${LIBUPTINY_HEADERS})
+aktualizr_source_file_checks(${LIBUPTINY_DEMO_SOURCES} ${LIBUPTINY_DEMO_HEADERS})
 
 include_directories(. ed25519 libuptiny extern)
 add_library(uptiny STATIC ${LIBUPTINY_SOURCES} libuptiny/jsmn.c)

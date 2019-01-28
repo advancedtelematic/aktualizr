@@ -99,8 +99,8 @@ static inline uint64_t rot64(uint64_t x, int bits)
 
 void sha512_block(struct sha512_state *s, const uint8_t *blk)
 {
-	uint64_t w[16];
-	uint64_t a, b, c, d, e, f, g, h;
+	static uint64_t w[16];
+	static uint64_t a, b, c, d, e, f, g, h;
 	int i;
 
 	for (i = 0; i < 16; i++) {
@@ -119,23 +119,38 @@ void sha512_block(struct sha512_state *s, const uint8_t *blk)
 	h = s->h[7];
 
 	for (i = 0; i < 80; i++) {
+		static uint64_t wi;
+		static uint64_t wi15;
+		static uint64_t wi2;
+		static uint64_t wi7;
+		static uint64_t s0;
+		static uint64_t s1;
+
+		/* Round calculations */
+		static uint64_t S0;
+		static uint64_t S1;
+		static uint64_t ch;
+		static uint64_t temp1;
+		static uint64_t maj;
+		static uint64_t temp2;
+
 		/* Compute value of w[i + 16]. w[wrap(i)] is currently w[i] */
-		const uint64_t wi = w[i & 15];
-		const uint64_t wi15 = w[(i + 1) & 15];
-		const uint64_t wi2 = w[(i + 14) & 15];
-		const uint64_t wi7 = w[(i + 9) & 15];
-		const uint64_t s0 =
+		wi = w[i & 15];
+		wi15 = w[(i + 1) & 15];
+		wi2 = w[(i + 14) & 15];
+		wi7 = w[(i + 9) & 15];
+		s0 =
 			rot64(wi15, 1) ^ rot64(wi15, 8) ^ (wi15 >> 7);
-		const uint64_t s1 =
+		s1 =
 			rot64(wi2, 19) ^ rot64(wi2, 61) ^ (wi2 >> 6);
 
 		/* Round calculations */
-		const uint64_t S0 = rot64(a, 28) ^ rot64(a, 34) ^ rot64(a, 39);
-		const uint64_t S1 = rot64(e, 14) ^ rot64(e, 18) ^ rot64(e, 41);
-		const uint64_t ch = (e & f) ^ ((~e) & g);
-		const uint64_t temp1 = h + S1 + ch + round_k[i] + wi;
-		const uint64_t maj = (a & b) ^ (a & c) ^ (b & c);
-		const uint64_t temp2 = S0 + maj;
+		S0 = rot64(a, 28) ^ rot64(a, 34) ^ rot64(a, 39);
+		S1 = rot64(e, 14) ^ rot64(e, 18) ^ rot64(e, 41);
+		ch = (e & f) ^ ((~e) & g);
+		temp1 = h + S1 + ch + round_k[i] + wi;
+		maj = (a & b) ^ (a & c) ^ (b & c);
+		temp2 = S0 + maj;
 
 		/* Update round state */
 		h = g;
@@ -165,8 +180,10 @@ void sha512_block(struct sha512_state *s, const uint8_t *blk)
 void sha512_final(struct sha512_state *s, const uint8_t *blk,
 		  size_t total_size)
 {
-	uint8_t temp[SHA512_BLOCK_SIZE] = {0};
+	static uint8_t temp[SHA512_BLOCK_SIZE];
 	const size_t last_size = total_size & (SHA512_BLOCK_SIZE - 1);
+
+	memset(temp, 0, sizeof(temp));
 
 	if (last_size)
 		memcpy(temp, blk, last_size);

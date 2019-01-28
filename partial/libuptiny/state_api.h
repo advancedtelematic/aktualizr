@@ -60,6 +60,7 @@ typedef struct {
   uptane_attack_t attack;
 } uptane_installation_state_t;
 
+void state_init(void);
 uptane_root_t* state_get_root(void);
 void state_set_root(const uptane_root_t* root);
 

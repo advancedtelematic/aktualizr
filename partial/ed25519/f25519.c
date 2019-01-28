@@ -303,10 +303,10 @@ static void exp2523(uint8_t *r, const uint8_t *x, uint8_t *s)
 
 void f25519_sqrt(uint8_t *r, const uint8_t *a)
 {
-	uint8_t v[F25519_SIZE];
-	uint8_t i[F25519_SIZE];
-	uint8_t x[F25519_SIZE];
-	uint8_t y[F25519_SIZE];
+	static uint8_t v[F25519_SIZE];
+	static uint8_t i[F25519_SIZE];
+	static uint8_t x[F25519_SIZE];
+	static uint8_t y[F25519_SIZE];
 
 	/* v = (2a)^((p-5)/8) [x = 2a] */
 	f25519_mul_c(x, a, 2);

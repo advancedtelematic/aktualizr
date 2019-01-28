@@ -14,6 +14,10 @@ add_subdirectory("socket_activation")
 add_subdirectory("package_manager")
 add_subdirectory("telemetry")
 
+if(BUILD_ISOTP)
+    add_subdirectory("isotp_conn")
+endif(BUILD_ISOTP)
+
 if (BUILD_OPCUA)
     add_subdirectory("opcuabridge")
 endif (BUILD_OPCUA)
@@ -40,6 +44,10 @@ add_library(aktualizr_static_lib STATIC
 if (BUILD_OPCUA)
     target_sources(aktualizr_static_lib PRIVATE $<TARGET_OBJECTS:opcua_bridge>)
 endif (BUILD_OPCUA)
+
+if (BUILD_ISOTP)
+    target_sources(aktualizr_static_lib PRIVATE $<TARGET_OBJECTS:isotp_conn>)
+endif (BUILD_ISOTP)
 
 target_include_directories(aktualizr_static_lib PUBLIC
     $<TARGET_PROPERTY:package_manager,INCLUDE_DIRECTORIES>)
