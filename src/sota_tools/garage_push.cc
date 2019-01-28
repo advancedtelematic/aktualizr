@@ -29,8 +29,8 @@ int main(int argc, char **argv) {
     ("version", "Current garage-push version")
     ("verbose,v", accumulator<int>(&verbosity), "Verbose logging (use twice for more information)")
     ("quiet,q", "Quiet mode")
-    ("repo,C", po::value<boost::filesystem::path>(&repo_path)->required(), "location of ostree repo")
-    ("ref,r", po::value<std::string>(&ref)->required(), "ref to push")
+    ("repo,C", po::value<boost::filesystem::path>(&repo_path)->required(), "location of OSTree repo")
+    ("ref,r", po::value<std::string>(&ref)->required(), "OSTree ref to push (or commit refhash)")
     ("credentials,j", po::value<boost::filesystem::path>(&credentials_path)->required(), "credentials (json or zip containing json)")
     ("cacert", po::value<std::string>(&cacerts), "override path to CA root certificates, in the same format as curl --cacert")
     ("jobs", po::value<int>(&max_curl_requests)->default_value(30), "maximum number of parallel requests")
@@ -107,25 +107,35 @@ int main(int argc, char **argv) {
   }
 
   try {
+    std::unique_ptr<OSTreeHash> commit;
+    bool is_ref = true;
+
     ServerCredentials push_credentials(credentials_path);
     OSTreeRef ostree_ref = src_repo->GetRef(ref);
-    if (!ostree_ref.IsValid()) {
-      LOG_FATAL << "Ref " << ref << " was not found in repository " << repo_path.string();
-      return EXIT_FAILURE;
+    if (ostree_ref.IsValid()) {
+      commit = std_::make_unique<OSTreeHash>(ostree_ref.GetHash());
+    } else {
+      try {
+        commit = std_::make_unique<OSTreeHash>(OSTreeHash::Parse(ref));
+      } catch (const OSTreeCommitParseError &e) {
+        LOG_FATAL << "Ref or commit refhash " << ref << " was not found in repository " << repo_path.string();
+        return EXIT_FAILURE;
+      }
+      is_ref = false;
     }
 
-    OSTreeHash commit(ostree_ref.GetHash());
-
-    if (!UploadToTreehub(src_repo, push_credentials, commit, cacerts, mode, max_curl_requests)) {
+    if (!UploadToTreehub(src_repo, push_credentials, *commit, cacerts, mode, max_curl_requests)) {
       LOG_FATAL << "Upload to treehub failed";
       return EXIT_FAILURE;
     }
 
     if (push_credentials.CanSignOffline()) {
-      LOG_INFO << "Credentials contain offline signing keys, not pushing root ref";
+      LOG_INFO << "Credentials contain offline signing keys. Use garage-sign to push root ref";
+    } else if (!is_ref) {
+      LOG_INFO << "Provided ref " << ref << " is a commit refhash. Cannot push root ref";
     } else {
       if (!PushRootRef(push_credentials, ostree_ref, cacerts, mode)) {
-        LOG_FATAL << "Could not push root reference to treehub";
+        LOG_FATAL << "Error pushing root ref to treehub";
         return EXIT_FAILURE;
       }
     }
