@@ -51,7 +51,7 @@ This step can be repeated as many times as necessary for each target. `--targetn
 3. Prepare director targets metadata for a given device:
 +
 ```
-aktualizr-repo --path <repo path> --command addtarget --filename <image name> --hwid <hardware ID> --serial <ECU serial>
+aktualizr-repo --path <repo path> --command addtarget --targetname <image name> --hwid <hardware ID> --serial <ECU serial>
 ```
 +
 This step can be repeated as many times as necessary for each target and ECU.

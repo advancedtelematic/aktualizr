@@ -109,11 +109,11 @@ int main(int argc, char **argv) {
           repo.addCustomImage(targetname.string(), *hash, vm["targetlength"].as<uint64_t>(), delegation);
         }
       } else if (command == "addtarget") {
-        if (vm.count("filename") == 0 || vm.count("hwid") == 0 || vm.count("serial") == 0) {
-          std::cerr << "addtarget command requires --filename, --hwid, and --serial\n";
+        if (vm.count("targetname") == 0 || vm.count("hwid") == 0 || vm.count("serial") == 0) {
+          std::cerr << "addtarget command requires --targetname, --hwid, and --serial\n";
           exit(EXIT_FAILURE);
         }
-        repo.addTarget(vm["filename"].as<boost::filesystem::path>().string(), vm["hwid"].as<std::string>(),
+        repo.addTarget(vm["targetname"].as<std::string>(), vm["hwid"].as<std::string>(),
                        vm["serial"].as<std::string>());
       } else if (command == "adddelegation") {
         if (vm.count("dname") == 0 || vm.count("dpattern") == 0) {

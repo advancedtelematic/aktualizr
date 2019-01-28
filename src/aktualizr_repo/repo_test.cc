@@ -245,7 +245,7 @@ TEST(aktualizr_repo, emptytargets) {
   }
 
   cmd = generate_repo_exec + " addtarget " + temp_dir.Path().string();
-  cmd += " --filename target1 --hwid hwid123 --serial serial123";
+  cmd += " --targetname target1 --hwid hwid123 --serial serial123";
   retval = Utils::shell(cmd, &output);
   if (retval) {
     FAIL() << "'" << cmd << "' exited with error code\n";

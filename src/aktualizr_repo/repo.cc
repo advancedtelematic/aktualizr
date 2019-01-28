@@ -196,7 +196,8 @@ void Repo::readKeys() {
     KeyType key_type;
     key_type_str >> key_type;
     std::string private_key_string(Utils::readFile(p / "private.key"));
-    keys_[Uptane::Role(p.path().filename().string(), true)] =
+    auto name = p.path().filename().string();
+    keys_[Uptane::Role(name, !Delegation::isBadName(name))] =
         KeyPair(PublicKey(public_key_string, key_type), private_key_string);
   }
 }
