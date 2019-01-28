@@ -5,8 +5,8 @@
 using Uptane::Root;
 
 Root::Root(const RepositoryType repo, const Json::Value &json, Root &root) : Root(repo, json) {
-  root.UnpackSignedObject(repo, json);
-  this->Root::UnpackSignedObject(repo, json);
+  root.UnpackSignedObject(repo, Role::Root(), json);
+  this->Root::UnpackSignedObject(repo, Role::Root(), json);
 }
 
 Root::Root(const RepositoryType repo, const Json::Value &json) : MetaWithKeys(json), policy_(Policy::kCheck) {
@@ -26,7 +26,7 @@ Root::Root(const RepositoryType repo, const Json::Value &json) : MetaWithKeys(js
   }
 }
 
-void Uptane::Root::UnpackSignedObject(const RepositoryType repo, const Json::Value &signed_object) {
+void Uptane::Root::UnpackSignedObject(const RepositoryType repo, const Role role, const Json::Value &signed_object) {
   const std::string repository = repo;
 
   if (policy_ == Policy::kAcceptAll) {
@@ -37,5 +37,5 @@ void Uptane::Root::UnpackSignedObject(const RepositoryType repo, const Json::Val
   }
   assert(policy_ == Policy::kCheck);
 
-  Uptane::MetaWithKeys::UnpackSignedObject(repo, signed_object);
+  Uptane::MetaWithKeys::UnpackSignedObject(repo, role, signed_object);
 }

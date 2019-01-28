@@ -76,8 +76,9 @@ void OpcuaServerSecondaryDelegate::handleAllMetaDataFilesReceived(opcuabridge::S
     // TODO: proper root metadata rotation
     secondary_->root_ = Uptane::Root(Uptane::RepositoryType::Director(),
                                      Utils::parseJSON(received_meta_pack_.director_root), secondary_->root_);
-    Uptane::Targets targets(Uptane::RepositoryType::Director(), Utils::parseJSON(received_meta_pack_.director_targets),
-                            secondary_->root_);
+    Uptane::Targets targets(Uptane::RepositoryType::Director(), Uptane::Role::Targets(),
+                            Utils::parseJSON(received_meta_pack_.director_targets),
+                            std::make_shared<Uptane::MetaWithKeys>(secondary_->root_));
     if (secondary_->meta_targets_.version() > targets.version()) {
       secondary_->detected_attack_ = "Rollback attack detected";
       LOG_ERROR << "Uptane security check: " << secondary_->detected_attack_;
