@@ -13,6 +13,32 @@
 KeyType key_type = KeyType::kED25519;
 std::string generate_repo_exec;
 
+void check_repo(boost::filesystem::path repo_dir) {
+  Json::Value targets = Utils::parseJSONFile(repo_dir / "targets.json")["signed"];
+  std::string signed_targets = Utils::readFile(repo_dir / "targets.json");
+
+  Json::Value snapshot = Utils::parseJSONFile(repo_dir / "snapshot.json")["signed"];
+  EXPECT_EQ(snapshot["meta"]["targets.json"]["hashes"]["sha256"].asString(),
+            boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(signed_targets))));
+  EXPECT_EQ(snapshot["meta"]["targets.json"]["hashes"]["sha512"].asString(),
+            boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(signed_targets))));
+  EXPECT_EQ(snapshot["meta"]["targets.json"]["length"].asUInt(), static_cast<Json::UInt>(signed_targets.length()));
+  EXPECT_EQ(snapshot["meta"]["targets.json"]["version"].asUInt(), targets["version"].asUInt());
+
+  auto signed_snapshot = Utils::readFile(repo_dir / "snapshot.json");
+  Json::Value timestamp = Utils::parseJSONFile(repo_dir / "timestamp.json")["signed"];
+  EXPECT_EQ(timestamp["meta"]["snapshot.json"]["hashes"]["sha256"].asString(),
+            boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(signed_snapshot))));
+  EXPECT_EQ(timestamp["meta"]["snapshot.json"]["hashes"]["sha512"].asString(),
+            boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(signed_snapshot))));
+  EXPECT_EQ(timestamp["meta"]["snapshot.json"]["length"].asUInt(), static_cast<Json::UInt>(signed_snapshot.length()));
+  EXPECT_EQ(timestamp["meta"]["snapshot.json"]["version"].asUInt(), snapshot["version"].asUInt());
+}
+
+void check_repo(const TemporaryDirectory &temp_dir) {
+  check_repo(temp_dir.Path() / "repo/image");
+  check_repo(temp_dir.Path() / "repo/director");
+}
 /*
  * Generate images and director repos.
  */
@@ -74,6 +100,7 @@ TEST(aktualizr_repo, generate_repo) {
   Json::Value director_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/targets.json");
   EXPECT_EQ(director_targets["signed"]["targets"].size(), 0);
   EXPECT_EQ(director_targets["signed"]["custom"]["correlationId"], "correlation");
+  check_repo(temp_dir);
 }
 
 /*
@@ -88,6 +115,7 @@ TEST(aktualizr_repo, add_image) {
   EXPECT_EQ(image_targets["signed"]["targets"].size(), 1);
   Json::Value director_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/targets.json");
   EXPECT_EQ(director_targets["signed"]["targets"].size(), 0);
+  check_repo(temp_dir);
 }
 
 /*
@@ -104,6 +132,7 @@ TEST(aktualizr_repo, copy_image) {
   EXPECT_EQ(image_targets["signed"]["targets"].size(), 1);
   Json::Value director_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/targets.json");
   EXPECT_EQ(director_targets["signed"]["targets"].size(), 1);
+  check_repo(temp_dir);
 }
 
 /*
@@ -164,6 +193,7 @@ TEST(aktualizr_repo, delegation) {
     EXPECT_EQ(delegate_targets.targets[1].sha256Hash(),
               "d8e9caba8c1697fcbade1057f9c2488044192ff76bb64d4aba2c20e53dc33033");
   }
+  check_repo(temp_dir);
 }
 
 /*
@@ -193,6 +223,7 @@ TEST(aktualizr_repo, sign) {
                     Utils::parseJSONFile(temp_dir.Path() / "repo/director/root.json"));
   root.UnpackSignedObject(Uptane::RepositoryType::Director(), json);
   EXPECT_NO_THROW(root.UnpackSignedObject(Uptane::RepositoryType::Director(), json));
+  check_repo(temp_dir);
 }
 
 /*
@@ -220,6 +251,7 @@ TEST(aktualizr_repo, image_custom) {
   Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
   EXPECT_EQ(image_targets["signed"]["targets"].size(), 1);
   EXPECT_EQ(image_targets["signed"]["targets"]["target1"]["length"].asUInt(), 123);
+  check_repo(temp_dir);
 }
 
 /*
@@ -266,6 +298,7 @@ TEST(aktualizr_repo, emptytargets) {
 
   Json::Value empty_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/staging/targets.json");
   EXPECT_EQ(empty_targets["targets"].size(), 0);
+  check_repo(temp_dir);
 }
 
 /*
@@ -309,6 +342,7 @@ TEST(aktualizr_repo, oldtargets) {
   EXPECT_EQ(targets["targets"]["target1"]["length"].asUInt(), 123);
   EXPECT_EQ(targets["targets"]["target1"]["hashes"]["sha256"].asString(),
             "8AB755C16DE6EE9B6224169B36CBF0F2A545F859BE385501AD82CDCCC240D0A6");
+  check_repo(temp_dir);
 }
 
 #ifndef __NO_MAIN__

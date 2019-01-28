@@ -33,28 +33,9 @@ void ImageRepo::addImage(const std::string &name, const Json::Value &target, con
   auto role = delegation ? Uptane::Role(delegation.name, true) : Uptane::Role::Targets();
   std::string signed_targets = Utils::jsonToCanonicalStr(signTuf(role, targets));
   Utils::writeFile(targets_path, signed_targets);
-
-  Json::Value snapshot = Utils::parseJSONFile(repo_dir / "snapshot.json")["signed"];
-  snapshot["version"] = (snapshot["version"].asUInt()) + 1;
-  snapshot["meta"]["targets.json"]["hashes"]["sha256"] =
-      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(signed_targets)));
-  snapshot["meta"]["targets.json"]["hashes"]["sha512"] =
-      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(signed_targets)));
-  snapshot["meta"]["targets.json"]["length"] = static_cast<Json::UInt>(signed_targets.length());
-  snapshot["meta"]["targets.json"]["version"] = targets["version"].asUInt();
-  std::string signed_snapshot = Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Snapshot(), snapshot));
-  Utils::writeFile(repo_dir / "snapshot.json", signed_snapshot);
-
-  Json::Value timestamp = Utils::parseJSONFile(repo_dir / "timestamp.json")["signed"];
-  timestamp["version"] = (timestamp["version"].asUInt()) + 1;
-  timestamp["meta"]["snapshot.json"]["hashes"]["sha256"] =
-      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(signed_snapshot)));
-  timestamp["meta"]["snapshot.json"]["hashes"]["sha512"] =
-      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(signed_snapshot)));
-  timestamp["meta"]["snapshot.json"]["length"] = static_cast<Json::UInt>(signed_snapshot.length());
-  timestamp["meta"]["snapshot.json"]["version"] = snapshot["version"].asUInt();
-  Utils::writeFile(repo_dir / "timestamp.json",
-                   Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Timestamp(), timestamp)));
+  if (!delegation) {
+    updateRepo();
+  }
 }
 
 void ImageRepo::addDelegation(const Uptane::Role &name, const std::string &path, KeyType key_type, bool terminating) {
@@ -89,6 +70,7 @@ void ImageRepo::addDelegation(const Uptane::Role &name, const std::string &path,
 
   std::string signed_targets = Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Targets(), targets_notsigned));
   Utils::writeFile(repo_dir / "targets.json", signed_targets);
+  updateRepo();
 }
 
 void ImageRepo::addCustomImage(const std::string &name, const Uptane::Hash &hash, const uint64_t length,

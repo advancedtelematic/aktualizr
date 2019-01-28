@@ -66,6 +66,7 @@ class Repo {
   void generateKeyPair(KeyType key_type, const Uptane::Role &key_name);
   std::string getExpirationTime(const std::string &expires);
   void readKeys();
+  void updateRepo();
   Uptane::RepositoryType repo_type_;
   boost::filesystem::path path_;
   std::string correlation_id_;
