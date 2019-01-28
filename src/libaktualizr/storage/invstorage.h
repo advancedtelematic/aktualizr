@@ -9,18 +9,14 @@
 #include <boost/optional.hpp>
 
 #include "storage_config.h"
+#include "storage_exception.h"
+
 #include "uptane/tuf.h"
 #include "utilities/types.h"
 
 class INvStorage;
 class FSStorageRead;
 class SQLStorage;
-
-class StorageException : public std::runtime_error {
- public:
-  StorageException(const std::string& what) : std::runtime_error(what) {}
-  ~StorageException() noexcept override = default;
-};
 
 using store_data_t = void (INvStorage::*)(const std::string&);
 using load_data_t = bool (INvStorage::*)(std::string*);

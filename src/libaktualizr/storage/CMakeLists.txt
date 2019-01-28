@@ -1,11 +1,11 @@
 add_custom_command(OUTPUT sql_schemas.cc sql_schemas_target
-    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/embed_schemas.py ${PROJECT_SOURCE_DIR}/config/sql/ ${CMAKE_CURRENT_BINARY_DIR}/sql_schemas.cc
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/embed_schemas.py ${PROJECT_SOURCE_DIR}/config/sql/ ${CMAKE_CURRENT_BINARY_DIR}/sql_schemas.cc libaktualizr
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 if(STORAGE_TYPE STREQUAL "sqlite")
-  set(SOURCES sqlstorage.cc)
-  set(HEADERS sqlstorage.h sql_utils.h)
+  set(SOURCES sqlstorage.cc sqlstorage_base.cc)
+  set(HEADERS sqlstorage.h sql_utils.h sqlstorage_base.h storage_exception.h)
 elseif(STORAGE_TYPE STREQUAL "android")
   set(SOURCES androidstorage.cc)
   set(HEADERS androidstorage.h)

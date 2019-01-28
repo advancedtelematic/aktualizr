@@ -203,6 +203,7 @@ class Target {
   const std::map<EcuSerial, HardwareIdentifier> &ecus() const { return ecus_; }
   std::string filename() const { return filename_; }
   std::string sha256Hash() const;
+  std::string sha512Hash() const;
   std::vector<Hash> hashes() const { return hashes_; };
   std::vector<HardwareIdentifier> hardwareIds() const { return hwids_; };
   std::string custom_version() const { return custom_version_; }
@@ -268,6 +269,8 @@ class Target {
   std::string custom_version_;
   uint64_t length_{0};
   std::string correlation_id_;
+
+  std::string hashString(Hash::Type type) const;
 };
 
 std::ostream &operator<<(std::ostream &os, const Target &t);

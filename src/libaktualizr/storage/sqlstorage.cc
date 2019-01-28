@@ -9,7 +9,6 @@
 #include "logging/logging.h"
 #include "sql_utils.h"
 #include "utilities/utils.h"
-boost::filesystem::path SQLStorage::dbPath() const { return config_.sqldb_path.get(config_.path); }
 
 // find metadata with version set to -1 (e.g. after migration) and assign proper version to it
 void SQLStorage::cleanMetaVersion(Uptane::RepositoryType repo, Uptane::Role role) {
@@ -61,41 +60,16 @@ void SQLStorage::cleanMetaVersion(Uptane::RepositoryType repo, Uptane::Role role
   db.commitTransaction();
 }
 
-SQLStorage::SQLStorage(const StorageConfig& config, bool readonly) : INvStorage(config), readonly_(readonly) {
-  boost::filesystem::path db_parent_path = dbPath().parent_path();
-  if (!boost::filesystem::is_directory(db_parent_path)) {
-    Utils::createDirectories(db_parent_path, S_IRWXU);
-  } else {
-    struct stat st {};
-    stat(db_parent_path.c_str(), &st);
-    if ((st.st_mode & (S_IWGRP | S_IWOTH)) != 0) {
-      throw StorageException("Storage directory has unsafe permissions");
-    }
-    if ((st.st_mode & (S_IRGRP | S_IROTH)) != 0) {
-      // Remove read permissions for group and others
-      chmod(db_parent_path.c_str(), S_IRWXU);
-    }
-  }
-
-  if (!dbMigrate()) {
-    LOG_ERROR << "SQLite database migration failed";
-    // Continue to run anyway, it can't be worse
-  }
-
+SQLStorage::SQLStorage(const StorageConfig& config, bool readonly)
+    : SQLStorageBase(config.sqldb_path.get(config.path), readonly, libaktualizr_schema_migrations,
+                     libaktualizr_current_schema, libaktualizr_current_schema_version),
+      INvStorage(config) {
   try {
     cleanMetaVersion(Uptane::RepositoryType::Director(), Uptane::Role::Root());
     cleanMetaVersion(Uptane::RepositoryType::Image(), Uptane::Role::Root());
   } catch (...) {
     LOG_ERROR << "SQLite database metadata version migration failed";
   }
-}
-
-SQLite3Guard SQLStorage::dbConnection() const {
-  SQLite3Guard db(dbPath(), readonly_);
-  if (db.get_rc() != SQLITE_OK) {
-    throw SQLException(std::string("Can't open database: ") + db.errmsg());
-  }
-  return db;
 }
 
 void SQLStorage::storePrimaryKeys(const std::string& public_key, const std::string& private_key) {
@@ -1337,87 +1311,3 @@ void SQLStorage::removeTargetFile(const std::string& filename) {
 }
 
 void SQLStorage::cleanUp() { boost::filesystem::remove_all(dbPath()); }
-
-std::string SQLStorage::getTableSchemaFromDb(const std::string& tablename) {
-  SQLite3Guard db = dbConnection();
-
-  auto statement = db.prepareStatement<std::string>(
-      "SELECT sql FROM sqlite_master WHERE type='table' AND tbl_name=? LIMIT 1;", tablename);
-
-  if (statement.step() != SQLITE_ROW) {
-    LOG_ERROR << "Can't get schema of " << tablename << ": " << db.errmsg();
-    return "";
-  }
-
-  auto schema = statement.get_result_col_str(0);
-  if (schema == boost::none) {
-    return "";
-  }
-
-  return schema.value() + ";";
-}
-
-bool SQLStorage::dbMigrate() {
-  DbVersion schema_version = getVersion();
-
-  if (schema_version == DbVersion::kInvalid) {
-    LOG_ERROR << "Sqlite database file is invalid.";
-    return false;
-  }
-
-  auto schema_num_version = static_cast<int32_t>(schema_version);
-  if (schema_num_version == current_schema_version) {
-    return true;
-  }
-
-  if (readonly_) {
-    LOG_ERROR << "Database is opened in readonly mode and cannot be migrated to latest version";
-    return false;
-  }
-
-  if (schema_num_version > current_schema_version) {
-    LOG_ERROR << "Only forward migrations are supported. You cannot migrate to an older schema.";
-    return false;
-  }
-
-  SQLite3Guard db = dbConnection();
-  for (int32_t k = schema_num_version + 1; k <= current_schema_version; k++) {
-    if (db.exec(schema_migrations.at(static_cast<size_t>(k)), nullptr, nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Can't migrate db from version " << (k - 1) << " to version " << k << ": " << db.errmsg();
-      return false;
-    }
-  }
-
-  return true;
-}
-
-DbVersion SQLStorage::getVersion() {
-  SQLite3Guard db = dbConnection();
-
-  try {
-    auto statement = db.prepareStatement("SELECT count(*) FROM sqlite_master WHERE type='table';");
-    if (statement.step() != SQLITE_ROW) {
-      LOG_ERROR << "Can't get tables count: " << db.errmsg();
-      return DbVersion::kInvalid;
-    }
-
-    if (statement.get_result_col_int(0) == 0) {
-      return DbVersion::kEmpty;
-    }
-
-    statement = db.prepareStatement("SELECT version FROM version LIMIT 1;");
-
-    if (statement.step() != SQLITE_ROW) {
-      LOG_ERROR << "Can't get database version: " << db.errmsg();
-      return DbVersion::kInvalid;
-    }
-
-    try {
-      return DbVersion(statement.get_result_col_int(0));
-    } catch (const std::exception&) {
-      return DbVersion::kInvalid;
-    }
-  } catch (const SQLException&) {
-    return DbVersion::kInvalid;
-  }
-}

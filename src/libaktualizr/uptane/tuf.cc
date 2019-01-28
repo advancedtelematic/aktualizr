@@ -173,15 +173,19 @@ bool Target::MatchWith(const Hash &hash) const {
   return (std::find(hashes_.begin(), hashes_.end(), hash) != hashes_.end());
 }
 
-std::string Target::sha256Hash() const {
+std::string Target::hashString(Hash::Type type) const {
   std::vector<Uptane::Hash>::const_iterator it;
   for (it = hashes_.begin(); it != hashes_.end(); it++) {
-    if (it->type() == Hash::Type::kSha256) {
+    if (it->type() == type) {
       return boost::algorithm::to_lower_copy(it->HashString());
     }
   }
   return std::string("");
 }
+
+std::string Target::sha256Hash() const { return hashString(Hash::Type::kSha256); }
+
+std::string Target::sha512Hash() const { return hashString(Hash::Type::kSha512); }
 
 bool Target::IsOstree() const {
   if (type_ == "OSTREE") {

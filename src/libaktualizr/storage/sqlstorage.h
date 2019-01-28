@@ -7,16 +7,13 @@
 #include <sqlite3.h>
 
 #include "invstorage.h"
-#include "sql_utils.h"
+#include "sqlstorage_base.h"
 
-extern const std::vector<std::string> schema_migrations;
-extern const std::string current_schema;
-extern const int current_schema_version;
+extern const std::vector<std::string> libaktualizr_schema_migrations;
+extern const std::string libaktualizr_current_schema;
+extern const int libaktualizr_current_schema_version;
 
-enum class SQLReqId { kGetSimple, kGetTable };
-enum class DbVersion : int32_t { kEmpty = -1, kInvalid = -2 };
-
-class SQLStorage : public INvStorage {
+class SQLStorage : public SQLStorageBase, public INvStorage {
  public:
   friend class SQLTargetWHandle;
   friend class SQLTargetRHandle;
@@ -77,17 +74,8 @@ class SQLStorage : public INvStorage {
   void cleanUp() override;
   StorageType type() override { return StorageType::kSqlite; };
 
-  std::string getTableSchemaFromDb(const std::string& tablename);
-
-  bool dbMigrate();
-  DbVersion getVersion();  // non-negative integer on success or -1 on error
-  boost::filesystem::path dbPath() const;
-
  private:
-  SQLite3Guard dbConnection() const;
-  // request info
   void cleanMetaVersion(Uptane::RepositoryType repo, Uptane::Role role);
-  bool readonly_{false};
 };
 
 #endif  // SQLSTORAGE_H_

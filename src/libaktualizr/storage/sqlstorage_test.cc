@@ -9,8 +9,6 @@
 #include "uptane/imagesrepository.h"
 #include "utilities/utils.h"
 
-extern const std::string current_schema;
-
 boost::filesystem::path test_data_dir;
 
 typedef boost::tokenizer<boost::char_separator<char> > sql_tokenizer;
@@ -20,7 +18,7 @@ static std::map<std::string, std::string> parseSchema() {
   std::vector<std::string> tokens;
   enum { STATE_INIT, STATE_CREATE, STATE_INSERT, STATE_TABLE, STATE_NAME };
   boost::char_separator<char> sep(" \"\t\r\n", "(),;");
-  std::string schema(current_schema);
+  std::string schema(libaktualizr_current_schema);
   sql_tokenizer tok(schema, sep);
   int parsing_state = STATE_INIT;
 
@@ -125,7 +123,7 @@ static TempSQLDb makeDbWithVersion(DbVersion version) {
   // manual migration runs
 
   for (uint32_t k = 0; k <= static_cast<uint32_t>(version); k++) {
-    if (db.exec(schema_migrations.at(k), nullptr, nullptr) != SQLITE_OK) {
+    if (db.exec(libaktualizr_schema_migrations.at(k), nullptr, nullptr) != SQLITE_OK) {
       throw std::runtime_error("Migration run failed");
     }
   }
@@ -154,7 +152,7 @@ TEST(sqlstorage, MigrationVersionCheck) {
   config.path = temp_dir.Path();
   SQLStorage storage(config, false);
 
-  EXPECT_EQ(static_cast<int32_t>(storage.getVersion()), schema_migrations.size() - 1);
+  EXPECT_EQ(static_cast<int32_t>(storage.getVersion()), libaktualizr_schema_migrations.size() - 1);
 }
 
 /* Reject invalid SQL databases. */
@@ -189,7 +187,7 @@ TEST(sqlstorage, DbMigration7to8) {
   }
 
   // run migration
-  if (db.exec(schema_migrations.at(8), nullptr, nullptr) != SQLITE_OK) {
+  if (db.exec(libaktualizr_schema_migrations.at(8), nullptr, nullptr) != SQLITE_OK) {
     FAIL();
   }
 
@@ -231,7 +229,7 @@ TEST(sqlstorage, DbMigration12to13) {
   }
 
   // run migration
-  if (db.exec(schema_migrations.at(13), nullptr, nullptr) != SQLITE_OK) {
+  if (db.exec(libaktualizr_schema_migrations.at(13), nullptr, nullptr) != SQLITE_OK) {
     std::cout << db.errmsg() << "\n";
     FAIL() << "Migration 12 to 13 failed";
   }
