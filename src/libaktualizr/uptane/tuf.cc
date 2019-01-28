@@ -250,12 +250,13 @@ void Uptane::BaseMeta::init(const Json::Value &json) {
 }
 Uptane::BaseMeta::BaseMeta(const Json::Value &json) { init(json); }
 
-Uptane::BaseMeta::BaseMeta(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &signer) {
+Uptane::BaseMeta::BaseMeta(RepositoryType repo, const Role role, const Json::Value &json,
+                           const std::shared_ptr<MetaWithKeys> &signer) {
   if (!json.isObject() || !json.isMember("signed")) {
     throw Uptane::InvalidMetadata("", "", "invalid metadata json");
   }
 
-  signer->UnpackSignedObject(repo, json);
+  signer->UnpackSignedObject(repo, role, json);
 
   init(json);
 }
@@ -302,9 +303,9 @@ void Uptane::Targets::init(const Json::Value &json) {
 
 Uptane::Targets::Targets(const Json::Value &json) : MetaWithKeys(json) { init(json); }
 
-Uptane::Targets::Targets(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &signer,
-                         std::string name)
-    : MetaWithKeys(repo, json, signer), name_(std::move(name)) {
+Uptane::Targets::Targets(RepositoryType repo, const Role role, const Json::Value &json,
+                         const std::shared_ptr<MetaWithKeys> &signer)
+    : MetaWithKeys(repo, role, json, signer), name_(role.ToString()) {
   init(json);
 }
 
@@ -329,7 +330,7 @@ Uptane::TimestampMeta::TimestampMeta(const Json::Value &json) : BaseMeta(json) {
 
 Uptane::TimestampMeta::TimestampMeta(RepositoryType repo, const Json::Value &json,
                                      const std::shared_ptr<MetaWithKeys> &signer)
-    : BaseMeta(repo, json, signer) {
+    : BaseMeta(repo, Role::Timestamp(), json, signer) {
   init(json);
 }
 
@@ -360,7 +361,7 @@ void Uptane::Snapshot::init(const Json::Value &json) {
 Uptane::Snapshot::Snapshot(const Json::Value &json) : BaseMeta(json) { init(json); }
 
 Uptane::Snapshot::Snapshot(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &signer)
-    : BaseMeta(repo, json, signer) {
+    : BaseMeta(repo, Role::Snapshot(), json, signer) {
   init(json);
 }
 
@@ -371,7 +372,7 @@ bool MetaPack::isConsistent() const {
       Uptane::Root original_root(director_root);
       Uptane::Root new_root(RepositoryType::Director(), director_root.original(), new_root);
       if (director_targets.original() != Json::nullValue) {
-        Uptane::Targets(RepositoryType::Director(), director_targets.original(),
+        Uptane::Targets(RepositoryType::Director(), Role::Targets(), director_targets.original(),
                         std::make_shared<MetaWithKeys>(original_root));
       }
     }

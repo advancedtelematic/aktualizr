@@ -5,8 +5,9 @@
 using Uptane::MetaWithKeys;
 
 MetaWithKeys::MetaWithKeys(const Json::Value &json) : BaseMeta(json) {}
-MetaWithKeys::MetaWithKeys(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &signer)
-    : BaseMeta(repo, json, signer) {}
+MetaWithKeys::MetaWithKeys(RepositoryType repo, const Role role, const Json::Value &json,
+                           const std::shared_ptr<MetaWithKeys> &signer)
+    : BaseMeta(repo, role, json, signer) {}
 
 void Uptane::MetaWithKeys::ParseKeys(const RepositoryType repo, const Json::Value &keys) {
   for (Json::ValueIterator it = keys.begin(); it != keys.end(); ++it) {
@@ -54,11 +55,23 @@ void Uptane::MetaWithKeys::ParseRole(const RepositoryType repo, const Json::Valu
   }
 }
 
-void Uptane::MetaWithKeys::UnpackSignedObject(const RepositoryType repo, const Json::Value &signed_object) {
+void Uptane::MetaWithKeys::UnpackSignedObject(const RepositoryType repo, const Role role,
+                                              const Json::Value &signed_object) {
   const std::string repository = repo;
 
+  const Uptane::Role type(signed_object["signed"]["_type"].asString());
+  if (role.IsDelegation()) {
+    if (type != Uptane::Role::Targets()) {
+      LOG_ERROR << "Delegated role " << role << " has an invalid type: " << type;
+      throw SecurityException(repo, "Delegated role " + role.ToString() + " has invalid type " + type.ToString());
+    }
+  } else if (role != type) {
+    LOG_ERROR << "Metadata type " << type << " does not match expected role: " << role;
+    throw SecurityException(repo,
+                            "Metadata type " + type.ToString() + " does not match expected role " + role.ToString());
+  }
+
   const std::string canonical = Json::FastWriter().write(signed_object["signed"]);
-  const Uptane::Role role(signed_object["signed"]["_type"].asString());
   const Json::Value signatures = signed_object["signatures"];
   int valid_signatures = 0;
 

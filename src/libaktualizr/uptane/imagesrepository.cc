@@ -65,7 +65,7 @@ bool ImagesRepository::verifySnapshot(const std::string& snapshot_raw) {
   return true;
 }
 
-bool ImagesRepository::verifyTargets(const std::string& targets_raw, const std::string& role_name) {
+bool ImagesRepository::verifyTargets(const std::string& targets_raw, const Uptane::Role role) {
   try {
     const Json::Value targets_json = Utils::parseJSON(targets_raw);
     const std::string canonical = Utils::jsonToCanonicalStr(targets_json);
@@ -97,19 +97,19 @@ bool ImagesRepository::verifyTargets(const std::string& targets_raw, const std::
 
     // Verify the signature:
     std::shared_ptr<MetaWithKeys> signer;
-    if (role_name == "targets") {
+    if (role == Uptane::Role::Targets()) {
       signer = std::make_shared<MetaWithKeys>(root);
     } else {
       // TODO: support nested delegations here. This currently assumes that all
       // delegated targets are signed by the top-level targets.
       signer = std::make_shared<MetaWithKeys>(targets["targets"]);
     }
-    targets[role_name] = Targets(RepositoryType::Image(), targets_json, signer);
+    targets[role.ToString()] = Targets(RepositoryType::Image(), role, targets_json, signer);
 
     // Only compare targets version in snapshot metadata for top-level
     // targets.json. Delegated target metadata versions are not tracked outside
     // of their own metadata.
-    if (role_name == "targets" && targets[role_name].version() != snapshot.targets_version()) {
+    if (role == Uptane::Role::Targets() && targets[role.ToString()].version() != snapshot.targets_version()) {
       return false;
     }
   } catch (const Exception& e) {
