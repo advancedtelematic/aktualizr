@@ -6,6 +6,10 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ## [??? (unreleased)]
 
+### Added
+
+- Basic first-order delegation support.
+
 ## [2019.1] - 2019-01-10
 
 ### Changed
