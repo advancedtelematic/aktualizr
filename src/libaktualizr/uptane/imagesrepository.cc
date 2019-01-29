@@ -65,7 +65,7 @@ bool ImagesRepository::verifySnapshot(const std::string& snapshot_raw) {
   return true;
 }
 
-bool ImagesRepository::verifyTargets(const std::string& targets_raw, const Uptane::Role role) {
+bool ImagesRepository::verifyTargets(const std::string& targets_raw, const Uptane::Role& role) {
   try {
     const Json::Value targets_json = Utils::parseJSON(targets_raw);
     const std::string canonical = Utils::jsonToCanonicalStr(targets_json);

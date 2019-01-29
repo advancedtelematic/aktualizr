@@ -5,7 +5,7 @@
 using Uptane::MetaWithKeys;
 
 MetaWithKeys::MetaWithKeys(const Json::Value &json) : BaseMeta(json) {}
-MetaWithKeys::MetaWithKeys(RepositoryType repo, const Role role, const Json::Value &json,
+MetaWithKeys::MetaWithKeys(RepositoryType repo, const Role &role, const Json::Value &json,
                            const std::shared_ptr<MetaWithKeys> &signer)
     : BaseMeta(repo, role, json, signer) {}
 
@@ -55,7 +55,7 @@ void Uptane::MetaWithKeys::ParseRole(const RepositoryType repo, const Json::Valu
   }
 }
 
-void Uptane::MetaWithKeys::UnpackSignedObject(const RepositoryType repo, const Role role,
+void Uptane::MetaWithKeys::UnpackSignedObject(const RepositoryType repo, const Role &role,
                                               const Json::Value &signed_object) {
   const std::string repository = repo;
 
