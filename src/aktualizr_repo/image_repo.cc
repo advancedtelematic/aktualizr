@@ -42,8 +42,8 @@ void ImageRepo::addDelegation(const Uptane::Role &name, const std::string &path,
   if (keys_.count(name) != 0) {
     throw std::runtime_error("Delegation with the same name already exist.");
   }
-  if (Delegation::isBadName(name.ToString())) {
-    throw std::runtime_error("Delegation with the wrong name, this name is reserved.");
+  if (Uptane::Role::IsReserved(name.ToString())) {
+    throw std::runtime_error("Delegation name " + name.ToString() + " is reserved.");
   }
   generateKeyPair(key_type, name);
   Json::Value delegate;

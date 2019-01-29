@@ -19,8 +19,8 @@ struct KeyPair {
 struct Delegation {
   Delegation() = default;
   Delegation(const boost::filesystem::path &repo_path, std::string delegation_name) : name(std::move(delegation_name)) {
-    if (isBadName(name)) {
-      throw std::runtime_error("Delegation with the wrong name, this name is reserved.");
+    if (Uptane::Role::IsReserved(name)) {
+      throw std::runtime_error("Delegation name " + name + " is reserved.");
     }
     boost::filesystem::path delegation_path(((repo_path / "repo/image") / name).string() + ".json");
     boost::filesystem::path targets_path(repo_path / "repo/image/targets.json");
@@ -43,10 +43,6 @@ struct Delegation {
   }
   bool isMatched(const boost::filesystem::path &image_path) {
     return (fnmatch(pattern.c_str(), image_path.c_str(), 0) == 0);
-  }
-  static bool isBadName(const std::string &delegation_name) {
-    return (delegation_name == "root" || delegation_name == "targets" || delegation_name == "snapshot" ||
-            delegation_name == "timestamp");
   }
   operator bool() const { return (!name.empty() && !pattern.empty()); }
   std::string name;
