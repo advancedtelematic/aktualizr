@@ -309,7 +309,7 @@ class BaseMeta {
  public:
   BaseMeta() = default;
   explicit BaseMeta(const Json::Value &json);
-  BaseMeta(RepositoryType repo, Role role, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &signer);
+  BaseMeta(RepositoryType repo, const Role &role, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &signer);
   int version() const { return version_; }
   TimeStamp expiry() const { return expiry_; }
   bool isExpired(const TimeStamp &now) const { return expiry_.IsExpiredAt(now); }
@@ -339,7 +339,8 @@ class MetaWithKeys : public BaseMeta {
    * @param json - The contents of the 'signed' portion
    */
   MetaWithKeys(const Json::Value &json);
-  MetaWithKeys(RepositoryType repo, Role role, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &signer);
+  MetaWithKeys(RepositoryType repo, const Role &role, const Json::Value &json,
+               const std::shared_ptr<MetaWithKeys> &signer);
 
   virtual ~MetaWithKeys() = default;
 
@@ -361,7 +362,7 @@ class MetaWithKeys : public BaseMeta {
    * @param signed_object
    * @return
    */
-  virtual void UnpackSignedObject(RepositoryType repo, Role role, const Json::Value &signed_object);
+  virtual void UnpackSignedObject(RepositoryType repo, const Role &role, const Json::Value &signed_object);
 
   bool operator==(const MetaWithKeys &rhs) const {
     return version_ == rhs.version_ && expiry_ == rhs.expiry_ && keys_ == rhs.keys_ &&
@@ -407,7 +408,7 @@ class Root : public MetaWithKeys {
    * @param signed_object
    * @return
    */
-  void UnpackSignedObject(RepositoryType repo, Role role, const Json::Value &signed_object) override;
+  void UnpackSignedObject(RepositoryType repo, const Role &role, const Json::Value &signed_object) override;
 
   bool operator==(const Root &rhs) const {
     return version_ == rhs.version_ && expiry_ == rhs.expiry_ && keys_ == rhs.keys_ &&
@@ -423,7 +424,7 @@ class Root : public MetaWithKeys {
 class Targets : public MetaWithKeys {
  public:
   explicit Targets(const Json::Value &json);
-  Targets(RepositoryType repo, Role role, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &signer);
+  Targets(RepositoryType repo, const Role &role, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &signer);
   Targets() = default;
   ~Targets() override = default;
 

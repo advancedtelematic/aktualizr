@@ -26,7 +26,7 @@ Root::Root(const RepositoryType repo, const Json::Value &json) : MetaWithKeys(js
   }
 }
 
-void Uptane::Root::UnpackSignedObject(const RepositoryType repo, const Role role, const Json::Value &signed_object) {
+void Uptane::Root::UnpackSignedObject(const RepositoryType repo, const Role &role, const Json::Value &signed_object) {
   const std::string repository = repo;
 
   if (policy_ == Policy::kAcceptAll) {

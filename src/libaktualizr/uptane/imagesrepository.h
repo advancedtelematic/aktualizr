@@ -14,7 +14,7 @@ class ImagesRepository : public RepositoryCommon {
 
   void resetMeta();
 
-  bool verifyTargets(const std::string& targets_raw, Uptane::Role role);
+  bool verifyTargets(const std::string& targets_raw, const Uptane::Role& role);
   bool targetsExpired(const std::string& role_name) { return targets[role_name].isExpired(TimeStamp::Now()); }
   int64_t targetsSize() { return snapshot.targets_size(); }
   std::set<std::string> delegations(const std::string& role_name) { return targets[role_name].delegated_role_names_; }

@@ -250,7 +250,7 @@ void Uptane::BaseMeta::init(const Json::Value &json) {
 }
 Uptane::BaseMeta::BaseMeta(const Json::Value &json) { init(json); }
 
-Uptane::BaseMeta::BaseMeta(RepositoryType repo, const Role role, const Json::Value &json,
+Uptane::BaseMeta::BaseMeta(RepositoryType repo, const Role &role, const Json::Value &json,
                            const std::shared_ptr<MetaWithKeys> &signer) {
   if (!json.isObject() || !json.isMember("signed")) {
     throw Uptane::InvalidMetadata("", "", "invalid metadata json");
@@ -303,7 +303,7 @@ void Uptane::Targets::init(const Json::Value &json) {
 
 Uptane::Targets::Targets(const Json::Value &json) : MetaWithKeys(json) { init(json); }
 
-Uptane::Targets::Targets(RepositoryType repo, const Role role, const Json::Value &json,
+Uptane::Targets::Targets(RepositoryType repo, const Role &role, const Json::Value &json,
                          const std::shared_ptr<MetaWithKeys> &signer)
     : MetaWithKeys(repo, role, json, signer), name_(role.ToString()) {
   init(json);
