@@ -10,6 +10,7 @@
 #include "sqlstorage_base.h"
 
 extern const std::vector<std::string> libaktualizr_schema_migrations;
+extern const std::map<int, std::string> libaktualizr_schema_rollback_migrations;
 extern const std::string libaktualizr_current_schema;
 extern const int libaktualizr_current_schema_version;
 
@@ -17,7 +18,7 @@ class SQLStorage : public SQLStorageBase, public INvStorage {
  public:
   friend class SQLTargetWHandle;
   friend class SQLTargetRHandle;
-  explicit SQLStorage(const StorageConfig& config, bool readonly, bool migrate = true);
+  explicit SQLStorage(const StorageConfig& config, bool readonly);
   ~SQLStorage() override = default;
   void storePrimaryKeys(const std::string& public_key, const std::string& private_key) override;
   bool loadPrimaryKeys(std::string* public_key, std::string* private_key) override;

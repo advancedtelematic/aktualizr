@@ -150,7 +150,7 @@ TEST(sqlstorage, migrate_back) {
   StorageConfig config;
   config.path = temp_dir.Path();
 
-  SQLStorage storage(config, false, true);
+  SQLStorage storage(config, false);
 
   SQLite3Guard db(temp_dir / "sql.db");
   auto ver = storage.getVersion();

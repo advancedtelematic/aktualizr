@@ -58,7 +58,7 @@ if __name__ == '__main__':
         apend_migration(os.path.join(migration_folder, migration_list[-1]), header_file)
         header_file.write("\"\n};\n")
 
-        header_file.write("extern const std::map<int, std::string> schema_rollback_migrations = {")
+        header_file.write("extern const std::map<int, std::string> {}_schema_rollback_migrations = {{".format(prefix))
         for migration in rollback_migrations_list[:-1]:
             version = int(migration.split(".")[1])
             header_file.write("{%d, "%version)
