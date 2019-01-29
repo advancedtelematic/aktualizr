@@ -130,7 +130,7 @@ std::unique_ptr<Uptane::Target> ImagesRepository::getTarget(const Uptane::Target
   if (it == toplevel.targets.cend()) {
     // Check if the target matches any of the delegation paths.
     for (const auto& delegate_name : toplevel.delegated_role_names_) {
-      Role delegate_role = Role::Delegated(delegate_name);
+      Role delegate_role = Role::Delegation(delegate_name);
       std::vector<std::string> patterns = toplevel.paths_for_role_[delegate_role];
       for (const auto& pattern : patterns) {
         if (fnmatch(pattern.c_str(), director_target.filename().c_str(), 0) == 0) {

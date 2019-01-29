@@ -72,17 +72,17 @@ TEST(Role, ValidateRoles) {
 
 /* Delegated roles have custom names. */
 TEST(Role, ValidateDelegation) {
-  Uptane::Role delegated = Uptane::Role::Delegated("whatever");
+  Uptane::Role delegated = Uptane::Role::Delegation("whatever");
   EXPECT_EQ(delegated.ToString(), "whatever");
   EXPECT_EQ(delegated.IsDelegation(), true);
 }
 
 /* Reject delegated role names that are identical to reserved role names. */
 TEST(Role, InvalidDelegationName) {
-  EXPECT_THROW(Uptane::Role::Delegated("root"), Uptane::Exception);
-  EXPECT_THROW(Uptane::Role::Delegated("snapshot"), Uptane::Exception);
-  EXPECT_THROW(Uptane::Role::Delegated("targets"), Uptane::Exception);
-  EXPECT_THROW(Uptane::Role::Delegated("timestamp"), Uptane::Exception);
+  EXPECT_THROW(Uptane::Role::Delegation("root"), Uptane::Exception);
+  EXPECT_THROW(Uptane::Role::Delegation("snapshot"), Uptane::Exception);
+  EXPECT_THROW(Uptane::Role::Delegation("targets"), Uptane::Exception);
+  EXPECT_THROW(Uptane::Role::Delegation("timestamp"), Uptane::Exception);
 }
 
 #ifndef __NO_MAIN__

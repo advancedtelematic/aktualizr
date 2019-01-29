@@ -18,7 +18,7 @@ Role::Role(const std::string &role_name, const bool delegation) {
     if (IsReserved(name_)) {
       throw Uptane::Exception("", "Delegated role name " + role_name + " is reserved.");
     }
-    role_ = RoleEnum::kDelegated;
+    role_ = RoleEnum::kDelegation;
     name_ = role_name;
   } else if (role_name_lower == ROOT) {
     role_ = RoleEnum::kRoot;

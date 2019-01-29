@@ -555,7 +555,7 @@ bool SotaUptaneClient::updateImagesMeta() {
   // Update Images delegated Targets Metadata
   for (const std::string &delegation : images_repo.delegations("targets")) {
     std::string images_delegated;
-    Uptane::Role delegated_role = Uptane::Role::Delegated(delegation);
+    Uptane::Role delegated_role = Uptane::Role::Delegation(delegation);
 
     if (!uptane_fetcher->fetchLatestRole(&images_delegated, Uptane::kMaxImagesTargetsSize,
                                          Uptane::RepositoryType::Image(), delegated_role)) {
@@ -712,7 +712,7 @@ bool SotaUptaneClient::checkImagesMetaOffline() {
   // Update Images delegated Targets Metadata
   for (const std::string &delegation : images_repo.delegations("targets")) {
     std::string images_delegated;
-    Uptane::Role delegated_role = Uptane::Role::Delegated(delegation);
+    Uptane::Role delegated_role = Uptane::Role::Delegation(delegation);
     if (!storage->loadDelegation(&images_delegated, delegated_role)) {
       return false;
     }
