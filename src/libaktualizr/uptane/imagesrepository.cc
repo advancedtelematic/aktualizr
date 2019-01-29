@@ -69,30 +69,33 @@ bool ImagesRepository::verifyTargets(const std::string& targets_raw, const Uptan
   try {
     const Json::Value targets_json = Utils::parseJSON(targets_raw);
     const std::string canonical = Utils::jsonToCanonicalStr(targets_json);
-    bool hash_exists = false;
-    for (const auto& it : snapshot.targets_hashes()) {
-      switch (it.type()) {
-        case Hash::Type::kSha256:
-          if (Hash(Hash::Type::kSha256, boost::algorithm::hex(Crypto::sha256digest(canonical))) != it) {
-            LOG_ERROR << "Hash verification for targets metadata failed";
-            return false;
-          }
-          hash_exists = true;
-          break;
-        case Hash::Type::kSha512:
-          if (Hash(Hash::Type::kSha512, boost::algorithm::hex(Crypto::sha512digest(canonical))) != it) {
-            LOG_ERROR << "Hash verification for targets metadata failed";
-            return false;
-          }
-          hash_exists = true;
-          break;
-        default:
-          break;
+    // Delegated targets do not have their hashes stored in their parent.
+    if (role == Uptane::Role::Targets()) {
+      bool hash_exists = false;
+      for (const auto& it : snapshot.targets_hashes()) {
+        switch (it.type()) {
+          case Hash::Type::kSha256:
+            if (Hash(Hash::Type::kSha256, boost::algorithm::hex(Crypto::sha256digest(canonical))) != it) {
+              LOG_ERROR << "Hash verification for targets metadata failed";
+              return false;
+            }
+            hash_exists = true;
+            break;
+          case Hash::Type::kSha512:
+            if (Hash(Hash::Type::kSha512, boost::algorithm::hex(Crypto::sha512digest(canonical))) != it) {
+              LOG_ERROR << "Hash verification for targets metadata failed";
+              return false;
+            }
+            hash_exists = true;
+            break;
+          default:
+            break;
+        }
       }
-    }
-    if (!hash_exists) {
-      LOG_ERROR << "No hash found for targets.json";
-      return false;
+      if (!hash_exists) {
+        LOG_ERROR << "No hash found for targets.json";
+        return false;
+      }
     }
 
     // Verify the signature:
