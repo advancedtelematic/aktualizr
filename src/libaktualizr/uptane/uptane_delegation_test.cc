@@ -30,7 +30,9 @@ class HttpFakeDelegationBasic : public HttpFake {
   unsigned int events_seen{0};
 };
 
-/* Correlation ID is empty if none was provided in targets metadata. */
+/* Validate first-order target delegations.
+ * Search first-order delegations.
+ * Correlation ID is empty if none was provided in targets metadata. */
 TEST(Delegation, Basic) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFakeDelegationBasic>(temp_dir.Path());

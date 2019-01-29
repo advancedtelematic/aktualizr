@@ -94,6 +94,8 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Send UpdateCheckComplete event after successful check with no available updates (aktualizr_test.cc)
   - [x] Send UpdateCheckComplete event after failure (aktualizr_test.cc)
 - [x] Download updates
+  - [x] Find requested target
+    - [x] Search first-order delegations (uptane_delegation_test.cc)
   - [x] Download an update
     - [x] Download an OSTree package (fetcher_test.cc)
     - [x] Download a binary package (uptane_vector_tests.cc, aktualizr_test.cc)
@@ -178,6 +180,9 @@ These are internal requirements that are relatively opaque to the user and/or co
   - [x] Sign TUF metadata
     - [x] Sign TUF metadata with RSA2048 (keymanager_test.cc)
     - [x] Sign TUF metadata with ED25519 (keymanager_test.cc)
+  - [x] Validate TUF roles (tuf_test.cc)
+    - [x] Delegated roles have custom names (tuf_test.cc)
+    - [x] Reject delegated role names that are identical to reserved role names (tuf_test.cc)
   - [x] Validate a TUF root (tuf_test.cc, uptane_test.cc)
     - [x] Throw an exception if a TUF root is invalid
       - [x] Throw an exception if a TUF root is unsigned (tuf_test.cc, uptane_test.cc)
@@ -188,6 +193,7 @@ These are internal requirements that are relatively opaque to the user and/or co
   - [x] Parse Uptane timestamps (types_test.cc)
     - [x] Throw an exception if an Uptane timestamp is invalid (types_test.cc)
     - [x] Get current time (types_test.cc)
+  - [x] Validate first-order target delegations (uptane_delegation_test.cc)
   - [x] Reject http GET responses that exceed size limit (httpclient_test.cc)
   - [x] Reject http GET responses that do not meet speed limit (httpclient_test.cc)
   - [x] Abort update if any signature threshold is <= 0 (REQ-153, uptane_vector_tests.cc)
