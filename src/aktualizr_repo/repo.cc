@@ -16,6 +16,33 @@ Repo::Repo(Uptane::RepositoryType repo_type, boost::filesystem::path path, const
   }
 }
 
+void Repo::updateRepo() {
+  boost::filesystem::path repo_dir(path_ / "repo" / repo_type_.toString());
+  Json::Value targets = Utils::parseJSONFile(repo_dir / "targets.json")["signed"];
+  std::string signed_targets = Utils::readFile(repo_dir / "targets.json");
+  Json::Value snapshot = Utils::parseJSONFile(repo_dir / "snapshot.json")["signed"];
+  snapshot["version"] = (snapshot["version"].asUInt()) + 1;
+  snapshot["meta"]["targets.json"]["hashes"]["sha256"] =
+      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(signed_targets)));
+  snapshot["meta"]["targets.json"]["hashes"]["sha512"] =
+      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(signed_targets)));
+  snapshot["meta"]["targets.json"]["length"] = static_cast<Json::UInt>(signed_targets.length());
+  snapshot["meta"]["targets.json"]["version"] = targets["version"].asUInt();
+  std::string signed_snapshot = Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Snapshot(), snapshot));
+  Utils::writeFile(repo_dir / "snapshot.json", signed_snapshot);
+
+  Json::Value timestamp = Utils::parseJSONFile(repo_dir / "timestamp.json")["signed"];
+  timestamp["version"] = (timestamp["version"].asUInt()) + 1;
+  timestamp["meta"]["snapshot.json"]["hashes"]["sha256"] =
+      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(signed_snapshot)));
+  timestamp["meta"]["snapshot.json"]["hashes"]["sha512"] =
+      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(signed_snapshot)));
+  timestamp["meta"]["snapshot.json"]["length"] = static_cast<Json::UInt>(signed_snapshot.length());
+  timestamp["meta"]["snapshot.json"]["version"] = snapshot["version"].asUInt();
+  Utils::writeFile(repo_dir / "timestamp.json",
+                   Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Timestamp(), timestamp)));
+}
+
 Json::Value Repo::signTuf(const Uptane::Role &role, const Json::Value &json) {
   auto key = keys_[role];
   std::string b64sig =
@@ -127,7 +154,6 @@ void Repo::generateRepo(KeyType key_type) {
   targets["expires"] = expiration_time_;
   targets["version"] = 1;
   targets["targets"] = Json::objectValue;
-  LOG_ERROR << "repo: " << repo_type_.toString();
   if (repo_type_ == Uptane::RepositoryType::Director() && correlation_id_ != "") {
     targets["custom"]["correlationId"] = correlation_id_;
   }
@@ -164,7 +190,7 @@ void Repo::generateRepo(KeyType key_type) {
   timestamp["meta"]["snapshot.json"]["length"] = static_cast<Json::UInt>(signed_snapshot.length());
   timestamp["meta"]["snapshot.json"]["version"] = 1;
   Utils::writeFile(repo_dir / "timestamp.json",
-                   Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Snapshot(), timestamp)));
+                   Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Timestamp(), timestamp)));
   if (repo_type_ == Uptane::RepositoryType::Director()) {
     Utils::writeFile(path_ / "repo/director/manifest", std::string());  // just empty file to work with put method
   }
@@ -173,7 +199,20 @@ void Repo::generateRepo(KeyType key_type) {
 Json::Value Repo::getTarget(const std::string &target_name) {
   const Json::Value image_targets =
       Utils::parseJSONFile(path_ / "repo" / repo_type_.toString() / "targets.json")["signed"];
-  return image_targets["targets"][target_name];
+  if (image_targets["targets"].isMember(target_name)) {
+    return image_targets["targets"][target_name];
+  } else {
+    for (auto &p : boost::filesystem::directory_iterator(path_ / "repo" / repo_type_.toString())) {
+      if (!Delegation::isBadName(p.path().stem().string())) {
+        auto targets = Utils::parseJSONFile(p)["signed"];
+        if (targets["targets"].isMember(target_name)) {
+          return targets["targets"][target_name];
+        }
+      }
+    }
+    throw std::runtime_error(std::string("No target with name: ") + target_name);
+  }
+  return {};
 }
 
 void Repo::readKeys() {
@@ -184,7 +223,8 @@ void Repo::readKeys() {
     KeyType key_type;
     key_type_str >> key_type;
     std::string private_key_string(Utils::readFile(p / "private.key"));
-    keys_[Uptane::Role(p.path().filename().string())] =
+    auto name = p.path().filename().string();
+    keys_[Uptane::Role(name, !Delegation::isBadName(name))] =
         KeyPair(PublicKey(public_key_string, key_type), private_key_string);
   }
 }

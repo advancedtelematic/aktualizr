@@ -18,6 +18,7 @@ void DirectorRepo::addTarget(const std::string &target_name, const Json::Value &
   director_targets["targets"][target_name]["custom"]["ecuIdentifiers"][ecu_serial]["hardwareId"] = hardware_id;
   director_targets["version"] = (Utils::parseJSONFile(current)["signed"]["version"].asUInt()) + 1;
   Utils::writeFile(staging, Utils::jsonToCanonicalStr(director_targets));
+  updateRepo();
 }
 
 void DirectorRepo::signTargets() {
@@ -37,6 +38,7 @@ void DirectorRepo::signTargets() {
   Utils::writeFile(path_ / "repo/director/targets.json",
                    Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Targets(), targets_unsigned)));
   boost::filesystem::remove(path_ / "repo/director/staging/targets.json");
+  updateRepo();
 }
 void DirectorRepo::emptyTargets() {
   const boost::filesystem::path staging = path_ / "repo/director/staging/targets.json";

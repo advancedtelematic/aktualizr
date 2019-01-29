@@ -11,7 +11,7 @@
 #include "utilities/utils.h"
 
 // find metadata with version set to -1 (e.g. after migration) and assign proper version to it
-void SQLStorage::cleanMetaVersion(Uptane::RepositoryType repo, Uptane::Role role) {
+void SQLStorage::cleanMetaVersion(Uptane::RepositoryType repo, const Uptane::Role& role) {
   SQLite3Guard db = dbConnection();
 
   if (!db.beginTransaction()) {

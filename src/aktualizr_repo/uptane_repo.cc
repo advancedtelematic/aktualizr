@@ -17,9 +17,18 @@ void UptaneRepo::addTarget(const std::string &target_name, const std::string &ha
   }
   director_repo_.addTarget(target_name, target, hardware_id, ecu_serial);
 }
-void UptaneRepo::addImage(const boost::filesystem::path &image_path) { image_repo_.addImage(image_path); }
-void UptaneRepo::addCustomImage(const std::string &name, const Uptane::Hash &hash, uint64_t length) {
-  image_repo_.addCustomImage(name, hash, length);
+
+void UptaneRepo::addDelegation(const Uptane::Role &name, const std::string &path, KeyType key_type, bool terminating) {
+  image_repo_.addDelegation(name, path, key_type, terminating);
+}
+
+void UptaneRepo::addImage(const boost::filesystem::path &image_path, const boost::filesystem::path &targetname,
+                          const Delegation &delegation) {
+  image_repo_.addImage(image_path, targetname, delegation);
+}
+void UptaneRepo::addCustomImage(const std::string &name, const Uptane::Hash &hash, uint64_t length,
+                                const Delegation &delegation) {
+  image_repo_.addCustomImage(name, hash, length, delegation);
 }
 
 void UptaneRepo::signTargets() { director_repo_.signTargets(); }

@@ -38,8 +38,8 @@ imgtimestamp0=$(cat "$REPO_DIR/image/timestamp.json")
 akrepo --command image --filename "$REPO_DIR/image/targets/dummy_firmware.txt"
 akrepo --command image --filename "$REPO_DIR/image/targets/primary_firmware.txt"
 akrepo --command image --filename "$REPO_DIR/image/targets/secondary_firmware.txt"
-akrepo --command addtarget --hwid primary_hw --serial CA:FE:A6:D2:84:9D --filename primary_firmware.txt
-akrepo --command addtarget --hwid secondary_hw --serial secondary_ecu_serial --filename secondary_firmware.txt
+akrepo --command addtarget --hwid primary_hw --serial CA:FE:A6:D2:84:9D --targetname primary_firmware.txt
+akrepo --command addtarget --hwid secondary_hw --serial secondary_ecu_serial --targetname secondary_firmware.txt
 akrepo --command signtargets
 move_meta hasupdates
 orig_meta
@@ -54,7 +54,7 @@ orig_meta
 akrepo --command image --filename "$REPO_DIR/image/targets/dummy_firmware.txt"
 akrepo --command image --filename "$REPO_DIR/image/targets/secondary_firmware.txt"
 akrepo --command image --filename "$REPO_DIR/image/targets/secondary_firmware2.txt"
-akrepo --command addtarget --hwid sec_hwid1 --serial sec_serial1 --filename secondary_firmware.txt
-akrepo --command addtarget --hwid sec_hwid2 --serial sec_serial2 --filename secondary_firmware2.txt
+akrepo --command addtarget --hwid sec_hwid1 --serial sec_serial1 --targetname secondary_firmware.txt
+akrepo --command addtarget --hwid sec_hwid2 --serial sec_serial2 --targetname secondary_firmware2.txt
 akrepo --command signtargets
 move_meta multisec

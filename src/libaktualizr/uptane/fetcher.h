@@ -36,8 +36,8 @@ class Fetcher {
         config(config_in),
         progress_cb(std::move(progress_cb_in)) {}
   bool fetchVerifyTarget(const Target& target);
-  bool fetchRole(std::string* result, int64_t maxsize, RepositoryType repo, Uptane::Role role, Version version);
-  bool fetchLatestRole(std::string* result, int64_t maxsize, RepositoryType repo, Uptane::Role role) {
+  bool fetchRole(std::string* result, int64_t maxsize, RepositoryType repo, const Uptane::Role& role, Version version);
+  bool fetchLatestRole(std::string* result, int64_t maxsize, RepositoryType repo, const Uptane::Role& role) {
     return fetchRole(result, maxsize, repo, role, Version());
   }
   void restoreHasherState(MultiPartHasher& hasher, StorageTargetRHandle* data);

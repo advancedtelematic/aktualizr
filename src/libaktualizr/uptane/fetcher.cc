@@ -6,7 +6,8 @@
 
 namespace Uptane {
 
-bool Fetcher::fetchRole(std::string* result, int64_t maxsize, RepositoryType repo, Uptane::Role role, Version version) {
+bool Fetcher::fetchRole(std::string* result, int64_t maxsize, RepositoryType repo, const Uptane::Role& role,
+                        Version version) {
   // TODO: chain-loading root.json
   std::string base_url =
       (repo == RepositoryType::Director()) ? config.uptane.director_server : config.uptane.repo_server;

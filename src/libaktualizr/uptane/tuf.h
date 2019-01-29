@@ -58,28 +58,43 @@ class Role {
   static Role Snapshot() { return Role{RoleEnum::kSnapshot}; }
   static Role Targets() { return Role{RoleEnum::kTargets}; }
   static Role Timestamp() { return Role{RoleEnum::kTimestamp}; }
+  static Role Delegated(const std::string &name) { return Role(name, true); }
   static Role InvalidRole() { return Role{RoleEnum::kInvalidRole}; }
   static std::vector<Role> Roles() { return {Root(), Snapshot(), Targets(), Timestamp()}; }
 
-  explicit Role(const std::string & /*role_name*/);
+  explicit Role(const std::string &role_name, bool delegation = false);
   std::string ToString() const;
   int ToInt() const { return static_cast<int>(role_); }
-  bool operator==(const Role &other) const { return role_ == other.role_; }
+  bool operator==(const Role &other) const { return name_ == other.name_; }
   bool operator!=(const Role &other) const { return !(*this == other); }
-  bool operator<(const Role &other) const { return role_ < other.role_; }
+  bool operator<(const Role &other) const { return name_ < other.name_; }
 
-  friend std::ostream &operator<<(std::ostream &os, const Role &t);
+  friend std::ostream &operator<<(std::ostream &os, const Role &role);
 
  private:
   /** This must match the meta_types table in sqlstorage */
-  enum class RoleEnum { kRoot = 0, kSnapshot = 1, kTargets = 2, kTimestamp = 3, kInvalidRole = -1 };
+  enum class RoleEnum { kRoot = 0, kSnapshot = 1, kTargets = 2, kTimestamp = 3, kDelegated = 4, kInvalidRole = -1 };
 
-  explicit Role(RoleEnum role) : role_(role) {}
+  explicit Role(RoleEnum role) : role_(role) {
+    if (role_ == RoleEnum::kRoot) {
+      name_ = "root";
+    } else if (role_ == RoleEnum::kSnapshot) {
+      name_ = "snapshot";
+    } else if (role_ == RoleEnum::kTargets) {
+      name_ = "targets";
+    } else if (role_ == RoleEnum::kTimestamp) {
+      name_ = "timestamp";
+    } else {
+      role_ = RoleEnum::kInvalidRole;
+      name_ = "invalidrole";
+    }
+  }
 
   RoleEnum role_;
+  std::string name_;
 };
 
-std::ostream &operator<<(std::ostream &os, const Role &t);
+std::ostream &operator<<(std::ostream &os, const Role &role);
 
 /**
  * Metadata version numbers
@@ -88,7 +103,7 @@ class Version {
  public:
   Version() : version_(ANY_VERSION) {}
   explicit Version(int v) : version_(v) {}
-  std::string RoleFileName(Role role) const;
+  std::string RoleFileName(const Role &role) const;
   int version() { return version_; }
 
  private:
