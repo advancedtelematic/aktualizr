@@ -64,9 +64,9 @@ class Role {
   static Role Snapshot() { return Role{RoleEnum::kSnapshot}; }
   static Role Targets() { return Role{RoleEnum::kTargets}; }
   static Role Timestamp() { return Role{RoleEnum::kTimestamp}; }
-  static Role Delegated(const std::string &name) { return Role(name, true); }
+  static Role Delegation(const std::string &name) { return Role(name, true); }
   static Role InvalidRole() { return Role{RoleEnum::kInvalidRole}; }
-  // Delegated is not included because this is only used for a metadata table
+  // Delegation is not included because this is only used for a metadata table
   // that doesn't include delegations.
   static std::vector<Role> Roles() { return {Root(), Snapshot(), Targets(), Timestamp()}; }
   static bool IsReserved(const std::string &name) {
@@ -76,7 +76,7 @@ class Role {
   explicit Role(const std::string &role_name, bool delegation = false);
   std::string ToString() const;
   int ToInt() const { return static_cast<int>(role_); }
-  bool IsDelegation() const { return role_ == RoleEnum::kDelegated; }
+  bool IsDelegation() const { return role_ == RoleEnum::kDelegation; }
   bool operator==(const Role &other) const { return name_ == other.name_; }
   bool operator!=(const Role &other) const { return !(*this == other); }
   bool operator<(const Role &other) const { return name_ < other.name_; }
@@ -86,7 +86,7 @@ class Role {
  private:
   /** The four standard roles must match the meta_types table in sqlstorage.
    *  Delegations are special and handled differently. */
-  enum class RoleEnum { kRoot = 0, kSnapshot = 1, kTargets = 2, kTimestamp = 3, kDelegated = 4, kInvalidRole = -1 };
+  enum class RoleEnum { kRoot = 0, kSnapshot = 1, kTargets = 2, kTimestamp = 3, kDelegation = 4, kInvalidRole = -1 };
 
   explicit Role(RoleEnum role) : role_(role) {
     if (role_ == RoleEnum::kRoot) {
