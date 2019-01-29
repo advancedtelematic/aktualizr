@@ -142,9 +142,15 @@ std::future<result::Install> Aktualizr::Install(const std::vector<Uptane::Target
   return promise->get_future();
 }
 
-result::Pause Aktualizr::Pause() { return uptane_client_->pause(); }
+void Aktualizr::Pause() {
+  api_queue_.pause(true);
+  uptane_client_->pause();
+}
 
-result::Pause Aktualizr::Resume() { return uptane_client_->resume(); }
+void Aktualizr::Resume() {
+  api_queue_.pause(false);
+  uptane_client_->resume();
+}
 
 boost::signals2::connection Aktualizr::SetSignalHandler(std::function<void(shared_ptr<event::BaseEvent>)> &handler) {
   return sig_->connect(handler);

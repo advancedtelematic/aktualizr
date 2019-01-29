@@ -1058,7 +1058,7 @@ TEST(Aktualizr, UpdateCheckCompleteError) {
   EXPECT_EQ(counter.error_events(), 1);
 }
 
-/* Test that Aktualizr retransmits DownloadPaused and DownloadResumed events */
+/* Test that Aktualizr retransmits Paused and Resumed events */
 TEST(Aktualizr, PauseResumeEvents) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates");
@@ -1073,10 +1073,10 @@ TEST(Aktualizr, PauseResumeEvents) {
                                                                &n_events](std::shared_ptr<event::BaseEvent> event) {
     switch (n_events) {
       case 0:
-        EXPECT_EQ(event->variant, "DownloadPaused");
+        EXPECT_EQ(event->variant, "Paused");
         break;
       case 1:
-        EXPECT_EQ(event->variant, "DownloadResumed");
+        EXPECT_EQ(event->variant, "Resumed");
         end_promise.set_value();
         break;
       default:

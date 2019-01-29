@@ -52,10 +52,12 @@ class UpdateCheck {
   std::string message;
 };
 
+#if 0
 /**
  * Result of an attempt to pause or resume a download.
  */
 using Pause = Uptane::Fetcher::PauseRet;
+#endif
 
 /**
  * Status of an update download.
