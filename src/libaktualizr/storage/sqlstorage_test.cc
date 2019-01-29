@@ -173,12 +173,13 @@ TEST(sqlstorage, migrate_back) {
     INSERT INTO version VALUES(" +
       std::to_string(static_cast<int>(ver)) + ");";
 
-  auto statement =
-      db.prepareStatement("insert into migrations VALUES (?,?);", static_cast<int>(ver) + 1, back_migration_script);
+  auto statement = db.prepareStatement("insert into rollback_migrations VALUES (?,?);", static_cast<int>(ver) + 1,
+                                       back_migration_script);
   statement.step();
 
-  EXPECT_EQ(static_cast<int>(storage.getVersion()), 16);
+  EXPECT_EQ(static_cast<int>(storage.getVersion()), static_cast<int>(ver) + 1);
   EXPECT_TRUE(storage.dbMigrate());
+  EXPECT_LT(static_cast<int>(storage.getVersion()), static_cast<int>(ver) + 1);
   EXPECT_TRUE(dbSchemaCheck(storage));
 }
 

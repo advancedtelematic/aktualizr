@@ -11,7 +11,7 @@ enum class DbVersion : int32_t { kEmpty = -1, kInvalid = -2 };
 class SQLStorageBase {
  public:
   explicit SQLStorageBase(boost::filesystem::path sqldb_path, bool readonly, std::vector<std::string> schema_migrations,
-                          std::map<int, std::string> schema_rollback_migrations, std::string current_schema,
+                          std::vector<std::string> schema_rollback_migrations, std::string current_schema,
                           int current_schema_version);
   ~SQLStorageBase() = default;
   std::string getTableSchemaFromDb(const std::string& tablename);
@@ -26,7 +26,7 @@ class SQLStorageBase {
   boost::filesystem::path sqldb_path_;
   bool readonly_{false};
   const std::vector<std::string> schema_migrations_;
-  std::map<int, std::string> schema_rollback_migrations_;
+  std::vector<std::string> schema_rollback_migrations_;
   const std::string current_schema_;
   const int current_schema_version_;
 };

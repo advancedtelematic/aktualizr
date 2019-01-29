@@ -21,4 +21,4 @@ INSERT INTO repo_types(rowid,repo,repo_string) VALUES(1,0,'images');
 INSERT INTO repo_types(rowid,repo,repo_string) VALUES(2,1,'director');
 CREATE TABLE installation_result(unique_mark INTEGER PRIMARY KEY CHECK (unique_mark = 0), id TEXT, result_code INTEGER NOT NULL DEFAULT 0, result_text TEXT);
 CREATE TABLE need_reboot(unique_mark INTEGER PRIMARY KEY CHECK (unique_mark = 0), flag INTEGER NOT NULL DEFAULT 0);
-CREATE TABLE migrations(version_from INT PRIMARY KEY, migration TEXT NOT NULL);
+CREATE TABLE rollback_migrations(version_from INT PRIMARY KEY, migration TEXT NOT NULL);

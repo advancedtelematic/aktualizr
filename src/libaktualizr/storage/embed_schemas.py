@@ -58,16 +58,16 @@ if __name__ == '__main__':
         apend_migration(os.path.join(migration_folder, migration_list[-1]), header_file)
         header_file.write("\"\n};\n")
 
-        header_file.write("extern const std::map<int, std::string> {}_schema_rollback_migrations = {{".format(prefix))
+        header_file.write("extern const std::vector<std::string> {}_schema_rollback_migrations = {{".format(prefix))
+        ver = int(rollback_migrations_list[0].split(".")[1])
+        for i in range(ver):
+            header_file.write("\"\",\n")
         for migration in rollback_migrations_list[:-1]:
-            version = int(migration.split(".")[1])
-            header_file.write("{%d, "%version)
             apend_migration(os.path.join(rollback_folder, migration), header_file)
-            header_file.write("\"},\n")
-        version = int( migration_list[-1].split(".")[1])
-        header_file.write("{%d, "%version)
-        apend_migration(os.path.join(rollback_folder, migration_list[-1]), header_file)
-        header_file.write("\"}\n};\n")
+            header_file.write("\",\n")
+        version = int(rollback_migrations_list[-1].split(".")[1])
+        apend_migration(os.path.join(rollback_folder, rollback_migrations_list[-1]), header_file)
+        header_file.write("\"\n};\n")
 
         current_schema = open(os.path.join(sql_folder, "schema.sql"), 'r').read()
         current_schema_escaped = escape_string(current_schema)
