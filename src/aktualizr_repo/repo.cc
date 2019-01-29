@@ -203,7 +203,7 @@ Json::Value Repo::getTarget(const std::string &target_name) {
     return image_targets["targets"][target_name];
   } else {
     for (auto &p : boost::filesystem::directory_iterator(path_ / "repo" / repo_type_.toString())) {
-      if (!Delegation::isBadName(p.path().stem().string())) {
+      if (!Uptane::Role::IsReserved(p.path().stem().string())) {
         auto targets = Utils::parseJSONFile(p)["signed"];
         if (targets["targets"].isMember(target_name)) {
           return targets["targets"][target_name];
@@ -224,7 +224,7 @@ void Repo::readKeys() {
     key_type_str >> key_type;
     std::string private_key_string(Utils::readFile(p / "private.key"));
     auto name = p.path().filename().string();
-    keys_[Uptane::Role(name, !Delegation::isBadName(name))] =
+    keys_[Uptane::Role(name, !Uptane::Role::IsReserved(name))] =
         KeyPair(PublicKey(public_key_string, key_type), private_key_string);
   }
 }

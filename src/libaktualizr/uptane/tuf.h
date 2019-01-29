@@ -55,14 +55,23 @@ using KeyId = std::string;
  */
 class Role {
  public:
+  static const std::string ROOT;
+  static const std::string SNAPSHOT;
+  static const std::string TARGETS;
+  static const std::string TIMESTAMP;
+
   static Role Root() { return Role{RoleEnum::kRoot}; }
   static Role Snapshot() { return Role{RoleEnum::kSnapshot}; }
   static Role Targets() { return Role{RoleEnum::kTargets}; }
   static Role Timestamp() { return Role{RoleEnum::kTimestamp}; }
   static Role Delegated(const std::string &name) { return Role(name, true); }
   static Role InvalidRole() { return Role{RoleEnum::kInvalidRole}; }
-  // TODO: add delegated?
+  // Delegated is not included because this is only used for a metadata table
+  // that doesn't include delegations.
   static std::vector<Role> Roles() { return {Root(), Snapshot(), Targets(), Timestamp()}; }
+  static bool IsReserved(const std::string &name) {
+    return (name == ROOT || name == TARGETS || name == SNAPSHOT || name == TIMESTAMP);
+  }
 
   explicit Role(const std::string &role_name, bool delegation = false);
   std::string ToString() const;
@@ -75,18 +84,19 @@ class Role {
   friend std::ostream &operator<<(std::ostream &os, const Role &role);
 
  private:
-  /** This must match the meta_types table in sqlstorage */
+  /** The four standard roles must match the meta_types table in sqlstorage.
+   *  Delegations are special and handled differently. */
   enum class RoleEnum { kRoot = 0, kSnapshot = 1, kTargets = 2, kTimestamp = 3, kDelegated = 4, kInvalidRole = -1 };
 
   explicit Role(RoleEnum role) : role_(role) {
     if (role_ == RoleEnum::kRoot) {
-      name_ = "root";
+      name_ = ROOT;
     } else if (role_ == RoleEnum::kSnapshot) {
-      name_ = "snapshot";
+      name_ = SNAPSHOT;
     } else if (role_ == RoleEnum::kTargets) {
-      name_ = "targets";
+      name_ = TARGETS;
     } else if (role_ == RoleEnum::kTimestamp) {
-      name_ = "timestamp";
+      name_ = TIMESTAMP;
     } else {
       role_ = RoleEnum::kInvalidRole;
       name_ = "invalidrole";
