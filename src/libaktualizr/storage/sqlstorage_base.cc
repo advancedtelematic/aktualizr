@@ -65,6 +65,12 @@ std::string SQLStorageBase::getTableSchemaFromDb(const std::string& tablename) {
 
 bool SQLStorageBase::dbMigrateForward(int version_from) {
   SQLite3Guard db = dbConnection();
+
+  if (!db.beginTransaction()) {
+    LOG_ERROR << "Can't start transaction: " << db.errmsg();
+    return false;
+  }
+
   for (int32_t k = version_from + 1; k <= current_schema_version_; k++) {
     auto result_code = db.exec(schema_migrations_.at(static_cast<size_t>(k)), nullptr, nullptr);
     if (result_code != SQLITE_OK) {
@@ -81,6 +87,9 @@ bool SQLStorageBase::dbMigrateForward(int version_from) {
       return false;
     }
   }
+
+  db.commitTransaction();
+
   return true;
 }
 

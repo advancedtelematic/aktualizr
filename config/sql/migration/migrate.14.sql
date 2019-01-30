@@ -1,5 +1,5 @@
 -- Don't modify this! Create a new migration instead--see docs/schema-migrations.adoc
-BEGIN TRANSACTION;
+SAVEPOINT MIGRATION;
 
 CREATE TABLE target_images_data(filename TEXT PRIMARY KEY, image_data BLOB NOT NULL);
 CREATE TABLE target_images_info(filename TEXT PRIMARY KEY, real_size INTEGER NOT NULL DEFAULT 0, sha256 TEXT NOT NULL DEFAULT "", sha512 TEXT NOT NULL DEFAULT "");
@@ -16,4 +16,4 @@ ALTER TABLE target_images_info RENAME TO target_images;
 DELETE FROM version;
 INSERT INTO version VALUES(14);
 
-COMMIT TRANSACTION;
+RELEASE MIGRATION;

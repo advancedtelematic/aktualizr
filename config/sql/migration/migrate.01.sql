@@ -1,5 +1,5 @@
 -- Don't modify this! Create a new migration instead--see docs/schema-migrations.adoc
-BEGIN TRANSACTION;
+SAVEPOINT MIGRATION;
 
 ALTER TABLE primary_image ADD COLUMN installed_versions TEXT NOT NULL DEFAULT '';
 
@@ -11,4 +11,4 @@ ALTER TABLE device_info_migrate RENAME TO device_info;
 DELETE FROM version;
 INSERT INTO version VALUES(1);
 
-COMMIT TRANSACTION;
+RELEASE MIGRATION;

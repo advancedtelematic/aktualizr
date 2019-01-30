@@ -1,5 +1,5 @@
 -- Don't modify this! Create a new migration instead--see docs/schema-migrations.adoc
-BEGIN TRANSACTION;
+SAVEPOINT MIGRATION;
 
 DROP TABLE root_meta;
 DROP TABLE rawmeta;
@@ -47,4 +47,4 @@ ALTER TABLE meta_migrate RENAME TO meta;
 DELETE FROM version;
 INSERT INTO version VALUES(6);
 
-COMMIT TRANSACTION;
+RELEASE MIGRATION;
