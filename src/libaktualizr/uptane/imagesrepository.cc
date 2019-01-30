@@ -127,33 +127,33 @@ std::unique_ptr<Uptane::Target> ImagesRepository::getTarget(const Uptane::Target
   // Search for the target in the top-level targets metadata.
   Uptane::Targets toplevel = targets["targets"];
   auto it = std::find(toplevel.targets.cbegin(), toplevel.targets.cend(), director_target);
-  if (it == toplevel.targets.cend()) {
-    // Check if the target matches any of the delegation paths.
-    for (const auto& delegate_name : toplevel.delegated_role_names_) {
-      Role delegate_role = Role::Delegation(delegate_name);
-      std::vector<std::string> patterns = toplevel.paths_for_role_[delegate_role];
-      for (const auto& pattern : patterns) {
-        if (fnmatch(pattern.c_str(), director_target.filename().c_str(), 0) == 0) {
-          // Match! Check delegation.
-          Uptane::Targets delegate = targets[delegate_name];
-          auto d_it = std::find(delegate.targets.cbegin(), delegate.targets.cend(), director_target);
-          if (d_it == delegate.targets.cend()) {
-            // TODO: recurse here if the delegation is non-terminating. For now,
-            // assume that all delegations are terminating.
-            if (!toplevel.terminating_role_[delegate_role]) {
-              LOG_ERROR << "Nested delegations are not currently supported.";
-            }
-            return std::unique_ptr<Uptane::Target>(nullptr);
-          } else {
-            return std_::make_unique<Uptane::Target>(*d_it);
-          }
-        }
-      }
-    }
-    return std::unique_ptr<Uptane::Target>(nullptr);
-  } else {
+  if (it != toplevel.targets.cend()) {
     return std_::make_unique<Uptane::Target>(*it);
   }
+
+  // Check if the target matches any of the delegation paths.
+  for (const auto& delegate_name : toplevel.delegated_role_names_) {
+    Role delegate_role = Role::Delegation(delegate_name);
+    std::vector<std::string> patterns = toplevel.paths_for_role_[delegate_role];
+    for (const auto& pattern : patterns) {
+      if (fnmatch(pattern.c_str(), director_target.filename().c_str(), 0) != 0) {
+        continue;
+      }
+      // Match! Check delegation.
+      Uptane::Targets delegate = targets[delegate_name];
+      auto d_it = std::find(delegate.targets.cbegin(), delegate.targets.cend(), director_target);
+      if (d_it != delegate.targets.cend()) {
+        return std_::make_unique<Uptane::Target>(*d_it);
+      }
+      // TODO: recurse here if the delegation is non-terminating. For now,
+      // assume that all delegations are terminating.
+      if (!toplevel.terminating_role_[delegate_role]) {
+        LOG_ERROR << "Nested delegations are not currently supported.";
+      }
+      return std::unique_ptr<Uptane::Target>(nullptr);
+    }
+  }
+  return std::unique_ptr<Uptane::Target>(nullptr);
 }
 
 }  // namespace Uptane

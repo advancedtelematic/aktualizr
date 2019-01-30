@@ -522,17 +522,10 @@ void SQLStorage::storeDelegation(const std::string& data, const Uptane::Role rol
     return;
   }
 
-  auto del_statement = db.prepareStatement<std::string>("DELETE FROM delegations WHERE role_name=?;", role.ToString());
+  auto statement = db.prepareStatement<SQLBlob, std::string>("INSERT OR REPLACE INTO delegations VALUES (?, ?);",
+                                                             SQLBlob(data), role.ToString());
 
-  if (del_statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't clear delegation metadata: " << db.errmsg();
-    return;
-  }
-
-  auto ins_statement = db.prepareStatement<SQLBlob, std::string>("INSERT INTO delegations VALUES (?, ?);",
-                                                                 SQLBlob(data), role.ToString());
-
-  if (ins_statement.step() != SQLITE_DONE) {
+  if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't add delegation metadata: " << db.errmsg();
     return;
   }
@@ -543,8 +536,8 @@ void SQLStorage::storeDelegation(const std::string& data, const Uptane::Role rol
 bool SQLStorage::loadDelegation(std::string* data, const Uptane::Role role) {
   SQLite3Guard db = dbConnection();
 
-  auto statement = db.prepareStatement<std::string>(
-      "SELECT meta FROM delegations WHERE role_name=? ORDER BY role_name DESC LIMIT 1;", role.ToString());
+  auto statement =
+      db.prepareStatement<std::string>("SELECT meta FROM delegations WHERE role_name=? LIMIT 1;", role.ToString());
   int result = statement.step();
 
   if (result == SQLITE_DONE) {
