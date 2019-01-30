@@ -139,9 +139,47 @@ TEST(sqlstorage, migrate) {
 
   SQLStorage storage(config, false);
   boost::filesystem::remove_all(config.sqldb_path.get(config.path));
-
   EXPECT_FALSE(dbSchemaCheck(storage));
   EXPECT_TRUE(storage.dbMigrate());
+  EXPECT_TRUE(dbSchemaCheck(storage));
+}
+
+/* Migrate backward through SQL schemas. */
+TEST(sqlstorage, migrate_back) {
+  TemporaryDirectory temp_dir;
+  StorageConfig config;
+  config.path = temp_dir.Path();
+
+  SQLStorage storage(config, false);
+
+  SQLite3Guard db(temp_dir / "sql.db");
+  auto ver = storage.getVersion();
+  std::string migration_script =
+      "\
+  BEGIN TRANSACTION;\
+    CREATE TABLE test_table(test_text TEXT NOT NULL, test_int INT NOT NULL);\
+    INSERT INTO test_table VALUES(\"test_text\", 123);\
+    DELETE FROM version;\
+    INSERT INTO version VALUES( " +
+      std::to_string(static_cast<int>(ver) + 1) +
+      " );\
+  COMMIT TRANSACTION;";
+  db.exec(migration_script, NULL, NULL);
+
+  std::string back_migration_script =
+      "\
+    DROP TABLE test_table; \
+    DELETE FROM version;\
+    INSERT INTO version VALUES(" +
+      std::to_string(static_cast<int>(ver)) + ");";
+
+  auto statement = db.prepareStatement("insert into rollback_migrations VALUES (?,?);", static_cast<int>(ver) + 1,
+                                       back_migration_script);
+  statement.step();
+
+  EXPECT_EQ(static_cast<int>(storage.getVersion()), static_cast<int>(ver) + 1);
+  EXPECT_TRUE(storage.dbMigrate());
+  EXPECT_LT(static_cast<int>(storage.getVersion()), static_cast<int>(ver) + 1);
   EXPECT_TRUE(dbSchemaCheck(storage));
 }
 

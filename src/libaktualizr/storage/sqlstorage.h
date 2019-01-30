@@ -10,6 +10,7 @@
 #include "sqlstorage_base.h"
 
 extern const std::vector<std::string> libaktualizr_schema_migrations;
+extern const std::vector<std::string> libaktualizr_schema_rollback_migrations;
 extern const std::string libaktualizr_current_schema;
 extern const int libaktualizr_current_schema_version;
 

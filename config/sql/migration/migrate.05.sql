@@ -1,4 +1,4 @@
-BEGIN TRANSACTION;
+SAVEPOINT MIGRATION;
 
 CREATE TABLE rawmeta(director_root BLOB NOT NULL,
                   director_targets BLOB NOT NULL,
@@ -15,4 +15,4 @@ CREATE TABLE root_rawmeta(root BLOB NOT NULL, director INTEGER NOT NULL CHECK (d
 DELETE FROM version;
 INSERT INTO version VALUES(5);
 
-COMMIT TRANSACTION;
+RELEASE MIGRATION;

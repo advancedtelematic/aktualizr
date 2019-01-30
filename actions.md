@@ -223,6 +223,7 @@ These are internal requirements that are relatively opaque to the user and/or co
 - [x] Store state in an SQL database
   - [x] Migrate forward through SQL schemas (sqlstorage_test.cc)
     - [x] Automatically use latest SQL schema version when initializing database (sqlstorage_test.cc)
+  - [x] Migrate backward through SQL schemas (sqlstorage_test.cc)
   - [x] Reject invalid SQL databases (sqlstorage_test.cc)
   - [x] Migrate from the legacy filesystem storage (sqlstorage_test.cc, uptane_test.cc)
   - [x] Load and store primary keys in an SQL database (storage_common_test.cc)

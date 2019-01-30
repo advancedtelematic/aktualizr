@@ -6,11 +6,13 @@
 boost::filesystem::path SQLStorageBase::dbPath() const { return sqldb_path_; }
 
 SQLStorageBase::SQLStorageBase(boost::filesystem::path sqldb_path, bool readonly,
-                               std::vector<std::string> schema_migrations, std::string current_schema,
+                               std::vector<std::string> schema_migrations,
+                               std::vector<std::string> schema_rollback_migrations, std::string current_schema,
                                int current_schema_version)
     : sqldb_path_(std::move(sqldb_path)),
       readonly_(readonly),
       schema_migrations_(std::move(schema_migrations)),
+      schema_rollback_migrations_(std::move(schema_rollback_migrations)),
       current_schema_(std::move(current_schema)),
       current_schema_version_(current_schema_version) {
   boost::filesystem::path db_parent_path = dbPath().parent_path();
@@ -61,6 +63,59 @@ std::string SQLStorageBase::getTableSchemaFromDb(const std::string& tablename) {
   return schema.value() + ";";
 }
 
+bool SQLStorageBase::dbMigrateForward(int version_from) {
+  SQLite3Guard db = dbConnection();
+
+  if (!db.beginTransaction()) {
+    LOG_ERROR << "Can't start transaction: " << db.errmsg();
+    return false;
+  }
+
+  for (int32_t k = version_from + 1; k <= current_schema_version_; k++) {
+    auto result_code = db.exec(schema_migrations_.at(static_cast<size_t>(k)), nullptr, nullptr);
+    if (result_code != SQLITE_OK) {
+      LOG_ERROR << "Can't migrate db from version " << (k - 1) << " to version " << k << ": " << db.errmsg();
+      return false;
+    }
+    if (schema_rollback_migrations_.at(static_cast<uint32_t>(k)).empty()) {
+      continue;
+    }
+    auto statement = db.prepareStatement("INSERT OR REPLACE INTO rollback_migrations VALUES (?,?);", k,
+                                         schema_rollback_migrations_.at(static_cast<uint32_t>(k)));
+    if (statement.step() != SQLITE_DONE) {
+      LOG_ERROR << "Can't insert rollback migration script: " << db.errmsg();
+      return false;
+    }
+  }
+
+  db.commitTransaction();
+
+  return true;
+}
+
+bool SQLStorageBase::dbMigrateBackward(int version_from) {
+  SQLite3Guard db = dbConnection();
+  for (int ver = version_from; ver > current_schema_version_; --ver) {
+    auto statement = db.prepareStatement("SELECT migration FROM rollback_migrations WHERE version_from=?;", ver);
+    if (statement.step() != SQLITE_ROW) {
+      LOG_ERROR << "Can't extract migration script: " << db.errmsg();
+      return false;
+    }
+    auto migration = statement.get_result_col_str(0);
+    statement.step();
+    if (db.exec(*migration, nullptr, nullptr) != SQLITE_OK) {
+      LOG_ERROR << "Can't migrate db from version " << (ver) << " to version " << ver - 1 << ": " << db.errmsg();
+      return false;
+    }
+    if (db.exec(std::string("DELETE FROM rollback_migrations WHERE version_from=") + std::to_string(ver) + ";", nullptr,
+                nullptr) != SQLITE_OK) {
+      LOG_ERROR << "Can't clear old migration script: " << db.errmsg();
+      return false;
+    }
+  }
+  return true;
+}
+
 bool SQLStorageBase::dbMigrate() {
   DbVersion schema_version = getVersion();
 
@@ -79,17 +134,10 @@ bool SQLStorageBase::dbMigrate() {
     return false;
   }
 
-  if (schema_num_version > current_schema_version_) {
-    LOG_ERROR << "Only forward migrations are supported. You cannot migrate to an older schema.";
-    return false;
-  }
-
-  SQLite3Guard db = dbConnection();
-  for (int32_t k = schema_num_version + 1; k <= current_schema_version_; k++) {
-    if (db.exec(schema_migrations_.at(static_cast<size_t>(k)), nullptr, nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Can't migrate db from version " << (k - 1) << " to version " << k << ": " << db.errmsg();
-      return false;
-    }
+  if (schema_version != DbVersion::kEmpty && schema_num_version > current_schema_version_) {
+    dbMigrateBackward(schema_num_version);
+  } else {
+    dbMigrateForward(schema_num_version);
   }
 
   return true;

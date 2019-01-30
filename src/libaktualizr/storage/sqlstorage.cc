@@ -62,7 +62,8 @@ void SQLStorage::cleanMetaVersion(Uptane::RepositoryType repo, const Uptane::Rol
 
 SQLStorage::SQLStorage(const StorageConfig& config, bool readonly)
     : SQLStorageBase(config.sqldb_path.get(config.path), readonly, libaktualizr_schema_migrations,
-                     libaktualizr_current_schema, libaktualizr_current_schema_version),
+                     libaktualizr_schema_rollback_migrations, libaktualizr_current_schema,
+                     libaktualizr_current_schema_version),
       INvStorage(config) {
   try {
     cleanMetaVersion(Uptane::RepositoryType::Director(), Uptane::Role::Root());

@@ -1,5 +1,5 @@
 -- Don't modify this! Create a new migration instead--see docs/schema-migrations.adoc
-BEGIN TRANSACTION;
+SAVEPOINT MIGRATION;
 
 CREATE TABLE primary_keys_migrate(unique_mark INTEGER PRIMARY KEY CHECK (unique_mark = 0), private TEXT, public TEXT);
 INSERT INTO primary_keys_migrate SELECT 0,private,public FROM primary_keys LIMIT 1;
@@ -14,4 +14,4 @@ ALTER TABLE device_info_migrate RENAME TO device_info;
 DELETE FROM version;
 INSERT INTO version VALUES(8);
 
-COMMIT TRANSACTION;
+RELEASE MIGRATION;

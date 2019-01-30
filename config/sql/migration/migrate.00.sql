@@ -1,5 +1,5 @@
 -- Don't modify this! Create a new migration instead--see docs/schema-migrations.adoc
-BEGIN TRANSACTION;
+SAVEPOINT MIGRATION;
 
 CREATE TABLE version(version INTEGER);
 
@@ -22,4 +22,4 @@ CREATE TABLE meta(director_root BLOB NOT NULL,
 CREATE TABLE primary_image(filepath TEXT NOT NULL);
 
 INSERT INTO version VALUES(0);
-COMMIT TRANSACTION;
+RELEASE MIGRATION;

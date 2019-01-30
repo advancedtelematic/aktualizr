@@ -1,9 +1,9 @@
 -- Don't modify this! Create a new migration instead--see docs/schema-migrations.adoc
 SAVEPOINT MIGRATION;
 
-CREATE TABLE need_reboot(unique_mark INTEGER PRIMARY KEY CHECK (unique_mark = 0), flag INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE rollback_migrations(version_from INT PRIMARY KEY, migration TEXT NOT NULL);
 
 DELETE FROM version;
-INSERT INTO version VALUES(12);
+INSERT INTO version VALUES(15);
 
 RELEASE MIGRATION;

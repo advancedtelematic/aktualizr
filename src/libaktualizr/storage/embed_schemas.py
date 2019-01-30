@@ -9,6 +9,7 @@ warning_text = '''
 //Latest schema timestamp: %d
 #include <string>
 #include <vector>
+#include <map>
 '''
 
 def escape_string(sql):
@@ -32,7 +33,9 @@ if __name__ == '__main__':
     schemas_header = sys.argv[2]
     prefix = sys.argv[3]
     migration_folder = os.path.join(sql_folder, 'migration')
+    rollback_folder = os.path.join(sql_folder, 'rollback')
     migration_list = sorted(os.listdir(migration_folder))
+    rollback_migrations_list = sorted(os.listdir(rollback_folder))
 
     file_depends_list = [os.path.join(migration_folder, p) for p in migration_list]
     file_depends_list.append(__file__)  # set dependency on itself (this script)
@@ -54,6 +57,18 @@ if __name__ == '__main__':
             header_file.write("\",\n")
         apend_migration(os.path.join(migration_folder, migration_list[-1]), header_file)
         header_file.write("\"\n};\n")
+
+        header_file.write("extern const std::vector<std::string> {}_schema_rollback_migrations = {{".format(prefix))
+        ver = int(rollback_migrations_list[0].split(".")[1])
+        for i in range(ver):
+            header_file.write("\"\",\n")
+        for migration in rollback_migrations_list[:-1]:
+            apend_migration(os.path.join(rollback_folder, migration), header_file)
+            header_file.write("\",\n")
+        version = int(rollback_migrations_list[-1].split(".")[1])
+        apend_migration(os.path.join(rollback_folder, rollback_migrations_list[-1]), header_file)
+        header_file.write("\"\n};\n")
+
         current_schema = open(os.path.join(sql_folder, "schema.sql"), 'r').read()
         current_schema_escaped = escape_string(current_schema)
         header_file.write('extern const std::string %s_current_schema = "%s";' % (prefix, current_schema_escaped));
