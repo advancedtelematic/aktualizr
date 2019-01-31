@@ -7,3 +7,7 @@ Make sure that the migrate.n+1.sql file updates the 'version' table:
 
     DELETE FROM version;
     INSERT INTO version VALUES(...);
+
+3. Write a config/sql/rollback/rollback.n+1.sql that will revert the new data format to the previous one. It should contain the opposite steps of migrate.n+1.sql, if possible but at least output a database respecting the previous schema.
+
+The 'version' table has to be updated as well, to contain n.
