@@ -183,6 +183,18 @@ TEST(sqlstorage, migrate_back) {
   EXPECT_TRUE(dbSchemaCheck(storage));
 }
 
+TEST(sqlstorage, rollback_to_15) {
+  TemporaryDirectory temp_dir;
+  StorageConfig config;
+  config.path = temp_dir.Path();
+
+  SQLStorage storage(config, false);
+
+  auto ver = storage.getVersion();
+  ASSERT_TRUE(storage.dbMigrateBackward(static_cast<int>(ver), 15));
+  ASSERT_EQ(static_cast<int>(storage.getVersion()), 15);
+}
+
 /* Automatically use latest SQL schema version when initializing database. */
 TEST(sqlstorage, MigrationVersionCheck) {
   TemporaryDirectory temp_dir;
@@ -363,7 +375,7 @@ TEST(sqlstorage, migrate_from_fs) {
   storage->loadPrimaryInstalledVersions(&installed, nullptr, nullptr);
   EXPECT_NE(installed.size(), 0);
 
-  EXPECT_TRUE(storage->loadInstallationResult(nullptr));
+  // note: installation result is not migrated anymore
 
   boost::filesystem::recursive_directory_iterator repo_dir_it(config.path), repo_dir_end;
   for (; repo_dir_it != repo_dir_end; ++repo_dir_it) {

@@ -61,9 +61,10 @@ static void aktualizr_progress_cb(OstreeAsyncProgress *progress, gpointer data) 
   }
 }
 
-data::InstallOutcome OstreeManager::pull(const boost::filesystem::path &sysroot_path, const std::string &ostree_server,
-                                         const KeyManager &keys, const Uptane::Target &target,
-                                         const std::function<void()> &pause_cb, OstreeProgressCb progress_cb) {
+data::InstallationResult OstreeManager::pull(const boost::filesystem::path &sysroot_path,
+                                             const std::string &ostree_server, const KeyManager &keys,
+                                             const Uptane::Target &target, const std::function<void()> &pause_cb,
+                                             OstreeProgressCb progress_cb) {
   std::string refhash = target.sha256Hash();
   const char *const commit_ids[] = {refhash.c_str()};
   GCancellable *cancellable = nullptr;
@@ -77,7 +78,7 @@ data::InstallOutcome OstreeManager::pull(const boost::filesystem::path &sysroot_
   if (error != nullptr) {
     LOG_ERROR << "Could not get OSTree repo";
     g_error_free(error);
-    return data::InstallOutcome(data::UpdateResultCode::kInstallFailed, "Could not get OSTree repo");
+    return data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, "Could not get OSTree repo");
   }
 
   GHashTable *ref_list = nullptr;
@@ -87,7 +88,7 @@ data::InstallOutcome OstreeManager::pull(const boost::filesystem::path &sysroot_
     // should never be greater than 1, but use >= for robustness
     if (length >= 1) {
       LOG_DEBUG << "refhash already pulled";
-      return data::InstallOutcome(data::UpdateResultCode::kAlreadyProcessed, "Refhash was already pulled");
+      return data::InstallationResult(true, data::ResultCode::Numeric::kAlreadyProcessed, "Refhash was already pulled");
     }
   }
   if (error != nullptr) {
@@ -96,7 +97,7 @@ data::InstallOutcome OstreeManager::pull(const boost::filesystem::path &sysroot_
   }
 
   if (!OstreeManager::addRemote(repo.get(), ostree_server, keys)) {
-    return data::InstallOutcome(data::UpdateResultCode::kInstallFailed, "Error adding OSTree remote");
+    return data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, "Error adding OSTree remote");
   }
 
   g_variant_builder_init(&builder, G_VARIANT_TYPE("a{sv}"));
@@ -110,17 +111,17 @@ data::InstallOutcome OstreeManager::pull(const boost::filesystem::path &sysroot_
   progress.reset(ostree_async_progress_new_and_connect(aktualizr_progress_cb, &mt));
   if (ostree_repo_pull_with_options(repo.get(), remote, options, progress.get(), cancellable, &error) == 0) {
     LOG_ERROR << "Error while pulling image: " << error->message;
-    data::InstallOutcome install_outcome(data::UpdateResultCode::kInstallFailed, error->message);
+    data::InstallationResult install_res(data::ResultCode::Numeric::kInstallFailed, error->message);
     g_error_free(error);
     g_variant_unref(options);
-    return install_outcome;
+    return install_res;
   }
   ostree_async_progress_finish(progress.get());
   g_variant_unref(options);
-  return data::InstallOutcome(data::UpdateResultCode::kOk, "Pulling ostree image was successful");
+  return data::InstallationResult(data::ResultCode::Numeric::kOk, "Pulling ostree image was successful");
 }
 
-data::InstallOutcome OstreeManager::install(const Uptane::Target &target) const {
+data::InstallationResult OstreeManager::install(const Uptane::Target &target) const {
   const char *opt_osname = nullptr;
   GCancellable *cancellable = nullptr;
   GError *error = nullptr;
@@ -136,29 +137,29 @@ data::InstallOutcome OstreeManager::install(const Uptane::Target &target) const 
   if (error != nullptr) {
     LOG_ERROR << "could not get repo";
     g_error_free(error);
-    return data::InstallOutcome(data::UpdateResultCode::kInstallFailed, "could not get repo");
+    return data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, "could not get repo");
   }
 
   auto origin = StructGuard<GKeyFile>(
       ostree_sysroot_origin_new_from_refspec(sysroot.get(), target.sha256Hash().c_str()), g_key_file_free);
   if (ostree_repo_resolve_rev(repo.get(), target.sha256Hash().c_str(), FALSE, &revision, &error) == 0) {
     LOG_ERROR << error->message;
-    data::InstallOutcome install_outcome(data::UpdateResultCode::kInstallFailed, error->message);
+    data::InstallationResult install_res(data::ResultCode::Numeric::kInstallFailed, error->message);
     g_error_free(error);
-    return install_outcome;
+    return install_res;
   }
 
   OstreeDeployment *merge_deployment = ostree_sysroot_get_merge_deployment(sysroot.get(), opt_osname);
   if (merge_deployment == nullptr) {
     LOG_ERROR << "No merge deployment";
-    return data::InstallOutcome(data::UpdateResultCode::kInstallFailed, "No merge deployment");
+    return data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, "No merge deployment");
   }
 
   if (ostree_sysroot_prepare_cleanup(sysroot.get(), cancellable, &error) == 0) {
     LOG_ERROR << error->message;
-    data::InstallOutcome install_outcome(data::UpdateResultCode::kInstallFailed, error->message);
+    data::InstallationResult install_res(data::ResultCode::Numeric::kInstallFailed, error->message);
     g_error_free(error);
-    return install_outcome;
+    return install_res;
   }
 
   std::string args_content =
@@ -179,18 +180,18 @@ data::InstallOutcome OstreeManager::install(const Uptane::Target &target) const 
   if (ostree_sysroot_deploy_tree(sysroot.get(), opt_osname, revision, origin.get(), merge_deployment, kargs_strv,
                                  &new_deployment, cancellable, &error) == 0) {
     LOG_ERROR << "ostree_sysroot_deploy_tree: " << error->message;
-    data::InstallOutcome install_outcome(data::UpdateResultCode::kInstallFailed, error->message);
+    data::InstallationResult install_res(data::ResultCode::Numeric::kInstallFailed, error->message);
     g_error_free(error);
-    return install_outcome;
+    return install_res;
   }
 
   if (ostree_sysroot_simple_write_deployment(sysroot.get(), nullptr, new_deployment, merge_deployment,
                                              OSTREE_SYSROOT_SIMPLE_WRITE_DEPLOYMENT_FLAGS_NONE, cancellable,
                                              &error) == 0) {
     LOG_ERROR << "ostree_sysroot_simple_write_deployment:" << error->message;
-    data::InstallOutcome install_outcome(data::UpdateResultCode::kInstallFailed, error->message);
+    data::InstallationResult install_res(data::ResultCode::Numeric::kInstallFailed, error->message);
     g_error_free(error);
-    return install_outcome;
+    return install_res;
   }
 
   // set reboot flag to be notified later
@@ -200,20 +201,20 @@ data::InstallOutcome OstreeManager::install(const Uptane::Target &target) const 
 
   LOG_INFO << "Performing sync()";
   sync();
-  return data::InstallOutcome(data::UpdateResultCode::kNeedCompletion, "Application successful, need reboot");
+  return data::InstallationResult(data::ResultCode::Numeric::kNeedCompletion, "Application successful, need reboot");
 }
 
-data::InstallOutcome OstreeManager::finalizeInstall(const Uptane::Target &target) const {
+data::InstallationResult OstreeManager::finalizeInstall(const Uptane::Target &target) const {
   LOG_INFO << "Checking installation of new OStree sysroot";
   Uptane::Target current = getCurrent();
 
   if (current.sha256Hash() != target.sha256Hash()) {
     LOG_ERROR << "Expected to boot on " << target.sha256Hash() << " but, " << current.sha256Hash()
               << " found, the system might have experienced a rollback";
-    return data::InstallOutcome(data::UpdateResultCode::kInstallFailed, "Wrong version booted");
+    return data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, "Wrong version booted");
   }
 
-  return data::InstallOutcome(data::UpdateResultCode::kOk, "Successfully booted on new version");
+  return data::InstallationResult(data::ResultCode::Numeric::kOk, "Successfully booted on new version");
 }
 
 OstreeManager::OstreeManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage,

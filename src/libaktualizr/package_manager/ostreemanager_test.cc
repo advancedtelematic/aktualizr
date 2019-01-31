@@ -32,11 +32,11 @@ TEST(OstreeManager, PullBadUriNoCreds) {
   target_json_test["hashes"]["sha256"] = "some_hash";
   target_json_test["length"] = 0;
   Uptane::Target target_test("test.deb", target_json_test);
-  data::InstallOutcome result =
+  data::InstallationResult result =
       OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys, target_test);
 
-  EXPECT_EQ(result.first, data::UpdateResultCode::kInstallFailed);
-  EXPECT_EQ(result.second, "Failed to parse uri: bad-url");
+  EXPECT_EQ(result.result_code.num_code, data::ResultCode::Numeric::kInstallFailed);
+  EXPECT_EQ(result.description, "Failed to parse uri: bad-url");
 }
 
 /* Reject bad OSTree server URIs. */
@@ -61,11 +61,11 @@ TEST(OstreeManager, PullBadUriWithCreds) {
   target_json_test["hashes"]["sha256"] = "some_hash";
   target_json_test["length"] = 0;
   Uptane::Target target_test("test.deb", target_json_test);
-  data::InstallOutcome result =
+  data::InstallationResult result =
       OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys, target_test);
 
-  EXPECT_EQ(result.first, data::UpdateResultCode::kInstallFailed);
-  EXPECT_EQ(result.second, "Failed to parse uri: bad-url");
+  EXPECT_EQ(result.result_code.num_code, data::ResultCode::Numeric::kInstallFailed);
+  EXPECT_EQ(result.description, "Failed to parse uri: bad-url");
 }
 
 /* Reject bad OSTree server URIs. */
@@ -82,9 +82,9 @@ TEST(OstreeManager, InstallBadUri) {
 
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   OstreeManager ostree(config.pacman, storage, nullptr);
-  data::InstallOutcome result = ostree.install(target);
-  EXPECT_EQ(result.first, data::UpdateResultCode::kInstallFailed);
-  EXPECT_EQ(result.second, "Refspec 'hash' not found");
+  data::InstallationResult result = ostree.install(target);
+  EXPECT_EQ(result.result_code.num_code, data::ResultCode::Numeric::kInstallFailed);
+  EXPECT_EQ(result.description, "Refspec 'hash' not found");
 }
 
 /* Abort if the OSTree sysroot is invalid. */

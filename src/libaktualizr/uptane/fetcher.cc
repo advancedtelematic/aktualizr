@@ -143,10 +143,9 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
       KeyManager keys(storage, config.keymanagerConfig());
       keys.loadKeys();
       std::function<void()> check_pause = std::bind(&Fetcher::checkPause, this);
-      data::InstallOutcome outcome = OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys,
-                                                         target, check_pause, progress_cb);
-      result =
-          (outcome.first == data::UpdateResultCode::kOk || outcome.first == data::UpdateResultCode::kAlreadyProcessed);
+      data::InstallationResult install_res = OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server,
+                                                                 keys, target, check_pause, progress_cb);
+      result = install_res.success;
 #else
       LOG_ERROR << "Could not pull OSTree target. Aktualizr was built without OSTree support!";
 #endif

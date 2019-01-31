@@ -15,8 +15,8 @@ class SQLStorageBase {
                           int current_schema_version);
   ~SQLStorageBase() = default;
   std::string getTableSchemaFromDb(const std::string& tablename);
-  bool dbMigrateForward(int version_from);
-  bool dbMigrateBackward(int version_from);
+  bool dbMigrateForward(int version_from, int version_to = 0);
+  bool dbMigrateBackward(int version_from, int version_to = 0);
   bool dbMigrate();
   DbVersion getVersion();  // non-negative integer on success or -1 on error
   boost::filesystem::path dbPath() const;

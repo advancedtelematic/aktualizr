@@ -234,11 +234,6 @@ void INvStorage::FSSToSQLS(FSStorageRead& fs_storage, SQLStorage& sql_storage) {
     sql_storage.storeMisconfiguredEcus(ecus);
   }
 
-  data::OperationResult res;
-  if (fs_storage.loadInstallationResult(&res)) {
-    sql_storage.storeInstallationResult(res);
-  }
-
   std::vector<Uptane::Target> installed_versions;
   size_t current_index = SIZE_MAX;
   size_t k = 0;

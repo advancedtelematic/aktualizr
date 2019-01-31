@@ -44,16 +44,17 @@ class OstreeManager : public PackageManagerInterface {
   Json::Value getInstalledPackages() const override;
   Uptane::Target getCurrent() const override;
   bool imageUpdated() override;
-  data::InstallOutcome install(const Uptane::Target &target) const override;
-  data::InstallOutcome finalizeInstall(const Uptane::Target &target) const override;
+  data::InstallationResult install(const Uptane::Target &target) const override;
+  data::InstallationResult finalizeInstall(const Uptane::Target &target) const override;
 
   GObjectUniquePtr<OstreeDeployment> getStagedDeployment() const;
   static GObjectUniquePtr<OstreeSysroot> LoadSysroot(const boost::filesystem::path &path);
   static GObjectUniquePtr<OstreeRepo> LoadRepo(OstreeSysroot *sysroot, GError **error);
   static bool addRemote(OstreeRepo *repo, const std::string &url, const KeyManager &keys);
-  static data::InstallOutcome pull(const boost::filesystem::path &sysroot_path, const std::string &ostree_server,
-                                   const KeyManager &keys, const Uptane::Target &target,
-                                   const std::function<void()> &pause_cb = {}, OstreeProgressCb progress_cb = nullptr);
+  static data::InstallationResult pull(const boost::filesystem::path &sysroot_path, const std::string &ostree_server,
+                                       const KeyManager &keys, const Uptane::Target &target,
+                                       const std::function<void()> &pause_cb = {},
+                                       OstreeProgressCb progress_cb = nullptr);
 
  private:
   PackageConfig config;
