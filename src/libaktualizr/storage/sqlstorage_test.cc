@@ -217,8 +217,7 @@ TEST(sqlstorage, WrongDatabaseCheck) {
     }
   }
 
-  SQLStorage storage(config, false);
-  EXPECT_EQ(storage.getVersion(), DbVersion::kInvalid);
+  EXPECT_THROW(SQLStorage storage(config, false), StorageException);
 }
 
 TEST(sqlstorage, DbMigration7to8) {

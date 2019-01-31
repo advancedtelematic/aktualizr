@@ -31,8 +31,7 @@ SQLStorageBase::SQLStorageBase(boost::filesystem::path sqldb_path, bool readonly
   }
 
   if (!dbMigrate()) {
-    LOG_ERROR << "SQLite database migration failed";
-    // Continue to run anyway, it can't be worse
+    throw StorageException("SQLite database migration failed");
   }
 }
 
