@@ -7,10 +7,10 @@ https://opensource.org/licenses/MPL-2.0[image:https://img.shields.io/badge/Licen
 = aktualizr
 
 ====
-C++ reference implementation of https://github.com/advancedtelematic/rvi_sota_server[GENIVI SOTA] OTA update client.
+C++ implementation of https://uptane.github.io[Uptane] OTA update client.
 ====
 
-The client is intended to be installed on devices that wish to receive OTA updates from a GENIVI-compatible OTA server.
+The client is intended to be installed on devices that wish to receive OTA updates from an Uptane-compatible OTA server.
 
 The client is responsible for:
 
@@ -32,7 +32,7 @@ toc::[]
 
 == Security
 
-This client, and the https://github.com/advancedtelematic/rvi_sota_server[GENIVI SOTA] project, is aligned with the https://uptane.github.io[Uptane] security framework for software updates. Full details and whitepapers can be found on their site.
+This client is aligned with the https://uptane.github.io[Uptane] security framework for software updates. Full details and whitepapers can be found on their site.
 
 == Installation
 
