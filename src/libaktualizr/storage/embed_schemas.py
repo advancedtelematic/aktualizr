@@ -38,6 +38,7 @@ if __name__ == '__main__':
     rollback_migrations_list = sorted(os.listdir(rollback_folder))
 
     file_depends_list = [os.path.join(migration_folder, p) for p in migration_list]
+    file_depends_list += [os.path.join(rollback_folder, p) for p in rollback_migrations_list]
     file_depends_list.append(__file__)  # set dependency on itself (this script)
     max_file_stamp = max(os.path.getmtime(p) for p in file_depends_list)
 
