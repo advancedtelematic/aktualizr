@@ -8,7 +8,8 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ### Added
 
-- Basic first-order delegation support.
+- Basic first-order delegation support: [PR](https://github.com/advancedtelematic/aktualizr/pull/1074)
+- Backward migrations of the SQL storage is now supported. It should allow rollbacking updates up to versions containing the feature: [PR](https://github.com/advancedtelematic/aktualizr/pull/1072)
 
 ## [2019.1] - 2019-01-10
 
