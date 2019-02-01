@@ -48,6 +48,7 @@ get_property(ASN1_INCLUDE_DIRS TARGET asn1_lib PROPERTY INCLUDE_DIRECTORIES)
 target_include_directories(uptane PUBLIC ${ASN1_INCLUDE_DIRS})
 
 add_aktualizr_test(NAME discovery_secondary SOURCES ipsecondary_discovery_test.cc PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME images_repository SOURCES imagesrepository_test.cc ARGS PROJECT_WORKING_DIRECTORY)
 add_aktualizr_test(NAME tuf SOURCES tuf_test.cc PROJECT_WORKING_DIRECTORY)
 add_aktualizr_test(NAME tuf_hash SOURCES tuf_hash_test.cc PROJECT_WORKING_DIRECTORY)
 

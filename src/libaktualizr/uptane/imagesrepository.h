@@ -30,6 +30,7 @@ class ImagesRepository : public RepositoryCommon {
   Exception getLastException() const { return last_exception; }
 
  private:
+  FRIEND_TEST(ImagesRepository, DelegateTargets);
   // Map from role name -> metadata ("targets" for top-level):
   std::map<std::string, Uptane::Targets> targets;
   Uptane::TimestampMeta timestamp;
