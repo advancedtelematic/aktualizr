@@ -58,26 +58,6 @@ class UpdateCheckComplete : public BaseEvent {
 };
 
 /**
- * A download in progress has been paused.
- */
-class Paused : public BaseEvent {
- public:
-  explicit Paused() { variant = "Paused"; }
-  // TODO: info about paused downloads?
-  // result::Pause fetcher_result;
-};
-
-/**
- * A paused download has been resumed.
- */
-class Resumed : public BaseEvent {
- public:
-  explicit Resumed() { variant = "Resumed"; }
-  // TODO: info about resumed downloads?
-  // result::Pause fetcher_result;
-};
-
-/**
  * A report for a download in progress.
  */
 class DownloadProgressReport : public BaseEvent {

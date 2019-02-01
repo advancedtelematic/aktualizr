@@ -110,8 +110,6 @@ void process_event(const std::shared_ptr<event::BaseEvent> &event) {
     const auto install_complete = dynamic_cast<event::InstallTargetComplete *>(event.get());
     std::cout << "Installation complete for device " << install_complete->serial.ToString() << ": "
               << (install_complete->success ? "success" : "failure") << "\n";
-  } else if (event->variant == "Paused" || event->variant == "Resumed") {
-    // Do nothing.
   } else if (event->variant == "UpdateCheckComplete") {
     const auto check_complete = dynamic_cast<event::UpdateCheckComplete *>(event.get());
     current_updates = check_complete->result.updates;

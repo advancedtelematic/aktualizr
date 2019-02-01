@@ -881,14 +881,12 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
   return result;
 }
 
-void SotaUptaneClient::pause() {
+void SotaUptaneClient::pauseFetching() {
   uptane_fetcher->setPause(true);
-  sendEvent<event::Paused>();  // TODO: info about download paused?
 }
 
-void SotaUptaneClient::resume() {
+void SotaUptaneClient::resumeFetching() {
   uptane_fetcher->setPause(false);
-  sendEvent<event::Resumed>();  // TODO: info about download paused?
 }
 
 std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target target) {

@@ -52,12 +52,27 @@ class UpdateCheck {
   std::string message;
 };
 
-#if 0
 /**
  * Result of an attempt to pause or resume a download.
  */
-using Pause = Uptane::Fetcher::PauseRet;
-#endif
+enum class PauseStatus {
+  /* The system was successfully paused or resumed */
+  kSuccess = 0,
+  /* The system was already paused */
+  kAlreadyPaused,
+  /* The system was already running */
+  kAlreadyRunning,
+  /* General error */
+  kError,
+};
+
+class Pause {
+ public:
+  Pause() = default;
+  Pause(PauseStatus status_in) : status(status_in) {}
+
+  PauseStatus status{PauseStatus::kSuccess};
+};
 
 /**
  * Status of an update download.

@@ -1058,27 +1058,38 @@ TEST(Aktualizr, UpdateCheckCompleteError) {
   EXPECT_EQ(counter.error_events(), 1);
 }
 
-/* Test that Aktualizr retransmits Paused and Resumed events */
-TEST(Aktualizr, PauseResumeEvents) {
+/*
+ * Suspend API calls during pause.
+ * Catch up with calls queue after resume.
+ */
+TEST(Aktualizr, PauseResumeQueue) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates");
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
   Aktualizr aktualizr(conf, storage, http);
+  aktualizr.Initialize();
 
+  std::mutex mutex;
   std::promise<void> end_promise{};
   size_t n_events = 0;
-  std::function<void(std::shared_ptr<event::BaseEvent>)> cb = [&end_promise,
-                                                               &n_events](std::shared_ptr<event::BaseEvent> event) {
+  std::atomic_bool is_paused{false};
+  std::function<void(std::shared_ptr<event::BaseEvent>)> cb = [&end_promise, &n_events, &mutex,
+                                                               &is_paused](std::shared_ptr<event::BaseEvent> event) {
     switch (n_events) {
       case 0:
-        EXPECT_EQ(event->variant, "Paused");
+        EXPECT_EQ(event->variant, "UpdateCheckComplete");
         break;
-      case 1:
-        EXPECT_EQ(event->variant, "Resumed");
+      case 1: {
+        std::lock_guard<std::mutex> guard(mutex);
+
+        EXPECT_EQ(event->variant, "UpdateCheckComplete");
+        // the event shouldn't happen when the system is paused
+        EXPECT_FALSE(is_paused);
         end_promise.set_value();
         break;
+      }
       default:
         FAIL() << "Unexpected event";
     }
@@ -1086,12 +1097,33 @@ TEST(Aktualizr, PauseResumeEvents) {
   };
   boost::signals2::connection conn = aktualizr.SetSignalHandler(cb);
 
-  aktualizr.Pause();
-  aktualizr.Resume();
+  // trigger the first UpdateCheck
+  aktualizr.CheckUpdates().get();
+
+  {
+    std::lock_guard<std::mutex> guard(mutex);
+    EXPECT_EQ(aktualizr.Pause().status, result::PauseStatus::kSuccess);
+    is_paused = true;
+  }
+
+  EXPECT_EQ(aktualizr.Pause().status, result::PauseStatus::kAlreadyPaused);
+
+  aktualizr.CheckUpdates();
+
+  // Theoritically racy, could cause bad implem to succeeed sometimes
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+
+  {
+    std::lock_guard<std::mutex> guard(mutex);
+    is_paused = false;
+    EXPECT_EQ(aktualizr.Resume().status, result::PauseStatus::kSuccess);
+  }
+
+  EXPECT_EQ(aktualizr.Resume().status, result::PauseStatus::kAlreadyRunning);
 
   std::future_status status = end_promise.get_future().wait_for(std::chrono::seconds(20));
   if (status != std::future_status::ready) {
-    FAIL() << "Timed out waiting for pause/resume events";
+    FAIL() << "Timed out waiting for UpdateCheck event";
   }
 }
 

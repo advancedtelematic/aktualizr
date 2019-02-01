@@ -94,12 +94,10 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Send UpdateCheckComplete event after successful check with no available updates (aktualizr_test.cc)
   - [x] Send UpdateCheckComplete event after failure (aktualizr_test.cc)
 - [x] Pause and Resume the API
-  - [ ] Suspend API calls during pause
-  - [ ] Catch up with calls queue after resume
+  - [x] Suspend API calls during pause
+  - [x] Catch up with calls queue after resume
   - [ ] Pause ongoing download
   - [ ] Resume ongoing download
-  - [x] Send Paused event (aktualizr_test.cc)
-  - [x] Send Resumed event (aktualizr_test.cc)
 - [x] Download updates
   - [x] Find requested target
     - [x] Search first-order delegations (uptane_delegation_test.cc)

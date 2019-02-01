@@ -155,7 +155,7 @@ class Aktualizr {
    *
    * @return Information about pause results.
    */
-  void Pause();
+  result::Pause Pause();
 
   /**
    * Resume the library operations.
@@ -164,7 +164,7 @@ class Aktualizr {
    *
    * @return Information about resume results.
    */
-  void Resume();
+  result::Pause Resume();
 
   /**
    * Synchronously run an uptane cycle: check for updates, download any new
@@ -197,7 +197,7 @@ class Aktualizr {
   FRIEND_TEST(Aktualizr, FullNoCorrelationId);
   FRIEND_TEST(Aktualizr, APICheck);
   FRIEND_TEST(Aktualizr, UpdateCheckCompleteError);
-  FRIEND_TEST(Aktualizr, PauseResumeEvents);
+  FRIEND_TEST(Aktualizr, PauseResumeQueue);
   FRIEND_TEST(Aktualizr, AddSecondary);
   FRIEND_TEST(Delegation, Basic);
 
