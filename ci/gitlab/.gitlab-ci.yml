@@ -1,0 +1,120 @@
+stages:
+  - Setup Docker
+  - Build and Test
+  
+variables:
+  # The docker images will be specific to the branch we are pushing to
+  UBUNTU_BIONIC_CI_IMAGE: ${CI_REGISTRY_IMAGE}:ci-${CI_COMMIT_REF_SLUG}-UBUNTU-BIONIC
+  DEBIAN_TESTING_CI_IMAGE: ${CI_REGISTRY_IMAGE}:ci-${CI_COMMIT_REF_SLUG}-DEBIAN_TESTING
+  GIT_SUBMODULE_STRATEGY: recursive
+  
+# Build the Docker image that will be used in subsequent CI/CD stages
+Setup Docker:
+  image: docker:latest
+  stage: Setup Docker
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+  script:
+    - docker pull "$UBUNTU_BIONIC_CI_IMAGE" || true
+    - docker pull "${CI_REGISTRY_IMAGE}:ci-master" || true
+    - docker build --pull --cache-from "${CI_REGISTRY_IMAGE}:ci-master" --cache-from "$UBUNTU_BIONIC_CI_IMAGE" -f ${CI_PROJECT_DIR}/docker/Dockerfile.ubuntu.bionic -t "$UBUNTU_BIONIC_CI_IMAGE" .
+    - docker push "$UBUNTU_BIONIC_CI_IMAGE"
+    
+    - docker pull "$DEBIAN_TESTING_CI_IMAGE" || true
+    - docker pull "${CI_REGISTRY_IMAGE}:ci-master" || true
+    - docker build --pull --cache-from "${CI_REGISTRY_IMAGE}:ci-master" --cache-from "$DEBIAN_TESTING_CI_IMAGE" -f ${CI_PROJECT_DIR}/docker/Dockerfile.debian.testing -t "$DEBIAN_TESTING_CI_IMAGE" .
+    - docker push "$DEBIAN_TESTING_CI_IMAGE"
+    
+Test with p11 and coverage:
+  # Build and test aktualizr with p11 and generate coverage reports
+  variables:
+    TEST_BUILD_DIR: 'build-coverage'
+    TEST_CMAKE_BUILD_TYPE: 'Valgrind'
+    TEST_WITH_COVERAGE: '1'
+    TEST_WITH_P11: '1'
+    TEST_WITH_FAULT_INJECTION: '1'
+  image: "$UBUNTU_BIONIC_CI_IMAGE"
+  stage: Build and Test
+  script:
+    - ${CI_PROJECT_DIR}/scripts/test.sh
+
+Test without p11:
+  # Build and test aktualizr without p11
+  variables:
+    TEST_BUILD_DIR: 'build-nop11'
+    TEST_CMAKE_BUILD_TYPE: 'Valgrind'
+    TEST_TESTSUITE_ONLY: 'crypto'
+  image: "$UBUNTU_BIONIC_CI_IMAGE"
+  stage: Build and Test
+  script:
+    - ${CI_PROJECT_DIR}/scripts/test.sh
+    
+Debian build and test:
+  # Build and test aktualizr debian package
+  variables:
+    TEST_BUILD_DIR: 'build-debian-testing'
+    TEST_CC: 'clang'
+    # should run with valgrind but some leaks are still unfixed
+    # TEST_CMAKE_BUILD_TYPE = 'Valgrind'
+    TEST_CMAKE_BUILD_TYPE: 'Debug'
+    TEST_TESTSUITE_ONLY: 'crypto'
+    TEST_WITH_STATICTESTS: '1'
+    TEST_WITH_OPCUA: '1'
+    TEST_WITH_LOAD_TESTS: '1'
+  image: "$DEBIAN_TESTING_CI_IMAGE"
+  stage: Build and Test
+  script:
+    - ${CI_PROJECT_DIR}/scripts/test.sh
+    
+Bionic Package:
+  # Build and test aktualizr bionic package
+  variables:
+    TEST_BUILD_DIR: 'build-bionic'
+    TEST_INSTALL_RELEASE_NAME: '-ubuntu_18.04'
+    TEST_INSTALL_DESTDIR: "$CI_PROJECT_DIR/build-bionic/pkg"
+    DOCKERFILE: '${CI_PROJECT_DIR}/docker/Dockerfile.ubuntu.bionic'
+    INSTALL_DOCKERFILE: '${CI_PROJECT_DIR}/docker/Dockerfile-test-install.ubuntu.bionic'
+
+  image: docker:latest
+  services:
+    - docker:dind
+  stage: Build and Test
+  artifacts:
+    paths:
+    - build-bionic/pkg/*.deb
+  script:
+    - IMG_TAG=deb-$(cat /proc/sys/kernel/random/uuid)
+    - mkdir -p ${TEST_INSTALL_DESTDIR}
+    - docker build -t ${IMG_TAG} -f ${DOCKERFILE} .
+    - PWD=`pwd`
+    - docker run -eTEST_BUILD_DIR=${TEST_BUILD_DIR} -eTEST_INSTALL_RELEASE_NAME=${TEST_INSTALL_RELEASE_NAME} -u $(id -u):$(id -g) -v $PWD:$PWD -v ${TEST_INSTALL_DESTDIR}:/persistent -w $PWD --rm ${IMG_TAG} $PWD/scripts/build_ubuntu.sh
+    - ls -lrt
+    - sh scripts/test_garage_deploy_deb.sh ${TEST_INSTALL_DESTDIR} ${INSTALL_DOCKERFILE}
+    
+Xenial Package:
+  # Build and test aktualizr xenial package
+  variables:
+    TEST_BUILD_DIR: 'build-xenial'
+    TEST_INSTALL_RELEASE_NAME: '-ubuntu_16.04'
+    TEST_INSTALL_DESTDIR: "$CI_PROJECT_DIR/build-xenial/pkg"
+    DOCKERFILE: '${CI_PROJECT_DIR}/docker/Dockerfile.ubuntu.xenial'
+    INSTALL_DOCKERFILE: '${CI_PROJECT_DIR}/docker/Dockerfile-test-install.ubuntu.xenial'
+
+  image: docker:latest
+  services:
+    - docker:dind
+  stage: Build and Test
+  artifacts:
+    paths: 
+    - build-xenial/pkg/*.deb
+  script:
+    - IMG_TAG=deb-$(cat /proc/sys/kernel/random/uuid)
+    - mkdir -p ${TEST_INSTALL_DESTDIR}
+    - docker build -t ${IMG_TAG} -f ${DOCKERFILE} .
+    - PWD=`pwd`
+    - docker run -eTEST_BUILD_DIR=${TEST_BUILD_DIR} -eTEST_INSTALL_RELEASE_NAME=${TEST_INSTALL_RELEASE_NAME} -u $(id -u):$(id -g) -v $PWD:$PWD -v ${TEST_INSTALL_DESTDIR}:/persistent -w $PWD --rm ${IMG_TAG} $PWD/scripts/build_ubuntu.sh
+    - ls -lrt
+    - sh scripts/test_garage_deploy_deb.sh ${TEST_INSTALL_DESTDIR} ${INSTALL_DOCKERFILE}
+    - sh scripts/test_aktualizr_deb_ubuntu.sh ${TEST_INSTALL_DESTDIR} ${INSTALL_DOCKERFILE}
