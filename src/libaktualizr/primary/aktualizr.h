@@ -39,10 +39,14 @@ class ApiQueue {
     enqueue(std::function<void()>());
   }
 
-  void pause(bool do_pause) {
+  // returns true iff pause→resume or resume→pause
+  bool pause(bool do_pause) {
     std::lock_guard<std::mutex> lock(m_);
+    bool has_effect = paused_ != do_pause;
     paused_ = do_pause;
     c_.notify_one();
+
+    return has_effect;
   }
 
  private:
