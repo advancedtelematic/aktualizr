@@ -83,7 +83,7 @@ bool SQLStorageBase::dbMigrateForward(int version_from, int version_to) {
       return false;
     }
     if (schema_rollback_migrations_.at(static_cast<uint32_t>(k)).empty()) {
-      LOG_DEBUG << "No backward migration from version " << k << " to " << (k - 1);
+      LOG_TRACE << "No backward migration from version " << k << " to " << (k - 1);
       continue;
     }
     auto statement = db.prepareStatement("INSERT OR REPLACE INTO rollback_migrations VALUES (?,?);", k,
