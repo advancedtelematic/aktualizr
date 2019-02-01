@@ -8,6 +8,7 @@
 #include <functional>
 #include <ostream>
 #include <set>
+#include <vector>
 #include "uptane/exceptions.h"
 
 #include "crypto/crypto.h"
@@ -54,17 +55,28 @@ using KeyId = std::string;
  */
 class Role {
  public:
+  static const std::string ROOT;
+  static const std::string SNAPSHOT;
+  static const std::string TARGETS;
+  static const std::string TIMESTAMP;
+
   static Role Root() { return Role{RoleEnum::kRoot}; }
   static Role Snapshot() { return Role{RoleEnum::kSnapshot}; }
   static Role Targets() { return Role{RoleEnum::kTargets}; }
   static Role Timestamp() { return Role{RoleEnum::kTimestamp}; }
-  static Role Delegated(const std::string &name) { return Role(name, true); }
+  static Role Delegation(const std::string &name) { return Role(name, true); }
   static Role InvalidRole() { return Role{RoleEnum::kInvalidRole}; }
+  // Delegation is not included because this is only used for a metadata table
+  // that doesn't include delegations.
   static std::vector<Role> Roles() { return {Root(), Snapshot(), Targets(), Timestamp()}; }
+  static bool IsReserved(const std::string &name) {
+    return (name == ROOT || name == TARGETS || name == SNAPSHOT || name == TIMESTAMP);
+  }
 
   explicit Role(const std::string &role_name, bool delegation = false);
   std::string ToString() const;
   int ToInt() const { return static_cast<int>(role_); }
+  bool IsDelegation() const { return role_ == RoleEnum::kDelegation; }
   bool operator==(const Role &other) const { return name_ == other.name_; }
   bool operator!=(const Role &other) const { return !(*this == other); }
   bool operator<(const Role &other) const { return name_ < other.name_; }
@@ -72,18 +84,19 @@ class Role {
   friend std::ostream &operator<<(std::ostream &os, const Role &role);
 
  private:
-  /** This must match the meta_types table in sqlstorage */
-  enum class RoleEnum { kRoot = 0, kSnapshot = 1, kTargets = 2, kTimestamp = 3, kDelegated = 4, kInvalidRole = -1 };
+  /** The four standard roles must match the meta_types table in sqlstorage.
+   *  Delegations are special and handled differently. */
+  enum class RoleEnum { kRoot = 0, kSnapshot = 1, kTargets = 2, kTimestamp = 3, kDelegation = 4, kInvalidRole = -1 };
 
   explicit Role(RoleEnum role) : role_(role) {
     if (role_ == RoleEnum::kRoot) {
-      name_ = "root";
+      name_ = ROOT;
     } else if (role_ == RoleEnum::kSnapshot) {
-      name_ = "snapshot";
+      name_ = SNAPSHOT;
     } else if (role_ == RoleEnum::kTargets) {
-      name_ = "targets";
+      name_ = TARGETS;
     } else if (role_ == RoleEnum::kTimestamp) {
-      name_ = "timestamp";
+      name_ = TIMESTAMP;
     } else {
       role_ = RoleEnum::kInvalidRole;
       name_ = "invalidrole";
@@ -104,7 +117,7 @@ class Version {
   Version() : version_(ANY_VERSION) {}
   explicit Version(int v) : version_(v) {}
   std::string RoleFileName(const Role &role) const;
-  int version() { return version_; }
+  int version() const { return version_; }
 
  private:
   static const int ANY_VERSION = -1;
@@ -291,12 +304,12 @@ class Target {
 std::ostream &operator<<(std::ostream &os, const Target &t);
 
 /* Metadata objects */
-class Root;
+class MetaWithKeys;
 class BaseMeta {
  public:
   BaseMeta() = default;
   explicit BaseMeta(const Json::Value &json);
-  BaseMeta(RepositoryType repo, const Json::Value &json, Root &root);
+  BaseMeta(RepositoryType repo, const Role &role, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &signer);
   int version() const { return version_; }
   TimeStamp expiry() const { return expiry_; }
   bool isExpired(const TimeStamp &now) const { return expiry_.IsExpiredAt(now); }
@@ -313,21 +326,28 @@ class BaseMeta {
   void init(const Json::Value &json);
 };
 
-// Implemented in uptane/root.cc
-class Root : public BaseMeta {
+class MetaWithKeys : public BaseMeta {
  public:
   enum class Policy { kRejectAll, kAcceptAll, kCheck };
   /**
-   * An empty Root, that either accepts or rejects everything
+   * An empty metadata object that could contain keys.
    */
-  explicit Root(Policy policy = Policy::kRejectAll) : policy_(policy) { version_ = 0; }
+  MetaWithKeys() { version_ = 0; }
   /**
-   * A 'real' root that implements TUF signature validation
-   * @param repo - Repository type (only used to improve the error messages)
+   * A 'real' metadata object that can contain keys (root or targets with
+   * delegations) and that implements TUF signature validation.
    * @param json - The contents of the 'signed' portion
    */
-  Root(RepositoryType repo, const Json::Value &json);
-  Root(RepositoryType repo, const Json::Value &json, Root &root);
+  MetaWithKeys(const Json::Value &json);
+  MetaWithKeys(RepositoryType repo, const Role &role, const Json::Value &json,
+               const std::shared_ptr<MetaWithKeys> &signer);
+
+  virtual ~MetaWithKeys() = default;
+
+  void ParseKeys(RepositoryType repo, const Json::Value &keys);
+  // role is the name of a role described in this object's metadata.
+  // meta_role is the name of this object's role.
+  void ParseRole(RepositoryType repo, const Json::ValueIterator &it, const Role &role, const std::string &meta_role);
 
   /**
    * Take a JSON blob that contains a signatures/signed component that is supposedly for a given role, and check that is
@@ -342,7 +362,54 @@ class Root : public BaseMeta {
    * @param signed_object
    * @return
    */
-  void UnpackSignedObject(RepositoryType repo, const Json::Value &signed_object);
+  virtual void UnpackSignedObject(RepositoryType repo, const Role &role, const Json::Value &signed_object);
+
+  bool operator==(const MetaWithKeys &rhs) const {
+    return version_ == rhs.version_ && expiry_ == rhs.expiry_ && keys_ == rhs.keys_ &&
+           keys_for_role_ == rhs.keys_for_role_ && thresholds_for_role_ == rhs.thresholds_for_role_;
+  }
+
+ protected:
+  static const int64_t kMinSignatures = 1;
+  static const int64_t kMaxSignatures = 1000;
+
+  std::map<KeyId, PublicKey> keys_;
+  std::set<std::pair<Role, KeyId> > keys_for_role_;
+  std::map<Role, int64_t> thresholds_for_role_;
+};
+
+// Implemented in uptane/root.cc
+class Root : public MetaWithKeys {
+ public:
+  /**
+   * An empty Root, that either accepts or rejects everything
+   */
+  explicit Root(Policy policy = Policy::kRejectAll) : policy_(policy) { version_ = 0; }
+  /**
+   * A 'real' root that implements TUF signature validation
+   * @param repo - Repository type (only used to improve the error messages)
+   * @param json - The contents of the 'signed' portion
+   */
+  Root(RepositoryType repo, const Json::Value &json);
+  Root(RepositoryType repo, const Json::Value &json, Root &root);
+
+  ~Root() override = default;
+
+  /**
+   * Take a JSON blob that contains a signatures/signed component that is supposedly for a given role, and check that is
+   * suitably signed.
+   * If it is, it returns the contents of the 'signed' part.
+   *
+   * It performs the following checks:
+   * * "_type" matches the given role
+   * * "expires" is in the past (vs 'now')
+   * * The blob has valid signatures from enough keys to cross the threshold for this role
+   * @param repo - Repository type (only used to improve the error messages)
+   * @param signed_object
+   * @return
+   */
+  void UnpackSignedObject(RepositoryType repo, const Role &role, const Json::Value &signed_object) override;
+
   bool operator==(const Root &rhs) const {
     return version_ == rhs.version_ && expiry_ == rhs.expiry_ && keys_ == rhs.keys_ &&
            keys_for_role_ == rhs.keys_for_role_ && thresholds_for_role_ == rhs.thresholds_for_role_ &&
@@ -350,37 +417,38 @@ class Root : public BaseMeta {
   }
 
  private:
-  static const int64_t kMinSignatures = 1;
-  static const int64_t kMaxSignatures = 1000;
-
   Policy policy_;
-  std::map<KeyId, PublicKey> keys_;
-  std::set<std::pair<Role, KeyId> > keys_for_role_;
-  std::map<Role, int64_t> thresholds_for_role_;
 };
 
-class Targets : public BaseMeta {
+// Also used for delegated targets.
+class Targets : public MetaWithKeys {
  public:
   explicit Targets(const Json::Value &json);
-  Targets(RepositoryType repo, const Json::Value &json, Root &root);
+  Targets(RepositoryType repo, const Role &role, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &signer);
   Targets() = default;
+  ~Targets() override = default;
 
-  std::vector<Uptane::Target> targets;
   bool operator==(const Targets &rhs) const {
     return version_ == rhs.version() && expiry_ == rhs.expiry() && targets == rhs.targets;
   }
   const std::string &correlation_id() const { return correlation_id_; }
 
+  std::vector<Uptane::Target> targets;
+  std::set<std::string> delegated_role_names_;
+  std::map<Role, std::vector<std::string> > paths_for_role_;
+  std::map<Role, bool> terminating_role_;
+
  private:
   void init(const Json::Value &json);
 
+  std::string name_;
   std::string correlation_id_;  // custom non-tuf
 };
 
 class TimestampMeta : public BaseMeta {
  public:
   explicit TimestampMeta(const Json::Value &json);
-  TimestampMeta(RepositoryType repo, const Json::Value &json, Root &root);
+  TimestampMeta(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &signer);
   TimestampMeta() = default;
   std::vector<Hash> snapshot_hashes() const { return snapshot_hashes_; };
   int64_t snapshot_size() const { return snapshot_size_; };
@@ -397,7 +465,7 @@ class TimestampMeta : public BaseMeta {
 class Snapshot : public BaseMeta {
  public:
   explicit Snapshot(const Json::Value &json);
-  Snapshot(RepositoryType repo, const Json::Value &json, Root &root);
+  Snapshot(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &signer);
   Snapshot() = default;
   std::vector<Hash> targets_hashes() const { return targets_hashes_; };
   int64_t targets_size() const { return targets_size_; };

@@ -19,19 +19,6 @@
 
 boost::filesystem::path uptane_repos_dir;
 
-Config makeTestConfig(const TemporaryDirectory& temp_dir, const std::string& url) {
-  Config conf("tests/config/basic.toml");
-  conf.uptane.director_server = url + "/director";
-  conf.uptane.repo_server = url + "/repo";
-  conf.provision.server = url;
-  conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
-  conf.provision.primary_ecu_hardware_id = "primary_hw";
-  conf.storage.path = temp_dir.Path();
-  conf.tls.server = url;
-  UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "secondary_ecu_serial", "secondary_hw");
-  return conf;
-}
-
 void verifyNothingInstalled(const Json::Value& manifest) {
   // Verify nothing has installed for the primary.
   EXPECT_EQ(
@@ -96,7 +83,7 @@ TEST(Aktualizr, FullNoUpdates) {
   future_FullNoUpdates = promise_FullNoUpdates.get_future();
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates");
-  Config conf = makeTestConfig(temp_dir, http->tls_server);
+  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
   Aktualizr aktualizr(conf, storage, http);
@@ -122,7 +109,7 @@ TEST(Aktualizr, FullNoUpdates) {
 TEST(Aktualizr, AddSecondary) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates");
-  Config conf = makeTestConfig(temp_dir, http->tls_server);
+  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
   Aktualizr aktualizr(conf, storage, http);
@@ -296,7 +283,7 @@ TEST(Aktualizr, FullWithUpdates) {
   future_FullWithUpdates = promise_FullWithUpdates.get_future();
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFakeEventCounter>(temp_dir.Path());
-  Config conf = makeTestConfig(temp_dir, http->tls_server);
+  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
   Aktualizr aktualizr(conf, storage, http);
@@ -366,7 +353,7 @@ class HttpFakePutCounter : public HttpFake {
 TEST(Aktualizr, FullWithUpdatesNeedReboot) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFakePutCounter>(temp_dir.Path());
-  Config conf = makeTestConfig(temp_dir, http->tls_server);
+  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
   conf.pacman.fake_need_reboot = true;
   conf.bootloader.reboot_sentinel_dir = temp_dir.Path();
 
@@ -578,7 +565,7 @@ TEST(Aktualizr, CheckNoUpdates) {
   future_CheckNoUpdates = promise_CheckNoUpdates.get_future();
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates");
-  Config conf = makeTestConfig(temp_dir, http->tls_server);
+  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
   Aktualizr aktualizr(conf, storage, http);
@@ -672,7 +659,7 @@ TEST(Aktualizr, DownloadWithUpdates) {
   future_DownloadWithUpdates = promise_DownloadWithUpdates.get_future();
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
-  Config conf = makeTestConfig(temp_dir, http->tls_server);
+  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
   Aktualizr aktualizr(conf, storage, http);
@@ -804,7 +791,7 @@ TEST(Aktualizr, InstallWithUpdates) {
   future_InstallWithUpdates = promise_InstallWithUpdates.get_future();
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
-  Config conf = makeTestConfig(temp_dir, http->tls_server);
+  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
   Aktualizr aktualizr(conf, storage, http);
@@ -907,7 +894,7 @@ void CampaignCheck_events(const std::shared_ptr<event::BaseEvent>& event) {
 TEST(Aktualizr, CampaignCheckAndAccept) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFakeCampaign>(temp_dir.Path());
-  Config conf = makeTestConfig(temp_dir, http->tls_server);
+  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   {
     auto storage = INvStorage::newStorage(conf.storage);
@@ -954,7 +941,7 @@ TEST(Aktualizr, FullNoCorrelationId) {
   // scope `Aktualizr` object, so that the ReportQueue flushes its events before
   // we count them at the end
   {
-    Config conf = makeTestConfig(temp_dir, http->tls_server);
+    Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
     auto storage = INvStorage::newStorage(conf.storage);
     Aktualizr aktualizr(conf, storage, http);
@@ -1008,7 +995,7 @@ TEST(Aktualizr, APICheck) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
 
-  Config conf = makeTestConfig(temp_dir, http->tls_server);
+  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
 
@@ -1058,7 +1045,7 @@ TEST(Aktualizr, UpdateCheckCompleteError) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpPutManifestFail>(temp_dir.Path());
 
-  Config conf = makeTestConfig(temp_dir, "http://updatefail");
+  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, "http://updatefail");
 
   auto storage = INvStorage::newStorage(conf.storage);
   CountUpdateCheckEvents counter;
@@ -1075,7 +1062,7 @@ TEST(Aktualizr, UpdateCheckCompleteError) {
 TEST(Aktualizr, PauseResumeEvents) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates");
-  Config conf = makeTestConfig(temp_dir, http->tls_server);
+  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
   Aktualizr aktualizr(conf, storage, http);

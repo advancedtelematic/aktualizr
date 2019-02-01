@@ -552,23 +552,24 @@ bool SotaUptaneClient::updateImagesMeta() {
   // Update Images Targets Metadata
   {
     std::string images_targets;
+    Uptane::Role targets_role = Uptane::Role::Targets();
 
     int64_t targets_size = (images_repo.targetsSize() > 0) ? images_repo.targetsSize() : Uptane::kMaxImagesTargetsSize;
     if (!uptane_fetcher->fetchLatestRole(&images_targets, targets_size, Uptane::RepositoryType::Image(),
-                                         Uptane::Role::Targets())) {
+                                         targets_role)) {
       return false;
     }
     int remote_version = Uptane::extractVersionUntrusted(images_targets);
 
     int local_version;
     std::string images_targets_stored;
-    if (storage->loadNonRoot(&images_targets_stored, Uptane::RepositoryType::Image(), Uptane::Role::Targets())) {
+    if (storage->loadNonRoot(&images_targets_stored, Uptane::RepositoryType::Image(), targets_role)) {
       local_version = Uptane::extractVersionUntrusted(images_targets_stored);
     } else {
       local_version = -1;
     }
 
-    if (!images_repo.verifyTargets(images_targets)) {
+    if (!images_repo.verifyTargets(images_targets, targets_role)) {
       last_exception = images_repo.getLastException();
       return false;
     }
@@ -576,14 +577,51 @@ bool SotaUptaneClient::updateImagesMeta() {
     if (local_version > remote_version) {
       return false;
     } else if (local_version < remote_version) {
-      storage->storeNonRoot(images_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets());
+      storage->storeNonRoot(images_targets, Uptane::RepositoryType::Image(), targets_role);
     }
 
-    if (images_repo.targetsExpired()) {
+    if (images_repo.targetsExpired("targets")) {
       last_exception = Uptane::ExpiredMetadata("repo", "targets");
       return false;
     }
   }
+
+  // Update Images delegated Targets Metadata
+  for (const std::string &delegation : images_repo.delegations("targets")) {
+    std::string images_delegated;
+    Uptane::Role delegated_role = Uptane::Role::Delegation(delegation);
+
+    if (!uptane_fetcher->fetchLatestRole(&images_delegated, Uptane::kMaxImagesTargetsSize,
+                                         Uptane::RepositoryType::Image(), delegated_role)) {
+      return false;
+    }
+    int remote_version = Uptane::extractVersionUntrusted(images_delegated);
+
+    int local_version;
+    std::string images_delegated_stored;
+    if (storage->loadDelegation(&images_delegated_stored, delegated_role)) {
+      local_version = Uptane::extractVersionUntrusted(images_delegated_stored);
+    } else {
+      local_version = -1;
+    }
+
+    if (!images_repo.verifyTargets(images_delegated, delegated_role)) {
+      last_exception = images_repo.getLastException();
+      return false;
+    }
+
+    if (local_version > remote_version) {
+      return false;
+    } else if (local_version < remote_version) {
+      storage->storeDelegation(images_delegated, delegated_role);
+    }
+
+    if (images_repo.targetsExpired(delegation)) {
+      last_exception = Uptane::ExpiredMetadata("repo", delegation);
+      return false;
+    }
+  }
+
   return true;
 }
 
@@ -689,20 +727,41 @@ bool SotaUptaneClient::checkImagesMetaOffline() {
   // Load Images Targets Metadata
   {
     std::string images_targets;
-    if (!storage->loadNonRoot(&images_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets())) {
+    Uptane::Role targets_role = Uptane::Role::Targets();
+    if (!storage->loadNonRoot(&images_targets, Uptane::RepositoryType::Image(), targets_role)) {
       return false;
     }
 
-    if (!images_repo.verifyTargets(images_targets)) {
+    if (!images_repo.verifyTargets(images_targets, targets_role)) {
       last_exception = images_repo.getLastException();
       return false;
     }
 
-    if (images_repo.targetsExpired()) {
+    if (images_repo.targetsExpired("targets")) {
       last_exception = Uptane::ExpiredMetadata("repo", "targets");
       return false;
     }
   }
+
+  // Update Images delegated Targets Metadata
+  for (const std::string &delegation : images_repo.delegations("targets")) {
+    std::string images_delegated;
+    Uptane::Role delegated_role = Uptane::Role::Delegation(delegation);
+    if (!storage->loadDelegation(&images_delegated, delegated_role)) {
+      return false;
+    }
+
+    if (!images_repo.verifyTargets(images_delegated, delegated_role)) {
+      last_exception = images_repo.getLastException();
+      return false;
+    }
+
+    if (images_repo.targetsExpired(delegation)) {
+      last_exception = Uptane::ExpiredMetadata("repo", delegation);
+      return false;
+    }
+  }
+
   return true;
 }
 
@@ -789,7 +848,6 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
   result::Download result;
   std::vector<Uptane::Target> downloaded_targets;
   for (auto it = targets.cbegin(); it != targets.cend(); ++it) {
-    // TODO: delegations
     auto images_target = images_repo.getTarget(*it);
     if (images_target == nullptr) {
       last_exception = Uptane::TargetHashMismatch(it->filename());

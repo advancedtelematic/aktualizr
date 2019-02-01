@@ -236,7 +236,7 @@ std::ostream &Uptane::operator<<(std::ostream &os, const Target &t) {
 
 void Uptane::BaseMeta::init(const Json::Value &json) {
   if (!json.isObject() || !json.isMember("signed")) {
-    LOG_ERROR << "BM FAILURE";
+    LOG_ERROR << "Failure during base metadata initialization from json";
     throw Uptane::InvalidMetadata("", "", "invalid metadata json");
   }
 
@@ -250,12 +250,13 @@ void Uptane::BaseMeta::init(const Json::Value &json) {
 }
 Uptane::BaseMeta::BaseMeta(const Json::Value &json) { init(json); }
 
-Uptane::BaseMeta::BaseMeta(RepositoryType repo, const Json::Value &json, Root &root) {
+Uptane::BaseMeta::BaseMeta(RepositoryType repo, const Role &role, const Json::Value &json,
+                           const std::shared_ptr<MetaWithKeys> &signer) {
   if (!json.isObject() || !json.isMember("signed")) {
     throw Uptane::InvalidMetadata("", "", "invalid metadata json");
   }
 
-  root.UnpackSignedObject(repo, json);
+  signer->UnpackSignedObject(repo, role, json);
 
   init(json);
 }
@@ -265,10 +266,32 @@ void Uptane::Targets::init(const Json::Value &json) {
     throw Uptane::InvalidMetadata("", "targets", "invalid targets.json");
   }
 
-  Json::Value target_list = json["signed"]["targets"];
+  const Json::Value target_list = json["signed"]["targets"];
   for (Json::ValueIterator t_it = target_list.begin(); t_it != target_list.end(); t_it++) {
     Target t(t_it.key().asString(), *t_it);
     targets.push_back(t);
+  }
+
+  if (json["signed"]["delegations"].isObject()) {
+    const Json::Value key_list = json["signed"]["delegations"]["keys"];
+    ParseKeys(Uptane::RepositoryType::Image(), key_list);
+
+    const Json::Value role_list = json["signed"]["delegations"]["roles"];
+    for (Json::ValueIterator it = role_list.begin(); it != role_list.end(); it++) {
+      const std::string role_name = (*it)["name"].asString();
+      const Role role = Role::Delegation(role_name);
+      delegated_role_names_.insert(role_name);
+      ParseRole(Uptane::RepositoryType::Image(), it, role, name_);
+
+      const Json::Value paths_list = (*it)["paths"];
+      std::vector<std::string> paths;
+      for (Json::ValueIterator p_it = paths_list.begin(); p_it != paths_list.end(); p_it++) {
+        paths.emplace_back((*p_it).asString());
+      }
+      paths_for_role_[role] = paths;
+
+      terminating_role_[role] = (*it)["terminating"].asBool();
+    }
   }
 
   if (json["signed"]["custom"].isObject()) {
@@ -278,9 +301,11 @@ void Uptane::Targets::init(const Json::Value &json) {
   }
 }
 
-Uptane::Targets::Targets(const Json::Value &json) : BaseMeta(json) { init(json); }
+Uptane::Targets::Targets(const Json::Value &json) : MetaWithKeys(json) { init(json); }
 
-Uptane::Targets::Targets(RepositoryType repo, const Json::Value &json, Root &root) : BaseMeta(repo, json, root) {
+Uptane::Targets::Targets(RepositoryType repo, const Role &role, const Json::Value &json,
+                         const std::shared_ptr<MetaWithKeys> &signer)
+    : MetaWithKeys(repo, role, json, signer), name_(role.ToString()) {
   init(json);
 }
 
@@ -303,8 +328,9 @@ void Uptane::TimestampMeta::init(const Json::Value &json) {
 
 Uptane::TimestampMeta::TimestampMeta(const Json::Value &json) : BaseMeta(json) { init(json); }
 
-Uptane::TimestampMeta::TimestampMeta(RepositoryType repo, const Json::Value &json, Root &root)
-    : BaseMeta(repo, json, root) {
+Uptane::TimestampMeta::TimestampMeta(RepositoryType repo, const Json::Value &json,
+                                     const std::shared_ptr<MetaWithKeys> &signer)
+    : BaseMeta(repo, Role::Timestamp(), json, signer) {
   init(json);
 }
 
@@ -334,7 +360,8 @@ void Uptane::Snapshot::init(const Json::Value &json) {
 
 Uptane::Snapshot::Snapshot(const Json::Value &json) : BaseMeta(json) { init(json); }
 
-Uptane::Snapshot::Snapshot(RepositoryType repo, const Json::Value &json, Root &root) : BaseMeta(repo, json, root) {
+Uptane::Snapshot::Snapshot(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &signer)
+    : BaseMeta(repo, Role::Snapshot(), json, signer) {
   init(json);
 }
 
@@ -345,7 +372,8 @@ bool MetaPack::isConsistent() const {
       Uptane::Root original_root(director_root);
       Uptane::Root new_root(RepositoryType::Director(), director_root.original(), new_root);
       if (director_targets.original() != Json::nullValue) {
-        Uptane::Targets(RepositoryType::Director(), director_targets.original(), original_root);
+        Uptane::Targets(RepositoryType::Director(), Role::Targets(), director_targets.original(),
+                        std::make_shared<MetaWithKeys>(original_root));
       }
     }
   } catch (const std::logic_error &exc) {

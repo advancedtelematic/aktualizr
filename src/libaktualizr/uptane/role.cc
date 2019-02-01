@@ -5,21 +5,29 @@
 using Uptane::Role;
 using Uptane::Version;
 
+const std::string Role::ROOT = "root";
+const std::string Role::SNAPSHOT = "snapshot";
+const std::string Role::TARGETS = "targets";
+const std::string Role::TIMESTAMP = "timestamp";
+
 Role::Role(const std::string &role_name, const bool delegation) {
   std::string role_name_lower;
   std::transform(role_name.begin(), role_name.end(), std::back_inserter(role_name_lower), ::tolower);
   name_ = role_name_lower;
-  if (role_name_lower == "root") {
-    role_ = RoleEnum::kRoot;
-  } else if (role_name_lower == "snapshot") {
-    role_ = RoleEnum::kSnapshot;
-  } else if (role_name_lower == "targets") {
-    role_ = RoleEnum::kTargets;
-  } else if (role_name_lower == "timestamp") {
-    role_ = RoleEnum::kTimestamp;
-  } else if (delegation) {
-    role_ = RoleEnum::kDelegated;
+  if (delegation) {
+    if (IsReserved(name_)) {
+      throw Uptane::Exception("", "Delegated role name " + role_name + " is reserved.");
+    }
+    role_ = RoleEnum::kDelegation;
     name_ = role_name;
+  } else if (role_name_lower == ROOT) {
+    role_ = RoleEnum::kRoot;
+  } else if (role_name_lower == SNAPSHOT) {
+    role_ = RoleEnum::kSnapshot;
+  } else if (role_name_lower == TARGETS) {
+    role_ = RoleEnum::kTargets;
+  } else if (role_name_lower == TIMESTAMP) {
+    role_ = RoleEnum::kTimestamp;
   } else {
     role_ = RoleEnum::kInvalidRole;
     name_ = "invalidrole";

@@ -1,7 +1,9 @@
-set(SOURCES fetcher.cc
+set(SOURCES
+    fetcher.cc
     ipsecondarydiscovery.cc
     ipuptanesecondary.cc
     managedsecondary.cc
+    metawithkeys.cc
     partialverificationsecondary.cc
     role.cc
     root.cc
@@ -12,7 +14,8 @@ set(SOURCES fetcher.cc
     imagesrepository.cc
     virtualsecondary.cc)
 
-set(HEADERS exceptions.h
+set(HEADERS
+    exceptions.h
     fetcher.h
     ipsecondarydiscovery.h
     ipuptanesecondary.h
@@ -59,6 +62,11 @@ endif(BUILD_OSTREE AND SOTA_PACKED_CREDENTIALS)
 
 add_aktualizr_test(NAME uptane SOURCES uptane_test.cc PROJECT_WORKING_DIRECTORY)
 set_tests_properties(test_uptane PROPERTIES LABELS "crypto")
+
+add_aktualizr_test(NAME uptane_delegation SOURCES uptane_delegation_test.cc PROJECT_WORKING_DIRECTORY
+                   ARGS ${PROJECT_BINARY_DIR}/uptane_repos)
+add_dependencies(t_uptane_delegation uptane_repo_delegation_basic)
+set_tests_properties(test_uptane_delegation PROPERTIES LABELS "crypto")
 
 add_aktualizr_test(NAME uptane_implicit SOURCES uptane_implicit_test.cc PROJECT_WORKING_DIRECTORY)
 set_tests_properties(test_uptane_implicit PROPERTIES LABELS "crypto")

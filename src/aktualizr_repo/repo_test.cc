@@ -221,8 +221,8 @@ TEST(aktualizr_repo, sign) {
   auto json = Utils::parseJSON(output);
   Uptane::Root root(Uptane::RepositoryType::Director(),
                     Utils::parseJSONFile(temp_dir.Path() / "repo/director/root.json"));
-  root.UnpackSignedObject(Uptane::RepositoryType::Director(), json);
-  EXPECT_NO_THROW(root.UnpackSignedObject(Uptane::RepositoryType::Director(), json));
+  root.UnpackSignedObject(Uptane::RepositoryType::Director(), Uptane::Role::Snapshot(), json);
+  EXPECT_NO_THROW(root.UnpackSignedObject(Uptane::RepositoryType::Director(), Uptane::Role::Snapshot(), json));
   check_repo(temp_dir);
 }
 
