@@ -3,6 +3,7 @@
 
 #include <map>
 #include <vector>
+#include <functional>
 
 #include "uptanerepository.h"
 
@@ -18,6 +19,7 @@ class ImagesRepository : public RepositoryCommon {
   bool targetsExpired(const std::string& role_name) { return targets[role_name].isExpired(TimeStamp::Now()); }
   int64_t targetsSize() { return snapshot.targets_size(); }
   std::set<std::string> delegations(const std::string& role_name) { return targets[role_name].delegated_role_names_; }
+  void iterateTargets(std::function<bool(const Uptane::Target& t)> callback);
   std::unique_ptr<Uptane::Target> getTarget(const Uptane::Target& director_target);
 
   bool verifyTimestamp(const std::string& timestamp_raw);
@@ -30,6 +32,7 @@ class ImagesRepository : public RepositoryCommon {
   Exception getLastException() const { return last_exception; }
 
  private:
+  FRIEND_TEST(ImagesRepository, Iterator);
   FRIEND_TEST(ImagesRepository, DelegateTargets);
   // Map from role name -> metadata ("targets" for top-level):
   std::map<std::string, Uptane::Targets> targets;
