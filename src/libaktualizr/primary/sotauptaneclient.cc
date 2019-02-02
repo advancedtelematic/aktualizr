@@ -1375,3 +1375,10 @@ std::string SotaUptaneClient::secondaryTreehubCredentials() const {
     return "";
   }
 }
+
+void SotaUptaneClient::iterateTargets(std::function<bool(const Uptane::Target& t)> callback) {
+  if (!updateImagesMeta()) {
+    LOG_ERROR << "Unable to get latest repo data";
+  }
+  images_repo.iterateTargets(callback);
+}
