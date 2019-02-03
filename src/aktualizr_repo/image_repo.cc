@@ -73,6 +73,43 @@ void ImageRepo::addDelegation(const Uptane::Role &name, const std::string &path,
   updateRepo();
 }
 
+void ImageRepo::revokeDelegtion(const Uptane::Role &name) {
+  if (keys_.count(name) == 0) {
+    throw std::runtime_error("Delegation does not exist.");
+  }
+  if (Uptane::Role::IsReserved(name.ToString())) {
+    throw std::runtime_error("Delegation name " + name.ToString() + " is reserved.");
+  }
+
+  boost::filesystem::path keys_dir = path_ / ("keys/image/" + name.ToString());
+  boost::filesystem::remove_all(keys_dir);
+
+  boost::filesystem::path repo_dir(path_ / "repo/image");
+  boost::filesystem::remove(repo_dir / (name.ToString() + ".json"));
+  Json::Value targets = Utils::parseJSONFile(repo_dir / "targets.json")["signed"];
+  auto keypair = keys_[name];
+  targets["delegations"]["keys"].removeMember(keypair.public_key.KeyId());
+  Json::Value new_roles(Json::arrayValue);
+  for (const auto &role : targets["delegations"]["roles"]) {
+    if (role["name"].asString() != name.ToString()) {
+      new_roles.append(role);
+    }
+  }
+  targets["delegations"]["roles"] = new_roles;
+  Utils::writeFile(repo_dir / "targets.json", Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Targets(), targets)));
+  updateRepo();
+}
+
+std::vector<std::string> ImageRepo::getDelegationTargets(const Uptane::Role &name) {
+  std::vector<std::string> result;
+  boost::filesystem::path repo_dir(path_ / "repo/image");
+  auto targets = Utils::parseJSONFile(repo_dir / (name.ToString() + ".json"))["signed"]["targets"];
+  for (Json::ValueIterator it = targets.begin(); it != targets.end(); ++it) {
+    result.push_back(it.key().asString());
+  }
+  return std::move(result);
+}
+
 void ImageRepo::addCustomImage(const std::string &name, const Uptane::Hash &hash, const uint64_t length,
                                const Delegation &delegation) {
   Json::Value target;
