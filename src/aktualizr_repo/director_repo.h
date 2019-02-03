@@ -9,6 +9,7 @@ class DirectorRepo : public Repo {
       : Repo(Uptane::RepositoryType::Director(), std::move(path), expires, std::move(correlation_id)) {}
   void addTarget(const std::string &target_name, const Json::Value &target, const std::string &hardware_id,
                  const std::string &ecu_serial);
+  void revokeTargets(const std::vector<std::string> &targets);
   void signTargets();
   void emptyTargets();
   void oldTargets();
