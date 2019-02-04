@@ -73,7 +73,7 @@ void ImageRepo::addDelegation(const Uptane::Role &name, const std::string &path,
   updateRepo();
 }
 
-void ImageRepo::revokeDelegtion(const Uptane::Role &name) {
+void ImageRepo::revokeDelegation(const Uptane::Role &name) {
   if (keys_.count(name) == 0) {
     throw std::runtime_error("Delegation does not exist.");
   }

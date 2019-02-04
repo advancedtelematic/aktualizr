@@ -127,7 +127,7 @@ int main(int argc, char **argv) {
           std::cerr << "revokedelegation command requires --dname\n";
           exit(EXIT_FAILURE);
         }
-        repo.revokeDelegtion(Uptane::Role(vm["dname"].as<std::string>(), true));
+        repo.revokeDelegation(Uptane::Role(vm["dname"].as<std::string>(), true));
       } else if (command == "signtargets") {
         repo.signTargets();
       } else if (command == "emptytargets") {

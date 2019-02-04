@@ -13,7 +13,7 @@ class UptaneRepo {
                 const Delegation &delegation);
   void addDelegation(const Uptane::Role &name, const std::string &path, KeyType key_type = KeyType::kRSA2048,
                      bool terminating = true);
-  void revokeDelegtion(const Uptane::Role &name);
+  void revokeDelegation(const Uptane::Role &name);
   void addCustomImage(const std::string &name, const Uptane::Hash &hash, uint64_t length,
                       const Delegation &delegation = {});
   void signTargets();
