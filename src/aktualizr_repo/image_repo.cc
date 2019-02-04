@@ -107,7 +107,7 @@ std::vector<std::string> ImageRepo::getDelegationTargets(const Uptane::Role &nam
   for (Json::ValueIterator it = targets.begin(); it != targets.end(); ++it) {
     result.push_back(it.key().asString());
   }
-  return std::move(result);
+  return result;
 }
 
 void ImageRepo::addCustomImage(const std::string &name, const Uptane::Hash &hash, const uint64_t length,
