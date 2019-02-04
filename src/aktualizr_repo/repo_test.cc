@@ -196,6 +196,99 @@ TEST(aktualizr_repo, delegation) {
   check_repo(temp_dir);
 }
 
+TEST(aktualizr_repo, delegation_revoke) {
+  TemporaryDirectory temp_dir;
+  std::ostringstream keytype_stream;
+  keytype_stream << key_type;
+  std::string cmd = generate_repo_exec + " generate " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
+  std::string output;
+  int retval = Utils::shell(cmd, &output);
+  if (retval) {
+    FAIL() << "'" << cmd << "' exited with error code\n";
+  }
+  cmd = generate_repo_exec + " adddelegation " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
+  cmd += " --dname test_delegate --dpattern 'tests/test_data/*.txt' ";
+  retval = Utils::shell(cmd, &output);
+  if (retval) {
+    FAIL() << "'" << cmd << "' exited with error code\n";
+  }
+
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/image/test_delegate.json"));
+  auto targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
+  EXPECT_EQ(targets["signed"]["delegations"]["roles"][0]["name"].asString(), "test_delegate");
+  EXPECT_EQ(targets["signed"]["delegations"]["roles"][0]["paths"][0].asString(), "tests/test_data/*.txt");
+
+  cmd = generate_repo_exec + " image " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
+  cmd += " --dname test_delegate --filename tests/test_data/firmware.txt";
+  retval = Utils::shell(cmd, &output);
+  if (retval) {
+    FAIL() << "'" << output << "' exited with error code\n";
+  }
+  {
+    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/test_delegate.json");
+    Uptane::Targets delegate_targets(test_delegate);
+    EXPECT_EQ(delegate_targets.targets.size(), 1);
+    EXPECT_EQ(delegate_targets.targets[0].filename(), "tests/test_data/firmware.txt");
+    EXPECT_EQ(delegate_targets.targets[0].length(), 17);
+    EXPECT_EQ(delegate_targets.targets[0].sha256Hash(),
+              "d8e9caba8c1697fcbade1057f9c2488044192ff76bb64d4aba2c20e53dc33033");
+  }
+  cmd = generate_repo_exec + " image " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
+  cmd +=
+      " --dname test_delegate --targetname tests/test_data/firmware2.txt --targetsha256 "
+      "d8e9caba8c1697fcbade1057f9c2488044192ff76bb64d4aba2c20e53dc33033 --targetlength 17";
+  retval = Utils::shell(cmd, &output);
+  if (retval) {
+    FAIL() << "'" << cmd << "' exited with error code\n";
+  }
+
+  cmd = generate_repo_exec + " addtarget " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
+  cmd += " --hwid primary_hw --serial CA:FE:A6:D2:84:9D --targetname tests/test_data/firmware.txt";
+  retval = Utils::shell(cmd, &output);
+  if (retval) {
+    FAIL() << "'" << cmd << "' exited with error code\n";
+  }
+
+  cmd = generate_repo_exec + " signtargets " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
+  retval = Utils::shell(cmd, &output);
+  if (retval) {
+    FAIL() << "'" << cmd << "' exited with error code\n";
+  }
+  {
+    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/test_delegate.json");
+    Uptane::Targets delegate_targets(test_delegate);
+    EXPECT_EQ(delegate_targets.targets.size(), 2);
+    EXPECT_EQ(delegate_targets.targets[1].filename(), "tests/test_data/firmware2.txt");
+    EXPECT_EQ(delegate_targets.targets[1].length(), 17);
+    EXPECT_EQ(delegate_targets.targets[1].sha256Hash(),
+              "d8e9caba8c1697fcbade1057f9c2488044192ff76bb64d4aba2c20e53dc33033");
+  }
+  {
+    auto signed_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/targets.json");
+    Uptane::Targets director_targets(signed_targets);
+    EXPECT_EQ(director_targets.targets.size(), 1);
+    EXPECT_EQ(director_targets.targets[0].filename(), "tests/test_data/firmware.txt");
+    EXPECT_EQ(director_targets.targets[0].length(), 17);
+    EXPECT_EQ(director_targets.targets[0].sha256Hash(),
+              "d8e9caba8c1697fcbade1057f9c2488044192ff76bb64d4aba2c20e53dc33033");
+  }
+  check_repo(temp_dir);
+
+  cmd = generate_repo_exec + " revokedelegation " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
+  cmd += " --dname test_delegate";
+  retval = Utils::shell(cmd, &output);
+  if (retval) {
+    FAIL() << "'" << cmd << "' exited with error code\n";
+  }
+  EXPECT_FALSE(boost::filesystem::exists(temp_dir.Path() / "repo/image/test_delegate.json"));
+  auto new_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
+  EXPECT_EQ(new_targets["signed"]["delegations"]["keys"].size(), 0);
+  EXPECT_EQ(new_targets["signed"]["delegations"]["roles"].size(), 0);
+  auto signed_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/targets.json");
+  Uptane::Targets director_targets(signed_targets);
+  EXPECT_EQ(director_targets.targets.size(), 0);
+}
+
 /*
  * Sign arbitrary metadata.
  */
