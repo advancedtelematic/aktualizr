@@ -4,7 +4,7 @@ stages:
 
 variables:
   # The docker images will be specific to the branch we are pushing to
-  UBUNTU_BIONIC_CI_IMAGE: ${CI_REGISTRY_IMAGE}:ci-${CI_COMMIT_REF_SLUG}-UBUNTU-BIONIC
+  UBUNTU_BIONIC_CI_IMAGE: ${CI_REGISTRY_IMAGE}:ci-${CI_COMMIT_REF_SLUG}-UBUNTU_BIONIC
   DEBIAN_TESTING_CI_IMAGE: ${CI_REGISTRY_IMAGE}:ci-${CI_COMMIT_REF_SLUG}-DEBIAN_TESTING
   GIT_SUBMODULE_STRATEGY: recursive
 
@@ -17,14 +17,14 @@ Setup Docker:
   before_script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
-    - docker pull "$UBUNTU_BIONIC_CI_IMAGE" || true
-    - docker pull "${CI_REGISTRY_IMAGE}:ci-master" || true
-    - docker build --pull --cache-from "${CI_REGISTRY_IMAGE}:ci-master" --cache-from "$UBUNTU_BIONIC_CI_IMAGE" -f ${CI_PROJECT_DIR}/docker/Dockerfile.ubuntu.bionic -t "$UBUNTU_BIONIC_CI_IMAGE" .
+    - BIONIC_CACHE_FROM=ci-master-UBUNTU_BIONIC
+    - '{ docker pull "$UBUNTU_BIONIC_CI_IMAGE" && BIONIC_CACHE_FROM=$UBUNTU_BIONIC_CI_IMAGE; } || docker pull "${CI_REGISTRY_IMAGE}:ci-master-UBUNTU_BIONIC" || true'
+    - docker build --pull --cache-from "${CI_REGISTRY_IMAGE}:ci-master" --cache-from "$BIONIC_CACHE_FROM" -f ${CI_PROJECT_DIR}/docker/Dockerfile.ubuntu.bionic -t "$UBUNTU_BIONIC_CI_IMAGE" .
     - docker push "$UBUNTU_BIONIC_CI_IMAGE"
 
-    - docker pull "$DEBIAN_TESTING_CI_IMAGE" || true
-    - docker pull "${CI_REGISTRY_IMAGE}:ci-master" || true
-    - docker build --pull --cache-from "${CI_REGISTRY_IMAGE}:ci-master" --cache-from "$DEBIAN_TESTING_CI_IMAGE" -f ${CI_PROJECT_DIR}/docker/Dockerfile.debian.testing -t "$DEBIAN_TESTING_CI_IMAGE" .
+    - DEB_CACHE_FROM=ci-master-DEBIAN_TESTING
+    - '{ docker pull "$DEBIAN_TESTING_CI_IMAGE" && DEB_CACHE_FROM=$DEBIAN_TESTING_CI_IMAGE; } || docker pull "${CI_REGISTRY_IMAGE}:ci-master-DEBIAN_TESTING" || true'
+    - docker build --pull --cache-from "${CI_REGISTRY_IMAGE}:ci-master" --cache-from "$DEB_CACHE_FROM" -f ${CI_PROJECT_DIR}/docker/Dockerfile.debian.testing -t "$DEBIAN_TESTING_CI_IMAGE" .
     - docker push "$DEBIAN_TESTING_CI_IMAGE"
 
 Test with p11 and coverage:
