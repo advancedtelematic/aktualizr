@@ -72,5 +72,5 @@ RUN make VERBOSE=1 -j4
 RUN make install
 
 RUN useradd testuser
-WORKDIR /aktualizr
-ADD . src
+
+WORKDIR /
