@@ -804,7 +804,7 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
 
       auto hwid_it = hw_ids.find(ecu_serial);
       if (hwid_it == hw_ids.end()) {
-        LOG_WARNING << "Unknown ECU ID in director targets metadata: " << ecu_serial.ToString();
+        LOG_ERROR << "Unknown ECU ID in director targets metadata: " << ecu_serial.ToString();
         last_exception = Uptane::BadEcuId(target.filename());
         return false;
       }
@@ -1307,6 +1307,8 @@ std::vector<result::Install::EcuReport> SotaUptaneClient::sendImagesToEcus(const
 
       auto f = secondaries.find(ecu_serial);
       if (f == secondaries.end()) {
+        LOG_ERROR << "Target " << *targets_it << " has unknown ECU ID";
+        last_exception = Uptane::BadEcuId(targets_it->filename());
         continue;
       }
       Uptane::SecondaryInterface &sec = *f->second;
