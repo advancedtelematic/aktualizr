@@ -71,5 +71,4 @@ RUN make install
 
 RUN useradd testuser
 
-WORKDIR /aktualizr
-ADD . src
+WORKDIR /

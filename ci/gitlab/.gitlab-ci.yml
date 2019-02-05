@@ -1,13 +1,13 @@
 stages:
   - Setup Docker
   - Build and Test
-  
+
 variables:
   # The docker images will be specific to the branch we are pushing to
-  UBUNTU_BIONIC_CI_IMAGE: ${CI_REGISTRY_IMAGE}:ci-${CI_COMMIT_REF_SLUG}-UBUNTU-BIONIC
+  UBUNTU_BIONIC_CI_IMAGE: ${CI_REGISTRY_IMAGE}:ci-${CI_COMMIT_REF_SLUG}-UBUNTU_BIONIC
   DEBIAN_TESTING_CI_IMAGE: ${CI_REGISTRY_IMAGE}:ci-${CI_COMMIT_REF_SLUG}-DEBIAN_TESTING
   GIT_SUBMODULE_STRATEGY: recursive
-  
+
 # Build the Docker image that will be used in subsequent CI/CD stages
 Setup Docker:
   image: docker:latest
@@ -17,16 +17,16 @@ Setup Docker:
   before_script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
-    - docker pull "$UBUNTU_BIONIC_CI_IMAGE" || true
-    - docker pull "${CI_REGISTRY_IMAGE}:ci-master" || true
-    - docker build --pull --cache-from "${CI_REGISTRY_IMAGE}:ci-master" --cache-from "$UBUNTU_BIONIC_CI_IMAGE" -f ${CI_PROJECT_DIR}/docker/Dockerfile.ubuntu.bionic -t "$UBUNTU_BIONIC_CI_IMAGE" .
+    - BIONIC_CACHE_FROM=ci-master-UBUNTU_BIONIC
+    - '{ docker pull "$UBUNTU_BIONIC_CI_IMAGE" && BIONIC_CACHE_FROM=$UBUNTU_BIONIC_CI_IMAGE; } || docker pull "${CI_REGISTRY_IMAGE}:ci-master-UBUNTU_BIONIC" || true'
+    - docker build --pull --cache-from "${CI_REGISTRY_IMAGE}:ci-master" --cache-from "$BIONIC_CACHE_FROM" -f ${CI_PROJECT_DIR}/docker/Dockerfile.ubuntu.bionic -t "$UBUNTU_BIONIC_CI_IMAGE" .
     - docker push "$UBUNTU_BIONIC_CI_IMAGE"
-    
-    - docker pull "$DEBIAN_TESTING_CI_IMAGE" || true
-    - docker pull "${CI_REGISTRY_IMAGE}:ci-master" || true
-    - docker build --pull --cache-from "${CI_REGISTRY_IMAGE}:ci-master" --cache-from "$DEBIAN_TESTING_CI_IMAGE" -f ${CI_PROJECT_DIR}/docker/Dockerfile.debian.testing -t "$DEBIAN_TESTING_CI_IMAGE" .
+
+    - DEB_CACHE_FROM=ci-master-DEBIAN_TESTING
+    - '{ docker pull "$DEBIAN_TESTING_CI_IMAGE" && DEB_CACHE_FROM=$DEBIAN_TESTING_CI_IMAGE; } || docker pull "${CI_REGISTRY_IMAGE}:ci-master-DEBIAN_TESTING" || true'
+    - docker build --pull --cache-from "${CI_REGISTRY_IMAGE}:ci-master" --cache-from "$DEB_CACHE_FROM" -f ${CI_PROJECT_DIR}/docker/Dockerfile.debian.testing -t "$DEBIAN_TESTING_CI_IMAGE" .
     - docker push "$DEBIAN_TESTING_CI_IMAGE"
-    
+
 Test with p11 and coverage:
   # Build and test aktualizr with p11 and generate coverage reports
   variables:
@@ -50,7 +50,7 @@ Test without p11:
   stage: Build and Test
   script:
     - ${CI_PROJECT_DIR}/scripts/test.sh
-    
+
 Debian build and test:
   # Build and test aktualizr debian package
   variables:
@@ -67,7 +67,7 @@ Debian build and test:
   stage: Build and Test
   script:
     - ${CI_PROJECT_DIR}/scripts/test.sh
-    
+
 Bionic Package:
   # Build and test aktualizr bionic package
   variables:
@@ -92,7 +92,7 @@ Bionic Package:
     - docker run -eTEST_BUILD_DIR=${TEST_BUILD_DIR} -eTEST_INSTALL_RELEASE_NAME=${TEST_INSTALL_RELEASE_NAME} -u $(id -u):$(id -g) -v $PWD:$PWD -v ${TEST_INSTALL_DESTDIR}:/persistent -w $PWD --rm ${IMG_TAG} $PWD/scripts/build_ubuntu.sh
     - ls -lrt
     - sh scripts/test_garage_deploy_deb.sh ${TEST_INSTALL_DESTDIR} ${INSTALL_DOCKERFILE}
-    
+
 Xenial Package:
   # Build and test aktualizr xenial package
   variables:
@@ -107,7 +107,7 @@ Xenial Package:
     - docker:dind
   stage: Build and Test
   artifacts:
-    paths: 
+    paths:
     - build-xenial/pkg/*.deb
   script:
     - IMG_TAG=deb-$(cat /proc/sys/kernel/random/uuid)
