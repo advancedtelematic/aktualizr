@@ -67,6 +67,8 @@ bool SQLStorageBase::dbMigrateForward(int version_from, int version_to) {
     version_to = current_schema_version_;
   }
 
+  LOG_INFO << "Migrating DB from version " << version_from << " to version " << version_to;
+
   SQLite3Guard db = dbConnection();
 
   if (!db.beginTransaction()) {
@@ -101,6 +103,8 @@ bool SQLStorageBase::dbMigrateBackward(int version_from, int version_to) {
   if (version_to <= 0) {
     version_to = current_schema_version_;
   }
+
+  LOG_INFO << "Migrating DB backward from version " << version_from << " to version " << version_to;
 
   SQLite3Guard db = dbConnection();
   for (int ver = version_from; ver > version_to; --ver) {
