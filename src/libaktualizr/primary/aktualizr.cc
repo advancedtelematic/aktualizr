@@ -142,9 +142,25 @@ std::future<result::Install> Aktualizr::Install(const std::vector<Uptane::Target
   return promise->get_future();
 }
 
-result::Pause Aktualizr::Pause() { return uptane_client_->pause(); }
+result::Pause Aktualizr::Pause() {
+  if (api_queue_.pause(true)) {
+    uptane_client_->pauseFetching();
 
-result::Pause Aktualizr::Resume() { return uptane_client_->resume(); }
+    return {result::PauseStatus::kSuccess};
+  }
+
+  return {result::PauseStatus::kAlreadyPaused};
+}
+
+result::Pause Aktualizr::Resume() {
+  if (api_queue_.pause(false)) {
+    uptane_client_->resumeFetching();
+
+    return {result::PauseStatus::kSuccess};
+  }
+
+  return {result::PauseStatus::kAlreadyRunning};
+}
 
 boost::signals2::connection Aktualizr::SetSignalHandler(std::function<void(shared_ptr<event::BaseEvent>)> &handler) {
   return sig_->connect(handler);

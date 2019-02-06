@@ -881,20 +881,18 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
   return result;
 }
 
-result::Pause SotaUptaneClient::pause() {
-  result::Pause res = uptane_fetcher->setPause(true);
+void SotaUptaneClient::pauseFetching() {
+  uptane_fetcher->setPause(true);
 
-  sendEvent<event::DownloadPaused>(res);
-
-  return res;
+  const std::string &correlation_id = director_repo.getCorrelationId();
+  report_queue->enqueue(std_::make_unique<DevicePausedReport>(correlation_id));
 }
 
-result::Pause SotaUptaneClient::resume() {
-  result::Pause res = uptane_fetcher->setPause(false);
+void SotaUptaneClient::resumeFetching() {
+  uptane_fetcher->setPause(false);
 
-  sendEvent<event::DownloadResumed>(res);
-
-  return res;
+  const std::string &correlation_id = director_repo.getCorrelationId();
+  report_queue->enqueue(std_::make_unique<DeviceResumedReport>(correlation_id));
 }
 
 std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target target) {

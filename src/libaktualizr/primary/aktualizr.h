@@ -23,7 +23,7 @@ class ApiQueue {
 
   std::function<void()> dequeue() {
     std::unique_lock<std::mutex> wait_lock(m_);
-    while (q_.empty()) {
+    while (q_.empty() || paused_) {
       c_.wait(wait_lock);
       if (shutdown_) {
         return std::function<void()>();
@@ -33,9 +33,20 @@ class ApiQueue {
     q_.pop();
     return val;
   }
+
   void shutDown() {
     shutdown_ = true;
     enqueue(std::function<void()>());
+  }
+
+  // returns true iff pause→resume or resume→pause
+  bool pause(bool do_pause) {
+    std::lock_guard<std::mutex> lock(m_);
+    bool has_effect = paused_ != do_pause;
+    paused_ = do_pause;
+    c_.notify_one();
+
+    return has_effect;
   }
 
  private:
@@ -43,6 +54,7 @@ class ApiQueue {
   mutable std::mutex m_;
   std::condition_variable c_;
   std::atomic_bool shutdown_{false};
+  std::atomic_bool paused_{false};
 };
 
 /**
@@ -138,13 +150,18 @@ class Aktualizr {
   std::future<result::Install> Install(const std::vector<Uptane::Target>& updates);
 
   /**
-   * Pause a download current in progress.
+   * Pause the library operations.
+   * In progress target downloads will be paused and API calls will be deferred.
+   *
    * @return Information about pause results.
    */
   result::Pause Pause();
 
   /**
-   * Resume a paused download.
+   * Resume the library operations.
+   * Target downloads will resume and API calls during pause state will execute
+   * in fifo order.
+   *
    * @return Information about resume results.
    */
   result::Pause Resume();
@@ -180,7 +197,7 @@ class Aktualizr {
   FRIEND_TEST(Aktualizr, FullNoCorrelationId);
   FRIEND_TEST(Aktualizr, APICheck);
   FRIEND_TEST(Aktualizr, UpdateCheckCompleteError);
-  FRIEND_TEST(Aktualizr, PauseResumeEvents);
+  FRIEND_TEST(Aktualizr, PauseResumeQueue);
   FRIEND_TEST(Aktualizr, AddSecondary);
   FRIEND_TEST(Delegation, Basic);
 

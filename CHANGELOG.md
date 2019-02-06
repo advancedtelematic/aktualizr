@@ -11,6 +11,10 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 - Basic first-order delegation support: [PR](https://github.com/advancedtelematic/aktualizr/pull/1074)
 - Backward migrations of the SQL storage is now supported. It should allow rollbacking updates up to versions containing the feature: [PR](https://github.com/advancedtelematic/aktualizr/pull/1072)
 
+### Changed
+
+- The Pause and Resume can now be called at any time and will also pause the internal event queue. API calls during the pause period will be queued up and resumed in order at the end.
+
 ## [2019.1] - 2019-01-10
 
 ### Changed

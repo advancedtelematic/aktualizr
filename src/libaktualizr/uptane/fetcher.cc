@@ -52,16 +52,16 @@ Fetcher::PauseRet Fetcher::setPause(bool pause) {
   std::lock_guard<std::mutex> guard(mutex_);
   if (pause_ == pause) {
     if (pause) {
-      LOG_INFO << "Download is already paused.";
+      LOG_DEBUG << "Fetcher: already paused";
       return PauseRet::kAlreadyPaused;
     } else {
-      LOG_INFO << "Download is not paused, can't resume.";
+      LOG_DEBUG << "Fetcher: nothing to resume";
       return PauseRet::kNotPaused;
     }
   }
 
   if (pause && downloading_ == 0u) {
-    LOG_INFO << "No download in progress, can't pause.";
+    LOG_DEBUG << "Fetcher: nothing to pause";
     return PauseRet::kNotDownloading;
   }
 

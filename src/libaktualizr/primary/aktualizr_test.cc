@@ -1058,27 +1058,67 @@ TEST(Aktualizr, UpdateCheckCompleteError) {
   EXPECT_EQ(counter.error_events(), 1);
 }
 
-/* Test that Aktualizr retransmits DownloadPaused and DownloadResumed events */
-TEST(Aktualizr, PauseResumeEvents) {
+/*
+ * Suspend API calls during pause.
+ * Catch up with calls queue after resume.
+ */
+
+class HttpFakePauseCounter : public HttpFake {
+ public:
+  HttpFakePauseCounter(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in, "noupdates") {}
+
+  HttpResponse handle_event(const std::string& url, const Json::Value& data) override {
+    (void)url;
+    for (const Json::Value& event : data) {
+      ++events_seen;
+      std::string event_type = event["eventType"]["id"].asString();
+
+      std::cout << "got event #" << events_seen << ": " << event_type << "\n";
+      if (events_seen == 1) {
+        EXPECT_EQ(event_type, "DevicePaused");
+        EXPECT_EQ(event["event"]["correlationId"], "id0");
+      } else if (events_seen == 2) {
+        EXPECT_EQ(event_type, "DeviceResumed");
+        EXPECT_EQ(event["event"]["correlationId"], "id0");
+      } else {
+        std::cout << "Unexpected event";
+        EXPECT_EQ(0, 1);
+      }
+    }
+    return HttpResponse("", 200, CURLE_OK, "");
+  }
+
+  unsigned int events_seen{0};
+};
+
+TEST(Aktualizr, PauseResumeQueue) {
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates");
+  auto http = std::make_shared<HttpFakePauseCounter>(temp_dir.Path());
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
   Aktualizr aktualizr(conf, storage, http);
+  aktualizr.Initialize();
 
+  std::mutex mutex;
   std::promise<void> end_promise{};
   size_t n_events = 0;
-  std::function<void(std::shared_ptr<event::BaseEvent>)> cb = [&end_promise,
-                                                               &n_events](std::shared_ptr<event::BaseEvent> event) {
+  std::atomic_bool is_paused{false};
+  std::function<void(std::shared_ptr<event::BaseEvent>)> cb = [&end_promise, &n_events, &mutex,
+                                                               &is_paused](std::shared_ptr<event::BaseEvent> event) {
     switch (n_events) {
       case 0:
-        EXPECT_EQ(event->variant, "DownloadPaused");
+        EXPECT_EQ(event->variant, "UpdateCheckComplete");
         break;
-      case 1:
-        EXPECT_EQ(event->variant, "DownloadResumed");
+      case 1: {
+        std::lock_guard<std::mutex> guard(mutex);
+
+        EXPECT_EQ(event->variant, "UpdateCheckComplete");
+        // the event shouldn't happen when the system is paused
+        EXPECT_FALSE(is_paused);
         end_promise.set_value();
         break;
+      }
       default:
         FAIL() << "Unexpected event";
     }
@@ -1086,12 +1126,33 @@ TEST(Aktualizr, PauseResumeEvents) {
   };
   boost::signals2::connection conn = aktualizr.SetSignalHandler(cb);
 
-  aktualizr.Pause();
-  aktualizr.Resume();
+  // trigger the first UpdateCheck
+  aktualizr.CheckUpdates().get();
+
+  {
+    std::lock_guard<std::mutex> guard(mutex);
+    EXPECT_EQ(aktualizr.Pause().status, result::PauseStatus::kSuccess);
+    is_paused = true;
+  }
+
+  EXPECT_EQ(aktualizr.Pause().status, result::PauseStatus::kAlreadyPaused);
+
+  aktualizr.CheckUpdates();
+
+  // Theoritically racy, could cause bad implem to succeeed sometimes
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+
+  {
+    std::lock_guard<std::mutex> guard(mutex);
+    is_paused = false;
+    EXPECT_EQ(aktualizr.Resume().status, result::PauseStatus::kSuccess);
+  }
+
+  EXPECT_EQ(aktualizr.Resume().status, result::PauseStatus::kAlreadyRunning);
 
   std::future_status status = end_promise.get_future().wait_for(std::chrono::seconds(20));
   if (status != std::future_status::ready) {
-    FAIL() << "Timed out waiting for pause/resume events";
+    FAIL() << "Timed out waiting for UpdateCheck event";
   }
 }
 

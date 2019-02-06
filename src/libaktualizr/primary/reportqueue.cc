@@ -79,6 +79,14 @@ CampaignAcceptedReport::CampaignAcceptedReport(const std::string& campaign_id) :
   custom["campaignId"] = campaign_id;
 }
 
+DevicePausedReport::DevicePausedReport(const std::string& correlation_id) : ReportEvent("DevicePaused", 0) {
+  setCorrelationId(correlation_id);
+}
+
+DeviceResumedReport::DeviceResumedReport(const std::string& correlation_id) : ReportEvent("DeviceResumed", 0) {
+  setCorrelationId(correlation_id);
+}
+
 EcuDownloadStartedReport::EcuDownloadStartedReport(const Uptane::EcuSerial& ecu, const std::string& correlation_id)
     : ReportEvent("EcuDownloadStarted", 0) {
   setEcu(ecu);

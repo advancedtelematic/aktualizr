@@ -83,6 +83,8 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
   return vm;
 }
 
+static std::vector<Uptane::Target> current_updates;
+
 void process_event(const std::shared_ptr<event::BaseEvent> &event) {
   if (event->variant == "DownloadProgressReport") {
     const auto download_progress = dynamic_cast<event::DownloadProgressReport *>(event.get());
@@ -108,10 +110,10 @@ void process_event(const std::shared_ptr<event::BaseEvent> &event) {
     const auto install_complete = dynamic_cast<event::InstallTargetComplete *>(event.get());
     std::cout << "Installation complete for device " << install_complete->serial.ToString() << ": "
               << (install_complete->success ? "success" : "failure") << "\n";
-  } else if (event->variant == "DownloadPaused" || event->variant == "DownloadResumed") {
-    // Do nothing.
   } else if (event->variant == "UpdateCheckComplete") {
-    // Do nothing; libaktualizr already logs it.
+    const auto check_complete = dynamic_cast<event::UpdateCheckComplete *>(event.get());
+    current_updates = check_complete->result.updates;
+    std::cout << current_updates.size() << " updates available\n";
   } else {
     std::cout << "Received " << event->variant << " event\n";
   }
@@ -141,8 +143,6 @@ int main(int argc, char *argv[]) {
 
     aktualizr.Initialize();
 
-    std::vector<Uptane::Target> updates;
-    result::Pause pause_result = result::Pause::kNotDownloading;
     std::string buffer;
     while (std::getline(std::cin, buffer)) {
       boost::algorithm::to_lower(buffer);
@@ -153,47 +153,17 @@ int main(int argc, char *argv[]) {
         aktualizr.SendDeviceData();
       } else if (buffer == "fetchmetadata" || buffer == "fetchmeta" || buffer == "checkupdates" || buffer == "check") {
         auto fut_result = aktualizr.CheckUpdates();
-        if (pause_result != result::Pause::kPaused && pause_result != result::Pause::kAlreadyPaused) {
-          result::UpdateCheck result = fut_result.get();
-          updates = result.updates;
-          std::cout << updates.size() << " updates available\n";
-        }
       } else if (buffer == "download" || buffer == "startdownload") {
-        aktualizr.Download(updates);
+        aktualizr.Download(current_updates);
       } else if (buffer == "install" || buffer == "uptaneinstall") {
-        aktualizr.Install(updates);
-        updates.clear();
+        aktualizr.Install(current_updates);
+        current_updates.clear();
       } else if (buffer == "campaigncheck") {
         aktualizr.CampaignCheck();
       } else if (buffer == "pause") {
-        pause_result = aktualizr.Pause();
-        switch (pause_result) {
-          case result::Pause::kPaused:
-            std::cout << "Download paused.\n";
-            break;
-          case result::Pause::kAlreadyPaused:
-            std::cout << "Download already paused.\n";
-            break;
-          case result::Pause::kNotDownloading:
-            std::cout << "Download is not in progress.\n";
-            break;
-          default:
-            std::cout << "Unrecognized pause result: " << static_cast<int>(pause_result) << "\n";
-            break;
-        }
+        aktualizr.Pause();
       } else if (buffer == "resume") {
-        pause_result = aktualizr.Resume();
-        switch (pause_result) {
-          case result::Pause::kResumed:
-            std::cout << "Download resumed.\n";
-            break;
-          case result::Pause::kNotPaused:
-            std::cout << "Download not paused.\n";
-            break;
-          default:
-            std::cout << "Unrecognized resume result: " << static_cast<int>(pause_result) << "\n";
-            break;
-        }
+        aktualizr.Resume();
       } else if (!buffer.empty()) {
         std::cout << "Unknown command.\n";
       }
