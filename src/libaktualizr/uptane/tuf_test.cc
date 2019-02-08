@@ -71,7 +71,7 @@ TEST(Role, ValidateRoles) {
 }
 
 /* Delegated roles have custom names. */
-TEST(Role, ValidateDelegation) {
+TEST(Role, ValidDelegationName) {
   Uptane::Role delegated = Uptane::Role::Delegation("whatever");
   EXPECT_EQ(delegated.ToString(), "whatever");
   EXPECT_EQ(delegated.IsDelegation(), true);

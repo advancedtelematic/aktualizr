@@ -1,5 +1,6 @@
 #include "sotauptaneclient.h"
 
+#include <fnmatch.h>
 #include <unistd.h>
 #include <memory>
 #include <utility>
@@ -569,7 +570,7 @@ bool SotaUptaneClient::updateImagesMeta() {
       local_version = -1;
     }
 
-    if (!images_repo.verifyTargets(images_targets, targets_role)) {
+    if (!images_repo.verifyTargets(images_targets)) {
       last_exception = images_repo.getLastException();
       return false;
     }
@@ -580,44 +581,8 @@ bool SotaUptaneClient::updateImagesMeta() {
       storage->storeNonRoot(images_targets, Uptane::RepositoryType::Image(), targets_role);
     }
 
-    if (images_repo.targetsExpired("targets")) {
+    if (images_repo.targetsExpired()) {
       last_exception = Uptane::ExpiredMetadata("repo", "targets");
-      return false;
-    }
-  }
-
-  // Update Images delegated Targets Metadata
-  for (const std::string &delegation : images_repo.delegations("targets")) {
-    std::string images_delegated;
-    Uptane::Role delegated_role = Uptane::Role::Delegation(delegation);
-
-    if (!uptane_fetcher->fetchLatestRole(&images_delegated, Uptane::kMaxImagesTargetsSize,
-                                         Uptane::RepositoryType::Image(), delegated_role)) {
-      return false;
-    }
-    int remote_version = Uptane::extractVersionUntrusted(images_delegated);
-
-    int local_version;
-    std::string images_delegated_stored;
-    if (storage->loadDelegation(&images_delegated_stored, delegated_role)) {
-      local_version = Uptane::extractVersionUntrusted(images_delegated_stored);
-    } else {
-      local_version = -1;
-    }
-
-    if (!images_repo.verifyTargets(images_delegated, delegated_role)) {
-      last_exception = images_repo.getLastException();
-      return false;
-    }
-
-    if (local_version > remote_version) {
-      return false;
-    } else if (local_version < remote_version) {
-      storage->storeDelegation(images_delegated, delegated_role);
-    }
-
-    if (images_repo.targetsExpired(delegation)) {
-      last_exception = Uptane::ExpiredMetadata("repo", delegation);
       return false;
     }
   }
@@ -732,32 +697,13 @@ bool SotaUptaneClient::checkImagesMetaOffline() {
       return false;
     }
 
-    if (!images_repo.verifyTargets(images_targets, targets_role)) {
+    if (!images_repo.verifyTargets(images_targets)) {
       last_exception = images_repo.getLastException();
       return false;
     }
 
-    if (images_repo.targetsExpired("targets")) {
+    if (images_repo.targetsExpired()) {
       last_exception = Uptane::ExpiredMetadata("repo", "targets");
-      return false;
-    }
-  }
-
-  // Update Images delegated Targets Metadata
-  for (const std::string &delegation : images_repo.delegations("targets")) {
-    std::string images_delegated;
-    Uptane::Role delegated_role = Uptane::Role::Delegation(delegation);
-    if (!storage->loadDelegation(&images_delegated, delegated_role)) {
-      return false;
-    }
-
-    if (!images_repo.verifyTargets(images_delegated, delegated_role)) {
-      last_exception = images_repo.getLastException();
-      return false;
-    }
-
-    if (images_repo.targetsExpired(delegation)) {
-      last_exception = Uptane::ExpiredMetadata("repo", delegation);
       return false;
     }
   }
@@ -841,6 +787,98 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
   return true;
 }
 
+std::unique_ptr<Uptane::Target> SotaUptaneClient::findTargetHelper(const Uptane::Targets &cur_targets,
+                                                                   const Uptane::Target &queried_target, int level,
+                                                                   bool terminating) {
+  auto it = std::find(cur_targets.targets.cbegin(), cur_targets.targets.cend(), queried_target);
+  if (it != cur_targets.targets.cend()) {
+    return std_::make_unique<Uptane::Target>(*it);
+  }
+
+  if (terminating || level >= Uptane::kDelegationsMaxDepth) {
+    return std::unique_ptr<Uptane::Target>(nullptr);
+  }
+
+  for (const auto &delegate_name : cur_targets.delegated_role_names_) {
+    Uptane::Role delegate_role = Uptane::Role::Delegation(delegate_name);
+    auto patterns = cur_targets.paths_for_role_.find(delegate_role);
+
+    if (patterns == cur_targets.paths_for_role_.end()) {
+      continue;
+    }
+
+    bool match = false;
+
+    for (const auto &pattern : patterns->second) {
+      if (fnmatch(pattern.c_str(), queried_target.filename().c_str(), 0) == 0) {
+        match = true;
+        break;
+      }
+    }
+
+    if (!match) {
+      continue;
+    }
+
+    // Target name matches one of the patterns
+
+    std::string delegation_meta;
+    std::shared_ptr<Uptane::Targets> delegation;
+
+    if (storage->loadDelegation(&delegation_meta, delegate_role)) {
+      delegation = Uptane::ImagesRepository::verifyDelegation(delegation_meta, delegate_role, cur_targets);
+      if (delegation == nullptr) {
+        storage->deleteDelegation(delegate_role);
+        delegation_meta.clear();
+      }
+    }
+
+    if (delegation == nullptr) {
+      if (!uptane_fetcher->fetchLatestRole(&delegation_meta, Uptane::kMaxImagesTargetsSize,
+                                           Uptane::RepositoryType::Image(), delegate_role)) {
+        throw std::runtime_error(std::string("Couldn't fetch ") +
+                                 delegate_role.ToString());  // TODO: connectivity exception
+      }
+
+      delegation = Uptane::ImagesRepository::verifyDelegation(delegation_meta, delegate_role, cur_targets);
+
+      if (delegation == nullptr) {
+        throw Uptane::SecurityException("images", "Delegation verification failed");
+      }
+
+      storage->storeDelegation(delegation_meta, delegate_role);
+    }
+
+    if (delegation->isExpired(TimeStamp::Now())) {
+      continue;
+    }
+
+    auto is_terminating = cur_targets.terminating_role_.find(delegate_role);
+
+    if (is_terminating == cur_targets.terminating_role_.end()) {
+      throw Uptane::Exception("images", "Inconsistent delegations");
+    }
+
+    auto found_target = findTargetHelper(*delegation, queried_target, level + 1, is_terminating->second);
+
+    if (found_target != nullptr) {
+      return found_target;
+    }
+  }
+
+  return std::unique_ptr<Uptane::Target>(nullptr);
+}
+
+std::unique_ptr<Uptane::Target> SotaUptaneClient::findTargetInDelegationTree(const Uptane::Target &target) {
+  auto toplevel_targets = images_repo.getTrustedTargets();
+
+  if (toplevel_targets == nullptr) {
+    return std::unique_ptr<Uptane::Target>(nullptr);
+  }
+
+  return findTargetHelper(*toplevel_targets, target, 0, false);
+}
+
 result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets) {
   // Uptane step 4 - download all the images and verify them against the metadata (for OSTree - pull without
   // deploying)
@@ -848,7 +886,7 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
   result::Download result;
   std::vector<Uptane::Target> downloaded_targets;
   for (auto it = targets.cbegin(); it != targets.cend(); ++it) {
-    auto images_target = images_repo.getTarget(*it);
+    auto images_target = findTargetInDelegationTree(*it);
     if (images_target == nullptr) {
       last_exception = Uptane::TargetHashMismatch(it->filename());
       LOG_ERROR << "No matching target in images targets metadata for " << *it;

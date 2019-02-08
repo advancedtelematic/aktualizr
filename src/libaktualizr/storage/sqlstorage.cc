@@ -561,6 +561,13 @@ bool SQLStorage::loadDelegation(std::string* data, const Uptane::Role role) {
   return true;
 }
 
+void SQLStorage::deleteDelegation(const Uptane::Role role) {
+  SQLite3Guard db = dbConnection();
+
+  auto statement = db.prepareStatement<std::string>("DELETE FROM delegations WHERE role_name=?;", role.ToString());
+  statement.step();
+}
+
 void SQLStorage::clearDelegations() {
   SQLite3Guard db = dbConnection();
 
