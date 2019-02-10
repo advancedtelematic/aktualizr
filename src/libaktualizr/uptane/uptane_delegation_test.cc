@@ -13,6 +13,16 @@
 
 boost::filesystem::path aktualizr_repo_path;
 
+void delegation_basic(const boost::filesystem::path& delegation_path, bool revoke = false) {
+  std::string output;
+  std::string cmd = "tests/uptane_repo_generation/delegation_basic.sh " + aktualizr_repo_path.string() + " " +
+                    delegation_path.string();
+  if (revoke) {
+    cmd += " revoke";
+  }
+  Utils::shell(cmd, &output);
+}
+
 class HttpFakeDelegationBasic : public HttpFake {
  public:
   HttpFakeDelegationBasic(const boost::filesystem::path& test_dir_in)
@@ -36,10 +46,7 @@ class HttpFakeDelegationBasic : public HttpFake {
 TEST(Delegation, Basic) {
   TemporaryDirectory temp_dir;
   auto delegation_path = temp_dir.Path() / "delegation_basic";
-  std::string output;
-  Utils::shell("tests/uptane_repo_generation/delegation_basic.sh " + aktualizr_repo_path.string() + " " +
-                   delegation_path.string(),
-               &output);
+  delegation_basic(delegation_path);
   auto http = std::make_shared<HttpFakeDelegationBasic>(temp_dir.Path());
 
   // scope `Aktualizr` object, so that the ReportQueue flushes its events before
@@ -69,10 +76,7 @@ TEST(Delegation, Basic) {
 TEST(Delegation, RevokeAfterCheckUpdates) {
   TemporaryDirectory temp_dir;
   auto delegation_path = temp_dir.Path() / "delegation_basic";
-  std::string output;
-  Utils::shell("tests/uptane_repo_generation/delegation_basic.sh " + aktualizr_repo_path.string() + " " +
-                   delegation_path.string(),
-               &output);
+  delegation_basic(delegation_path);
   {
     auto http = std::make_shared<HttpFakeDelegationBasic>(temp_dir.Path());
     Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
@@ -84,10 +88,9 @@ TEST(Delegation, RevokeAfterCheckUpdates) {
     EXPECT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
     EXPECT_EQ(update_result.updates.size(), 2);
   }
+  // Revoke delegation after CheckUpdates() and test if we can properly handle it.
   {
-    Utils::shell("tests/uptane_repo_generation/delegation_basic.sh " + aktualizr_repo_path.string() + " " +
-                     delegation_path.string() + " revoke",
-                 &output);
+    delegation_basic(delegation_path, true);
     auto http = std::make_shared<HttpFakeDelegationBasic>(temp_dir.Path());
     Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
     auto storage = INvStorage::newStorage(conf.storage);
@@ -111,10 +114,7 @@ TEST(Delegation, RevokeAfterCheckUpdates) {
 TEST(Delegation, RevokeAfterDownload) {
   TemporaryDirectory temp_dir;
   auto delegation_path = temp_dir.Path() / "delegation_basic";
-  std::string output;
-  Utils::shell("tests/uptane_repo_generation/delegation_basic.sh " + aktualizr_repo_path.string() + " " +
-                   delegation_path.string(),
-               &output);
+  delegation_basic(delegation_path);
   {
     auto http = std::make_shared<HttpFakeDelegationBasic>(temp_dir.Path());
     Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
@@ -128,10 +128,9 @@ TEST(Delegation, RevokeAfterDownload) {
     result::Download download_result = aktualizr.Download(update_result.updates).get();
     EXPECT_EQ(download_result.status, result::DownloadStatus::kSuccess);
   }
+  // Revoke delegation after Download() and test if we can properly handle it
   {
-    Utils::shell("tests/uptane_repo_generation/delegation_basic.sh " + aktualizr_repo_path.string() + " " +
-                     delegation_path.string() + " revoke",
-                 &output);
+    delegation_basic(delegation_path, true);
 
     auto http = std::make_shared<HttpFakeDelegationBasic>(temp_dir.Path());
     Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
@@ -156,10 +155,7 @@ TEST(Delegation, RevokeAfterDownload) {
 TEST(Delegation, RevokeAfterInstall) {
   TemporaryDirectory temp_dir;
   auto delegation_path = temp_dir.Path() / "delegation_basic";
-  std::string output;
-  Utils::shell("tests/uptane_repo_generation/delegation_basic.sh " + aktualizr_repo_path.string() + " " +
-                   delegation_path.string(),
-               &output);
+  delegation_basic(delegation_path);
   {
     auto http = std::make_shared<HttpFakeDelegationBasic>(temp_dir.Path());
     Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
@@ -178,10 +174,9 @@ TEST(Delegation, RevokeAfterInstall) {
       EXPECT_EQ(r.install_res.result_code.num_code, data::ResultCode::Numeric::kOk);
     }
   }
+  // Revoke delegation after Install() and test if can properly CheckUpdates again
   {
-    Utils::shell("tests/uptane_repo_generation/delegation_basic.sh " + aktualizr_repo_path.string() + " " +
-                     delegation_path.string() + " revoke",
-                 &output);
+    delegation_basic(delegation_path, true);
 
     auto http = std::make_shared<HttpFakeDelegationBasic>(temp_dir.Path());
     Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);

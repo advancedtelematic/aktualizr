@@ -27,7 +27,6 @@ PRIMARY_FIRMWARE="$IMAGES/primary.txt"
 echo "primary" > "$PRIMARY_FIRMWARE"
 SECONDARY_FIRMWARE="$IMAGES/secondary.txt"
 echo "secondary" > "$SECONDARY_FIRMWARE"
-echo "oooo: $REVOKE"
 if [[ "$REVOKE" = "revoke" ]]; then
     akrepo --command revokedelegation --dname new-role
 else

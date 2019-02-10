@@ -284,6 +284,7 @@ TEST(aktualizr_repo, delegation_revoke) {
   auto new_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
   EXPECT_EQ(new_targets["signed"]["delegations"]["keys"].size(), 0);
   EXPECT_EQ(new_targets["signed"]["delegations"]["roles"].size(), 0);
+  EXPECT_EQ(new_targets["signed"]["version"].asUInt(), 3);
   auto signed_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/targets.json");
   Uptane::Targets director_targets(signed_targets);
   EXPECT_EQ(director_targets.targets.size(), 0);

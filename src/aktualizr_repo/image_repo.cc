@@ -67,6 +67,7 @@ void ImageRepo::addDelegation(const Uptane::Role &name, const std::string &path,
   role["threshold"] = 1;
   role["terminating"] = terminating;
   targets_notsigned["delegations"]["roles"].append(role);
+  targets_notsigned["version"] = (targets_notsigned["version"].asUInt()) + 1;
 
   std::string signed_targets = Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Targets(), targets_notsigned));
   Utils::writeFile(repo_dir / "targets.json", signed_targets);
@@ -96,6 +97,7 @@ void ImageRepo::revokeDelegation(const Uptane::Role &name) {
     }
   }
   targets["delegations"]["roles"] = new_roles;
+  targets["version"] = (targets["version"].asUInt()) + 1;
   Utils::writeFile(repo_dir / "targets.json", Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Targets(), targets)));
   updateRepo();
 }

@@ -32,6 +32,7 @@ void DirectorRepo::revokeTargets(const std::vector<std::string> &targets_to_remo
     }
   }
   targets_unsigned["targets"] = new_targets;
+  targets_unsigned["version"] = (targets_unsigned["version"].asUInt()) + 1;
   Utils::writeFile(path_ / "repo/director/targets.json",
                    Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Targets(), targets_unsigned)));
   updateRepo();
