@@ -290,8 +290,9 @@ std::string Utils::readFile(const boost::filesystem::path &filename, const bool 
 static constexpr size_t BSIZE = 20 * 512;
 
 struct archive_state {
+  archive_state(std::istream &is_in) : is(is_in) {}
   std::istream &is;
-  std::array<char, BSIZE> buf;
+  std::array<char, BSIZE> buf{};
 };
 
 static ssize_t read_cb(struct archive *a, void *client_data, const void **buffer) {
@@ -468,8 +469,8 @@ std::string Utils::readFileFromArchive(std::istream &as, const std::string &file
   }
   archive_read_support_filter_all(a);
   archive_read_support_format_all(a);
-  archive_state state = {as, {}};
-  int r = archive_read_open(a, reinterpret_cast<void *>(&state), nullptr, read_cb, nullptr);
+  auto state = std_::make_unique<archive_state>(std::ref(as));
+  int r = archive_read_open(a, reinterpret_cast<void *>(state.get()), nullptr, read_cb, nullptr);
   if (r != ARCHIVE_OK) {
     LOG_ERROR << "archive error: " << archive_error_string(a);
     archive_read_free(a);
