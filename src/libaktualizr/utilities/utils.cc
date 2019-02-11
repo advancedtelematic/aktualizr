@@ -718,15 +718,10 @@ class SafeTempRoot {
 
  private:
   SafeTempRoot() {
-    boost::filesystem::path prefix;
-#if !defined(ANDROID)
-    prefix = boost::filesystem::temp_directory_path();
-#else
-    prefix = Utils::getStorageRootPath();
+    boost::filesystem::path prefix = Utils::getStorageRootPath();
     if (prefix.empty()) {
-      throw std::runtime_error("Empty temp root dir prefix");
+      prefix = boost::filesystem::temp_directory_path();
     }
-#endif  // defined(ANDROID)
     boost::filesystem::path p = prefix / boost::filesystem::unique_path("aktualizr-%%%%-%%%%-%%%%-%%%%");
     if (mkdir(p.c_str(), S_IRWXU) == -1) {
       throw std::runtime_error("could not create temporary directory root: " + p.native());
@@ -745,20 +740,11 @@ class SafeTempRoot {
   boost::filesystem::path path;
 };
 
-#if defined(ANDROID)
-std::mutex Utils::storage_root_path_mutex_;
 std::string Utils::storage_root_path_;
 
-void Utils::setStorageRootPath(const std::string &storage_root_path) {
-  std::lock_guard<std::mutex> guard(storage_root_path_mutex_);
-  storage_root_path_ = storage_root_path;
-}
+void Utils::setStorageRootPath(const std::string &storage_root_path) { storage_root_path_ = storage_root_path; }
 
-boost::filesystem::path Utils::getStorageRootPath() {
-  std::lock_guard<std::mutex> guard(storage_root_path_mutex_);
-  return storage_root_path_;
-}
-#endif  // defined(ANDROID)
+boost::filesystem::path Utils::getStorageRootPath() { return storage_root_path_; }
 
 TemporaryFile::TemporaryFile(const std::string &hint)
     : tmp_name_(SafeTempRoot::Get() / boost::filesystem::unique_path("%%%%-%%%%-" + hint)) {}

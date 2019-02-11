@@ -48,14 +48,11 @@ struct Utils {
   static CURL *curlDupHandleWrapper(CURL *curl_in, bool using_pkcs11);
   static std::vector<boost::filesystem::path> getDirEntriesByExt(const boost::filesystem::path &dir_path,
                                                                  const std::string &ext);
-#if defined(ANDROID)
   static void setStorageRootPath(const std::string &storage_root_path);
   static boost::filesystem::path getStorageRootPath();
-  static std::mutex storage_root_path_mutex_;
 
  private:
   static std::string storage_root_path_;
-#endif
 };
 
 /**

@@ -34,7 +34,7 @@ std::shared_ptr<PackageManagerInterface> PackageManagerFactory::makePackageManag
 #endif
     case PackageManager::kAndroid:
 #if defined(ANDROID)
-      return std::make_shared<AndroidManager>(storage);
+      return std::make_shared<AndroidManager>(storage, bootloader);
 #else
       throw std::runtime_error("aktualizr was compiled without android support!");
 #endif

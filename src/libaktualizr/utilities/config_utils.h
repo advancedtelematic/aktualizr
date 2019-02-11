@@ -144,8 +144,9 @@ class BaseConfig {
         continue;
       }
       if (boost::filesystem::is_directory(config)) {
-        for (const auto& config_file : Utils::getDirEntriesByExt(config, ".toml"))
+        for (const auto& config_file : Utils::getDirEntriesByExt(config, ".toml")) {
           configs_map[config_file.filename().string()] = config_file;
+        }
       } else {
         configs_map[config.filename().string()] = config;
       }
