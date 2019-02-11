@@ -14,6 +14,7 @@ extern const std::vector<std::string> libaktualizr_schema_rollback_migrations;
 extern const std::string libaktualizr_current_schema;
 extern const int libaktualizr_current_schema_version;
 
+class SQLTargetRHandle;
 class SQLStorage : public SQLStorageBase, public INvStorage {
  public:
   friend class SQLTargetWHandle;
@@ -80,13 +81,14 @@ class SQLStorage : public SQLStorageBase, public INvStorage {
 
   std::unique_ptr<StorageTargetWHandle> allocateTargetFile(bool from_director, const Uptane::Target& target) override;
   std::unique_ptr<StorageTargetRHandle> openTargetFile(const Uptane::Target& target) override;
-  boost::optional<size_t> checkTargetFile(const Uptane::Target& target) const override;
+  boost::optional<std::pair<size_t, std::string>> checkTargetFile(const Uptane::Target& target) const override;
   void removeTargetFile(const std::string& filename) override;
   void cleanUp() override;
   StorageType type() override { return StorageType::kSqlite; };
 
  private:
   void cleanMetaVersion(Uptane::RepositoryType repo, const Uptane::Role& role);
+  friend SQLTargetRHandle;
 };
 
 #endif  // SQLSTORAGE_H_

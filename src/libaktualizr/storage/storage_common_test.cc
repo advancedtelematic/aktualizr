@@ -477,7 +477,6 @@ TEST(storage, store_target) {
   // write stream
   {
     std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target);
-
     std::stringstream("ab") >> *fhandle;
   }
 

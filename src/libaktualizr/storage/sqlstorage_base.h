@@ -24,6 +24,7 @@ class SQLStorageBase {
  protected:
   SQLite3Guard dbConnection() const;
   boost::filesystem::path sqldb_path_;
+  boost::filesystem::path images_path_{sqldb_path_.parent_path() / "images"};
   bool readonly_{false};
   const std::vector<std::string> schema_migrations_;
   std::vector<std::string> schema_rollback_migrations_;

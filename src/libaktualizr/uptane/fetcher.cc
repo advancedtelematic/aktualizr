@@ -101,14 +101,14 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
         throw Exception("image", "No hash defined for the target");
       }
       auto target_exists = storage->checkTargetFile(target);
-      if (target_exists && *target_exists == target.length()) {
+      if (target_exists && (*target_exists).first == target.length()) {
         LOG_INFO << "Image already downloaded skipping download";
         return true;
       }
       DownloadMetaStruct ds(target, progress_cb);
       ds.fetcher = this;
       if (target_exists) {
-        ds.downloaded_length = *target_exists;
+        ds.downloaded_length = target_exists->first;
         auto target_handle = storage->openTargetFile(target);
         restoreHasherState(ds.hasher(), target_handle.get());
         target_handle->rclose();

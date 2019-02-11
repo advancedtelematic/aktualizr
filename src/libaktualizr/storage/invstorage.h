@@ -178,7 +178,7 @@ class INvStorage {
                                             std::string* correlation_id) = 0;
   virtual void clearInstallationResults() = 0;
 
-  virtual boost::optional<size_t> checkTargetFile(const Uptane::Target& target) const = 0;
+  virtual boost::optional<std::pair<size_t, std::string>> checkTargetFile(const Uptane::Target& target) const = 0;
 
   // Incremental file API
   virtual std::unique_ptr<StorageTargetWHandle> allocateTargetFile(bool from_director,
