@@ -22,6 +22,11 @@ void UptaneRepo::addDelegation(const Uptane::Role &name, const std::string &path
   image_repo_.addDelegation(name, path, key_type, terminating);
 }
 
+void UptaneRepo::revokeDelegation(const Uptane::Role &name) {
+  director_repo_.revokeTargets(image_repo_.getDelegationTargets(name));
+  image_repo_.revokeDelegation(name);
+}
+
 void UptaneRepo::addImage(const boost::filesystem::path &image_path, const boost::filesystem::path &targetname,
                           const Delegation &delegation) {
   image_repo_.addImage(image_path, targetname, delegation);

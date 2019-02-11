@@ -11,6 +11,8 @@ class ImageRepo : public Repo {
                 const Delegation &delegation = {});
   void addCustomImage(const std::string &name, const Uptane::Hash &hash, uint64_t length, const Delegation &delegation);
   void addDelegation(const Uptane::Role &name, const std::string &path, KeyType key_type, bool terminating);
+  void revokeDelegation(const Uptane::Role &name);
+  std::vector<std::string> getDelegationTargets(const Uptane::Role &name);
 
  private:
   void addImage(const std::string &name, const Json::Value &target, const Delegation &delegation = {});

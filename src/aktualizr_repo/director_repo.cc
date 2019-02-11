@@ -21,6 +21,23 @@ void DirectorRepo::addTarget(const std::string &target_name, const Json::Value &
   updateRepo();
 }
 
+void DirectorRepo::revokeTargets(const std::vector<std::string> &targets_to_remove) {
+  auto targets_path = path_ / "repo/director/targets.json";
+  auto targets_unsigned = Utils::parseJSONFile(targets_path)["signed"];
+
+  Json::Value new_targets;
+  for (Json::ValueIterator it = targets_unsigned["targets"].begin(); it != targets_unsigned["targets"].end(); ++it) {
+    if (std::find(targets_to_remove.begin(), targets_to_remove.end(), it.key().asString()) == targets_to_remove.end()) {
+      new_targets[it.key().asString()] = *it;
+    }
+  }
+  targets_unsigned["targets"] = new_targets;
+  targets_unsigned["version"] = (targets_unsigned["version"].asUInt()) + 1;
+  Utils::writeFile(path_ / "repo/director/targets.json",
+                   Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Targets(), targets_unsigned)));
+  updateRepo();
+}
+
 void DirectorRepo::signTargets() {
   const boost::filesystem::path current = path_ / "repo/director/targets.json";
   const boost::filesystem::path staging = path_ / "repo/director/staging/targets.json";

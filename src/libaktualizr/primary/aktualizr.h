@@ -200,6 +200,9 @@ class Aktualizr {
   FRIEND_TEST(Aktualizr, PauseResumeQueue);
   FRIEND_TEST(Aktualizr, AddSecondary);
   FRIEND_TEST(Delegation, Basic);
+  FRIEND_TEST(Delegation, RevokeAfterCheckUpdates);
+  FRIEND_TEST(Delegation, RevokeAfterInstall);
+  FRIEND_TEST(Delegation, RevokeAfterDownload);
 
   // This constructor is only being used in tests
   Aktualizr(Config& config, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<HttpInterface> http_in);

@@ -17,6 +17,7 @@ int main(int argc, char **argv) {
     ("help,h", "print usage")
     ("command", po::value<std::string>(), "generate: \tgenerate a new repository\n"
                                           "adddelegation: \tadd a delegated role to the images metadata\n"
+                                          "revokedelegation: \tremove delegated role from the images metadata and all signed targets of this role\n"
                                           "image: \tadd a target to the images metadata\n"
                                           "addtarget: \tprepare director targets metadata for a given device\n"
                                           "signtargets: \tsign the staged director targets metadata\n"
@@ -121,6 +122,12 @@ int main(int argc, char **argv) {
           exit(EXIT_FAILURE);
         }
         repo.addDelegation(Uptane::Role(vm["dname"].as<std::string>(), true), vm["dpattern"].as<std::string>());
+      } else if (command == "revokedelegation") {
+        if (vm.count("dname") == 0) {
+          std::cerr << "revokedelegation command requires --dname\n";
+          exit(EXIT_FAILURE);
+        }
+        repo.revokeDelegation(Uptane::Role(vm["dname"].as<std::string>(), true));
       } else if (command == "signtargets") {
         repo.signTargets();
       } else if (command == "emptytargets") {
