@@ -59,7 +59,8 @@ void uptane_firmware_confirm(void) {
   }
 
   uptane_installation_state_t new_state;
-  strncpy(new_state.firmware_name, targets->name, TARGETS_MAX_NAME_LENGTH + 1);
+  strncpy(new_state.firmware_name, targets->name, TARGETS_MAX_NAME_LENGTH);
+  new_state.firmware_name[TARGETS_MAX_NAME_LENGTH] = '\0';
   new_state.firmware_hash = *expected_hash;
   new_state.firmware_length = targets->length;
   new_state.attack = ATTACK_NONE;
