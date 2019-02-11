@@ -82,6 +82,12 @@ bool SQLStorageBase::dbMigrateForward(int version_from, int version_to) {
       LOG_ERROR << "Can't migrate db from version " << (k - 1) << " to version " << k << ": " << db.errmsg();
       return false;
     }
+
+    if (schema_rollback_migrations_.empty()) {
+      LOG_TRACE << "No backward migrations defined";
+      continue;
+    }
+
     if (schema_rollback_migrations_.at(static_cast<uint32_t>(k)).empty()) {
       LOG_TRACE << "No backward migration from version " << k << " to " << (k - 1);
       continue;
