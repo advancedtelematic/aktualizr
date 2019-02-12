@@ -119,12 +119,13 @@ Options for package management and update installation. Note that this only coin
 
 [options="header"]
 |==========================================================================================
-| Name            | Default                   | Description
-| `type`          | `"ostree"`                | Which package manager to use. Options: `"ostree"`, `"debian"`, `"none"`.
-| `os`            |                           | OSTree operating system group. Only used with `ostree`.
-| `sysroot`       |                           | Path to an OSTree sysroot. Only used with `ostree`.
-| `ostree_server` |                           | OSTree server URL. Only used with `ostree`. If empty, set to `tls.server` with `/treehub` appended.
-| `packages_file` | `"/usr/package.manifest"` | Path to a file for storing package manifest information. Only used with `ostree`.
+| Name               | Default                   | Description
+| `type`             | `"ostree"`                | Which package manager to use. Options: `"ostree"`, `"debian"`, `"none"`.
+| `os`               |                           | OSTree operating system group. Only used with `ostree`.
+| `sysroot`          |                           | Path to an OSTree sysroot. Only used with `ostree`.
+| `ostree_server`    |                           | OSTree server URL. Only used with `ostree`. If empty, set to `tls.server` with `/treehub` appended.
+| `packages_file`    | `"/usr/package.manifest"` | Path to a file for storing package manifest information. Only used with `ostree`.
+| `fake_need_reboot` | false                     | Simulate a wait-for-reboot with the `"none"` package manager. Used for testing.
 |==========================================================================================
 
 == `storage`
