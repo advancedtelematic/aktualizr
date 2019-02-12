@@ -16,6 +16,7 @@ void PackageConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, os, "os");
   writeOption(out_stream, sysroot, "sysroot");
   writeOption(out_stream, ostree_server, "ostree_server");
+  writeOption(out_stream, packages_file, "packages_file");
   writeOption(out_stream, fake_need_reboot, "fake_need_reboot");
 }
 

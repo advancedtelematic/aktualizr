@@ -77,12 +77,12 @@ Options for how the device is provisioned with the backend.
 |==========================================================================================
 | Name                        | Default   | Description
 | `server`                    |           | Server provisioning URL. If empty, set to `tls.server`.
-| `primary_ecu_hardware_id`   |           | The hardware ID of the primary ECU (e.g., `"raspberry-pi"`). If left empty, the hostname of the device will be used.
-| `provision_path`            |           | Path to an archive containing provisioning data. See link:{aktualizr-github-url}/docs/credentials.adoc[] for the specification of the contents of this file.
 | `p12_password`              |           | Password for PKCS#12 encryption.
 | `expiry_days`               | `"36000"` | Provided in the `ttl` field of the device provisioning request sent to the server.
+| `provision_path`            |           | Path to an archive containing provisioning data. See link:{aktualizr-github-url}/docs/credentials.adoc[] for the specification of the contents of this file.
 | `device_id`                 |           | Device ID of the primary ECU. If left empty, a random name will be generated.
 | `primary_ecu_serial`        |           | Serial number of the primary ECU. If left empty, a random serial will be generated.
+| `primary_ecu_hardware_id`   |           | The hardware ID of the primary ECU (e.g., `"raspberry-pi"`). If left empty, the hostname of the device will be used.
 | `ecu_registration_endpoint` |           | Ecu provisioning URL. If empty, set to `uptane.director_server` with `/ecus` appended.
 |==========================================================================================
 
@@ -119,12 +119,13 @@ Options for package management and update installation. Note that this only coin
 
 [options="header"]
 |==========================================================================================
-| Name            | Default                   | Description
-| `type`          | `"ostree"`                | Which package manager to use. Options: `"ostree"`, `"debian"`, `"none"`.
-| `os`            |                           | OSTree operating system group. Only used with `ostree`.
-| `sysroot`       |                           | Path to an OSTree sysroot. Only used with `ostree`.
-| `ostree_server` |                           | OSTree server URL. Only used with `ostree`. If empty, set to `tls.server` with `/treehub` appended.
-| `packages_file` | `"/usr/package.manifest"` | Path to a file for storing package manifest information. Only used with `ostree`.
+| Name               | Default                   | Description
+| `type`             | `"ostree"`                | Which package manager to use. Options: `"ostree"`, `"debian"`, `"none"`.
+| `os`               |                           | OSTree operating system group. Only used with `ostree`.
+| `sysroot`          |                           | Path to an OSTree sysroot. Only used with `ostree`.
+| `ostree_server`    |                           | OSTree server URL. Only used with `ostree`. If empty, set to `tls.server` with `/treehub` appended.
+| `packages_file`    | `"/usr/package.manifest"` | Path to a file for storing package manifest information. Only used with `ostree`.
+| `fake_need_reboot` | false                     | Simulate a wait-for-reboot with the `"none"` package manager. Used for testing.
 |==========================================================================================
 
 == `storage`
@@ -136,13 +137,13 @@ Options for how Aktualizr stores data locally.
 | Name                      | Default                   | Description
 | `type`                    | `"sqlite"`                | What type of storage driver to use. Options: `"sqlite"`. The former `"filesystem"` option is now disabled, existing devices will be migrated (see note below)
 | `path`                    | `"/var/sota"`             | Directory for storage
+| `sqldb_path`              | `"sql.db"`                | Relative path to the database file.
 | `uptane_metadata_path`    | `"metadata"`              | Path to the uptane metadata store, for migration from `filesystem`.
 | `uptane_private_key_path` | `"ecukey.der"`            | Relative path to the Uptane specific private key, for migration from `filesystem`.
 | `uptane_public_key_path`  | `"ecukey.pub"`            | Relative path to the Uptane specific public key, for migration from `filesystem`.
 | `tls_cacert_path`         | `"root.crt"`              | Relative path to the TLS root CA certificate, for migration from `filesystem`.
 | `tls_pkey_path`           | `"pkey.pem"`              | Relative path to the client's TLS private key, for migration from `filesystem`.
 | `tls_clientcert_path`     | `"client.pem"`            | Relative path to the client's TLS certificate, for migration from `filesystem`.
-| `sqldb_path`              | `"sql.db"`                | Relative path to the database file.
 |==========================================================================================
 
 The only supported storage option is now `sqlite`.
@@ -156,13 +157,13 @@ Options for importing data from the filesystem into the storage.
 
 [options="header"]
 |==========================================================================================
-| Name                      | Default | Description
-| `base_path`               |         | Path to a common root directory to the subsequent files
-| `uptane_private_key_path` |         | Path to the device's private key.
-| `uptane_public_key_path`  |         | Path to the device's public key.
-| `tls_cacert_path`         |         | Path to the TLS root CA certificate.
-| `tls_pkey_path`           |         | Path to the TLS private key.
-| `tls_clientcert_path`     |         | Path to the TLS client certificate.
+| Name                      | Default                  | Description
+| `base_path`               | `"/var/sota/import"`     | Path to a common root directory to the subsequent files
+| `uptane_private_key_path` |                          | Path to the device's private key.
+| `uptane_public_key_path`  |                          | Path to the device's public key.
+| `tls_cacert_path`         |                          | Path to the TLS root CA certificate.
+| `tls_pkey_path`           |                          | Path to the TLS private key.
+| `tls_clientcert_path`     |                          | Path to the TLS client certificate.
 |==========================================================================================
 
 == `telemetry`
@@ -175,3 +176,14 @@ Options for configuring how aktualizr communicates with the server.
 | `report_network` | `true`  | Enable reporting of device networking information to the server.
 |==========================================================================================
 
+== `bootloader`
+
+Options for configuring boot-specific behavior
+
+[options="header"]
+|==========================================================================================
+| Name                   | Default                         | Description
+| `rollback_mode`        | `"none"`                        | Controls rollback on supported platforms, see link:{aktualizr-github-url}/docs/rollback.adoc[]. Options: `"none"`, `"uboot_generic"`, `"uboot_masked"`
+| `reboot_sentinel_dir`  | `"/var/run/aktualizr-session"`  | Base directory for reboot detection sentinel. Must reside in a temporary file system.
+| `reboot_sentinel_name` | `"need_reboot"`                 | Name of the reboot detection sentinel.
+|==========================================================================================
