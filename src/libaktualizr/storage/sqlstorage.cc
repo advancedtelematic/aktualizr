@@ -464,8 +464,15 @@ bool SQLStorage::loadRoot(std::string* data, Uptane::RepositoryType repo, Uptane
       LOG_ERROR << "Can't get meta: " << db.errmsg();
       return false;
     }
+
+    const auto blob = reinterpret_cast<const char*>(sqlite3_column_blob(statement.get(), 0));
+    if (blob == nullptr) {
+      LOG_ERROR << "Can't get meta: " << db.errmsg();
+      return false;
+    }
+
     if (data != nullptr) {
-      *data = std::string(reinterpret_cast<const char*>(sqlite3_column_blob(statement.get(), 0)));
+      *data = std::string(blob);
     }
   }
 
@@ -1182,10 +1189,10 @@ boost::optional<size_t> SQLStorage::checkTargetFile(const Uptane::Target& target
   if (statement_state == SQLITE_DONE) {
     LOG_INFO << "No file '" + target.filename() << "' with matched hash in the database";
     return boost::none;
-  } else if (statement_state != SQLITE_ROW) {
-    LOG_ERROR << "Statement step failure: " << db.errmsg();
-    return boost::none;
   }
+  assert(statement_state != SQLITE_ROW);  // from the previous loop precondition
+  LOG_ERROR << "Statement step failure: " << db.errmsg();
+
   return boost::none;
 }
 
@@ -1284,7 +1291,9 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     if (sqlite3_changes(db_.get()) > 0) {
       auto statement =
           db_.prepareStatement<std::string>("DELETE FROM target_images WHERE filename=?;", target_.filename());
-      statement.step();
+      if (statement.step() != SQLITE_DONE) {
+        LOG_ERROR << "could not delete " << target_.filename() << " from sql storage";
+      }
     }
     closed_ = true;
   }

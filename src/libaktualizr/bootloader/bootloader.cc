@@ -57,8 +57,8 @@ Bootloader::Bootloader(const BootloaderConfig& config, INvStorage& storage) : co
 
   if (mkdir(config_.reboot_sentinel_dir.c_str(), S_IRWXU) == -1) {
     struct stat st {};
-    stat(config_.reboot_sentinel_dir.c_str(), &st);
-    if (((st.st_mode & S_IFDIR) == 0) || (st.st_mode & (S_IRGRP | S_IROTH | S_IWGRP | S_IWOTH)) != 0) {
+    int ret = stat(config_.reboot_sentinel_dir.c_str(), &st);
+    if (ret < 0 || ((st.st_mode & S_IFDIR) == 0) || (st.st_mode & (S_IRGRP | S_IROTH | S_IWGRP | S_IWOTH)) != 0) {
       LOG_WARNING << "Could not create " << config_.reboot_sentinel_dir
                   << " securely, reboot detection support disabled";
       reboot_detect_supported_ = false;

@@ -352,7 +352,7 @@ TEST(sqlstorage, migrate_from_fs) {
   // copy a snapshot from a real provisioned device using fs storage
   // (anonymized data)
   Utils::copyDir(test_data_dir / "fs_snapshot", config.path);
-  chmod(config.path.c_str(), S_IRWXU);
+  ASSERT_GE(chmod(config.path.c_str(), S_IRWXU), 0);
   auto storage = INvStorage::newStorage(config);
 
   EXPECT_TRUE(storage->loadPrimaryKeys(nullptr, nullptr));

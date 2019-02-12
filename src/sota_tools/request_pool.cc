@@ -102,14 +102,18 @@ void RequestPool::LoopListen() {
         timeout.tv_sec = timeoutms / 1000;
         timeout.tv_usec = 1000 * (timeoutms % 1000);
       }
-      select(maxfd + 1, &fdread, &fdwrite, &fdexcept, &timeout);
+      if (select(maxfd + 1, &fdread, &fdwrite, &fdexcept, &timeout) < 0) {
+        throw std::runtime_error(std::string("select failed with error: ") + std::strerror(errno));
+      }
     } else if (timeoutms > 0) {
       // If maxfd == -1, then wait the lesser of timeoutms and 100 ms.
       long nofd_timeoutms = std::min(timeoutms, static_cast<long>(100));  // NOLINT(google-runtime-int)
       LOG_DEBUG << "Waiting " << nofd_timeoutms << " ms for curl";
       timeout.tv_sec = 0;
       timeout.tv_usec = 1000 * (nofd_timeoutms % 1000);
-      select(0, nullptr, nullptr, nullptr, &timeout);
+      if (select(0, nullptr, nullptr, nullptr, &timeout) < 0) {
+        throw std::runtime_error(std::string("select failed with error: ") + std::strerror(errno));
+      }
     }
   }
 

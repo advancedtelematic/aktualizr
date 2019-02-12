@@ -761,7 +761,7 @@ TEST(Uptane, ProvisionOnServer) {
 TEST(Uptane, FsToSqlFull) {
   TemporaryDirectory temp_dir;
   Utils::copyDir("tests/test_data/prov", temp_dir.Path());
-  chmod(temp_dir.Path().c_str(), S_IRWXU);
+  ASSERT_GE(chmod(temp_dir.Path().c_str(), S_IRWXU), 0);
   StorageConfig config;
   config.type = StorageType::kSqlite;
   config.path = temp_dir.Path();

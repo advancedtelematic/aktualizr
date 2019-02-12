@@ -183,7 +183,7 @@ TEST(Utils, TemporaryDirectory) {
     EXPECT_NE(p.string().find("ahint"), std::string::npos);  // The hint is included in the filename
 
     struct stat statbuf;
-    stat(p.parent_path().c_str(), &statbuf);
+    EXPECT_GE(stat(p.parent_path().c_str(), &statbuf), 0);
     EXPECT_EQ(statbuf.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO), S_IRWXU);
   }
   EXPECT_FALSE(boost::filesystem::exists(p));
@@ -204,7 +204,7 @@ TEST(Utils, TemporaryFile) {
     EXPECT_NE(p.string().find("ahint"), std::string::npos);  // The hint is included in the filename
 
     struct stat statbuf;
-    stat(p.parent_path().c_str(), &statbuf);
+    EXPECT_GE(stat(p.parent_path().c_str(), &statbuf), 0);
     EXPECT_EQ(statbuf.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO), S_IRWXU);
   }
   EXPECT_FALSE(boost::filesystem::exists(p));  // The file gets deleted by the RAII dtor

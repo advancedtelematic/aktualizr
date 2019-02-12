@@ -20,13 +20,17 @@ SQLStorageBase::SQLStorageBase(boost::filesystem::path sqldb_path, bool readonly
     Utils::createDirectories(db_parent_path, S_IRWXU);
   } else {
     struct stat st {};
-    stat(db_parent_path.c_str(), &st);
+    if (stat(db_parent_path.c_str(), &st) < 0) {
+      throw StorageException(std::string("Could not check storage directory permissions: ") + std::strerror(errno));
+    }
     if ((st.st_mode & (S_IWGRP | S_IWOTH)) != 0) {
       throw StorageException("Storage directory has unsafe permissions");
     }
     if ((st.st_mode & (S_IRGRP | S_IROTH)) != 0) {
       // Remove read permissions for group and others
-      chmod(db_parent_path.c_str(), S_IRWXU);
+      if (chmod(db_parent_path.c_str(), S_IRWXU) < 0) {
+        throw StorageException("Storage directory has unsafe permissions");
+      }
     }
   }
 
@@ -114,14 +118,18 @@ bool SQLStorageBase::dbMigrateBackward(int version_from, int version_to) {
 
   SQLite3Guard db = dbConnection();
   for (int ver = version_from; ver > version_to; --ver) {
-    auto statement = db.prepareStatement("SELECT migration FROM rollback_migrations WHERE version_from=?;", ver);
-    if (statement.step() != SQLITE_ROW) {
-      LOG_ERROR << "Can't extract migration script: " << db.errmsg();
-      return false;
+    std::string migration;
+    {
+      // make sure the statement is destroyed before the next database operation
+      auto statement = db.prepareStatement("SELECT migration FROM rollback_migrations WHERE version_from=?;", ver);
+      if (statement.step() != SQLITE_ROW) {
+        LOG_ERROR << "Can't extract migration script: " << db.errmsg();
+        return false;
+      }
+      migration = *(statement.get_result_col_str(0));
     }
-    auto migration = statement.get_result_col_str(0);
-    statement.step();
-    if (db.exec(*migration, nullptr, nullptr) != SQLITE_OK) {
+
+    if (db.exec(migration, nullptr, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Can't migrate db from version " << (ver) << " to version " << ver - 1 << ": " << db.errmsg();
       return false;
     }

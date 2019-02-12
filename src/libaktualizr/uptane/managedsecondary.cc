@@ -34,7 +34,9 @@ void ManagedSecondary::Initialize() {
   if (!boost::filesystem::is_directory(sconfig.metadata_path)) {
     Utils::createDirectories(sconfig.metadata_path, S_IRWXU);
   }
-  stat(sconfig.metadata_path.c_str(), &st);
+  if (stat(sconfig.metadata_path.c_str(), &st) < 0) {
+    throw std::runtime_error(std::string("Could not check metadata directory permissions: ") + std::strerror(errno));
+  }
   if ((st.st_mode & (S_IWGRP | S_IWOTH)) != 0) {
     throw std::runtime_error("Secondary metadata directory has unsafe permissions");
   }
@@ -42,7 +44,9 @@ void ManagedSecondary::Initialize() {
   if (!boost::filesystem::is_directory(sconfig.full_client_dir)) {
     Utils::createDirectories(sconfig.full_client_dir, S_IRWXU);
   }
-  stat(sconfig.full_client_dir.c_str(), &st);
+  if (stat(sconfig.full_client_dir.c_str(), &st) < 0) {
+    throw std::runtime_error(std::string("Could not check client directory permissions: ") + std::strerror(errno));
+  }
   if ((st.st_mode & (S_IWGRP | S_IWOTH)) != 0) {
     throw std::runtime_error("Secondary client directory has unsafe permissions");
   }
