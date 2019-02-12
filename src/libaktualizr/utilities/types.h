@@ -59,7 +59,7 @@ inline std::istream& operator>>(std::istream& is, KeyType& kt) {
   return is;
 }
 
-enum class CryptoSource { kFile = 0, kPkcs11 };
+enum class CryptoSource { kFile = 0, kPkcs11, kAndroid };
 
 inline std::ostream& operator<<(std::ostream& os, CryptoSource cs) {
   std::string cs_str;

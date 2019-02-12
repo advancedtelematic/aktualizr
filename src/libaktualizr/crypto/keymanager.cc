@@ -1,9 +1,14 @@
 #include "keymanager.h"
+#include "utilities/types.h"
 
 #include <stdexcept>
 
 #include <boost/scoped_array.hpp>
 #include <utility>
+
+#if defined(ANDROID)
+#include "androidkeystore.h"
+#endif
 
 // by using constexpr the compiler can optimize out method calls when the
 // feature is disabled. We won't then need to link with the actual p11 engine
@@ -23,7 +28,7 @@ KeyManager::KeyManager(std::shared_ptr<INvStorage> backend, KeyManagerConfig con
 
 void KeyManager::loadKeys(const std::string *pkey_content, const std::string *cert_content,
                           const std::string *ca_content) {
-  if (config_.tls_pkey_source == CryptoSource::kFile) {
+  if (config_.tls_pkey_source == CryptoSource::kFile || config_.tls_pkey_source == CryptoSource::kAndroid) {
     std::string pkey;
     if (pkey_content != nullptr) {
       pkey = *pkey_content;
@@ -37,7 +42,7 @@ void KeyManager::loadKeys(const std::string *pkey_content, const std::string *ce
       tmp_pkey_file->PutContents(pkey);
     }
   }
-  if (config_.tls_cert_source == CryptoSource::kFile) {
+  if (config_.tls_cert_source == CryptoSource::kFile || config_.tls_cert_source == CryptoSource::kAndroid) {
     std::string cert;
     if (cert_content != nullptr) {
       cert = *cert_content;
@@ -51,7 +56,7 @@ void KeyManager::loadKeys(const std::string *pkey_content, const std::string *ce
       tmp_cert_file->PutContents(cert);
     }
   }
-  if (config_.tls_ca_source == CryptoSource::kFile) {
+  if (config_.tls_ca_source == CryptoSource::kFile || config_.tls_ca_source == CryptoSource::kAndroid) {
     std::string ca;
     if (ca_content != nullptr) {
       ca = *ca_content;
@@ -75,7 +80,7 @@ std::string KeyManager::getPkeyFile() const {
     }
     pkey_file = (*p11_)->getTlsPkeyId();
   }
-  if (config_.tls_pkey_source == CryptoSource::kFile) {
+  if (config_.tls_pkey_source == CryptoSource::kFile || config_.tls_pkey_source == CryptoSource::kAndroid) {
     if (tmp_pkey_file && !boost::filesystem::is_empty(tmp_pkey_file->PathString())) {
       pkey_file = tmp_pkey_file->PathString();
     }
@@ -91,7 +96,7 @@ std::string KeyManager::getCertFile() const {
     }
     cert_file = (*p11_)->getTlsCertId();
   }
-  if (config_.tls_cert_source == CryptoSource::kFile) {
+  if (config_.tls_cert_source == CryptoSource::kFile || config_.tls_cert_source == CryptoSource::kAndroid) {
     if (tmp_cert_file && !boost::filesystem::is_empty(tmp_cert_file->PathString())) {
       cert_file = tmp_cert_file->PathString();
     }
@@ -107,7 +112,7 @@ std::string KeyManager::getCaFile() const {
     }
     ca_file = (*p11_)->getTlsCacertId();
   }
-  if (config_.tls_ca_source == CryptoSource::kFile) {
+  if (config_.tls_ca_source == CryptoSource::kFile || config_.tls_ca_source == CryptoSource::kAndroid) {
     if (tmp_ca_file && !boost::filesystem::is_empty(tmp_ca_file->PathString())) {
       ca_file = tmp_ca_file->PathString();
     }
@@ -123,7 +128,7 @@ std::string KeyManager::getPkey() const {
     }
     pkey = (*p11_)->getTlsPkeyId();
   }
-  if (config_.tls_pkey_source == CryptoSource::kFile) {
+  if (config_.tls_pkey_source == CryptoSource::kFile || config_.tls_pkey_source == CryptoSource::kAndroid) {
     backend_->loadTlsPkey(&pkey);
   }
   return pkey;
@@ -137,7 +142,7 @@ std::string KeyManager::getCert() const {
     }
     cert = (*p11_)->getTlsCertId();
   }
-  if (config_.tls_cert_source == CryptoSource::kFile) {
+  if (config_.tls_cert_source == CryptoSource::kFile || config_.tls_cert_source == CryptoSource::kAndroid) {
     backend_->loadTlsCert(&cert);
   }
   return cert;
@@ -151,7 +156,7 @@ std::string KeyManager::getCa() const {
     }
     ca = (*p11_)->getTlsCacertId();
   }
-  if (config_.tls_ca_source == CryptoSource::kFile) {
+  if (config_.tls_ca_source == CryptoSource::kFile || config_.tls_ca_source == CryptoSource::kAndroid) {
     backend_->loadTlsCa(&ca);
   }
   return ca;
@@ -160,7 +165,7 @@ std::string KeyManager::getCa() const {
 std::string KeyManager::getCN() const {
   std::string not_found_cert_message = "Certificate is not found, can't extract device_id";
   std::string cert;
-  if (config_.tls_cert_source == CryptoSource::kFile) {
+  if (config_.tls_cert_source == CryptoSource::kFile || config_.tls_cert_source == CryptoSource::kAndroid) {
     if (!backend_->loadTlsCert(&cert)) {
       throw std::runtime_error(not_found_cert_message);
     }
@@ -209,11 +214,22 @@ Json::Value KeyManager::signTuf(const Json::Value &in_data) const {
     crypto_engine = (*p11_)->getEngine();
     private_key = config_.p11.uptane_key_id;
   }
-  if (config_.uptane_key_source == CryptoSource::kFile) {
-    backend_->loadPrimaryPrivate(&private_key);
+
+  std::string b64sig;
+  if (config_.uptane_key_source == CryptoSource::kAndroid) {
+#if defined(ANDROID)
+    b64sig = AndroidKeyStore::instance().signData(Json::FastWriter().write(in_data));
+#else
+    throw std::runtime_error("Aktualizr was built without Android support");
+#endif
+  } else {
+    if (config_.uptane_key_source == CryptoSource::kFile) {
+      backend_->loadPrimaryPrivate(&private_key);
+    }
+    b64sig = Utils::toBase64(
+        Crypto::Sign(config_.uptane_key_type, crypto_engine, private_key, Json::FastWriter().write(in_data)));
   }
-  std::string b64sig = Utils::toBase64(
-      Crypto::Sign(config_.uptane_key_type, crypto_engine, private_key, Json::FastWriter().write(in_data)));
+
   Json::Value signature;
   signature["method"] = "rsassa-pss";
   signature["sig"] = b64sig;
@@ -232,11 +248,24 @@ std::string KeyManager::generateUptaneKeyPair() {
   if (config_.uptane_key_source == CryptoSource::kFile) {
     std::string primary_private;
     if (!backend_->loadPrimaryKeys(&primary_public, &primary_private)) {
-      if (Crypto::generateKeyPair(config_.uptane_key_type, &primary_public, &primary_private)) {
+      bool result_ = Crypto::generateKeyPair(config_.uptane_key_type, &primary_public, &primary_private);
+      if (result_) {
         backend_->storePrimaryKeys(primary_public, primary_private);
       }
     }
     if (primary_public.empty() && primary_private.empty()) {
+      throw std::runtime_error("Could not get uptane keys");
+    }
+  } else if (config_.uptane_key_source == CryptoSource::kAndroid) {
+#if defined(ANDROID)
+    primary_public = AndroidKeyStore::instance().getPublicKey();
+    if (primary_public.empty()) {
+      primary_public = AndroidKeyStore::instance().generateKeyPair();
+    }
+#else
+    throw std::runtime_error("Aktualizr was built without Android support");
+#endif
+    if (primary_public.empty()) {
       throw std::runtime_error("Could not get uptane keys");
     }
   } else {
@@ -259,6 +288,15 @@ PublicKey KeyManager::UptanePublicKey() const {
   std::string primary_public;
   if (config_.uptane_key_source == CryptoSource::kFile) {
     if (!backend_->loadPrimaryPublic(&primary_public)) {
+      throw std::runtime_error("Could not get uptane public key!");
+    }
+  } else if (config_.uptane_key_source == CryptoSource::kAndroid) {
+#if defined(ANDROID)
+    primary_public = AndroidKeyStore::instance().getPublicKey();
+#else
+    throw std::runtime_error("Aktualizr was built without Android support");
+#endif
+    if (primary_public.empty()) {
       throw std::runtime_error("Could not get uptane public key!");
     }
   } else {
