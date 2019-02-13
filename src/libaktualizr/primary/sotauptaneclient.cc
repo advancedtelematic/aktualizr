@@ -1168,7 +1168,8 @@ void SotaUptaneClient::verifySecondaries() {
   store_it = std::find_if(serials.begin(), serials.end(), primary_comp);
   if (store_it == serials.end()) {
     LOG_ERROR << "Primary ECU serial " << uptane_manifest.getPrimaryEcuSerial() << " not found in storage!";
-    misconfigured_ecus.emplace_back(store_it->first, store_it->second, EcuState::kOld);
+    misconfigured_ecus.emplace_back(uptane_manifest.getPrimaryEcuSerial(), Uptane::HardwareIdentifier(""),
+                                    EcuState::kOld);
   } else {
     found[static_cast<size_t>(std::distance(serials.cbegin(), store_it))] = true;
   }
