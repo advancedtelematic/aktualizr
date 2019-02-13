@@ -156,7 +156,7 @@ TEST(aktualizr_repo, delegation) {
     FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
 
-  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/image/test_delegate.json"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/image/delegations/test_delegate.json"));
   auto targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
   EXPECT_EQ(targets["signed"]["delegations"]["roles"][0]["name"].asString(), "test_delegate");
   EXPECT_EQ(targets["signed"]["delegations"]["roles"][0]["paths"][0].asString(), "tests/test_data/*.txt");
@@ -168,7 +168,7 @@ TEST(aktualizr_repo, delegation) {
     FAIL() << "'" << output << "' exited with error code " << retval << "\n";
   }
   {
-    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/test_delegate.json");
+    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/delegations/test_delegate.json");
     Uptane::Targets delegate_targets(test_delegate);
     EXPECT_EQ(delegate_targets.targets.size(), 1);
     EXPECT_EQ(delegate_targets.targets[0].filename(), "tests/test_data/firmware.txt");
@@ -185,7 +185,7 @@ TEST(aktualizr_repo, delegation) {
     FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
   {
-    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/test_delegate.json");
+    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/delegations/test_delegate.json");
     Uptane::Targets delegate_targets(test_delegate);
     EXPECT_EQ(delegate_targets.targets.size(), 2);
     EXPECT_EQ(delegate_targets.targets[1].filename(), "tests/test_data/firmware2.txt");
@@ -213,7 +213,7 @@ TEST(aktualizr_repo, delegation_revoke) {
     FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
 
-  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/image/test_delegate.json"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/image/delegations/test_delegate.json"));
   auto targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
   EXPECT_EQ(targets["signed"]["delegations"]["roles"][0]["name"].asString(), "test_delegate");
   EXPECT_EQ(targets["signed"]["delegations"]["roles"][0]["paths"][0].asString(), "tests/test_data/*.txt");
@@ -225,7 +225,7 @@ TEST(aktualizr_repo, delegation_revoke) {
     FAIL() << "'" << output << "' exited with error code " << retval << "\n";
   }
   {
-    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/test_delegate.json");
+    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/delegations/test_delegate.json");
     Uptane::Targets delegate_targets(test_delegate);
     EXPECT_EQ(delegate_targets.targets.size(), 1);
     EXPECT_EQ(delegate_targets.targets[0].filename(), "tests/test_data/firmware.txt");
@@ -255,7 +255,7 @@ TEST(aktualizr_repo, delegation_revoke) {
     FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
   {
-    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/test_delegate.json");
+    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/delegations/test_delegate.json");
     Uptane::Targets delegate_targets(test_delegate);
     EXPECT_EQ(delegate_targets.targets.size(), 2);
     EXPECT_EQ(delegate_targets.targets[1].filename(), "tests/test_data/firmware2.txt");
@@ -280,7 +280,7 @@ TEST(aktualizr_repo, delegation_revoke) {
   if (retval) {
     FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
-  EXPECT_FALSE(boost::filesystem::exists(temp_dir.Path() / "repo/image/test_delegate.json"));
+  EXPECT_FALSE(boost::filesystem::exists(temp_dir.Path() / "repo/image/delegations/test_delegate.json"));
   auto new_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
   EXPECT_EQ(new_targets["signed"]["delegations"]["keys"].size(), 0);
   EXPECT_EQ(new_targets["signed"]["delegations"]["roles"].size(), 0);

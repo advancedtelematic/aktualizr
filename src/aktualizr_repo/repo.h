@@ -22,7 +22,7 @@ struct Delegation {
     if (Uptane::Role::IsReserved(name)) {
       throw std::runtime_error("Delegation name " + name + " is reserved.");
     }
-    boost::filesystem::path delegation_path(((repo_path / "repo/image") / name).string() + ".json");
+    boost::filesystem::path delegation_path(((repo_path / "repo/image/delegations") / name).string() + ".json");
     boost::filesystem::path targets_path(repo_path / "repo/image/targets.json");
     if (!boost::filesystem::exists(delegation_path) || !boost::filesystem::exists(targets_path)) {
       throw std::runtime_error(std::string("delegation ") + delegation_path.string() + " does not exist");
