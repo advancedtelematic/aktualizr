@@ -204,6 +204,13 @@ data::InstallationResult OstreeManager::install(const Uptane::Target &target) co
   return data::InstallationResult(data::ResultCode::Numeric::kNeedCompletion, "Application successful, need reboot");
 }
 
+void OstreeManager::completeInstall() const {
+    if (config.force_reboot) {
+      LOG_INFO << "About to reboot the system in order to aplly pending updates...";
+      bootloader_->reboot();
+    }
+}
+
 data::InstallationResult OstreeManager::finalizeInstall(const Uptane::Target &target) const {
   LOG_INFO << "Checking installation of new OStree sysroot";
   Uptane::Target current = getCurrent();

@@ -69,13 +69,11 @@ void Aktualizr::UptaneCycle() {
   uptane_client_->uptaneInstall(download_result.updates);
   uptane_client_->putManifest();
   if (uptane_client_->hasPendingUpdates()) {
-    // UptaneCycle() won't do anything useful if there is any pending updates that effectively require either reboot
-    // (ostree) or aktualizr restart (fake pack mngr)
-    LOG_INFO << "About to exit aktualizr since there are pending updates that require either reboot or aktualizr "
-                "restart, no sense to loop Uptane Cycle";
+    // If there are some pending updates then effectively either reboot (ostree) or aktualizr restart (fake pack mngr)
+    // is required to apply the update(s)
+    LOG_INFO << "About to exit aktualizr so the pending updates can be applied after reboot";
     Shutdown();
-    // will do reboot at Actualizr destructor if the force_reboot is set true in the configuration (in case of the fake
-    // pack manager an user/developer should remove the sentinel file)
+    // will reboot at Actualizr/SotaClient destructor if the force_reboot is set true in the package manager configuration
   }
 }
 

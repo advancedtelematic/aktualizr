@@ -84,7 +84,12 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage
   }
 }
 
-SotaUptaneClient::~SotaUptaneClient() { conn.disconnect(); }
+SotaUptaneClient::~SotaUptaneClient() {
+    conn.disconnect();
+    if (hasPendingUpdates()) {
+        package_manager_->completeInstall();
+    }
+}
 
 void SotaUptaneClient::addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec) {
   if (storage->loadEcuRegistered()) {

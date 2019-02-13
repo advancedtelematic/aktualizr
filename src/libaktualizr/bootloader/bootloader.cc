@@ -1,6 +1,9 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
+#include <linux/reboot.h>
+#include <sys/reboot.h>
+
 #include <boost/filesystem.hpp>
 
 #include "bootloader.h"
@@ -162,5 +165,16 @@ void Bootloader::rebootFlagClear() {
   // clear in storage + volatile flag
 
   storage_.clearNeedReboot();
+  // What's the point to remove the sentinel file here if rebootFlagClear is called
+  // only at the initialization phase when a reboot is detected what implies that this file is removed
   boost::filesystem::remove(reboot_sentinel_);
+}
+
+void Bootloader::reboot(bool fake_reboot) {
+  if (fake_reboot) {
+    boost::filesystem::remove(reboot_sentinel_);
+  } else {
+    sync();
+    reboot(LINUX_REBOOT_CMD_RESTART);
+  }
 }

@@ -45,6 +45,7 @@ class OstreeManager : public PackageManagerInterface {
   Uptane::Target getCurrent() const override;
   bool imageUpdated() override;
   data::InstallationResult install(const Uptane::Target &target) const override;
+  void completeInstall() const override;
   data::InstallationResult finalizeInstall(const Uptane::Target &target) const override;
 
   GObjectUniquePtr<OstreeDeployment> getStagedDeployment() const;
