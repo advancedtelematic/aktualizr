@@ -13,6 +13,9 @@
 #include "storage/invstorage.h"
 #include "uptane/secondaryinterface.h"
 
+#include <linux/reboot.h>
+#include <sys/reboot.h>
+
 class ApiQueue {
  public:
   void enqueue(const std::function<void()>& t) {
@@ -70,6 +73,15 @@ class Aktualizr {
     Shutdown();
     if (api_thread_.joinable()) {
       api_thread_.join();
+    }
+    if (config_.pacman.force_reboot) {
+      // TODO: put rebooting code in a correct place. I suggest to introduce Aktualizr::Deinitialize as symetric
+      // operations to Initialize() that actually initializes the api thread
+      // This code can go down to the specific package manager so it decides actually what exactly to do, reboot or just
+      // remove the sentinel file as in case of a fake manager
+      LOG_INFO << "About to reboot the system...";
+      sync();
+      reboot(LINUX_REBOOT_CMD_RESTART);
     }
   }
   Aktualizr(const Aktualizr&) = delete;

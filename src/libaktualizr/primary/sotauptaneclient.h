@@ -106,6 +106,7 @@ class SotaUptaneClient {
   void installationComplete(const std::shared_ptr<event::BaseEvent> &event);
   result::CampaignCheck campaignCheck();
   void campaignAccept(const std::string &campaign_id);
+  bool hasPendingUpdates();
   LazyTargetsList allTargets();
 
   static Uptane::Targets getTrustedDelegation(const Uptane::Role &delegate_role, const Uptane::Targets &parent_targets,
@@ -154,7 +155,6 @@ class SotaUptaneClient {
   void sendMetadataToEcus(const std::vector<Uptane::Target> &targets);
   std::future<bool> sendFirmwareAsync(Uptane::SecondaryInterface &secondary, const std::shared_ptr<std::string> &data);
   std::vector<result::Install::EcuReport> sendImagesToEcus(const std::vector<Uptane::Target> &targets);
-  bool hasPendingUpdates();
   void sendDownloadReport();
 
   bool putManifestSimple();
