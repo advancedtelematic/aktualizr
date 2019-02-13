@@ -147,16 +147,16 @@ TEST(aktualizr_repo, delegation) {
   std::string output;
   int retval = Utils::shell(cmd, &output);
   if (retval) {
-    FAIL() << "'" << cmd << "' exited with error code\n";
+    FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
   cmd = generate_repo_exec + " adddelegation " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
   cmd += " --dname test_delegate --dpattern 'tests/test_data/*.txt' ";
   retval = Utils::shell(cmd, &output);
   if (retval) {
-    FAIL() << "'" << cmd << "' exited with error code\n";
+    FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
 
-  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/image/test_delegate.json"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/image/delegations/test_delegate.json"));
   auto targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
   EXPECT_EQ(targets["signed"]["delegations"]["roles"][0]["name"].asString(), "test_delegate");
   EXPECT_EQ(targets["signed"]["delegations"]["roles"][0]["paths"][0].asString(), "tests/test_data/*.txt");
@@ -165,10 +165,10 @@ TEST(aktualizr_repo, delegation) {
   cmd += " --dname test_delegate --filename tests/test_data/firmware.txt";
   retval = Utils::shell(cmd, &output);
   if (retval) {
-    FAIL() << "'" << output << "' exited with error code\n";
+    FAIL() << "'" << output << "' exited with error code " << retval << "\n";
   }
   {
-    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/test_delegate.json");
+    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/delegations/test_delegate.json");
     Uptane::Targets delegate_targets(test_delegate);
     EXPECT_EQ(delegate_targets.targets.size(), 1);
     EXPECT_EQ(delegate_targets.targets[0].filename(), "tests/test_data/firmware.txt");
@@ -182,10 +182,10 @@ TEST(aktualizr_repo, delegation) {
       "d8e9caba8c1697fcbade1057f9c2488044192ff76bb64d4aba2c20e53dc33033 --targetlength 17";
   retval = Utils::shell(cmd, &output);
   if (retval) {
-    FAIL() << "'" << cmd << "' exited with error code\n";
+    FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
   {
-    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/test_delegate.json");
+    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/delegations/test_delegate.json");
     Uptane::Targets delegate_targets(test_delegate);
     EXPECT_EQ(delegate_targets.targets.size(), 2);
     EXPECT_EQ(delegate_targets.targets[1].filename(), "tests/test_data/firmware2.txt");
@@ -204,16 +204,16 @@ TEST(aktualizr_repo, delegation_revoke) {
   std::string output;
   int retval = Utils::shell(cmd, &output);
   if (retval) {
-    FAIL() << "'" << cmd << "' exited with error code\n";
+    FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
   cmd = generate_repo_exec + " adddelegation " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
   cmd += " --dname test_delegate --dpattern 'tests/test_data/*.txt' ";
   retval = Utils::shell(cmd, &output);
   if (retval) {
-    FAIL() << "'" << cmd << "' exited with error code\n";
+    FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
 
-  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/image/test_delegate.json"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/image/delegations/test_delegate.json"));
   auto targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
   EXPECT_EQ(targets["signed"]["delegations"]["roles"][0]["name"].asString(), "test_delegate");
   EXPECT_EQ(targets["signed"]["delegations"]["roles"][0]["paths"][0].asString(), "tests/test_data/*.txt");
@@ -222,10 +222,10 @@ TEST(aktualizr_repo, delegation_revoke) {
   cmd += " --dname test_delegate --filename tests/test_data/firmware.txt";
   retval = Utils::shell(cmd, &output);
   if (retval) {
-    FAIL() << "'" << output << "' exited with error code\n";
+    FAIL() << "'" << output << "' exited with error code " << retval << "\n";
   }
   {
-    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/test_delegate.json");
+    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/delegations/test_delegate.json");
     Uptane::Targets delegate_targets(test_delegate);
     EXPECT_EQ(delegate_targets.targets.size(), 1);
     EXPECT_EQ(delegate_targets.targets[0].filename(), "tests/test_data/firmware.txt");
@@ -239,23 +239,23 @@ TEST(aktualizr_repo, delegation_revoke) {
       "d8e9caba8c1697fcbade1057f9c2488044192ff76bb64d4aba2c20e53dc33033 --targetlength 17";
   retval = Utils::shell(cmd, &output);
   if (retval) {
-    FAIL() << "'" << cmd << "' exited with error code\n";
+    FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
 
   cmd = generate_repo_exec + " addtarget " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
   cmd += " --hwid primary_hw --serial CA:FE:A6:D2:84:9D --targetname tests/test_data/firmware.txt";
   retval = Utils::shell(cmd, &output);
   if (retval) {
-    FAIL() << "'" << cmd << "' exited with error code\n";
+    FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
 
   cmd = generate_repo_exec + " signtargets " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
   retval = Utils::shell(cmd, &output);
   if (retval) {
-    FAIL() << "'" << cmd << "' exited with error code\n";
+    FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
   {
-    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/test_delegate.json");
+    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/delegations/test_delegate.json");
     Uptane::Targets delegate_targets(test_delegate);
     EXPECT_EQ(delegate_targets.targets.size(), 2);
     EXPECT_EQ(delegate_targets.targets[1].filename(), "tests/test_data/firmware2.txt");
@@ -278,9 +278,9 @@ TEST(aktualizr_repo, delegation_revoke) {
   cmd += " --dname test_delegate";
   retval = Utils::shell(cmd, &output);
   if (retval) {
-    FAIL() << "'" << cmd << "' exited with error code\n";
+    FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
-  EXPECT_FALSE(boost::filesystem::exists(temp_dir.Path() / "repo/image/test_delegate.json"));
+  EXPECT_FALSE(boost::filesystem::exists(temp_dir.Path() / "repo/image/delegations/test_delegate.json"));
   auto new_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
   EXPECT_EQ(new_targets["signed"]["delegations"]["keys"].size(), 0);
   EXPECT_EQ(new_targets["signed"]["delegations"]["roles"].size(), 0);
@@ -301,7 +301,7 @@ TEST(aktualizr_repo, sign) {
   std::string output;
   int retval = Utils::shell(cmd, &output);
   if (retval) {
-    FAIL() << "'" << cmd << "' exited with error code\n";
+    FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
   cmd = generate_repo_exec + " sign " + temp_dir.Path().string();
   cmd += " --repotype director --keyname snapshot";
@@ -310,7 +310,7 @@ TEST(aktualizr_repo, sign) {
   output.clear();
   retval = Utils::shell(sign_cmd, &output);
   if (retval) {
-    FAIL() << "'" << sign_cmd << "' exited with error code\n";
+    FAIL() << "'" << sign_cmd << "' exited with error code " << retval << "\n";
   }
   auto json = Utils::parseJSON(output);
   Uptane::Root root(Uptane::RepositoryType::Director(),
@@ -331,7 +331,7 @@ TEST(aktualizr_repo, image_custom) {
   std::string output;
   int retval = Utils::shell(cmd, &output);
   if (retval) {
-    FAIL() << "'" << cmd << "' exited with error code\n";
+    FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
   cmd = generate_repo_exec + " image " + temp_dir.Path().string();
   cmd +=
@@ -339,7 +339,7 @@ TEST(aktualizr_repo, image_custom) {
       "--targetlength 123";
   retval = Utils::shell(cmd, &output);
   if (retval) {
-    FAIL() << "'" << cmd << "' exited with error code\n";
+    FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
 
   Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
@@ -359,7 +359,7 @@ TEST(aktualizr_repo, emptytargets) {
   std::string output;
   int retval = Utils::shell(cmd, &output);
   if (retval) {
-    FAIL() << "'" << cmd << "' exited with error code\n";
+    FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
   cmd = generate_repo_exec + " image " + temp_dir.Path().string();
   cmd +=
@@ -367,14 +367,14 @@ TEST(aktualizr_repo, emptytargets) {
       "--targetlength 123";
   retval = Utils::shell(cmd, &output);
   if (retval) {
-    FAIL() << "'" << cmd << "' exited with error code\n";
+    FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
 
   cmd = generate_repo_exec + " addtarget " + temp_dir.Path().string();
   cmd += " --targetname target1 --hwid hwid123 --serial serial123";
   retval = Utils::shell(cmd, &output);
   if (retval) {
-    FAIL() << "'" << cmd << "' exited with error code\n";
+    FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
 
   Json::Value targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/staging/targets.json");
@@ -386,7 +386,7 @@ TEST(aktualizr_repo, emptytargets) {
   cmd = generate_repo_exec + " emptytargets " + temp_dir.Path().string();
   retval = Utils::shell(cmd, &output);
   if (retval) {
-    FAIL() << "'" << cmd << "' exited with error code\n"
+    FAIL() << "'" << cmd << "' exited with error code " << retval << "\n"
            << "output: " << output;
   }
 
@@ -428,7 +428,7 @@ TEST(aktualizr_repo, oldtargets) {
   std::string output;
   int retval = Utils::shell(cmd, &output);
   if (retval) {
-    FAIL() << "'" << cmd << "' exited with error code\n"
+    FAIL() << "'" << cmd << "' exited with error code " << retval << "\n"
            << "output: " << output;
   }
   targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/staging/targets.json");
