@@ -374,7 +374,7 @@ class MetaWithKeys : public BaseMeta {
   static const int64_t kMaxSignatures = 1000;
 
   std::map<KeyId, PublicKey> keys_;
-  std::set<std::pair<Role, KeyId> > keys_for_role_;
+  std::set<std::pair<Role, KeyId>> keys_for_role_;
   std::map<Role, int64_t> thresholds_for_role_;
 };
 
@@ -435,7 +435,7 @@ class Targets : public MetaWithKeys {
 
   std::vector<Uptane::Target> targets;
   std::set<std::string> delegated_role_names_;
-  std::map<Role, std::vector<std::string> > paths_for_role_;
+  std::map<Role, std::vector<std::string>> paths_for_role_;
   std::map<Role, bool> terminating_role_;
 
  private:
@@ -467,19 +467,19 @@ class Snapshot : public BaseMeta {
   explicit Snapshot(const Json::Value &json);
   Snapshot(RepositoryType repo, const Json::Value &json, const std::shared_ptr<MetaWithKeys> &signer);
   Snapshot() = default;
-  std::vector<Hash> targets_hashes() const { return targets_hashes_; };
-  int64_t targets_size() const { return targets_size_; };
-  int targets_version() const { return targets_version_; };
+  std::vector<Hash> role_hashes(const Uptane::Role &role) const;
+  int64_t role_size(const Uptane::Role &role) const;
+  int role_version(const Uptane::Role &role) const;
   bool operator==(const Snapshot &rhs) const {
-    return version_ == rhs.version() && expiry_ == rhs.expiry() && targets_size_ == rhs.targets_size_ &&
-           targets_version_ == rhs.targets_version_ && targets_hashes_ == rhs.targets_hashes_;
+    return version_ == rhs.version() && expiry_ == rhs.expiry() && role_size_ == rhs.role_size_ &&
+           role_version_ == rhs.role_version_ && role_hashes_ == rhs.role_hashes_;
   }
 
  private:
   void init(const Json::Value &json);
-  int64_t targets_size_{0};
-  int targets_version_{-1};
-  std::vector<Hash> targets_hashes_;
+  std::map<Uptane::Role, int64_t> role_size_;
+  std::map<Uptane::Role, int> role_version_;
+  std::map<Uptane::Role, std::vector<Hash>> role_hashes_;
 };
 
 struct MetaPack {

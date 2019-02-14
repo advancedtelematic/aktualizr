@@ -63,42 +63,55 @@ bool ImagesRepository::verifySnapshot(const std::string& snapshot_raw) {
   return true;
 }
 
+bool ImagesRepository::verifyRoleHashes(const std::string& role_data, const Uptane::Role& role) const {
+  const std::string canonical = Utils::jsonToCanonicalStr(Utils::parseJSON(role_data));
+  bool hash_exists = false;
+  for (const auto& it : snapshot.role_hashes(role)) {
+    switch (it.type()) {
+      case Hash::Type::kSha256:
+        if (Hash(Hash::Type::kSha256, boost::algorithm::hex(Crypto::sha256digest(canonical))) != it) {
+          LOG_ERROR << "Hash verification for " << role.ToString() << " metadata failed";
+          return false;
+        }
+        hash_exists = true;
+        break;
+      case Hash::Type::kSha512:
+        if (Hash(Hash::Type::kSha512, boost::algorithm::hex(Crypto::sha512digest(canonical))) != it) {
+          LOG_ERROR << "Hash verification for " << role.ToString() << " metadata failed";
+          return false;
+        }
+        hash_exists = true;
+        break;
+      default:
+        break;
+    }
+  }
+
+  if (!hash_exists) {
+    LOG_ERROR << "No hash found for " << role.ToString() << " role";
+  }
+
+  return hash_exists;
+}
+
+int ImagesRepository::getRoleVersion(const Uptane::Role& role) const { return snapshot.role_version(role); }
+
+int64_t ImagesRepository::getRoleSize(const Uptane::Role& role) const { return snapshot.role_size(role); }
+
 bool ImagesRepository::verifyTargets(const std::string& targets_raw) {
   try {
-    const Json::Value targets_json = Utils::parseJSON(targets_raw);
-    const std::string canonical = Utils::jsonToCanonicalStr(targets_json);
-    bool hash_exists = false;
-    for (const auto& it : snapshot.targets_hashes()) {
-      switch (it.type()) {
-        case Hash::Type::kSha256:
-          if (Hash(Hash::Type::kSha256, boost::algorithm::hex(Crypto::sha256digest(canonical))) != it) {
-            LOG_ERROR << "Hash verification for targets metadata failed";
-            return false;
-          }
-          hash_exists = true;
-          break;
-        case Hash::Type::kSha512:
-          if (Hash(Hash::Type::kSha512, boost::algorithm::hex(Crypto::sha512digest(canonical))) != it) {
-            LOG_ERROR << "Hash verification for targets metadata failed";
-            return false;
-          }
-          hash_exists = true;
-          break;
-        default:
-          break;
-      }
-    }
-    if (!hash_exists) {
-      LOG_ERROR << "No hash found for targets.json";
+    if (!verifyRoleHashes(targets_raw, Uptane::Role::Targets())) {
       return false;
     }
+
+    auto targets_json = Utils::parseJSON(targets_raw);
 
     // Verify the signature:
     auto signer = std::make_shared<MetaWithKeys>(root);
     targets = std::make_shared<Uptane::Targets>(
         Targets(RepositoryType::Image(), Uptane::Role::Targets(), targets_json, signer));
 
-    if (targets->version() != snapshot.targets_version()) {
+    if (targets->version() != snapshot.role_version(Uptane::Role::Targets())) {
       return false;
     }
   } catch (const Exception& e) {

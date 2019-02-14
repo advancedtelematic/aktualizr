@@ -18,7 +18,6 @@ class ImagesRepository : public RepositoryCommon {
 
   bool verifyTargets(const std::string& targets_raw);
   bool targetsExpired() { return targets->isExpired(TimeStamp::Now()); }
-  int64_t targetsSize() { return snapshot.targets_size(); }
 
   bool verifyTimestamp(const std::string& timestamp_raw);
   bool timestampExpired() { return timestamp.isExpired(TimeStamp::Now()); }
@@ -31,10 +30,13 @@ class ImagesRepository : public RepositoryCommon {
 
   static std::shared_ptr<Uptane::Targets> verifyDelegation(const std::string& delegation_raw, const Uptane::Role& role,
                                                            const Targets& parent_target);
-  std::shared_ptr<Uptane::Targets> getTrustedTargets() { return targets; }
+  std::shared_ptr<Uptane::Targets> getTargets() const { return targets; }
+
+  bool verifyRoleHashes(const std::string& role_data, const Uptane::Role& role) const;
+  int getRoleVersion(const Uptane::Role& role) const;
+  int64_t getRoleSize(const Uptane::Role& role) const;
 
  private:
-  // Map from role name -> metadata ("targets" for top-level):
   std::shared_ptr<Uptane::Targets> targets;
   Uptane::TimestampMeta timestamp;
   Uptane::Snapshot snapshot;

@@ -555,7 +555,10 @@ bool SotaUptaneClient::updateImagesMeta() {
     std::string images_targets;
     Uptane::Role targets_role = Uptane::Role::Targets();
 
-    int64_t targets_size = (images_repo.targetsSize() > 0) ? images_repo.targetsSize() : Uptane::kMaxImagesTargetsSize;
+    auto targets_size = images_repo.getRoleSize(Uptane::Role::Targets());
+    if (targets_size <= 0) {
+      targets_size = Uptane::kMaxImagesTargetsSize;
+    }
     if (!uptane_fetcher->fetchLatestRole(&images_targets, targets_size, Uptane::RepositoryType::Image(),
                                          targets_role)) {
       return false;
@@ -823,29 +826,44 @@ std::unique_ptr<Uptane::Target> SotaUptaneClient::findTargetHelper(const Uptane:
     // Target name matches one of the patterns
 
     std::string delegation_meta;
-    std::shared_ptr<Uptane::Targets> delegation;
+
+    auto version_in_snapshot = images_repo.getRoleVersion(delegate_role);
 
     if (storage->loadDelegation(&delegation_meta, delegate_role)) {
-      delegation = Uptane::ImagesRepository::verifyDelegation(delegation_meta, delegate_role, cur_targets);
-      if (delegation == nullptr) {
-        storage->deleteDelegation(delegate_role);
+      auto version = Uptane::extractVersionUntrusted(delegation_meta);
+
+      if (version > version_in_snapshot) {
+        throw Uptane::SecurityException("images", "Rollback attempt on delegated targets");
+      } else if (version < version_in_snapshot) {
         delegation_meta.clear();
+        storage->deleteDelegation(delegate_role);
       }
     }
 
-    if (delegation == nullptr) {
+    bool delegation_remote = delegation_meta.empty();
+    if (delegation_remote) {
       if (!uptane_fetcher->fetchLatestRole(&delegation_meta, Uptane::kMaxImagesTargetsSize,
                                            Uptane::RepositoryType::Image(), delegate_role)) {
         throw std::runtime_error(std::string("Couldn't fetch ") +
                                  delegate_role.ToString());  // TODO: connectivity exception
       }
+    }
 
-      delegation = Uptane::ImagesRepository::verifyDelegation(delegation_meta, delegate_role, cur_targets);
+    if (!images_repo.verifyRoleHashes(delegation_meta, delegate_role)) {
+      throw Uptane::SecurityException("images", "Delegation hash verification failed");
+    }
 
-      if (delegation == nullptr) {
-        throw Uptane::SecurityException("images", "Delegation verification failed");
+    auto delegation = Uptane::ImagesRepository::verifyDelegation(delegation_meta, delegate_role, cur_targets);
+
+    if (delegation == nullptr) {
+      throw Uptane::SecurityException("images", "Delegation verification failed");
+    }
+
+    if (delegation_remote) {
+      if (delegation->version() != version_in_snapshot) {
+        throw Uptane::SecurityException(
+            "images", std::string("Delegated role version didn't match the entry in Snapshot metadata"));
       }
-
       storage->storeDelegation(delegation_meta, delegate_role);
     }
 
@@ -870,7 +888,7 @@ std::unique_ptr<Uptane::Target> SotaUptaneClient::findTargetHelper(const Uptane:
 }
 
 std::unique_ptr<Uptane::Target> SotaUptaneClient::findTargetInDelegationTree(const Uptane::Target &target) {
-  auto toplevel_targets = images_repo.getTrustedTargets();
+  auto toplevel_targets = images_repo.getTargets();
 
   if (toplevel_targets == nullptr) {
     return std::unique_ptr<Uptane::Target>(nullptr);
