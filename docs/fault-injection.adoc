@@ -27,3 +27,33 @@ Please try to keep this list up-to-date when inserting/removing fail points.
 == Use in unit tests
 
 It is encouraged to use fail points to help unit testing sad paths. Tests that require fault injection should only be run if the `FIU_ENABLE` macro is defined.
+
+== Example with a docker container
+
+The aktualizr application docker image is compiled with fault injection support. It can be used as a quick way to simulate intermitent installation failures.
+
+First build the image:
+
+    ./docker/docker-build.sh
+
+It will tag an image `advancedtelematic/aktualizr-app:latest` which includes the common aktualizr tools, as well as the fiu tools (`fiu-run`, `fiu-ctrl`...)
+
+Then, prepare an environment for a simulated device, following the guide at link:https://docs.ota.here.com/quickstarts/install-a-client-locally-with-fake-secondaries.html[].
+
+`aktualizr` will be run through docker instead of the local system, so all commands will start with:
+
+    docker run -u $(id -u):$(id -g) -w $PWD -v $PWD:$PWD advancedtelematic/aktualizr-app
+
+It runs the docker image inside a container with the same permissions as the local user, with a volume mounted in the current local directory.
+
+Then, let's launch aktualizr with `fiu-run`:
+
+    docker run --name aktualizr-fiu -u $(id -u):$(id -g) -w $PWD -v $PWD:$PWD advancedtelematic/aktualizr-app fiu-run aktualizr -c .
+
+You can try to install a package now, which will succeed. To make all subsequent installations fail, use:
+
+    docker exec aktualizr-fiu fiu-ctrl -c 'enable name=fake_package_install' 1
+
+To make installations succeed again:
+
+    docker exec aktualizr-fiu fiu-ctrl -c 'disable name=fake_package_install' 1
