@@ -109,6 +109,9 @@ class SotaUptaneClient {
   bool checkImagesMetaOffline();
   bool checkDirectorMetaOffline();
   void computeDeviceInstallationResult(data::InstallationResult *result, const std::string &correlation_id);
+  std::unique_ptr<Uptane::Target> findTargetInDelegationTree(const Uptane::Target &target);
+  std::unique_ptr<Uptane::Target> findTargetHelper(const Uptane::Targets &cur_targets,
+                                                   const Uptane::Target &queried_target, int level, bool terminating);
 
   template <class T, class... Args>
   void sendEvent(Args &&... args) {

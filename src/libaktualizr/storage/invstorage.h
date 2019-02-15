@@ -138,6 +138,7 @@ class INvStorage {
   virtual void clearMetadata() = 0;
   virtual void storeDelegation(const std::string& data, Uptane::Role role) = 0;
   virtual bool loadDelegation(std::string* data, Uptane::Role role) = 0;
+  virtual void deleteDelegation(Uptane::Role role) = 0;
   virtual void clearDelegations() = 0;
 
   virtual void storeDeviceId(const std::string& device_id) = 0;

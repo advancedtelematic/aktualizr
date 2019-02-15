@@ -27,18 +27,11 @@ struct Delegation {
     if (!boost::filesystem::exists(delegation_path) || !boost::filesystem::exists(targets_path)) {
       throw std::runtime_error(std::string("delegation ") + delegation_path.string() + " does not exist");
     }
-    Json::Value delegations = Utils::parseJSONFile(targets_path)["signed"]["delegations"];
-    for (const auto &role : delegations["roles"]) {
-      if (role["name"].asString() == name) {
-        pattern = role["paths"][0].asString();
-        if (pattern.back() == '/') {
-          pattern.append("**");
-        }
-      }
-    }
+
+    pattern = findPatternInTree(repo_path, name, Utils::parseJSONFile(targets_path)["signed"]);
 
     if (pattern.empty()) {
-      throw std::runtime_error("Could not found delegation role in targets.json");
+      throw std::runtime_error("Could not find delegation role in the delegation tree");
     }
   }
   bool isMatched(const boost::filesystem::path &image_path) {
@@ -47,6 +40,10 @@ struct Delegation {
   operator bool() const { return (!name.empty() && !pattern.empty()); }
   std::string name;
   std::string pattern;
+
+ private:
+  static std::string findPatternInTree(const boost::filesystem::path &repo_path, const std::string &name,
+                                       const Json::Value &targets_json);
 };
 
 class Repo {
@@ -68,6 +65,9 @@ class Repo {
   std::string correlation_id_;
   std::string expiration_time_;
   std::map<Uptane::Role, KeyPair> keys_;
+
+ private:
+  void addDelegationToSnapshot(Json::Value *snapshot, const Uptane::Role &role);
 };
 
 #endif  // REPO_H_

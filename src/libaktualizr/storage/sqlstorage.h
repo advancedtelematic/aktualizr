@@ -44,6 +44,7 @@ class SQLStorage : public SQLStorageBase, public INvStorage {
   void clearMetadata() override;
   void storeDelegation(const std::string& data, Uptane::Role role) override;
   bool loadDelegation(std::string* data, Uptane::Role role) override;
+  void deleteDelegation(Uptane::Role role) override;
   void clearDelegations() override;
 
   void storeDeviceId(const std::string& device_id) override;

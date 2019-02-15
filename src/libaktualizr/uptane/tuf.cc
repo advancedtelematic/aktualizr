@@ -335,27 +335,38 @@ Uptane::TimestampMeta::TimestampMeta(RepositoryType repo, const Json::Value &jso
 }
 
 void Uptane::Snapshot::init(const Json::Value &json) {
-  Json::Value hashes_list = json["signed"]["meta"]["targets.json"]["hashes"];
-  Json::Value meta_size = json["signed"]["meta"]["targets.json"]["length"];
-  Json::Value meta_version = json["signed"]["meta"]["targets.json"]["version"];
-
-  if (!json.isObject() || json["signed"]["_type"] != "Snapshot" || !meta_version.isIntegral()) {
+  Json::Value meta_list = json["signed"]["meta"];
+  if (!json.isObject() || json["signed"]["_type"] != "Snapshot" || !meta_list.isObject()) {
     throw Uptane::InvalidMetadata("", "snapshot", "invalid snapshot.json");
   }
 
-  if (hashes_list.isObject()) {
-    for (Json::ValueIterator it = hashes_list.begin(); it != hashes_list.end(); ++it) {
-      Hash h(it.key().asString(), (*it).asString());
-      targets_hashes_.push_back(h);
+  for (Json::ValueIterator it = meta_list.begin(); it != meta_list.end(); ++it) {
+    Json::Value hashes_list = (*it)["hashes"];
+    Json::Value meta_size = (*it)["length"];
+    Json::Value meta_version = (*it)["version"];
+
+    if (!meta_version.isIntegral()) {
+      throw Uptane::InvalidMetadata("", "snapshot", "invalid snapshot.json");
+    }
+
+    auto role_name =
+        it.key().asString().substr(0, it.key().asString().rfind('.'));  // strip extension from the role name
+    auto role_object = Role(role_name, !Role::IsReserved(role_name));
+
+    role_size_[role_object] = meta_size.asInt64();
+    if (meta_version.isIntegral()) {
+      role_version_[role_object] = meta_version.asInt();
+    } else {
+      role_version_[role_object] = -1;
+    }
+
+    if (hashes_list.isObject()) {
+      for (Json::ValueIterator h_it = hashes_list.begin(); h_it != hashes_list.end(); ++h_it) {
+        Hash h(h_it.key().asString(), (*h_it).asString());
+        role_hashes_[role_object].push_back(h);
+      }
     }
   }
-
-  if (meta_size.isIntegral()) {
-    targets_size_ = meta_size.asInt();
-  } else {
-    targets_size_ = -1;
-  }
-  targets_version_ = meta_version.asInt();
 }
 
 Uptane::Snapshot::Snapshot(const Json::Value &json) : BaseMeta(json) { init(json); }
@@ -364,6 +375,33 @@ Uptane::Snapshot::Snapshot(RepositoryType repo, const Json::Value &json, const s
     : BaseMeta(repo, Role::Snapshot(), json, signer) {
   init(json);
 }
+
+std::vector<Hash> Uptane::Snapshot::role_hashes(const Uptane::Role &role) const {
+  auto hashes = role_hashes_.find(role);
+  if (hashes == role_hashes_.end()) {
+    return std::vector<Hash>();
+  } else {
+    return hashes->second;
+  }
+}
+
+int64_t Uptane::Snapshot::role_size(const Uptane::Role &role) const {
+  auto size = role_size_.find(role);
+  if (size == role_size_.end()) {
+    return 0;
+  } else {
+    return size->second;
+  }
+}
+
+int Uptane::Snapshot::role_version(const Uptane::Role &role) const {
+  auto version = role_version_.find(role);
+  if (version == role_version_.end()) {
+    return -1;
+  } else {
+    return version->second;
+  }
+};
 
 bool MetaPack::isConsistent() const {
   TimeStamp now(TimeStamp::Now());

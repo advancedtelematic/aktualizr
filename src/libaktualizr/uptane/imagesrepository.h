@@ -8,17 +8,16 @@
 
 namespace Uptane {
 
+constexpr int kDelegationsMaxDepth = 5;
+
 class ImagesRepository : public RepositoryCommon {
  public:
   ImagesRepository() : RepositoryCommon(RepositoryType::Image()) {}
 
   void resetMeta();
 
-  bool verifyTargets(const std::string& targets_raw, const Uptane::Role& role);
-  bool targetsExpired(const std::string& role_name) { return targets[role_name].isExpired(TimeStamp::Now()); }
-  int64_t targetsSize() { return snapshot.targets_size(); }
-  std::set<std::string> delegations(const std::string& role_name) { return targets[role_name].delegated_role_names_; }
-  std::unique_ptr<Uptane::Target> getTarget(const Uptane::Target& director_target);
+  bool verifyTargets(const std::string& targets_raw);
+  bool targetsExpired() { return targets->isExpired(TimeStamp::Now()); }
 
   bool verifyTimestamp(const std::string& timestamp_raw);
   bool timestampExpired() { return timestamp.isExpired(TimeStamp::Now()); }
@@ -29,9 +28,16 @@ class ImagesRepository : public RepositoryCommon {
 
   Exception getLastException() const { return last_exception; }
 
+  static std::shared_ptr<Uptane::Targets> verifyDelegation(const std::string& delegation_raw, const Uptane::Role& role,
+                                                           const Targets& parent_target);
+  std::shared_ptr<Uptane::Targets> getTargets() const { return targets; }
+
+  bool verifyRoleHashes(const std::string& role_data, const Uptane::Role& role) const;
+  int getRoleVersion(const Uptane::Role& role) const;
+  int64_t getRoleSize(const Uptane::Role& role) const;
+
  private:
-  // Map from role name -> metadata ("targets" for top-level):
-  std::map<std::string, Uptane::Targets> targets;
+  std::shared_ptr<Uptane::Targets> targets;
   Uptane::TimestampMeta timestamp;
   Uptane::Snapshot snapshot;
 

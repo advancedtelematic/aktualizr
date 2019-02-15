@@ -13,7 +13,7 @@
 
 boost::filesystem::path aktualizr_repo_path;
 
-void delegation_basic(const boost::filesystem::path& delegation_path, bool revoke = false) {
+void delegation_basic(const boost::filesystem::path& delegation_path, bool revoke) {
   std::string output;
   std::string cmd = "tests/uptane_repo_generation/delegation_basic.sh " + aktualizr_repo_path.string() + " " +
                     delegation_path.string();
@@ -23,10 +23,20 @@ void delegation_basic(const boost::filesystem::path& delegation_path, bool revok
   Utils::shell(cmd, &output);
 }
 
-class HttpFakeDelegationBasic : public HttpFake {
+void delegation_nested(const boost::filesystem::path& delegation_path, bool revoke) {
+  std::string output;
+  std::string cmd = "tests/uptane_repo_generation/delegation_nested.sh " + aktualizr_repo_path.string() + " " +
+                    delegation_path.string();
+  if (revoke) {
+    cmd += " revoke";
+  }
+  Utils::shell(cmd, &output);
+}
+
+class HttpFakeDelegation : public HttpFake {
  public:
-  HttpFakeDelegationBasic(const boost::filesystem::path& test_dir_in)
-      : HttpFake(test_dir_in, "", test_dir_in / "delegation_basic") {}
+  HttpFakeDelegation(const boost::filesystem::path& test_dir_in)
+      : HttpFake(test_dir_in, "", test_dir_in / "delegation_test") {}
 
   HttpResponse handle_event(const std::string& url, const Json::Value& data) override {
     (void)url;
@@ -44,148 +54,156 @@ class HttpFakeDelegationBasic : public HttpFake {
  * Search first-order delegations.
  * Correlation ID is empty if none was provided in targets metadata. */
 TEST(Delegation, Basic) {
-  TemporaryDirectory temp_dir;
-  auto delegation_path = temp_dir.Path() / "delegation_basic";
-  delegation_basic(delegation_path);
-  auto http = std::make_shared<HttpFakeDelegationBasic>(temp_dir.Path());
+  for (auto generate_fun : {delegation_basic, delegation_nested}) {
+    TemporaryDirectory temp_dir;
+    auto delegation_path = temp_dir.Path() / "delegation_test";
+    generate_fun(delegation_path, false);
+    auto http = std::make_shared<HttpFakeDelegation>(temp_dir.Path());
 
-  // scope `Aktualizr` object, so that the ReportQueue flushes its events before
-  // we count them at the end
-  {
-    Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+    // scope `Aktualizr` object, so that the ReportQueue flushes its events before
+    // we count them at the end
+    {
+      Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
-    auto storage = INvStorage::newStorage(conf.storage);
-    Aktualizr aktualizr(conf, storage, http);
+      auto storage = INvStorage::newStorage(conf.storage);
+      Aktualizr aktualizr(conf, storage, http);
 
-    aktualizr.Initialize();
-    result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
-    EXPECT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
+      aktualizr.Initialize();
+      result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
+      EXPECT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
 
-    result::Download download_result = aktualizr.Download(update_result.updates).get();
-    EXPECT_EQ(download_result.status, result::DownloadStatus::kSuccess);
+      result::Download download_result = aktualizr.Download(update_result.updates).get();
+      EXPECT_EQ(download_result.status, result::DownloadStatus::kSuccess);
 
-    result::Install install_result = aktualizr.Install(download_result.updates).get();
-    for (const auto& r : install_result.ecu_reports) {
-      EXPECT_EQ(r.install_res.result_code.num_code, data::ResultCode::Numeric::kOk);
+      result::Install install_result = aktualizr.Install(download_result.updates).get();
+      for (const auto& r : install_result.ecu_reports) {
+        EXPECT_EQ(r.install_res.result_code.num_code, data::ResultCode::Numeric::kOk);
+      }
     }
-  }
 
-  EXPECT_EQ(http->events_seen, 8);
+    EXPECT_EQ(http->events_seen, 8);
+  }
 }
 
 TEST(Delegation, RevokeAfterCheckUpdates) {
-  TemporaryDirectory temp_dir;
-  auto delegation_path = temp_dir.Path() / "delegation_basic";
-  delegation_basic(delegation_path);
-  {
-    auto http = std::make_shared<HttpFakeDelegationBasic>(temp_dir.Path());
-    Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
-    auto storage = INvStorage::newStorage(conf.storage);
-    Aktualizr aktualizr(conf, storage, http);
-    aktualizr.Initialize();
+  for (auto generate_fun : {delegation_basic, delegation_nested}) {
+    TemporaryDirectory temp_dir;
+    auto delegation_path = temp_dir.Path() / "delegation_test";
+    generate_fun(delegation_path, false);
+    {
+      auto http = std::make_shared<HttpFakeDelegation>(temp_dir.Path());
+      Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+      auto storage = INvStorage::newStorage(conf.storage);
+      Aktualizr aktualizr(conf, storage, http);
+      aktualizr.Initialize();
 
-    result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
-    EXPECT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
-    EXPECT_EQ(update_result.updates.size(), 2);
-  }
-  // Revoke delegation after CheckUpdates() and test if we can properly handle it.
-  {
-    delegation_basic(delegation_path, true);
-    auto http = std::make_shared<HttpFakeDelegationBasic>(temp_dir.Path());
-    Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
-    auto storage = INvStorage::newStorage(conf.storage);
-    Aktualizr aktualizr(conf, storage, http);
-    aktualizr.Initialize();
+      result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
+      EXPECT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
+      EXPECT_EQ(update_result.updates.size(), 2);
+    }
+    // Revoke delegation after CheckUpdates() and test if we can properly handle it.
+    {
+      generate_fun(delegation_path, true);
+      auto http = std::make_shared<HttpFakeDelegation>(temp_dir.Path());
+      Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+      auto storage = INvStorage::newStorage(conf.storage);
+      Aktualizr aktualizr(conf, storage, http);
+      aktualizr.Initialize();
 
-    auto update_result = aktualizr.CheckUpdates().get();
-    EXPECT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
-    EXPECT_EQ(update_result.updates.size(), 1);
+      auto update_result = aktualizr.CheckUpdates().get();
+      EXPECT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
+      EXPECT_EQ(update_result.updates.size(), 1);
 
-    result::Download download_result = aktualizr.Download(update_result.updates).get();
-    EXPECT_EQ(download_result.status, result::DownloadStatus::kSuccess);
+      result::Download download_result = aktualizr.Download(update_result.updates).get();
+      EXPECT_EQ(download_result.status, result::DownloadStatus::kSuccess);
 
-    result::Install install_result = aktualizr.Install(download_result.updates).get();
-    for (const auto& r : install_result.ecu_reports) {
-      EXPECT_EQ(r.install_res.result_code.num_code, data::ResultCode::Numeric::kOk);
+      result::Install install_result = aktualizr.Install(download_result.updates).get();
+      for (const auto& r : install_result.ecu_reports) {
+        EXPECT_EQ(r.install_res.result_code.num_code, data::ResultCode::Numeric::kOk);
+      }
     }
   }
 }
 
 TEST(Delegation, RevokeAfterDownload) {
-  TemporaryDirectory temp_dir;
-  auto delegation_path = temp_dir.Path() / "delegation_basic";
-  delegation_basic(delegation_path);
-  {
-    auto http = std::make_shared<HttpFakeDelegationBasic>(temp_dir.Path());
-    Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
-    auto storage = INvStorage::newStorage(conf.storage);
-    Aktualizr aktualizr(conf, storage, http);
-    aktualizr.Initialize();
+  for (auto generate_fun : {delegation_basic, delegation_nested}) {
+    TemporaryDirectory temp_dir;
+    auto delegation_path = temp_dir.Path() / "delegation_test";
+    generate_fun(delegation_path, false);
+    {
+      auto http = std::make_shared<HttpFakeDelegation>(temp_dir.Path());
+      Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+      auto storage = INvStorage::newStorage(conf.storage);
+      Aktualizr aktualizr(conf, storage, http);
+      aktualizr.Initialize();
 
-    result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
-    EXPECT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
+      result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
+      EXPECT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
 
-    result::Download download_result = aktualizr.Download(update_result.updates).get();
-    EXPECT_EQ(download_result.status, result::DownloadStatus::kSuccess);
-  }
-  // Revoke delegation after Download() and test if we can properly handle it
-  {
-    delegation_basic(delegation_path, true);
+      result::Download download_result = aktualizr.Download(update_result.updates).get();
+      EXPECT_EQ(download_result.status, result::DownloadStatus::kSuccess);
+    }
+    // Revoke delegation after Download() and test if we can properly handle it
+    {
+      generate_fun(delegation_path, true);
 
-    auto http = std::make_shared<HttpFakeDelegationBasic>(temp_dir.Path());
-    Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
-    auto storage = INvStorage::newStorage(conf.storage);
-    Aktualizr aktualizr(conf, storage, http);
-    aktualizr.Initialize();
+      auto http = std::make_shared<HttpFakeDelegation>(temp_dir.Path());
+      Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+      auto storage = INvStorage::newStorage(conf.storage);
+      Aktualizr aktualizr(conf, storage, http);
+      aktualizr.Initialize();
 
-    auto update_result = aktualizr.CheckUpdates().get();
-    EXPECT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
-    EXPECT_EQ(update_result.updates.size(), 1);
+      auto update_result = aktualizr.CheckUpdates().get();
+      EXPECT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
+      EXPECT_EQ(update_result.updates.size(), 1);
 
-    result::Download download_result = aktualizr.Download(update_result.updates).get();
-    EXPECT_EQ(download_result.status, result::DownloadStatus::kSuccess);
+      result::Download download_result = aktualizr.Download(update_result.updates).get();
+      EXPECT_EQ(download_result.status, result::DownloadStatus::kSuccess);
 
-    result::Install install_result = aktualizr.Install(download_result.updates).get();
-    for (const auto& r : install_result.ecu_reports) {
-      EXPECT_EQ(r.install_res.result_code.num_code, data::ResultCode::Numeric::kOk);
+      result::Install install_result = aktualizr.Install(download_result.updates).get();
+      for (const auto& r : install_result.ecu_reports) {
+        EXPECT_EQ(r.install_res.result_code.num_code, data::ResultCode::Numeric::kOk);
+      }
     }
   }
 }
 
 TEST(Delegation, RevokeAfterInstall) {
-  TemporaryDirectory temp_dir;
-  auto delegation_path = temp_dir.Path() / "delegation_basic";
-  delegation_basic(delegation_path);
-  {
-    auto http = std::make_shared<HttpFakeDelegationBasic>(temp_dir.Path());
-    Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
-    auto storage = INvStorage::newStorage(conf.storage);
-    Aktualizr aktualizr(conf, storage, http);
-    aktualizr.Initialize();
+  for (auto generate_fun : {delegation_basic, delegation_nested}) {
+    TemporaryDirectory temp_dir;
+    auto delegation_path = temp_dir.Path() / "delegation_test";
+    generate_fun(delegation_path, false);
+    {
+      auto http = std::make_shared<HttpFakeDelegation>(temp_dir.Path());
+      Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+      auto storage = INvStorage::newStorage(conf.storage);
+      Aktualizr aktualizr(conf, storage, http);
+      aktualizr.Initialize();
 
-    result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
-    EXPECT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
+      result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
+      EXPECT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
 
-    result::Download download_result = aktualizr.Download(update_result.updates).get();
-    EXPECT_EQ(download_result.status, result::DownloadStatus::kSuccess);
+      result::Download download_result = aktualizr.Download(update_result.updates).get();
+      EXPECT_EQ(download_result.status, result::DownloadStatus::kSuccess);
 
-    result::Install install_result = aktualizr.Install(download_result.updates).get();
-    for (const auto& r : install_result.ecu_reports) {
-      EXPECT_EQ(r.install_res.result_code.num_code, data::ResultCode::Numeric::kOk);
+      result::Install install_result = aktualizr.Install(download_result.updates).get();
+      for (const auto& r : install_result.ecu_reports) {
+        EXPECT_EQ(r.install_res.result_code.num_code, data::ResultCode::Numeric::kOk);
+      }
     }
-  }
-  // Revoke delegation after Install() and test if can properly CheckUpdates again
-  {
-    delegation_basic(delegation_path, true);
+    // Revoke delegation after Install() and test if can properly CheckUpdates again
+    {
+      generate_fun(delegation_path, true);
 
-    auto http = std::make_shared<HttpFakeDelegationBasic>(temp_dir.Path());
-    Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
-    auto storage = INvStorage::newStorage(conf.storage);
-    Aktualizr aktualizr(conf, storage, http);
-    aktualizr.Initialize();
+      auto http = std::make_shared<HttpFakeDelegation>(temp_dir.Path());
+      Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+      auto storage = INvStorage::newStorage(conf.storage);
+      Aktualizr aktualizr(conf, storage, http);
+      aktualizr.Initialize();
 
-    auto update_result = aktualizr.CheckUpdates().get();
-    EXPECT_EQ(update_result.status, result::UpdateStatus::kNoUpdatesAvailable);
+      auto update_result = aktualizr.CheckUpdates().get();
+      EXPECT_EQ(update_result.status, result::UpdateStatus::kNoUpdatesAvailable);
+    }
   }
 }
 

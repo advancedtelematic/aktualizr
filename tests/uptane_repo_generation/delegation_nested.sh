@@ -1,0 +1,44 @@
+#! /bin/bash
+set -eEuo pipefail
+
+if [ "$#" -lt 2 ]; then
+  echo "Usage: $0 <aktualizr-repo> <output directory> <revoke>"
+  exit 1
+fi
+
+AKTUALIZR_REPO="$1"
+DEST_DIR="$2"
+REVOKE=""
+if [ "$#" -eq 3 ]; then
+  REVOKE="$3"
+fi
+
+
+akrepo() {
+    echo "$AKTUALIZR_REPO --path $DEST_DIR $@"
+    "$AKTUALIZR_REPO" --path "$DEST_DIR" "$@"
+}
+
+mkdir -p "$DEST_DIR"
+trap 'rm -rf "$DEST_DIR"' ERR
+
+IMAGES=$(mktemp -d)
+trap 'rm -rf "$IMAGES"' exit
+PRIMARY_FIRMWARE="$IMAGES/primary.txt"
+echo "primary" > "$PRIMARY_FIRMWARE"
+SECONDARY_FIRMWARE="$IMAGES/secondary.txt"
+echo "secondary" > "$SECONDARY_FIRMWARE"
+if [[ "$REVOKE" = "revoke" ]]; then
+    echo "REVOKE"
+    akrepo --command revokedelegation --dname role-abc
+else
+    echo "NORMAL"
+    akrepo --command generate --expires 2021-07-04T16:33:27Z
+    akrepo --command adddelegation --dname delegation-top --dpattern "ab*"
+    akrepo --command adddelegation --dname role-abc --dpattern "abc/*" --dparent delegation-top
+    akrepo --command image --filename "$PRIMARY_FIRMWARE" --targetname primary.txt
+    akrepo --command image --filename "$SECONDARY_FIRMWARE" --targetname "abc/secondary.txt" --dname role-abc
+    akrepo --command addtarget --hwid primary_hw --serial CA:FE:A6:D2:84:9D --targetname primary.txt
+    akrepo --command addtarget --hwid secondary_hw --serial secondary_ecu_serial --targetname "abc/secondary.txt"
+    akrepo --command signtargets
+fi

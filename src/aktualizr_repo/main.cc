@@ -38,6 +38,8 @@ int main(int argc, char **argv) {
     ("targetsha512", po::value<std::string>(), "target's SHA512 hash (for adding metadata without an actual file)")
     ("targetlength", po::value<uint64_t>(), "target's length (for adding metadata without an actual file)")
     ("dname", po::value<std::string>(), "delegated role name")
+    ("dterm", po::bool_switch(), "if the created delegated role is terminating")
+    ("dparent", po::value<std::string>()->default_value("targets"), "delegated role parent name")
     ("dpattern", po::value<std::string>(), "delegated file path pattern");
 
   // clang-format on
@@ -121,7 +123,10 @@ int main(int argc, char **argv) {
           std::cerr << "adddelegation command requires --dname and --dpattern\n";
           exit(EXIT_FAILURE);
         }
-        repo.addDelegation(Uptane::Role(vm["dname"].as<std::string>(), true), vm["dpattern"].as<std::string>());
+        std::string dparent = vm["dparent"].as<std::string>();
+        repo.addDelegation(Uptane::Role(vm["dname"].as<std::string>(), true),
+                           Uptane::Role(dparent, dparent != "targets"), vm["dpattern"].as<std::string>(),
+                           vm["dterm"].as<bool>());
       } else if (command == "revokedelegation") {
         if (vm.count("dname") == 0) {
           std::cerr << "revokedelegation command requires --dname\n";
