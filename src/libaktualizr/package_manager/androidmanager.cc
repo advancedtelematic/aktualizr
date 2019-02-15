@@ -1,12 +1,13 @@
 #include <boost/algorithm/string/find.hpp>
 #include <boost/filesystem.hpp>
-#include <regex>
+#include <forward_list>
 
 #include "androidmanager.h"
 
 #include "utilities/utils.h"
 
 #include <boost/phoenix/stl/algorithm/transformation.hpp>
+#include <boost/spirit/include/phoenix_container.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/qi.hpp>
 
@@ -44,18 +45,21 @@ Json::Value AndroidManager::getInstalledPackages() const {
 }
 
 Uptane::Target AndroidManager::getCurrent() const {
+  using boost::phoenix::push_front;
+  using boost::spirit::ascii::xdigit;
+  using qi::_1;
+
   std::string getprop_output;
-  std::smatch hash_match;
-  if (0 != Utils::shell("getprop ota.last_installed_package_file", &getprop_output) ||
-      !std::regex_search(getprop_output, hash_match, std::regex("\\.[[:xdigit:]]+"))) {
-    return Uptane::Target::Unknown();
-  }
-  const std::string installed_package_hash = hash_match[0].str().substr(1);
-  std::vector<Uptane::Target> installed_versions;
-  storage_->loadPrimaryInstalledVersions(&installed_versions, nullptr, nullptr);
-  for (const auto& target : installed_versions) {
-    if (target.sha256Hash() == installed_package_hash) {
-      return target;
+  if (0 == Utils::shell("getprop ota.last_installed_package_file", &getprop_output)) {
+    std::forward_list<char> hash;
+    qi::phrase_parse(getprop_output.crbegin(), getprop_output.crend(),
+                     *(xdigit[push_front(boost::phoenix::ref(hash), _1)]), boost::spirit::ascii::cntrl);
+    std::vector<Uptane::Target> installed_versions;
+    storage_->loadPrimaryInstalledVersions(&installed_versions, nullptr, nullptr);
+    for (const auto& target : installed_versions) {
+      if (std::equal(hash.cbegin(), hash.cend(), target.sha256Hash().cbegin())) {
+        return target;
+      }
     }
   }
   return Uptane::Target::Unknown();
