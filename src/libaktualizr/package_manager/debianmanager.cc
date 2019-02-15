@@ -52,10 +52,6 @@ data::InstallationResult DebianManager::install(const Uptane::Target &target) co
   return data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, output);
 }
 
-void DebianManager:: completeInstall() const {
-    LOG_ERROR << "Complete installation should not happen for the debian package manager as its updates are applied immidiatelly";
-}
-
 Uptane::Target DebianManager::getCurrent() const {
   std::vector<Uptane::Target> installed_versions;
   size_t current_k = SIZE_MAX;

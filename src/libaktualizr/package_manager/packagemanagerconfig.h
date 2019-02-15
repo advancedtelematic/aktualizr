@@ -18,7 +18,6 @@ struct PackageConfig {
 
   // Options for simulation (to be used with kNone)
   bool fake_need_reboot{false};
-  bool force_reboot{false};
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;

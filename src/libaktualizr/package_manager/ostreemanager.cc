@@ -205,10 +205,8 @@ data::InstallationResult OstreeManager::install(const Uptane::Target &target) co
 }
 
 void OstreeManager::completeInstall() const {
-    if (config.force_reboot) {
-      LOG_INFO << "About to reboot the system in order to aplly pending updates...";
-      bootloader_->reboot();
-    }
+  LOG_INFO << "About to reboot the system in order to apply pending updates...";
+  bootloader_->reboot();
 }
 
 data::InstallationResult OstreeManager::finalizeInstall(const Uptane::Target &target) const {

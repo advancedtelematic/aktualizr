@@ -42,3 +42,6 @@ build/
 .~lock*#
 
 __pycache__/
+
+# QT Creator
+CMakeLists.txt.user

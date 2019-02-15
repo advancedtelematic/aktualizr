@@ -14,7 +14,7 @@ class PackageManagerInterface {
   virtual Json::Value getInstalledPackages() const = 0;
   virtual Uptane::Target getCurrent() const = 0;
   virtual data::InstallationResult install(const Uptane::Target& target) const = 0;
-  virtual void completeInstall() const = 0;
+  virtual void completeInstall() const { throw std::runtime_error("Unimplemented"); };
   virtual data::InstallationResult finalizeInstall(const Uptane::Target& target) const = 0;
   virtual bool imageUpdated() = 0;
 

@@ -143,7 +143,8 @@ These are the primary actions that a user of libaktualizr can perform through th
       - [x] Set new version to pending status after an OSTree update trigger (aktualizr_test.cc)
       - [x] Send EcuInstallationAppliedReport to server after an OSTree update trigger (aktualizr_test.cc)
       - [x] Uptane check for updates and manifest sends are disabled while an installation is pending reboot (aktualizr_test.cc)
-      - [ ] Trigger a system reboot if `reboot_after_install` is set in the configuration
+      - [ ] Trigger a system reboot at the end of the installation process for an ostree-based update mechanisms if `force_install_completion` is set in an uptane configuration
+      - [ ] Exit aktualizr and emulates a reboot in case of the fake package manager if `force_install_completion` is set in an uptane configuration
       - [x] Install a binary update on the primary (uptane_test.cc, aktualizr_test.cc)
     - [x] Store installation result for primary (uptane_test.cc)
     - [x] Send InstallTargetComplete event for primary (aktualizr_test.cc)

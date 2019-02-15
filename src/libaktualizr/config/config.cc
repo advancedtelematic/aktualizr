@@ -70,6 +70,7 @@ void UptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt)
   CopyFromConfig(repo_server, "repo_server", pt);
   CopyFromConfig(key_source, "key_source", pt);
   CopyFromConfig(key_type, "key_type", pt);
+  CopyFromConfig(force_install_completion, "force_install_completion", pt);
   CopyFromConfig(secondary_configs_dir, "secondary_configs_dir", pt);
   // uptane.secondary_configs is populated by processing secondary_configs_dir
 }
@@ -80,6 +81,7 @@ void UptaneConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, repo_server, "repo_server");
   writeOption(out_stream, key_source, "key_source");
   writeOption(out_stream, key_type, "key_type");
+  writeOption(out_stream, force_install_completion, "force_install_completion");
   writeOption(out_stream, secondary_configs_dir, "secondary_configs_dir");
 }
 

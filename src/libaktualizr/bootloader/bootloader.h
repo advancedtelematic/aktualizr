@@ -22,7 +22,7 @@ class Bootloader {
   bool rebootDetected() const;
   void rebootFlagSet();
   void rebootFlagClear();
-  void reboot(bool fake_reboot=false);
+  void reboot(bool fake_reboot = false);
 
  private:
   const BootloaderConfig& config_;

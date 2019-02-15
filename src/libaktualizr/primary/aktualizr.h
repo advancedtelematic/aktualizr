@@ -13,7 +13,6 @@
 #include "storage/invstorage.h"
 #include "uptane/secondaryinterface.h"
 
-
 class ApiQueue {
  public:
   void enqueue(const std::function<void()>& t) {

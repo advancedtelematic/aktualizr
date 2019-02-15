@@ -84,12 +84,7 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage
   }
 }
 
-SotaUptaneClient::~SotaUptaneClient() {
-    conn.disconnect();
-    if (hasPendingUpdates()) {
-        package_manager_->completeInstall();
-    }
-}
+SotaUptaneClient::~SotaUptaneClient() { conn.disconnect(); }
 
 void SotaUptaneClient::addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec) {
   if (storage->loadEcuRegistered()) {
@@ -1196,6 +1191,17 @@ result::CampaignCheck SotaUptaneClient::campaignCheck() {
 void SotaUptaneClient::campaignAccept(const std::string &campaign_id) {
   sendEvent<event::CampaignAcceptComplete>();
   report_queue->enqueue(std_::make_unique<CampaignAcceptedReport>(campaign_id));
+}
+
+bool SotaUptaneClient::isInstallCompletionRequired() {
+  bool force_install_completion = (hasPendingUpdates() && config.uptane.force_install_completion);
+  return force_install_completion;
+}
+
+void SotaUptaneClient::completeInstall() {
+  if (isInstallCompletionRequired()) {
+    package_manager_->completeInstall();
+  }
 }
 
 bool SotaUptaneClient::putManifestSimple() {

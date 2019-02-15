@@ -50,10 +50,8 @@ data::InstallationResult PackageManagerFake::install(const Uptane::Target &targe
 }
 
 void PackageManagerFake::completeInstall() const {
-    if (config.force_reboot) {
-      LOG_INFO << "Emulate the system reboot in case of the fake package manager";
-      bootloader_->reboot(true);
-    }
+  LOG_INFO << "Emulating a system reboot";
+  bootloader_->reboot(true);
 }
 
 data::InstallationResult PackageManagerFake::finalizeInstall(const Uptane::Target &target) const {
