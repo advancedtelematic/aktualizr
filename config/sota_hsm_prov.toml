@@ -1,5 +1,5 @@
 [tls]
-server_url_path = "/var/sota/gateway.url"
+server_url_path = "/var/sota/import/gateway.url"
 cert_source = "pkcs11"
 pkey_source = "pkcs11"
 
