@@ -924,8 +924,7 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
     if (targets.size() == downloaded_targets.size()) {
       result = result::Download(downloaded_targets, result::DownloadStatus::kSuccess, "");
     } else {
-      LOG_ERROR << "Only " << downloaded_targets.size() << " of " << targets.size()
-                << " were successfully downloaded. Report not sent.";
+      LOG_ERROR << "Only " << downloaded_targets.size() << " of " << targets.size() << " were successfully downloaded.";
       result = result::Download(downloaded_targets, result::DownloadStatus::kPartialSuccess, "");
     }
 
@@ -1067,7 +1066,7 @@ result::UpdateCheck SotaUptaneClient::checkUpdates() {
 
   if (hasPendingUpdates()) {
     // mask updates when an install is pending
-    LOG_INFO << "An update is pending, checking for updates is disabled";
+    LOG_DEBUG << "An update is pending. Skipping check for update until installation is complete";
     return result;
   }
 
@@ -1189,7 +1188,7 @@ bool SotaUptaneClient::putManifestSimple() {
   // does not send event, so it can be used as a subset of other steps
   auto manifest = AssembleManifest();
   if (hasPendingUpdates()) {
-    LOG_INFO << "An update is pending, putManifest is disabled";
+    LOG_DEBUG << "An update is pending. Skipping manifest upload until installation is complete";
     return false;
   }
 
