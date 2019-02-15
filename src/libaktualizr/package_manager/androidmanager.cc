@@ -61,7 +61,7 @@ Uptane::Target AndroidManager::getCurrent() const {
   return Uptane::Target::Unknown();
 }
 
-data::InstallOutcome AndroidManager::install(const Uptane::Target& target) const {
+data::InstallationResult AndroidManager::install(const Uptane::Target& target) const {
   LOG_INFO << "Begin Android package installation";
   auto package_filename = (fs::path(data_ota_package_dir_) / target.filename()).string() + "." + target.sha256Hash();
   std::ofstream package_file(package_filename.c_str());
@@ -73,17 +73,19 @@ data::InstallOutcome AndroidManager::install(const Uptane::Target& target) const
   if (bootloader_ != nullptr) {
     bootloader_->rebootFlagSet();
   }
-  return data::InstallOutcome(data::UpdateResultCode::kNeedCompletion, "need reboot");
+  LOG_INFO << "Performing sync()";
+  sync();
+  return data::InstallationResult(data::ResultCode::Numeric::kNeedCompletion, "need reboot");
 }
 
-data::InstallOutcome AndroidManager::finalizeInstall(const Uptane::Target& target) const {
+data::InstallationResult AndroidManager::finalizeInstall(const Uptane::Target& target) const {
   std::string ota_package_file_path = GetOTAPackageFilePath(target.sha256Hash());
   if (!ota_package_file_path.empty()) fs::remove(ota_package_file_path);
   std::string errorMessage{"n/a"};
   if (installationAborted(&errorMessage)) {
-    return data::InstallOutcome(data::UpdateResultCode::kInstallFailed, errorMessage);
+    return data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, errorMessage);
   }
-  return data::InstallOutcome(data::UpdateResultCode::kOk, "package installation successfully finalized");
+  return data::InstallationResult(data::ResultCode::Numeric::kOk, "package installation successfully finalized");
 }
 
 std::string AndroidManager::GetOTAPackageFilePath(const std::string& hash) {
