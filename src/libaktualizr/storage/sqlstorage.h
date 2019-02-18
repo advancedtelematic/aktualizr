@@ -88,7 +88,6 @@ class SQLStorage : public SQLStorageBase, public INvStorage {
 
  private:
   void cleanMetaVersion(Uptane::RepositoryType repo, const Uptane::Role& role);
-  friend SQLTargetRHandle;
 };
 
 #endif  // SQLSTORAGE_H_

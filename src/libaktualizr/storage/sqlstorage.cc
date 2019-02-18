@@ -1190,7 +1190,7 @@ boost::optional<std::pair<size_t, std::string>> SQLStorage::checkTargetFile(cons
     }
     if (((*sha256).empty() || sha256_match) && ((*sha512).empty() || sha512_match)) {
       if (boost::filesystem::exists(images_path_ / *statement.get_result_col_str(3))) {
-        return {std::make_pair(static_cast<size_t>(statement.get_result_col_int(0)), *statement.get_result_col_str(3))};
+        return {{static_cast<size_t>(statement.get_result_col_int(0)), *statement.get_result_col_str(3)}};
       } else {
         return boost::none;
       }
@@ -1242,8 +1242,6 @@ class SQLTargetWHandle : public StorageTargetWHandle {
   ~SQLTargetWHandle() override { SQLTargetWHandle::wcommit(); }
 
   size_t wfeed(const uint8_t* buf, size_t size) override {
-    StorageTargetWHandle::WriteError exc("could not save file " + target_.filename() + " to sql storage");
-
     stream_.write(reinterpret_cast<const char*>(buf), static_cast<std::streamsize>(size));
     written_size_ += size;
 
