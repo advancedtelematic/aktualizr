@@ -16,15 +16,6 @@ constexpr int64_t kMaxTimestampSize = 64 * 1024;
 constexpr int64_t kMaxSnapshotSize = 64 * 1024;
 constexpr int64_t kMaxImagesTargetsSize = 1024 * 1024;
 
-class DownloadCounter {
- public:
-  DownloadCounter(std::atomic_uint* value) : value_(value) { (*value_)++; }
-  ~DownloadCounter() { (*value_)--; }
-
- private:
-  std::atomic_uint* value_;
-};
-
 using FetcherProgressCb = std::function<void(const Uptane::Target&, const std::string&, unsigned int)>;
 
 class Fetcher {
@@ -45,7 +36,6 @@ class Fetcher {
     std::lock_guard<std::mutex> guard(mutex_);
     return pause_;
   }
-  bool isDownloading() { return static_cast<bool>(downloading_); }
   void checkPause();
   void setRetry(bool retry) { retry_ = retry; }
 
@@ -56,10 +46,6 @@ class Fetcher {
     kResumed,
     /* Download was already paused, so there is nothing to do. */
     kAlreadyPaused,
-    /* Download has already completed, so there is nothing to do. */
-    kAlreadyComplete,
-    /* No download is in progress, so there is nothing to do. */
-    kNotDownloading,
     /* Download was not paused, so there is nothing to do. */
     kNotPaused,
   };
@@ -69,9 +55,7 @@ class Fetcher {
   std::shared_ptr<HttpInterface> http;
   std::shared_ptr<INvStorage> storage;
   const Config& config;
-  std::atomic_uint downloading_{0};
   bool pause_{false};
-  bool retry_{false};
   std::mutex mutex_;
   std::condition_variable cv_;
   FetcherProgressCb progress_cb;

@@ -10,6 +10,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from json import dump
 from tempfile import NamedTemporaryFile
 
+
 class TreehubServerHandler(BaseHTTPRequestHandler):
     made_requests = {}
 
@@ -22,18 +23,17 @@ class TreehubServerHandler(BaseHTTPRequestHandler):
             return
         print("Processing GET request %s" % self.path)
         path = os.path.join(repo_path, self.path[1:])
-        if(os.path.exists(path)):
+        if os.path.exists(path):
+            time.sleep(0.5)
             self.send_response_only(200)
             self.end_headers()
             with open(path, 'rb') as source:
                 while True:
-                    data = source.read(1000)
+                    data = source.read(1024)
                     if not data:
                         break
                     self.wfile.write(data)
         else:
-            if path.endswith("ef2f2629dc9263fdf3c0f032563a2d757623bbc11cf99df25c3c3f258dccbe.commitmeta"):
-                time.sleep(1.5) # slow down download to be sure that progress callback will be called
             self.send_response_only(404)
             self.end_headers()
 
@@ -44,7 +44,7 @@ class TreehubServerHandler(BaseHTTPRequestHandler):
             return
         print("Processing HEAD request %s" % self.path)
         path = os.path.join(repo_path, self.path[1:])
-        if(os.path.exists(path)):
+        if os.path.exists(path):
             self.send_response_only(200)
         else:
             self.send_response_only(404)

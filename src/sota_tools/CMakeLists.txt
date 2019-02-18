@@ -250,7 +250,7 @@ if (BUILD_SOTA_TOOLS)
         # Parse OSTree ref or commit refhash.
         add_test(NAME garage-push-dry-run-commit
             COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-dry-run $<TARGET_FILE:garage-push>
-            ${SOTA_PACKED_CREDENTIALS} 16ef2f2629dc9263fdf3c0f032563a2d757623bbc11cf99df25c3c3f258dccbe
+            ${SOTA_PACKED_CREDENTIALS} 7f9237e1048fa97b204a2c42028e03eec27d891b5dfab0589589a38987d76199
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/tests/)
         set_tests_properties(garage-push-dry-run-commit PROPERTIES LABELS "credentials")
 
@@ -293,7 +293,7 @@ if (BUILD_SOTA_TOOLS)
 
     # Support trace logging.
     add_test(NAME garage-deploy-trace-level
-        COMMAND garage-deploy -f tests/sota_tools/auth_test_good.zip -p tests/sota_tools/auth_test_good.zip --commit 16ef2f2629dc9263fdf3c0f032563a2d757623bbc11cf99df25c3c3f258dccbe -h 3 --name 123 -v -v
+        COMMAND garage-deploy -f tests/sota_tools/auth_test_good.zip -p tests/sota_tools/auth_test_good.zip --commit 7f9237e1048fa97b204a2c42028e03eec27d891b5dfab0589589a38987d76199 -h 3 --name 123 -v -v
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
     set_tests_properties(garage-deploy-trace-level PROPERTIES PASS_REGULAR_EXPRESSION "Trace level debugging enabled")
 

@@ -43,7 +43,7 @@ TEST(dir_repo, good_repo) {
 TEST(dir_repo, getRef) {
   OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>("tests/sota_tools/repo");
   EXPECT_EQ(src_repo->GetRef("master").GetHash().string(),
-            std::string("16ef2f2629dc9263fdf3c0f032563a2d757623bbc11cf99df25c3c3f258dccbe"));
+            std::string("7f9237e1048fa97b204a2c42028e03eec27d891b5dfab0589589a38987d76199"));
 }
 
 TEST(dir_repo, root) {
