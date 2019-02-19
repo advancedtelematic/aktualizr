@@ -1160,11 +1160,11 @@ void SQLStorage::clearInstallationResults() {
   db.commitTransaction();
 }
 
-boost::optional<size_t> SQLStorage::checkTargetFile(const Uptane::Target& target) const {
+boost::optional<std::pair<size_t, std::string>> SQLStorage::checkTargetFile(const Uptane::Target& target) const {
   SQLite3Guard db = dbConnection();
 
   auto statement = db.prepareStatement<std::string>(
-      "SELECT real_size, sha256, sha512 FROM target_images WHERE filename = ?;", target.filename());
+      "SELECT real_size, sha256, sha512, filename FROM target_images WHERE targetname = ?;", target.filename());
 
   int statement_state;
   while ((statement_state = statement.step()) == SQLITE_ROW) {
@@ -1189,7 +1189,11 @@ boost::optional<size_t> SQLStorage::checkTargetFile(const Uptane::Target& target
       }
     }
     if (((*sha256).empty() || sha256_match) && ((*sha512).empty() || sha512_match)) {
-      return {static_cast<size_t>(statement.get_result_col_int(0))};
+      if (boost::filesystem::exists(images_path_ / *statement.get_result_col_str(3))) {
+        return {{static_cast<size_t>(statement.get_result_col_int(0)), *statement.get_result_col_str(3)}};
+      } else {
+        return boost::none;
+      }
     }
   }
 
@@ -1206,11 +1210,8 @@ boost::optional<size_t> SQLStorage::checkTargetFile(const Uptane::Target& target
 class SQLTargetWHandle : public StorageTargetWHandle {
  public:
   SQLTargetWHandle(const SQLStorage& storage, Uptane::Target target)
-      : db_(storage.dbPath()), target_(std::move(target)), closed_(false), row_id_(0) {
-    StorageTargetWHandle::WriteError exc("could not save file " + target_.filename() + " to sql storage");
-    if (!db_.beginTransaction()) {
-      throw exc;
-    }
+      : db_(storage.dbPath()), target_(std::move(target)) {
+    StorageTargetWHandle::WriteError exc("could not save file " + target_.filename() + " to the filesystem");
 
     std::string sha256Hash;
     std::string sha512Hash;
@@ -1221,64 +1222,37 @@ class SQLTargetWHandle : public StorageTargetWHandle {
         sha512Hash = hash.HashString();
       }
     }
-
-    auto statement = db_.prepareStatement<std::string, SQLZeroBlob>(
-        "INSERT OR REPLACE INTO target_images_data (filename, image_data) VALUES (?,?);", target_.filename(),
-        SQLZeroBlob{target_.length()});
-
-    if (statement.step() != SQLITE_DONE) {
-      LOG_ERROR << "Statement step failure: " << db_.errmsg();
-      throw exc;
-    }
-
-    row_id_ = sqlite3_last_insert_rowid(db_.get());
-    statement = db_.prepareStatement<std::string, std::string, std::string>(
-        "INSERT OR REPLACE INTO target_images (filename, sha256, sha512) VALUES ( ?, ?, ?);", target_.filename(),
-        sha256Hash, sha512Hash);
+    std::string filename = (storage.images_path_ / target_.hashes()[0].HashString()).string();
+    auto statement = db_.prepareStatement<std::string, std::string, std::string>(
+        "INSERT OR REPLACE INTO target_images (targetname, sha256, sha512, filename) VALUES ( ?, ?, ?, ?);",
+        target_.filename(), sha256Hash, sha512Hash, target_.hashes()[0].HashString());
 
     if (statement.step() != SQLITE_DONE) {
       LOG_ERROR << "Statement step failure: " << db_.errmsg();
       throw exc;
     }
-
-    if (!db_.commitTransaction()) {
+    boost::filesystem::create_directories(storage.images_path_);
+    stream_.open(filename);
+    if (!stream_.good()) {
+      LOG_ERROR << "Could not open image for write: " << storage.images_path_ / target_.filename();
       throw exc;
     }
   }
 
-  ~SQLTargetWHandle() override {
-    if (!closed_) {
-      SQLTargetWHandle::wcommit();
-    }
-  }
+  ~SQLTargetWHandle() override { SQLTargetWHandle::wcommit(); }
 
   size_t wfeed(const uint8_t* buf, size_t size) override {
-    StorageTargetWHandle::WriteError exc("could not save file " + target_.filename() + " to sql storage");
-
-    if (blob_ == nullptr) {
-      if (sqlite3_blob_open(db_.get(), "main", "target_images_data", "image_data", row_id_, 1, &blob_) != SQLITE_OK) {
-        LOG_ERROR << "Could not open blob " << db_.errmsg();
-        wabort();
-        throw exc;
-      }
-    }
-
-    if (sqlite3_blob_write(blob_, buf, static_cast<int>(size), static_cast<int>(written_size_)) != SQLITE_OK) {
-      LOG_ERROR << "Could not write in blob: " << db_.errmsg();
-      wabort();
-      return 0;
-    }
+    stream_.write(reinterpret_cast<const char*>(buf), static_cast<std::streamsize>(size));
     written_size_ += size;
 
     return size;
   }
 
   void wcommit() override {
-    if (blob_ != nullptr) {
-      sqlite3_blob_close(blob_);
-      blob_ = nullptr;
+    if (stream_) {
+      stream_.close();
       auto statement =
-          db_.prepareStatement<int64_t, std::string>("UPDATE target_images SET real_size = ? WHERE filename = ?;",
+          db_.prepareStatement<int64_t, std::string>("UPDATE target_images SET real_size = ? WHERE targetname = ?;",
                                                      static_cast<int64_t>(written_size_), target_.filename());
 
       int err = statement.step();
@@ -1287,42 +1261,42 @@ class SQLTargetWHandle : public StorageTargetWHandle {
         throw StorageTargetWHandle::WriteError("could not update size of " + target_.filename() + " in sql storage");
       }
     }
-    closed_ = true;
   }
 
   void wabort() noexcept override {
-    if (blob_ != nullptr) {
-      sqlite3_blob_close(blob_);
-      blob_ = nullptr;
+    if (stream_) {
+      stream_.close();
     }
     if (sqlite3_changes(db_.get()) > 0) {
       auto statement =
-          db_.prepareStatement<std::string>("DELETE FROM target_images WHERE filename=?;", target_.filename());
+          db_.prepareStatement<std::string>("DELETE FROM target_images WHERE targetname=?;", target_.filename());
       if (statement.step() != SQLITE_DONE) {
         LOG_ERROR << "could not delete " << target_.filename() << " from sql storage";
       }
     }
-    closed_ = true;
   }
 
   friend class SQLTargetRHandle;
 
  private:
-  SQLTargetWHandle(const boost::filesystem::path& db_path, Uptane::Target target, const sqlite3_int64& row_id,
-                   const size_t& start_from = 0)
-      : db_(db_path), target_(std::move(target)), closed_(false), row_id_(row_id) {
+  SQLTargetWHandle(const boost::filesystem::path& db_path, Uptane::Target target,
+                   const boost::filesystem::path& image_path, const size_t& start_from = 0)
+      : db_(db_path), target_(std::move(target)) {
     if (db_.get_rc() != SQLITE_OK) {
       LOG_ERROR << "Can't open database: " << db_.errmsg();
-      throw StorageTargetWHandle::WriteError("could not save file " + target_.filename() + " to sql storage");
+      throw StorageTargetWHandle::WriteError("could not open sql storage");
+    }
+    stream_.open(image_path.string(), std::ofstream::out | std::ofstream::app);
+    if (!stream_.good()) {
+      LOG_ERROR << "Could not open image for write: " << image_path;
+      throw StorageTargetWHandle::WriteError("could not open file for write: " + image_path.string());
     }
 
     written_size_ = start_from;
   }
   SQLite3Guard db_;
   Uptane::Target target_;
-  bool closed_;
-  sqlite3_int64 row_id_;
-  sqlite3_blob* blob_{nullptr};
+  std::ofstream stream_;
 };
 
 std::unique_ptr<StorageTargetWHandle> SQLStorage::allocateTargetFile(bool from_director, const Uptane::Target& target) {
@@ -1333,69 +1307,42 @@ std::unique_ptr<StorageTargetWHandle> SQLStorage::allocateTargetFile(bool from_d
 class SQLTargetRHandle : public StorageTargetRHandle {
  public:
   SQLTargetRHandle(const SQLStorage& storage, Uptane::Target target)
-      : db_path_(storage.dbPath()),
-        db_(db_path_),
-        target_(std::move(target)),
-        size_(0),
-        read_size_(0),
-        closed_(false),
-        blob_(nullptr) {
+      : db_path_(storage.dbPath()), db_(db_path_), target_(std::move(target)), size_(0) {
     StorageTargetRHandle::ReadError exc("could not read file " + target_.filename() + " from sql storage");
 
     auto exists = storage.checkTargetFile(target_);
     if (!exists) {
       throw exc;
     }
-    auto statement = db_.prepareStatement<std::string>("SELECT rowid FROM target_images_data WHERE filename = ?;",
-                                                       target_.filename());
 
-    if (statement.step() != SQLITE_ROW) {
-      LOG_ERROR << "Statement step failure: " << db_.errmsg();
-      throw std::runtime_error("Could not find target file");
-    }
-
-    row_id_ = statement.get_result_col_int(0);
-    size_ = *exists;
+    size_ = exists->first;
     partial_ = size_ < target_.length();
-    if (sqlite3_blob_open(db_.get(), "main", "target_images_data", "image_data", row_id_, 0, &blob_) != SQLITE_OK) {
-      LOG_ERROR << "Could not open blob: " << db_.errmsg();
+    image_path_ = storage.images_path_ / exists->second;
+    stream_.open(image_path_.string());
+    if (!stream_.good()) {
+      LOG_ERROR << "Could not open image: " << storage.images_path_ / target_.filename();
       throw exc;
     }
   }
 
-  ~SQLTargetRHandle() override {
-    if (!closed_) {
-      SQLTargetRHandle::rclose();
-    }
-  }
+  ~SQLTargetRHandle() override { SQLTargetRHandle::rclose(); }
 
   size_t rsize() const override { return size_; }
 
   size_t rread(uint8_t* buf, size_t size) override {
-    if (read_size_ + size > size_) {
-      size = size_ - read_size_;
-    }
-    if (size == 0) {
-      return 0;
-    }
-
-    if (sqlite3_blob_read(blob_, buf, static_cast<int>(size), static_cast<int>(read_size_)) != SQLITE_OK) {
-      LOG_ERROR << "Could not read from blob: " << db_.errmsg();
-      return 0;
-    }
-    read_size_ += size;
-
-    return size;
+    stream_.read(reinterpret_cast<char*>(buf), static_cast<std::streamsize>(size));
+    return static_cast<size_t>(stream_.gcount());
   }
 
   void rclose() noexcept override {
-    sqlite3_blob_close(blob_);
-    closed_ = true;
+    if (stream_.is_open()) {
+      stream_.close();
+    }
   }
 
   bool isPartial() const noexcept override { return partial_; }
   std::unique_ptr<StorageTargetWHandle> toWriteHandle() override {
-    return std::unique_ptr<StorageTargetWHandle>(new SQLTargetWHandle(db_path_, target_, row_id_, size_));
+    return std::unique_ptr<StorageTargetWHandle>(new SQLTargetWHandle(db_path_, target_, image_path_, size_));
   }
 
  private:
@@ -1403,11 +1350,9 @@ class SQLTargetRHandle : public StorageTargetRHandle {
   SQLite3Guard db_;
   Uptane::Target target_;
   size_t size_;
-  size_t read_size_;
-  bool closed_;
-  sqlite3_blob* blob_;
   bool partial_{false};
-  sqlite3_int64 row_id_{0};
+  boost::filesystem::path image_path_;
+  std::ifstream stream_;
 };
 
 std::unique_ptr<StorageTargetRHandle> SQLStorage::openTargetFile(const Uptane::Target& target) {
@@ -1422,30 +1367,21 @@ void SQLStorage::removeTargetFile(const std::string& filename) {
     return;
   }
 
-  auto statement = db.prepareStatement<std::string>("SELECT filename FROM target_images WHERE filename = ?;", filename);
+  auto statement =
+      db.prepareStatement<std::string>("SELECT targetname FROM target_images WHERE targetname = ?;", filename);
 
   if (statement.step() != SQLITE_ROW) {
     LOG_ERROR << "Statement step failure: " << db.errmsg();
     throw std::runtime_error("Could not find target file");
   }
 
-  statement = db.prepareStatement<std::string>("DELETE FROM target_images WHERE filename=?;", filename);
+  statement = db.prepareStatement<std::string>("DELETE FROM target_images WHERE targetname=?;", filename);
 
   if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Statement step failure: " << db.errmsg();
     throw std::runtime_error("Could not remove target file");
   }
-
-  statement = db.prepareStatement<std::string>("DELETE FROM target_images_data WHERE filename=?;", filename);
-
-  if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Statement step failure: " << db.errmsg();
-    throw std::runtime_error("Could not remove target file");
-  }
-
-  if (sqlite3_changes(db.get()) != 1) {
-    throw std::runtime_error("Target file " + filename + " not found");
-  }
+  boost::filesystem::remove(images_path_ / filename);
 
   db.commitTransaction();
 }
