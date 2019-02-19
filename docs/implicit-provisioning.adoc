@@ -43,11 +43,11 @@ An example `.toml` configuration file can be found at link:../config/sota_implic
 
 Implicit provisioning can be simulated with `aktualizr-cert-provider` without need for the user to create a root CA. `aktualizr-cert-provider` can use the existing autoprovisioning mechanisms to pre-install a certificate and key on the device.
 
-1. In meta-updater, set `SOTA_CLIENT_PROV = "aktualizr-implicit-ca-prov"`. Currently, you will also need to set `SOTA_PACKED_CREDENTIALS` to provisioning credentials zip file.
+1. In meta-updater, set `SOTA_CLIENT_PROV = "aktualizr-implicit-ca-prov"` and `SOTA_DEPLOY_CREDENTIALS = "0"`. Currently, you will also need to set `SOTA_PACKED_CREDENTIALS` to provisioning credentials zip file.
 1. Build a standard image using bitbake.
 1. Boot the image.
 1. Optionally, verify that Aktualizr has not provisioned and that the device is not known to the server.
-1. Load credentials onto the device, for example with `aktualizr-cert-provider` from the Aktualizr repo: `aktualizr-cert-provider -c credentials.zip -t <device> -d /var/sota -r -u`
+1. Load credentials onto the device, for example with `aktualizr-cert-provider` from the Aktualizr repo: `aktualizr-cert-provider -c credentials.zip -t <device> -d /var/sota/import -r -u`
 1. Verify that Aktualizr provisions correctly with the server using the expected Device ID.
 
 == Credentials format

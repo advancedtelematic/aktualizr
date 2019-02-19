@@ -1,6 +1,6 @@
 = Implicit Provisioning with an HSM
 
-This document describes the current support for implicit provisioning with an HSM in Aktualizr and https://github.com/advancedtelematic/meta-updater[meta-updater].
+This document describes the current support for implicit provisioning with an HSM in Aktualizr and https://github.com/advancedtelematic/meta-updater[meta-updater]. An example of this process is provided by using the `softhsm` software implementation of an HSM.
 
 == Background
 
@@ -59,6 +59,8 @@ openssl s_client -connect ${device_gateway}:8000 -servername $device_gateway -sh
 ----
 SOTA_CLIENT_FEATURES = "hsm"
 SOTA_CLIENT_PROV = "aktualizr-hsm-prov"
+SOTA_DEPLOY_CREDENTIALS = "0"
+IMAGE_INSTALL_append = " softhsm-testtoken "
 ----
 . Build a standard image using bitbake. Make sure an ssh server is installed; usually you can do this with `IMAGE_INSTALL_append = " dropbear "`.
 . Boot the image.
@@ -79,11 +81,11 @@ Implicit provisioning can be simulated with `aktualizr-cert-provider` without ne
 
 // tag::quick-instructions[]
 
-1. In meta-updater, set `SOTA_CLIENT_PROV = "aktualizr-hsm-prov"` and `SOTA_DEPLOY_CREDENTIALS = "0"`. Currently, you will also need to set `SOTA_PACKED_CREDENTIALS` to provisioning credentials zip file.
+1. In meta-updater, set `SOTA_CLIENT_FEATURES = "hsm"`, `SOTA_CLIENT_PROV = "aktualizr-hsm-prov"`, `SOTA_DEPLOY_CREDENTIALS = "0"`, and `IMAGE_INSTALL_append = " softhsm-testtoken "`. Currently, you will also need to set `SOTA_PACKED_CREDENTIALS` to provisioning credentials zip file.
 1. Build a standard image using bitbake.
 1. Boot the image.
 1. Optionally, verify that Aktualizr has not provisioned and that the device is not known to the server.
-1. Load credentials onto the device, for example with `aktualizr-cert-provider` from the Aktualizr repo: `aktualizr-cert-provider -c credentials.zip -t <device> -d /var/sota -r -u`
+1. Load credentials onto the device, for example with `aktualizr-cert-provider` from the Aktualizr repo: `aktualizr-cert-provider -c credentials.zip -t <device> -d /var/sota/import -r -u`
 1. Verify that Aktualizr provisions correctly with the server using the expected Device ID.
 
 // end::quick-instructions[]
