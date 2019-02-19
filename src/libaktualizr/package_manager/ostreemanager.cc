@@ -67,7 +67,6 @@ data::InstallationResult OstreeManager::pull(const boost::filesystem::path &sysr
                                              OstreeProgressCb progress_cb) {
   std::string refhash = target.sha256Hash();
   const char *const commit_ids[] = {refhash.c_str()};
-  GCancellable *cancellable = nullptr;
   GError *error = nullptr;
   GVariantBuilder builder;
   GVariant *options;
@@ -107,9 +106,9 @@ data::InstallationResult OstreeManager::pull(const boost::filesystem::path &sysr
 
   options = g_variant_builder_end(&builder);
 
-  PullMetaStruct mt(target, pause_cb, std::move(progress_cb));
+  PullMetaStruct mt(target, pause_cb, g_cancellable_new(), std::move(progress_cb));
   progress.reset(ostree_async_progress_new_and_connect(aktualizr_progress_cb, &mt));
-  if (ostree_repo_pull_with_options(repo.get(), remote, options, progress.get(), cancellable, &error) == 0) {
+  if (ostree_repo_pull_with_options(repo.get(), remote, options, progress.get(), mt.cancellable.get(), &error) == 0) {
     LOG_ERROR << "Error while pulling image: " << error->message;
     data::InstallationResult install_res(data::ResultCode::Numeric::kInstallFailed, error->message);
     g_error_free(error);

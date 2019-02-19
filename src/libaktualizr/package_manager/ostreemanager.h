@@ -25,14 +25,19 @@ using GObjectUniquePtr = std::unique_ptr<T, GObjectFinalizer<T>>;
 using OstreeProgressCb = std::function<void(const Uptane::Target &, const std::string &, unsigned int)>;
 
 struct PullMetaStruct {
-  PullMetaStruct(Uptane::Target target_in, const std::function<void()> &pause_cb, OstreeProgressCb progress_cb_in)
+  PullMetaStruct(Uptane::Target target_in,
+  const std::function<void()> &pause_cb,
+  GCancellable* cancellable_in,
+  OstreeProgressCb progress_cb_in)
       : target{std::move(target_in)},
         percent_complete{0},
         check_pause{pause_cb},
+        cancellable{cancellable_in},
         progress_cb{std::move(progress_cb_in)} {}
   Uptane::Target target;
   unsigned int percent_complete;
   const std::function<void()> &check_pause;
+  GObjectUniquePtr<GCancellable> cancellable;
   OstreeProgressCb progress_cb;
 };
 
