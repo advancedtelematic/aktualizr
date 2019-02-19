@@ -30,7 +30,7 @@ class ImagesRepository : public RepositoryCommon {
 
   static std::shared_ptr<Uptane::Targets> verifyDelegation(const std::string& delegation_raw, const Uptane::Role& role,
                                                            const Targets& parent_target);
-  std::shared_ptr<Uptane::Targets> getTargets() const { return targets; }
+  std::shared_ptr<const Uptane::Targets> getTargets() const { return targets; }
 
   bool verifyRoleHashes(const std::string& role_data, const Uptane::Role& role) const;
   int getRoleVersion(const Uptane::Role& role) const;
