@@ -138,7 +138,7 @@ endif(BUILD_SYSTEMD)
 if(FAULT_INJECTION)
     find_package(Libfiu REQUIRED)
     add_definitions(-DFIU_ENABLE)
-    link_libraries(fiu)
+    link_libraries(fiu dl)
 endif(FAULT_INJECTION)
 
 # set symbols used when compiling
