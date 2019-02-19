@@ -1106,7 +1106,7 @@ bool SQLStorage::loadDeviceInstallationResult(data::InstallationResult* result, 
       "SELECT success, result_code, description, raw_report, correlation_id FROM device_installation_result;");
   int statement_result = statement.step();
   if (statement_result == SQLITE_DONE) {
-    LOG_ERROR << "No device installation result in db: " << db.errmsg();
+    LOG_TRACE << "No device installation result in db";
     return false;
   } else if (statement_result != SQLITE_ROW) {
     LOG_ERROR << "Can't get device_installation_result: " << db.errmsg();
