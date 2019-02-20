@@ -121,6 +121,7 @@ class SotaUptaneClient {
   FRIEND_TEST(Aktualizr, FullMultipleSecondaries);
   FRIEND_TEST(Aktualizr, CheckNoUpdates);
   FRIEND_TEST(Aktualizr, DownloadWithUpdates);
+  FRIEND_TEST(Aktualizr, AutoRebootAfterUpdate);
   FRIEND_TEST(Uptane, AssembleManifestGood);
   FRIEND_TEST(Uptane, AssembleManifestBad);
   FRIEND_TEST(Uptane, InstallFake);
@@ -157,7 +158,6 @@ class SotaUptaneClient {
   void sendMetadataToEcus(const std::vector<Uptane::Target> &targets);
   std::future<bool> sendFirmwareAsync(Uptane::SecondaryInterface &secondary, const std::shared_ptr<std::string> &data);
   std::vector<result::Install::EcuReport> sendImagesToEcus(const std::vector<Uptane::Target> &targets);
-  bool hasPendingUpdates();
   void sendDownloadReport();
 
   bool putManifestSimple();

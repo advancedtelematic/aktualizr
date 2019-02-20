@@ -441,6 +441,61 @@ TEST(Aktualizr, FullWithUpdatesNeedReboot) {
   }
 }
 
+/*
+ * Initialize -> UptaneCycle -> updates downloaded and installed for primary
+ * -> reboot emulated -> Initialize -> Finalize Installation After Reboot
+ *
+ * Verifies an auto reboot and pending updates finalization after a reboot
+ * in case of the fake package manager usage
+ *
+ * Checks actions:
+ *
+ * - [x] Emulate a reboot at the end of the installation process in case of the fake package manager usage
+ * - [x] Finalize a pending update that requires reboot
+ */
+TEST(Aktualizr, AutoRebootAfterUpdate) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFakePutCounter>(temp_dir.Path());
+  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+  conf.pacman.fake_need_reboot = true;
+  conf.uptane.force_install_completion = true;
+  conf.uptane.polling_sec = 0;
+  conf.bootloader.reboot_sentinel_dir = temp_dir.Path();
+
+  {
+    // first run: do the install, exit UptaneCycle and emulate reboot since force_install_completion is set
+    auto storage = INvStorage::newStorage(conf.storage);
+    Aktualizr aktualizr(conf, storage, http);
+
+    aktualizr.Initialize();
+    auto aktualizr_cycle_thread = aktualizr.RunForever();
+    auto aktualizr_cycle_thread_status = aktualizr_cycle_thread.wait_for(std::chrono::seconds(10));
+
+    EXPECT_EQ(aktualizr_cycle_thread_status, std::future_status::ready);
+    EXPECT_TRUE(aktualizr.uptane_client_->bootloader->rebootDetected());
+  }
+
+  {
+    // second run: after emulated reboot, check if the update was applied
+    auto storage = INvStorage::newStorage(conf.storage);
+    Aktualizr aktualizr(conf, storage, http);
+
+    aktualizr.Initialize();
+
+    result::UpdateCheck update_res = aktualizr.CheckUpdates().get();
+    EXPECT_EQ(update_res.status, result::UpdateStatus::kNoUpdatesAvailable);
+
+    // primary is installed, nothing pending
+    size_t current_target = SIZE_MAX;
+    size_t pending_target = SIZE_MAX;
+    std::vector<Uptane::Target> targets;
+    storage->loadPrimaryInstalledVersions(&targets, &current_target, &pending_target);
+    EXPECT_LT(current_target, targets.size());
+    EXPECT_EQ(pending_target, SIZE_MAX);
+    EXPECT_EQ(http->manifest_sends, 4);
+  }
+}
+
 int started_FullMultipleSecondaries = 0;
 int complete_FullMultipleSecondaries = 0;
 bool allcomplete_FullMultipleSecondaries = false;
