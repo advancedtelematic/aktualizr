@@ -207,6 +207,33 @@ TEST(Delegation, RevokeAfterInstall) {
   }
 }
 
+/* Iterate over targets in delegation tree */
+TEST(Delegation, IterateAll) {
+  TemporaryDirectory temp_dir;
+  auto delegation_path = temp_dir.Path() / "delegation_test";
+  delegation_nested(delegation_path, false);
+  auto http = std::make_shared<HttpFakeDelegation>(temp_dir.Path());
+
+  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  Aktualizr aktualizr(conf, storage, http);
+
+  aktualizr.Initialize();
+  result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
+  EXPECT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
+
+  std::vector<std::string> expected_target_names = {"primary.txt", "abracadabra", "abc/secondary.txt", "abc/target0",
+                                                    "abc/target1", "abc/target2", "bcd/target0",       "cde/target0",
+                                                    "cde/target1", "def/target0"};
+  for (auto& target : aktualizr.uptane_client_->allTargets()) {
+    EXPECT_EQ(target.filename(), expected_target_names[0]);
+    expected_target_names.erase(expected_target_names.begin());
+  }
+
+  EXPECT_TRUE(expected_target_names.empty());
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);

@@ -280,7 +280,7 @@ void Uptane::Targets::init(const Json::Value &json) {
     for (Json::ValueIterator it = role_list.begin(); it != role_list.end(); it++) {
       const std::string role_name = (*it)["name"].asString();
       const Role role = Role::Delegation(role_name);
-      delegated_role_names_.insert(role_name);
+      delegated_role_names_.push_back(role_name);
       ParseRole(Uptane::RepositoryType::Image(), it, role, name_);
 
       const Json::Value paths_list = (*it)["paths"];

@@ -434,7 +434,7 @@ class Targets : public MetaWithKeys {
   const std::string &correlation_id() const { return correlation_id_; }
 
   std::vector<Uptane::Target> targets;
-  std::set<std::string> delegated_role_names_;
+  std::vector<std::string> delegated_role_names_;
   std::map<Role, std::vector<std::string>> paths_for_role_;
   std::map<Role, bool> terminating_role_;
 
