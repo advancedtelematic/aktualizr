@@ -111,6 +111,7 @@ class SotaUptaneClient {
   static Uptane::Targets getTrustedDelegation(const Uptane::Role &delegate_role, const Uptane::Targets &parent_targets,
                                               const Uptane::ImagesRepository &images_repo, INvStorage &storage,
                                               Uptane::Fetcher &fetcher);
+  bool updateImagesMeta();  // TODO: make private once aktualizr has a proper TUF API
 
  private:
   FRIEND_TEST(Aktualizr, FullNoUpdates);
@@ -162,7 +163,6 @@ class SotaUptaneClient {
   std::pair<bool, Uptane::Target> downloadImage(Uptane::Target target);
   void rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::SecondaryInterface &secondary);
   bool updateDirectorMeta();
-  bool updateImagesMeta();
   bool checkImagesMetaOffline();
   bool checkDirectorMetaOffline();
   void computeDeviceInstallationResult(data::InstallationResult *result, const std::string &correlation_id);
