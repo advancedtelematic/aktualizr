@@ -189,6 +189,7 @@ class Aktualizr {
   FRIEND_TEST(Aktualizr, FullNoUpdates);
   FRIEND_TEST(Aktualizr, FullWithUpdates);
   FRIEND_TEST(Aktualizr, FullWithUpdatesNeedReboot);
+  FRIEND_TEST(Aktualizr, AutoRebootAfterUpdate);
   FRIEND_TEST(Aktualizr, FullMultipleSecondaries);
   FRIEND_TEST(Aktualizr, CheckNoUpdates);
   FRIEND_TEST(Aktualizr, DownloadWithUpdates);

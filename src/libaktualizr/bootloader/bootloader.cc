@@ -1,6 +1,9 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
+#include <sys/reboot.h>
+#include <unistd.h>
+
 #include <boost/filesystem.hpp>
 
 #include "bootloader.h"
@@ -163,4 +166,17 @@ void Bootloader::rebootFlagClear() {
 
   storage_.clearNeedReboot();
   boost::filesystem::remove(reboot_sentinel_);
+}
+
+void Bootloader::reboot(bool fake_reboot) {
+  if (fake_reboot) {
+    boost::filesystem::remove(reboot_sentinel_);
+  } else {
+    sync();
+    if (setuid(0) != 0) {
+      LOG_ERROR << "Failed to set/verify a root user so cannot reboot system programmatically";
+    } else {
+      ::reboot(RB_AUTOBOOT);
+    }
+  }
 }

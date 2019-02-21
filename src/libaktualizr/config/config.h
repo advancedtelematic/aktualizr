@@ -72,6 +72,7 @@ struct UptaneConfig {
   std::string repo_server;
   CryptoSource key_source{CryptoSource::kFile};
   KeyType key_type{KeyType::kRSA2048};
+  bool force_install_completion{false};
   boost::filesystem::path secondary_configs_dir;
   std::vector<Uptane::SecondaryConfig> secondary_configs{};
 

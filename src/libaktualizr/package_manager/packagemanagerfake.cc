@@ -49,6 +49,11 @@ data::InstallationResult PackageManagerFake::install(const Uptane::Target &targe
   return data::InstallationResult(data::ResultCode::Numeric::kOk, "Installing fake package was successful");
 }
 
+void PackageManagerFake::completeInstall() const {
+  LOG_INFO << "Emulating a system reboot";
+  bootloader_->reboot(true);
+}
+
 data::InstallationResult PackageManagerFake::finalizeInstall(const Uptane::Target &target) const {
   std::vector<Uptane::Target> targets;
   size_t pending_version = SIZE_MAX;

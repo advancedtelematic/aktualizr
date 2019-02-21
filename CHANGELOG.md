@@ -8,6 +8,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ### Added
 
+- A new uptane configuration parameter `force_install_completion` that triggers a system reboot at the end of the installation process for update mechanisms that need one to complete (e.g. OSTree package manager)
 - Basic first-order delegation support: [PR](https://github.com/advancedtelematic/aktualizr/pull/1074)
 - Backward migrations of the SQL storage is now supported. It should allow rollbacking updates up to versions containing the feature: [PR](https://github.com/advancedtelematic/aktualizr/pull/1072)
 

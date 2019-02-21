@@ -22,6 +22,7 @@ class PackageManagerFake : public PackageManagerInterface {
   bool imageUpdated() override { return true; };
 
   data::InstallationResult install(const Uptane::Target &target) const override;
+  void completeInstall() const override;
   data::InstallationResult finalizeInstall(const Uptane::Target &target) const override;
 
  private:
