@@ -37,7 +37,6 @@ class Fetcher {
     return pause_;
   }
   void checkPause();
-  void setRetry(bool retry) { retry_ = retry; }
 
   enum class PauseRet {
     /* Download was paused successfully. */

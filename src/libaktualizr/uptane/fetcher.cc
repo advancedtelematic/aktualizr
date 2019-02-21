@@ -24,7 +24,7 @@ bool Fetcher::fetchRole(std::string* result, int64_t maxsize, RepositoryType rep
 
 static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* userp) {
   assert(userp);
-  auto* ds = static_cast<Uptane::DownloadMetaStruct*>(userp);
+  auto ds = static_cast<Uptane::DownloadMetaStruct*>(userp);
   uint64_t downloaded = size * nmemb;
   uint64_t expected = ds->target.length();
   if ((ds->downloaded_length + downloaded) > expected) {
@@ -36,18 +36,26 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
   ds->hasher().update(reinterpret_cast<const unsigned char*>(contents), written_size);
 
   ds->downloaded_length += downloaded;
+  return written_size;
+}
+
+static int ProgressHandler(void* clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) {
+  (void)dltotal;
+  (void)dlnow;
+  (void)ultotal;
+  (void)ulnow;
+  auto ds = static_cast<Uptane::DownloadMetaStruct*>(clientp);
+
+  uint64_t expected = ds->target.length();
   auto progress = static_cast<unsigned int>((ds->downloaded_length * 100) / expected);
   if (ds->progress_cb && progress > ds->last_progress) {
     ds->last_progress = progress;
     ds->progress_cb(ds->target, "Downloading", progress);
   }
   if (ds->fetcher->isPaused()) {
-    ds->fetcher->setRetry(true);
-    ds->fhandle->wcommit();
-    ds->fhandle.reset();
-    return written_size + 1;  // Abort downloading because pause is requested.
+    return 1;  // Abort the download.
   }
-  return written_size;
+  return 0;
 }
 
 Fetcher::PauseRet Fetcher::setPause(bool pause) {
@@ -111,17 +119,17 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
         ds.fhandle = storage->allocateTargetFile(false, target);
       }
       HttpResponse response;
-      do {
-        checkPause();
-        if (retry_) {
-          retry_ = false;
-          // fhandle was invalidated on pause
-          ds.fhandle = storage->openTargetFile(target)->toWriteHandle();
-        }
+      for (;;) {
         response = http->download(config.uptane.repo_server + "/targets/" + Utils::urlEncode(target.filename()),
-                                  DownloadHandler, &ds, static_cast<curl_off_t>(ds.downloaded_length));
-        LOG_TRACE << "Download status: " << response.getStatusStr() << std::endl;
-      } while (retry_);
+                                  DownloadHandler, ProgressHandler, &ds, static_cast<curl_off_t>(ds.downloaded_length));
+        if (!response.wasAborted()) {
+          break;
+        }
+        ds.fhandle.reset();
+        checkPause();
+        ds.fhandle = storage->openTargetFile(target)->toWriteHandle();
+      }
+      LOG_TRACE << "Download status: " << response.getStatusStr() << std::endl;
       if (!response.isOk()) {
         if (response.curl_code == CURLE_WRITE_ERROR) {
           throw OversizedTarget(target.filename());

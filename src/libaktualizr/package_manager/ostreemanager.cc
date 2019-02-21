@@ -109,7 +109,7 @@ data::InstallationResult OstreeManager::pull(const boost::filesystem::path &sysr
   PullMetaStruct mt(target, pause_cb, g_cancellable_new(), std::move(progress_cb));
   progress.reset(ostree_async_progress_new_and_connect(aktualizr_progress_cb, &mt));
   if (ostree_repo_pull_with_options(repo.get(), remote, options, progress.get(), mt.cancellable.get(), &error) == 0) {
-    LOG_ERROR << "Error while pulling image: " << error->message;
+    LOG_ERROR << "Error while pulling image: " << error->code << " " << error->message;
     data::InstallationResult install_res(data::ResultCode::Numeric::kInstallFailed, error->message);
     g_error_free(error);
     g_variant_unref(options);
