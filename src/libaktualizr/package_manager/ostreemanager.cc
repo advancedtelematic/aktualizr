@@ -18,8 +18,8 @@
 
 static void aktualizr_progress_cb(OstreeAsyncProgress *progress, gpointer data) {
   auto *mt = static_cast<PullMetaStruct *>(data);
-  if (mt->check_pause) {
-    mt->check_pause();  // If fetcher is paused, sleep until resume
+  if (mt->token != nullptr && !mt->token->canContinue()) {
+    g_cancellable_cancel(mt->cancellable.get());
   }
 
   g_autofree char *status = ostree_async_progress_get_status(progress);
@@ -63,7 +63,7 @@ static void aktualizr_progress_cb(OstreeAsyncProgress *progress, gpointer data) 
 
 data::InstallationResult OstreeManager::pull(const boost::filesystem::path &sysroot_path,
                                              const std::string &ostree_server, const KeyManager &keys,
-                                             const Uptane::Target &target, const std::function<void()> &pause_cb,
+                                             const Uptane::Target &target, const api::FlowControlToken *token,
                                              OstreeProgressCb progress_cb) {
   std::string refhash = target.sha256Hash();
   const char *const commit_ids[] = {refhash.c_str()};
@@ -106,7 +106,7 @@ data::InstallationResult OstreeManager::pull(const boost::filesystem::path &sysr
 
   options = g_variant_builder_end(&builder);
 
-  PullMetaStruct mt(target, pause_cb, g_cancellable_new(), std::move(progress_cb));
+  PullMetaStruct mt(target, token, g_cancellable_new(), std::move(progress_cb));
   progress.reset(ostree_async_progress_new_and_connect(aktualizr_progress_cb, &mt));
   if (ostree_repo_pull_with_options(repo.get(), remote, options, progress.get(), mt.cancellable.get(), &error) == 0) {
     LOG_ERROR << "Error while pulling image: " << error->code << " " << error->message;
