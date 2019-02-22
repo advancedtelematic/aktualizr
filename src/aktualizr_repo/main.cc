@@ -1,4 +1,5 @@
 #include <boost/program_options.hpp>
+#include <fstream>
 #include <iostream>
 #include <istream>
 #include <iterator>
@@ -27,6 +28,7 @@ int main(int argc, char **argv) {
     ("path", po::value<boost::filesystem::path>(), "path to the repository")
     ("filename", po::value<boost::filesystem::path>(), "path to the image")
     ("hwid", po::value<std::string>(), "target hardware identifier")
+    ("targetcustom", po::value<boost::filesystem::path>(), "path to custom JSON for 'image' command")
     ("serial", po::value<std::string>(), "target ECU serial")
     ("expires", po::value<std::string>(), "expiration time")
     ("keyname", po::value<std::string>(), "name of key's role")
@@ -109,7 +111,12 @@ int main(int argc, char **argv) {
           } else {
             hash = std_::make_unique<Uptane::Hash>(Uptane::Hash::Type::kSha512, vm["targetsha512"].as<std::string>());
           }
-          repo.addCustomImage(targetname.string(), *hash, vm["targetlength"].as<uint64_t>(), delegation);
+          Json::Value custom;
+          if (vm.count("targetcustom") > 0) {
+            std::ifstream custom_file(vm["targetcustom"].as<boost::filesystem::path>().c_str());
+            custom_file >> custom;
+          }
+          repo.addCustomImage(targetname.string(), *hash, vm["targetlength"].as<uint64_t>(), delegation, custom);
         }
       } else if (command == "addtarget") {
         if (vm.count("targetname") == 0 || vm.count("hwid") == 0 || vm.count("serial") == 0) {

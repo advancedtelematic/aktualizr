@@ -50,7 +50,7 @@ static int list_main(Config &config, const bpo::variables_map &unused) {
 }
 
 static std::unique_ptr<Uptane::Target> find_target(std::shared_ptr<SotaUptaneClient> client,
-                                                   Uptane::HardwareIdentifier &hwid const std::string &version) {
+                                                   Uptane::HardwareIdentifier &hwid, const std::string &version) {
   std::unique_ptr<Uptane::Target> rv;
   if (!client->updateImagesMeta()) {
     LOG_ERROR << "Unable to update latest metadata, using local copy";
