@@ -42,4 +42,6 @@ git tag -as <tag>   # e.g. git tag -a 2018.4
 git push ats <tag>
 ----
 
-Travis will build this tag and automatically release it to github.  Don't forget to test the resulting Debian package manually!
+Travis will build this tag and automatically create a release for it on github. This is normally a good time to update the link:../CHANGELOG.md[changelog] and the doxygen documentation. Ideally, the changelog should be updated with the new release number before creating the release so that the packaged source code includes the correct information about the release. The process for updating the doxygen is specified in the link:README.adoc#developer-documentation[docs README].
+
+Don't forget to test the resulting Debian packages manually!
