@@ -178,7 +178,7 @@ class SotaUptaneClient {
     std::shared_ptr<event::BaseEvent> event = std::make_shared<T>(std::forward<Args>(args)...);
     if (events_channel) {
       (*events_channel)(std::move(event));
-    } else if (event->variant != "DownloadProgressReport") {
+    } else if (!event->isTypeOf(event::DownloadProgressReport::TypeName)) {
       LOG_INFO << "got " << event->variant << " event";
     }
   }

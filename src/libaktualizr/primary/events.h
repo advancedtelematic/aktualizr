@@ -25,6 +25,9 @@ class BaseEvent {
   BaseEvent() = default;
   BaseEvent(std::string variant_in) : variant(std::move(variant_in)) {}
   virtual ~BaseEvent() = default;
+
+  bool isTypeOf(const std::string& type_to_cmp) { return (variant == type_to_cmp); }
+
   std::string variant;
 };
 
@@ -62,14 +65,24 @@ class UpdateCheckComplete : public BaseEvent {
  */
 class DownloadProgressReport : public BaseEvent {
  public:
+  static constexpr const char* TypeName{"DownloadProgressReport"};
+
+  static bool isDownloadCompleted(const DownloadProgressReport& report) {
+    return (report.progress == DownloadProgressReport::ProgressCompletedValue);
+  }
+
+ public:
   DownloadProgressReport(Uptane::Target target_in, std::string description_in, unsigned int progress_in)
       : target{std::move(target_in)}, description{std::move(description_in)}, progress{progress_in} {
-    variant = "DownloadProgressReport";
+    variant = TypeName;
   }
 
   Uptane::Target target;
   std::string description;
   unsigned int progress;
+
+ private:
+  static const unsigned int ProgressCompletedValue{100};
 };
 
 /**

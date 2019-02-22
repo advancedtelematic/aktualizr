@@ -43,7 +43,7 @@ These are the primary actions that a user of libaktualizr can perform through th
     - [x] Use a provided primary serial (OTA-988, config_test.cc)
     - [x] Generate primary serial (OTA-989, uptane_serial_test.cc)
     - [x] Use a provided hardware ID (uptane_test.cc)
-    - [ ] Use the system hostname as hardware ID if one is not provided
+    - [x] Use the system hostname as hardware ID if one is not provided (uptane_init_test.cc)
       - [x] Read the hostname from the system (utils_test.cc)
   - [x] Register ECUs with director
     - [x] Register primary ECU with director (uptane_test.cc)
@@ -106,7 +106,7 @@ These are the primary actions that a user of libaktualizr can perform through th
     - [x] Download a binary package (uptane_vector_tests.cc, aktualizr_test.cc)
     - [x] Send EcuDownloadStartedReport to server (aktualizr_test.cc)
       - [x] Send an event report (see below)
-  - [ ] Report download progress
+  - [x] Report download progress (aktualizr_test.cc)
   - [x] Pause downloading (fetcher_test.cc)
     - [x] Pausing while paused is ignored (fetcher_test.cc)
     - [x] Pausing while not downloading is ignored (fetcher_test.cc)

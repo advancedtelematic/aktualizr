@@ -261,6 +261,46 @@ TEST(Uptane, InitializeFail) {
   }
 }
 
+/**
+ * Verifies if the system hostname is used as a primary ECU hardware ID
+ * if it's not specified in the configuration
+ *
+ * Checks actions:
+ *
+ * - [x] Use the system hostname as hardware ID if one is not provided
+ */
+TEST(Uptane, HostnameAsHardwareID) {
+  TemporaryDirectory temp_dir;
+  Config conf("tests/config/basic.toml");
+  conf.storage.path = temp_dir.Path();
+
+  boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir.Path() / "cred.zip");
+  conf.provision.provision_path = temp_dir.Path() / "cred.zip";
+
+  {
+    auto storage = INvStorage::newStorage(conf.storage);
+    auto http = std::make_shared<HttpFake>(temp_dir.Path());
+    KeyManager keys(storage, conf.keymanagerConfig());
+
+    EXPECT_TRUE(conf.provision.primary_ecu_hardware_id.empty());
+    Initializer initializer(conf.provision, storage, http, keys, {});
+    EXPECT_TRUE(initializer.isSuccessful());
+
+    EcuSerials ecu_serials;
+    EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials));
+    EXPECT_GE(ecu_serials.size(), 1);
+
+    // A second element of the first tuple in ECU Serials tuple array is a primary hardware ID.
+    // Each client of the storage class needs to know this information.
+    // If it changes then corresponding changes should be done in each storage client.
+    // perhaps it makes sense to introduce get/setPrimaryHardwareID method and incapsulate
+    // this tech info within storage (or maybe some other entity)
+    auto primaryHardwareID = ecu_serials[0].second;
+    auto hostname = Utils::getHostname();
+    EXPECT_EQ(primaryHardwareID, Uptane::HardwareIdentifier(hostname));
+  }
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);

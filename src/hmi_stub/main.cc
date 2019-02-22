@@ -86,7 +86,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
 static std::vector<Uptane::Target> current_updates;
 
 void process_event(const std::shared_ptr<event::BaseEvent> &event) {
-  if (event->variant == "DownloadProgressReport") {
+  if (event->isTypeOf(event::DownloadProgressReport::TypeName)) {
     const auto download_progress = dynamic_cast<event::DownloadProgressReport *>(event.get());
     if (progress.find(download_progress->target.sha256Hash()) == progress.end()) {
       progress[download_progress->target.sha256Hash()] = 0;
