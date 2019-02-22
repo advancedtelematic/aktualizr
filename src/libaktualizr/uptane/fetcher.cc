@@ -52,37 +52,10 @@ static int ProgressHandler(void* clientp, curl_off_t dltotal, curl_off_t dlnow, 
     ds->last_progress = progress;
     ds->progress_cb(ds->target, "Downloading", progress);
   }
-  if (ds->fetcher->isPaused()) {
-    return 1;  // Abort the download.
+  if (ds->token != nullptr && !ds->token->canContinue(false)) {
+    return 1;
   }
   return 0;
-}
-
-Fetcher::PauseRet Fetcher::setPause(bool pause) {
-  std::lock_guard<std::mutex> guard(mutex_);
-  if (pause_ == pause) {
-    if (pause) {
-      LOG_DEBUG << "Fetcher: already paused";
-      return PauseRet::kAlreadyPaused;
-    } else {
-      LOG_DEBUG << "Fetcher: nothing to resume";
-      return PauseRet::kNotPaused;
-    }
-  }
-
-  pause_ = pause;
-  cv_.notify_all();
-
-  if (pause) {
-    return PauseRet::kPaused;
-  } else {
-    return PauseRet::kResumed;
-  }
-}
-
-void Fetcher::checkPause() {
-  std::unique_lock<std::mutex> lk(mutex_);
-  cv_.wait(lk, [this] { return !pause_; });
 }
 
 void Fetcher::restoreHasherState(MultiPartHasher& hasher, StorageTargetRHandle* data) {
@@ -95,7 +68,7 @@ void Fetcher::restoreHasherState(MultiPartHasher& hasher, StorageTargetRHandle* 
   } while (data_len != 0);
 }
 
-bool Fetcher::fetchVerifyTarget(const Target& target) {
+bool Fetcher::fetchVerifyTarget(const Target& target, const api::FlowControlToken* token) {
   bool result = false;
   try {
     if (!target.IsOstree()) {
@@ -107,8 +80,7 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
         LOG_INFO << "Image already downloaded skipping download";
         return true;
       }
-      DownloadMetaStruct ds(target, progress_cb);
-      ds.fetcher = this;
+      DownloadMetaStruct ds(target, progress_cb, token);
       if (target_exists) {
         ds.downloaded_length = target_exists->first;
         auto target_handle = storage->openTargetFile(target);
@@ -126,7 +98,9 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
           break;
         }
         ds.fhandle.reset();
-        checkPause();
+        if (!token->canContinue()) {
+          break;
+        }
         ds.fhandle = storage->openTargetFile(target)->toWriteHandle();
       }
       LOG_TRACE << "Download status: " << response.getStatusStr() << std::endl;
@@ -146,9 +120,8 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
 #ifdef BUILD_OSTREE
       KeyManager keys(storage, config.keymanagerConfig());
       keys.loadKeys();
-      std::function<void()> check_pause = std::bind(&Fetcher::checkPause, this);
-      data::InstallationResult install_res = OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server,
-                                                                 keys, target, check_pause, progress_cb);
+      data::InstallationResult install_res =
+          OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys, target, token, progress_cb);
       result = install_res.success;
 #else
       LOG_ERROR << "Could not pull OSTree target. Aktualizr was built without OSTree support!";
