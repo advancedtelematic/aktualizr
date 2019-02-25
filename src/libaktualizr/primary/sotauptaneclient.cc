@@ -324,7 +324,6 @@ void SotaUptaneClient::initialize() {
 }
 
 bool SotaUptaneClient::updateMeta() {
-  reportNetworkInfo();
   // Uptane step 1 (build the vehicle version manifest):
   if (!putManifestSimple()) {
     LOG_ERROR << "could not put manifest";
@@ -1061,12 +1060,22 @@ void SotaUptaneClient::sendDeviceData() {
 
 result::UpdateCheck SotaUptaneClient::fetchMeta() {
   result::UpdateCheck result;
+
+  reportNetworkInfo();
+
+  if (hasPendingUpdates()) {
+    // no need in update checking if there are some pending updates
+    return result::UpdateCheck({}, 0, result::UpdateStatus::kError, Json::nullValue,
+                               "There are pending updates, no new updates are checked");
+  }
+
   if (updateMeta()) {
     result = checkUpdates();
   } else {
     result = result::UpdateCheck({}, 0, result::UpdateStatus::kError, Json::nullValue, "Could not update metadata.");
   }
   sendEvent<event::UpdateCheckComplete>(result);
+
   return result;
 }
 
