@@ -1374,10 +1374,15 @@ std::vector<result::Install::EcuReport> SotaUptaneClient::sendImagesToEcus(const
   std::vector<result::Install::EcuReport> reports;
   std::vector<std::pair<result::Install::EcuReport, std::future<bool>>> firmwareFutures;
 
+  Uptane::EcuSerial primary_ecu_serial = uptane_manifest.getPrimaryEcuSerial();
   // target images should already have been downloaded to metadata_path/targets/
   for (auto targets_it = targets.cbegin(); targets_it != targets.cend(); ++targets_it) {
     for (auto ecus_it = targets_it->ecus().cbegin(); ecus_it != targets_it->ecus().cend(); ++ecus_it) {
       const Uptane::EcuSerial &ecu_serial = ecus_it->first;
+
+      if (primary_ecu_serial == ecu_serial) {
+        continue;
+      }
 
       auto f = secondaries.find(ecu_serial);
       if (f == secondaries.end()) {
