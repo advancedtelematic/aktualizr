@@ -46,11 +46,18 @@ void ReportQueue::flushQueue() {
     report_queue_.pop();
   }
 
+  if (config.tls.server.empty()) {
+    // Prevent a lot of unnecessary garbage output in uptane vector tests.
+    LOG_TRACE << "No server specified. Clearing report queue.";
+    report_array.clear();
+  }
+
   if (!report_array.empty()) {
     HttpResponse response = http->post(config.tls.server + "/events", report_array);
     // 404 implies the server does not support this feature. Nothing we can
     // do, just move along.
     if (response.isOk() || response.http_status_code == 404) {
+      LOG_TRACE << "Server does not support event reports. Clearing report queue.";
       report_array.clear();
     }
   }
