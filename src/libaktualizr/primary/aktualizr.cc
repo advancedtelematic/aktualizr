@@ -67,12 +67,18 @@ void Aktualizr::UptaneCycle() {
   }
 
   uptane_client_->uptaneInstall(download_result.updates);
-  uptane_client_->putManifest();
+
   if (uptane_client_->isInstallCompletionRequired()) {
     // If there are some pending updates then effectively either reboot (ostree) or aktualizr restart (fake pack mngr)
     // is required to apply the update(s)
     LOG_INFO << "About to exit aktualizr so the pending updates can be applied after reboot";
     Shutdown();
+  }
+
+  if (!uptane_client_->hasPendingUpdates()) {
+    // If updates were applied and no any reboot/finalization is required then send/put manifest
+    // as soon as possible, don't wait for config_.uptane.polling_sec
+    uptane_client_->putManifest();
   }
 }
 
