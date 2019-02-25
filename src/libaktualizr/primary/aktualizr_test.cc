@@ -44,7 +44,7 @@ int num_events_FullNoUpdates = 0;
 std::future<void> future_FullNoUpdates{};
 std::promise<void> promise_FullNoUpdates{};
 void process_events_FullNoUpdates(const std::shared_ptr<event::BaseEvent>& event) {
-  if (event->variant == "DownloadProgressReport") {
+  if (event->isTypeOf(event::DownloadProgressReport::TypeName)) {
     return;
   }
   LOG_INFO << "Got " << event->variant;
@@ -183,7 +183,7 @@ int num_events_FullWithUpdates = 0;
 std::future<void> future_FullWithUpdates{};
 std::promise<void> promise_FullWithUpdates{};
 void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& event) {
-  if (event->variant == "DownloadProgressReport") {
+  if (event->isTypeOf(event::DownloadProgressReport::TypeName)) {
     return;
   }
   LOG_INFO << "Got " << event->variant;
@@ -581,7 +581,7 @@ int num_events_CheckNoUpdates = 0;
 std::future<void> future_CheckNoUpdates{};
 std::promise<void> promise_CheckNoUpdates{};
 void process_events_CheckNoUpdates(const std::shared_ptr<event::BaseEvent>& event) {
-  if (event->variant == "DownloadProgressReport") {
+  if (event->isTypeOf(event::DownloadProgressReport::TypeName)) {
     return;
   }
   LOG_INFO << "Got " << event->variant;
@@ -651,7 +651,7 @@ int num_events_DownloadWithUpdates = 0;
 std::future<void> future_DownloadWithUpdates{};
 std::promise<void> promise_DownloadWithUpdates{};
 void process_events_DownloadWithUpdates(const std::shared_ptr<event::BaseEvent>& event) {
-  if (event->variant == "DownloadProgressReport") {
+  if (event->isTypeOf(event::DownloadProgressReport::TypeName)) {
     return;
   }
   LOG_INFO << "Got " << event->variant;
@@ -744,7 +744,7 @@ std::promise<void> promise_InstallWithUpdates{};
 void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& event) {
   // Note that we do not expect a PutManifestComplete since we don't call
   // UptaneCycle() and that's the only function that generates that.
-  if (event->variant == "DownloadProgressReport") {
+  if (event->isTypeOf(event::DownloadProgressReport::TypeName)) {
     return;
   }
   LOG_INFO << "Got " << event->variant;
@@ -893,6 +893,60 @@ TEST(Aktualizr, InstallWithUpdates) {
   if (status != std::future_status::ready) {
     FAIL() << "Timed out waiting for installation to complete.";
   }
+}
+
+/**
+ * Verifies reporting of update download progress
+ *
+ * Checks actions:
+ *
+ * - [x] Report download progress
+ */
+TEST(Aktualizr, ReportDownloadProgress) {
+  // The test initialization part is repeated in many tests so maybe it makes sense
+  // to define a fixture and move this common initialization part into the fixture's SetUp() method
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
+  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+  auto storage = INvStorage::newStorage(conf.storage);
+  Aktualizr aktualizr(conf, storage, http);
+
+  unsigned int report_counter = {0};
+  std::shared_ptr<const event::DownloadProgressReport> lastProgressReport{nullptr};
+
+  std::function<void(std::shared_ptr<event::BaseEvent> event)> report_event_hdlr =
+      [&](const std::shared_ptr<event::BaseEvent>& event) {
+        ASSERT_NE(event, nullptr);
+        if (!event->isTypeOf(event::DownloadProgressReport::TypeName)) {
+          return;
+        }
+
+        auto download_progress_event = std::dynamic_pointer_cast<event::DownloadProgressReport>(event);
+        ASSERT_NE(download_progress_event, nullptr);
+        ASSERT_NE(download_progress_event.get(), nullptr);
+        if (lastProgressReport) {
+          EXPECT_GE(download_progress_event->progress, lastProgressReport->progress);
+        }
+        lastProgressReport = download_progress_event;
+        ++report_counter;
+      };
+
+  aktualizr.SetSignalHandler(report_event_hdlr);
+  aktualizr.Initialize();
+
+  result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
+  ASSERT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
+  // The test mocks are tailored to emulate a device with a primary ECU and one secondary ECU
+  // for sake of the download progress report testing it's suffice to test it agains just one of the ECUs
+  update_result.updates.pop_back();
+
+  result::Download download_result = aktualizr.Download(update_result.updates).get();
+  EXPECT_EQ(download_result.status, result::DownloadStatus::kSuccess);
+
+  ASSERT_NE(lastProgressReport, nullptr);
+  ASSERT_NE(lastProgressReport.get(), nullptr);
+  EXPECT_TRUE(event::DownloadProgressReport::isDownloadCompleted(*lastProgressReport));
+  EXPECT_GT(report_counter, 1);
 }
 
 class HttpFakeCampaign : public HttpFake {
