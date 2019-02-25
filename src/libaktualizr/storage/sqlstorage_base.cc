@@ -66,6 +66,34 @@ std::string SQLStorageBase::getTableSchemaFromDb(const std::string& tablename) {
   return schema.value() + ";";
 }
 
+bool SQLStorageBase::dbInsertBackMigrations(SQLite3Guard& db, int version_latest) {
+  if (schema_rollback_migrations_.empty()) {
+    LOG_TRACE << "No backward migrations defined";
+    return true;
+  }
+
+  if (schema_rollback_migrations_.size() < static_cast<size_t>(version_latest) + 1) {
+    LOG_ERROR << "Backward migrations from " << schema_rollback_migrations_.size() << " to " << version_latest
+              << " are missing";
+    return false;
+  }
+
+  for (int k = 0; k <= version_latest; k++) {
+    if (schema_rollback_migrations_.at(static_cast<size_t>(k)).empty()) {
+      LOG_TRACE << "No backward migration from version " << k << " to " << (k - 1);
+      continue;
+    }
+    auto statement = db.prepareStatement("INSERT OR REPLACE INTO rollback_migrations VALUES (?,?);", k,
+                                         schema_rollback_migrations_.at(static_cast<uint32_t>(k)));
+    if (statement.step() != SQLITE_DONE) {
+      LOG_ERROR << "Can't insert rollback migration script: " << db.errmsg();
+      return false;
+    }
+  }
+
+  return true;
+}
+
 bool SQLStorageBase::dbMigrateForward(int version_from, int version_to) {
   if (version_to <= 0) {
     version_to = current_schema_version_;
@@ -83,25 +111,13 @@ bool SQLStorageBase::dbMigrateForward(int version_from, int version_to) {
   for (int32_t k = version_from + 1; k <= version_to; k++) {
     auto result_code = db.exec(schema_migrations_.at(static_cast<size_t>(k)), nullptr, nullptr);
     if (result_code != SQLITE_OK) {
-      LOG_ERROR << "Can't migrate db from version " << (k - 1) << " to version " << k << ": " << db.errmsg();
+      LOG_ERROR << "Can't migrate DB from version " << (k - 1) << " to version " << k << ": " << db.errmsg();
       return false;
     }
+  }
 
-    if (schema_rollback_migrations_.empty()) {
-      LOG_TRACE << "No backward migrations defined";
-      continue;
-    }
-
-    if (schema_rollback_migrations_.at(static_cast<uint32_t>(k)).empty()) {
-      LOG_TRACE << "No backward migration from version " << k << " to " << (k - 1);
-      continue;
-    }
-    auto statement = db.prepareStatement("INSERT OR REPLACE INTO rollback_migrations VALUES (?,?);", k,
-                                         schema_rollback_migrations_.at(static_cast<uint32_t>(k)));
-    if (statement.step() != SQLITE_DONE) {
-      LOG_ERROR << "Can't insert rollback migration script: " << db.errmsg();
-      return false;
-    }
+  if (!dbInsertBackMigrations(db, version_to)) {
+    return false;
   }
 
   db.commitTransaction();
@@ -160,7 +176,27 @@ bool SQLStorageBase::dbMigrate() {
     return false;
   }
 
-  if (schema_version != DbVersion::kEmpty && schema_num_version > current_schema_version_) {
+  if (schema_version == DbVersion::kEmpty) {
+    LOG_INFO << "Bootstraping DB to version " << current_schema_version_;
+    SQLite3Guard db = dbConnection();
+
+    if (!db.beginTransaction()) {
+      LOG_ERROR << "Can't start transaction: " << db.errmsg();
+      return false;
+    }
+
+    auto result_code = db.exec(current_schema_, nullptr, nullptr);
+    if (result_code != SQLITE_OK) {
+      LOG_ERROR << "Can't bootstrap DB to version " << current_schema_version_ << ": " << db.errmsg();
+      return false;
+    }
+
+    if (!dbInsertBackMigrations(db, current_schema_version_)) {
+      return false;
+    }
+
+    db.commitTransaction();
+  } else if (schema_num_version > current_schema_version_) {
     dbMigrateBackward(schema_num_version);
   } else {
     dbMigrateForward(schema_num_version);
