@@ -125,7 +125,7 @@ data::InstallationResult OstreeManager::install(const Uptane::Target &target) co
   const char *opt_osname = nullptr;
   GCancellable *cancellable = nullptr;
   GError *error = nullptr;
-  char *revision;
+  g_autofree char *revision = nullptr;
 
   if (config.os.size() != 0u) {
     opt_osname = config.os.c_str();
