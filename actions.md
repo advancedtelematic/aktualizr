@@ -328,10 +328,10 @@ These tools all link with libaktualizr, although they do not necessary use the A
   - [x] Print device ID (aktualizr_info/CMakeLists.txt)
   - [x] Print primary ECU serial (aktualizr_info/CMakeLists.txt)
   - [x] Print primary ECU hardware ID (aktualizr_info/CMakeLists.txt)
-  - [ ] Print secondary ECU serials
-  - [ ] Print secondary ECU hardware IDs
-  - [ ] Print secondary ECUs no longer accessible
-  - [ ] Print secondary ECUs registered after provisioning
+  - [x] Print secondary ECU serials
+  - [x] Print secondary ECU hardware IDs
+  - [x] Print secondary ECUs no longer accessible
+  - [x] Print secondary ECUs registered after provisioning
   - [x] Print provisioning status (aktualizr_info/CMakeLists.txt)
   - [x] Print whether metadata has been fetched from the server (aktualizr_info/CMakeLists.txt)
   - [x] Print root metadata from images repository (aktualizr_info/CMakeLists.txt)

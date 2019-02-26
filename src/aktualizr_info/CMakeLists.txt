@@ -22,9 +22,19 @@ add_test(NAME aktualizr-info-noarguments
 set_tests_properties(aktualizr-info-noarguments PROPERTIES
     PASS_REGULAR_EXPRESSION "Device ID: new-kartoffelpuffer-706
 Primary ecu serial ID: cd51a49a-25d9-438e-93fa-c0dde6bfcec9
-Primary ecu hardware ID: master
-Provisioned on server: yes
+Primary ecu hardware ID: master.*Provisioned on server: yes
 Fetched metadata: yes")
+
+# Print secondary ECU serials
+# Print secondary ECU hardware IDs
+# Print secondary ECUs no longer accessible (removed)
+# Print secondary ECUs registered after provisioning (not registered yet)
+add_test(NAME aktualizr-info-secondary
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${CMAKE_CURRENT_BINARY_DIR}/aktualizr-info WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/tests/)
+set_tests_properties(aktualizr-info-secondary PROPERTIES
+  PASS_REGULAR_EXPRESSION "serial ID: d4dcae5d-39ab-4fed-99a6-97fd36c87c7b\n   hardware ID: secondary.*Removed or not registered ecus:
+   '680df471-3096-4064-b2ab-2adc9690157f' with hardware_id 'not-registered' not registered yet
+   '84bd6f0b-a1d2-4458-a061-7a406671c70a' with hardware_id 'removed' has been removed from config")
 
 # Print root metadata from images repository
 add_test(NAME aktualizr-info-images-root
