@@ -30,6 +30,7 @@ class SQLStorageBase {
   std::vector<std::string> schema_rollback_migrations_;
   const std::string current_schema_;
   const int current_schema_version_;
+  bool dbInsertBackMigrations(SQLite3Guard& db, int version_latest);
 };
 
 #endif  // SQLSTORAGE_BASE_H_
