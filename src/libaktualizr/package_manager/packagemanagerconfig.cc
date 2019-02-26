@@ -14,6 +14,9 @@ std::ostream& operator<<(std::ostream& os, PackageManager pm) {
     case PackageManager::kDebian:
       pm_str = "debian";
       break;
+    case PackageManager::kOstreeDockerApp:
+      pm_str = "ostree+docker-app";
+      break;
     case PackageManager::kNone:
     default:
       pm_str = "none";

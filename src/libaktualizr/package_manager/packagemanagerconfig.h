@@ -7,7 +7,7 @@
 
 #include "utilities/config_utils.h"
 
-enum class PackageManager { kNone = 0, kOstree, kDebian, kAndroid };
+enum class PackageManager { kNone = 0, kOstree, kDebian, kAndroid, kOstreeDockerApp };
 std::ostream& operator<<(std::ostream& os, PackageManager pm);
 
 struct PackageConfig {
@@ -43,6 +43,8 @@ inline void CopyFromConfig(PackageManager& dest, const std::string& option_name,
       dest = PackageManager::kDebian;
     } else if (pm_type == "android") {
       dest = PackageManager::kAndroid;
+    } else if (pm_type == "ostree+docker-app") {
+      dest = PackageManager::kOstreeDockerApp;
     } else {
       dest = PackageManager::kNone;
     }
