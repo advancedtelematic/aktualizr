@@ -38,13 +38,15 @@ Additional documentation intended for developers that may need to use the libakt
 
 [NOTE]
 ====
-The link above is for the doxygen docs on master. Doxygen docs for the following tagged versions are also available:
+The link above is for the doxygen docs on master. Doxygen docs for the following tagged release versions are also available:
 
 * https://advancedtelematic.github.io/aktualizr/2018.8/index.html[2018.8]
 * https://advancedtelematic.github.io/aktualizr/2018.9/index.html[2018.9]
 * https://advancedtelematic.github.io/aktualizr/2018.11/index.html[2018.11]
 * https://advancedtelematic.github.io/aktualizr/2018.12/index.html[2018.12]
 * https://advancedtelematic.github.io/aktualizr/2018.13/index.html[2018.13]
+* https://advancedtelematic.github.io/aktualizr/2019.1/index.html[2019.1]
+* https://advancedtelematic.github.io/aktualizr/2019.2/index.html[2019.2]
 ====
 
 === Updating doxygen on github
@@ -55,7 +57,7 @@ To update the doxygen documentation for master on github, you will need to do so
 1. Clone a second aktualizr repo and run `git checkout gh-pages`.
 1. In the second repo, run `rm ./* search/* `.
 1. Copy the contents of `<build_dir>/docs/html` into the root of the second repo. (Something like `cp -a <build_dir>/docs/html/* <second_repo>`.)
-1. In the second repo, run `git add -A`, `git commit`, and `git push`.
+1. In the second repo, run `git add -A`, `git commit -s`, and `git push`.
 1. Wait a minute or two for github to refresh and render the files.
 
 ==== Adding docs for a new tag
@@ -75,5 +77,5 @@ make doxygen
 1. Clone a second aktualizr repo and run `git checkout gh-pages`.
 1. In the second repo, make a directory for the tag or commit you wish to add, i.e. `mkdir 2018.63`.
 1. Copy the contents of `<build_dir>/docs/html` into the directory you just created. (Something like `cp -a <build_dir>/docs/html/* <second_repo>/2018.63`.)
-1. In the second repo, run `git add -A`, `git commit`, and `git push`.
+1. In the second repo, run `git add -A`, `git commit -s`, and `git push`.
 1. Wait a minute or two for github to refresh and render the files.
