@@ -14,7 +14,11 @@ Json::Value DebianManager::getInstalledPackages() const {
   dpkg_program_init("a.out");
   modstatdb_open(msdbrw_available_readonly);
 
+#ifdef LIBDPKG_V011903
+  pkg_array_init_from_hash(&array);
+#else
   pkg_array_init_from_db(&array);
+#endif
   pkg_array_sort(&array, pkg_sorter_by_nonambig_name_arch);
   for (int i = 0; i < array.n_pkgs; ++i) {
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
