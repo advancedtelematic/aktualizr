@@ -176,16 +176,17 @@ data::InstallationResult OstreeManager::install(const Uptane::Target &target) co
   kargs_strv_vector[args_vector.size()] = nullptr;
   auto kargs_strv = const_cast<char **>(&kargs_strv_vector[0]);
 
-  OstreeDeployment *new_deployment = nullptr;
+  OstreeDeployment *new_deployment_raw = nullptr;
   if (ostree_sysroot_deploy_tree(sysroot.get(), opt_osname, revision, origin.get(), merge_deployment, kargs_strv,
-                                 &new_deployment, cancellable, &error) == 0) {
+                                 &new_deployment_raw, cancellable, &error) == 0) {
     LOG_ERROR << "ostree_sysroot_deploy_tree: " << error->message;
     data::InstallationResult install_res(data::ResultCode::Numeric::kInstallFailed, error->message);
     g_error_free(error);
     return install_res;
   }
+  GObjectUniquePtr<OstreeDeployment> new_deployment = GObjectUniquePtr<OstreeDeployment>(new_deployment_raw);
 
-  if (ostree_sysroot_simple_write_deployment(sysroot.get(), nullptr, new_deployment, merge_deployment,
+  if (ostree_sysroot_simple_write_deployment(sysroot.get(), nullptr, new_deployment.get(), merge_deployment,
                                              OSTREE_SYSROOT_SIMPLE_WRITE_DEPLOYMENT_FLAGS_NONE, cancellable,
                                              &error) == 0) {
     LOG_ERROR << "ostree_sysroot_simple_write_deployment:" << error->message;
@@ -317,24 +318,23 @@ GObjectUniquePtr<OstreeDeployment> OstreeManager::getStagedDeployment() const {
 }
 
 GObjectUniquePtr<OstreeSysroot> OstreeManager::LoadSysroot(const boost::filesystem::path &path) {
-  OstreeSysroot *sysroot = nullptr;
+  GObjectUniquePtr<OstreeSysroot> sysroot = nullptr;
 
   if (!path.empty()) {
     GFile *fl = g_file_new_for_path(path.c_str());
-    sysroot = ostree_sysroot_new(fl);
+    sysroot.reset(ostree_sysroot_new(fl));
     g_object_unref(fl);
   } else {
-    sysroot = ostree_sysroot_new_default();
+    sysroot.reset(ostree_sysroot_new_default());
   }
   GError *error = nullptr;
-  if (ostree_sysroot_load(sysroot, nullptr, &error) == 0) {
+  if (ostree_sysroot_load(sysroot.get(), nullptr, &error) == 0) {
     if (error != nullptr) {
       g_error_free(error);
     }
-    g_object_unref(sysroot);
     throw std::runtime_error("could not load sysroot");
   }
-  return GObjectUniquePtr<OstreeSysroot>(sysroot);
+  return sysroot;
 }
 
 GObjectUniquePtr<OstreeRepo> OstreeManager::LoadRepo(OstreeSysroot *sysroot, GError **error) {
