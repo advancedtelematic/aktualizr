@@ -147,7 +147,6 @@ int main(int argc, char *argv[]) {
     while (std::getline(std::cin, buffer)) {
       boost::algorithm::to_lower(buffer);
       if (buffer == "shutdown") {
-        aktualizr.Shutdown();
         break;
       } else if (buffer == "senddevicedata") {
         aktualizr.SendDeviceData();
