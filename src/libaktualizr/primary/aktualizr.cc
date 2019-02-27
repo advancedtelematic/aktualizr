@@ -44,26 +44,18 @@ void Aktualizr::systemSetup() {
 
 void Aktualizr::Initialize() {
   uptane_client_->initialize();
-  api_thread_ = std::thread([&]() {
-    while (!shutdown_) {
-      auto task = api_queue_.dequeue();
-      if (shutdown_) {
-        return;
-      }
-      task();
-    }
-  });
+  api_queue_.run();
 }
 
-void Aktualizr::UptaneCycle() {
+bool Aktualizr::UptaneCycle() {
   result::UpdateCheck update_result = CheckUpdates().get();
   if (update_result.updates.size() == 0) {
-    return;
+    return true;
   }
 
   result::Download download_result = Download(update_result.updates).get();
   if (download_result.status != result::DownloadStatus::kSuccess || download_result.updates.size() == 0) {
-    return;
+    return true;
   }
 
   uptane_client_->uptaneInstall(download_result.updates);
@@ -72,7 +64,7 @@ void Aktualizr::UptaneCycle() {
     // If there are some pending updates then effectively either reboot (ostree) or aktualizr restart (fake pack mngr)
     // is required to apply the update(s)
     LOG_INFO << "About to exit aktualizr so the pending updates can be applied after reboot";
-    Shutdown();
+    return false;
   }
 
   if (!uptane_client_->hasPendingUpdates()) {
@@ -80,13 +72,14 @@ void Aktualizr::UptaneCycle() {
     // as soon as possible, don't wait for config_.uptane.polling_sec
     uptane_client_->putManifest();
   }
+
+  return true;
 }
 
 std::future<void> Aktualizr::RunForever() {
   std::future<void> future = std::async(std::launch::async, [&]() {
     SendDeviceData().get();
-    while (!shutdown_) {
-      UptaneCycle();
+    while (UptaneCycle()) {
       std::this_thread::sleep_for(std::chrono::seconds(config_.uptane.polling_sec));
     }
     uptane_client_->completeInstall();
@@ -98,81 +91,42 @@ void Aktualizr::AddSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &
   uptane_client_->addNewSecondary(secondary);
 }
 
-void Aktualizr::Shutdown() {
-  if (!shutdown_) {
-    shutdown_ = true;
-    api_queue_.shutDown();
-  }
-}
-
 std::future<result::CampaignCheck> Aktualizr::CampaignCheck() {
-  auto promise = std::make_shared<std::promise<result::CampaignCheck>>();
-  std::function<void()> task([&, promise]() { promise->set_value(uptane_client_->campaignCheck()); });
-  api_queue_.enqueue(task);
-  return promise->get_future();
+  std::function<result::CampaignCheck()> task([this] { return uptane_client_->campaignCheck(); });
+  return api_queue_.enqueue(task);
 }
 
 std::future<void> Aktualizr::CampaignAccept(const std::string &campaign_id) {
-  auto promise = std::make_shared<std::promise<void>>();
-  std::function<void()> task([&, promise, campaign_id]() {
-    uptane_client_->campaignAccept(campaign_id);
-    promise->set_value();
-  });
-  api_queue_.enqueue(task);
-  return promise->get_future();
+  std::function<void()> task([this, &campaign_id] { uptane_client_->campaignAccept(campaign_id); });
+  return api_queue_.enqueue(task);
 }
 
 std::future<void> Aktualizr::SendDeviceData() {
-  auto promise = std::make_shared<std::promise<void>>();
-  std::function<void()> task([&, promise]() {
-    uptane_client_->sendDeviceData();
-    promise->set_value();
-  });
-  api_queue_.enqueue(task);
-  return promise->get_future();
+  std::function<void()> task([this] { uptane_client_->sendDeviceData(); });
+  return api_queue_.enqueue(task);
 }
 
 std::future<result::UpdateCheck> Aktualizr::CheckUpdates() {
-  auto promise = std::make_shared<std::promise<result::UpdateCheck>>();
-  std::function<void()> task([&, promise]() { promise->set_value(uptane_client_->fetchMeta()); });
-  api_queue_.enqueue(task);
-  return promise->get_future();
+  std::function<result::UpdateCheck()> task([this] { return uptane_client_->fetchMeta(); });
+  return api_queue_.enqueue(task);
 }
 
 std::future<result::Download> Aktualizr::Download(const std::vector<Uptane::Target> &updates) {
-  auto promise = std::make_shared<std::promise<result::Download>>();
-  std::function<void()> task(
-      [this, promise, updates]() { promise->set_value(uptane_client_->downloadImages(updates)); });
-  api_queue_.enqueue(task);
-  return promise->get_future();
+  std::function<result::Download()> task([this, &updates] { return uptane_client_->downloadImages(updates); });
+  return api_queue_.enqueue(task);
 }
 
 std::future<result::Install> Aktualizr::Install(const std::vector<Uptane::Target> &updates) {
-  auto promise = std::make_shared<std::promise<result::Install>>();
-  std::function<void()> task(
-      [this, promise, updates]() { promise->set_value(uptane_client_->uptaneInstall(updates)); });
-  api_queue_.enqueue(task);
-  return promise->get_future();
+  std::function<result::Install()> task([this, &updates] { return uptane_client_->uptaneInstall(updates); });
+  return api_queue_.enqueue(task);
 }
 
 result::Pause Aktualizr::Pause() {
-  if (api_queue_.pause(true)) {
-    uptane_client_->pauseFetching();
-
-    return {result::PauseStatus::kSuccess};
-  }
-
-  return {result::PauseStatus::kAlreadyPaused};
+  return api_queue_.pause(true) ? result::PauseStatus::kSuccess : result::PauseStatus::kAlreadyPaused;
 }
 
 result::Pause Aktualizr::Resume() {
-  if (api_queue_.pause(false)) {
-    uptane_client_->resumeFetching();
-
-    return {result::PauseStatus::kSuccess};
-  }
-
-  return {result::PauseStatus::kAlreadyRunning};
+  return api_queue_.pause(false) ? result::PauseStatus::kSuccess : result::PauseStatus::kAlreadyRunning;
 }
 
 boost::signals2::connection Aktualizr::SetSignalHandler(std::function<void(shared_ptr<event::BaseEvent>)> &handler) {

@@ -12,50 +12,7 @@
 #include "sotauptaneclient.h"
 #include "storage/invstorage.h"
 #include "uptane/secondaryinterface.h"
-
-class ApiQueue {
- public:
-  void enqueue(const std::function<void()>& t) {
-    std::lock_guard<std::mutex> lock(m_);
-    q_.push(t);
-    c_.notify_one();
-  }
-
-  std::function<void()> dequeue() {
-    std::unique_lock<std::mutex> wait_lock(m_);
-    while (q_.empty() || paused_) {
-      c_.wait(wait_lock);
-      if (shutdown_) {
-        return std::function<void()>();
-      }
-    }
-    std::function<void()> val = q_.front();
-    q_.pop();
-    return val;
-  }
-
-  void shutDown() {
-    shutdown_ = true;
-    enqueue(std::function<void()>());
-  }
-
-  // returns true iff pause→resume or resume→pause
-  bool pause(bool do_pause) {
-    std::lock_guard<std::mutex> lock(m_);
-    bool has_effect = paused_ != do_pause;
-    paused_ = do_pause;
-    c_.notify_one();
-
-    return has_effect;
-  }
-
- private:
-  std::queue<std::function<void()>> q_;
-  mutable std::mutex m_;
-  std::condition_variable c_;
-  std::atomic_bool shutdown_{false};
-  std::atomic_bool paused_{false};
-};
+#include "utilities/apiqueue.h"
 
 /**
  * This class provides the main APIs necessary for launching and controlling
@@ -66,12 +23,6 @@ class Aktualizr {
   /** Aktualizr requires a configuration object. Examples can be found in the
    *  config directory. */
   explicit Aktualizr(Config& config);
-  ~Aktualizr() {
-    Shutdown();
-    if (api_thread_.joinable()) {
-      api_thread_.join();
-    }
-  }
   Aktualizr(const Aktualizr&) = delete;
   Aktualizr& operator=(const Aktualizr&) = delete;
 
@@ -87,11 +38,6 @@ class Aktualizr {
    * @return Empty std::future object
    */
   std::future<void> RunForever();
-
-  /**
-   * Asynchronously shut aktualizr down.
-   */
-  void Shutdown();
 
   /**
    * Check for campaigns.
@@ -170,7 +116,7 @@ class Aktualizr {
    * Synchronously run an uptane cycle: check for updates, download any new
    * targets, install them, and send a manifest back to the server.
    */
-  void UptaneCycle();
+  bool UptaneCycle();
 
   /**
    * Add new secondary to aktualizr. Must be called before Initialize.
@@ -215,9 +161,7 @@ class Aktualizr {
   std::shared_ptr<INvStorage> storage_;
   std::shared_ptr<SotaUptaneClient> uptane_client_;
   std::shared_ptr<event::Channel> sig_;
-  std::atomic<bool> shutdown_ = {false};
-  ApiQueue api_queue_;
-  std::thread api_thread_;
+  api::CommandQueue api_queue_;
 };
 
 #endif  // AKTUALIZR_H_

@@ -1,9 +1,14 @@
 #ifndef AKTUALIZR_APIQUEUE_H
 #define AKTUALIZR_APIQUEUE_H
 
+#include <atomic>
 #include <condition_variable>
+#include <functional>
+#include <future>
 #include <mutex>
 #include <queue>
+#include <thread>
+#include <utility>
 
 namespace api {
 
@@ -44,5 +49,34 @@ class FlowControlToken {
   mutable std::condition_variable cv_;
 };
 
-}  // namespace Api
+class CommandQueue {
+ public:
+  ~CommandQueue();
+  void run();
+  bool pause(bool do_pause);  // returns true iff pause→resume or resume→pause
+  void abort();
+
+  template <class R>
+  std::future<R> enqueue(const std::function<R()>& f) {
+    std::packaged_task<R()> task(f);
+    auto r = task.get_future();
+    {
+      std::lock_guard<std::mutex> lock(m_);
+      queue_.push(std::packaged_task<void()>(std::move(task)));
+    }
+    cv_.notify_all();
+    return r;
+  }
+
+ private:
+  std::atomic_bool shutdown_{false};
+  std::atomic_bool paused_{false};
+  std::thread thread_;
+  std::queue<std::packaged_task<void()>> queue_;
+  std::mutex m_;
+  std::condition_variable cv_;
+  FlowControlToken token_;
+};
+
+}  // namespace api
 #endif  // AKTUALIZR_APIQUEUE_H
