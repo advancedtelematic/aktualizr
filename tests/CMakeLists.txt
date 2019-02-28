@@ -78,7 +78,7 @@ endif(TESTSUITE_VALGRIND)
 add_test(NAME test_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh
     ${PROJECT_SOURCE_DIR}/tests ${VECTOR_TESTS_ARGS} ${GOOGLE_TEST_OUTPUT})
 add_dependencies(build_tests aktualizr_uptane_vector_tests)
-set_tests_properties(test_uptane_vectors PROPERTIES LABELS "uptane_vectors")
+set_tests_properties(test_uptane_vectors PROPERTIES LABELS "noptest uptane_vectors")
 
 if(SOTA_PACKED_CREDENTIALS)
     add_test(NAME auto_prov_test COMMAND ${PROJECT_SOURCE_DIR}/tests/auto_prov_test.py
