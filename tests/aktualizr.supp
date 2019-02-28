@@ -8,6 +8,14 @@
    ...
 }
 {
+    gobject g_file_new_for_path
+    Memcheck:Leak
+    fun:calloc
+    ...
+    fun:g_file_new_for_path
+    ...
+}
+{
    boost 1.66.0 unique_path
    Memcheck:Cond
    ...
