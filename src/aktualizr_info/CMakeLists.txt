@@ -12,6 +12,9 @@ install(TARGETS aktualizr-info
 
 add_aktualizr_test(NAME aktualizr_info_config
                    SOURCES aktualizr_info_config.cc aktualizr_info_config_test.cc PROJECT_WORKING_DIRECTORY)
+
+add_aktualizr_test(NAME aktualizr_info SOURCES aktualizr_info_test.cc)
+
 # Print device ID
 # Print primary ECU serial
 # Print primary ECU hardware ID
