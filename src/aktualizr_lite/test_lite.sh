@@ -5,7 +5,8 @@ build_dir=$(pwd)
 aklite=$1
 akrepo_bin=$2
 tests_dir=$3
-valgrind=$4
+#valgrind=$4
+valgrind=""
 port=$($tests_dir/get_open_port.py)
 
 dest_dir=$(mktemp -d)
