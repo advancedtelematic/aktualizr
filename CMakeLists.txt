@@ -7,10 +7,21 @@ cmake_policy(SET CMP0009 NEW)
 
 project(aktualizr)
 
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release")
+    message(STATUS "No CMAKE_BUILD_TYPE specified, defaulting to ${CMAKE_BUILD_TYPE}")
+endif(NOT CMAKE_BUILD_TYPE)
+
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
     set(BUILD_SYSTEMD_DEFAULT ON)
 else()
     set(BUILD_SYSTEMD_DEFAULT OFF)
+endif()
+
+if(CMAKE_BUILD_TYPE MATCHES "Valgrind")
+    set(TESTSUITE_VALGRIND_DEFAULT ON)
+else()
+    set(TESTSUITE_VALGRIND_DEFAULT OFF)
 endif()
 
 option(WARNING_AS_ERROR "Treat warnings as errors" ON)
@@ -26,6 +37,7 @@ option(BUILD_SYSTEMD "Set to ON to compile with systemd additional support" ${BU
 option(BUILD_LOAD_TESTS "Set to ON to build load tests" OFF)
 option(FAULT_INJECTION "Set to ON to enable fault injection" OFF)
 option(INSTALL_LIB "Set to ON to install library and headers" OFF)
+option(TESTSUITE_VALGRIND "Set to ON to make tests to run under valgrind (default when CMAKE_BUILD_TYPE=Valgrind)" ${TESTSUITE_VALGRIND_DEFAULT})
 
 set(SOTA_PACKED_CREDENTIALS "" CACHE STRING "Credentials.zip for tests involving the server")
 
@@ -147,11 +159,6 @@ endif(FAULT_INJECTION)
 # set symbols used when compiling
 #add_definitions(-DBOOST_LOG_DYN_LINK)
 
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Release")
-    message(STATUS "No CMAKE_BUILD_TYPE specified, defaulting to ${CMAKE_BUILD_TYPE}")
-endif(NOT CMAKE_BUILD_TYPE)
-
 set(CMAKE_CXX_FLAGS_DEBUG "-Og -g")
 
 SET(CMAKE_CXX_FLAGS_VALGRIND "-O1 -g")
@@ -178,7 +185,7 @@ add_custom_target(format)
 add_dependencies(qa format)
 
 # All binaries are built as prerequisites to this target
-if(CMAKE_BUILD_TYPE MATCHES "Valgrind")
+if(TESTSUITE_VALGRIND)
     find_program(VALGRIND NAMES valgrind)
     configure_file(scripts/run-valgrind.in ${CMAKE_CURRENT_BINARY_DIR}/run-valgrind @ONLY)
     set(RUN_VALGRIND ${CMAKE_CURRENT_BINARY_DIR}/run-valgrind)

@@ -62,7 +62,7 @@ if(BUILD_WITH_CODE_COVERAGE)
     add_dependencies(coverage build_tests)
 endif(BUILD_WITH_CODE_COVERAGE)
 
-if(CMAKE_BUILD_TYPE MATCHES "Valgrind")
+if(TESTSUITE_VALGRIND)
     # This test is only checking that valgrind finds memory leaks
     add_aktualizr_test(NAME leak SOURCES leak_test.cc)
     set_tests_properties(test_leak PROPERTIES WILL_FAIL TRUE)
@@ -72,9 +72,9 @@ endif()
 add_executable(aktualizr_uptane_vector_tests uptane_vector_tests.cc)
 target_link_libraries(aktualizr_uptane_vector_tests aktualizr_static_lib ${TEST_LIBS})
 
-if(CMAKE_BUILD_TYPE MATCHES "Valgrind")
+if(TESTSUITE_VALGRIND)
     set(VECTOR_TESTS_ARGS "valgrind")
-endif(CMAKE_BUILD_TYPE MATCHES "Valgrind")
+endif(TESTSUITE_VALGRIND)
 add_test(NAME test_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh
     ${PROJECT_SOURCE_DIR}/tests ${VECTOR_TESTS_ARGS} ${GOOGLE_TEST_OUTPUT})
 add_dependencies(build_tests aktualizr_uptane_vector_tests)
