@@ -49,7 +49,7 @@ static int list_main(Config &config, const bpo::variables_map &unused) {
   return 0;
 }
 
-static std::unique_ptr<Uptane::Target> find_target(std::shared_ptr<SotaUptaneClient> client,
+static std::unique_ptr<Uptane::Target> find_target(const std::shared_ptr<SotaUptaneClient> &client,
                                                    Uptane::HardwareIdentifier &hwid, const std::string &version) {
   std::unique_ptr<Uptane::Target> rv;
   if (!client->updateImagesMeta()) {
