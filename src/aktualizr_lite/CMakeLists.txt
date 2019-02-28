@@ -6,10 +6,7 @@ install(TARGETS aktualizr-lite RUNTIME DESTINATION bin COMPONENT aktualizr-lite)
 
 set(TEST_SOURCES test_lite.sh)
 
-add_custom_target(t_aktualizr-lite)
-add_dependencies(t_aktualizr-lite aktualizr-repo)
-add_dependencies(t_aktualizr-lite aktualizr-lite)
-add_dependencies(build_tests t_aktualizr-lite)
+add_dependencies(build_tests aktualizr-lite)
 
 add_test(test_aktualizr-lite
     ${CMAKE_CURRENT_SOURCE_DIR}/test_lite.sh
