@@ -5,6 +5,13 @@ if(NOT GMOCK_ROOT )
     set(GMOCK_ROOT ${PROJECT_SOURCE_DIR}/third_party/googletest/googlemock)
 endif()
 
+if(CMAKE_CROSSCOMPILING)
+    # we cannot call the tool we build in this context, it has to come from somewhere else
+    find_program(AKTUALIZR_REPO NAMES aktualizr-repo)
+else()
+    set(AKTUALIZR_REPO $<TARGET_FILE:aktualizr-repo>)
+endif()
+
 # Temporarily remove flags not supported by gtest.
 remove_definitions(-Wswitch-default -Wconversion)
 add_subdirectory(${GMOCK_ROOT} ${CMAKE_CURRENT_BINARY_DIR}/gmock EXCLUDE_FROM_ALL)
