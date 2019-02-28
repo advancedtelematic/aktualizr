@@ -149,7 +149,7 @@ data::InstallationResult OstreeManager::install(const Uptane::Target &target) co
     return install_res;
   }
 
-  OstreeDeployment *merge_deployment = ostree_sysroot_get_merge_deployment(sysroot.get(), opt_osname);
+  GObjectUniquePtr<OstreeDeployment> merge_deployment(ostree_sysroot_get_merge_deployment(sysroot.get(), opt_osname));
   if (merge_deployment == nullptr) {
     LOG_ERROR << "No merge deployment";
     return data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, "No merge deployment");
@@ -163,7 +163,7 @@ data::InstallationResult OstreeManager::install(const Uptane::Target &target) co
   }
 
   std::string args_content =
-      std::string(ostree_bootconfig_parser_get(ostree_deployment_get_bootconfig(merge_deployment), "options"));
+      std::string(ostree_bootconfig_parser_get(ostree_deployment_get_bootconfig(merge_deployment.get()), "options"));
   std::vector<std::string> args_vector;
   boost::split(args_vector, args_content, boost::is_any_of(" "));
 
@@ -177,7 +177,7 @@ data::InstallationResult OstreeManager::install(const Uptane::Target &target) co
   auto kargs_strv = const_cast<char **>(&kargs_strv_vector[0]);
 
   OstreeDeployment *new_deployment_raw = nullptr;
-  if (ostree_sysroot_deploy_tree(sysroot.get(), opt_osname, revision, origin.get(), merge_deployment, kargs_strv,
+  if (ostree_sysroot_deploy_tree(sysroot.get(), opt_osname, revision, origin.get(), merge_deployment.get(), kargs_strv,
                                  &new_deployment_raw, cancellable, &error) == 0) {
     LOG_ERROR << "ostree_sysroot_deploy_tree: " << error->message;
     data::InstallationResult install_res(data::ResultCode::Numeric::kInstallFailed, error->message);
@@ -186,7 +186,7 @@ data::InstallationResult OstreeManager::install(const Uptane::Target &target) co
   }
   GObjectUniquePtr<OstreeDeployment> new_deployment = GObjectUniquePtr<OstreeDeployment>(new_deployment_raw);
 
-  if (ostree_sysroot_simple_write_deployment(sysroot.get(), nullptr, new_deployment.get(), merge_deployment,
+  if (ostree_sysroot_simple_write_deployment(sysroot.get(), nullptr, new_deployment.get(), merge_deployment.get(),
                                              OSTREE_SYSROOT_SIMPLE_WRITE_DEPLOYMENT_FLAGS_NONE, cancellable,
                                              &error) == 0) {
     LOG_ERROR << "ostree_sysroot_simple_write_deployment:" << error->message;
