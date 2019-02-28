@@ -212,7 +212,15 @@ int main(int argc, char **argv) {
     std::cerr << "Error: " << argv[0] << " requires the path to an OSTree sysroot as an input argument.\n";
     return EXIT_FAILURE;
   }
-  test_sysroot = argv[1];
+
+  TemporaryDirectory temp_sysroot;
+  test_sysroot = temp_sysroot / "sysroot";
+  // uses cp, as boost doesn't like to copy bad symlinks
+  int r = system((std::string("cp -r ") + argv[1] + std::string(" ") + test_sysroot.string()).c_str());
+  if (r != 0) {
+    return -1;
+  }
+
   return RUN_ALL_TESTS();
 }
 #endif
