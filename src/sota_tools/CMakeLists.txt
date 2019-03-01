@@ -72,16 +72,22 @@ if (BUILD_SOTA_TOOLS)
 
 
     ### garage-sign targets
-    if(GARAGE_SIGN_VERSION)
-        set(GARAGE_SIGN_VERSION_ARG "--name" ${GARAGE_SIGN_VERSION})
-    endif(GARAGE_SIGN_VERSION)
-    if(GARAGE_SIGN_SHA256)
-        set(GARAGE_SIGN_SHA256_ARG "--sha256" ${GARAGE_SIGN_SHA256})
-    endif(GARAGE_SIGN_SHA256)
+    if(GARAGE_SIGN_ARCHIVE)
+        get_filename_component(GARAGE_SIGN_ARCHIVE_ABS ${GARAGE_SIGN_ARCHIVE} ABSOLUTE BASE_DIR ${CMAKE_BINARY_DIR})
+        set(GARAGE_SIGN_ARGS ${GARAGE_SIGN_ARGS} "--archive" ${GARAGE_SIGN_ARCHIVE_ABS})
+    else()
+        if(GARAGE_SIGN_VERSION)
+            set(GARAGE_SIGN_ARGS ${GARAGE_SIGN_ARGS} "--name" ${GARAGE_SIGN_VERSION})
+        endif(GARAGE_SIGN_VERSION)
+        if(GARAGE_SIGN_SHA256)
+            set(GARAGE_SIGN_ARGS ${GARAGE_SIGN_ARGS} "--sha256" ${GARAGE_SIGN_SHA256})
+        endif(GARAGE_SIGN_SHA256)
+    endif()
+
     add_custom_target(garage-sign
                     COMMAND ${PROJECT_SOURCE_DIR}/scripts/get_garage_sign.py
                     --output ${CMAKE_CURRENT_BINARY_DIR}
-                    ${GARAGE_SIGN_VERSION_ARG} ${GARAGE_SIGN_SHA256_ARG})
+                    ${GARAGE_SIGN_ARGS})
     add_dependencies(garage-deploy garage-sign)
 
     install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/garage-sign/bin/garage-sign DESTINATION bin COMPONENT garage_deploy)

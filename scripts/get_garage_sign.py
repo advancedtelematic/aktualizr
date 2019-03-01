@@ -14,6 +14,7 @@ from pathlib import Path
 
 def main():
     parser = argparse.ArgumentParser(description='Download a specific or the latest version of garage-sign')
+    parser.add_argument('-a', '--archive', help='static local archive')
     parser.add_argument('-n', '--name', help='specific version to download')
     parser.add_argument('-s', '--sha256', help='expected hash of requested version')
     parser.add_argument('-o', '--output', type=Path, default=Path('.'), help='download directory')
@@ -23,9 +24,12 @@ def main():
         print('Error: specified output directory ' + args.output + ' does not exist!')
         return 1
 
-    path = find_version(args.name, args.sha256)
-    if path is None:
-        return 1
+    if args.archive:
+        path = args.archive
+    else:
+        path = find_version(args.name, args.sha256, args.output)
+        if path is None:
+            return 1
 
     # Remove anything leftover inside the extracted directory.
     extract_path = args.output.joinpath('garage-sign')
