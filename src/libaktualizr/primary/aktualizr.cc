@@ -112,7 +112,8 @@ std::future<result::UpdateCheck> Aktualizr::CheckUpdates() {
 }
 
 std::future<result::Download> Aktualizr::Download(const std::vector<Uptane::Target> &updates) {
-  std::function<result::Download()> task([this, &updates] { return uptane_client_->downloadImages(updates); });
+  std::function<result::Download(const api::FlowControlToken *)> task(
+      [this, &updates](const api::FlowControlToken *token) { return uptane_client_->downloadImages(updates, token); });
   return api_queue_.enqueue(task);
 }
 
@@ -128,6 +129,8 @@ result::Pause Aktualizr::Pause() {
 result::Pause Aktualizr::Resume() {
   return api_queue_.pause(false) ? result::PauseStatus::kSuccess : result::PauseStatus::kAlreadyRunning;
 }
+
+void Aktualizr::Abort() { api_queue_.abort(); }
 
 boost::signals2::connection Aktualizr::SetSignalHandler(std::function<void(shared_ptr<event::BaseEvent>)> &handler) {
   return sig_->connect(handler);

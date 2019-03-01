@@ -113,6 +113,17 @@ class Aktualizr {
   result::Pause Resume();
 
   /**
+   * Requests the currently running command to abort and flushes the command
+   * queue.
+   * The `Abort()` function will block until the command queue is empty and
+   * all currently executing commands have stopped. You can also call Abort()
+   * on a previously paused class instance, this will clean the command queue,
+   * but the Aktualizr will remain in the paused state. To continue execution
+   * at some later point one needs to call Resume().
+   */
+  void Abort();
+
+  /**
    * Synchronously run an uptane cycle: check for updates, download any new
    * targets, install them, and send a manifest back to the server.
    */

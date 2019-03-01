@@ -95,7 +95,8 @@ class SotaUptaneClient {
 
   void initialize();
   void addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
-  result::Download downloadImages(const std::vector<Uptane::Target> &targets);
+  result::Download downloadImages(const std::vector<Uptane::Target> &targets,
+                                  const api::FlowControlToken *token = nullptr);
   void pauseFetching();
   void resumeFetching();
   void sendDeviceData();
@@ -162,8 +163,7 @@ class SotaUptaneClient {
 
   bool putManifestSimple();
   bool getNewTargets(std::vector<Uptane::Target> *new_targets, unsigned int *ecus_count = nullptr);
-  bool downloadTargets(const std::vector<Uptane::Target> &targets);
-  std::pair<bool, Uptane::Target> downloadImage(Uptane::Target target);
+  std::pair<bool, Uptane::Target> downloadImage(Uptane::Target target, const api::FlowControlToken *token = nullptr);
   void rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::SecondaryInterface &secondary);
   bool updateDirectorMeta();
   bool checkImagesMetaOffline();

@@ -38,16 +38,14 @@ bool FlowControlToken::canContinue(bool blocking) const {
   return state_ == State::kRunning;
 }
 
+void FlowControlToken::reset() {
+  std::lock_guard<std::mutex> g(m_);
+  state_ = State::kRunning;
+}
+
 CommandQueue::~CommandQueue() {
   try {
-    {
-      std::lock_guard<std::mutex> l(m_);
-      shutdown_ = true;
-    }
-    cv_.notify_all();
-    if (thread_.joinable()) {
-      thread_.join();
-    }
+    abort(false);
   } catch (std::exception& ex) {
     LOG_ERROR << "~CommandQueue() exception: " << ex.what() << std::endl;
   } catch (...) {
@@ -56,20 +54,23 @@ CommandQueue::~CommandQueue() {
 }
 
 void CommandQueue::run() {
-  thread_ = std::thread([this] {
-    std::unique_lock<std::mutex> lock(m_);
-    for (;;) {
-      cv_.wait(lock, [this] { return (!queue_.empty() && !paused_) || shutdown_; });
-      if (shutdown_) {
-        break;
+  std::lock_guard<std::mutex> g(thread_m_);
+  if (!thread_.joinable()) {
+    thread_ = std::thread([this] {
+      std::unique_lock<std::mutex> lock(m_);
+      for (;;) {
+        cv_.wait(lock, [this] { return (!queue_.empty() && !paused_) || shutdown_; });
+        if (shutdown_) {
+          break;
+        }
+        auto task = std::move(queue_.front());
+        queue_.pop();
+        lock.unlock();
+        task();
+        lock.lock();
       }
-      auto task = std::move(queue_.front());
-      queue_.pop();
-      lock.unlock();
-      task();
-      lock.lock();
-    }
-  });
+    });
+  }
 }
 
 bool CommandQueue::pause(bool do_pause) {
@@ -85,5 +86,27 @@ bool CommandQueue::pause(bool do_pause) {
   return has_effect;
 }
 
-void CommandQueue::abort() {}
+void CommandQueue::abort(bool restart_thread) {
+  {
+    std::lock_guard<std::mutex> thread_g(thread_m_);
+    {
+      std::lock_guard<std::mutex> g(m_);
+      token_.setAbort();
+      shutdown_ = true;
+    }
+    cv_.notify_all();
+    if (thread_.joinable()) {
+      thread_.join();
+    }
+    {
+      std::lock_guard<std::mutex> g(m_);
+      std::queue<std::packaged_task<void()>>().swap(queue_);
+      token_.reset();
+      shutdown_ = false;
+    }
+  }
+  if (restart_thread) {
+    run();
+  }
+}
 }  // namespace api
