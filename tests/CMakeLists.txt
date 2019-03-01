@@ -5,6 +5,13 @@ if(NOT GMOCK_ROOT )
     set(GMOCK_ROOT ${PROJECT_SOURCE_DIR}/third_party/googletest/googlemock)
 endif()
 
+if(CMAKE_CROSSCOMPILING)
+    # we cannot call the tool we build in this context, it has to come from somewhere else
+    find_program(AKTUALIZR_REPO NAMES aktualizr-repo)
+else()
+    set(AKTUALIZR_REPO $<TARGET_FILE:aktualizr-repo>)
+endif()
+
 # Temporarily remove flags not supported by gtest.
 remove_definitions(-Wswitch-default -Wconversion)
 add_subdirectory(${GMOCK_ROOT} ${CMAKE_CURRENT_BINARY_DIR}/gmock EXCLUDE_FROM_ALL)
@@ -62,7 +69,7 @@ if(BUILD_WITH_CODE_COVERAGE)
     add_dependencies(coverage build_tests)
 endif(BUILD_WITH_CODE_COVERAGE)
 
-if(CMAKE_BUILD_TYPE MATCHES "Valgrind")
+if(TESTSUITE_VALGRIND)
     # This test is only checking that valgrind finds memory leaks
     add_aktualizr_test(NAME leak SOURCES leak_test.cc)
     set_tests_properties(test_leak PROPERTIES WILL_FAIL TRUE)
@@ -72,13 +79,13 @@ endif()
 add_executable(aktualizr_uptane_vector_tests uptane_vector_tests.cc)
 target_link_libraries(aktualizr_uptane_vector_tests aktualizr_static_lib ${TEST_LIBS})
 
-if(CMAKE_BUILD_TYPE MATCHES "Valgrind")
+if(TESTSUITE_VALGRIND)
     set(VECTOR_TESTS_ARGS "valgrind")
-endif(CMAKE_BUILD_TYPE MATCHES "Valgrind")
+endif(TESTSUITE_VALGRIND)
 add_test(NAME test_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh
     ${PROJECT_SOURCE_DIR}/tests ${VECTOR_TESTS_ARGS} ${GOOGLE_TEST_OUTPUT})
 add_dependencies(build_tests aktualizr_uptane_vector_tests)
-set_tests_properties(test_uptane_vectors PROPERTIES LABELS "uptane_vectors")
+set_tests_properties(test_uptane_vectors PROPERTIES LABELS "noptest uptane_vectors")
 
 if(SOTA_PACKED_CREDENTIALS)
     add_test(NAME auto_prov_test COMMAND ${PROJECT_SOURCE_DIR}/tests/auto_prov_test.py

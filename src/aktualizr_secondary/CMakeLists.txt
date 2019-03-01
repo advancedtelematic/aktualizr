@@ -92,8 +92,6 @@ add_test(NAME aktualizr_secondary_cmdline--help COMMAND aktualizr-secondary --he
 # test running the executable with command line option --something
 add_test(NAME aktualizr_secondary_cmdline--something
          COMMAND aktualizr-secondary --something -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml)
-# call the executable without any options
-add_test(NAME aktualizr_secondary_cmdline_empty COMMAND aktualizr-secondary)
 # test the return code when running the executable with non-existent configuration file
 add_test(NAME aktualizr_secondary_no_config_check_code
          COMMAND aktualizr-secondary -c non-existent-config.toml)
@@ -101,7 +99,6 @@ add_test(NAME aktualizr_secondary_no_config_check_code
 # testcases with non-supported command line options will return 1
 # in this case we want the testcase to pass
 set_tests_properties(aktualizr_secondary_cmdline--something
-                     aktualizr_secondary_cmdline_empty
                      aktualizr_secondary_no_config_check_code
                      PROPERTIES WILL_FAIL TRUE)
 
@@ -145,6 +142,14 @@ add_test(NAME aktualizr_secondary_log_negative
 set_tests_properties(aktualizr_secondary_log_negative
                      PROPERTIES PASS_REGULAR_EXPRESSION "Invalid log level")
 
+# these tests pose problem on ptest and are not really worth running there
+set_tests_properties(aktualizr_secondary_help_with_other_options
+    aktualizr_secondary_help_with_nonexistent_options
+    aktualizr_secondary_log_debug
+    aktualizr_secondary_log_default
+    aktualizr_secondary_log_invalid
+    aktualizr_secondary_log_negative
+    PROPERTIES LABELS "noptest")
 
 aktualizr_source_file_checks(${AKTUALIZR_SECONDARY_SRC}
                              ${AKTUALIZR_SECONDARY_LIB_SRC}

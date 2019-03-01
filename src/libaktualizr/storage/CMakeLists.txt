@@ -30,6 +30,7 @@ if(STORAGE_TYPE STREQUAL "sqlite")
 
   add_test(NAME test_schema_migration
       COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/schema_migration_test.sh ${PROJECT_SOURCE_DIR}/config/sql)
+  set_tests_properties(test_schema_migration PROPERTIES LABELS "noptest")
 endif(STORAGE_TYPE STREQUAL "sqlite")
 
 add_library(storage OBJECT ${SOURCES})
