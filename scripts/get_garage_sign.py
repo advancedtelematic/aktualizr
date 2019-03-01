@@ -18,51 +18,14 @@ def main():
     parser.add_argument('-s', '--sha256', help='expected hash of requested version')
     parser.add_argument('-o', '--output', type=Path, default=Path('.'), help='download directory')
     args = parser.parse_args()
+
     if not args.output.exists():
         print('Error: specified output directory ' + args.output + ' does not exist!')
         return 1
-    sha256_hash = args.sha256
-    if sha256_hash and not args.name:
-        print('Warning: sha256 hash specified without specifying a version.')
-    if args.name and not sha256_hash:
-        print('Warning: specific version requested without specifying the sha256 hash.')
 
-    r = urllib.request.urlopen('https://ats-tuf-cli-releases.s3-eu-central-1.amazonaws.com')
-    if r.status != 200:
-        print('Error: unable to request index!')
+    path = find_version(args.name, args.sha256)
+    if path is None:
         return 1
-    tree = ET.fromstring(r.read().decode('utf-8'))
-    # Assume namespace.
-    ns = '{http://s3.amazonaws.com/doc/2006-03-01/}'
-    items = tree.findall(ns + 'Contents')
-    versions = dict()
-    cli_items = [i for i in items if i.find(ns + 'Key').text.startswith('cli-')]
-    for i in cli_items:
-        # ETag is md5sum.
-        versions[i.find(ns + 'Key').text] = (i.find(ns + 'LastModified').text, i.find(ns + 'ETag').text[1:-1])
-    if args.name:
-        name = args.name
-        if name not in versions:
-            # Try adding tgz in case it wasn't included.
-            name_ext = name + '.tgz'
-            if name_ext not in versions:
-                print('Error: ' + name + ' not found in tuf-cli releases.')
-                return 1
-            else:
-                name = name_ext
-    else:
-        name = max(versions, key=(lambda name: (versions[name][0])))
-
-    path = args.output.joinpath(name)
-    md5_hash = versions[name][1]
-    if not path.is_file() or not check_hashes(name, path, md5_hash, sha256_hash):
-        print('Downloading ' + name + ' from server...')
-        if download(name, path, md5_hash, sha256_hash):
-            print(name + ' successfully downloaded and validated.')
-        else:
-            return 1
-    else:
-        print(name + ' already present and validated.')
 
     # Remove anything leftover inside the extracted directory.
     extract_path = args.output.joinpath('garage-sign')
@@ -73,6 +36,52 @@ def main():
     t = tarfile.open(str(path))
     t.extractall(path=str(args.output))
     return 0
+
+
+def find_version(version_name, sha256_hash, output):
+    if sha256_hash and not version_name:
+        print('Warning: sha256 hash specified without specifying a version.')
+    if version_name and not sha256_hash:
+        print('Warning: specific version requested without specifying the sha256 hash.')
+
+    r = urllib.request.urlopen('https://ats-tuf-cli-releases.s3-eu-central-1.amazonaws.com')
+    if r.status != 200:
+        print('Error: unable to request index!')
+        return None
+    tree = ET.fromstring(r.read().decode('utf-8'))
+    # Assume namespace.
+    ns = '{http://s3.amazonaws.com/doc/2006-03-01/}'
+    items = tree.findall(ns + 'Contents')
+    versions = dict()
+    cli_items = [i for i in items if i.find(ns + 'Key').text.startswith('cli-')]
+    for i in cli_items:
+        # ETag is md5sum.
+        versions[i.find(ns + 'Key').text] = (i.find(ns + 'LastModified').text,
+                                             i.find(ns + 'ETag').text[1:-1])
+    if version_name:
+        name = version_name
+        if name not in versions:
+            # Try adding tgz in case it wasn't included.
+            name_ext = name + '.tgz'
+            if name_ext not in versions:
+                print('Error: ' + name + ' not found in tuf-cli releases.')
+                return None
+            else:
+                name = name_ext
+    else:
+        name = max(versions, key=(lambda name: (versions[name][0])))
+
+    path = output.joinpath(name)
+    md5_hash = versions[name][1]
+    if not path.is_file() or not check_hashes(name, path, md5_hash, sha256_hash):
+        print('Downloading ' + name + ' from server...')
+        if download(name, path, md5_hash, sha256_hash):
+            print(name + ' successfully downloaded and validated.')
+            return path
+        else:
+            return None
+    print(name + ' already present and validated.')
+    return path
 
 
 def download(name, path, md5_hash, sha256_hash):
