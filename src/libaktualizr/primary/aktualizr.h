@@ -105,12 +105,21 @@ class Aktualizr {
 
   /**
    * Resume the library operations.
-   * Target downloads will resume and API calls during pause state will execute
-   * in fifo order.
+   * Target downloads will resume and API calls issued during the pause will
+   * execute in fifo order.
    *
    * @return Information about resume results.
    */
   result::Pause Resume();
+
+  /**
+   * Aborts the currently running command, if it can be aborted, or waits for it
+   * to finish; then removes all other queued calls.
+   * This doesn't reset the `Paused` state, i.e. if the queue was previously
+   * paused, it will remain paused, but with an emptied queue.
+   * The call is blocking.
+   */
+  void Abort();
 
   /**
    * Synchronously run an uptane cycle: check for updates, download any new

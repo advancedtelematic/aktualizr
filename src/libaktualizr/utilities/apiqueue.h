@@ -39,6 +39,11 @@ class FlowControlToken {
   ///
   bool canContinue(bool blocking = true) const;
 
+  ////
+  //// Sets token to the initial state
+  ////
+  void reset();
+
  private:
   enum class State {
     kRunning,  // transitions: ->Paused, ->Aborted
@@ -54,7 +59,7 @@ class CommandQueue {
   ~CommandQueue();
   void run();
   bool pause(bool do_pause);  // returns true iff pause→resume or resume→pause
-  void abort();
+  void abort(bool restart_thread = true);
 
   template <class R>
   std::future<R> enqueue(const std::function<R()>& f) {
@@ -68,10 +73,25 @@ class CommandQueue {
     return r;
   }
 
+  template <class R>
+  std::future<R> enqueue(const std::function<R(const api::FlowControlToken*)>& f) {
+    std::packaged_task<R()> task(std::bind(f, &token_));
+    auto r = task.get_future();
+    {
+      std::lock_guard<std::mutex> lock(m_);
+      queue_.push(std::packaged_task<void()>(std::move(task)));
+    }
+    cv_.notify_all();
+    return r;
+  }
+
  private:
   std::atomic_bool shutdown_{false};
   std::atomic_bool paused_{false};
+
   std::thread thread_;
+  std::mutex thread_m_;
+
   std::queue<std::packaged_task<void()>> queue_;
   std::mutex m_;
   std::condition_variable cv_;
