@@ -37,7 +37,7 @@ bpo::variables_map parse_options(int argc, char* argv[]) {
   description.add_options()
       ("help,h", "print usage")
       ("version,v", "Current aktualizr-cert-provider version")
-      ("credentials,c", bpo::value<boost::filesystem::path>()->required(), "zipped credentials file")
+      ("credentials,c", bpo::value<boost::filesystem::path>(), "zipped credentials file")
       ("fleet-ca", bpo::value<boost::filesystem::path>(), "path to fleet certificate authority certificate (for signing device certificates)")
       ("fleet-ca-key", bpo::value<boost::filesystem::path>(), "path to the private key of fleet certificate authority")
       ("bits", bpo::value<int>(), "size of RSA keys in bits")
@@ -336,13 +336,14 @@ void copyLocal(const boost::filesystem::path& src, const boost::filesystem::path
 }
 
 int main(int argc, char* argv[]) {
+  int exit_code = EXIT_FAILURE;
+
   logger_init();
   SSL_load_error_strings();
   logger_set_threshold(static_cast<boost::log::trivial::severity_level>(2));
 
   bpo::variables_map commandline_map = parse_options(argc, argv);
 
-  boost::filesystem::path credentials_path = commandline_map["credentials"].as<boost::filesystem::path>();
   std::string target;
   if (commandline_map.count("target") != 0) {
     target = commandline_map["target"].as<std::string>();
@@ -380,160 +381,198 @@ int main(int argc, char* argv[]) {
 
   if (!commandline_map["directory"].empty() && !commandline_map["config"].empty()) {
     std::cerr << "Directory (--directory) and config (--config) options cannot be used together" << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 
-  boost::filesystem::path directory = "/var/sota/import";
-  BasedPath pkey_file = BasedPath("pkey.pem");
-  BasedPath cert_file = BasedPath("client.pem");
-  BasedPath ca_file = BasedPath("root.crt");
-  BasedPath url_file = BasedPath("gateway.url");
-  if (!config_path.empty()) {
-    Config config(config_path);
-    // TODO: provide path to root directory in `--local` parameter
+  boost::filesystem::path credentials_path = "";
+  if (commandline_map.count("credentials") != 0) {
+    credentials_path = commandline_map["credentials"].as<boost::filesystem::path>();
+  }
 
-    // try first import base path and then storage path
-    if (!config.import.base_path.empty()) {
-      directory = config.import.base_path;
-    } else if (!config.storage.path.empty()) {
-      directory = config.storage.path;
-    }
+  if (local_dir.empty() && target.empty()) {
+    std::cerr << "Please provide a local directory and/or target to output the generated files to" << std::endl;
+    return EXIT_FAILURE;
+  }
 
-    if (!config.import.tls_pkey_path.empty()) {
-      pkey_file = config.import.tls_pkey_path;
-    } else {
-      pkey_file = config.storage.tls_pkey_path;
-    }
+  std::string serverUrl;
+  if ((fleet_ca_path.empty() || provide_ca || provide_url) && credentials_path.empty()) {
+    std::cerr << "Error: missing -c/--credentials parameters which is mandatory if the fleet CA is not specified or an "
+                 "output of the root CA or a gateway URL is requested";
+    return EXIT_FAILURE;
+  } else {
+    serverUrl = Bootstrap::readServerUrl(credentials_path);
+  }
 
-    if (!config.import.tls_clientcert_path.empty()) {
-      cert_file = config.import.tls_clientcert_path;
-    } else {
-      cert_file = config.storage.tls_clientcert_path;
-    }
-    if (provide_ca) {
-      if (!config.import.tls_cacert_path.empty()) {
-        ca_file = config.import.tls_cacert_path;
+  try {
+    boost::filesystem::path directory = "/var/sota/import";
+    BasedPath pkey_file = BasedPath("pkey.pem");
+    BasedPath cert_file = BasedPath("client.pem");
+    BasedPath ca_file = BasedPath("root.crt");
+    BasedPath url_file = BasedPath("gateway.url");
+    if (!config_path.empty()) {
+      Config config(config_path);
+      // TODO: provide path to root directory in `--local` parameter
+
+      // try first import base path and then storage path
+      if (!config.import.base_path.empty()) {
+        directory = config.import.base_path;
+      } else if (!config.storage.path.empty()) {
+        directory = config.storage.path;
+      }
+
+      if (!config.import.tls_pkey_path.empty()) {
+        pkey_file = config.import.tls_pkey_path;
       } else {
-        ca_file = config.storage.tls_cacert_path;
+        pkey_file = config.storage.tls_pkey_path;
       }
-    }
-    if (provide_url) {
-      url_file = config.tls.server_url_path;
-    }
-  }
 
-  if (!commandline_map["directory"].empty()) {
-    directory = commandline_map["directory"].as<boost::filesystem::path>();
-  }
-
-  TemporaryFile tmp_pkey_file(pkey_file.get("").filename().string());
-  TemporaryFile tmp_cert_file(cert_file.get("").filename().string());
-  TemporaryFile tmp_ca_file(ca_file.get("").filename().string());
-  TemporaryFile tmp_url_file(url_file.get("").filename().string());
-
-  std::string pkey;
-  std::string cert;
-  std::string ca;
-  std::string serverUrl = Bootstrap::readServerUrl(credentials_path);
-
-  if (fleet_ca_path.empty()) {  // no fleet ca => autoprovision
-    std::string device_id = Utils::genPrettyName();
-    std::cout << "Random device ID is " << device_id << "\n";
-
-    Bootstrap boot(credentials_path, "");
-    HttpClient http;
-    Json::Value data;
-    data["deviceId"] = device_id;
-    data["ttl"] = 36000;
-
-    std::cout << "Provisioning against server...\n";
-    http.setCerts(boot.getCa(), CryptoSource::kFile, boot.getCert(), CryptoSource::kFile, boot.getPkey(),
-                  CryptoSource::kFile);
-    HttpResponse response = http.post(serverUrl + "/devices", data);
-    if (!response.isOk()) {
-      Json::Value resp_code = response.getJson()["code"];
-      if (resp_code.isString() && resp_code.asString() == "device_already_registered") {
-        std::cout << "Device ID" << device_id << "is occupied.\n";
-        return -1;
+      if (!config.import.tls_clientcert_path.empty()) {
+        cert_file = config.import.tls_clientcert_path;
+      } else {
+        cert_file = config.storage.tls_clientcert_path;
       }
-      std::cout << "Provisioning failed, response: " << response.body << "\n";
-      return -1;
-    }
-    std::cout << "...success\n";
-
-    StructGuard<BIO> device_p12(BIO_new_mem_buf(response.body.c_str(), static_cast<int>(response.body.size())),
-                                BIO_vfree);
-    if (!Crypto::parseP12(device_p12.get(), "", &pkey, &cert, &ca)) {
-      std::cout << "Unable to parse p12 file received from server.\n";
-      return -1;
-    }
-  } else {  // fleet CA set => generate and sign a new certificate
-    if (!generate_and_sign(fleet_ca_path.native(), fleet_ca_key_path.native(), &pkey, &cert, commandline_map)) {
-      return 1;
-    }
-
-    // Read server root CA from server_ca.pem in archive if found (to support
-    // community edition use case). Otherwise, default to the old version of
-    // expecting it to be in the p12.
-    ca = Bootstrap::readServerCa(credentials_path);
-    if (ca.empty()) {
-      Bootstrap boot(credentials_path, "");
-      ca = boot.getCa();
-      std::cout << "Server root CA read from autoprov_credentials.p12 in zipped archive.\n";
-    } else {
-      std::cout << "Server root CA read from server_ca.pem in zipped archive.\n";
-    }
-  }
-
-  tmp_pkey_file.PutContents(pkey);
-  tmp_cert_file.PutContents(cert);
-  if (provide_ca) {
-    tmp_ca_file.PutContents(ca);
-  }
-  if (provide_url) {
-    tmp_url_file.PutContents(serverUrl);
-  }
-
-  if (!local_dir.empty()) {
-    std::cout << "Writing client certificate and keys to " << local_dir << " ...\n";
-    copyLocal(tmp_pkey_file.PathString(), local_dir / pkey_file.get(directory));
-    copyLocal(tmp_cert_file.PathString(), local_dir / cert_file.get(directory));
-    if (provide_ca) {
-      copyLocal(tmp_ca_file.PathString(), local_dir / ca_file.get(directory));
-    }
-    if (provide_url) {
-      copyLocal(tmp_url_file.PathString(), local_dir / url_file.get(directory));
-    }
-    std::cout << "...success\n";
-  }
-
-  if (!target.empty()) {
-    std::cout << "Copying client certificate and keys to " << target << ":" << directory;
-    if (port != 0) {
-      std::cout << " on port " << port;
-    }
-    std::cout << " ...\n";
-
-    SSHRunner ssh{target, skip_checks, port};
-
-    try {
-      ssh.transferFile(tmp_pkey_file.Path(), pkey_file.get(directory));
-
-      ssh.transferFile(tmp_cert_file.Path(), cert_file.get(directory));
-
       if (provide_ca) {
-        ssh.transferFile(tmp_ca_file.Path(), ca_file.get(directory));
+        if (!config.import.tls_cacert_path.empty()) {
+          ca_file = config.import.tls_cacert_path;
+        } else {
+          ca_file = config.storage.tls_cacert_path;
+        }
       }
       if (provide_url) {
-        ssh.transferFile(tmp_url_file.Path(), url_file.get(directory));
+        url_file = config.tls.server_url_path;
+      }
+    }
+
+    if (!commandline_map["directory"].empty()) {
+      directory = commandline_map["directory"].as<boost::filesystem::path>();
+    }
+
+    TemporaryFile tmp_pkey_file(pkey_file.get("").filename().string());
+    TemporaryFile tmp_cert_file(cert_file.get("").filename().string());
+    TemporaryFile tmp_ca_file(ca_file.get("").filename().string());
+    TemporaryFile tmp_url_file(url_file.get("").filename().string());
+
+    std::string pkey;
+    std::string cert;
+    std::string ca;
+
+    if (fleet_ca_path.empty()) {  // no fleet ca => autoprovision
+
+      std::string device_id = Utils::genPrettyName();
+      std::cout << "Random device ID is " << device_id << "\n";
+
+      Bootstrap boot(credentials_path, "");
+      HttpClient http;
+      Json::Value data;
+      data["deviceId"] = device_id;
+      data["ttl"] = 36000;
+
+      std::cout << "Provisioning against server...\n";
+      http.setCerts(boot.getCa(), CryptoSource::kFile, boot.getCert(), CryptoSource::kFile, boot.getPkey(),
+                    CryptoSource::kFile);
+      HttpResponse response = http.post(serverUrl + "/devices", data);
+      if (!response.isOk()) {
+        Json::Value resp_code = response.getJson()["code"];
+        if (resp_code.isString() && resp_code.asString() == "device_already_registered") {
+          std::cout << "Device ID" << device_id << "is occupied.\n";
+          return -1;
+        }
+        std::cout << "Provisioning failed, response: " << response.body << "\n";
+        return -1;
+      }
+      std::cout << "...success\n";
+
+      StructGuard<BIO> device_p12(BIO_new_mem_buf(response.body.c_str(), static_cast<int>(response.body.size())),
+                                  BIO_vfree);
+      if (!Crypto::parseP12(device_p12.get(), "", &pkey, &cert, &ca)) {
+        std::cout << "Unable to parse p12 file received from server.\n";
+        return -1;
+      }
+    } else {  // fleet CA set => generate and sign a new certificate
+      if (!generate_and_sign(fleet_ca_path.native(), fleet_ca_key_path.native(), &pkey, &cert, commandline_map)) {
+        return 1;
       }
 
-      std::cout << "...success\n";
-    } catch (const std::runtime_error& exc) {
-      std::cout << exc.what() << std::endl;
+      if (provide_ca) {
+        // Read server root CA from server_ca.pem in archive if found (to support
+        // community edition use case). Otherwise, default to the old version of
+        // expecting it to be in the p12.
+        ca = Bootstrap::readServerCa(credentials_path);
+        if (ca.empty()) {
+          Bootstrap boot(credentials_path, "");
+          ca = boot.getCa();
+          std::cout << "Server root CA read from autoprov_credentials.p12 in zipped archive.\n";
+        } else {
+          std::cout << "Server root CA read from server_ca.pem in zipped archive.\n";
+        }
+      }
     }
+
+    tmp_pkey_file.PutContents(pkey);
+    tmp_cert_file.PutContents(cert);
+    if (provide_ca) {
+      tmp_ca_file.PutContents(ca);
+    }
+    if (provide_url) {
+      tmp_url_file.PutContents(serverUrl);
+    }
+
+    if (!local_dir.empty()) {
+      auto pkey_file_path = local_dir / pkey_file.get(directory);
+      std::cout << "Writing the generated client private key to " << pkey_file_path << " ...\n";
+      copyLocal(tmp_pkey_file.PathString(), pkey_file_path);
+
+      auto cert_file_path = local_dir / cert_file.get(directory);
+      std::cout << "Writing the generated and signed client certificate to " << cert_file_path << " ...\n";
+      copyLocal(tmp_cert_file.PathString(), cert_file_path);
+
+      if (provide_ca) {
+        auto root_ca_file = local_dir / ca_file.get(directory);
+        std::cout << "Writing the server root CA to " << root_ca_file << " ...\n";
+        copyLocal(tmp_ca_file.PathString(), root_ca_file);
+      }
+      if (provide_url) {
+        auto gtw_url_file = local_dir / url_file.get("");
+        std::cout << "Writing the gateway URL to " << gtw_url_file << " ...\n";
+        copyLocal(tmp_url_file.PathString(), gtw_url_file);
+      }
+      std::cout << "...success\n";
+    }
+
+    if (!target.empty()) {
+      std::cout << "Copying client certificate and keys to " << target << ":" << directory;
+      if (port != 0) {
+        std::cout << " on port " << port;
+      }
+      std::cout << " ...\n";
+
+      SSHRunner ssh{target, skip_checks, port};
+
+      try {
+        ssh.transferFile(tmp_pkey_file.Path(), pkey_file.get(directory));
+
+        ssh.transferFile(tmp_cert_file.Path(), cert_file.get(directory));
+
+        if (provide_ca) {
+          ssh.transferFile(tmp_ca_file.Path(), ca_file.get(directory));
+        }
+        if (provide_url) {
+          ssh.transferFile(tmp_url_file.Path(), url_file.get(directory));
+        }
+
+        std::cout << "...success\n";
+      } catch (const std::runtime_error& exc) {
+        std::cout << exc.what() << std::endl;
+      }
+    }
+
+    exit_code = EXIT_SUCCESS;
+  } catch (const std::exception& exc) {
+    LOG_ERROR << "Error: " << exc.what();
+
+    exit_code = EXIT_FAILURE;
   }
 
   ERR_free_strings();
-  return 0;
+  return exit_code;
 }

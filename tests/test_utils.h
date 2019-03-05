@@ -41,4 +41,28 @@ class TestHelperProcess {
   pid_t pid_;
 };
 
+class Process {
+ public:
+  using Result = std::tuple<int, std::string, std::string>;
+
+  static Result spawn(const std::string &executable_to_run, const std::vector<std::string> &executable_args);
+
+  Process(const std::string &exe_path) : exe_path_(exe_path) {}
+
+  Process::Result run(const std::vector<std::string> &args);
+
+  int lastExitCode() const { return last_exit_code_; }
+
+  const std::string &lastStdOut() const { return last_stdout_; }
+
+  const std::string &lastStdErr() const { return last_stderr_; }
+
+ private:
+  const std::string exe_path_;
+
+  int last_exit_code_;
+  std::string last_stdout_;
+  std::string last_stderr_;
+};
+
 #endif  // TEST_UTILS_H_
