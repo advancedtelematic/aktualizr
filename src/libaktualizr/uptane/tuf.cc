@@ -118,25 +118,24 @@ std::vector<Uptane::Hash> Hash::decodeVector(std::string hashes_str) {
 
 Target::Target(std::string filename, const Json::Value &content) : filename_(std::move(filename)) {
   if (content.isMember("custom")) {
-    Json::Value custom = content["custom"];
+    custom_ = content["custom"];
 
-    Json::Value hwids = custom["hardwareIds"];
+    Json::Value hwids = custom_["hardwareIds"];
     for (Json::ValueIterator i = hwids.begin(); i != hwids.end(); ++i) {
       hwids_.emplace_back(HardwareIdentifier((*i).asString()));
     }
-    custom_version_ = custom["version"].asString();
 
-    Json::Value ecus = custom["ecuIdentifiers"];
+    Json::Value ecus = custom_["ecuIdentifiers"];
     for (Json::ValueIterator i = ecus.begin(); i != ecus.end(); ++i) {
       ecus_.insert({EcuSerial(i.key().asString()), HardwareIdentifier((*i)["hardwareId"].asString())});
     }
 
-    if (custom.isMember("targetFormat")) {
-      type_ = custom["targetFormat"].asString();
+    if (custom_.isMember("targetFormat")) {
+      type_ = custom_["targetFormat"].asString();
     }
 
-    if (custom.isMember("uri")) {
-      std::string custom_uri = custom["uri"].asString();
+    if (custom_.isMember("uri")) {
+      std::string custom_uri = custom_["uri"].asString();
       // Ignore this exact URL for backwards compatibility with old defaults that inserted it.
       if (custom_uri != "https://example.com/") {
         uri_ = std::move(custom_uri);

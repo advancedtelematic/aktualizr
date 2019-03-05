@@ -234,7 +234,8 @@ class Target {
   std::string sha512Hash() const;
   std::vector<Hash> hashes() const { return hashes_; };
   std::vector<HardwareIdentifier> hardwareIds() const { return hwids_; };
-  std::string custom_version() const { return custom_version_; }
+  std::string custom_version() const { return custom_["version"].asString(); }
+  Json::Value custom_data() const { return custom_; }
   std::string correlation_id() const { return correlation_id_; };
   void setCorrelationId(std::string correlation_id) { correlation_id_ = std::move(correlation_id); };
   uint64_t length() const { return length_; }
@@ -293,7 +294,7 @@ class Target {
   std::map<EcuSerial, HardwareIdentifier> ecus_;
   std::vector<Hash> hashes_;
   std::vector<HardwareIdentifier> hwids_;
-  std::string custom_version_;
+  Json::Value custom_;
   uint64_t length_{0};
   std::string correlation_id_;
   std::string uri_;
