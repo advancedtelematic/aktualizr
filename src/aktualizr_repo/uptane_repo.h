@@ -15,7 +15,7 @@ class UptaneRepo {
                      bool terminating, KeyType key_type = KeyType::kRSA2048);
   void revokeDelegation(const Uptane::Role &name);
   void addCustomImage(const std::string &name, const Uptane::Hash &hash, uint64_t length,
-                      const Delegation &delegation = {});
+                      const Delegation &delegation = {}, const Json::Value &custom = {});
   void signTargets();
   void emptyTargets();
   void oldTargets();

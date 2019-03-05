@@ -33,8 +33,8 @@ void UptaneRepo::addImage(const boost::filesystem::path &image_path, const boost
   image_repo_.addImage(image_path, targetname, delegation);
 }
 void UptaneRepo::addCustomImage(const std::string &name, const Uptane::Hash &hash, uint64_t length,
-                                const Delegation &delegation) {
-  image_repo_.addCustomImage(name, hash, length, delegation);
+                                const Delegation &delegation, const Json::Value &custom) {
+  image_repo_.addCustomImage(name, hash, length, delegation, custom);
 }
 
 void UptaneRepo::signTargets() { director_repo_.signTargets(); }

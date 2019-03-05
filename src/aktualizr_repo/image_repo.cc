@@ -139,7 +139,7 @@ std::vector<std::string> ImageRepo::getDelegationTargets(const Uptane::Role &nam
 }
 
 void ImageRepo::addCustomImage(const std::string &name, const Uptane::Hash &hash, const uint64_t length,
-                               const Delegation &delegation) {
+                               const Delegation &delegation, const Json::Value &custom) {
   Json::Value target;
   target["length"] = Json::UInt(length);
   if (hash.type() == Uptane::Hash::Type::kSha256) {
@@ -147,5 +147,6 @@ void ImageRepo::addCustomImage(const std::string &name, const Uptane::Hash &hash
   } else if (hash.type() == Uptane::Hash::Type::kSha512) {
     target["hashes"]["sha512"] = hash.HashString();
   }
+  target["custom"] = custom;
   addImage(name, target, delegation);
 }
