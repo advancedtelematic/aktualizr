@@ -165,12 +165,12 @@ int main(int argc, char **argv) {
     std::cout << o.what() << std::endl;
     std::cout << desc;
     return EXIT_FAILURE;
-  } catch (const SQLException &exc) {
-    std::cout << exc.what() << std::endl;
-    return EXIT_FAILURE;
-  } catch (const StorageException &exc) {
-    std::cout << exc.what() << std::endl;
+
+  } catch (const std::exception &exc) {
+    std::cerr << "Error: " << exc.what() << std::endl;
     return EXIT_FAILURE;
   }
+
+  return EXIT_SUCCESS;
 }
 // vim: set tabstop=2 shiftwidth=2 expandtab:
