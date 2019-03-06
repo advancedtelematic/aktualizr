@@ -43,7 +43,7 @@ if(BUILD_OSTREE)
     if(BUILD_DOCKERAPP)
         target_sources(package_manager PRIVATE dockerappmanager.cc)
         add_aktualizr_test(NAME dockerapp SOURCES dockerappmanager_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND
-                           ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
+                           ARGS ${PROJECT_BINARY_DIR}/ostree_repo "$<TARGET_FILE:aktualizr-repo>")
     endif(BUILD_DOCKERAPP)
 endif(BUILD_OSTREE)
 
