@@ -1,5 +1,8 @@
 #include "package_manager/packagemanagerconfig.h"
 
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/join.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <boost/log/trivial.hpp>
 
 std::ostream& operator<<(std::ostream& os, PackageManager pm) {
@@ -27,6 +30,17 @@ void PackageConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt
   CopyFromConfig(ostree_server, "ostree_server", pt);
   CopyFromConfig(packages_file, "packages_file", pt);
   CopyFromConfig(fake_need_reboot, "fake_need_reboot", pt);
+#ifdef BUILD_DOCKERAPP
+  std::string val;
+  CopyFromConfig(val, "docker_apps", pt);
+  if (val.length() > 0) {
+    // token_compress_on allows lists like: "foo,bar", "foo, bar", or "foo bar"
+    boost::split(docker_apps, val, boost::is_any_of(", "), boost::token_compress_on);
+    CopyFromConfig(docker_apps_root, "docker_apps_root", pt);
+    CopyFromConfig(docker_app_bin, "docker_app_bin", pt);
+    CopyFromConfig(docker_compose_bin, "docker_compose_bin", pt);
+  }
+#endif
 }
 
 void PackageConfig::writeToStream(std::ostream& out_stream) const {
@@ -36,4 +50,10 @@ void PackageConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, ostree_server, "ostree_server");
   writeOption(out_stream, packages_file, "packages_file");
   writeOption(out_stream, fake_need_reboot, "fake_need_reboot");
+#ifdef BUILD_DOCKERAPP
+  writeOption(out_stream, boost::algorithm::join(docker_apps, ","), "docker_apps");
+  writeOption(out_stream, docker_apps_root, "docker_apps_root");
+  writeOption(out_stream, docker_app_bin, "docker_app_bin");
+  writeOption(out_stream, docker_compose_bin, "docker_compose_bin");
+#endif
 }
