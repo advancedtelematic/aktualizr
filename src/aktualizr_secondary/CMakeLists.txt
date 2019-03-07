@@ -64,14 +64,14 @@ set(ALL_AKTUALIZR_SECONDARY_HEADERS
 
 include(AddAktualizrTest)
 
-list(APPEND TEST_LIBS aktualizr_secondary_static_lib)
+# insert in front, so that the order matches the dependencies to the system libraries
+list(INSERT TEST_LIBS 0 aktualizr_secondary_static_lib)
 
 add_aktualizr_test(NAME aktualizr_secondary_config
                    SOURCES aktualizr_secondary_config_test.cc PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME aktualizr_secondary_update
                    SOURCES update_test.cc
-                   LIBRARIES aktualizr_secondary_static_lib
                    ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
 
 if(BUILD_OSTREE)
@@ -81,7 +81,6 @@ if(BUILD_OSTREE)
 
     add_aktualizr_test(NAME aktualizr_secondary_uptane
                        SOURCES uptane_test.cc
-                       LIBRARIES aktualizr_secondary_static_lib
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
 else(BUILD_OSTREE)
     list(APPEND TEST_SOURCES aktualizr_secondary_discovery_test.cc uptane_test.cc)
