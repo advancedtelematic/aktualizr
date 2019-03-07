@@ -66,7 +66,7 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage
 
   // consider boot successful as soon as we started, missing internet connection or connection to secondaries are not
   // proper reasons to roll back
-  package_manager_ = PackageManagerFactory::makePackageManager(config.pacman, storage, bootloader);
+  package_manager_ = PackageManagerFactory::makePackageManager(config.pacman, storage, bootloader, http);
   if (package_manager_->imageUpdated()) {
     bootloader->setBootOK();
   }
