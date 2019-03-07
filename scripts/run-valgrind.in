@@ -1,5 +1,10 @@
 #!/bin/sh
 
+if [ "$NO_VALGRIND" = 1 ]; then
+    "$@"
+    exit $?
+fi
+
 @VALGRIND@ --error-exitcode=1 \
     --leak-check=yes \
     --num-callers=25 \
