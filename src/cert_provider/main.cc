@@ -502,7 +502,7 @@ int main(int argc, char* argv[]) {
       copyLocal(tmp_ca_file.PathString(), local_dir / ca_file.get(directory));
     }
     if (provide_url) {
-      copyLocal(tmp_url_file.PathString(), local_dir / url_file.get(""));
+      copyLocal(tmp_url_file.PathString(), local_dir / url_file.get(directory));
     }
     std::cout << "...success\n";
   }
