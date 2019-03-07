@@ -467,6 +467,23 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
   EXPECT_EQ(aktualizr_info_output.find("Pending primary ecu version:"), std::string::npos);
 }
 
+/**
+ *  Print device name only for scripting purposes.
+ */
+TEST_F(AktualizrInfoTest, PrintDeviceNameOnly) {
+  Json::Value meta_root;
+  std::string director_root = Utils::jsonToStr(meta_root);
+
+  db_storage_->storeEcuSerials({{Uptane::EcuSerial(primary_ecu_serial), Uptane::HardwareIdentifier(primary_ecu_id)}});
+  db_storage_->storeEcuRegistered();
+  db_storage_->storeRoot(director_root, Uptane::RepositoryType::Director(), Uptane::Version(1));
+
+  SpawnProcess(std::vector<std::string>{"--name-only", "--loglevel", "4"});
+  ASSERT_FALSE(aktualizr_info_output.empty());
+
+  EXPECT_EQ(aktualizr_info_output, device_id + "\n");
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
