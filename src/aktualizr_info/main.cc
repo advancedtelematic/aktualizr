@@ -48,8 +48,6 @@ int main(int argc, char **argv) {
     }
 
     std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage, readonly);
-    std::cout << "Storage backend: " << ((storage->type() == StorageType::kFileSystem) ? "Filesystem" : "Sqlite")
-              << std::endl;
 
     std::string director_root;
     std::string director_targets;
