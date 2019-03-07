@@ -9,8 +9,9 @@
 
 class DebianManager : public PackageManagerInterface {
  public:
-  DebianManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage, std::shared_ptr<Bootloader> bootloader)
-      : PackageManagerInterface(pconfig, storage, bootloader) {}
+  DebianManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage, std::shared_ptr<Bootloader> bootloader,
+                std::shared_ptr<HttpInterface> http)
+      : PackageManagerInterface(pconfig, storage, bootloader, http) {}
   ~DebianManager() override = default;
   std::string name() const override { return "debian"; }
   Json::Value getInstalledPackages() const override;

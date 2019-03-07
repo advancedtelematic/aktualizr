@@ -39,7 +39,8 @@ struct PullMetaStruct {
 
 class OstreeManager : public PackageManagerInterface {
  public:
-  OstreeManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage, std::shared_ptr<Bootloader> bootloader);
+  OstreeManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage, std::shared_ptr<Bootloader> bootloader,
+                std::shared_ptr<HttpInterface> http);
   ~OstreeManager() override = default;
   std::string name() const override { return "ostree"; }
   Json::Value getInstalledPackages() const override;
@@ -48,6 +49,8 @@ class OstreeManager : public PackageManagerInterface {
   data::InstallationResult install(const Uptane::Target &target) const override;
   void completeInstall() const override;
   data::InstallationResult finalizeInstall(const Uptane::Target &target) const override;
+  bool fetchTarget(const Uptane::Target &target, Uptane::Fetcher &fetcher, const KeyManager &keys,
+                   FetcherProgressCb progress_cb, const api::FlowControlToken *token = nullptr) override;
 
   GObjectUniquePtr<OstreeDeployment> getStagedDeployment() const;
   static GObjectUniquePtr<OstreeSysroot> LoadSysroot(const boost::filesystem::path &path);

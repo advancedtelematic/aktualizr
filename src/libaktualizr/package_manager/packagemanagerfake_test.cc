@@ -24,7 +24,7 @@ TEST(PackageManagerFake, FinalizeAfterReboot) {
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   std::shared_ptr<Bootloader> bootloader = std::make_shared<Bootloader>(config.bootloader, *storage);
 
-  PackageManagerFake fakepm(config.pacman, storage, bootloader);
+  PackageManagerFake fakepm(config.pacman, storage, bootloader, nullptr);
 
   Uptane::Target target("pkg", {Uptane::Hash(Uptane::Hash::Type::kSha256, "hash")}, 1, "");
   auto result = fakepm.install(target);
@@ -45,7 +45,7 @@ TEST(PackageManagerFake, FailureInjection) {
   config.storage.path = temp_dir.Path();
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
 
-  PackageManagerFake fakepm(config.pacman, storage, nullptr);
+  PackageManagerFake fakepm(config.pacman, storage, nullptr, nullptr);
 
   fiu_init(0);
 

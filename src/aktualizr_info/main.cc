@@ -172,7 +172,7 @@ int main(int argc, char **argv) {
       std::cout << "Private key:" << std::endl << priv << std::endl;
     }
 
-    auto pacman = PackageManagerFactory::makePackageManager(config.pacman, storage, nullptr);
+    auto pacman = PackageManagerFactory::makePackageManager(config.pacman, storage, nullptr, nullptr);
 
     Uptane::Target current_target = pacman->getCurrent();
 
