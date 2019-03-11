@@ -32,6 +32,12 @@
    ...
 }
 {
+   boost 1.69 directory_iterator
+   Memcheck:Cond
+   fun:_ZN5boost10filesystem6detail28directory_iterator_incrementERNS0_18directory_iteratorEPNS_6system10error_codeE
+   ...
+}
+{
     openssl softhsm leak (https://github.com/opendnssec/SoftHSMv2/issues/133)
     Memcheck:Leak
     ...
@@ -75,7 +81,7 @@
    fun:clone
 }
 {
-   another ioctl valgrind issue (possibly the same underlying issue as above)
+   another ioctl valgrind issue (FIFREEZE)
    Memcheck:Param
    ioctl(generic)
    fun:ioctl
