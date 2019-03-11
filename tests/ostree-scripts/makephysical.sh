@@ -18,7 +18,7 @@ rm -rf "$OSTREE_SYSROOT"
 mkdir -p "$OSTREE_SYSROOT"
 ostree admin init-fs "$OSTREE_SYSROOT"
 ostree admin os-init $OSNAME
-ostree config --repo=${OSTREE_SYSROOT}/ostree/repo set core.mode bare-user
+ostree config --repo=${OSTREE_SYSROOT}/ostree/repo set core.mode bare-user-only
 
 mkdir -p "$OSTREE_SYSROOT/boot/loader.0"
 ln -s loader.0 "$OSTREE_SYSROOT/boot/loader"
