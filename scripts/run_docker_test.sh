@@ -45,5 +45,10 @@ IMG_TAG=dev-$(cat /proc/sys/kernel/random/uuid)
 
 docker build -t "${IMG_TAG}" -f "$DOCKERFILE" .
 
+
+# Prevent DOCKER_OPTS[@]: unbound variable
+# From SO: https://stackoverflow.com/a/34361807/6096518
+OPTS_STR=${DOCKER_OPTS[@]+"${DOCKER_OPTS[@]}"}
+
 # run under current user, mounting current directory at the same location in the container
-docker run -u "$(id -u):$(id -g)" -v "$PWD:$PWD" -w "$PWD" --rm "${DOCKER_OPTS[@]}" -it "${IMG_TAG}" "$@"
+docker run -u "$(id -u):$(id -g)" -v "$PWD:$PWD" -w "$PWD" --rm $OPTS_STR -it "${IMG_TAG}" "$@"
