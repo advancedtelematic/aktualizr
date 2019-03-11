@@ -4,6 +4,9 @@
 #include <mutex>
 #include <string>
 
+#include "bootloader/bootloader.h"
+#include "packagemanagerconfig.h"
+#include "storage/invstorage.h"
 #include "uptane/tuf.h"
 #include "utilities/types.h"
 
@@ -36,4 +39,14 @@ class PackageManagerInterface {
   }
 };
 
+class PackageManagerBase : public PackageManagerInterface {
+ public:
+  PackageManagerBase(PackageConfig pconfig, std::shared_ptr<INvStorage> storage, std::shared_ptr<Bootloader> bootloader)
+      : config(std::move(pconfig)), storage_(std::move(storage)), bootloader_(std::move(bootloader)) {}
+
+ protected:
+  PackageConfig config;
+  std::shared_ptr<INvStorage> storage_;
+  std::shared_ptr<Bootloader> bootloader_;
+};
 #endif  // PACKAGEMANAGERINTERFACE_H_
