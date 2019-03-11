@@ -19,6 +19,7 @@ int main(int argc, char **argv) {
     ("help,h", "print usage")
     ("config,c", po::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
     ("loglevel", po::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
+    ("name-only",  "Only output device name (intended for scripting)")
     ("tls-creds",  "Outputs TLS credentials")
     ("ecu-keys",  "Outputs UPTANE keys")
     ("images-root",  "Outputs root.json from images repo")
@@ -48,8 +49,6 @@ int main(int argc, char **argv) {
     }
 
     std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage, readonly);
-    std::cout << "Storage backend: " << ((storage->type() == StorageType::kFileSystem) ? "Filesystem" : "Sqlite")
-              << std::endl;
 
     std::string director_root;
     std::string director_targets;
@@ -64,6 +63,11 @@ int main(int argc, char **argv) {
     if (!storage->loadDeviceId(&device_id)) {
       std::cout << "Couldn't load device ID" << std::endl;
     } else {
+      // Early return if only printing device ID.
+      if (vm.count("name-only") != 0u) {
+        std::cout << device_id << std::endl;
+        return 0;
+      }
       std::cout << "Device ID: " << device_id << std::endl;
     }
 

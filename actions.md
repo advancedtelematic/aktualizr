@@ -338,9 +338,10 @@ These tools all link with libaktualizr, although they do not necessary use the A
   - [x] Print targets metadata from images repository (aktualizr_info_test.cc)
   - [x] Print root metadata from director repository (aktualizr_info_test.cc)
   - [x] Print targets metadata from director repository (aktualizr_info_test.cc)
-  - [x] Print TLS credentials (aktualizr_info/CMakeLists.txt)
+  - [x] Print TLS credentials (aktualizr_info_test.cc)
   - [x] Print primary ECU keys (aktualizr_info_test.cc)
-  - [x] Print primary ECU current and pending versions
+  - [x] Print primary ECU current and pending versions (aktualizr_info_test.cc)
+  - [x] Print device name only for scripting purposes (aktualizr_info_test.cc)
 
 ### aktualizr-repo
 

@@ -37,15 +37,13 @@ class AktualizrInfoTest : public ::testing::Test {
 
   virtual void TearDown() {}
 
-  void SpawnProcess(const char* arg = nullptr) {
+  void SpawnProcess(const std::vector<std::string> args = std::vector<std::string>{}) {
     std::future<std::string> output;
     std::future<std::string> err_output;
     boost::asio::io_service io_service;
     int child_process_exit_code = -1;
 
-    if (arg != nullptr) {
-      executable_args.push_back(arg);
-    }
+    executable_args.insert(std::end(executable_args), std::begin(args), std::end(args));
     aktualizr_info_output.clear();
 
     try {
@@ -221,7 +219,7 @@ TEST_F(AktualizrInfoTest, PrintImageRootMetadata) {
   db_storage_->storeRoot(images_root, Uptane::RepositoryType::Image(), Uptane::Version(1));
   db_storage_->storeRoot(images_root, Uptane::RepositoryType::Director(), Uptane::Version(1));
 
-  SpawnProcess("--images-root");
+  SpawnProcess(std::vector<std::string>{"--images-root"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
@@ -255,7 +253,7 @@ TEST_F(AktualizrInfoTest, PrintImageTargetsMetadata) {
   std::string image_targets_str = Utils::jsonToStr(image_targets_json);
   db_storage_->storeNonRoot(image_targets_str, Uptane::RepositoryType::Image(), Uptane::Role::Targets());
 
-  SpawnProcess("--images-target");
+  SpawnProcess(std::vector<std::string>{"--images-target"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
@@ -283,7 +281,7 @@ TEST_F(AktualizrInfoTest, PrintDirectorRootMetadata) {
   std::string director_root = Utils::jsonToStr(director_root_json);
   db_storage_->storeRoot(director_root, Uptane::RepositoryType::Director(), Uptane::Version(1));
 
-  SpawnProcess("--director-root");
+  SpawnProcess(std::vector<std::string>{"--director-root"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
@@ -316,7 +314,7 @@ TEST_F(AktualizrInfoTest, PrintDirectorTargetsMetadata) {
   std::string director_targets_str = Utils::jsonToStr(director_targets_json);
   db_storage_->storeNonRoot(director_targets_str, Uptane::RepositoryType::Director(), Uptane::Role::Targets());
 
-  SpawnProcess("--director-target");
+  SpawnProcess(std::vector<std::string>{"--director-target"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
@@ -342,7 +340,7 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuKeys) {
   const std::string private_key = "private-key-5cb805f1-859f-48b1-b787-8055d39b6c5f";
   db_storage_->storePrimaryKeys(public_key, private_key);
 
-  SpawnProcess("--ecu-keys");
+  SpawnProcess(std::vector<std::string>{"--ecu-keys"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
@@ -373,7 +371,7 @@ TEST_F(AktualizrInfoTest, PrintTlsCredentials) {
 
   db_storage_->storeTlsCreds(ca, cert, private_key);
 
-  SpawnProcess("--tls-creds");
+  SpawnProcess(std::vector<std::string>{"--tls-creds"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
@@ -467,6 +465,23 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
   EXPECT_NE(aktualizr_info_output.find("Current primary ecu running version: " + pending_ecu_version),
             std::string::npos);
   EXPECT_EQ(aktualizr_info_output.find("Pending primary ecu version:"), std::string::npos);
+}
+
+/**
+ *  Print device name only for scripting purposes.
+ */
+TEST_F(AktualizrInfoTest, PrintDeviceNameOnly) {
+  Json::Value meta_root;
+  std::string director_root = Utils::jsonToStr(meta_root);
+
+  db_storage_->storeEcuSerials({{Uptane::EcuSerial(primary_ecu_serial), Uptane::HardwareIdentifier(primary_ecu_id)}});
+  db_storage_->storeEcuRegistered();
+  db_storage_->storeRoot(director_root, Uptane::RepositoryType::Director(), Uptane::Version(1));
+
+  SpawnProcess(std::vector<std::string>{"--name-only", "--loglevel", "4"});
+  ASSERT_FALSE(aktualizr_info_output.empty());
+
+  EXPECT_EQ(aktualizr_info_output, device_id + "\n");
 }
 
 #ifndef __NO_MAIN__
