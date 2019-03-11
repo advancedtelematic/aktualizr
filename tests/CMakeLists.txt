@@ -129,8 +129,6 @@ add_test(NAME test_cmdline--something
 # test running the executable with command line option -sth
 add_test(NAME test_cmdline-sth
          COMMAND aktualizr -sth -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml)
-# call the executable without any options
-add_test(NAME test_cmdline_empty COMMAND aktualizr)
 # test the return code when running the executable with non-existent configuration file
 add_test(NAME test_no_config_check_code
          COMMAND aktualizr -c non-existent-config.toml)
@@ -139,7 +137,6 @@ add_test(NAME test_no_config_check_code
 # in this case we want the testcase to pass
 set_tests_properties(test_cmdline--something
                      test_cmdline-sth
-                     test_cmdline_empty
                      test_no_config_check_code
                      PROPERTIES WILL_FAIL TRUE)
 
@@ -162,30 +159,34 @@ set_tests_properties(test-help-with-nonexistent-options
 
 add_test(NAME test-secondary-config-with-nonexisting-dir
          COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/config/sota_autoprov.toml
-         --tls-server fake --secondary-configs-dir nonexistingdir)
+         --tls-server fake --secondary-configs-dir nonexistingdir check)
 set_tests_properties(test-secondary-config-with-nonexisting-dir
                      PROPERTIES PASS_REGULAR_EXPRESSION "\"nonexistingdir\": not a directory")
 
+# run `aktualizr check` for these tests, as they can run forever if a global
+# configuration is present
+
 # Check verbose config parsing output with debug loglevel.
 add_test(NAME test_log_debug
-         COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml --loglevel=0)
+         COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml --loglevel=0 check)
 set_tests_properties(test_log_debug
                      PROPERTIES PASS_REGULAR_EXPRESSION "Final configuration that will be used")
+
 # Check silent config parsing output with default loglevel. Note that the extra
 # PASS is necessary to ignore the return code.
 add_test(NAME test_log_default
-         COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml)
+         COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml check)
 set_tests_properties(test_log_default
                      PROPERTIES FAIL_REGULAR_EXPRESSION "Final configuration that will be used"
                                 PASS_REGULAR_EXPRESSION "Aktualizr version")
 
 # Check invalid logging levels.
 add_test(NAME test_log_invalid
-         COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml --loglevel=6)
+         COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml --loglevel=6 check)
 set_tests_properties(test_log_invalid
                      PROPERTIES PASS_REGULAR_EXPRESSION "Invalid log level")
 add_test(NAME test_log_negative
-         COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml --loglevel=-1)
+         COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml --loglevel=-1 check)
 set_tests_properties(test_log_negative
                      PROPERTIES PASS_REGULAR_EXPRESSION "Invalid log level")
 
