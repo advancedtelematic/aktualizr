@@ -1,16 +1,15 @@
 #ifndef ANDROIDMANAGER_H
 #define ANDROIDMANAGER_H
 
-#include "bootloader/bootloader.h"
 #include "package_manager/packagemanagerinterface.h"
-#include "storage/invstorage.h"
 
 class AndroidInstallationDispatcher;
 
 class AndroidManager : public PackageManagerInterface {
  public:
-  explicit AndroidManager(std::shared_ptr<INvStorage> storage, std::shared_ptr<Bootloader> bootloader)
-      : storage_(std::move(storage)), bootloader_(std::move(bootloader)) {}
+  explicit AndroidManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage,
+                          std::shared_ptr<Bootloader> bootloader)
+      : PackageManagerInterface(pconfig, storage, bootloader) {}
   ~AndroidManager() override = default;
   std::string name() const override { return "android"; }
   Json::Value getInstalledPackages() const override;

@@ -4,11 +4,17 @@
 #include <mutex>
 #include <string>
 
+#include "bootloader/bootloader.h"
+#include "packagemanagerconfig.h"
+#include "storage/invstorage.h"
 #include "uptane/tuf.h"
 #include "utilities/types.h"
 
 class PackageManagerInterface {
  public:
+  PackageManagerInterface(PackageConfig pconfig, std::shared_ptr<INvStorage> storage,
+                          std::shared_ptr<Bootloader> bootloader)
+      : config(std::move(pconfig)), storage_(std::move(storage)), bootloader_(std::move(bootloader)) {}
   virtual ~PackageManagerInterface() = default;
   virtual std::string name() const = 0;
   virtual Json::Value getInstalledPackages() const = 0;
@@ -34,6 +40,10 @@ class PackageManagerInterface {
     unsigned_ecu_version["timeserver_time"] = "1970-01-01T00:00:00Z";
     return unsigned_ecu_version;
   }
-};
 
+ protected:
+  PackageConfig config;
+  std::shared_ptr<INvStorage> storage_;
+  std::shared_ptr<Bootloader> bootloader_;
+};
 #endif  // PACKAGEMANAGERINTERFACE_H_

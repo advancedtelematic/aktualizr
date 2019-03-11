@@ -7,12 +7,9 @@
 #include <glib/gi18n.h>
 #include <ostree.h>
 
-#include "bootloader/bootloader.h"
 #include "crypto/keymanager.h"
-#include "packagemanagerconfig.h"
 #include "packagemanagerinterface.h"
 #include "utilities/apiqueue.h"
-#include "utilities/types.h"
 
 const char remote[] = "aktualizr-remote";
 
@@ -60,11 +57,6 @@ class OstreeManager : public PackageManagerInterface {
                                        const KeyManager &keys, const Uptane::Target &target,
                                        const api::FlowControlToken *token = nullptr,
                                        OstreeProgressCb progress_cb = nullptr);
-
- private:
-  PackageConfig config;
-  std::shared_ptr<INvStorage> storage_;
-  std::shared_ptr<Bootloader> bootloader_;
 };
 
 #endif  // OSTREE_H_

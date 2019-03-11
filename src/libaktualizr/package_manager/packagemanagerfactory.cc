@@ -28,13 +28,13 @@ std::shared_ptr<PackageManagerInterface> PackageManagerFactory::makePackageManag
 #endif
     case PackageManager::kDebian:
 #ifdef BUILD_DEB
-      return std::make_shared<DebianManager>(pconfig, storage);
+      return std::make_shared<DebianManager>(pconfig, storage, bootloader);
 #else
       throw std::runtime_error("aktualizr was compiled without debian packages support!");
 #endif
     case PackageManager::kAndroid:
 #if defined(ANDROID)
-      return std::make_shared<AndroidManager>(storage, bootloader);
+      return std::make_shared<AndroidManager>(pconfig, storage, bootloader);
 #else
       throw std::runtime_error("aktualizr was compiled without android support!");
 #endif
