@@ -16,7 +16,7 @@ fi
 
 DATA=$(cat $2)
 
-TMP=$(mktemp -d /tmp/uptane-XXXXX)
+TMP=$(mktemp -d /tmp/uptane-XXXXXX)
 KEYFILE=${TMP}/keys
 SIGNEDFILE=${TMP}/signed_data.json
 
