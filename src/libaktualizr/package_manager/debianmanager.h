@@ -8,7 +8,6 @@
 #include "packagemanagerinterface.h"
 #include "utilities/types.h"
 
-
 class DebianManager : public PackageManagerBase {
  public:
   DebianManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage, std::shared_ptr<Bootloader> bootloader)

@@ -7,9 +7,7 @@
 #include <glib/gi18n.h>
 #include <ostree.h>
 
-#include "bootloader/bootloader.h"
 #include "crypto/keymanager.h"
-#include "packagemanagerconfig.h"
 #include "packagemanagerinterface.h"
 #include "utilities/apiqueue.h"
 #include "utilities/types.h"
@@ -40,7 +38,7 @@ struct PullMetaStruct {
   OstreeProgressCb progress_cb;
 };
 
-class OstreeManager : public PackageManagerInterface {
+class OstreeManager : public PackageManagerBase {
  public:
   OstreeManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage, std::shared_ptr<Bootloader> bootloader);
   ~OstreeManager() override = default;
@@ -60,11 +58,6 @@ class OstreeManager : public PackageManagerInterface {
                                        const KeyManager &keys, const Uptane::Target &target,
                                        const api::FlowControlToken *token = nullptr,
                                        OstreeProgressCb progress_cb = nullptr);
-
- private:
-  PackageConfig config;
-  std::shared_ptr<INvStorage> storage_;
-  std::shared_ptr<Bootloader> bootloader_;
 };
 
 #endif  // OSTREE_H_
