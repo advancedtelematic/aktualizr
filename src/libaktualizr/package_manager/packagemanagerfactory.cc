@@ -24,7 +24,7 @@ std::shared_ptr<PackageManagerInterface> PackageManagerFactory::makePackageManag
 #endif
     case PackageManager::kDebian:
 #ifdef BUILD_DEB
-      return std::make_shared<DebianManager>(pconfig, storage);
+      return std::make_shared<DebianManager>(pconfig, storage, bootloader);
 #else
       throw std::runtime_error("aktualizr was compiled without debian packages support!");
 #endif

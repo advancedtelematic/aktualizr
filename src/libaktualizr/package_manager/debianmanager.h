@@ -5,16 +5,14 @@
 #include <string>
 #include <utility>
 
-#include "packagemanagerconfig.h"
 #include "packagemanagerinterface.h"
 #include "utilities/types.h"
 
-#include "storage/invstorage.h"
 
-class DebianManager : public PackageManagerInterface {
+class DebianManager : public PackageManagerBase {
  public:
-  DebianManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage)
-      : config_(std::move(pconfig)), storage_(std::move(storage)) {}
+  DebianManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage, std::shared_ptr<Bootloader> bootloader)
+      : PackageManagerBase(pconfig, storage, bootloader) {}
   ~DebianManager() override = default;
   std::string name() const override { return "debian"; }
   Json::Value getInstalledPackages() const override;
@@ -25,8 +23,6 @@ class DebianManager : public PackageManagerInterface {
     throw std::runtime_error("Unimplemented");
   }
   bool imageUpdated() override { return true; }
-  PackageConfig config_;
-  std::shared_ptr<INvStorage> storage_;
 
  private:
   mutable std::mutex mutex_;
