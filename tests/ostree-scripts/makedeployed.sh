@@ -10,7 +10,7 @@ REPO=$1
 BRANCHNAME=$2
 HARDWARE=$3
 
-TARGETDIR=$(mktemp -d /tmp/genostree-XXXXX)
+TARGETDIR=$(mktemp -d /tmp/genostree-XXXXXX)
 
 #usr
 mkdir -p "$TARGETDIR/usr/share/sota"

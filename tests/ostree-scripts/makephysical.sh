@@ -26,7 +26,7 @@ ln -s loader.0 "$OSTREE_SYSROOT/boot/loader"
 touch "$OSTREE_SYSROOT/boot/loader/uEnv.txt"
 
 SCRIPT_DIR="$(dirname "$0")"
-OSTREE_DIR=$(mktemp -d /tmp/ostreephys-XXXXX)
+OSTREE_DIR=$(mktemp -d /tmp/ostreephys-XXXXXX)
 "$SCRIPT_DIR/makedeployed.sh" "$OSTREE_DIR/repo" $BRANCHNAME $HARDWARE
 
 if [ "$#" -eq 2 ]; then
