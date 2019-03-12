@@ -5,9 +5,17 @@
 #include <iostream>
 #include <string>
 #include <thread>
-#include "fetcher.h"
+
+#include "config/config.h"
 #include "http/httpclient.h"
 #include "logging/logging.h"
+#ifdef BUILD_OSTREE
+#include "package_manager/ostreemanager.h"
+#define PKGMGR_TYPE OstreeManager
+#else
+#include "package_manager/packagemanagerfake.h"
+#define PKGMGR_TYPE PackageManagerFake
+#endif
 #include "storage/sqlstorage.h"
 #include "test_utils.h"
 #include "tuf.h"
@@ -56,7 +64,10 @@ void test_pause(const Uptane::Target& target) {
 
   std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
   auto http = std::make_shared<HttpClient>();
-  Uptane::Fetcher f(config, storage, http, progress_cb);
+
+  auto pacman = std::make_shared<PKGMGR_TYPE>(config.pacman, storage, nullptr, http);
+  KeyManager keys(storage, config.keymanagerConfig());
+
   api::FlowControlToken token;
   EXPECT_EQ(token.setPause(true), true);
   EXPECT_EQ(token.setPause(false), true);
@@ -68,8 +79,8 @@ void test_pause(const Uptane::Target& target) {
   auto start = std::chrono::high_resolution_clock::now();
 
   do_pause = false;
-  std::thread([&f, &target, &download_promise, &token]() {
-    bool res = f.fetchVerifyTarget(target, &token);
+  std::thread([&target, &download_promise, &token, pacman, &keys]() {
+    bool res = pacman->fetchTarget(target, server, keys, progress_cb, &token);
     download_promise.set_value(res);
   })
       .detach();
