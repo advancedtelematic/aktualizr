@@ -8,6 +8,7 @@ set(SOURCES
     role.cc
     root.cc
     secondaryconfig.cc
+    secondaryfactory.cc
     tuf.cc
     uptanerepository.cc
     directorrepository.cc
@@ -40,9 +41,8 @@ endif (BUILD_OPCUA)
 
 if (BUILD_ISOTP)
     target_sources(uptane PRIVATE isotpsecondary.cc)
+    target_include_directories(uptane PRIVATE ${PROJECT_SOURCE_DIR}/third_party/isotp-c/src)
 endif (BUILD_ISOTP)
-
-target_include_directories(uptane PRIVATE ${PROJECT_SOURCE_DIR}/partial/extern/isotp-c/src)
 
 get_property(ASN1_INCLUDE_DIRS TARGET asn1_lib PROPERTY INCLUDE_DIRECTORIES)
 target_include_directories(uptane PUBLIC ${ASN1_INCLUDE_DIRS})
