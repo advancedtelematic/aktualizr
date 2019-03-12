@@ -16,7 +16,7 @@
 #include "package_manager/packagemanagerfake.h"
 #include "storage/sqlstorage.h"
 #include "test_utils.h"
-#include "tuf.h"
+#include "uptane/tuf.h"
 #include "utilities/apiqueue.h"
 
 static const int pause_after = 50;        // percent
