@@ -8,10 +8,12 @@
 
 #include <boost/process.hpp>
 
-#include "fetcher.h"
+#include "config/config.h"
 #include "http/httpclient.h"
 #include "httpfake.h"
 #include "logging/logging.h"
+#include "package_manager/packagemanagerfactory.h"
+#include "package_manager/packagemanagerfake.h"
 #include "storage/sqlstorage.h"
 #include "test_utils.h"
 #include "tuf.h"
@@ -51,16 +53,21 @@ static void progress_cb(const Uptane::Target& target, const std::string& descrip
  * Resuming while not paused is ignored.
  * Resuming while not downloading is ignored
  */
-void test_pause(const Uptane::Target& target) {
+void test_pause(const Uptane::Target& target, PackageManager type = PackageManager::kNone) {
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
   config.uptane.repo_server = server;
+  config.pacman.type = type;
   config.pacman.sysroot = sysroot;
   config.pacman.ostree_server = treehub_server;
 
   std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
   auto http = std::make_shared<HttpClient>();
-  Uptane::Fetcher f(config, storage, http, progress_cb);
+
+  auto pacman = PackageManagerFactory::makePackageManager(config.pacman, storage, nullptr, http);
+  KeyManager keys(storage, config.keymanagerConfig());
+  Uptane::Fetcher fetcher(config, http);
+
   api::FlowControlToken token;
   EXPECT_EQ(token.setPause(true), true);
   EXPECT_EQ(token.setPause(false), true);
@@ -72,8 +79,8 @@ void test_pause(const Uptane::Target& target) {
   auto start = std::chrono::high_resolution_clock::now();
 
   do_pause = false;
-  std::thread([&f, &target, &download_promise, &token]() {
-    bool res = f.fetchVerifyTarget(target, &token);
+  std::thread([&target, &fetcher, &download_promise, &token, pacman, &keys]() {
+    bool res = pacman->fetchTarget(target, fetcher, keys, progress_cb, &token);
     download_promise.set_value(res);
   })
       .detach();
@@ -110,7 +117,7 @@ TEST(Fetcher, PauseOstree) {
   target_json["custom"]["targetFormat"] = "OSTREE";
   target_json["length"] = 0;
   Uptane::Target target("pause", target_json);
-  test_pause(target);
+  test_pause(target, PackageManager::kOstree);
 }
 #endif  // BUILD_OSTREE
 
@@ -145,7 +152,10 @@ TEST(Fetcher, DownloadCustomUri) {
 
   std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
   auto http = std::make_shared<HttpCustomUri>(temp_dir.Path());
-  Uptane::Fetcher f(config, storage, http, nullptr);
+
+  auto pacman = std::make_shared<PackageManagerFake>(config.pacman, storage, nullptr, http);
+  KeyManager keys(storage, config.keymanagerConfig());
+  Uptane::Fetcher fetcher(config, http);
 
   // Make a fake target with the expected hash of "0".
   Json::Value target_json;
@@ -154,7 +164,7 @@ TEST(Fetcher, DownloadCustomUri) {
   target_json["length"] = 1;
   Uptane::Target target("fake_file", target_json);
 
-  EXPECT_TRUE(f.fetchVerifyTarget(target));
+  EXPECT_TRUE(pacman->fetchTarget(target, fetcher, keys, progress_cb));
 }
 
 class HttpDefaultUri : public HttpFake {
@@ -179,7 +189,9 @@ TEST(Fetcher, DownloadDefaultUri) {
 
   std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
   auto http = std::make_shared<HttpDefaultUri>(temp_dir.Path());
-  Uptane::Fetcher f(config, storage, http, nullptr);
+  auto pacman = std::make_shared<PackageManagerFake>(config.pacman, storage, nullptr, http);
+  KeyManager keys(storage, config.keymanagerConfig());
+  Uptane::Fetcher fetcher(config, http);
 
   {
     // No custom uri.
@@ -188,7 +200,7 @@ TEST(Fetcher, DownloadDefaultUri) {
     target_json["length"] = 1;
     Uptane::Target target("fake_file", target_json);
 
-    EXPECT_TRUE(f.fetchVerifyTarget(target));
+    EXPECT_TRUE(pacman->fetchTarget(target, fetcher, keys, progress_cb));
   }
   {
     // Empty custom uri.
@@ -198,7 +210,7 @@ TEST(Fetcher, DownloadDefaultUri) {
     target_json["length"] = 1;
     Uptane::Target target("fake_file", target_json);
 
-    EXPECT_TRUE(f.fetchVerifyTarget(target));
+    EXPECT_TRUE(pacman->fetchTarget(target, fetcher, keys, progress_cb));
   }
   {
     // example.com (default) custom uri.
@@ -208,7 +220,7 @@ TEST(Fetcher, DownloadDefaultUri) {
     target_json["length"] = 1;
     Uptane::Target target("fake_file", target_json);
 
-    EXPECT_TRUE(f.fetchVerifyTarget(target));
+    EXPECT_TRUE(pacman->fetchTarget(target, fetcher, keys, progress_cb));
   }
 }
 

@@ -7,9 +7,11 @@
 #include <iostream>
 #include <string>
 #include <thread>
-#include "fetcher.h"
+
+#include "config/config.h"
 #include "http/httpclient.h"
 #include "logging/logging.h"
+#include "package_manager/packagemanagerfake.h"
 #include "storage/sqlstorage.h"
 #include "test_utils.h"
 #include "tuf.h"
@@ -43,10 +45,13 @@ static void progress_cb(const Uptane::Target& target, const std::string& descrip
 void resume(const Uptane::Target& target) {
   std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
   auto http = std::make_shared<HttpClient>();
-  Uptane::Fetcher f(config, storage, http, progress_cb);
+  auto pacman = std::make_shared<PackageManagerFake>(config.pacman, storage, nullptr, http);
+  api::FlowControlToken token;
+  KeyManager keys(storage, config.keymanagerConfig());
+  Uptane::Fetcher fetcher(config, http);
 
   resumed = true;
-  bool res = f.fetchVerifyTarget(target);
+  bool res = pacman->fetchTarget(target, fetcher, keys, progress_cb, &token);
 
   EXPECT_TRUE(res);
 }
@@ -54,14 +59,16 @@ void resume(const Uptane::Target& target) {
 void pause_and_die(const Uptane::Target& target) {
   std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
   auto http = std::make_shared<HttpClient>();
-  Uptane::Fetcher f(config, storage, http, progress_cb);
   api::FlowControlToken token;
+  auto pacman = std::make_shared<PackageManagerFake>(config.pacman, storage, nullptr, http);
+  KeyManager keys(storage, config.keymanagerConfig());
+  Uptane::Fetcher fetcher(config, http);
 
   std::promise<bool> download_promise;
   auto result = download_promise.get_future();
 
-  std::thread([&f, &target, &download_promise, &token]() {
-    bool res = f.fetchVerifyTarget(target, &token);
+  std::thread([&target, &fetcher, &download_promise, &token, pacman, &keys]() {
+    bool res = pacman->fetchTarget(target, fetcher, keys, progress_cb, &token);
     download_promise.set_value(res);
   })
       .detach();
