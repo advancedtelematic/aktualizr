@@ -969,8 +969,13 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target t
   bool success = false;
   int tries = 3;
   std::chrono::milliseconds wait(500);
+  KeyManager keys(storage, config.keymanagerConfig());
+  keys.loadKeys();
+  auto prog_cb = [this](const Uptane::Target &t, const std::string description, unsigned int progress) {
+    report_progress_cb(events_channel.get(), t, description, progress);
+  };
   while ((tries--) != 0) {
-    success = uptane_fetcher->fetchVerifyTarget(target, token);
+    success = package_manager_->fetchTarget(target, config.uptane.repo_server, keys, prog_cb, token);
     if (success) {
       break;
     } else if (tries != 0) {
