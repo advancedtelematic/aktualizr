@@ -48,8 +48,8 @@ aktualizr_source_file_checks(packagemanagerfake_test.cc packagemanagerfactory_te
 aktualizr_source_file_checks(ostreemanager.cc ostreereposync.cc
                              ostreemanager.h ostreereposync.h)
 
+aktualizr_source_file_checks(androidmanager.cc androidmanager.h)
+
 if(ANDROID)
     target_sources(package_manager PRIVATE androidmanager.cc)
 endif(ANDROID)
-
-aktualizr_source_file_checks(androidmanager.cc androidmanager.h)
