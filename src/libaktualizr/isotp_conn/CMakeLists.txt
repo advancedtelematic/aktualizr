@@ -1,4 +1,4 @@
-set(ISOTP_PATH_PREFIX ${PROJECT_SOURCE_DIR}/partial/extern/isotp-c/src)
+set(ISOTP_PATH_PREFIX ${PROJECT_SOURCE_DIR}/third_party/isotp-c/src)
 set(BITFIELD_PATH_PREFIX ${ISOTP_PATH_PREFIX}/../deps/bitfield-c/src)
 
 set(ISOTP_SOURCES ${ISOTP_PATH_PREFIX}/isotp/isotp.c
