@@ -62,11 +62,6 @@ Fetcher::PauseRet Fetcher::setPause(bool pause) {
     }
   }
 
-  if (pause && downloading_ == 0u) {
-    LOG_DEBUG << "Fetcher: nothing to pause";
-    return PauseRet::kNotDownloading;
-  }
-
   pause_ = pause;
   cv_.notify_all();
 
@@ -94,7 +89,6 @@ void Fetcher::restoreHasherState(MultiPartHasher& hasher, StorageTargetRHandle* 
 
 bool Fetcher::fetchVerifyTarget(const Target& target) {
   bool result = false;
-  DownloadCounter counter(&downloading_);
   try {
     if (!target.IsOstree()) {
       if (target.hashes().empty()) {

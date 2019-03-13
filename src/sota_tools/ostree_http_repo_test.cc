@@ -33,7 +33,7 @@ TEST(http_repo, getRef) {
   server.root_url("http://localhost:" + port);
   OSTreeRepo::ptr src_repo = std::make_shared<OSTreeHttpRepo>(&server);
   EXPECT_EQ(src_repo->GetRef("master").GetHash().string(),
-            std::string("16ef2f2629dc9263fdf3c0f032563a2d757623bbc11cf99df25c3c3f258dccbe"));
+            std::string("b9ac1e45f9227df8ee191b6e51e09417bd36c6ebbeff999431e3073ac50f0563"));
 }
 
 /* Fetch OSTree object from remote repository.
@@ -42,13 +42,13 @@ TEST(http_repo, GetObject) {
   TreehubServer server;
   server.root_url("http://localhost:" + port);
   OSTreeRepo::ptr src_repo = std::make_shared<OSTreeHttpRepo>(&server);
-  const uint8_t hash[32] = {0x2a, 0x28, 0xda, 0xc4, 0x2b, 0x76, 0xc2, 0x01, 0x5e, 0xe3, 0xc4,
-                            0x1c, 0xc4, 0x18, 0x3b, 0xb8, 0xb5, 0xc7, 0x90, 0xfd, 0x21, 0xfa,
-                            0x5c, 0xfa, 0x08, 0x02, 0xc6, 0xe1, 0x1f, 0xd0, 0xed, 0xbe};
+  const uint8_t hash[32] = {0x44, 0x6a, 0x0e, 0xf1, 0x1b, 0x7c, 0xc1, 0x67, 0xf3, 0xb6, 0x03,
+                            0xe5, 0x85, 0xc7, 0xee, 0xee, 0xb6, 0x75, 0xfa, 0xa4, 0x12, 0xd5,
+                            0xec, 0x73, 0xf6, 0x29, 0x88, 0xeb, 0x0b, 0x6c, 0x54, 0x88};
   auto object = src_repo->GetObject(hash, OstreeObjectType::OSTREE_OBJECT_TYPE_DIR_META);
   std::stringstream s;
   s << object;
-  EXPECT_EQ(s.str(), std::string("2a/28dac42b76c2015ee3c41cc4183bb8b5c790fd21fa5cfa0802c6e11fd0edbe.dirmeta"));
+  EXPECT_EQ(s.str(), std::string("44/6a0ef11b7cc167f3b603e585c7eeeeb675faa412d5ec73f62988eb0b6c5488.dirmeta"));
 }
 
 /* Abort if OSTree object is not found after retry. */
@@ -68,10 +68,11 @@ TEST(http_repo, GetWrongObject) {
  * anyway because we've learned not to always trust the server the first time
  * and to try again before giving up. */
 TEST(http_repo, bad_connection) {
-  TemporaryDirectory temp_dir;
+  TemporaryDirectory src_dir, dst_dir;
   std::string sp = TestUtils::getFreePort();
 
-  boost::process::child server_process("tests/sota_tools/treehub_server.py", sp, std::string("2"));
+  boost::process::child server_process("tests/sota_tools/treehub_server.py", std::string("-p"), sp, std::string("-d"),
+                                       src_dir.PathString(), std::string("-f2"), std::string("--create"));
   TestUtils::waitForServer("http://localhost:" + sp + "/");
 
   TreehubServer server;
@@ -81,18 +82,17 @@ TEST(http_repo, bad_connection) {
   std::string dp = TestUtils::getFreePort();
   Json::Value auth;
   auth["ostree"]["server"] = std::string("https://localhost:") + dp;
-  Utils::writeFile(temp_dir.Path() / "auth.json", auth);
-  boost::process::child deploy_server_process("tests/sota_tools/treehub_deploy_server.py", dp, temp_dir.PathString(),
-                                              std::string("2"));
+  Utils::writeFile(dst_dir.Path() / "auth.json", auth);
+  boost::process::child deploy_server_process("tests/sota_tools/treehub_server.py", std::string("-p"), dp,
+                                              std::string("-d"), dst_dir.PathString(), std::string("-f2"),
+                                              std::string("--tls"));
   TestUtils::waitForServer("https://localhost:" + dp + "/");
 
-  boost::filesystem::path filepath = (temp_dir.Path() / "auth.json").string();
+  boost::filesystem::path filepath = (dst_dir.Path() / "auth.json").string();
   boost::filesystem::path cert_path = "tests/fake_http_server/client.crt";
 
-  const uint8_t hash[32] = {0x16, 0xef, 0x2f, 0x26, 0x29, 0xdc, 0x92, 0x63, 0xfd, 0xf3, 0xc0,
-                            0xf0, 0x32, 0x56, 0x3a, 0x2d, 0x75, 0x76, 0x23, 0xbb, 0xc1, 0x1c,
-                            0xf9, 0x9d, 0xf2, 0x5c, 0x3c, 0x3f, 0x25, 0x8d, 0xcc, 0xbe};
-  UploadToTreehub(src_repo, ServerCredentials(filepath), OSTreeHash(hash), cert_path.string(), RunMode::kDefault, 1);
+  auto hash = OSTreeHash::Parse("b9ac1e45f9227df8ee191b6e51e09417bd36c6ebbeff999431e3073ac50f0563");
+  UploadToTreehub(src_repo, ServerCredentials(filepath), hash, cert_path.string(), RunMode::kDefault, 1);
 
   int result = system(
       (std::string("diff -r ") + (src_repo->root() / "objects/").string() + " tests/sota_tools/repo/objects/").c_str());
@@ -115,7 +115,7 @@ int main(int argc, char **argv) {
   std::string server = "tests/sota_tools/treehub_server.py";
   port = TestUtils::getFreePort();
 
-  boost::process::child server_process(server, port);
+  boost::process::child server_process(server, std::string("-p"), port, std::string("--create"));
   TestUtils::waitForServer("http://localhost:" + port + "/");
 
   return RUN_ALL_TESTS();
