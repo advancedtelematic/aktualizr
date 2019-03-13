@@ -63,6 +63,15 @@ set(BOOST_COMPONENTS log_setup log filesystem program_options)
 set(Boost_USE_STATIC_LIBS OFF)
 add_definitions(-DBOOST_LOG_DYN_LINK)
 
+if(ANDROID)
+    set(BOOST_ROOT ${PREBUILD_BOOST_ROOT})
+    set(Boost_INCLUDE_DIR ${BOOST_ROOT}/include)
+    set(Boost_LIBRARY_DIR ${BOOST_ROOT}/libs/llvm/${ANDROID_ABI})
+    if(Boost_FOUND)
+        include_directories(${Boost_INCLUDE_DIRS})
+    endif()
+endif(ANDROID)
+
 if(BUILD_OPCUA)
     list(APPEND BOOST_COMPONENTS serialization iostreams)
 endif(BUILD_OPCUA)
@@ -87,6 +96,7 @@ find_package(sodium REQUIRED)
 find_package(SQLite3 REQUIRED)
 find_package(Git)
 find_package(Asn1c REQUIRED)
+find_package(ZLIB)
 
 if(NOT AKTUALIZR_VERSION)
     if(GIT_EXECUTABLE)
@@ -297,6 +307,7 @@ include_directories(${SQLITE3_INCLUDE_DIRS})
 include_directories(${LIBP11_INCLUDE_DIR})
 include_directories(${sodium_INCLUDE_DIR})
 include_directories(${OPENSSL_INCLUDE_DIR})
+include_directories(${CURL_INCLUDE_DIR})
 include_directories(${LibArchive_INCLUDE_DIR})
 
 set_source_files_properties(third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
@@ -373,7 +384,12 @@ set (AKTUALIZR_EXTERNAL_LIBS
     ${LIBP11_LIBRARIES}
     ${LIBDPKG_LIBRARIES}
     ${GLIB2_LIBRARIES}
-    ${SYSTEMD_LIBRARY})
+    ${SYSTEMD_LIBRARY}
+    ${ZLIB_LIBRARY})
+
+if(ANDROID)
+    list(APPEND AKTUALIZR_EXTERNAL_LIBS liblog.so)
+endif()
 
 get_directory_property(hasParent PARENT_DIRECTORY)
 if(hasParent)
@@ -387,7 +403,6 @@ if(BUILD_WITH_CODE_COVERAGE)
     set(COVERAGE_COMPILER_FLAGS "--coverage -fprofile-arcs -ftest-coverage" CACHE INTERNAL "")
     list(APPEND TEST_LIBS gcov)
 endif(BUILD_WITH_CODE_COVERAGE)
-
 
 include(CTest)
 ENABLE_TESTING()

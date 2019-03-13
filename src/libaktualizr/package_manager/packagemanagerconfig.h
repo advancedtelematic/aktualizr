@@ -7,7 +7,7 @@
 
 #include "utilities/config_utils.h"
 
-enum class PackageManager { kNone = 0, kOstree, kDebian };
+enum class PackageManager { kNone = 0, kOstree, kDebian, kAndroid };
 
 struct PackageConfig {
   PackageManager type{PackageManager::kOstree};
@@ -33,6 +33,8 @@ inline void CopyFromConfig(PackageManager& dest, const std::string& option_name,
       dest = PackageManager::kOstree;
     } else if (pm_type == "debian") {
       dest = PackageManager::kDebian;
+    } else if (pm_type == "android") {
+      dest = PackageManager::kAndroid;
     } else {
       dest = PackageManager::kNone;
     }

@@ -1,7 +1,5 @@
 #include "telemetry/telemetryconfig.h"
 
-#include <boost/log/trivial.hpp>
-
 #include "utilities/config_utils.h"
 
 void TelemetryConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
