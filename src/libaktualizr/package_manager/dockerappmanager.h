@@ -15,6 +15,7 @@ class DockerAppManager : public OstreeManager {
   }
   bool fetchTarget(const Uptane::Target &target, Uptane::Fetcher &fetcher, const KeyManager &keys,
                    FetcherProgressCb progress_cb, const api::FlowControlToken *token = nullptr) override;
+  data::InstallationResult install(const Uptane::Target &target) const override;
   std::string name() const override { return "ostree+docker-app"; }
 
  private:

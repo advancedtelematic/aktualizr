@@ -59,7 +59,9 @@ TEST(DockerAppManager, DockerApp_Fetch) {
   Config config;
   config.pacman.type = PackageManager::kOstreeDockerApp;
   config.pacman.sysroot = test_sysroot;
+  config.pacman.docker_apps_root = temp_dir / "docker_apps";
   config.pacman.docker_apps.push_back("app1");
+  config.pacman.docker_app_bin = config.pacman.docker_compose_bin = "src/libaktualizr/package_manager/docker_fake.sh";
   config.pacman.ostree_server = treehub_server;
   config.uptane.repo_server = repo_server + "/repo/image";
   TemporaryDirectory dir;
@@ -84,6 +86,10 @@ TEST(DockerAppManager, DockerApp_Fetch) {
                    "fa3dcc8335b26d3bbf455803d2ecb")};
   Uptane::Target app_target("foo.dockerapp", hashes, 8);
   ASSERT_TRUE(storage->checkTargetFile(app_target));
+
+  client->package_manager_->install(target);
+  std::string content = Utils::readFile(config.pacman.docker_apps_root / "app1/docker-compose.yml");
+  ASSERT_EQ("DOCKER-APP RENDER OUTPUT\nfake contents of a docker app\n", content);
 }
 
 #ifndef __NO_MAIN__
