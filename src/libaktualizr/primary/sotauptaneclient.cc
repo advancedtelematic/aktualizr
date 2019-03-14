@@ -326,7 +326,6 @@ void SotaUptaneClient::initialize() {
 bool SotaUptaneClient::updateMeta() {
   // Uptane step 1 (build the vehicle version manifest):
   if (!putManifestSimple()) {
-    LOG_ERROR << "could not put manifest";
     return false;
   }
   return uptaneIteration();
@@ -1227,6 +1226,8 @@ bool SotaUptaneClient::putManifestSimple() {
     storage->clearInstallationResults();
     return true;
   }
+
+  LOG_WARNING << "Put manifest request failed: " << response.getStatusStr();
   return false;
 }
 
