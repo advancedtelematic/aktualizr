@@ -76,11 +76,11 @@ class SotaUptaneClient {
   FRIEND_TEST(Uptane, offlineIteration);
   FRIEND_TEST(Uptane, IgnoreUnknownUpdate);
   FRIEND_TEST(Uptane, kRejectAllTest);
-  FRIEND_TEST(Uptane, Vector);  // Note hacky name (see uptane_vector_tests.cc)
   FRIEND_TEST(UptaneCI, ProvisionAndPutManifest);
   FRIEND_TEST(UptaneCI, CheckKeys);
   FRIEND_TEST(UptaneKey, Check);  // Note hacky name
   FRIEND_TEST(UptaneNetwork, DownloadFailure);
+  FRIEND_TEST(UptaneVector, Test);
   FRIEND_TEST(aktualizr_secondary_uptane, credentialsPassing);
   friend class CheckForUpdate;       // for load tests
   friend class ProvisionDeviceTask;  // for load tests
