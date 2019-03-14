@@ -60,6 +60,7 @@ $tests_dir/ostree-scripts/makephysical.sh $OSTREE_SYSROOT
 
 sota_dir=$dest_dir/sota
 mkdir $sota_dir
+chmod 700 $sota_dir
 cat >$sota_dir/sota.toml <<EOF
 [uptane]
 repo_server = "http://localhost:$port/repo/image"
