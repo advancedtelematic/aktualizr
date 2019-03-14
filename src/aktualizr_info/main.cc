@@ -12,6 +12,25 @@
 
 namespace po = boost::program_options;
 
+static void loadAndPrintDelegations(const std::shared_ptr<INvStorage> &storage) {
+  std::vector<std::pair<Uptane::Role, std::string> > delegations;
+  bool delegations_fetch_res = storage->loadAllDelegations(delegations);
+
+  if (!delegations_fetch_res) {
+    std::cout << "Failed to load delegations" << std::endl;
+    return;
+  }
+
+  if (delegations.size() == 0) {
+    std::cout << "Delegations are not present" << std::endl;
+  }
+
+  std::cout << "Delegations:" << std::endl;
+  for (auto delegation : delegations) {
+    std::cout << delegation.first << ": " << delegation.second << std::endl;
+  }
+}
+
 int main(int argc, char **argv) {
   po::options_description desc("aktualizr-info command line options");
   // clang-format off
@@ -24,6 +43,7 @@ int main(int argc, char **argv) {
     ("ecu-keys",  "Outputs UPTANE keys")
     ("images-root",  "Outputs root.json from images repo")
     ("images-target",  "Outputs targets.json from images repo")
+    ("delegation",  "Outputs metadata of image repo targets' delegations")
     ("director-root",  "Outputs root.json from director repo")
     ("director-target",  "Outputs targets.json from director repo")
     ("allow-migrate", "Opens database in read/write mode to make possible to migrate database if needed");
@@ -54,6 +74,7 @@ int main(int argc, char **argv) {
     std::string director_targets;
     std::string images_root;
     std::string images_targets;
+
     bool has_metadata = storage->loadLatestRoot(&director_root, Uptane::RepositoryType::Director());
     storage->loadLatestRoot(&images_root, Uptane::RepositoryType::Image());
     storage->loadNonRoot(&director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets());
@@ -114,6 +135,10 @@ int main(int argc, char **argv) {
       if (vm.count("images-target") != 0u) {
         std::cout << "image targets.json content:" << std::endl;
         std::cout << images_targets << std::endl;
+      }
+
+      if (vm.count("delegation") != 0u) {
+        loadAndPrintDelegations(storage);
       }
 
       if (vm.count("director-root") != 0u) {

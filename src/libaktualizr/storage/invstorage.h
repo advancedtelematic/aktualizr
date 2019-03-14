@@ -138,6 +138,7 @@ class INvStorage {
   virtual void clearMetadata() = 0;
   virtual void storeDelegation(const std::string& data, Uptane::Role role) = 0;
   virtual bool loadDelegation(std::string* data, Uptane::Role role) = 0;
+  virtual bool loadAllDelegations(std::vector<std::pair<Uptane::Role, std::string>>& data) const = 0;
   virtual void deleteDelegation(Uptane::Role role) = 0;
   virtual void clearDelegations() = 0;
 

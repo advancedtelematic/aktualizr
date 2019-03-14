@@ -561,6 +561,36 @@ bool SQLStorage::loadDelegation(std::string* data, const Uptane::Role role) {
   return true;
 }
 
+bool SQLStorage::loadAllDelegations(std::vector<std::pair<Uptane::Role, std::string>>& data) const {
+  bool result = false;
+
+  try {
+    SQLite3Guard db = dbConnection();
+
+    auto statement = db.prepareStatement("SELECT meta, role_name FROM delegations;");
+    auto statement_state = statement.step();
+
+    if (statement_state == SQLITE_DONE) {
+      LOG_TRACE << "Delegations metadata are not present";
+      return true;
+    } else if (statement_state != SQLITE_ROW) {
+      LOG_ERROR << "Can't get delegations metadata: " << db.errmsg();
+      return false;
+    }
+
+    do {
+      data.emplace_back(Uptane::Role::Delegation(statement.get_result_col_str(1).value()),
+                        statement.get_result_col_blob(0).value());
+    } while ((statement_state = statement.step()) == SQLITE_ROW);
+
+    result = true;
+  } catch (const std::exception& exc) {
+    LOG_ERROR << "Failed to fetch records from `delegations` table: " << exc.what();
+  }
+
+  return result;
+}
+
 void SQLStorage::deleteDelegation(const Uptane::Role role) {
   SQLite3Guard db = dbConnection();
 
