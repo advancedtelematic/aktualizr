@@ -392,23 +392,23 @@ TEST(storage, load_store_installation_results) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
-  storage->saveEcuInstallationResult(Uptane::EcuSerial("ecu"), data::InstallationResult());
-  storage->saveEcuInstallationResult(Uptane::EcuSerial("ecu"),
+  EcuSerials serials{{Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")},
+                     {Uptane::EcuSerial("secondary_1"), Uptane::HardwareIdentifier("secondary_hw")},
+                     {Uptane::EcuSerial("secondary_2"), Uptane::HardwareIdentifier("secondary_hw")}};
+  storage->storeEcuSerials(serials);
+
+  storage->saveEcuInstallationResult(Uptane::EcuSerial("secondary_2"), data::InstallationResult());
+  storage->saveEcuInstallationResult(Uptane::EcuSerial("primary"), data::InstallationResult());
+  storage->saveEcuInstallationResult(Uptane::EcuSerial("primary"),
                                      data::InstallationResult(data::ResultCode::Numeric::kGeneralError, ""));
-  storage->saveEcuInstallationResult(Uptane::EcuSerial("ecu2"), data::InstallationResult());
 
   std::vector<std::pair<Uptane::EcuSerial, data::InstallationResult>> res;
   EXPECT_TRUE(storage->loadEcuInstallationResults(&res));
   EXPECT_EQ(res.size(), 2);
-  for (const auto &r : res) {
-    if (r.first.ToString() == "ecu") {
-      EXPECT_EQ(r.second.result_code.num_code, data::ResultCode::Numeric::kGeneralError);
-    } else if (r.first.ToString() == "ecu2") {
-      EXPECT_EQ(r.second.result_code.num_code, data::ResultCode::Numeric::kOk);
-    } else {
-      FAIL() << "Wrong ecu serial: " << r.first;
-    }
-  }
+  EXPECT_EQ(res.at(0).first.ToString(), "primary");
+  EXPECT_EQ(res.at(0).second.result_code.num_code, data::ResultCode::Numeric::kGeneralError);
+  EXPECT_EQ(res.at(1).first.ToString(), "secondary_2");
+  EXPECT_EQ(res.at(1).second.result_code.num_code, data::ResultCode::Numeric::kOk);
 
   storage->storeDeviceInstallationResult(data::InstallationResult(data::ResultCode::Numeric::kGeneralError, ""), "raw",
                                          "corrid");
