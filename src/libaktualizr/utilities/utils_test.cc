@@ -330,6 +330,20 @@ TEST(Utils, shell) {
 
 TEST(Utils, urlencode) { EXPECT_EQ(Utils::urlEncode("test! test@ test#"), "test%21%20test%40%20test%23"); }
 
+TEST(Utils, getDirEntriesByExt) {
+  TemporaryDirectory temp_dir;
+
+  Utils::writeFile(temp_dir / "02-test.toml", std::string(""));
+  Utils::writeFile(temp_dir / "0x-test.noml", std::string(""));
+  Utils::writeFile(temp_dir / "03-test.toml", std::string(""));
+  Utils::writeFile(temp_dir / "01-test.toml", std::string(""));
+
+  auto files = Utils::getDirEntriesByExt(temp_dir.Path(), ".toml");
+  std::vector<boost::filesystem::path> expected{temp_dir / "01-test.toml", temp_dir / "02-test.toml",
+                                                temp_dir / "03-test.toml"};
+  EXPECT_EQ(files, expected);
+}
+
 TEST(Utils, BasedPath) {
   BasedPath bp("a/test.xml");
 

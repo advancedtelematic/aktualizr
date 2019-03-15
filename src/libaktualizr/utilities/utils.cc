@@ -649,6 +649,7 @@ boost::filesystem::path Utils::absolutePath(const boost::filesystem::path &root,
 }
 
 // passing ext argument keep the leading point e.g. '.ext'
+// results are returned sorted in alpanumeric order
 std::vector<boost::filesystem::path> Utils::getDirEntriesByExt(const boost::filesystem::path &dir_path,
                                                                const std::string &ext) {
   std::vector<boost::filesystem::path> entries;
@@ -659,6 +660,7 @@ std::vector<boost::filesystem::path> Utils::getDirEntriesByExt(const boost::file
       entries.push_back(entry_path);
     }
   }
+  std::sort(entries.begin(), entries.end());
   return entries;
 }
 
