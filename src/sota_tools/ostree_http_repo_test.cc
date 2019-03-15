@@ -94,8 +94,14 @@ TEST(http_repo, bad_connection) {
   auto hash = OSTreeHash::Parse("b9ac1e45f9227df8ee191b6e51e09417bd36c6ebbeff999431e3073ac50f0563");
   UploadToTreehub(src_repo, ServerCredentials(filepath), hash, cert_path.string(), RunMode::kDefault, 1);
 
-  int result = system(
-      (std::string("diff -r ") + (src_repo->root() / "objects/").string() + " tests/sota_tools/repo/objects/").c_str());
+  std::string diff("diff -r ");
+  std::string src_path((src_dir.Path() / "objects").string() + " ");
+  std::string repo_path((src_repo->root() / "objects").string() + " ");
+  std::string dst_path((dst_dir.Path() / "objects").string() + " ");
+
+  int result = system((diff + src_path + repo_path).c_str());
+  result |= system((diff + repo_path + dst_path).c_str());
+
   EXPECT_EQ(result, 0) << "Diff between source and destination repos is nonzero.";
 }
 
