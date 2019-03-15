@@ -22,7 +22,11 @@ fi
 
 sqlite3 -batch -init "$SQL_DIR/schema.sql" "$DB_CUR" ";"
 for f in "$SQL_DIR"/migration/migrate.*.sql; do
-    sqlite3 -batch -init "$f" "$DB_MIG" ";"
+    R=$( { sqlite3 -batch -init "$f" "$DB_MIG" ";"; } 2>&1 )
+    if [ -n "$R" ]; then
+        echo $R
+        exit 1
+    fi
 done
 
 R=$(sqldiff "$DB_CUR" "$DB_MIG")
