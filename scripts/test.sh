@@ -166,7 +166,7 @@ if [[ $TEST_WITH_TESTSUITE = 1 ]]; then
             run_make coverage || add_failure "testsuite with coverage"
 
             if [[ -n $TRAVIS_COMMIT ]]; then
-                bash <(curl -s https://codecov.io/bash) -R "${GITREPO_ROOT}" -s .
+                bash <(curl -s https://codecov.io/bash) -R "${GITREPO_ROOT}" -s . > /dev/null
             else
                 echo "Not inside Travis, skipping codecov.io upload"
             fi
