@@ -1,8 +1,6 @@
+option(INSTALL_GTEST "" OFF)
 if(NOT GTEST_ROOT )
-    set(GTEST_ROOT ${PROJECT_SOURCE_DIR}/third_party/googletest/googletest)
-endif()
-if(NOT GMOCK_ROOT )
-    set(GMOCK_ROOT ${PROJECT_SOURCE_DIR}/third_party/googletest/googlemock)
+    set(GTEST_ROOT ${PROJECT_SOURCE_DIR}/third_party/googletest)
 endif()
 
 if(CMAKE_CROSSCOMPILING)
@@ -13,9 +11,9 @@ else()
 endif()
 
 # Temporarily remove flags not supported by gtest.
-remove_definitions(-Wswitch-default -Wconversion)
-add_subdirectory(${GMOCK_ROOT} ${CMAKE_CURRENT_BINARY_DIR}/gmock EXCLUDE_FROM_ALL)
-add_definitions(-Wswitch-default -Wconversion)
+remove_definitions(-Wswitch-default)
+add_subdirectory(${GTEST_ROOT} ${CMAKE_CURRENT_BINARY_DIR}/gtest EXCLUDE_FROM_ALL)
+add_definitions(-Wswitch-default)
 add_subdirectory(uptane_repo_generation)
 
 include_directories("${PROJECT_SOURCE_DIR}/src/libaktualizr/third_party/jsoncpp")
