@@ -331,7 +331,7 @@ TEST(Uptane, InstallFake) {
   manifest = up->AssembleManifest();
   installation_report = manifest["installation_report"]["report"];
   EXPECT_EQ(installation_report["result"]["success"].asBool(), false);
-  EXPECT_EQ(installation_report["result"]["code"].asString(), "INSTALL_FAILED");
+  EXPECT_EQ(installation_report["result"]["code"].asString(), "testecuhwid:ALREADY_PROCESSED");
   EXPECT_EQ(installation_report["items"][0]["ecu"].asString(), "testecuserial");
   EXPECT_EQ(installation_report["items"][0]["result"]["success"].asBool(), false);
   EXPECT_EQ(installation_report["items"][0]["result"]["code"].asString(), "ALREADY_PROCESSED");

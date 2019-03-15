@@ -722,12 +722,27 @@ void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult 
     dev_result.result_code = data::ResultCode::Numeric::kInternalError;
     dev_result.description = "Unable to get installation results from ecus";
   } else {
+    std::string dev_code;
+
     for (const auto &r : ecu_results) {
+      if (hw_ids.find(r.first) == hw_ids.end()) {
+        dev_result.success = false;
+        dev_result.result_code = data::ResultCode::Numeric::kInternalError;
+        dev_result.description = "Unable to get installation results from ecus";
+      }
+
+      // format:
+      // ecu1_hwid:failure1|ecu2_hwid:failure2
       if (!r.second.success) {
         dev_result.success = false;
-        dev_result.result_code = data::ResultCode::Numeric::kInstallFailed;
-        dev_result.description = "Installation failed on at least one ecu";
+        std::string hwid = hw_ids.at(r.first).ToString();
+        std::string ecu_code_str = hwid + ":" + r.second.result_code.toString();
+        dev_code += (dev_code != "" ? "|" : "") + ecu_code_str;
       }
+    }
+    if (!dev_result.success) {
+      dev_result.result_code = data::ResultCode(data::ResultCode::Numeric::kInstallFailed, dev_code);
+      dev_result.description = "Installation failed on at least one ecu";
     }
   }
 
@@ -735,7 +750,7 @@ void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult 
     *result = dev_result;
   }
 
-  storage->storeDeviceInstallationResult(dev_result, "", correlation_id);
+  storage->storeDeviceInstallationResult(dev_result, "Installation succesful", correlation_id);
 }
 
 bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, unsigned int *ecus_count) {
