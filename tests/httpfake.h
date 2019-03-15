@@ -114,11 +114,13 @@ class HttpFake : public HttpInterface {
     return HttpResponse(url, 200, CURLE_OK, "");
   }
 
-  std::future<HttpResponse> downloadAsync(const std::string &url, curl_write_callback callback, void *userp,
-                                          curl_off_t from, CurlHandler *easyp) override {
+  std::future<HttpResponse> downloadAsync(const std::string &url, curl_write_callback write_cb,
+                                          curl_xferinfo_callback progress_cb, void *userp, curl_off_t from,
+                                          CurlHandler *easyp) override {
     (void)userp;
     (void)from;
     (void)easyp;
+    (void)progress_cb;
 
     std::cout << "URL requested: " << url << "\n";
     const boost::filesystem::path path = metadata_path.Path() / url.substr(tls_server.size());
@@ -127,10 +129,11 @@ class HttpFake : public HttpInterface {
     std::promise<HttpResponse> resp_promise;
     auto resp_future = resp_promise.get_future();
     std::thread(
-        [path, callback, userp, url](std::promise<HttpResponse> promise) {
+        [path, write_cb, progress_cb, userp, url](std::promise<HttpResponse> promise) {
           std::string content = Utils::readFile(path.string());
           for (unsigned int i = 0; i < content.size(); ++i) {
-            callback(const_cast<char *>(&content[i]), 1, 1, userp);
+            write_cb(const_cast<char *>(&content[i]), 1, 1, userp);
+            progress_cb(userp, 0, 0, 0, 0);
             if (url.find("downloads/repo/targets/primary_firmware.txt") != std::string::npos) {
               std::this_thread::sleep_for(std::chrono::milliseconds(100));  // Simulate big file
             }
@@ -143,8 +146,9 @@ class HttpFake : public HttpInterface {
     return resp_future;
   }
 
-  HttpResponse download(const std::string &url, curl_write_callback callback, void *userp, curl_off_t from) override {
-    return downloadAsync(url, callback, userp, from, nullptr).get();
+  HttpResponse download(const std::string &url, curl_write_callback write_cb, curl_xferinfo_callback progress_cb,
+                        void *userp, curl_off_t from) override {
+    return downloadAsync(url, write_cb, progress_cb, userp, from, nullptr).get();
   }
 
   const std::string tls_server = "https://tlsserver.com";

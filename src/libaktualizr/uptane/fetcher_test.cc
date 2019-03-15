@@ -123,8 +123,10 @@ TEST(Fetcher, PauseBinary) {
 class HttpCustomUri : public HttpFake {
  public:
   HttpCustomUri(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in) {}
-  HttpResponse download(const std::string& url, curl_write_callback callback, void* userp, curl_off_t from) override {
-    (void)callback;
+  HttpResponse download(const std::string& url, curl_write_callback write_cb, curl_xferinfo_callback progress_cb,
+                        void* userp, curl_off_t from) override {
+    (void)write_cb;
+    (void)progress_cb;
     (void)userp;
     (void)from;
     EXPECT_EQ(url, "test-uri");
@@ -142,7 +144,7 @@ TEST(Fetcher, DownloadCustomUri) {
   auto http = std::make_shared<HttpCustomUri>(temp_dir.Path());
   Uptane::Fetcher f(config, storage, http, nullptr);
 
-  // Make a fake target with the exepected hash of "0".
+  // Make a fake target with the expected hash of "0".
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
   target_json["custom"]["uri"] = "test-uri";
@@ -155,8 +157,10 @@ TEST(Fetcher, DownloadCustomUri) {
 class HttpDefaultUri : public HttpFake {
  public:
   HttpDefaultUri(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in) {}
-  HttpResponse download(const std::string& url, curl_write_callback callback, void* userp, curl_off_t from) override {
-    (void)callback;
+  HttpResponse download(const std::string& url, curl_write_callback write_cb, curl_xferinfo_callback progress_cb,
+                        void* userp, curl_off_t from) override {
+    (void)write_cb;
+    (void)progress_cb;
     (void)userp;
     (void)from;
     EXPECT_EQ(url, server + "/targets/fake_file");
