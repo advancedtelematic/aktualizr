@@ -875,6 +875,7 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
   for (auto it = targets.cbegin(); it != targets.cend(); ++it) {
     auto images_target = findTargetInDelegationTree(*it);
     if (images_target == nullptr) {
+      // TODO: Could also be a missing target or delegation expiration.
       last_exception = Uptane::TargetHashMismatch(it->filename());
       LOG_ERROR << "No matching target in images targets metadata for " << *it;
       result = result::Download(downloaded_targets, result::DownloadStatus::kError, "Target hash mismatch.");

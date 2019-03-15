@@ -71,17 +71,12 @@ class InvalidMetadata : public Exception {
   ~InvalidMetadata() noexcept override = default;
 };
 
-class IllegalRsaKeySize : public Exception {
+// Currently unused.
+class TargetMismatch : public Exception {
  public:
-  explicit IllegalRsaKeySize(const std::string& reponame) : Exception(reponame, "The RSA key had an illegal size.") {}
-  ~IllegalRsaKeySize() noexcept override = default;
-};
-
-class MissMatchTarget : public Exception {
- public:
-  explicit MissMatchTarget(const std::string& reponame)
-      : Exception(reponame, "The target missmatch between image and director.") {}
-  ~MissMatchTarget() noexcept override = default;
+  explicit TargetMismatch(const std::string& reponame)
+      : Exception(reponame, "The target metadata in image and director do not match.") {}
+  ~TargetMismatch() noexcept override = default;
 };
 
 class NonUniqueSignatures : public Exception {
@@ -109,6 +104,28 @@ class BadHardwareId : public Exception {
   BadHardwareId(const std::string& reponame)
       : Exception(reponame, "The target had a hardware ID that did not match the client's configured hardware id.") {}
   ~BadHardwareId() noexcept override = default;
+};
+
+class VersionMismatch : public Exception {
+ public:
+  VersionMismatch(const std::string& reponame, const std::string& role)
+      : Exception(reponame, "The version of role " + role + " does not match the entry in Snapshot metadata.") {}
+  ~VersionMismatch() noexcept override = default;
+};
+
+class DelegationHashMismatch : public Exception {
+ public:
+  explicit DelegationHashMismatch(const std::string& delegation_name)
+      : Exception("images", "The calculated hash of delegated role " + delegation_name +
+                                " did not match the hash in the metadata.") {}
+  ~DelegationHashMismatch() noexcept override = default;
+};
+
+class DelegationMissing : public Exception {
+ public:
+  explicit DelegationMissing(const std::string& delegation_name)
+      : Exception("images", "The delegated role " + delegation_name + " is missing.") {}
+  ~DelegationMissing() noexcept override = default;
 };
 
 }  // namespace Uptane
