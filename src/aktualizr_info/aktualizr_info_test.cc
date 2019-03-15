@@ -37,30 +37,33 @@ class AktualizrInfoTest : public ::testing::Test {
 
   virtual void TearDown() {}
 
+  // TODO: replace it with TestUtil::Process once the later is merged into master
   void SpawnProcess(const std::vector<std::string> args = std::vector<std::string>{}) {
     std::future<std::string> output;
     std::future<std::string> err_output;
+    std::future<int> child_process_exit_code;
     boost::asio::io_service io_service;
-    int child_process_exit_code = -1;
 
+    executable_args = default_executable_args;
     executable_args.insert(std::end(executable_args), std::begin(args), std::end(args));
     aktualizr_info_output.clear();
 
     try {
       boost::process::child aktualizr_info_child_process(
           boost::process::exe = executable_to_run, boost::process::args = executable_args,
-          boost::process::std_out > output, boost::process::std_err > err_output, io_service);
+          boost::process::std_out > output, boost::process::std_err > err_output,
+          boost::process::on_exit = child_process_exit_code, io_service);
 
       io_service.run();
 
       // To get the child process exit code we need to wait even in the async case (specifics of boost::process::child)
       ASSERT_TRUE(aktualizr_info_child_process.wait_for(std::chrono::seconds(20)));
-      child_process_exit_code = aktualizr_info_child_process.exit_code();
+
     } catch (const std::exception& exc) {
       FAIL() << "Failed to spawn process " << executable_to_run << " exited with an error: " << exc.what();
     }
 
-    ASSERT_EQ(child_process_exit_code, 0)
+    ASSERT_EQ(child_process_exit_code.get(), 0)
         << "Process " << executable_to_run << " exited with an error: " << err_output.get();
 
     aktualizr_info_output = output.get();
@@ -76,7 +79,8 @@ class AktualizrInfoTest : public ::testing::Test {
   std::shared_ptr<INvStorage> db_storage_;
 
   const std::string executable_to_run = "./aktualizr-info";
-  std::vector<std::string> executable_args = {"-c", test_conf_file_.string()};
+  std::vector<std::string> default_executable_args = {"-c", test_conf_file_.string()};
+  std::vector<std::string> executable_args;
   std::string aktualizr_info_output;
 
   std::string device_id;
@@ -482,6 +486,76 @@ TEST_F(AktualizrInfoTest, PrintDeviceNameOnly) {
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_EQ(aktualizr_info_output, device_id + "\n");
+}
+
+/**
+ * Verifies delegations metadata fetching and output
+ *
+ * * Checks actions:
+ *
+ *  - [x] Print delegations
+ */
+TEST_F(AktualizrInfoTest, PrintDelegations) {
+  auto gen_and_store_delegations = [](std::shared_ptr<INvStorage>& db_storage,
+                                      std::vector<std::pair<Uptane::Role, std::string> >& delegation_records) {
+    unsigned indx = 0;
+    for (auto& delegation_rec : delegation_records) {
+      const std::string indx_str = std::to_string(indx);
+      const std::string delegation_role_val = "delegation_role_" + indx_str;
+
+      Json::Value delegation;
+      std::string delegation_val_str =
+          Utils::jsonToStr((delegation["delegation_value_key_" + indx_str] = "delegation_value_" + indx_str));
+
+      delegation_rec.first = Uptane::Role::Delegation(delegation_role_val);
+      delegation_rec.second = delegation_val_str;
+      db_storage->storeDelegation(delegation_val_str, Uptane::Role::Delegation(delegation_role_val));
+
+      ++indx;
+    }
+  };
+
+  auto verify_delegations = [](const std::string& output_str,
+                               std::vector<std::pair<Uptane::Role, std::string> >& delegation_records) {
+    for (auto& delegation_rec : delegation_records) {
+      ASSERT_NE(output_str.find(delegation_rec.first.ToString()), std::string::npos);
+      ASSERT_NE(output_str.find(delegation_rec.second), std::string::npos);
+    }
+  };
+
+  // aktualizer-info won't print anything if a director root metadata are not stored in the DB
+  db_storage_->storeRoot(Utils::jsonToStr(Json::Value()), Uptane::RepositoryType::Director(), Uptane::Version(1));
+
+  // case 0: no delegations in the DB
+  {
+    SpawnProcess(std::vector<std::string>({"--delegation"}));
+    ASSERT_FALSE(aktualizr_info_output.empty());
+    EXPECT_NE(aktualizr_info_output.find("Delegations are not present"), std::string::npos);
+  }
+
+  // case 1: there is one delegation metadata record in the DB
+  {
+    std::vector<std::pair<Uptane::Role, std::string> > delegation_records{1, {Uptane::Role::Delegation(""), ""}};
+    gen_and_store_delegations(db_storage_, delegation_records);
+
+    SpawnProcess(std::vector<std::string>({"--delegation"}));
+    ASSERT_FALSE(aktualizr_info_output.empty());
+
+    verify_delegations(aktualizr_info_output, delegation_records);
+  }
+
+  db_storage_->clearDelegations();
+
+  // case 2: there are more than one delegation metadata records in the DB
+  {
+    std::vector<std::pair<Uptane::Role, std::string> > delegation_records{3, {Uptane::Role::Delegation(""), ""}};
+    gen_and_store_delegations(db_storage_, delegation_records);
+
+    SpawnProcess(std::vector<std::string>({"--delegation"}));
+    ASSERT_FALSE(aktualizr_info_output.empty());
+
+    verify_delegations(aktualizr_info_output, delegation_records);
+  }
 }
 
 #ifndef __NO_MAIN__
