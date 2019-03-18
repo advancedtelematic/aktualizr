@@ -74,18 +74,33 @@ const std::map<data::ResultCode::Numeric, const char *> data::ResultCode::string
 std::string data::ResultCode::toRepr() const {
   std::string s = toString();
 
-  return s + ":" + std::to_string(static_cast<int>(num_code));
+  if (s.find('\"') != std::string::npos) {
+    throw std::runtime_error("Result code cannot contain double quotes");
+  }
+
+  return "\"" + s + "\"" + ":" + std::to_string(static_cast<int>(num_code));
 }
 
 ResultCode data::ResultCode::fromRepr(const std::string &repr) {
-  size_t n = repr.find(':');
-  std::string s = repr.substr(0, n);
+  size_t quote_n = repr.find('"');
+  std::string s;
+  size_t col_n;
 
-  if (n >= repr.size() - 1) {
+  if (quote_n < repr.size() - 1) {
+    size_t end_quote_n = repr.find('"', quote_n + 1);
+    col_n = repr.find(':', end_quote_n + 1);
+    s = repr.substr(quote_n + 1, end_quote_n - quote_n - 1);
+  } else {
+    // legacy format
+    col_n = repr.find(':');
+    s = repr.substr(0, col_n);
+  }
+
+  if (col_n >= repr.size() - 1) {
     return ResultCode(Numeric::kUnknown, s);
   }
 
-  int num = std::stoi(repr.substr(n + 1));
+  int num = std::stoi(repr.substr(col_n + 1));
 
   return ResultCode(static_cast<Numeric>(num), s);
 }
