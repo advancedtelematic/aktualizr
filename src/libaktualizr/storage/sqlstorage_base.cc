@@ -80,7 +80,6 @@ bool SQLStorageBase::dbInsertBackMigrations(SQLite3Guard& db, int version_latest
 
   for (int k = 1; k <= version_latest; k++) {
     if (schema_rollback_migrations_.at(static_cast<size_t>(k)).empty()) {
-      LOG_TRACE << "No backward migration from version " << k << " to " << (k - 1);
       continue;
     }
     auto statement = db.prepareStatement("INSERT OR REPLACE INTO rollback_migrations VALUES (?,?);", k,
