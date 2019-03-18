@@ -36,7 +36,6 @@ TEST(PackageManagerFake, FinalizeAfterReboot) {
 
 #ifdef FIU_ENABLE
 
-#include <fiu-control.h>
 #include "utilities/fault_injection.h"
 
 TEST(PackageManagerFake, FailureInjection) {
@@ -56,19 +55,17 @@ TEST(PackageManagerFake, FailureInjection) {
   EXPECT_EQ(result.result_code, data::ResultCode::Numeric::kOk);
 
   // fault
-  fiu_enable("fake_package_install", 1, nullptr, 0);
+  fault_injection_enable("fake_package_install", 1, "", 0);
   result = fakepm.install(target);
   EXPECT_EQ(result.result_code, data::ResultCode::Numeric::kInstallFailed);
-  fiu_disable("fake_package_install");
+  fault_injection_disable("fake_package_install");
 
-  // fault with custom data (through environment)
-  fiu_enable("fake_package_install", 1, nullptr, 0);
-  fault_injection_set_parameter("fault_fake_package_install_cause", "Random cause");
+  // fault with custom data (through pid file)
+  fault_injection_enable("fake_package_install", 1, "Random cause", 0);
   result = fakepm.install(target);
   EXPECT_EQ(result.result_code, data::ResultCode::Numeric::kInstallFailed);
   EXPECT_EQ(result.description, "Random cause");
-  fault_injection_set_parameter("fault_fake_package_install_cause", "");
-  fiu_disable("fake_package_install");
+  fault_injection_disable("fake_package_install");
 }
 
 #endif  // FIU_ENABLE

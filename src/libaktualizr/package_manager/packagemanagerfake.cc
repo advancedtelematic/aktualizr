@@ -26,7 +26,7 @@ Uptane::Target PackageManagerFake::getCurrent() const {
 data::InstallationResult PackageManagerFake::install(const Uptane::Target &target) const {
   // fault injection: only enabled with FIU_ENABLE defined
   if (fiu_fail("fake_package_install") != 0) {
-    std::string failure_cause = fault_injection_get_parameter("fault_fake_package_install_cause");
+    std::string failure_cause = fault_injection_last_info();
     if (failure_cause.empty()) {
       failure_cause = "Installation failed";
     }
