@@ -56,7 +56,7 @@ static inline const char *fault_injection_info_fn() {
     return info_fn;
   }
 
-  snprintf(info_fn, sizeof(info_fn), "/tmp/aktualizr-faults-info-%lu", static_cast<unsigned long>(getpid()));
+  snprintf(info_fn, sizeof(info_fn), "/tmp/fiu-ctrl-info-%lu", static_cast<unsigned long>(getpid()));
 
   return info_fn;
 }
@@ -65,12 +65,20 @@ static inline std::string fault_injection_last_info() {
   auto info_id = reinterpret_cast<unsigned long>(fiu_failinfo());
 
   std::array<char, fault_injection_info_bs> arr{};
-  size_t offset = info_id * fault_injection_info_bs;
+  size_t offset = (info_id & 0xfffffff) * fault_injection_info_bs;
   std::ifstream f;
   f.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 
   try {
-    f.open(fault_injection_info_fn(), std::ios::binary);
+    // check high bit of info_id to see if it should look into FIU_INFO_FILE or
+    // pid-dependent file name
+    const char *fn = nullptr;
+    if (info_id & (1lu << 31)) {
+      fn = getenv("FIU_INFO_FILE");
+    } else {
+      fn = fault_injection_info_fn();
+    }
+    f.open(fn, std::ios::binary);
     f.seekg(offset);
     f.get(arr.data(), arr.size());
 
