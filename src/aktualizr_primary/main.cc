@@ -102,8 +102,7 @@ int main(int argc, char *argv[]) {
 
   LOG_INFO << "Aktualizr version " AKTUALIZR_VERSION " starting";
 
-  int r = -1;
-  boost::signals2::connection conn;
+  int r = EXIT_FAILURE;
 
   try {
     if (geteuid() != 0) {
@@ -118,6 +117,8 @@ int main(int argc, char *argv[]) {
 
     Aktualizr aktualizr(config);
     std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_event;
+    boost::signals2::scoped_connection conn;
+
     conn = aktualizr.SetSignalHandler(f_cb);
     aktualizr.Initialize();
 
@@ -147,11 +148,10 @@ int main(int argc, char *argv[]) {
     } else {
       aktualizr.RunForever().get();
     }
-    r = 0;
+    r = EXIT_SUCCESS;
   } catch (const std::exception &ex) {
     LOG_ERROR << ex.what();
-    r = -1;
   }
-  conn.disconnect();
+
   return r;
 }

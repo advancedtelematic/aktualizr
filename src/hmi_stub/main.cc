@@ -126,7 +126,7 @@ int main(int argc, char *argv[]) {
 
   bpo::variables_map commandline_map = parse_options(argc, argv);
 
-  int r = -1;
+  int r = EXIT_FAILURE;
   boost::signals2::connection conn;
 
   try {
@@ -168,7 +168,7 @@ int main(int argc, char *argv[]) {
         std::cout << "Unknown command.\n";
       }
     }
-    r = 0;
+    r = EXIT_SUCCESS;
   } catch (const std::exception &ex) {
     LOG_ERROR << "Fatal error in hmi_stub: " << ex.what();
   }

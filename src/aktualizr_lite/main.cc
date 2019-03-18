@@ -189,7 +189,7 @@ int main(int argc, char *argv[]) {
 
   bpo::variables_map commandline_map = parse_options(argc, argv);
 
-  int r = 0;
+  int r = EXIT_FAILURE;
   try {
     if (geteuid() != 0) {
       LOG_WARNING << "\033[31mRunning as non-root and may not work as expected!\033[0m\n";
@@ -209,9 +209,9 @@ int main(int argc, char *argv[]) {
       }
     }
     throw bpo::invalid_option_value(cmd);
+    r = EXIT_SUCCESS;
   } catch (const std::exception &ex) {
     LOG_ERROR << ex.what();
-    r = 1;
   }
   return r;
 }

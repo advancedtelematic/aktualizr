@@ -475,10 +475,10 @@ int main(int argc, char* argv[]) {
         Json::Value resp_code = response.getJson()["code"];
         if (resp_code.isString() && resp_code.asString() == "device_already_registered") {
           std::cout << "Device ID" << device_id << "is occupied.\n";
-          return -1;
+          return EXIT_FAILURE;
         }
         std::cout << "Provisioning failed, response: " << response.body << "\n";
-        return -1;
+        return EXIT_FAILURE;
       }
       std::cout << "...success\n";
 
@@ -486,11 +486,11 @@ int main(int argc, char* argv[]) {
                                   BIO_vfree);
       if (!Crypto::parseP12(device_p12.get(), "", &pkey, &cert, &ca)) {
         std::cout << "Unable to parse p12 file received from server.\n";
-        return -1;
+        return EXIT_FAILURE;
       }
     } else {  // fleet CA set => generate and sign a new certificate
       if (!generate_and_sign(fleet_ca_path.native(), fleet_ca_key_path.native(), &pkey, &cert, commandline_map)) {
-        return 1;
+        return EXIT_FAILURE;
       }
 
       if (provide_ca) {
