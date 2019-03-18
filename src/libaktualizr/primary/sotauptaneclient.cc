@@ -14,6 +14,7 @@
 #include "uptane/exceptions.h"
 #include "uptane/secondaryconfig.h"
 #include "uptane/secondaryfactory.h"
+#include "utilities/fault_injection.h"
 #include "utilities/utils.h"
 
 static void report_progress_cb(event::Channel *channel, const Uptane::Target &target, const std::string &description,
@@ -1394,6 +1395,15 @@ std::vector<result::Install::EcuReport> SotaUptaneClient::sendImagesToEcus(const
   }
 
   for (auto &f : firmwareFutures) {
+    // failure
+    if (fiu_fail((std::string("secondary_install_") + f.first.serial.ToString()).c_str())) {
+      f.first.install_res = data::InstallationResult(
+          data::ResultCode(data::ResultCode::Numeric::kInstallFailed, fault_injection_last_info()), "");
+      storage->saveEcuInstallationResult(f.first.serial, f.first.install_res);
+      reports.push_back(f.first);
+      continue;
+    }
+
     bool fut_result = f.second.get();
     if (fut_result) {
       f.first.install_res = data::InstallationResult(data::ResultCode::Numeric::kOk, "");
