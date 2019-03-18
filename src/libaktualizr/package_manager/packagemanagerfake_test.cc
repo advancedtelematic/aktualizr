@@ -61,10 +61,9 @@ TEST(PackageManagerFake, FailureInjection) {
   fault_injection_disable("fake_package_install");
 
   // fault with custom data (through pid file)
-  fault_injection_enable("fake_package_install", 1, "Random cause", 0);
+  fault_injection_enable("fake_package_install", 1, "RANDOM_CAUSE", 0);
   result = fakepm.install(target);
-  EXPECT_EQ(result.result_code, data::ResultCode::Numeric::kInstallFailed);
-  EXPECT_EQ(result.description, "Random cause");
+  EXPECT_EQ(result.result_code, data::ResultCode(data::ResultCode::Numeric::kInstallFailed, "RANDOM_CAUSE"));
   fault_injection_disable("fake_package_install");
 }
 
