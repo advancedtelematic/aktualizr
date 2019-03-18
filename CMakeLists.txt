@@ -165,6 +165,7 @@ if(FAULT_INJECTION)
     find_package(Libfiu REQUIRED)
     add_definitions(-DFIU_ENABLE)
     link_libraries(fiu dl)
+    install(PROGRAMS scripts/fiu DESTINATION bin COMPONENT aktualizr)
 endif(FAULT_INJECTION)
 
 # set symbols used when compiling
