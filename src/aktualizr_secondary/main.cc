@@ -117,7 +117,7 @@ int main(int argc, char *argv[]) {
 
   bpo::variables_map commandline_map = parse_options(argc, argv);
 
-  int ret = 0;
+  int ret = EXIT_SUCCESS;
   try {
     AktualizrSecondaryConfig config(commandline_map);
     if (config.logger.loglevel <= boost::log::trivial::debug) {
@@ -135,7 +135,7 @@ int main(int argc, char *argv[]) {
       secondary = std_::make_unique<AktualizrSecondaryOpcuaWithDiscovery>(config, storage);
 #else
       LOG_ERROR << "Built without OPC-UA support!";
-      return 1;
+      return EXIT_FAILURE;
 #endif
     } else {
       secondary = std_::make_unique<AktualizrSecondaryWithDiscovery>(config, storage);
@@ -145,7 +145,7 @@ int main(int argc, char *argv[]) {
 
   } catch (std::runtime_error &exc) {
     LOG_ERROR << "Error: " << exc.what();
-    ret = 1;
+    ret = EXIT_FAILURE;
   }
   return ret;
 }
