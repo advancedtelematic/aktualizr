@@ -2,6 +2,7 @@ set(SOURCES
     fetcher.cc
     ipsecondarydiscovery.cc
     ipuptanesecondary.cc
+    iterator.cc
     managedsecondary.cc
     metawithkeys.cc
     partialverificationsecondary.cc
@@ -20,6 +21,7 @@ set(HEADERS
     fetcher.h
     ipsecondarydiscovery.h
     ipuptanesecondary.h
+    iterator.h
     managedsecondary.h
     partialverificationsecondary.h
     secondaryconfig.h
