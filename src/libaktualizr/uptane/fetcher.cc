@@ -116,6 +116,12 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
       } else {
         ds.fhandle = storage->allocateTargetFile(false, target);
       }
+
+      std::string target_url = target.uri();
+      if (target_url.empty() || target_url.find("example.com") != std::string::npos) {
+        target_url = config.uptane.repo_server + "/targets/" + Utils::urlEncode(target.filename());
+      }
+
       HttpResponse response;
       do {
         checkPause();
@@ -124,8 +130,7 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
           // fhandle was invalidated on pause
           ds.fhandle = storage->openTargetFile(target)->toWriteHandle();
         }
-        response = http->download(config.uptane.repo_server + "/targets/" + Utils::urlEncode(target.filename()),
-                                  DownloadHandler, &ds, static_cast<curl_off_t>(ds.downloaded_length));
+        response = http->download(target_url, DownloadHandler, &ds, static_cast<curl_off_t>(ds.downloaded_length));
         LOG_TRACE << "Download status: " << response.getStatusStr() << std::endl;
       } while (retry_);
       if (!response.isOk()) {

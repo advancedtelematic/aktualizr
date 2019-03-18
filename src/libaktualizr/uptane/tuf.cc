@@ -134,6 +134,10 @@ Target::Target(std::string filename, const Json::Value &content) : filename_(std
     if (custom.isMember("targetFormat")) {
       type_ = custom["targetFormat"].asString();
     }
+
+    if (custom.isMember("uri")) {
+      uri_ = custom["uri"].asString();
+    }
   }
 
   length_ = content["length"].asUInt64();

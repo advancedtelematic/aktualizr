@@ -104,6 +104,8 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Download an update
     - [x] Download an OSTree package (fetcher_test.cc)
     - [x] Download a binary package (uptane_vector_tests.cc, aktualizr_test.cc)
+    - [x] Download from URI specified in target metadata (fetcher_test.cc)
+    - [x] Download from default file server URL (fetcher_test.cc)
     - [x] Send EcuDownloadStartedReport to server (aktualizr_test.cc)
       - [x] Send an event report (see below)
   - [x] Report download progress (aktualizr_test.cc)

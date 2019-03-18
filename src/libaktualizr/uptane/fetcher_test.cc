@@ -1,13 +1,16 @@
 #include <gtest/gtest.h>
 
-#include <boost/process.hpp>
 #include <chrono>
 #include <future>
 #include <iostream>
 #include <string>
 #include <thread>
+
+#include <boost/process.hpp>
+
 #include "fetcher.h"
 #include "http/httpclient.h"
+#include "httpfake.h"
 #include "logging/logging.h"
 #include "storage/sqlstorage.h"
 #include "test_utils.h"
@@ -104,7 +107,7 @@ void test_pause(const Uptane::Target& target) {
  * Download an OSTree package
  * Verify an OSTree package
  */
-TEST(fetcher, test_pause_ostree) {
+TEST(Fetcher, PauseOstree) {
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "16ef2f2629dc9263fdf3c0f032563a2d757623bbc11cf99df25c3c3f258dccbe";
   target_json["custom"]["targetFormat"] = "OSTREE";
@@ -114,7 +117,7 @@ TEST(fetcher, test_pause_ostree) {
 }
 #endif  // BUILD_OSTREE
 
-TEST(fetcher, test_pause_binary) {
+TEST(Fetcher, PauseBinary) {
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "dd7bd1c37a3226e520b8d6939c30991b1c08772d5dab62b381c3a63541dc629a";
   target_json["length"] = 100 * (1 << 20);
@@ -123,12 +126,102 @@ TEST(fetcher, test_pause_binary) {
   test_pause(target);
 }
 
+class HttpCustomUri : public HttpFake {
+ public:
+  HttpCustomUri(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in) {}
+  HttpResponse download(const std::string& url, curl_write_callback callback, void* userp, curl_off_t from) override {
+    (void)callback;
+    (void)userp;
+    (void)from;
+    EXPECT_EQ(url, "test-uri");
+    return HttpResponse("0", 200, CURLE_OK, "");
+  }
+};
+
+/* Download from URI specified in target metadata. */
+TEST(Fetcher, DownloadCustomUri) {
+  TemporaryDirectory temp_dir;
+  config.storage.path = temp_dir.Path();
+  config.uptane.repo_server = server;
+
+  std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
+  auto http = std::make_shared<HttpCustomUri>(temp_dir.Path());
+  Uptane::Fetcher f(config, storage, http, nullptr);
+
+  // Make a fake target with the exepected hash of "0".
+  Json::Value target_json;
+  target_json["hashes"]["sha256"] = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+  target_json["custom"]["uri"] = "test-uri";
+  target_json["length"] = 1;
+  Uptane::Target target("fake_file", target_json);
+
+  EXPECT_TRUE(f.fetchVerifyTarget(target));
+}
+
+class HttpDefaultUri : public HttpFake {
+ public:
+  HttpDefaultUri(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in) {}
+  HttpResponse download(const std::string& url, curl_write_callback callback, void* userp, curl_off_t from) override {
+    (void)callback;
+    (void)userp;
+    (void)from;
+    EXPECT_EQ(url, server + "/targets/fake_file");
+    return HttpResponse("0", 200, CURLE_OK, "");
+  }
+};
+
+/* Download from default file server URL. */
+TEST(Fetcher, DownloadDefaultUri) {
+  TemporaryDirectory temp_dir;
+  config.storage.path = temp_dir.Path();
+  config.uptane.repo_server = server;
+
+  std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
+  auto http = std::make_shared<HttpDefaultUri>(temp_dir.Path());
+  Uptane::Fetcher f(config, storage, http, nullptr);
+
+  {
+    // No custom uri.
+    Json::Value target_json;
+    target_json["hashes"]["sha256"] = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+    target_json["length"] = 1;
+    Uptane::Target target("fake_file", target_json);
+
+    EXPECT_TRUE(f.fetchVerifyTarget(target));
+  }
+  {
+    // Empty custom uri.
+    Json::Value target_json;
+    target_json["hashes"]["sha256"] = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+    target_json["custom"]["uri"] = "";
+    target_json["length"] = 1;
+    Uptane::Target target("fake_file", target_json);
+
+    EXPECT_TRUE(f.fetchVerifyTarget(target));
+  }
+  {
+    // example.com (default) custom uri.
+    Json::Value target_json;
+    target_json["hashes"]["sha256"] = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+    target_json["custom"]["uri"] = "https://example.com/";
+    target_json["length"] = 1;
+    Uptane::Target target("fake_file", target_json);
+
+    EXPECT_TRUE(f.fetchVerifyTarget(target));
+  }
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
   logger_init();
   logger_set_threshold(boost::log::trivial::trace);
+
+  if (argc != 2) {
+    std::cerr << "Error: " << argv[0] << " requires the path to an OSTree repository as an input argument.\n";
+    return EXIT_FAILURE;
+  }
 
   std::string port = TestUtils::getFreePort();
   server += port;
