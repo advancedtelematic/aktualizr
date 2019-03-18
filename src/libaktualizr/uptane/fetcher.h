@@ -33,6 +33,8 @@ class Fetcher {
     return fetchRole(result, maxsize, repo, role, Version());
   }
 
+  std::string getRepoServer() const { return config.uptane.repo_server; }
+
  private:
   void restoreHasherState(MultiPartHasher& hasher, StorageTargetRHandle* data);
 
