@@ -4,6 +4,7 @@
 
 #define OPCUABRIDGE_ENABLE_SERIALIZATION
 
+#include <boost/process.hpp>
 #include <functional>
 #include "utilities/utils.h"
 
@@ -156,7 +157,7 @@ TEST(opcuabridge, transfer_messages) {
   std::string opc_port = TestUtils::getFreePort();
   std::string opc_url = std::string("opc.tcp://localhost:") + opc_port;
 
-  TestHelperProcess server("./opcuabridge-server", opc_port);
+  boost::process::child server("./opcuabridge-server", opc_port);
 
   UA_Client* client = UA_Client_new(UA_ClientConfig_default);
 

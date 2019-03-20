@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <curl/curl.h>
+#include <boost/process.hpp>
 #include <thread>
 #include "ostree_http_repo.h"
 #include "ostree_ref.h"
@@ -66,7 +67,7 @@ int main(int argc, char **argv) {
   std::string server = "tests/sota_tools/headers_response_server.py";
   port = TestUtils::getFreePort();
 
-  TestHelperProcess server_process(server, port);
+  boost::process::child server_process(server, port);
   TestUtils::waitForServer("http://127.0.0.1:" + port + "/");
 
   return RUN_ALL_TESTS();

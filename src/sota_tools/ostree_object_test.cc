@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <curl/curl.h>
+#include <boost/process.hpp>
 
 #include "authenticate.h"
 #include "garage_common.h"
@@ -143,7 +144,8 @@ TEST(OstreeObject, UploadSuccess) {
   Json::Value auth;
   auth["ostree"]["server"] = std::string("https://localhost:") + dp;
   Utils::writeFile(temp_dir.Path() / "auth.json", auth);
-  TestHelperProcess deploy_server_process("tests/sota_tools/treehub_deploy_server.py", dp, temp_dir.Path().string());
+  boost::process::child deploy_server_process("tests/sota_tools/treehub_deploy_server.py", dp,
+                                              temp_dir.Path().string());
   TestUtils::waitForServer("https://localhost:" + dp + "/");
 
   TreehubServer push_server;
@@ -200,7 +202,7 @@ int main(int argc, char** argv) {
   std::string server = "tests/sota_tools/treehub_server.py";
   port = TestUtils::getFreePort();
 
-  TestHelperProcess server_process(server, port);
+  boost::process::child server_process(server, port);
   TestUtils::waitForServer("http://localhost:" + port + "/");
 
   return RUN_ALL_TESTS();

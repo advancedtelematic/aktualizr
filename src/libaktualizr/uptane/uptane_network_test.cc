@@ -6,6 +6,7 @@
  */
 #include <gtest/gtest.h>
 
+#include <boost/process.hpp>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -145,7 +146,7 @@ int main(int argc, char **argv) {
   logger_set_threshold(boost::log::trivial::trace);
 
   port = TestUtils::getFreePort();
-  TestHelperProcess server_process("tests/fake_http_server/fake_uptane_server.py", port);
+  boost::process::child server_process("tests/fake_http_server/fake_uptane_server.py", port);
   TestUtils::waitForServer("http://127.0.0.1:" + port + "/");
 
   conf.provision.server = "http://127.0.0.1:" + port;

@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <boost/process.hpp>
+
 #include "deploy.h"
 #include "garage_common.h"
 #include "ostree_http_repo.h"
@@ -69,7 +71,7 @@ TEST(http_repo, bad_connection) {
   TemporaryDirectory temp_dir;
   std::string sp = TestUtils::getFreePort();
 
-  TestHelperProcess server_process("tests/sota_tools/treehub_server.py", sp, std::string("2"));
+  boost::process::child server_process("tests/sota_tools/treehub_server.py", sp, std::string("2"));
   TestUtils::waitForServer("http://localhost:" + sp + "/");
 
   TreehubServer server;
@@ -80,8 +82,8 @@ TEST(http_repo, bad_connection) {
   Json::Value auth;
   auth["ostree"]["server"] = std::string("https://localhost:") + dp;
   Utils::writeFile(temp_dir.Path() / "auth.json", auth);
-  TestHelperProcess deploy_server_process("tests/sota_tools/treehub_deploy_server.py", dp, temp_dir.PathString(),
-                                          std::string("2"));
+  boost::process::child deploy_server_process("tests/sota_tools/treehub_deploy_server.py", dp, temp_dir.PathString(),
+                                              std::string("2"));
   TestUtils::waitForServer("https://localhost:" + dp + "/");
 
   boost::filesystem::path filepath = (temp_dir.Path() / "auth.json").string();
@@ -113,7 +115,7 @@ int main(int argc, char **argv) {
   std::string server = "tests/sota_tools/treehub_server.py";
   port = TestUtils::getFreePort();
 
-  TestHelperProcess server_process(server, port);
+  boost::process::child server_process(server, port);
   TestUtils::waitForServer("http://localhost:" + port + "/");
 
   return RUN_ALL_TESTS();
