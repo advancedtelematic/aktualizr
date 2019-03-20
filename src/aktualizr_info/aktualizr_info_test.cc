@@ -5,6 +5,7 @@
 
 #include "config/config.h"
 #include "storage/sqlstorage.h"
+#include "test_utils.h"
 #include "utilities/utils.h"
 
 class AktualizrInfoTest : public ::testing::Test {
@@ -37,38 +38,29 @@ class AktualizrInfoTest : public ::testing::Test {
 
   virtual void TearDown() {}
 
-  // TODO: replace it with TestUtil::Process once the later is merged into master
-  void SpawnProcess(const std::vector<std::string> args = std::vector<std::string>{}) {
-    std::future<std::string> output;
-    std::future<std::string> err_output;
-    std::future<int> child_process_exit_code;
-    boost::asio::io_service io_service;
+  class AktualizrInfoProcess : public Process {
+   public:
+    AktualizrInfoProcess(AktualizrInfoTest& test_ctx, const boost::filesystem::path& conf_file)
+        : Process("./aktualizr-info"), test_ctx_{test_ctx}, conf_file_{conf_file} {}
+    virtual ~AktualizrInfoProcess() {}
 
-    executable_args = default_executable_args;
-    executable_args.insert(std::end(executable_args), std::begin(args), std::end(args));
-    aktualizr_info_output.clear();
+    void run(const std::vector<std::string> args = {}) {
+      std::vector<std::string> all_args = {"-c", conf_file_.string()};
 
-    try {
-      boost::process::child aktualizr_info_child_process(
-          boost::process::exe = executable_to_run, boost::process::args = executable_args,
-          boost::process::std_out > output, boost::process::std_err > err_output,
-          boost::process::on_exit = child_process_exit_code, io_service);
+      if (args.size() > 0) {
+        all_args.insert(all_args.end(), args.begin(), args.end());
+      }
 
-      io_service.run();
-
-      // To get the child process exit code we need to wait even in the async case (specifics of boost::process::child)
-      ASSERT_TRUE(aktualizr_info_child_process.wait_for(std::chrono::seconds(20)));
-
-    } catch (const std::exception& exc) {
-      FAIL() << "Failed to spawn process " << executable_to_run << " exited with an error: " << exc.what();
+      test_ctx_.aktualizr_info_output.clear();
+      Process::run(all_args);
+      ASSERT_EQ(lastExitCode(), EXIT_SUCCESS);
+      test_ctx_.aktualizr_info_output = lastStdOut();
     }
 
-    ASSERT_EQ(child_process_exit_code.get(), 0)
-        << "Process " << executable_to_run << " exited with an error: " << err_output.get();
-
-    aktualizr_info_output = output.get();
-    LOG_TRACE << "\n" << aktualizr_info_output << "\n";
-  }
+   private:
+    AktualizrInfoTest& test_ctx_;
+    const boost::filesystem::path conf_file_;
+  };
 
  protected:
   TemporaryDirectory test_dir_;
@@ -78,10 +70,8 @@ class AktualizrInfoTest : public ::testing::Test {
   Config config_;
   std::shared_ptr<INvStorage> db_storage_;
 
-  const std::string executable_to_run = "./aktualizr-info";
-  std::vector<std::string> default_executable_args = {"-c", test_conf_file_.string()};
-  std::vector<std::string> executable_args;
   std::string aktualizr_info_output;
+  AktualizrInfoProcess aktualizr_info_process_{*this, test_conf_file_};
 
   std::string device_id;
   std::string primary_ecu_serial;
@@ -118,7 +108,7 @@ TEST_F(AktualizrInfoTest, PrintPrimaryAndSecondaryInfo) {
   db_storage_->storeEcuRegistered();
   db_storage_->storeRoot(director_root, Uptane::RepositoryType::Director(), Uptane::Version(1));
 
-  SpawnProcess();
+  aktualizr_info_process_.run();
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
@@ -146,7 +136,7 @@ TEST_F(AktualizrInfoTest, PrintProvisioningAndMetadataNegative) {
 
   db_storage_->storeEcuSerials({{Uptane::EcuSerial(primary_ecu_serial), Uptane::HardwareIdentifier(primary_ecu_id)}});
 
-  SpawnProcess();
+  aktualizr_info_process_.run();
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
@@ -187,7 +177,7 @@ TEST_F(AktualizrInfoTest, PrintSecondaryNotRegisteredOrRemoved) {
                                        {Uptane::EcuSerial(secondary_ecu_serial_old),
                                         Uptane::HardwareIdentifier(secondary_ecu_id_old), EcuState::kOld}});
 
-  SpawnProcess();
+  aktualizr_info_process_.run();
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
@@ -223,7 +213,7 @@ TEST_F(AktualizrInfoTest, PrintImageRootMetadata) {
   db_storage_->storeRoot(images_root, Uptane::RepositoryType::Image(), Uptane::Version(1));
   db_storage_->storeRoot(images_root, Uptane::RepositoryType::Director(), Uptane::Version(1));
 
-  SpawnProcess(std::vector<std::string>{"--images-root"});
+  aktualizr_info_process_.run(std::vector<std::string>{"--images-root"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
@@ -257,7 +247,7 @@ TEST_F(AktualizrInfoTest, PrintImageTargetsMetadata) {
   std::string image_targets_str = Utils::jsonToStr(image_targets_json);
   db_storage_->storeNonRoot(image_targets_str, Uptane::RepositoryType::Image(), Uptane::Role::Targets());
 
-  SpawnProcess(std::vector<std::string>{"--images-target"});
+  aktualizr_info_process_.run({"--images-target"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
@@ -285,7 +275,7 @@ TEST_F(AktualizrInfoTest, PrintDirectorRootMetadata) {
   std::string director_root = Utils::jsonToStr(director_root_json);
   db_storage_->storeRoot(director_root, Uptane::RepositoryType::Director(), Uptane::Version(1));
 
-  SpawnProcess(std::vector<std::string>{"--director-root"});
+  aktualizr_info_process_.run({"--director-root"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
@@ -318,7 +308,7 @@ TEST_F(AktualizrInfoTest, PrintDirectorTargetsMetadata) {
   std::string director_targets_str = Utils::jsonToStr(director_targets_json);
   db_storage_->storeNonRoot(director_targets_str, Uptane::RepositoryType::Director(), Uptane::Role::Targets());
 
-  SpawnProcess(std::vector<std::string>{"--director-target"});
+  aktualizr_info_process_.run({"--director-target"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
@@ -344,7 +334,7 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuKeys) {
   const std::string private_key = "private-key-5cb805f1-859f-48b1-b787-8055d39b6c5f";
   db_storage_->storePrimaryKeys(public_key, private_key);
 
-  SpawnProcess(std::vector<std::string>{"--ecu-keys"});
+  aktualizr_info_process_.run({"--ecu-keys"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
@@ -375,7 +365,7 @@ TEST_F(AktualizrInfoTest, PrintTlsCredentials) {
 
   db_storage_->storeTlsCreds(ca, cert, private_key);
 
-  SpawnProcess(std::vector<std::string>{"--tls-creds"});
+  aktualizr_info_process_.run({"--tls-creds"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
@@ -413,7 +403,7 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersions) {
       {"update-01.bin", {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
       InstalledVersionUpdateMode::kPending);
 
-  SpawnProcess();
+  aktualizr_info_process_.run();
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
@@ -438,7 +428,7 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
 
   const std::string pending_ecu_version = "9636753d-2a09-4c80-8b25-64b2c2d0c4df";
 
-  SpawnProcess();
+  aktualizr_info_process_.run();
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
@@ -452,7 +442,7 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
       {"update-01.bin", {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
       InstalledVersionUpdateMode::kPending);
 
-  SpawnProcess();
+  aktualizr_info_process_.run();
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find("No currently running version on primary ecu"), std::string::npos);
@@ -462,7 +452,7 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
       {"update-01.bin", {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
       InstalledVersionUpdateMode::kCurrent);
 
-  SpawnProcess();
+  aktualizr_info_process_.run();
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   // pending ecu version became the current now
@@ -482,7 +472,7 @@ TEST_F(AktualizrInfoTest, PrintDeviceNameOnly) {
   db_storage_->storeEcuRegistered();
   db_storage_->storeRoot(director_root, Uptane::RepositoryType::Director(), Uptane::Version(1));
 
-  SpawnProcess(std::vector<std::string>{"--name-only", "--loglevel", "4"});
+  aktualizr_info_process_.run({"--name-only", "--loglevel", "4"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_EQ(aktualizr_info_output, device_id + "\n");
@@ -528,7 +518,7 @@ TEST_F(AktualizrInfoTest, PrintDelegations) {
 
   // case 0: no delegations in the DB
   {
-    SpawnProcess(std::vector<std::string>({"--delegation"}));
+    aktualizr_info_process_.run({"--delegation"});
     ASSERT_FALSE(aktualizr_info_output.empty());
     EXPECT_NE(aktualizr_info_output.find("Delegations are not present"), std::string::npos);
   }
@@ -538,7 +528,7 @@ TEST_F(AktualizrInfoTest, PrintDelegations) {
     std::vector<std::pair<Uptane::Role, std::string> > delegation_records{1, {Uptane::Role::Delegation(""), ""}};
     gen_and_store_delegations(db_storage_, delegation_records);
 
-    SpawnProcess(std::vector<std::string>({"--delegation"}));
+    aktualizr_info_process_.run({"--delegation"});
     ASSERT_FALSE(aktualizr_info_output.empty());
 
     verify_delegations(aktualizr_info_output, delegation_records);
@@ -551,7 +541,7 @@ TEST_F(AktualizrInfoTest, PrintDelegations) {
     std::vector<std::pair<Uptane::Role, std::string> > delegation_records{3, {Uptane::Role::Delegation(""), ""}};
     gen_and_store_delegations(db_storage_, delegation_records);
 
-    SpawnProcess(std::vector<std::string>({"--delegation"}));
+    aktualizr_info_process_.run({"--delegation"});
     ASSERT_FALSE(aktualizr_info_output.empty());
 
     verify_delegations(aktualizr_info_output, delegation_records);

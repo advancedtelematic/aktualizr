@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <boost/process.hpp>
 #include <chrono>
 #include <future>
 #include <iostream>
@@ -131,12 +132,12 @@ int main(int argc, char** argv) {
 
   std::string port = TestUtils::getFreePort();
   server += port;
-  TestHelperProcess http_server_process("tests/fake_http_server/fake_http_server.py", port);
+  boost::process::child http_server_process("tests/fake_http_server/fake_http_server.py", port);
   TestUtils::waitForServer(server + "/");
 #ifdef BUILD_OSTREE
   std::string treehub_port = TestUtils::getFreePort();
   treehub_server += treehub_port;
-  TestHelperProcess ostree_server_process("tests/sota_tools/treehub_server.py", treehub_port);
+  boost::process::child ostree_server_process("tests/sota_tools/treehub_server.py", treehub_port);
 
   TemporaryDirectory temp_dir;
   // Utils::copyDir doesn't work here. Complaints about non existent symlink path

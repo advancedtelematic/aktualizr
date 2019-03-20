@@ -81,26 +81,6 @@ void TestUtils::waitForServer(const std::string &address) {
   }
 }
 
-void TestHelperProcess::run(const char *argv0, const char *args[]) {
-  pid_ = fork();
-  if (pid_ == -1) {
-    throw std::runtime_error("Failed to execute process:" + std::string(argv0));
-  }
-  if (pid_ == 0) {
-#if __linux__
-    prctl(PR_SET_PDEATHSIG, SIGTERM);
-#endif
-    execvp(argv0, const_cast<char *const *>(args));
-    std::cout << "Could not execute child " << argv0 << "\n";
-    exit(1);
-  }
-}
-
-TestHelperProcess::~TestHelperProcess() {
-  assert(pid_);
-  kill(pid_, SIGINT);
-}
-
 Process::Result Process::spawn(const std::string &executable_to_run, const std::vector<std::string> &executable_args) {
   std::future<std::string> output;
   std::future<std::string> err_output;

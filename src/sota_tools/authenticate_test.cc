@@ -3,6 +3,7 @@
 #include <string>
 
 #include <curl/curl.h>
+#include <boost/process.hpp>
 
 #include "authenticate.h"
 #include "server_credentials.h"
@@ -129,8 +130,8 @@ TEST(authenticate, online_sign_creds) {
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  TestHelperProcess server_process("tests/fake_http_server/ssl_server.py");
-  TestHelperProcess server_noauth_process("tests/fake_http_server/ssl_noauth_server.py");
+  boost::process::child server_process("tests/fake_http_server/ssl_server.py");
+  boost::process::child server_noauth_process("tests/fake_http_server/ssl_noauth_server.py");
   // TODO: this do not work because the server expects auth! Let's sleep for now.
   // (could be replaced by a check with raw tcp)
   // TestUtils::waitForServer("https://localhost:1443/");

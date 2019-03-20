@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <boost/process.hpp>
 #include "crypto/crypto.h"
 #include "deploy.h"
 #include "garage_common.h"
@@ -37,7 +38,7 @@ int main(int argc, char **argv) {
   auth["ostree"]["server"] = std::string("https://localhost:") + port;
   Utils::writeFile(temp_dir.Path() / "auth.json", auth);
 
-  TestHelperProcess server_process(server, port, temp_dir.PathString());
+  boost::process::child server_process(server, port, temp_dir.PathString());
   TestUtils::waitForServer("https://localhost:" + port + "/");
   return RUN_ALL_TESTS();
 }

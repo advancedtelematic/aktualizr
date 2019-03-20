@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <cstdlib>
 
+#include <boost/process.hpp>
+
 #include "json/json.h"
 
 #include "http/httpclient.h"
@@ -78,7 +80,7 @@ int main(int argc, char** argv) {
 
   std::string port = TestUtils::getFreePort();
   server += port;
-  TestHelperProcess server_process("tests/fake_http_server/fake_http_server.py", port);
+  boost::process::child server_process("tests/fake_http_server/fake_http_server.py", port);
   TestUtils::waitForServer(server + "/");
 
   return RUN_ALL_TESTS();

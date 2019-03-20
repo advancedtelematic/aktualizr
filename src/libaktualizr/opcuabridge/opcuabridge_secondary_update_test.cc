@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <boost/process.hpp>
 #include <open62541.h>
 #include <fstream>
 #include <functional>
@@ -61,7 +62,7 @@ TEST(opcuabridge, secondary_update) {
   std::string opc_port = TestUtils::getFreePort();
   std::string opc_url = std::string("opc.tcp://localhost:") + opc_port;
 
-  TestHelperProcess server("./opcuabridge-secondary", opc_port);
+  boost::process::child server("./opcuabridge-secondary", opc_port);
 
   UA_Client* client = UA_Client_new(UA_ClientConfig_default);
 
