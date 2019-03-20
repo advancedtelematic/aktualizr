@@ -118,7 +118,7 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
       }
 
       std::string target_url = target.uri();
-      if (target_url.empty() || target_url.find("example.com") != std::string::npos) {
+      if (target_url.empty()) {
         target_url = config.uptane.repo_server + "/targets/" + Utils::urlEncode(target.filename());
       }
 

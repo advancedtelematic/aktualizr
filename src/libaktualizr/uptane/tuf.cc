@@ -136,7 +136,11 @@ Target::Target(std::string filename, const Json::Value &content) : filename_(std
     }
 
     if (custom.isMember("uri")) {
-      uri_ = custom["uri"].asString();
+      std::string custom_uri = custom["uri"].asString();
+      // Ignore this exact URL for backwards compatibility with old defaults that inserted it.
+      if (custom_uri != "https://example.com/") {
+        uri_ = std::move(custom_uri);
+      }
     }
   }
 
