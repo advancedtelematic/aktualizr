@@ -62,6 +62,7 @@ class SotaUptaneClient {
 
  private:
   FRIEND_TEST(Aktualizr, FullNoUpdates);
+  FRIEND_TEST(Aktualizr, DeviceInstallationResult);
   FRIEND_TEST(Aktualizr, FullMultipleSecondaries);
   FRIEND_TEST(Aktualizr, CheckNoUpdates);
   FRIEND_TEST(Aktualizr, DownloadWithUpdates);

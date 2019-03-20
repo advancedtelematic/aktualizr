@@ -40,6 +40,23 @@ void verifyNothingInstalled(const Json::Value& manifest) {
       "noimage");
 }
 
+static Uptane::SecondaryConfig virtual_configuration(const boost::filesystem::path& client_dir) {
+  Uptane::SecondaryConfig ecu_config;
+
+  ecu_config.secondary_type = Uptane::SecondaryType::kVirtual;
+  ecu_config.partial_verifying = false;
+  ecu_config.full_client_dir = client_dir;
+  ecu_config.ecu_serial = "ecuserial3";
+  ecu_config.ecu_hardware_id = "hw_id3";
+  ecu_config.ecu_private_key = "sec.priv";
+  ecu_config.ecu_public_key = "sec.pub";
+  ecu_config.firmware_path = client_dir / "firmware.txt";
+  ecu_config.target_name_path = client_dir / "firmware_name.txt";
+  ecu_config.metadata_path = client_dir / "secondary_metadata";
+
+  return ecu_config;
+}
+
 int num_events_FullNoUpdates = 0;
 std::future<void> future_FullNoUpdates{};
 std::promise<void> promise_FullNoUpdates{};
@@ -114,17 +131,7 @@ TEST(Aktualizr, AddSecondary) {
   auto storage = INvStorage::newStorage(conf.storage);
   Aktualizr aktualizr(conf, storage, http);
 
-  Uptane::SecondaryConfig ecu_config;
-  ecu_config.secondary_type = Uptane::SecondaryType::kVirtual;
-  ecu_config.partial_verifying = false;
-  ecu_config.full_client_dir = temp_dir.Path();
-  ecu_config.ecu_serial = "ecuserial3";
-  ecu_config.ecu_hardware_id = "hw_id3";
-  ecu_config.ecu_private_key = "sec.priv";
-  ecu_config.ecu_public_key = "sec.pub";
-  ecu_config.firmware_path = temp_dir / "firmware.txt";
-  ecu_config.target_name_path = temp_dir / "firmware_name.txt";
-  ecu_config.metadata_path = temp_dir / "secondary_metadata";
+  Uptane::SecondaryConfig ecu_config = virtual_configuration(temp_dir.Path());
 
   aktualizr.AddSecondary(Uptane::SecondaryFactory::makeSecondary(ecu_config));
 
@@ -148,6 +155,50 @@ TEST(Aktualizr, AddSecondary) {
   ecu_config.ecu_serial = "ecuserial4";
   auto sec4 = Uptane::SecondaryFactory::makeSecondary(ecu_config);
   EXPECT_THROW(aktualizr.AddSecondary(sec4), std::logic_error);
+}
+
+/*
+ * Compute device installation failure code as concatenation of ECU failure codes.
+ */
+TEST(Aktualizr, DeviceInstallationResult) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+
+  auto storage = INvStorage::newStorage(conf.storage);
+
+  EcuSerials serials{
+      {Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")},
+      {Uptane::EcuSerial("ecuserial3"), Uptane::HardwareIdentifier("hw_id3")},
+  };
+  storage->storeEcuSerials(serials);
+
+  Aktualizr aktualizr(conf, storage, http);
+
+  Uptane::SecondaryConfig ecu_config = virtual_configuration(temp_dir.Path());
+
+  aktualizr.AddSecondary(Uptane::SecondaryFactory::makeSecondary(ecu_config));
+
+  aktualizr.Initialize();
+
+  storage->saveEcuInstallationResult(Uptane::EcuSerial("ecuserial3"), data::InstallationResult());
+  storage->saveEcuInstallationResult(Uptane::EcuSerial("primary"), data::InstallationResult());
+  storage->saveEcuInstallationResult(Uptane::EcuSerial("primary"),
+                                     data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, ""));
+
+  data::InstallationResult result;
+  aktualizr.uptane_client_->computeDeviceInstallationResult(&result, "correlation_id");
+  auto res_json = result.toJson();
+  EXPECT_EQ(res_json["code"].asString(), "primary_hw:INSTALL_FAILED");
+  EXPECT_EQ(res_json["success"], false);
+
+  storage->saveEcuInstallationResult(
+      Uptane::EcuSerial("ecuserial3"),
+      data::InstallationResult(data::ResultCode(data::ResultCode::Numeric::kInstallFailed, "SECOND_FAIL"), ""));
+  aktualizr.uptane_client_->computeDeviceInstallationResult(&result, "correlation_id");
+  res_json = result.toJson();
+  EXPECT_EQ(res_json["code"].asString(), "primary_hw:INSTALL_FAILED|hw_id3:SECOND_FAIL");
+  EXPECT_EQ(res_json["success"], false);
 }
 
 class HttpFakeEventCounter : public HttpFake {
