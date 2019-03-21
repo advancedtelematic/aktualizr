@@ -160,6 +160,7 @@ These are the primary actions that a user of libaktualizr can perform through th
     - [x] Send EcuInstallationCompletedReport to server for secondaries (aktualizr_test.cc)
       - [x] Send an event report (see below)
   - [x] Store installation result for device (uptane_test.cc)
+  - [x] Compute device installation failure code as concatenation of ECU failure codes (aktualizr_test.cc)
   - [ ] Store negative device installation result when an ECU installation failed
   - [x] Send AllInstallsComplete event after all installations are finished (aktualizr_test.cc)
 - [x] Send installation report
@@ -245,6 +246,7 @@ These are internal requirements that are relatively opaque to the user and/or co
   - [x] Load and store Uptane roots in an SQL database (storage_common_test.cc)
   - [x] Load and store the device ID in an SQL database (storage_common_test.cc)
   - [x] Load and store ECU serials in an SQL database (storage_common_test.cc)
+    - [x] Preserve ECU ordering between store and load calls (storage_common_test.cc)
   - [x] Load and store a list of misconfigured ECUs in an SQL database (storage_common_test.cc)
   - [x] Load and store a flag indicating successful registration in an SQL database (storage_common_test.cc)
   - [x] Load and store an ecu installation result in an SQL database (storage_common_test.cc)

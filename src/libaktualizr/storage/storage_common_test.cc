@@ -226,7 +226,9 @@ TEST(storage, load_store_deviceid) {
   EXPECT_FALSE(storage->loadDeviceId(nullptr));
 }
 
-/* Load and store ECU serials. */
+/* Load and store ECU serials.
+ * Preserve ECU ordering between store and load calls.
+ */
 TEST(storage, load_store_ecu_serials) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
