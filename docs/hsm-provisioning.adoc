@@ -42,7 +42,7 @@ If you do not have your own CA certificate for signing device certificates, you 
 You can examine the `new_server` function in link:https://github.com/advancedtelematic/ota-community-edition/blob/master/scripts/start.sh#L127[OTA Community Edition's `start.sh`] for one way of generating the cert.
 +
 This will create a `./${SERVER_DIR}/devices/` directory with the `ca.crt` certificate and a `ca.key` private key. Keep the private key safe and secure.
-. Upload the root CA certificate to the server. To add a root CA certificate to link:https://connect.ota.here.com[HERE OTA Connect], contact link:mailto:ota-support@here.com[ota-support@here.com].
+. Upload the root CA certificate to the server. To add a root CA certificate to link:https://connect.ota.here.com[HERE OTA Connect], contact link:mailto:otaconnect.support@here.com[otaconnect.support@here.com].
 . Generate a device certificate and key, and sign it with the root CA you just created.
 +
 Examine the link:https://github.com/advancedtelematic/ota-community-edition/blob/master/scripts/start.sh#L89[`new_client` function in start.sh] for one way to do that.
