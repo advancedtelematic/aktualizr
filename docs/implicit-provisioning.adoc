@@ -29,8 +29,11 @@ An example `.toml` configuration file can be found at link:../config/sota_implic
 
 == Steps
 
-1. Generate a root CA private key and self-signed certificate.
-1. Upload the root CA certificate to the server.
+1. Generate a fleet root CA private key and self-signed certificate. There are a couple of requirements for the cert; to ensure that the cert you generate will work, download https://raw.githubusercontent.com/advancedtelematic/ota-community-edition/master/scripts/certs/device_ca.cnf[device_ca.cnf] from OTA Community Edition, and generate the root CA cert with openssl:
++
+    openssl req -new -x509 -days 3650 -key $yourkey -config device_ca.cnf -out fleet_root.crt
++
+1. Upload the fleet root CA certificate to the server.
 1. In meta-updater, set `SOTA_CLIENT_PROV = "aktualizr-ca-implicit-prov"` and `SOTA_DEPLOY_CREDENTIALS = "0"`. Currently, you will also need to set `SOTA_PACKED_CREDENTIALS` to a provisioning credentials zip file.
 1. Build a standard image using bitbake.
 1. Boot the image.
