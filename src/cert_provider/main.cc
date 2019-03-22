@@ -89,10 +89,10 @@ bpo::variables_map parse_options(int argc, char* argv[]) {
 }
 
 // I miss Rust's ? operator
-#define SSL_ERROR(description)                                                           \
-  {                                                                                      \
-    std::cerr << description << ERR_error_string(ERR_get_error(), nullptr) << std::endl; \
-    return false;                                                                        \
+#define SSL_ERROR(description)                                                             \
+  {                                                                                        \
+    std::cerr << (description) << ERR_error_string(ERR_get_error(), nullptr) << std::endl; \
+    return false;                                                                          \
   }
 bool generate_and_sign(const std::string& cacert_path, const std::string& capkey_path, std::string* pkey,
                        std::string* cert, const bpo::variables_map& commandline_map) {
@@ -342,68 +342,69 @@ int main(int argc, char* argv[]) {
   SSL_load_error_strings();
   logger_set_threshold(static_cast<boost::log::trivial::severity_level>(2));
 
-  bpo::variables_map commandline_map = parse_options(argc, argv);
-
-  std::string target;
-  if (commandline_map.count("target") != 0) {
-    target = commandline_map["target"].as<std::string>();
-  }
-  int port = 22;
-  if (commandline_map.count("port") != 0) {
-    port = (commandline_map["port"].as<int>());
-  }
-  const bool provide_ca = commandline_map.count("root-ca") != 0;
-  const bool provide_url = commandline_map.count("server-url") != 0;
-  boost::filesystem::path local_dir;
-  if (commandline_map.count("local") != 0) {
-    local_dir = commandline_map["local"].as<boost::filesystem::path>();
-  }
-  std::vector<boost::filesystem::path> config_path;
-  if (commandline_map.count("config") != 0) {
-    config_path = commandline_map["config"].as<std::vector<boost::filesystem::path>>();
-  }
-  const bool skip_checks = commandline_map.count("skip-checks") != 0;
-
-  boost::filesystem::path fleet_ca_path = "";
-  if (commandline_map.count("fleet-ca") != 0) {
-    fleet_ca_path = commandline_map["fleet-ca"].as<boost::filesystem::path>();
-  }
-
-  boost::filesystem::path fleet_ca_key_path = "";
-  if (commandline_map.count("fleet-ca-key") != 0) {
-    fleet_ca_key_path = commandline_map["fleet-ca-key"].as<boost::filesystem::path>();
-  }
-
-  if (fleet_ca_path.empty() != fleet_ca_key_path.empty()) {
-    std::cerr << "fleet-ca and fleet-ca-key options should be used together" << std::endl;
-    return 1;
-  }
-
-  if (!commandline_map["directory"].empty() && !commandline_map["config"].empty()) {
-    std::cerr << "Directory (--directory) and config (--config) options cannot be used together" << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  boost::filesystem::path credentials_path = "";
-  if (commandline_map.count("credentials") != 0) {
-    credentials_path = commandline_map["credentials"].as<boost::filesystem::path>();
-  }
-
-  if (local_dir.empty() && target.empty()) {
-    std::cerr << "Please provide a local directory and/or target to output the generated files to" << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  std::string serverUrl;
-  if ((fleet_ca_path.empty() || provide_ca || provide_url) && credentials_path.empty()) {
-    std::cerr << "Error: missing -c/--credentials parameters which is mandatory if the fleet CA is not specified or an "
-                 "output of the root CA or a gateway URL is requested";
-    return EXIT_FAILURE;
-  } else {
-    serverUrl = Bootstrap::readServerUrl(credentials_path);
-  }
-
   try {
+    bpo::variables_map commandline_map = parse_options(argc, argv);
+
+    std::string target;
+    if (commandline_map.count("target") != 0) {
+      target = commandline_map["target"].as<std::string>();
+    }
+    int port = 22;
+    if (commandline_map.count("port") != 0) {
+      port = (commandline_map["port"].as<int>());
+    }
+    const bool provide_ca = commandline_map.count("root-ca") != 0;
+    const bool provide_url = commandline_map.count("server-url") != 0;
+    boost::filesystem::path local_dir;
+    if (commandline_map.count("local") != 0) {
+      local_dir = commandline_map["local"].as<boost::filesystem::path>();
+    }
+    std::vector<boost::filesystem::path> config_path;
+    if (commandline_map.count("config") != 0) {
+      config_path = commandline_map["config"].as<std::vector<boost::filesystem::path>>();
+    }
+    const bool skip_checks = commandline_map.count("skip-checks") != 0;
+
+    boost::filesystem::path fleet_ca_path = "";
+    if (commandline_map.count("fleet-ca") != 0) {
+      fleet_ca_path = commandline_map["fleet-ca"].as<boost::filesystem::path>();
+    }
+
+    boost::filesystem::path fleet_ca_key_path = "";
+    if (commandline_map.count("fleet-ca-key") != 0) {
+      fleet_ca_key_path = commandline_map["fleet-ca-key"].as<boost::filesystem::path>();
+    }
+
+    if (fleet_ca_path.empty() != fleet_ca_key_path.empty()) {
+      std::cerr << "fleet-ca and fleet-ca-key options should be used together" << std::endl;
+      return 1;
+    }
+
+    if (!commandline_map["directory"].empty() && !commandline_map["config"].empty()) {
+      std::cerr << "Directory (--directory) and config (--config) options cannot be used together" << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    boost::filesystem::path credentials_path = "";
+    if (commandline_map.count("credentials") != 0) {
+      credentials_path = commandline_map["credentials"].as<boost::filesystem::path>();
+    }
+
+    if (local_dir.empty() && target.empty()) {
+      std::cerr << "Please provide a local directory and/or target to output the generated files to" << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    std::string serverUrl;
+    if ((fleet_ca_path.empty() || provide_ca || provide_url) && credentials_path.empty()) {
+      std::cerr
+          << "Error: missing -c/--credentials parameters which is mandatory if the fleet CA is not specified or an "
+             "output of the root CA or a gateway URL is requested";
+      return EXIT_FAILURE;
+    } else {
+      serverUrl = Bootstrap::readServerUrl(credentials_path);
+    }
+
     boost::filesystem::path directory = "/var/sota/import";
     BasedPath pkey_file = BasedPath("pkey.pem");
     BasedPath cert_file = BasedPath("client.pem");

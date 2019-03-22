@@ -1272,7 +1272,15 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     }
   }
 
-  ~SQLTargetWHandle() override { SQLTargetWHandle::wcommit(); }
+  ~SQLTargetWHandle() override {
+    try {
+      SQLTargetWHandle::wcommit();
+    } catch (std::exception& ex) {
+      LOG_ERROR << "Failed to commit to database: " << ex.what();
+    } catch (...) {
+      LOG_ERROR << "Failed to commit to database: unknown error";
+    }
+  }
 
   size_t wfeed(const uint8_t* buf, size_t size) override {
     stream_.write(reinterpret_cast<const char*>(buf), static_cast<std::streamsize>(size));

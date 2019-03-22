@@ -15,16 +15,22 @@ RequestPool::RequestPool(const TreehubServer& server, const int max_curl_request
 }
 
 RequestPool::~RequestPool() {
-  Abort();
+  try {
+    Abort();
 
-  LOG_INFO << "Shutting down RequestPool...";
-  while (!is_idle()) {
-    LoopListen();
+    LOG_INFO << "Shutting down RequestPool...";
+    while (!is_idle()) {
+      LoopListen();
+    }
+    LOG_INFO << "...done";
+
+    curl_multi_cleanup(multi_);
+    curl_global_cleanup();
+  } catch (std::exception& ex) {
+    LOG_ERROR << "Exception in RequestPool dtor: " << ex.what();
+  } catch (...) {
+    LOG_ERROR << "Unknown exception in RequestPool dtor";
   }
-  LOG_INFO << "...done";
-
-  curl_multi_cleanup(multi_);
-  curl_global_cleanup();
 }
 
 void RequestPool::AddQuery(const OSTreeObject::ptr& request) {
