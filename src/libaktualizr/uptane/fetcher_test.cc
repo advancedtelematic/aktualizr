@@ -216,7 +216,7 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
   logger_init();
-  logger_set_threshold(boost::log::trivial::trace);
+  logger_set_threshold(boost::log::trivial::debug);
 
   if (argc != 2) {
     std::cerr << "Error: " << argv[0] << " requires the path to an OSTree repository as an input argument.\n";
