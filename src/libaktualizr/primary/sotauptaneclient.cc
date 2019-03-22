@@ -932,13 +932,14 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target t
   }
 
   bool success = false;
-  int tries = 3;
+  const int max_tries = 3;
+  int tries = 0;
   std::chrono::milliseconds wait(500);
-  while ((tries--) != 0) {
+  while (tries++ < max_tries) {
     success = uptane_fetcher->fetchVerifyTarget(target, token);
     if (success) {
       break;
-    } else if (tries != 0) {
+    } else if (tries < max_tries) {
       std::this_thread::sleep_for(wait);
       wait *= 2;
     }
