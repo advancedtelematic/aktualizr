@@ -26,7 +26,7 @@ static void loadAndPrintDelegations(const std::shared_ptr<INvStorage> &storage) 
   }
 
   std::cout << "Delegations:" << std::endl;
-  for (auto delegation : delegations) {
+  for (const auto &delegation : delegations) {
     std::cout << delegation.first << ": " << delegation.second << std::endl;
   }
 }

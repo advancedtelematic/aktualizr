@@ -182,6 +182,10 @@ int main(int argc, char **argv) {
     std::cout << o.what() << std::endl;
     std::cout << desc;
     return EXIT_FAILURE;
+  } catch (std::exception &ex) {
+    LOG_ERROR << "Exception: " << ex.what();
+  } catch (...) {
+    LOG_ERROR << "Unknown error";
   }
 }
 // vim: set tabstop=2 shiftwidth=2 expandtab:
