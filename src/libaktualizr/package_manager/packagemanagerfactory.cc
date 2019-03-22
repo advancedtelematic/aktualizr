@@ -17,7 +17,7 @@
 
 std::shared_ptr<PackageManagerInterface> PackageManagerFactory::makePackageManager(
     const PackageConfig& pconfig, const std::shared_ptr<INvStorage>& storage,
-    const std::shared_ptr<Bootloader>& bootloader, const std::shared_ptr<HttpInterface> http) {
+    const std::shared_ptr<Bootloader>& bootloader, const std::shared_ptr<HttpInterface>& http) {
   (void)bootloader;
   switch (pconfig.type) {
     case PackageManager::kOstree:

@@ -164,7 +164,7 @@ TEST(Fetcher, DownloadCustomUri) {
   target_json["length"] = 1;
   Uptane::Target target("fake_file", target_json);
 
-  EXPECT_TRUE(pacman->fetchTarget(target, fetcher, keys, progress_cb));
+  EXPECT_TRUE(pacman->fetchTarget(target, fetcher, keys, progress_cb, nullptr));
 }
 
 class HttpDefaultUri : public HttpFake {
@@ -200,7 +200,7 @@ TEST(Fetcher, DownloadDefaultUri) {
     target_json["length"] = 1;
     Uptane::Target target("fake_file", target_json);
 
-    EXPECT_TRUE(pacman->fetchTarget(target, fetcher, keys, progress_cb));
+    EXPECT_TRUE(pacman->fetchTarget(target, fetcher, keys, progress_cb, nullptr));
   }
   {
     // Empty custom uri.
@@ -210,7 +210,7 @@ TEST(Fetcher, DownloadDefaultUri) {
     target_json["length"] = 1;
     Uptane::Target target("fake_file", target_json);
 
-    EXPECT_TRUE(pacman->fetchTarget(target, fetcher, keys, progress_cb));
+    EXPECT_TRUE(pacman->fetchTarget(target, fetcher, keys, progress_cb, nullptr));
   }
   {
     // example.com (default) custom uri.
@@ -220,7 +220,7 @@ TEST(Fetcher, DownloadDefaultUri) {
     target_json["length"] = 1;
     Uptane::Target target("fake_file", target_json);
 
-    EXPECT_TRUE(pacman->fetchTarget(target, fetcher, keys, progress_cb));
+    EXPECT_TRUE(pacman->fetchTarget(target, fetcher, keys, progress_cb, nullptr));
   }
 }
 

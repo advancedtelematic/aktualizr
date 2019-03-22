@@ -32,7 +32,7 @@ class PackageManagerInterface {
   virtual data::InstallationResult finalizeInstall(const Uptane::Target& target) const = 0;
   virtual bool imageUpdated() = 0;
   virtual bool fetchTarget(const Uptane::Target& target, Uptane::Fetcher& fetcher, const KeyManager& keys,
-                           FetcherProgressCb progress_cb, const api::FlowControlToken* token = nullptr);
+                           FetcherProgressCb progress_cb, const api::FlowControlToken* token);
 
   // only returns the version
   Json::Value getManifest(const Uptane::EcuSerial& ecu_serial) const {

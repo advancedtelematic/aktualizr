@@ -224,7 +224,7 @@ data::InstallationResult OstreeManager::finalizeInstall(const Uptane::Target &ta
 
 OstreeManager::OstreeManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage,
                              std::shared_ptr<Bootloader> bootloader, std::shared_ptr<HttpInterface> http)
-    : PackageManagerInterface(pconfig, storage, bootloader, http) {
+    : PackageManagerInterface(std::move(pconfig), std::move(storage), std::move(bootloader), std::move(http)) {
   GObjectUniquePtr<OstreeSysroot> sysroot_smart = OstreeManager::LoadSysroot(config.sysroot);
   if (sysroot_smart == nullptr) {
     throw std::runtime_error("Could not find OSTree sysroot at: " + config.sysroot.string());

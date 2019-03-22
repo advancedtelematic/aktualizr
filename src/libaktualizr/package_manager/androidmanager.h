@@ -9,7 +9,7 @@ class AndroidManager : public PackageManagerInterface {
  public:
   explicit AndroidManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage,
                           std::shared_ptr<Bootloader> bootloader, std::shared_ptr<HttpInterface> http)
-      : PackageManagerInterface(pconfig, storage, bootloader, http) {}
+      : PackageManagerInterface(std::move(pconfig), std::move(storage), std::move(bootloader), std::move(http)) {}
   ~AndroidManager() override = default;
   std::string name() const override { return "android"; }
   Json::Value getInstalledPackages() const override;

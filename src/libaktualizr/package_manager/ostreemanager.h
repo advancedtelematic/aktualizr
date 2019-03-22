@@ -50,7 +50,7 @@ class OstreeManager : public PackageManagerInterface {
   void completeInstall() const override;
   data::InstallationResult finalizeInstall(const Uptane::Target &target) const override;
   bool fetchTarget(const Uptane::Target &target, Uptane::Fetcher &fetcher, const KeyManager &keys,
-                   FetcherProgressCb progress_cb, const api::FlowControlToken *token = nullptr) override;
+                   FetcherProgressCb progress_cb, const api::FlowControlToken *token) override;
 
   GObjectUniquePtr<OstreeDeployment> getStagedDeployment() const;
   static GObjectUniquePtr<OstreeSysroot> LoadSysroot(const boost::filesystem::path &path);

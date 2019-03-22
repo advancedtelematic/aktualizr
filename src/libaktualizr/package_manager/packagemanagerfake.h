@@ -10,7 +10,7 @@ class PackageManagerFake : public PackageManagerInterface {
  public:
   PackageManagerFake(PackageConfig pconfig, std::shared_ptr<INvStorage> storage, std::shared_ptr<Bootloader> bootloader,
                      std::shared_ptr<HttpInterface> http)
-      : PackageManagerInterface(pconfig, storage, bootloader, http) {}
+      : PackageManagerInterface(std::move(pconfig), std::move(storage), std::move(bootloader), std::move(http)) {}
   ~PackageManagerFake() override = default;
   std::string name() const override { return "fake"; }
   Json::Value getInstalledPackages() const override;
