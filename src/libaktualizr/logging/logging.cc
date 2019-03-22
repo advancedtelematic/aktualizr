@@ -4,14 +4,14 @@ using boost::log::trivial::severity_level;
 
 static severity_level gLoggingThreshold;
 
-extern void logger_init_sink();
+extern void logger_init_sink(bool use_colors = false);
 
 int64_t get_curlopt_verbose() { return gLoggingThreshold <= boost::log::trivial::trace ? 1L : 0L; }
 
-void logger_init() {
+void logger_init(bool use_colors) {
   gLoggingThreshold = boost::log::trivial::info;
 
-  logger_init_sink();
+  logger_init_sink(use_colors);
 
   boost::log::core::get()->set_filter(boost::log::trivial::severity >= gLoggingThreshold);
 }

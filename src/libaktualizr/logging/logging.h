@@ -30,7 +30,7 @@
 // curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
 int64_t get_curlopt_verbose();
 
-void logger_init();
+void logger_init(bool use_colors = false);
 
 void logger_set_threshold(boost::log::trivial::severity_level threshold);
 
