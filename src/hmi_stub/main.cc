@@ -146,10 +146,7 @@ int main(int argc, char *argv[]) {
     std::string buffer;
     while (std::getline(std::cin, buffer)) {
       boost::algorithm::to_lower(buffer);
-      if (buffer == "shutdown") {
-        aktualizr.Shutdown();
-        break;
-      } else if (buffer == "senddevicedata") {
+      if (buffer == "senddevicedata") {
         aktualizr.SendDeviceData();
       } else if (buffer == "fetchmetadata" || buffer == "fetchmeta" || buffer == "checkupdates" || buffer == "check") {
         auto fut_result = aktualizr.CheckUpdates();
@@ -164,6 +161,8 @@ int main(int argc, char *argv[]) {
         aktualizr.Pause();
       } else if (buffer == "resume") {
         aktualizr.Resume();
+      } else if (buffer == "abort") {
+        aktualizr.Abort();
       } else if (!buffer.empty()) {
         std::cout << "Unknown command.\n";
       }

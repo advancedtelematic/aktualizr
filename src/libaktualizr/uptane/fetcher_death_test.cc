@@ -55,19 +55,20 @@ void pause_and_die(const Uptane::Target& target) {
   std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
   auto http = std::make_shared<HttpClient>();
   Uptane::Fetcher f(config, storage, http, progress_cb);
+  api::FlowControlToken token;
 
   std::promise<bool> download_promise;
   auto result = download_promise.get_future();
 
-  std::thread([&f, &target, &download_promise]() {
-    bool res = f.fetchVerifyTarget(target);
+  std::thread([&f, &target, &download_promise, &token]() {
+    bool res = f.fetchVerifyTarget(target, &token);
     download_promise.set_value(res);
   })
       .detach();
 
   std::unique_lock<std::mutex> lk(pause_m);
   cv.wait(lk, [] { return die; });
-  f.setPause(true);
+  token.setPause(true);
   std::this_thread::sleep_for(std::chrono::seconds(pause_duration));
   std::raise(SIGKILL);
 }

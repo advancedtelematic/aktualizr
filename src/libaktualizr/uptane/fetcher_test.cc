@@ -15,6 +15,7 @@
 #include "storage/sqlstorage.h"
 #include "test_utils.h"
 #include "tuf.h"
+#include "utilities/apiqueue.h"
 
 static const int pause_after = 50;        // percent
 static const int pause_duration = 1;      // seconds
@@ -32,8 +33,9 @@ Config config;
 
 static void progress_cb(const Uptane::Target& target, const std::string& description, unsigned int progress) {
   (void)description;
+  (void)target;
   std::cout << "progress callback: " << progress << std::endl;
-  if (!target.IsOstree() && !do_pause) {
+  if (!do_pause) {
     if (progress >= pause_after) {
       std::lock_guard<std::mutex> lk(pause_m);
       do_pause = true;
@@ -59,8 +61,9 @@ void test_pause(const Uptane::Target& target) {
   std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
   auto http = std::make_shared<HttpClient>();
   Uptane::Fetcher f(config, storage, http, progress_cb);
-  EXPECT_EQ(f.setPause(true), Uptane::Fetcher::PauseRet::kNotDownloading);
-  EXPECT_EQ(f.setPause(false), Uptane::Fetcher::PauseRet::kNotPaused);
+  api::FlowControlToken token;
+  EXPECT_EQ(token.setPause(true), true);
+  EXPECT_EQ(token.setPause(false), true);
 
   std::promise<void> pause_promise;
   std::promise<bool> download_promise;
@@ -68,26 +71,21 @@ void test_pause(const Uptane::Target& target) {
   auto pause_res = pause_promise.get_future();
   auto start = std::chrono::high_resolution_clock::now();
 
-  std::thread([&f, &target, &download_promise]() {
-    bool res = f.fetchVerifyTarget(target);
+  do_pause = false;
+  std::thread([&f, &target, &download_promise, &token]() {
+    bool res = f.fetchVerifyTarget(target, &token);
     download_promise.set_value(res);
   })
       .detach();
 
-  std::thread([&f, &target, &pause_promise]() {
-    if (!target.IsOstree()) {
-      std::unique_lock<std::mutex> lk(pause_m);
-      cv.wait(lk, [] { return do_pause; });
-    } else {
-      while (!f.isDownloading()) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));  // wait for download start
-      }
-    }
-    EXPECT_EQ(f.setPause(true), Uptane::Fetcher::PauseRet::kPaused);
-    EXPECT_EQ(f.setPause(true), Uptane::Fetcher::PauseRet::kAlreadyPaused);
+  std::thread([&token, &pause_promise]() {
+    std::unique_lock<std::mutex> lk(pause_m);
+    cv.wait(lk, [] { return do_pause; });
+    EXPECT_EQ(token.setPause(true), true);
+    EXPECT_EQ(token.setPause(true), false);
     std::this_thread::sleep_for(std::chrono::seconds(pause_duration));
-    EXPECT_EQ(f.setPause(false), Uptane::Fetcher::PauseRet::kResumed);
-    EXPECT_EQ(f.setPause(false), Uptane::Fetcher::PauseRet::kNotPaused);
+    EXPECT_EQ(token.setPause(false), true);
+    EXPECT_EQ(token.setPause(false), false);
     pause_promise.set_value();
   })
       .detach();
@@ -97,7 +95,6 @@ void test_pause(const Uptane::Target& target) {
 
   auto duration =
       std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - start).count();
-  std::cout << "Downloaded 100MB in " << duration - pause_duration << "seconds\n";
   EXPECT_TRUE(result.get());
   EXPECT_GE(duration, pause_duration);
 }
@@ -109,7 +106,7 @@ void test_pause(const Uptane::Target& target) {
  */
 TEST(Fetcher, PauseOstree) {
   Json::Value target_json;
-  target_json["hashes"]["sha256"] = "16ef2f2629dc9263fdf3c0f032563a2d757623bbc11cf99df25c3c3f258dccbe";
+  target_json["hashes"]["sha256"] = "b9ac1e45f9227df8ee191b6e51e09417bd36c6ebbeff999431e3073ac50f0563";
   target_json["custom"]["targetFormat"] = "OSTREE";
   target_json["length"] = 0;
   Uptane::Target target("pause", target_json);
@@ -129,8 +126,10 @@ TEST(Fetcher, PauseBinary) {
 class HttpCustomUri : public HttpFake {
  public:
   HttpCustomUri(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in) {}
-  HttpResponse download(const std::string& url, curl_write_callback callback, void* userp, curl_off_t from) override {
-    (void)callback;
+  HttpResponse download(const std::string& url, curl_write_callback write_cb, curl_xferinfo_callback progress_cb,
+                        void* userp, curl_off_t from) override {
+    (void)write_cb;
+    (void)progress_cb;
     (void)userp;
     (void)from;
     EXPECT_EQ(url, "test-uri");
@@ -148,7 +147,7 @@ TEST(Fetcher, DownloadCustomUri) {
   auto http = std::make_shared<HttpCustomUri>(temp_dir.Path());
   Uptane::Fetcher f(config, storage, http, nullptr);
 
-  // Make a fake target with the exepected hash of "0".
+  // Make a fake target with the expected hash of "0".
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
   target_json["custom"]["uri"] = "test-uri";
@@ -161,8 +160,10 @@ TEST(Fetcher, DownloadCustomUri) {
 class HttpDefaultUri : public HttpFake {
  public:
   HttpDefaultUri(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in) {}
-  HttpResponse download(const std::string& url, curl_write_callback callback, void* userp, curl_off_t from) override {
-    (void)callback;
+  HttpResponse download(const std::string& url, curl_write_callback write_cb, curl_xferinfo_callback progress_cb,
+                        void* userp, curl_off_t from) override {
+    (void)write_cb;
+    (void)progress_cb;
     (void)userp;
     (void)from;
     EXPECT_EQ(url, server + "/targets/fake_file");
@@ -230,8 +231,10 @@ int main(int argc, char** argv) {
 #ifdef BUILD_OSTREE
   std::string treehub_port = TestUtils::getFreePort();
   treehub_server += treehub_port;
-  boost::process::child ostree_server_process("tests/sota_tools/treehub_server.py", treehub_port);
-
+  TemporaryDirectory treehub_dir;
+  boost::process::child ostree_server_process("tests/sota_tools/treehub_server.py", std::string("-p"), treehub_port,
+                                              std::string("-d"), treehub_dir.PathString(), std::string("-s0.5"),
+                                              std::string("--create"));
   TemporaryDirectory temp_dir;
   // Utils::copyDir doesn't work here. Complaints about non existent symlink path
   int r = system((std::string("cp -r ") + argv[1] + std::string(" ") + temp_dir.PathString()).c_str());

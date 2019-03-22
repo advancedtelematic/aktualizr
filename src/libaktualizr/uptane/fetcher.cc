@@ -24,7 +24,7 @@ bool Fetcher::fetchRole(std::string* result, int64_t maxsize, RepositoryType rep
 
 static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* userp) {
   assert(userp);
-  auto* ds = static_cast<Uptane::DownloadMetaStruct*>(userp);
+  auto ds = static_cast<Uptane::DownloadMetaStruct*>(userp);
   uint64_t downloaded = size * nmemb;
   uint64_t expected = ds->target.length();
   if ((ds->downloaded_length + downloaded) > expected) {
@@ -36,50 +36,26 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
   ds->hasher().update(reinterpret_cast<const unsigned char*>(contents), written_size);
 
   ds->downloaded_length += downloaded;
+  return written_size;
+}
+
+static int ProgressHandler(void* clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) {
+  (void)dltotal;
+  (void)dlnow;
+  (void)ultotal;
+  (void)ulnow;
+  auto ds = static_cast<Uptane::DownloadMetaStruct*>(clientp);
+
+  uint64_t expected = ds->target.length();
   auto progress = static_cast<unsigned int>((ds->downloaded_length * 100) / expected);
   if (ds->progress_cb && progress > ds->last_progress) {
     ds->last_progress = progress;
     ds->progress_cb(ds->target, "Downloading", progress);
   }
-  if (ds->fetcher->isPaused()) {
-    ds->fetcher->setRetry(true);
-    ds->fhandle->wcommit();
-    ds->fhandle.reset();
-    return written_size + 1;  // Abort downloading because pause is requested.
+  if (ds->token != nullptr && !ds->token->canContinue(false)) {
+    return 1;
   }
-  return written_size;
-}
-
-Fetcher::PauseRet Fetcher::setPause(bool pause) {
-  std::lock_guard<std::mutex> guard(mutex_);
-  if (pause_ == pause) {
-    if (pause) {
-      LOG_DEBUG << "Fetcher: already paused";
-      return PauseRet::kAlreadyPaused;
-    } else {
-      LOG_DEBUG << "Fetcher: nothing to resume";
-      return PauseRet::kNotPaused;
-    }
-  }
-
-  if (pause && downloading_ == 0u) {
-    LOG_DEBUG << "Fetcher: nothing to pause";
-    return PauseRet::kNotDownloading;
-  }
-
-  pause_ = pause;
-  cv_.notify_all();
-
-  if (pause) {
-    return PauseRet::kPaused;
-  } else {
-    return PauseRet::kResumed;
-  }
-}
-
-void Fetcher::checkPause() {
-  std::unique_lock<std::mutex> lk(mutex_);
-  cv_.wait(lk, [this] { return !pause_; });
+  return 0;
 }
 
 void Fetcher::restoreHasherState(MultiPartHasher& hasher, StorageTargetRHandle* data) {
@@ -92,9 +68,8 @@ void Fetcher::restoreHasherState(MultiPartHasher& hasher, StorageTargetRHandle* 
   } while (data_len != 0);
 }
 
-bool Fetcher::fetchVerifyTarget(const Target& target) {
+bool Fetcher::fetchVerifyTarget(const Target& target, const api::FlowControlToken* token) {
   bool result = false;
-  DownloadCounter counter(&downloading_);
   try {
     if (!target.IsOstree()) {
       if (target.hashes().empty()) {
@@ -105,8 +80,7 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
         LOG_INFO << "Image already downloaded skipping download";
         return true;
       }
-      DownloadMetaStruct ds(target, progress_cb);
-      ds.fetcher = this;
+      DownloadMetaStruct ds(target, progress_cb, token);
       if (target_exists) {
         ds.downloaded_length = target_exists->first;
         auto target_handle = storage->openTargetFile(target);
@@ -123,16 +97,20 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
       }
 
       HttpResponse response;
-      do {
-        checkPause();
-        if (retry_) {
-          retry_ = false;
-          // fhandle was invalidated on pause
-          ds.fhandle = storage->openTargetFile(target)->toWriteHandle();
+      for (;;) {
+        response = http->download(target_url, DownloadHandler, ProgressHandler, &ds,
+                                  static_cast<curl_off_t>(ds.downloaded_length));
+        if (!response.wasInterrupted()) {
+          break;
         }
-        response = http->download(target_url, DownloadHandler, &ds, static_cast<curl_off_t>(ds.downloaded_length));
-        LOG_TRACE << "Download status: " << response.getStatusStr() << std::endl;
-      } while (retry_);
+        ds.fhandle.reset();
+        // sleep if paused or abort the download
+        if (!token->canContinue()) {
+          throw Exception("image", "Download of a target was aborted");
+        }
+        ds.fhandle = storage->openTargetFile(target)->toWriteHandle();
+      }
+      LOG_TRACE << "Download status: " << response.getStatusStr() << std::endl;
       if (!response.isOk()) {
         if (response.curl_code == CURLE_WRITE_ERROR) {
           throw OversizedTarget(target.filename());
@@ -149,9 +127,8 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
 #ifdef BUILD_OSTREE
       KeyManager keys(storage, config.keymanagerConfig());
       keys.loadKeys();
-      std::function<void()> check_pause = std::bind(&Fetcher::checkPause, this);
-      data::InstallationResult install_res = OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server,
-                                                                 keys, target, check_pause, progress_cb);
+      data::InstallationResult install_res =
+          OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys, target, token, progress_cb);
       result = install_res.success;
 #else
       LOG_ERROR << "Could not pull OSTree target. Aktualizr was built without OSTree support!";

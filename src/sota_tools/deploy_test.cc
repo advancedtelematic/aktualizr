@@ -33,12 +33,13 @@ TEST(deploy, UploadToTreehub) {
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   port = TestUtils::getFreePort();
-  std::string server = "tests/sota_tools/treehub_deploy_server.py";
+  std::string server = "tests/sota_tools/treehub_server.py";
   Json::Value auth;
   auth["ostree"]["server"] = std::string("https://localhost:") + port;
   Utils::writeFile(temp_dir.Path() / "auth.json", auth);
 
-  boost::process::child server_process(server, port, temp_dir.PathString());
+  boost::process::child server_process(server, std::string("-p"), port, std::string("-d"), temp_dir.PathString(),
+                                       std::string("--tls"));
   TestUtils::waitForServer("https://localhost:" + port + "/");
   return RUN_ALL_TESTS();
 }

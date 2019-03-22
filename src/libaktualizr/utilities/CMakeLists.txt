@@ -1,10 +1,12 @@
-set(SOURCES dequeue_buffer.cc
+set(SOURCES apiqueue.cc
+            dequeue_buffer.cc
             sockaddr_io.cc
             timer.cc
             types.cc
             utils.cc)
 
-set(HEADERS config_utils.h
+set(HEADERS apiqueue.h
+            config_utils.h
             dequeue_buffer.h
             exceptions.h
             fault_injection.h

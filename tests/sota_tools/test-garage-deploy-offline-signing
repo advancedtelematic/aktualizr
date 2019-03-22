@@ -17,13 +17,14 @@ chmod +x "$TEMP_DIR/garage-sign"
 export PATH=$PATH:$TEMP_DIR
 
 echo "$TREEHUB" > "$TEMP_DIR/treehub.json"
-./tests/sota_tools/treehub_server.py "$PORT" &
-sleep 1
+./tests/sota_tools/treehub_server.py -p${PORT} -c &
+until curl -I localhost:${PORT} 2>/dev/null; do sleep 0.5; done
+
 cd "$TEMP_DIR"
 # Currently, if credentials do not support offline signing, this will fail. If
 # that ever changes, this will need to verify that the credentials do support
 # offline signing.
-$1 --commit 16ef2f2629dc9263fdf3c0f032563a2d757623bbc11cf99df25c3c3f258dccbe -f "$TEMP_DIR/treehub.json" -p "$2" --name testname -h hwids
+$1 --commit b9ac1e45f9227df8ee191b6e51e09417bd36c6ebbeff999431e3073ac50f0563 -f "$TEMP_DIR/treehub.json" -p "$2" --name testname -h hwids
 exit_code=$?
 if [ -d "./tuf/aktualizr" ]; then
   echo "garage-sign tuf repo still present!"

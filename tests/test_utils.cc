@@ -1,6 +1,8 @@
 #include "test_utils.h"
 
 #include <signal.h>
+#include <sys/wait.h>
+#include <thread>
 
 #if __linux__
 #include <sys/prctl.h>

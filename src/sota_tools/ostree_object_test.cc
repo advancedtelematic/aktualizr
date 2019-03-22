@@ -12,6 +12,7 @@
 #include "test_utils.h"
 
 std::string port;
+std::string repo_path;
 
 /* Verify that constructor does not accept a nonexistent repo. */
 TEST(OstreeObject, ConstructorBad) {
@@ -21,7 +22,7 @@ TEST(OstreeObject, ConstructorBad) {
 
 /* Verify that constructor accepts a valid repo and commit hash. */
 TEST(OstreeObject, ConstructorGood) {
-  OSTreeDirRepo good_repo("tests/sota_tools/repo");
+  OSTreeDirRepo good_repo(repo_path);
   OSTreeHash hash = good_repo.GetRef("master").GetHash();
   boost::filesystem::path objpath = hash.string().insert(2, 1, '/');
   OSTreeObject(good_repo, objpath.string() + ".commit");
@@ -77,7 +78,7 @@ class OstreeObject_Request_Test {
 /* Query destination repository for OSTree commit object.
  * Expect HTTP 200 for a hash that we expect the server to know about. */
 TEST(OstreeObject, MakeTestRequestPresent) {
-  OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>("tests/sota_tools/repo");
+  OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>(repo_path);
   OSTreeHash hash = src_repo->GetRef("master").GetHash();
   OstreeObject_Request_Test::MakeTestRequest(src_repo, hash, 200);
 }
@@ -97,7 +98,7 @@ TEST(OstreeObject, UploadDryRun) {
   TreehubServer push_server;
   push_server.root_url("http://localhost:" + port);
 
-  OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>("tests/sota_tools/repo");
+  OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>(repo_path);
   OSTreeHash hash = src_repo->GetRef("master").GetHash();
   OSTreeObject::ptr object = src_repo->GetObject(hash, OstreeObjectType::OSTREE_OBJECT_TYPE_COMMIT);
 
@@ -118,7 +119,7 @@ TEST(OstreeObject, UploadFail) {
   TreehubServer push_server;
   push_server.root_url("http://localhost:" + port);
 
-  OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>("tests/sota_tools/repo");
+  OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>(repo_path);
   OSTreeHash hash = src_repo->GetRef("master").GetHash();
   OSTreeObject::ptr object = src_repo->GetObject(hash, OstreeObjectType::OSTREE_OBJECT_TYPE_COMMIT);
 
@@ -144,8 +145,8 @@ TEST(OstreeObject, UploadSuccess) {
   Json::Value auth;
   auth["ostree"]["server"] = std::string("https://localhost:") + dp;
   Utils::writeFile(temp_dir.Path() / "auth.json", auth);
-  boost::process::child deploy_server_process("tests/sota_tools/treehub_deploy_server.py", dp,
-                                              temp_dir.Path().string());
+  boost::process::child deploy_server_process("tests/sota_tools/treehub_server.py", std::string("-p"), dp,
+                                              std::string("-d"), temp_dir.Path().string(), std::string("--tls"));
   TestUtils::waitForServer("https://localhost:" + dp + "/");
 
   TreehubServer push_server;
@@ -155,7 +156,7 @@ TEST(OstreeObject, UploadSuccess) {
   boost::filesystem::path cert_path = "tests/fake_http_server/client.crt";
   EXPECT_EQ(authenticate(cert_path.string(), ServerCredentials(filepath), push_server), EXIT_SUCCESS);
 
-  OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>("tests/sota_tools/repo");
+  OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>(repo_path);
   OSTreeHash hash = src_repo->GetRef("master").GetHash();
   OSTreeObject::ptr object = src_repo->GetObject(hash, OstreeObjectType::OSTREE_OBJECT_TYPE_COMMIT);
 
@@ -201,8 +202,11 @@ int main(int argc, char** argv) {
 
   std::string server = "tests/sota_tools/treehub_server.py";
   port = TestUtils::getFreePort();
+  TemporaryDirectory repo_dir;
+  repo_path = repo_dir.PathString();
 
-  boost::process::child server_process(server, port);
+  boost::process::child server_process(server, std::string("-p"), port, std::string("-d"), repo_path,
+                                       std::string("--create"));
   TestUtils::waitForServer("http://localhost:" + port + "/");
 
   return RUN_ALL_TESTS();

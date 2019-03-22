@@ -140,7 +140,8 @@ void RequestPool::LoopListen() {
       } else {
         auto duration = rate_controller_.GetSleepTime();
         if (duration > RateController::clock::duration(0)) {
-          LOG_DEBUG << "Sleeping for " << duration.count() << " seconds due to server congestion.";
+          LOG_DEBUG << "Sleeping for " << std::chrono::duration_cast<std::chrono::seconds>(duration).count()
+                    << " seconds due to server congestion.";
           std::this_thread::sleep_for(duration);
         }
       }

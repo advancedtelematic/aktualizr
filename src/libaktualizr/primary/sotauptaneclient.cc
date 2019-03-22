@@ -870,7 +870,8 @@ std::unique_ptr<Uptane::Target> SotaUptaneClient::findTargetInDelegationTree(con
   return findTargetHelper(*toplevel_targets, target, 0, false);
 }
 
-result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets) {
+result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets,
+                                                  const api::FlowControlToken *token) {
   // Uptane step 4 - download all the images and verify them against the metadata (for OSTree - pull without
   // deploying)
   std::lock_guard<std::mutex> guard(download_mutex);
@@ -887,7 +888,7 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
     }
   }
   for (auto it = targets.cbegin(); it != targets.cend(); ++it) {
-    auto res = downloadImage(*it);
+    auto res = downloadImage(*it, token);
     if (res.first) {
       downloaded_targets.push_back(res.second);
     }
@@ -909,21 +910,18 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
   return result;
 }
 
-void SotaUptaneClient::pauseFetching() {
-  uptane_fetcher->setPause(true);
-
+void SotaUptaneClient::reportPause() {
   const std::string &correlation_id = director_repo.getCorrelationId();
   report_queue->enqueue(std_::make_unique<DevicePausedReport>(correlation_id));
 }
 
-void SotaUptaneClient::resumeFetching() {
-  uptane_fetcher->setPause(false);
-
+void SotaUptaneClient::reportResume() {
   const std::string &correlation_id = director_repo.getCorrelationId();
   report_queue->enqueue(std_::make_unique<DeviceResumedReport>(correlation_id));
 }
 
-std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target target) {
+std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target target,
+                                                                const api::FlowControlToken *token) {
   // TODO: support downloading encrypted targets from director
   // TODO: check if the file is already there before downloading
 
@@ -937,7 +935,7 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target t
   int tries = 3;
   std::chrono::milliseconds wait(500);
   while ((tries--) != 0) {
-    success = uptane_fetcher->fetchVerifyTarget(target);
+    success = uptane_fetcher->fetchVerifyTarget(target, token);
     if (success) {
       break;
     } else if (tries != 0) {

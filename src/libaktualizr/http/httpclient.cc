@@ -213,12 +213,14 @@ HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times, int64_t si
   return response;
 }
 
-HttpResponse HttpClient::download(const std::string& url, curl_write_callback callback, void* userp, curl_off_t from) {
-  return downloadAsync(url, callback, userp, from, nullptr).get();
+HttpResponse HttpClient::download(const std::string& url, curl_write_callback write_cb,
+                                  curl_xferinfo_callback progress_cb, void* userp, curl_off_t from) {
+  return downloadAsync(url, write_cb, progress_cb, userp, from, nullptr).get();
 }
 
-std::future<HttpResponse> HttpClient::downloadAsync(const std::string& url, curl_write_callback callback, void* userp,
-                                                    curl_off_t from, CurlHandler* easyp) {
+std::future<HttpResponse> HttpClient::downloadAsync(const std::string& url, curl_write_callback write_cb,
+                                                    curl_xferinfo_callback progress_cb, void* userp, curl_off_t from,
+                                                    CurlHandler* easyp) {
   CURL* curl_download = Utils::curlDupHandleWrapper(curl, pkcs11_key);
 
   CurlHandler curlp = CurlHandler(curl_download, curl_easy_cleanup);
@@ -230,8 +232,13 @@ std::future<HttpResponse> HttpClient::downloadAsync(const std::string& url, curl
   curlEasySetoptWrapper(curl_download, CURLOPT_URL, url.c_str());
   curlEasySetoptWrapper(curl_download, CURLOPT_HTTPGET, 1L);
   curlEasySetoptWrapper(curl_download, CURLOPT_FOLLOWLOCATION, 1L);
-  curlEasySetoptWrapper(curl_download, CURLOPT_WRITEFUNCTION, callback);
+  curlEasySetoptWrapper(curl_download, CURLOPT_WRITEFUNCTION, write_cb);
   curlEasySetoptWrapper(curl_download, CURLOPT_WRITEDATA, userp);
+  if (progress_cb != nullptr) {
+    curlEasySetoptWrapper(curl_download, CURLOPT_NOPROGRESS, 0);
+    curlEasySetoptWrapper(curl_download, CURLOPT_XFERINFOFUNCTION, progress_cb);
+    curlEasySetoptWrapper(curl_download, CURLOPT_XFERINFODATA, userp);
+  }
   curlEasySetoptWrapper(curl_download, CURLOPT_TIMEOUT, 0);
   curlEasySetoptWrapper(curl_download, CURLOPT_LOW_SPEED_TIME, speed_limit_time_interval_);
   curlEasySetoptWrapper(curl_download, CURLOPT_LOW_SPEED_LIMIT, speed_limit_bytes_per_sec_);

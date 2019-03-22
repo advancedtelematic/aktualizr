@@ -1168,7 +1168,6 @@ TEST(Aktualizr, APICheck) {
       aktualizr.CheckUpdates();
     }
     std::this_thread::sleep_for(std::chrono::seconds(12));
-    aktualizr.Shutdown();
     // Wait for the Aktualizr dtor to run in order that processing has finished
   }
 
@@ -1184,7 +1183,6 @@ TEST(Aktualizr, APICheck) {
       aktualizr.CheckUpdates();
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(800));
-    aktualizr.Shutdown();
     // Wait for the Aktualizr dtor to run in order that processing has finished
   }
   EXPECT_LT(counter2.total_events(), 100);
