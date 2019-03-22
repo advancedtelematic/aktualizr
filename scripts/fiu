@@ -1,0 +1,144 @@
+#!/usr/bin/env python3
+
+"""fiu wrapper script for string failinfos
+
+This programs wraps fiu-run(1) and fiu-ctrl(1), with the added support of passing arbitrary
+strings (of limited length) to programs with appropriate support (e.g: using "fault_injection.h"
+in this repository).
+
+Usage is `fiu run` instead of `fiu-run` and `fiu ctrl` instead of `fiu-ctrl`, with the added
+caveat that the program invocation part should be separated by `--` if it contains options
+parsed by the corresponding fiu tool.
+
+For example:
+
+    fiu run -c 'enable name=xxx' -- aktualizr -c config_dir
+
+As programs compiled with fiu can only receive integers through the failinfo value, it uses an
+intermediary file as a storage and interprets the integer as some index in the file (actually,
+the id of a 256B sized block).
+
+Note: care should be taken to run multiple `fiu ctrl` sequentially (including from application's
+code!), as there is no lock on the data files.
+"""
+
+import argparse
+import os
+import re
+import tempfile
+
+
+def allocate_info(info_fn, info_str):
+    bs = 256
+    if len(info_str) > bs:
+        raise RuntimeError('Too big info')
+
+    with open(info_fn, 'ab') as f:
+        off = f.tell()
+        f.write(info_str.encode())
+        f.write((bs - len(info_str)) * b'\x00')
+    bid = off // bs
+
+    if bid >= 1 << 31:
+        raise RuntimeError('Info id too big: {}'.format(bid))
+
+    return bid
+
+
+def convert_failinfo(info_fn, instr, high_id=False):
+    def matchf(m):
+        info_id = allocate_info(info_fn, m.group('info'))
+        # high bit controls if the failure is in 'environment' or 'pid' file
+        if high_id:
+            info_id |= 1 << 31
+        return 'failinfo={}'.format(info_id)
+    r = re.sub(r'failinfo=(?P<info>[^,]*)', matchf, instr)
+
+    return r
+
+
+def collect_other_args(args):
+    others = []
+    if hasattr(args, 'f') and args.f is not None:
+        others += ['-f', args.f]
+    if hasattr(args, 'l') and args.l:
+        others += ['-l', args.l]
+    if hasattr(args, 'x') and args.x:
+        others += ['-x']
+    if hasattr(args, 'n') and args.n:
+        others += ['-n']
+
+    return others
+
+
+def do_run(args, *kargs):
+    # Pass failinfo strings in a temporary file whose name is passed through an
+    # environment variable.
+    # It cannot use the pid of the target process because it is not known yet
+    # and trying to get it after launch would lead to potential races.
+
+    # temporary file will be leaked, we can't clean after run because we're exec-ing
+    tf = tempfile.NamedTemporaryFile(prefix='fiu-ctrl-info-')
+    c_with_id = []
+    for c in args.c:
+        c_with_id += ['-c', convert_failinfo(tf.name, c, True)]
+
+    nenv = os.environ.copy()
+    nenv["FIU_INFO_FILE"] = tf.name
+
+    # use exec so that the pid is unchanged (as fiu-run does)
+    # it's especially useful in the dockerized case where keeping pid 1 makes
+    # everything smoother
+    cmd = ["fiu-run", *c_with_id, *collect_other_args(args), *kargs]
+    print('Running: ' + ' '.join(cmd))
+    os.execvpe(cmd[0], cmd, nenv)
+
+
+def do_ctrl(args, *kargs):
+    # Pass failinfo strings in a file whose name can be deducted from the
+    # program's pid
+    pids = args.pid
+    if len(pids) != 1:
+        raise RuntimeError('Can only do one pid at once!')
+    pid = pids[0]
+
+    info_fn = '/tmp/fiu-ctrl-info-{}'.format(pid)
+    c_with_id = []
+    for c in args.c:
+        c_with_id += ['-c', convert_failinfo(info_fn, c)]
+
+    cmd = ["fiu-ctrl", *c_with_id, *collect_other_args(args), pid]
+    print('Running: ' + ' '.join(cmd))
+    os.execvp(cmd[0], cmd)
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Proxy for fiu-run and fiu-ctrl')
+    parser.set_defaults(func=None)
+    subparsers = parser.add_subparsers()
+
+    parser_run = subparsers.add_parser('run')
+    parser_run.add_argument('-c', type=str, action='append', default=[])
+    parser_run.add_argument('-n', action='store_true')
+    parser_run.add_argument('-x', action='store_true')
+    parser_run.add_argument('-f', type=str)
+    parser_run.add_argument('-l', type=str)
+    parser_run.set_defaults(func=do_run)
+
+    parser_ctrl = subparsers.add_parser('ctrl')
+    parser_ctrl.add_argument('-c', type=str, action='append', default=[])
+    parser_ctrl.add_argument('-n', action='store_true')
+    parser_ctrl.add_argument('-f', type=str)
+    parser_ctrl.add_argument('pid', type=str, nargs=1)
+    parser_ctrl.set_defaults(func=do_ctrl)
+    args, passthrough = parser.parse_known_args()
+
+    if args.func is None:
+        parser.print_help()
+        return 0
+
+    return args.func(args, *passthrough)
+
+
+if __name__ == '__main__':
+    main()

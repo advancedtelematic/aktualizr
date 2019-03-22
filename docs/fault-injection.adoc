@@ -18,6 +18,12 @@ For example, when using the fake package manager:
 
     fiu-run -c 'enable name=fake_package_install' aktualizr -c . once
 
+Our wrapper script in `./scripts/fiu` can be used in place, with the added feature of passing strings in failinfo parameters.
+
+Usage is as follow:
+
+    ./scripts/fiu run -c 'enable name=fake_package_install,failinfo=reason' -- aktualizr -c . once
+
 == List of fail points
 
 Please try to keep this list up-to-date when inserting/removing fail points.
@@ -48,12 +54,12 @@ It runs the docker image inside a container with the same permissions as the loc
 
 Then, let's launch aktualizr with `fiu-run`:
 
-    docker run --name aktualizr-fiu -u $(id -u):$(id -g) -w $PWD -v $PWD:$PWD advancedtelematic/aktualizr-app fiu-run aktualizr -c .
+    docker run --name aktualizr-fiu --rm -u $(id -u):$(id -g) -w $PWD -v $PWD:$PWD advancedtelematic/aktualizr-app fiu run -- aktualizr -c .
 
-You can try to install a package now, which will succeed. To make all subsequent installations fail, use:
+You can try to install a package now, which will succeed. To make all subsequent installations fail with the reason "TEST_FAILURE", use:
 
-    docker exec aktualizr-fiu fiu-ctrl -c 'enable name=fake_package_install' 1
+    docker exec aktualizr-fiu fiu ctrl -c 'enable name=fake_package_install,failinfo=TEST_FAILURE' 1
 
 To make installations succeed again:
 
-    docker exec aktualizr-fiu fiu-ctrl -c 'disable name=fake_package_install' 1
+    docker exec aktualizr-fiu fiu ctrl -c 'disable name=fake_package_install' 1

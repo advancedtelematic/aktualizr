@@ -303,6 +303,49 @@ TEST(sqlstorage, DbMigration12to13) {
   }
 }
 
+TEST(sqlstorage, DbMigration18to19) {
+  // it must use raw sql primitives because the SQLStorage object does automatic
+  // migration + the api changes with time
+  auto tdb = makeDbWithVersion(DbVersion(18));
+  SQLite3Guard db(tdb.db_path.c_str());
+
+  // test migration of ecu_serials (wrong order is intended)
+  if (db.exec("INSERT INTO ecu_serials VALUES ('secondary_ecu', 'secondary_hw', 0);", nullptr, nullptr) != SQLITE_OK) {
+    FAIL();
+  }
+
+  if (db.exec("INSERT INTO ecu_serials VALUES ('primary_ecu', 'primary_hw', 1);", nullptr, nullptr) != SQLITE_OK) {
+    FAIL();
+  }
+
+  // run migration
+  if (db.exec(libaktualizr_schema_migrations.at(19), nullptr, nullptr) != SQLITE_OK) {
+    std::cout << db.errmsg() << "\n";
+    FAIL() << "Migration 18 to 19 failed";
+  }
+
+  // check values
+  auto statement = db.prepareStatement("SELECT serial, hardware_id, is_primary FROM ecu_serials ORDER BY id;");
+  if (statement.step() != SQLITE_ROW) {
+    FAIL() << "ecu_serials is empty";
+  }
+
+  EXPECT_EQ(statement.get_result_col_str(0).value(), "primary_ecu");
+  EXPECT_EQ(statement.get_result_col_str(1).value(), "primary_hw");
+  EXPECT_EQ(statement.get_result_col_int(2), 1);
+
+  if (statement.step() != SQLITE_ROW) {
+    FAIL() << "ecu_serials contains only one element";
+  }
+
+  EXPECT_EQ(statement.get_result_col_str(0).value(), "secondary_ecu");
+  EXPECT_EQ(statement.get_result_col_str(1).value(), "secondary_hw");
+  EXPECT_EQ(statement.get_result_col_int(2), 0);
+
+  if (statement.step() != SQLITE_DONE) {
+    FAIL() << "Too many rows";
+  }
+}
 /**
  * Check that old metadata is still valid
  */

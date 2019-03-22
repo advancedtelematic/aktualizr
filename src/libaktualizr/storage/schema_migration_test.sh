@@ -29,7 +29,8 @@ for f in "$SQL_DIR"/migration/migrate.*.sql; do
     fi
 done
 
-R=$(sqldiff "$DB_CUR" "$DB_MIG")
+# ignore the internal 'sqlite_sequence' table, used to track auto-increment ids
+R=$(sqldiff "$DB_CUR" "$DB_MIG" | grep -v '^INSERT INTO sqlite_sequence' || true)
 if [ -z "$R" ]; then
     exit 0
 fi

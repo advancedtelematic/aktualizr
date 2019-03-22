@@ -26,12 +26,12 @@ Uptane::Target PackageManagerFake::getCurrent() const {
 data::InstallationResult PackageManagerFake::install(const Uptane::Target &target) const {
   // fault injection: only enabled with FIU_ENABLE defined
   if (fiu_fail("fake_package_install") != 0) {
-    std::string failure_cause = fault_injection_get_parameter("fault_fake_package_install_cause");
+    std::string failure_cause = fault_injection_last_info();
     if (failure_cause.empty()) {
-      failure_cause = "Installation failed";
+      return data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, "");
     }
     LOG_DEBUG << "Causing installation failure with message: " << failure_cause;
-    return data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, failure_cause);
+    return data::InstallationResult(data::ResultCode(data::ResultCode::Numeric::kInstallFailed, failure_cause), "");
   }
 
   if (config.fake_need_reboot) {
@@ -46,7 +46,7 @@ data::InstallationResult PackageManagerFake::install(const Uptane::Target &targe
   }
 
   storage_->savePrimaryInstalledVersion(target, InstalledVersionUpdateMode::kCurrent);
-  return data::InstallationResult(data::ResultCode::Numeric::kOk, "Installing fake package was successful");
+  return data::InstallationResult(data::ResultCode::Numeric::kOk, "Installing package was successful");
 }
 
 void PackageManagerFake::completeInstall() const {

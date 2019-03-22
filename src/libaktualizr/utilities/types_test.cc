@@ -36,8 +36,11 @@ TEST(Types, ResultCode) {
   EXPECT_EQ(ok_res.num_code, data::ResultCode::Numeric::kOk);
   EXPECT_EQ(ok_res.toString(), "OK");
   std::string repr = ok_res.toRepr();
-  EXPECT_EQ(repr, "OK:0");
+  EXPECT_EQ(repr, "\"OK\":0");
   EXPECT_EQ(data::ResultCode::fromRepr(repr), ok_res);
+
+  // legacy format
+  EXPECT_EQ(data::ResultCode::fromRepr("OK:0"), ok_res);
 
   // !
   EXPECT_NE(ok_res, data::ResultCode(data::ResultCode::Numeric::kOk, "OK2"));

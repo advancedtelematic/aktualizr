@@ -73,6 +73,10 @@ if(TESTSUITE_VALGRIND)
     set_tests_properties(test_leak PROPERTIES WILL_FAIL TRUE)
 endif()
 
+if(FAULT_INJECTION)
+    add_aktualizr_test(NAME fiuinfo SOURCES fiuinfo_test.cc NO_VALGRIND LAUNCH_CMD ${PROJECT_SOURCE_DIR}/scripts/fiu run -c "enable name=fail,failinfo=fiurun_failure" -- ARGS ${PROJECT_SOURCE_DIR}/scripts/fiu)
+endif()
+
 
 add_executable(aktualizr_uptane_vector_tests uptane_vector_tests.cc)
 target_link_libraries(aktualizr_uptane_vector_tests aktualizr_static_lib ${TEST_LIBS})

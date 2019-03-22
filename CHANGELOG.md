@@ -6,6 +6,10 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ## [??? (unreleased)]
 
+### Changed
+
+- Device installation failure result codes are deduced as concatenation of ECU failure result codes
+
 ## [2019.2] - 2019-02-21
 
 ### Added

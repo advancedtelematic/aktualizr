@@ -766,8 +766,8 @@ void SQLStorage::storeEcuSerials(const EcuSerials& serials) {
     std::string serial = serials[0].first.ToString();
     std::string hwid = serials[0].second.ToString();
     {
-      auto statement =
-          db.prepareStatement<std::string, std::string>("INSERT INTO ecu_serials VALUES (?,?,1);", serial, hwid);
+      auto statement = db.prepareStatement<std::string, std::string>(
+          "INSERT INTO ecu_serials(id, serial,hardware_id,is_primary) VALUES (0, ?,?,1);", serial, hwid);
       if (statement.step() != SQLITE_DONE) {
         LOG_ERROR << "Can't set ecu_serial: " << db.errmsg();
         return;
@@ -783,10 +783,10 @@ void SQLStorage::storeEcuSerials(const EcuSerials& serials) {
       }
     }
 
-    EcuSerials::const_iterator it;
-    for (it = serials.begin() + 1; it != serials.end(); it++) {
-      auto statement = db.prepareStatement<std::string, std::string>("INSERT INTO ecu_serials VALUES (?,?,0);",
-                                                                     it->first.ToString(), it->second.ToString());
+    for (auto it = serials.cbegin() + 1; it != serials.cend(); it++) {
+      auto statement = db.prepareStatement<int64_t, std::string, std::string>(
+          "INSERT INTO ecu_serials(id,serial,hardware_id) VALUES (?,?,?);", it - serials.cbegin(), it->first.ToString(),
+          it->second.ToString());
 
       if (statement.step() != SQLITE_DONE) {
         LOG_ERROR << "Can't set ecu_serial: " << db.errmsg();
@@ -801,7 +801,8 @@ void SQLStorage::storeEcuSerials(const EcuSerials& serials) {
 bool SQLStorage::loadEcuSerials(EcuSerials* serials) {
   SQLite3Guard db = dbConnection();
 
-  auto statement = db.prepareStatement("SELECT serial, hardware_id FROM ecu_serials ORDER BY is_primary DESC;");
+  // order by auto-incremented primary key so that the ecu order is kept constant
+  auto statement = db.prepareStatement("SELECT serial, hardware_id FROM ecu_serials ORDER BY id;");
   int statement_state;
 
   EcuSerials new_serials;
@@ -1081,8 +1082,10 @@ bool SQLStorage::loadEcuInstallationResults(
 
   std::vector<std::pair<Uptane::EcuSerial, data::InstallationResult>> ecu_res;
 
-  auto statement =
-      db.prepareStatement("SELECT ecu_serial, success, result_code, description FROM ecu_installation_results;");
+  // keep the same order as in ecu_serials (start with primary)
+  auto statement = db.prepareStatement(
+      "SELECT ecu_serial, success, result_code, description FROM ecu_installation_results INNER JOIN ecu_serials ON "
+      "ecu_serials.serial = ecu_serial ORDER BY ecu_serials.id;");
   int statement_result = statement.step();
   if (statement_result != SQLITE_DONE && statement_result != SQLITE_ROW) {
     LOG_ERROR << "Can't get ecu_installation_results: " << db.errmsg();
