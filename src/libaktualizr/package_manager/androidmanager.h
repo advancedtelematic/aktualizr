@@ -24,8 +24,6 @@ class AndroidManager : public PackageManagerInterface {
 
  private:
   bool installationAborted(std::string* errorMessage) const;
-  std::shared_ptr<INvStorage> storage_;
-  std::shared_ptr<Bootloader> bootloader_;
   static const std::string data_ota_package_dir_;
 };
 
