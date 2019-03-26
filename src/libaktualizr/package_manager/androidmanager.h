@@ -1,16 +1,15 @@
 #ifndef ANDROIDMANAGER_H
 #define ANDROIDMANAGER_H
 
-#include "bootloader/bootloader.h"
 #include "package_manager/packagemanagerinterface.h"
-#include "storage/invstorage.h"
 
 class AndroidInstallationDispatcher;
 
 class AndroidManager : public PackageManagerInterface {
  public:
-  explicit AndroidManager(std::shared_ptr<INvStorage> storage, std::shared_ptr<Bootloader> bootloader)
-      : storage_(std::move(storage)), bootloader_(std::move(bootloader)) {}
+  explicit AndroidManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage,
+                          std::shared_ptr<Bootloader> bootloader, std::shared_ptr<HttpInterface> http)
+      : PackageManagerInterface(std::move(pconfig), std::move(storage), std::move(bootloader), std::move(http)) {}
   ~AndroidManager() override = default;
   std::string name() const override { return "android"; }
   Json::Value getInstalledPackages() const override;
@@ -25,8 +24,6 @@ class AndroidManager : public PackageManagerInterface {
 
  private:
   bool installationAborted(std::string* errorMessage) const;
-  std::shared_ptr<INvStorage> storage_;
-  std::shared_ptr<Bootloader> bootloader_;
   static const std::string data_ota_package_dir_;
 };
 

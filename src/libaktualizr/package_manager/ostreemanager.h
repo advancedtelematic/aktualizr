@@ -7,12 +7,9 @@
 #include <glib/gi18n.h>
 #include <ostree.h>
 
-#include "bootloader/bootloader.h"
 #include "crypto/keymanager.h"
-#include "packagemanagerconfig.h"
 #include "packagemanagerinterface.h"
 #include "utilities/apiqueue.h"
-#include "utilities/types.h"
 
 const char remote[] = "aktualizr-remote";
 
@@ -42,7 +39,8 @@ struct PullMetaStruct {
 
 class OstreeManager : public PackageManagerInterface {
  public:
-  OstreeManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage, std::shared_ptr<Bootloader> bootloader);
+  OstreeManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage, std::shared_ptr<Bootloader> bootloader,
+                std::shared_ptr<HttpInterface> http);
   ~OstreeManager() override = default;
   std::string name() const override { return "ostree"; }
   Json::Value getInstalledPackages() const override;
@@ -51,6 +49,8 @@ class OstreeManager : public PackageManagerInterface {
   data::InstallationResult install(const Uptane::Target &target) const override;
   void completeInstall() const override;
   data::InstallationResult finalizeInstall(const Uptane::Target &target) const override;
+  bool fetchTarget(const Uptane::Target &target, Uptane::Fetcher &fetcher, const KeyManager &keys,
+                   FetcherProgressCb progress_cb, const api::FlowControlToken *token) override;
 
   GObjectUniquePtr<OstreeDeployment> getStagedDeployment() const;
   static GObjectUniquePtr<OstreeSysroot> LoadSysroot(const boost::filesystem::path &path);
@@ -60,11 +60,6 @@ class OstreeManager : public PackageManagerInterface {
                                        const KeyManager &keys, const Uptane::Target &target,
                                        const api::FlowControlToken *token = nullptr,
                                        OstreeProgressCb progress_cb = nullptr);
-
- private:
-  PackageConfig config;
-  std::shared_ptr<INvStorage> storage_;
-  std::shared_ptr<Bootloader> bootloader_;
 };
 
 #endif  // OSTREE_H_

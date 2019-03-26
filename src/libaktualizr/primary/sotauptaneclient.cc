@@ -57,16 +57,11 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage
       bootloader(std::move(bootloader_in)),
       report_queue(std::move(report_queue_in)),
       events_channel(std::move(events_channel_in)) {
-  // translate progress reports from the fetcher to actual API events
-  auto prog_cb = [this](const Uptane::Target &target, const std::string description, unsigned int progress) {
-    report_progress_cb(events_channel.get(), target, description, progress);
-  };
-
-  uptane_fetcher = std::make_shared<Uptane::Fetcher>(config, storage, http, prog_cb);
+  uptane_fetcher = std::make_shared<Uptane::Fetcher>(config, http);
 
   // consider boot successful as soon as we started, missing internet connection or connection to secondaries are not
   // proper reasons to roll back
-  package_manager_ = PackageManagerFactory::makePackageManager(config.pacman, storage, bootloader);
+  package_manager_ = PackageManagerFactory::makePackageManager(config.pacman, storage, bootloader, http);
   if (package_manager_->imageUpdated()) {
     bootloader->setBootOK();
   }
@@ -935,8 +930,15 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target t
   const int max_tries = 3;
   int tries = 0;
   std::chrono::milliseconds wait(500);
+
+  KeyManager keys(storage, config.keymanagerConfig());
+  keys.loadKeys();
+  auto prog_cb = [this](const Uptane::Target &t, const std::string description, unsigned int progress) {
+    report_progress_cb(events_channel.get(), t, description, progress);
+  };
+
   while (tries++ < max_tries) {
-    success = uptane_fetcher->fetchVerifyTarget(target, token);
+    success = package_manager_->fetchTarget(target, *uptane_fetcher, keys, prog_cb, token);
     if (success) {
       break;
     } else if (tries < max_tries) {

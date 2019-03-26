@@ -223,12 +223,20 @@ data::InstallationResult OstreeManager::finalizeInstall(const Uptane::Target &ta
 }
 
 OstreeManager::OstreeManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage,
-                             std::shared_ptr<Bootloader> bootloader)
-    : config(std::move(pconfig)), storage_(std::move(storage)), bootloader_(std::move(bootloader)) {
+                             std::shared_ptr<Bootloader> bootloader, std::shared_ptr<HttpInterface> http)
+    : PackageManagerInterface(std::move(pconfig), std::move(storage), std::move(bootloader), std::move(http)) {
   GObjectUniquePtr<OstreeSysroot> sysroot_smart = OstreeManager::LoadSysroot(config.sysroot);
   if (sysroot_smart == nullptr) {
     throw std::runtime_error("Could not find OSTree sysroot at: " + config.sysroot.string());
   }
+}
+
+bool OstreeManager::fetchTarget(const Uptane::Target &target, Uptane::Fetcher &fetcher, const KeyManager &keys,
+                                FetcherProgressCb progress_cb, const api::FlowControlToken *token) {
+  if (!target.IsOstree()) {
+    return PackageManagerInterface::fetchTarget(target, fetcher, keys, progress_cb, token);
+  }
+  return OstreeManager::pull(config.sysroot, config.ostree_server, keys, target, token, progress_cb).success;
 }
 
 Json::Value OstreeManager::getInstalledPackages() const {

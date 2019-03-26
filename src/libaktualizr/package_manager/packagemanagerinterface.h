@@ -4,11 +4,25 @@
 #include <mutex>
 #include <string>
 
-#include "uptane/tuf.h"
+#include "bootloader/bootloader.h"
+#include "crypto/keymanager.h"
+#include "http/httpinterface.h"
+#include "packagemanagerconfig.h"
+#include "storage/invstorage.h"
+#include "uptane/fetcher.h"
+#include "utilities/apiqueue.h"
 #include "utilities/types.h"
+
+using FetcherProgressCb = std::function<void(const Uptane::Target&, const std::string&, unsigned int)>;
 
 class PackageManagerInterface {
  public:
+  PackageManagerInterface(PackageConfig pconfig, std::shared_ptr<INvStorage> storage,
+                          std::shared_ptr<Bootloader> bootloader, std::shared_ptr<HttpInterface> http)
+      : config(std::move(pconfig)),
+        storage_(std::move(storage)),
+        bootloader_(std::move(bootloader)),
+        http_(std::move(http)) {}
   virtual ~PackageManagerInterface() = default;
   virtual std::string name() const = 0;
   virtual Json::Value getInstalledPackages() const = 0;
@@ -17,6 +31,8 @@ class PackageManagerInterface {
   virtual void completeInstall() const { throw std::runtime_error("Unimplemented"); };
   virtual data::InstallationResult finalizeInstall(const Uptane::Target& target) const = 0;
   virtual bool imageUpdated() = 0;
+  virtual bool fetchTarget(const Uptane::Target& target, Uptane::Fetcher& fetcher, const KeyManager& keys,
+                           FetcherProgressCb progress_cb, const api::FlowControlToken* token);
 
   // only returns the version
   Json::Value getManifest(const Uptane::EcuSerial& ecu_serial) const {
@@ -34,6 +50,11 @@ class PackageManagerInterface {
     unsigned_ecu_version["timeserver_time"] = "1970-01-01T00:00:00Z";
     return unsigned_ecu_version;
   }
-};
 
+ protected:
+  PackageConfig config;
+  std::shared_ptr<INvStorage> storage_;
+  std::shared_ptr<Bootloader> bootloader_;
+  std::shared_ptr<HttpInterface> http_;
+};
 #endif  // PACKAGEMANAGERINTERFACE_H_
