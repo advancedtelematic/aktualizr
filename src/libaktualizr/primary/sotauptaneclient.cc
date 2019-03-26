@@ -429,44 +429,10 @@ bool SotaUptaneClient::updateImagesMeta() {
 }
 
 bool SotaUptaneClient::checkDirectorMetaOffline() {
-  director_repo.resetMeta();
-  // Load Director Root Metadata
-  {
-    std::string director_root;
-    if (!storage->loadLatestRoot(&director_root, Uptane::RepositoryType::Director())) {
-      return false;
-    }
-
-    if (!director_repo.initRoot(director_root)) {
-      last_exception = director_repo.getLastException();
-      return false;
-    }
-
-    if (director_repo.rootExpired()) {
-      last_exception = Uptane::ExpiredMetadata("director", "root");
-      return false;
-    }
+  if (!director_repo.checkMetaOffline(*storage)) {
+    last_exception = director_repo.getLastException();
+    return false;
   }
-
-  // Load Director Targets Metadata
-  {
-    std::string director_targets;
-
-    if (!storage->loadNonRoot(&director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets())) {
-      return false;
-    }
-
-    if (!director_repo.verifyTargets(director_targets)) {
-      last_exception = director_repo.getLastException();
-      return false;
-    }
-
-    if (director_repo.targetsExpired()) {
-      last_exception = Uptane::ExpiredMetadata("director", "targets");
-      return false;
-    }
-  }
-
   return true;
 }
 

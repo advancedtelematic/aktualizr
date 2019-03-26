@@ -20,4 +20,42 @@ bool DirectorRepository::verifyTargets(const std::string& targets_raw) {
   return true;
 }
 
+bool DirectorRepository::checkMetaOffline(INvStorage& storage) {
+  resetMeta();
+  // Load Director Root Metadata
+  {
+    std::string director_root;
+    if (!storage.loadLatestRoot(&director_root, RepositoryType::Director())) {
+      return false;
+    }
+
+    if (!initRoot(director_root)) {
+      return false;
+    }
+
+    if (rootExpired()) {
+      return false;
+    }
+  }
+
+  // Load Director Targets Metadata
+  {
+    std::string director_targets;
+
+    if (!storage.loadNonRoot(&director_targets, RepositoryType::Director(), Role::Targets())) {
+      return false;
+    }
+
+    if (!verifyTargets(director_targets)) {
+      return false;
+    }
+
+    if (targetsExpired()) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 }  // namespace Uptane
