@@ -289,4 +289,75 @@ bool ImagesRepository::updateMeta(INvStorage& storage, Fetcher& fetcher) {
   return true;
 }
 
+bool ImagesRepository::checkMetaOffline(INvStorage& storage) {
+  resetMeta();
+  // Load Images Root Metadata
+  {
+    std::string images_root;
+    if (!storage.loadLatestRoot(&images_root, RepositoryType::Image())) {
+      return false;
+    }
+
+    if (!initRoot(images_root)) {
+      return false;
+    }
+
+    if (rootExpired()) {
+      return false;
+    }
+  }
+
+  // Load Images Timestamp Metadata
+  {
+    std::string images_timestamp;
+    if (!storage.loadNonRoot(&images_timestamp, RepositoryType::Image(), Role::Timestamp())) {
+      return false;
+    }
+
+    if (!verifyTimestamp(images_timestamp)) {
+      return false;
+    }
+
+    if (timestampExpired()) {
+      return false;
+    }
+  }
+
+  // Load Images Snapshot Metadata
+  {
+    std::string images_snapshot;
+
+    if (!storage.loadNonRoot(&images_snapshot, RepositoryType::Image(), Role::Snapshot())) {
+      return false;
+    }
+
+    if (!verifySnapshot(images_snapshot)) {
+      return false;
+    }
+
+    if (snapshotExpired()) {
+      return false;
+    }
+  }
+
+  // Load Images Targets Metadata
+  {
+    std::string images_targets;
+    Role targets_role = Uptane::Role::Targets();
+    if (!storage.loadNonRoot(&images_targets, RepositoryType::Image(), targets_role)) {
+      return false;
+    }
+
+    if (!verifyTargets(images_targets)) {
+      return false;
+    }
+
+    if (targetsExpired()) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 }  // namespace Uptane

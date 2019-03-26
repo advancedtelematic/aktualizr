@@ -471,81 +471,10 @@ bool SotaUptaneClient::checkDirectorMetaOffline() {
 }
 
 bool SotaUptaneClient::checkImagesMetaOffline() {
-  images_repo.resetMeta();
-  // Load Images Root Metadata
-  {
-    std::string images_root;
-    if (!storage->loadLatestRoot(&images_root, Uptane::RepositoryType::Image())) {
-      return false;
-    }
-
-    if (!images_repo.initRoot(images_root)) {
-      last_exception = images_repo.getLastException();
-      return false;
-    }
-
-    if (images_repo.rootExpired()) {
-      last_exception = Uptane::ExpiredMetadata("repo", "root");
-      return false;
-    }
+  if (!images_repo.checkMetaOffline(*storage)) {
+    last_exception = images_repo.getLastException();
+    return false;
   }
-
-  // Load Images Timestamp Metadata
-  {
-    std::string images_timestamp;
-    if (!storage->loadNonRoot(&images_timestamp, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp())) {
-      return false;
-    }
-
-    if (!images_repo.verifyTimestamp(images_timestamp)) {
-      last_exception = images_repo.getLastException();
-      return false;
-    }
-
-    if (images_repo.timestampExpired()) {
-      last_exception = Uptane::ExpiredMetadata("repo", "timestamp");
-      return false;
-    }
-  }
-
-  // Load Images Snapshot Metadata
-  {
-    std::string images_snapshot;
-
-    if (!storage->loadNonRoot(&images_snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot())) {
-      return false;
-    }
-
-    if (!images_repo.verifySnapshot(images_snapshot)) {
-      last_exception = images_repo.getLastException();
-      return false;
-    }
-
-    if (images_repo.snapshotExpired()) {
-      last_exception = Uptane::ExpiredMetadata("repo", "snapshot");
-      return false;
-    }
-  }
-
-  // Load Images Targets Metadata
-  {
-    std::string images_targets;
-    Uptane::Role targets_role = Uptane::Role::Targets();
-    if (!storage->loadNonRoot(&images_targets, Uptane::RepositoryType::Image(), targets_role)) {
-      return false;
-    }
-
-    if (!images_repo.verifyTargets(images_targets)) {
-      last_exception = images_repo.getLastException();
-      return false;
-    }
-
-    if (images_repo.targetsExpired()) {
-      last_exception = Uptane::ExpiredMetadata("repo", "targets");
-      return false;
-    }
-  }
-
   return true;
 }
 

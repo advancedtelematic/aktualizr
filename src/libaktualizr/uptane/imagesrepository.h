@@ -37,6 +37,7 @@ class ImagesRepository : public RepositoryCommon {
   int getRoleVersion(const Uptane::Role& role) const;
   int64_t getRoleSize(const Uptane::Role& role) const;
 
+  bool checkMetaOffline(INvStorage& storage);
   bool updateMeta(INvStorage& storage, Fetcher& fetcher);
 
  private:
