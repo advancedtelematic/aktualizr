@@ -64,8 +64,21 @@ data::InstallationResult PackageManagerFake::finalizeInstall(const Uptane::Targe
   }
 
   data::InstallationResult install_res;
+
   if (target == targets[pending_version]) {
-    install_res = data::InstallationResult(data::ResultCode::Numeric::kOk, "Installing fake package was successful");
+    if (fiu_fail("fake_install_finalization_failure") != 0) {
+      std::string failure_cause = fault_injection_last_info();
+      if (failure_cause.empty()) {
+        install_res = data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, "");
+      } else {
+        install_res =
+            data::InstallationResult(data::ResultCode(data::ResultCode::Numeric::kInstallFailed, failure_cause),
+                                     "Failed to finalize the pending update installation");
+      }
+    } else {
+      install_res = data::InstallationResult(data::ResultCode::Numeric::kOk, "Installing fake package was successful");
+    }
+
   } else {
     install_res =
         data::InstallationResult(data::ResultCode::Numeric::kInternalError, "Pending and new target do not match");

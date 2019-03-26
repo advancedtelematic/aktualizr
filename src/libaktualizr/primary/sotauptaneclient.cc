@@ -361,43 +361,74 @@ bool SotaUptaneClient::checkImagesMetaOffline() {
 
 void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult *result,
                                                        const std::string &correlation_id) {
-  data::InstallationResult dev_result;
+  data::InstallationResult device_installation_result =
+      data::InstallationResult(data::ResultCode::Numeric::kOk, "Device has been successfully installed");
+  std::string raw_installation_report = "Installation succesful";
 
-  std::vector<std::pair<Uptane::EcuSerial, data::InstallationResult>> ecu_results;
-  if (!storage->loadEcuInstallationResults(&ecu_results)) {
-    dev_result.success = false;
-    dev_result.result_code = data::ResultCode::Numeric::kInternalError;
-    dev_result.description = "Unable to get installation results from ecus";
-  } else {
-    std::string dev_code;
+  do {
+    std::vector<std::pair<Uptane::EcuSerial, data::InstallationResult>> ecu_results;
+
+    if (!storage->loadEcuInstallationResults(&ecu_results)) {
+      // failed to load ECUs' installation result
+      device_installation_result = data::InstallationResult(data::ResultCode::Numeric::kInternalError,
+                                                            "Unable to get installation results from ecus");
+      raw_installation_report = "Failed to load ECUs' installation result";
+
+      break;
+    }
+
+    std::string result_code_err_str;
 
     for (const auto &r : ecu_results) {
-      if (hw_ids.find(r.first) == hw_ids.end()) {
-        dev_result.success = false;
-        dev_result.result_code = data::ResultCode::Numeric::kInternalError;
-        dev_result.description = "Unable to get installation results from ecus";
+      auto ecu_serial = r.first;
+      auto installation_res = r.second;
+
+      if (hw_ids.find(ecu_serial) == hw_ids.end()) {
+        // couldn't find any ECU with the given serial/ID
+        device_installation_result = data::InstallationResult(data::ResultCode::Numeric::kInternalError,
+                                                              "Unable to get installation results from ecus");
+
+        raw_installation_report = "Couldn't find any ECU with the given serial: " + ecu_serial.ToString();
+
+        break;
+      }
+
+      if (installation_res.needCompletion()) {
+        // one of the ECUs needs completion, aka an installation finalization
+        device_installation_result =
+            data::InstallationResult(data::ResultCode::Numeric::kNeedCompletion,
+                                     "ECU needs completion/finalization to be installed: " + ecu_serial.ToString());
+        raw_installation_report = "ECU needs completion/finalization to be installed: " + ecu_serial.ToString();
+
+        break;
       }
 
       // format:
       // ecu1_hwid:failure1|ecu2_hwid:failure2
-      if (!r.second.success) {
-        dev_result.success = false;
-        std::string hwid = hw_ids.at(r.first).ToString();
-        std::string ecu_code_str = hwid + ":" + r.second.result_code.toString();
-        dev_code += (dev_code != "" ? "|" : "") + ecu_code_str;
+      if (!installation_res.isSuccess()) {
+        std::string ecu_code_str = hw_ids.at(ecu_serial).ToString() + ":" + installation_res.result_code.toString();
+        result_code_err_str += (result_code_err_str != "" ? "|" : "") + ecu_code_str;
       }
     }
-    if (!dev_result.success) {
-      dev_result.result_code = data::ResultCode(data::ResultCode::Numeric::kInstallFailed, dev_code);
-      dev_result.description = "Installation failed on at least one ecu";
+
+    if (!result_code_err_str.empty()) {
+      // installation on at least one of the ECUs has failed
+      device_installation_result =
+          data::InstallationResult(data::ResultCode(data::ResultCode::Numeric::kInstallFailed, result_code_err_str),
+                                   "Installation failed on at least one of ECUs");
+      raw_installation_report = "Installation failed on at least one of ECUs";
+
+      break;
     }
-  }
+
+  } while (false);
 
   if (result != nullptr) {
-    *result = dev_result;
+    *result = device_installation_result;
   }
 
-  storage->storeDeviceInstallationResult(dev_result, "Installation succesful", correlation_id);
+  // TODO: think of exception handling,  the SQLite related code can throw exceptions
+  storage->storeDeviceInstallationResult(device_installation_result, raw_installation_report, correlation_id);
 }
 
 bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, unsigned int *ecus_count) {
@@ -837,12 +868,12 @@ void SotaUptaneClient::completeInstall() {
 
 bool SotaUptaneClient::putManifestSimple() {
   // does not send event, so it can be used as a subset of other steps
-  auto manifest = AssembleManifest();
   if (hasPendingUpdates()) {
     LOG_DEBUG << "An update is pending. Skipping manifest upload until installation is complete";
     return false;
   }
 
+  auto manifest = AssembleManifest();
   auto signed_manifest = uptane_manifest.signManifest(manifest);
   HttpResponse response = http->put(config.uptane.director_server + "/manifest", signed_manifest);
   if (response.isOk()) {
@@ -1051,7 +1082,7 @@ std::vector<result::Install::EcuReport> SotaUptaneClient::sendImagesToEcus(const
 
   for (auto &f : firmwareFutures) {
     // failure
-    if (fiu_fail((std::string("secondary_install_") + f.first.serial.ToString()).c_str())) {
+    if (fiu_fail((std::string("secondary_install_") + f.first.serial.ToString()).c_str()) != 0) {
       f.first.install_res = data::InstallationResult(
           data::ResultCode(data::ResultCode::Numeric::kInstallFailed, fault_injection_last_info()), "");
       storage->saveEcuInstallationResult(f.first.serial, f.first.install_res);

@@ -22,7 +22,7 @@ These are the primary actions that a user of libaktualizr can perform through th
     - [x] Store installation result (aktualizr_test.cc)
     - [x] Send manifest (aktualizr_test.cc)
     - [x] Update is not in pending state anymore after successful finalization (aktualizr_test.cc)
-    - [ ] Update is not in pending state anymore after failed finalization
+    - [x] Update is not in pending state anymore after failed finalization (aktualizr_test.cc)
   - [x] Provision with the server
     - [x] Automatically provision (OTA-983, uptane_init_test.cc, uptane_ci_test.cc, auto_prov_test.py)
       - [x] Extract credentials from a provided archive (config_test.cc, utils_test.cc)
@@ -96,8 +96,6 @@ These are the primary actions that a user of libaktualizr can perform through th
 - [x] Pause and Resume the API
   - [x] Suspend API calls during pause
   - [x] Catch up with calls queue after resume
-  - [ ] Pause ongoing download
-  - [ ] Resume ongoing download
 - [x] Download updates
   - [x] Find requested target
     - [x] Search first-order delegations (uptane_delegation_test.cc)
@@ -163,7 +161,8 @@ These are the primary actions that a user of libaktualizr can perform through th
       - [x] Send an event report (see below)
   - [x] Store installation result for device (uptane_test.cc)
   - [x] Compute device installation failure code as concatenation of ECU failure codes (aktualizr_test.cc)
-  - [ ] Store negative device installation result when an ECU installation failed
+  - [x] Store negative device installation result when an ECU installation failed (aktualizr_test.cc)
+  - [x] Update is not in pending state anymore after failed installation (aktualizr_test.cc)
   - [x] Send AllInstallsComplete event after all installations are finished (aktualizr_test.cc)
 - [x] Send installation report
   - [x] Generate and send manifest (see below)

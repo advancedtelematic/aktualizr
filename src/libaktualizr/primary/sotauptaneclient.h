@@ -70,6 +70,8 @@ class SotaUptaneClient {
   FRIEND_TEST(Aktualizr, FullMultipleSecondaries);
   FRIEND_TEST(Aktualizr, CheckNoUpdates);
   FRIEND_TEST(Aktualizr, DownloadWithUpdates);
+  FRIEND_TEST(Aktualizr, FinalizationFailure);
+  FRIEND_TEST(Aktualizr, InstallationFailure);
   FRIEND_TEST(Aktualizr, AutoRebootAfterUpdate);
   FRIEND_TEST(Uptane, AssembleManifestGood);
   FRIEND_TEST(Uptane, AssembleManifestBad);
