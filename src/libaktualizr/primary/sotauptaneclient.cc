@@ -327,96 +327,10 @@ bool SotaUptaneClient::updateMeta() {
 }
 
 bool SotaUptaneClient::updateDirectorMeta() {
-  // Uptane step 2 (download time) is not implemented yet.
-  // Uptane step 3 (download metadata)
-
-  // reset director repo to initial state before starting UPTANE iteration
-  director_repo.resetMeta();
-  // Load Initial Director Root Metadata
-  {
-    std::string director_root;
-    if (storage->loadLatestRoot(&director_root, Uptane::RepositoryType::Director())) {
-      if (!director_repo.initRoot(director_root)) {
-        last_exception = director_repo.getLastException();
-        return false;
-      }
-    } else {
-      if (!uptane_fetcher->fetchRole(&director_root, Uptane::kMaxRootSize, Uptane::RepositoryType::Director(),
-                                     Uptane::Role::Root(), Uptane::Version(1))) {
-        return false;
-      }
-      if (!director_repo.initRoot(director_root)) {
-        last_exception = director_repo.getLastException();
-        return false;
-      }
-      storage->storeRoot(director_root, Uptane::RepositoryType::Director(), Uptane::Version(1));
-    }
+  if (!director_repo.updateMeta(*storage, *uptane_fetcher)) {
+    last_exception = director_repo.getLastException();
+    return false;
   }
-
-  // Update Director Root Metadata
-  {
-    std::string director_root;
-    if (!uptane_fetcher->fetchLatestRole(&director_root, Uptane::kMaxRootSize, Uptane::RepositoryType::Director(),
-                                         Uptane::Role::Root())) {
-      return false;
-    }
-    int remote_version = Uptane::extractVersionUntrusted(director_root);
-    int local_version = director_repo.rootVersion();
-
-    for (int version = local_version + 1; version <= remote_version; ++version) {
-      if (!uptane_fetcher->fetchRole(&director_root, Uptane::kMaxRootSize, Uptane::RepositoryType::Director(),
-                                     Uptane::Role::Root(), Uptane::Version(version))) {
-        return false;
-      }
-
-      if (!director_repo.verifyRoot(director_root)) {
-        last_exception = director_repo.getLastException();
-        return false;
-      }
-      storage->storeRoot(director_root, Uptane::RepositoryType::Director(), Uptane::Version(version));
-      storage->clearNonRootMeta(Uptane::RepositoryType::Director());
-    }
-
-    if (director_repo.rootExpired()) {
-      last_exception = Uptane::ExpiredMetadata("director", "root");
-      return false;
-    }
-  }
-  // Update Director Targets Metadata
-  {
-    std::string director_targets;
-
-    if (!uptane_fetcher->fetchLatestRole(&director_targets, Uptane::kMaxDirectorTargetsSize,
-                                         Uptane::RepositoryType::Director(), Uptane::Role::Targets())) {
-      return false;
-    }
-    int remote_version = Uptane::extractVersionUntrusted(director_targets);
-
-    int local_version;
-    std::string director_targets_stored;
-    if (storage->loadNonRoot(&director_targets_stored, Uptane::RepositoryType::Director(), Uptane::Role::Targets())) {
-      local_version = Uptane::extractVersionUntrusted(director_targets_stored);
-    } else {
-      local_version = -1;
-    }
-
-    if (!director_repo.verifyTargets(director_targets)) {
-      last_exception = director_repo.getLastException();
-      return false;
-    }
-
-    if (local_version > remote_version) {
-      return false;
-    } else if (local_version < remote_version) {
-      storage->storeNonRoot(director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets());
-    }
-
-    if (director_repo.targetsExpired()) {
-      last_exception = Uptane::ExpiredMetadata("director", "targets");
-      return false;
-    }
-  }
-
   return true;
 }
 
