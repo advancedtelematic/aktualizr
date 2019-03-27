@@ -81,7 +81,7 @@ Implicit provisioning can be simulated with `aktualizr-cert-provider` without ne
 
 // tag::quick-instructions[]
 
-1. In meta-updater, set `SOTA_CLIENT_FEATURES = "hsm"`, `SOTA_CLIENT_PROV = "aktualizr-hsm-prov"`, `SOTA_DEPLOY_CREDENTIALS = "0"`, and `IMAGE_INSTALL_append = " softhsm-testtoken "`. Currently, you will also need to set `SOTA_PACKED_CREDENTIALS` to provisioning credentials zip file.
+1. In local.conf, set `SOTA_CLIENT_FEATURES = "hsm"`, `SOTA_CLIENT_PROV = "aktualizr-hsm-prov"`, `SOTA_DEPLOY_CREDENTIALS = "0"`, and `IMAGE_INSTALL_append = " softhsm-testtoken "`. Currently, you will also need to set `SOTA_PACKED_CREDENTIALS` to provisioning credentials zip file.
 1. Build a standard image using bitbake.
 1. Boot the image.
 1. Optionally, verify that Aktualizr has not provisioned and that the device is not known to the server.
