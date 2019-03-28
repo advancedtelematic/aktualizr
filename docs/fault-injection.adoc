@@ -28,7 +28,8 @@ Usage is as follow:
 
 Please try to keep this list up-to-date when inserting/removing fail points.
 
-- `fake_package_install`: make the fake package manager installation to fail with a generic error code
+- `fake_package_install`: make the fake package manager installation to fail, optionally with a failure code supplied via `failinfo`
+- `secondary_install_xxx` (xxx is a virtual secondary ecu id): make a virtual secondary installation to fail, optionally with a failure code supplied via `failinfo`
 
 == Use in unit tests
 
