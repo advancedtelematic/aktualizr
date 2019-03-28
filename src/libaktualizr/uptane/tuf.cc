@@ -361,13 +361,19 @@ void Uptane::Snapshot::init(const Json::Value &json) {
         it.key().asString().substr(0, it.key().asString().rfind('.'));  // strip extension from the role name
     auto role_object = Role(role_name, !Role::IsReserved(role_name));
 
-    role_size_[role_object] = meta_size.asInt64();
     if (meta_version.isIntegral()) {
       role_version_[role_object] = meta_version.asInt();
     } else {
       role_version_[role_object] = -1;
     }
 
+    // Size and hashes are not required, but we may as well record them if
+    // present.
+    if (meta_size.isObject()) {
+      role_size_[role_object] = meta_size.asInt64();
+    } else {
+      role_size_[role_object] = -1;
+    }
     if (hashes_list.isObject()) {
       for (Json::ValueIterator h_it = hashes_list.begin(); h_it != hashes_list.end(); ++h_it) {
         Hash h(h_it.key().asString(), (*h_it).asString());
