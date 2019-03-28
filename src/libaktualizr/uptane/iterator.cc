@@ -23,13 +23,12 @@ Targets getTrustedDelegation(const Role &delegate_role, const Targets &parent_ta
   if (delegation_remote) {
     if (!fetcher.fetchLatestRole(&delegation_meta, Uptane::kMaxImagesTargetsSize, RepositoryType::Image(),
                                  delegate_role)) {
-      throw std::runtime_error(std::string("Couldn't fetch ") +
-                               delegate_role.ToString());  // TODO: connectivity exception
+      throw Uptane::DelegationMissing(delegate_role.ToString());
     }
   }
 
   if (!images_repo.verifyRoleHashes(delegation_meta, delegate_role)) {
-    throw SecurityException("images", "Delegation hash verification failed");
+    throw Uptane::DelegationHashMismatch(delegate_role.ToString());
   }
 
   auto delegation = ImagesRepository::verifyDelegation(delegation_meta, delegate_role, parent_targets);
@@ -40,8 +39,7 @@ Targets getTrustedDelegation(const Role &delegate_role, const Targets &parent_ta
 
   if (delegation_remote) {
     if (delegation->version() != version_in_snapshot) {
-      throw SecurityException("images",
-                              std::string("Delegated role version didn't match the entry in Snapshot metadata"));
+      throw VersionMismatch("images", delegate_role.ToString());
     }
     storage.storeDelegation(delegation_meta, delegate_role);
   }

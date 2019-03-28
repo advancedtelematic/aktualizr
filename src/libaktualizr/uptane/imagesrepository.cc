@@ -133,7 +133,8 @@ std::shared_ptr<Uptane::Targets> ImagesRepository::verifyDelegation(const std::s
     auto signer = std::make_shared<MetaWithKeys>(parent_target);
     return std::make_shared<Uptane::Targets>(Targets(RepositoryType::Image(), role, delegation_json, signer));
   } catch (const Exception& e) {
-    LOG_ERROR << "Signature verification for images targets metadata failed";
+    LOG_ERROR << "Signature verification for images delegated targets metadata failed";
+    throw e;
   }
 
   return std::shared_ptr<Uptane::Targets>(nullptr);
