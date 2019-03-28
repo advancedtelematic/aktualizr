@@ -17,17 +17,58 @@
 
 std::string address;
 
-bool match_error(const Json::Value& error, const Uptane::Exception& e) {
-  if (error["director"]["update"]["err_msg"].asString() == e.what() ||
-      error["director"]["targets"][e.getName()]["err_msg"].asString() == e.what() ||
-      error["image_repo"]["update"]["err_msg"].asString() == e.what() ||
-      error["image_repo"]["targets"][e.getName()]["err_msg"].asString() == e.what()) {
-    return true;
+class VectorWrapper {
+ public:
+  VectorWrapper(Json::Value vector) : vector_(std::move(vector)) {}
+
+  bool matchError(const Uptane::Exception& e) {
+    if (vector_["director"]["update"]["err_msg"].asString() == e.what() ||
+        vector_["director"]["targets"][e.getName()]["err_msg"].asString() == e.what() ||
+        vector_["image_repo"]["update"]["err_msg"].asString() == e.what() ||
+        vector_["image_repo"]["targets"][e.getName()]["err_msg"].asString() == e.what()) {
+      return true;
+    }
+    std::cout << "aktualizr failed with unmatched exception " << typeid(e).name() << ": " << e.what() << "\n";
+    std::cout << "Expected error: " << vector_ << "\n";
+    return false;
   }
-  std::cout << "aktualizr failed with unmatched exception " << typeid(e).name() << ": " << e.what() << "\n";
-  std::cout << "Expected error: " << error << "\n";
-  return false;
-}
+
+  bool shouldFail() {
+    bool should_fail = false;
+    if (!vector_["director"]["update"]["is_success"].asBool() ||
+        !vector_["image_repo"]["update"]["is_success"].asBool()) {
+      should_fail = true;
+    } else {
+      for (const auto& t : vector_["director"]["targets"]) {
+        if (!t["is_success"].asBool()) {
+          should_fail = true;
+          break;
+        }
+      }
+      for (const auto& t : vector_["image_repo"]["targets"]) {
+        if (!t["is_success"].asBool()) {
+          should_fail = true;
+          break;
+        }
+      }
+    }
+    return should_fail;
+  }
+
+  void printExpectedFailure() {
+    std::cout << "No exceptions occurred, but expected ";
+    if (!vector_["director"]["update"]["is_success"].asBool()) {
+      std::cout << "exception from director: '" << vector_["director"]["update"]["err"]
+                << " with message: " << vector_["director"]["update"]["err_msg"] << "\n";
+    } else if (!vector_["image_repo"]["update"]["is_success"].asBool()) {
+      std::cout << "exception from image_repo: '" << vector_["image_repo"]["update"]["err"]
+                << " with message: " << vector_["image_repo"]["update"]["err_msg"] << "\n";
+    }
+  }
+
+ private:
+  Json::Value vector_;
+};
 
 class UptaneVector : public ::testing::TestWithParam<std::string> {};
 
@@ -67,27 +108,11 @@ TEST_P(UptaneVector, Test) {
     if (response.http_status_code == 204) {
       return;
     }
-    const auto vector(response.getJson());
-    std::cout << "VECTOR: " << vector;
+    const auto vector_json(response.getJson());
+    std::cout << "VECTOR: " << vector_json;
+    VectorWrapper vector(vector_json);
 
-    bool should_fail = false;
-    if (!vector["director"]["update"]["is_success"].asBool() ||
-        !vector["image_repo"]["update"]["is_success"].asBool()) {
-      should_fail = true;
-    } else {
-      for (const auto& t : vector["director"]["targets"]) {
-        if (!t["is_success"].asBool()) {
-          should_fail = true;
-          break;
-        }
-      }
-      for (const auto& t : vector["image_repo"]["targets"]) {
-        if (!t["is_success"].asBool()) {
-          should_fail = true;
-          break;
-        }
-      }
-    }
+    bool should_fail = vector.shouldFail();
 
     try {
       /* Fetch metadata from the director.
@@ -113,21 +138,14 @@ TEST_P(UptaneVector, Test) {
       }
 
     } catch (const Uptane::Exception& e) {
-      ASSERT_TRUE(match_error(vector, e)) << "libaktualizr threw a different exception than expected!";
+      ASSERT_TRUE(vector.matchError(e)) << "libaktualizr threw a different exception than expected!";
       continue;
     } catch (const std::exception& e) {
       FAIL() << "libaktualizr failed with unrecognized exception " << typeid(e).name() << ": " << e.what();
     }
 
     if (should_fail) {
-      std::cout << "No exceptions occurred, but expected ";
-      if (!vector["director"]["update"]["is_success"].asBool()) {
-        std::cout << "exception from director: '" << vector["director"]["update"]["err"]
-                  << " with message: " << vector["director"]["update"]["err_msg"] << "\n";
-      } else if (!vector["image_repo"]["update"]["is_success"].asBool()) {
-        std::cout << "exception from image_repo: '" << vector["image_repo"]["update"]["err"]
-                  << " with message: " << vector["image_repo"]["update"]["err_msg"] << "\n";
-      }
+      vector.printExpectedFailure();
       FAIL();
     }
   }
