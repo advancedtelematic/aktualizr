@@ -23,5 +23,5 @@ cp -rf "$GITREPO_ROOT/tests/test_data/fake_root" "$TEST_INSTALL_DESTDIR"
 cp -rf "$GITREPO_ROOT/src/aktualizr_repo/run/create_repo.sh" "$TEST_INSTALL_DESTDIR"
 cp -rf "$GITREPO_ROOT/src/aktualizr_repo/run/serve_repo.py" "$TEST_INSTALL_DESTDIR"
 
-git -C "$GITREPO_ROOT" fetch --tags --unshallow || true
+git -C "$GITREPO_ROOT" fetch --tags --depth=10000 || true
 git -C "$GITREPO_ROOT" describe > "$TEST_INSTALL_DESTDIR/aktualizr-version"
