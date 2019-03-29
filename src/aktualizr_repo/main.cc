@@ -11,6 +11,14 @@
 
 namespace po = boost::program_options;
 
+KeyType parseKeyType(const po::variables_map &vm) {
+  std::string key_type_arg = vm["keytype"].as<std::string>();
+  std::istringstream key_type_str{std::string("\"") + key_type_arg + "\""};
+  KeyType key_type;
+  key_type_str >> key_type;
+  return key_type;
+}
+
 int main(int argc, char **argv) {
   po::options_description desc("aktualizr-repo command line options");
   // clang-format off
@@ -76,10 +84,7 @@ int main(int argc, char **argv) {
       UptaneRepo repo(vm["path"].as<boost::filesystem::path>(), expiration_time, correlation_id);
       std::string command = vm["command"].as<std::string>();
       if (command == "generate") {
-        std::string key_type_arg = vm["keytype"].as<std::string>();
-        std::istringstream key_type_str{std::string("\"") + key_type_arg + "\""};
-        KeyType key_type;
-        key_type_str >> key_type;
+        KeyType key_type = parseKeyType(vm);
         repo.generateRepo(key_type);
       } else if (command == "image") {
         if (vm.count("targetname") == 0 && vm.count("filename") == 0) {
@@ -131,9 +136,10 @@ int main(int argc, char **argv) {
           exit(EXIT_FAILURE);
         }
         std::string dparent = vm["dparent"].as<std::string>();
+        KeyType key_type = parseKeyType(vm);
         repo.addDelegation(Uptane::Role(vm["dname"].as<std::string>(), true),
                            Uptane::Role(dparent, dparent != "targets"), vm["dpattern"].as<std::string>(),
-                           vm["dterm"].as<bool>());
+                           vm["dterm"].as<bool>(), key_type);
       } else if (command == "revokedelegation") {
         if (vm.count("dname") == 0) {
           std::cerr << "revokedelegation command requires --dname\n";
