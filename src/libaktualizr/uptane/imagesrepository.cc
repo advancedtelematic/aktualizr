@@ -140,4 +140,225 @@ std::shared_ptr<Uptane::Targets> ImagesRepository::verifyDelegation(const std::s
   return std::shared_ptr<Uptane::Targets>(nullptr);
 }
 
+bool ImagesRepository::updateMeta(INvStorage& storage, Fetcher& fetcher) {
+  resetMeta();
+  // Load Initial Images Root Metadata
+  {
+    std::string images_root;
+    if (storage.loadLatestRoot(&images_root, RepositoryType::Image())) {
+      if (!initRoot(images_root)) {
+        return false;
+      }
+    } else {
+      if (!fetcher.fetchRole(&images_root, kMaxRootSize, RepositoryType::Image(), Role::Root(), Version(1))) {
+        return false;
+      }
+      if (!initRoot(images_root)) {
+        return false;
+      }
+      storage.storeRoot(images_root, RepositoryType::Image(), Version(1));
+    }
+  }
+
+  // Update Image Root Metadata
+  {
+    std::string images_root;
+    if (!fetcher.fetchLatestRole(&images_root, kMaxRootSize, RepositoryType::Image(), Role::Root())) {
+      return false;
+    }
+    int remote_version = extractVersionUntrusted(images_root);
+    int local_version = rootVersion();
+
+    for (int version = local_version + 1; version <= remote_version; ++version) {
+      if (!fetcher.fetchRole(&images_root, kMaxRootSize, RepositoryType::Image(), Role::Root(), Version(version))) {
+        return false;
+      }
+      if (!verifyRoot(images_root)) {
+        return false;
+      }
+      storage.storeRoot(images_root, RepositoryType::Image(), Version(version));
+      storage.clearNonRootMeta(RepositoryType::Image());
+    }
+
+    if (rootExpired()) {
+      return false;
+    }
+  }
+
+  // Update Images Timestamp Metadata
+  {
+    std::string images_timestamp;
+
+    if (!fetcher.fetchLatestRole(&images_timestamp, kMaxTimestampSize, RepositoryType::Image(), Role::Timestamp())) {
+      return false;
+    }
+    int remote_version = extractVersionUntrusted(images_timestamp);
+
+    int local_version;
+    std::string images_timestamp_stored;
+    if (storage.loadNonRoot(&images_timestamp_stored, RepositoryType::Image(), Role::Timestamp())) {
+      local_version = extractVersionUntrusted(images_timestamp_stored);
+    } else {
+      local_version = -1;
+    }
+
+    if (!verifyTimestamp(images_timestamp)) {
+      return false;
+    }
+
+    if (local_version > remote_version) {
+      return false;
+    } else if (local_version < remote_version) {
+      storage.storeNonRoot(images_timestamp, RepositoryType::Image(), Role::Timestamp());
+    }
+
+    if (timestampExpired()) {
+      return false;
+    }
+  }
+
+  // Update Images Snapshot Metadata
+  {
+    std::string images_snapshot;
+
+    int64_t snapshot_size = (snapshotSize() > 0) ? snapshotSize() : kMaxSnapshotSize;
+    if (!fetcher.fetchLatestRole(&images_snapshot, snapshot_size, RepositoryType::Image(), Role::Snapshot())) {
+      return false;
+    }
+    int remote_version = extractVersionUntrusted(images_snapshot);
+
+    int local_version;
+    std::string images_snapshot_stored;
+    if (storage.loadNonRoot(&images_snapshot_stored, RepositoryType::Image(), Role::Snapshot())) {
+      local_version = extractVersionUntrusted(images_snapshot_stored);
+    } else {
+      local_version = -1;
+    }
+
+    if (!verifySnapshot(images_snapshot)) {
+      return false;
+    }
+
+    if (local_version > remote_version) {
+      return false;
+    } else if (local_version < remote_version) {
+      storage.storeNonRoot(images_snapshot, RepositoryType::Image(), Role::Snapshot());
+    }
+
+    if (snapshotExpired()) {
+      return false;
+    }
+  }
+
+  // Update Images Targets Metadata
+  {
+    std::string images_targets;
+    Role targets_role = Role::Targets();
+
+    auto targets_size = getRoleSize(Role::Targets());
+    if (targets_size <= 0) {
+      targets_size = kMaxImagesTargetsSize;
+    }
+    if (!fetcher.fetchLatestRole(&images_targets, targets_size, RepositoryType::Image(), targets_role)) {
+      return false;
+    }
+    int remote_version = extractVersionUntrusted(images_targets);
+
+    int local_version;
+    std::string images_targets_stored;
+    if (storage.loadNonRoot(&images_targets_stored, RepositoryType::Image(), targets_role)) {
+      local_version = extractVersionUntrusted(images_targets_stored);
+    } else {
+      local_version = -1;
+    }
+
+    if (!verifyTargets(images_targets)) {
+      return false;
+    }
+
+    if (local_version > remote_version) {
+      return false;
+    } else if (local_version < remote_version) {
+      storage.storeNonRoot(images_targets, RepositoryType::Image(), targets_role);
+    }
+
+    if (targetsExpired()) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool ImagesRepository::checkMetaOffline(INvStorage& storage) {
+  resetMeta();
+  // Load Images Root Metadata
+  {
+    std::string images_root;
+    if (!storage.loadLatestRoot(&images_root, RepositoryType::Image())) {
+      return false;
+    }
+
+    if (!initRoot(images_root)) {
+      return false;
+    }
+
+    if (rootExpired()) {
+      return false;
+    }
+  }
+
+  // Load Images Timestamp Metadata
+  {
+    std::string images_timestamp;
+    if (!storage.loadNonRoot(&images_timestamp, RepositoryType::Image(), Role::Timestamp())) {
+      return false;
+    }
+
+    if (!verifyTimestamp(images_timestamp)) {
+      return false;
+    }
+
+    if (timestampExpired()) {
+      return false;
+    }
+  }
+
+  // Load Images Snapshot Metadata
+  {
+    std::string images_snapshot;
+
+    if (!storage.loadNonRoot(&images_snapshot, RepositoryType::Image(), Role::Snapshot())) {
+      return false;
+    }
+
+    if (!verifySnapshot(images_snapshot)) {
+      return false;
+    }
+
+    if (snapshotExpired()) {
+      return false;
+    }
+  }
+
+  // Load Images Targets Metadata
+  {
+    std::string images_targets;
+    Role targets_role = Uptane::Role::Targets();
+    if (!storage.loadNonRoot(&images_targets, RepositoryType::Image(), targets_role)) {
+      return false;
+    }
+
+    if (!verifyTargets(images_targets)) {
+      return false;
+    }
+
+    if (targetsExpired()) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 }  // namespace Uptane

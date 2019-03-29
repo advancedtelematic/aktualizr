@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 
+#include "fetcher.h"
 #include "uptanerepository.h"
 
 namespace Uptane {
@@ -35,6 +36,9 @@ class ImagesRepository : public RepositoryCommon {
   bool verifyRoleHashes(const std::string& role_data, const Uptane::Role& role) const;
   int getRoleVersion(const Uptane::Role& role) const;
   int64_t getRoleSize(const Uptane::Role& role) const;
+
+  bool checkMetaOffline(INvStorage& storage);
+  bool updateMeta(INvStorage& storage, Fetcher& fetcher);
 
  private:
   std::shared_ptr<Uptane::Targets> targets;
