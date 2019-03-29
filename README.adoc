@@ -38,40 +38,35 @@ This client is aligned with the https://uptane.github.io[Uptane] security framew
 
 === Dependencies
 
-The following debian packages are used in the project:
+To install the minimal requirements on Debian/Ubuntu, run this:
 
-* asn1c
-* build-essential
-* clang (optional)
-* clang-format-6.0 (optional)
-* clang-tidy-6.0 (optional)
+----
+sudo apt install asn1c build-essential cmake curl libarchive-dev libboost-dev libboost-filesystem-dev libboost-log-dev libboost-program-options-dev libcurl4-openssl-dev libpthread-stubs0-dev libsodium-dev libsqlite3-dev libssl-dev
+----
+
+The default versions packaged in recent Debian/Ubuntu releases are generally new enough to be compatible. If you are using older releases or a different variety of Linux, there are a few known minimum versions:
+
 * cmake (>= 3.5)
 * curl (>= 7.47)
-* doxygen (when building additional documentation)
-* graphviz (when building additional documentation)
-* lcov (when building for code coverage)
-* libarchive-dev
-* libboost-dev
-* libboost-filesystem-dev (>= 1.58.0)
-* libboost-log-dev (>= 1.58.0)
-* libboost-program-options-dev (>= 1.58.0)
-* libboost-serialization-dev (>= 1.58.0, when building with OPCUA support)
-* libboost-iostreams-dev (>= 1.58.0, when building with OPCUA support)
+* libboost-* (>= 1.58.0)
 * libcurl4-openssl-dev (>= 7.47)
-* libdpkg-dev (when building with Debian packaging support)
-* libostree-dev (>= 2017.7, when building with OSTree support)
-* libp11-2 (when building with PKCS#11 support)
-* libp11-dev (when building with PKCS#11 support)
-* libpthread-stubs0-dev (>=0.3)
-* libsodium-dev
-* libsqlite3-dev
-* libssl-dev
-* libsystemd-dev (when building with systemd support for secondaries)
-* python3-dev (when building tests)
-* python3-openssl (when building tests)
-* python3-venv (when building tests)
-* sqlite3 (when building tests)
-* valgrind (when building tests)
+* libpthread-stubs0-dev (>= 0.3)
+
+Additional packages are used for non-essential components:
+
+* To build the test suite, you will need `python3-dev python3-openssl python3-venv sqlite3 valgrind`.
+* To run the lintint tools, you will need `clang clang-format-6.0 clang-tidy-6.0`.
+* To build additional documentation, you will need `doxygen graphviz`.
+* To build with code coverage, you will need `lcov`.
+
+Some features also require additional packages:
+
+* For OSTree support, you will need `libostree-dev` (>= 2017.7).
+* For PKCS#11 support, you will need `libp11-2 libp11-dev`.
+* For systemd support for secondaries, you will need `libsystemd-dev`.
+* For fault injection, you will need `fiu-utils libfiu-dev`.
+* For OPCUA support, you will need `libboost-iostreams-dev libboost-serialization-dev`.
+* For Debian packagin support, you will need `libdpkg-dev`.
 
 ==== Mac support
 
