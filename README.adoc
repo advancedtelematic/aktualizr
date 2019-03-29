@@ -10,7 +10,7 @@ https://opensource.org/licenses/MPL-2.0[image:https://img.shields.io/badge/Licen
 C++ implementation of https://uptane.github.io[Uptane] OTA update client.
 ====
 
-The client is intended to be installed on devices that wish to receive OTA updates from an Uptane-compatible OTA server.
+The client is intended to be installed on devices that wish to receive OTA updates from an Uptane-compatible OTA server such as https://connect.ota.here.com/[HERE OTA Connect]. It is most commonly built by using the https://github.com/advancedtelematic/meta-updater[meta-updater] layer in a Yocto environment. You can use aktualizr as a stand-alone system tool or you can integrate libaktualizr into a larger project.
 
 The client is responsible for:
 
@@ -18,7 +18,7 @@ The client is responsible for:
 * Authenticating using locally available device and user credentials
 * Reporting current software and hardware configuration to the server
 * Checking for any available updates for the device
-* Downloaded any available updates
+* Downloading any available updates
 * Installing the updates on the system, or notifying other services of the availability of the downloaded file
 * Receiving or generating installation reports (success or failure) for attempts to install received software
 * Submitting installation reports to the server
@@ -32,7 +32,7 @@ toc::[]
 
 == Security
 
-This client is aligned with the https://uptane.github.io[Uptane] security framework for software updates. Full details and whitepapers can be found on their site.
+This client is aligned with the https://uptane.github.io[Uptane] security framework for software updates. Full details and documentation can be found on their site.
 
 == Installation
 
@@ -217,7 +217,7 @@ Additional command line options can be found in the code (see link:../src/aktual
 [#fake-device]
 === Running a "fake" device
 
-Aktualizr is generally intended to run on embedded devices, but you may find it convenient to run it on your local system. To get a binary you can run locally, you can:
+Aktualizr is generally intended to run on embedded devices, but you may find it convenient to run it on your local system for development or testing. To get a binary you can run locally, you can:
 
 * follow the <<building,build instructions>>,
 * install a Ubuntu packages from the https://github.com/advancedtelematic/aktualizr/releases[Releases page], or
@@ -227,7 +227,7 @@ Some more detailed instructions on how to configure a fake device can be found o
 
 === Provisioning
 
-If you intend to use aktualizr to authenticate with a server, you will need some form of provisioning. Aktualizr currently supports three methods of provisioning: link:docs/automatic-provisioning.adoc[automatic], link:docs/implicit-provisioning.adoc[implicit], and link:docs/hsm-provisioning.adoc[by using an HSM]. You can learn more about the credentials files used to support provisioning in link:docs/credentials.adoc[].
+If you intend to use aktualizr to authenticate with a server, you will need some form of provisioning. Aktualizr currently supports two methods of provisioning: link:docs/automatic-provisioning.adoc[automatic] and link:docs/implicit-provisioning.adoc[implicit]. You can also implicitly provision link:docs/hsm-provisioning.adoc[by using an HSM]. You can learn more about the credentials files used to support provisioning in link:docs/credentials.adoc[].
 
 == Maintainers
 
