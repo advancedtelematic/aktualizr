@@ -228,7 +228,7 @@ Aktualizr is generally intended to run on embedded devices, but you may find it 
 * install a Ubuntu packages from the https://github.com/advancedtelematic/aktualizr/releases[Releases page], or
 * install through <<mac-support,Homebrew on MacOS>>
 
-Some more detailed instructions on how to configure a fake device can be found on https://docs.atsgarage.com/quickstarts/install-a-client-locally-with-fake-secondaries.html[the OTA Connect docs site].
+Some more detailed instructions on how to configure a fake device can be found on https://docs.ota.here.com/quickstarts/install-a-client-locally-with-fake-secondaries.html[the OTA Connect docs site].
 
 === Provisioning
 
@@ -236,7 +236,7 @@ If you intend to use aktualizr to authenticate with a server, you will need some
 
 == Maintainers
 
-This code is maintained by the OTA team at https://www.here.com/en/products-services/here-automotive-suite/ota-software-management/here-ota-connect[HERE Technologies]. If you have questions about the project, please reach us through Github issues for this repository.
+This code is maintained by the OTA team at https://www.here.com/products/automotive/ota-technology[HERE Technologies]. If you have questions about the project, please reach us through Github issues for this repository or email us at otaconnect.support@here.com.
 
 == Contribute
 

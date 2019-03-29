@@ -81,11 +81,11 @@ TARGET_LENGTH="130"       # the size of the target
 
 
 # This command will create the update (but not schedule it anywhere)
-MTU_UPDATE=$(http POST 'https://ci-app.atsgarage.com/api/v1/multi_target_updates' Csrf-Token:"$CSRF_TOKEN" Cookie:"$COOKIE" targets:="{\"$ECU_HARDWARE\": {\"to\": {\"target\": \"$TARGET\", \"checksum\": {\"method\": \"sha256\", \"hash\":\"$HASH\"}, \"targetLength\": $TARGET_LENGTH}}}" | tr -d '"')
+MTU_UPDATE=$(http POST 'https://app.atsgarage.com/api/v1/multi_target_updates' Csrf-Token:"$CSRF_TOKEN" Cookie:"$COOKIE" targets:="{\"$ECU_HARDWARE\": {\"to\": {\"target\": \"$TARGET\", \"checksum\": {\"method\": \"sha256\", \"hash\":\"$HASH\"}, \"targetLength\": $TARGET_LENGTH}}}" | tr -d '"')
 echo "The mtu-update is: $MTU_UPDATE"
 
 # Schedule the update on the device
-http PUT "https://ci-app.atsgarage.com/api/v1/admin/devices/$DEVICE/multi_target_update/$MTU_UPDATE" Csrf-Token:"$CSRF_TOKEN" Cookie:"$COOKIE"
+http PUT "https://app.atsgarage.com/api/v1/admin/devices/$DEVICE/multi_target_update/$MTU_UPDATE" Csrf-Token:"$CSRF_TOKEN" Cookie:"$COOKIE"
 
 
 ```
@@ -149,7 +149,7 @@ aktualizr can be tested against a dummy repository containing fake images
 
 First, generate a repository using `aktualizr-repo` command:
 
-    `aktualizr-repo generate repo_dir` 
+    `aktualizr-repo generate repo_dir`
 
 Then, serve the generated directory using a web server.
 
@@ -222,7 +222,7 @@ make aktualizr
 
 The compiled 'aktualizr' executable can be copied to the remote system and run.
 
-Aktualizr can be debugged remotely by exposing a port from the VM to development machine (the --gdb option to the https://github.com/advancedtelematic/meta-updater/blob/rocko/scripts/run-qemu-ota[run-qemu-ota script] in https://github.com/advancedtelematic/meta-updater[meta-updater] does this), then:
+Aktualizr can be debugged remotely by exposing a port from the VM to development machine (the --gdb option to the https://github.com/advancedtelematic/meta-updater/blob/master/scripts/run-qemu-ota[run-qemu-ota script] in https://github.com/advancedtelematic/meta-updater[meta-updater] does this), then:
 
 .On the target:
 ----

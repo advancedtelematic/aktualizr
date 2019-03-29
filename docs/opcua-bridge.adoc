@@ -19,7 +19,7 @@ On secondary side it is required to use `--opcua` command line option to enable 
 
 == OPC-UA Bridge Demo Notes
 
-Check instructions stated in https://docs.atsgarage.com/quickstarts/raspberry-pi.html[Raspberry PI] to prepare primary and secondary images. At the moment no dedicated
+Check instructions stated in https://docs.ota.here.com/quickstarts/raspberry-pi.html[Raspberry Pi] to prepare primary and secondary images. At the moment no dedicated
 SOTA feature is introduced to activate OPC-UA, so ensure that build options mentioned above are set.
 
 === Raspberry PI 3 Wireless Support
