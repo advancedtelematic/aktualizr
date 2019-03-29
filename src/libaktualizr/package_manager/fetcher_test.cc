@@ -231,11 +231,6 @@ int main(int argc, char** argv) {
   logger_init();
   logger_set_threshold(boost::log::trivial::debug);
 
-  if (argc != 2) {
-    std::cerr << "Error: " << argv[0] << " requires the path to an OSTree repository as an input argument.\n";
-    return EXIT_FAILURE;
-  }
-
   std::string port = TestUtils::getFreePort();
   server += port;
   boost::process::child http_server_process("tests/fake_http_server/fake_http_server.py", port);
@@ -248,12 +243,17 @@ int main(int argc, char** argv) {
                                               std::string("-d"), treehub_dir.PathString(), std::string("-s0.5"),
                                               std::string("--create"));
   TemporaryDirectory temp_dir;
-  // Utils::copyDir doesn't work here. Complaints about non existent symlink path
-  int r = system((std::string("cp -r ") + argv[1] + std::string(" ") + temp_dir.PathString()).c_str());
+  int r = system((std::string("ostree admin init-fs ") + temp_dir.PathString()).c_str());
   if (r != 0) {
     return -1;
   }
-  sysroot = (temp_dir.Path() / "ostree_repo").string();
+  r = system((std::string("ostree config --repo=") + temp_dir.PathString() +
+              std::string("/ostree/repo set core.mode bare-user"))
+                 .c_str());
+  if (r != 0) {
+    return -1;
+  }
+  sysroot = temp_dir.Path().string();
   TestUtils::waitForServer(treehub_server + "/");
 #endif  // BUILD_OSTREE
   return RUN_ALL_TESTS();
