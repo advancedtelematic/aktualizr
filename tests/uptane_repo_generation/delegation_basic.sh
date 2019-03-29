@@ -31,7 +31,7 @@ if [[ "$REVOKE" = "revoke" ]]; then
     akrepo --command revokedelegation --dname new-role
 else
     akrepo --command generate --expires 2021-07-04T16:33:27Z
-    akrepo --command adddelegation --dname new-role --dpattern "abc/*"
+    akrepo --command adddelegation --dname new-role --dpattern "abc/*" --keytype ed25519
     akrepo --command image --filename "$PRIMARY_FIRMWARE" --targetname primary.txt
     akrepo --command image --filename "$SECONDARY_FIRMWARE" --targetname "abc/secondary.txt" --dname new-role
     akrepo --command addtarget --hwid primary_hw --serial CA:FE:A6:D2:84:9D --targetname primary.txt

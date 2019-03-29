@@ -20,7 +20,8 @@ void delegation_basic(const boost::filesystem::path& delegation_path, bool revok
   if (revoke) {
     cmd += " revoke";
   }
-  Utils::shell(cmd, &output);
+  int retval = Utils::shell(cmd, &output, true);
+  EXPECT_EQ(retval, EXIT_SUCCESS) << output;
 }
 
 void delegation_nested(const boost::filesystem::path& delegation_path, bool revoke) {
@@ -30,7 +31,8 @@ void delegation_nested(const boost::filesystem::path& delegation_path, bool revo
   if (revoke) {
     cmd += " revoke";
   }
-  Utils::shell(cmd, &output);
+  int retval = Utils::shell(cmd, &output, true);
+  EXPECT_EQ(retval, EXIT_SUCCESS) << output;
 }
 
 class HttpFakeDelegation : public HttpFake {

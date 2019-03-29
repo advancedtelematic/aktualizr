@@ -2,9 +2,11 @@
 #define TYPES_H_
 /** \file */
 
+#include <algorithm>
+#include <stdexcept>
+
 #include <json/json.h>
 #include <boost/filesystem.hpp>
-#include <stdexcept>
 
 // Keep these int sync with AKIpUptaneKeyType ASN.1 definitions
 enum class KeyType {
@@ -44,6 +46,7 @@ inline std::istream& operator>>(std::istream& is, KeyType& kt) {
   std::string kt_str;
 
   is >> kt_str;
+  std::transform(kt_str.begin(), kt_str.end(), kt_str.begin(), ::toupper);
 
   if (kt_str == "\"RSA2048\"") {
     kt = KeyType::kRSA2048;

@@ -187,11 +187,11 @@ int main(int argc, char **argv) {
   } catch (const po::error &o) {
     std::cout << o.what() << std::endl;
     std::cout << desc;
-    return EXIT_FAILURE;
   } catch (std::exception &ex) {
     LOG_ERROR << "Exception: " << ex.what();
   } catch (...) {
     LOG_ERROR << "Unknown error";
   }
+  exit(EXIT_FAILURE);
 }
 // vim: set tabstop=2 shiftwidth=2 expandtab:
