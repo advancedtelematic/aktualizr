@@ -90,9 +90,11 @@ class DownloadProgressReport : public BaseEvent {
  */
 class DownloadTargetComplete : public BaseEvent {
  public:
+  static constexpr const char* TypeName{"DownloadTargetComplete"};
+
   DownloadTargetComplete(Uptane::Target update_in, bool success_in)
       : update(std::move(update_in)), success(success_in) {
-    variant = "DownloadTargetComplete";
+    variant = TypeName;
   }
 
   Uptane::Target update;
@@ -104,9 +106,9 @@ class DownloadTargetComplete : public BaseEvent {
  */
 class AllDownloadsComplete : public BaseEvent {
  public:
-  explicit AllDownloadsComplete(result::Download result_in) : result(std::move(result_in)) {
-    variant = "AllDownloadsComplete";
-  }
+  static constexpr const char* TypeName{"AllDownloadsComplete"};
+
+  explicit AllDownloadsComplete(result::Download result_in) : result(std::move(result_in)) { variant = TypeName; }
 
   result::Download result;
 };

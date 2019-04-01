@@ -788,6 +788,123 @@ TEST(Aktualizr, DownloadWithUpdates) {
   verifyNothingInstalled(aktualizr.uptane_client_->AssembleManifest());
 }
 
+class HttpDownloadFailure : public HttpFake {
+ public:
+  using Responses = std::vector<std::pair<std::string, HttpResponse>>;
+
+ public:
+  HttpDownloadFailure(const boost::filesystem::path& test_dir_in, const Responses& file_to_response, std::string flavor)
+      : HttpFake(test_dir_in, flavor) {
+    for (auto resp : file_to_response) {
+      url_to_response_[tls_server + target_dir_ + resp.first] = resp.second;
+    }
+  }
+
+  HttpResponse download(const std::string& url, curl_write_callback write_cb, curl_xferinfo_callback progress_cb,
+                        void* userp, curl_off_t from) override {
+    const auto found_response_it = url_to_response_.find(url);
+    if (found_response_it == url_to_response_.end()) {
+      return HttpResponse("", 500, CURLE_HTTP_RETURNED_ERROR, "Internal Server Error");
+    }
+
+    auto response = url_to_response_.at(url);
+    if (response.isOk()) {
+      return HttpFake::download(url, write_cb, progress_cb, userp, from);
+    }
+
+    return url_to_response_[url];
+  }
+
+ private:
+  const std::string target_dir_{"/repo/targets/"};
+  std::map<std::string, HttpResponse> url_to_response_;
+};
+
+/**
+ * Checks whether events are sent if download is unsuccessful
+ *
+ * Checks actions:
+ * - Send DownloadTargetComplete event if download is unsuccessful
+ * - Send AllDownloadsComplete event after partial download success
+ * - Send AllDownloadsComplete event if all downloads are unsuccessful
+ */
+TEST(Aktualizr, DownloadFailures) {
+  class EventHandler {
+   public:
+    EventHandler(Aktualizr& aktualizr) {
+      functor_ = std::bind(&EventHandler::operator(), this, std::placeholders::_1);
+      aktualizr.SetSignalHandler(functor_);
+    }
+
+    void operator()(const std::shared_ptr<event::BaseEvent>& event) {
+      ASSERT_NE(event, nullptr);
+
+      if (event->isTypeOf(event::DownloadTargetComplete::TypeName)) {
+        auto download_target_complete_event = dynamic_cast<event::DownloadTargetComplete*>(event.get());
+        auto target_filename = download_target_complete_event->update.filename();
+        download_status[target_filename] = download_target_complete_event->success;
+
+      } else if (event->isTypeOf(event::AllDownloadsComplete::TypeName)) {
+        auto all_download_complete_event = dynamic_cast<event::AllDownloadsComplete*>(event.get());
+        all_download_completed_status = all_download_complete_event->result;
+      }
+    }
+
+   public:
+    std::map<std::string, bool> download_status;
+    result::Download all_download_completed_status;
+
+   private:
+    std::function<void(std::shared_ptr<event::BaseEvent>)> functor_;
+  };
+
+  struct TestParams {
+    HttpDownloadFailure::Responses downloadResponse;
+    std::vector<std::pair<std::string, bool>> downloadResult;
+    result::DownloadStatus allDownloadsStatus;
+  };
+
+  TestParams test_case_params[]{
+      {// test case 0: each target download fails
+       {{"primary_firmware.txt", HttpResponse("", 500, CURLE_HTTP_RETURNED_ERROR, "Internal Server Error")},
+        {"secondary_firmware.txt", HttpResponse("", 500, CURLE_HTTP_RETURNED_ERROR, "Internal Server Error")}},
+       {{"primary_firmware.txt", false}, {"secondary_firmware.txt", false}},
+       result::DownloadStatus::kError},
+      {// test case 1: first target download succeeds, second target download fails
+       {{"primary_firmware.txt", HttpResponse("", 200, CURLE_OK, "")},
+        {"secondary_firmware.txt", HttpResponse("", 404, CURLE_HTTP_RETURNED_ERROR, "Not found")}},
+       {{"primary_firmware.txt", true}, {"secondary_firmware.txt", false}},
+       result::DownloadStatus::kPartialSuccess},
+      {// test case 2: first target download fails, second target download succeeds
+       {{"primary_firmware.txt", HttpResponse("", 404, CURLE_HTTP_RETURNED_ERROR, "Not found")},
+        {"secondary_firmware.txt", HttpResponse("", 200, CURLE_OK, "")}},
+       {{"primary_firmware.txt", false}, {"secondary_firmware.txt", true}},
+       result::DownloadStatus::kPartialSuccess}};
+
+  for (auto test_params : test_case_params) {
+    TemporaryDirectory temp_dir;
+
+    auto http = std::make_shared<HttpDownloadFailure>(temp_dir.Path(), test_params.downloadResponse, "hasupdates");
+    Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+    auto storage = INvStorage::newStorage(conf.storage);
+
+    Aktualizr aktualizr(conf, storage, http);
+    EventHandler event_hdlr{aktualizr};
+
+    aktualizr.Initialize();
+    result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
+    ASSERT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
+    result::Download download_result = aktualizr.Download(update_result.updates).get();
+
+    for (auto& expected_result : test_params.downloadResult) {
+      // check if DownloadTargetComplete was received
+      ASSERT_NE(event_hdlr.download_status.find(expected_result.first), event_hdlr.download_status.end());
+      EXPECT_EQ(event_hdlr.download_status.at(expected_result.first), expected_result.second);
+    }
+    EXPECT_EQ(event_hdlr.all_download_completed_status.status, test_params.allDownloadsStatus);
+  }
+}
+
 int num_events_InstallWithUpdates = 0;
 std::vector<Uptane::Target> updates_InstallWithUpdates;
 std::future<void> future_InstallWithUpdates{};
