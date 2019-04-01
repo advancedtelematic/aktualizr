@@ -6,7 +6,7 @@ We welcome code contributions from the community and are very happy to receive f
 Issue Tracker
 ----
 
-This project uses the Github issue tracker. Please report bugs, issues and feature requests here
+This project uses the Github issue tracker. Please report bugs, issues and feature requests here.
 
 Code quality and style
 ----
@@ -17,7 +17,7 @@ All code should be developed according to the [Google C++ style guide](https://g
       - Wherever possible, automated testing should be used
       - Tests cases should at least exercise all documented requirements
       - If automated testing is not possible, manual test cases should be described
-   * It must be easy for a developer checking out a project to run the test suite based on the information in the README.md file
+   * It must be easy for a developer checking out a project to run the test suite based on the information in the [readme](README.adoc)
    * All code must pass all unit tests before a merge request is made
       - Tests that don't pass should be marked pending (with justification) or should be fixed.
    * All code must pass formatting and static linting tests
@@ -40,7 +40,7 @@ All code should be developed according to the [Google C++ style guide](https://g
 Making a Pull Request
 ----
 
-When you start developing a feature, please create a feature branch that includes the type of branch, the ID of the issue, and a brief description. For example `feat/9/https-support`, `bugfix/11/fix-token-expiry` or `refactor/13/tidy-up-imports`. Please do not mix feature development, bugfixes and refactoring into the same branch.
+When you start developing a feature, please create a feature branch that includes the type of branch, the ID of the issue or ticket if available, and a brief description. For example `feat/9/https-support`, `fix/OTA-123/fix-token-expiry` or `refactor/tidy-up-imports`. Please do not mix feature development, bugfixes and refactoring into the same branch.
 
 When your feature is ready, push the branch and make a pull request. We will review the request and give you feedback. Once the code passes the review it can be merged into master and the branch can be deleted.
 
