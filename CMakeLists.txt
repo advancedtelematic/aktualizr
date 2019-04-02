@@ -182,8 +182,6 @@ SET(CMAKE_CXX_FLAGS_TSAN "-O1 -g -fsanitize=thread -fno-omit-frame-pointer")
 SET(CMAKE_C_FLAGS_TSAN "-O1 -g -fsanitize=thread -fno-omit-frame-pointer")
 SET(CMAKE_EXE_LINKER_FLAGS_TSAN "-O1 -g -fsanitize=thread -fno-omit-frame-pointer")
 
-SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--as-needed")
-
 if (CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
     add_definitions(-fstack-protector-all)
     # Enable maximum set of warnings.
@@ -213,6 +211,10 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
     if (PEDANTIC_WARNINGS)
         add_definitions(-Wpedantic)
     endif (PEDANTIC_WARNINGS)
+
+    if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+        SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--as-needed")
+    endif ()
 endif()
 
 # prevent visibility warnings from the linker
