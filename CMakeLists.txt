@@ -169,8 +169,6 @@ if(FAULT_INJECTION)
 endif(FAULT_INJECTION)
 
 # set symbols used when compiling
-#add_definitions(-DBOOST_LOG_DYN_LINK)
-
 set(CMAKE_CXX_FLAGS_DEBUG "-Og -g")
 
 SET(CMAKE_CXX_FLAGS_VALGRIND "-O1 -g")
@@ -185,6 +183,37 @@ SET(CMAKE_C_FLAGS_TSAN "-O1 -g -fsanitize=thread -fno-omit-frame-pointer")
 SET(CMAKE_EXE_LINKER_FLAGS_TSAN "-O1 -g -fsanitize=thread -fno-omit-frame-pointer")
 
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--as-needed")
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
+    add_definitions(-fstack-protector-all)
+    # Enable maximum set of warnings.
+    add_definitions(-Wall -Wextra -Wformat-security -Wfloat-equal -Wcast-qual -Wswitch-default -Wconversion)
+    # only for CXX, gcc doesn't like that when building C...
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnon-virtual-dtor")
+    if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+        add_definitions(-Wlogical-op)
+    else ()
+        add_definitions(-Wno-unused-private-field)
+    endif ()
+
+    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9")
+        add_definitions(-Wshadow)
+    endif ()
+
+    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_SYSTEM_NAME MATCHES "Android")
+        # treat boost headers as system to ignore warnings,
+        # this is alternative to in-code diagnostics disabling
+        add_definitions(--system-header-prefix=boost/)
+    endif ()
+
+    if (WARNING_AS_ERROR)
+        add_definitions(-Werror)
+    endif ()
+
+    if (PEDANTIC_WARNINGS)
+        add_definitions(-Wpedantic)
+    endif (PEDANTIC_WARNINGS)
+endif()
 
 # prevent visibility warnings from the linker
 if (APPLE)
@@ -313,37 +342,6 @@ include_directories(${LibArchive_INCLUDE_DIR})
 
 set_source_files_properties(third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
 add_library(jsoncpp OBJECT third_party/jsoncpp/jsoncpp.cpp)
-
-if (CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
-    add_definitions(-fstack-protector-all)
-    # Enable maximum set of warnings.
-    add_definitions(-Wall -Wextra -Wformat-security -Wfloat-equal -Wcast-qual -Wswitch-default -Wconversion)
-    # only for CXX, gcc doesn't like that when building C...
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnon-virtual-dtor")
-    if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-        add_definitions(-Wlogical-op)
-    else ()
-        add_definitions(-Wno-unused-private-field)
-    endif ()
-
-    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9")
-        add_definitions(-Wshadow)
-    endif ()
-
-    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_SYSTEM_NAME MATCHES "Android")
-        # treat boost headers as system to ignore warnings,
-        # this is alternative to in-code diagnostics disabling
-        add_definitions(--system-header-prefix=boost/)
-    endif ()
-
-    if (WARNING_AS_ERROR)
-        add_definitions(-Werror)
-    endif ()
-
-    if (PEDANTIC_WARNINGS)
-        add_definitions(-Wpedantic)
-    endif (PEDANTIC_WARNINGS)
-endif()
 
 # General packaging configuration
 set(CPACK_GENERATOR "DEB")
