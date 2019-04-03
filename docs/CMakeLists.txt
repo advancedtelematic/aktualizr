@@ -1,17 +1,7 @@
 
-find_program(INKSCAPE NAMES inkscape)
 find_package(Doxygen)
 
 add_custom_target(docs)
-
-if (INKSCAPE)
-    add_custom_command(OUTPUT secondary-ecus.pdf
-        COMMAND ${INKSCAPE} --export-pdf=secondary-ecus.pdf ${CMAKE_CURRENT_SOURCE_DIR}/secondary-ecus.svg
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/secondary-ecus.svg)
-
-    add_custom_target(docs-inkscape DEPENDS secondary-ecus.pdf)
-    add_dependencies(docs docs-inkscape)
-endif(INKSCAPE)
 
 if (DOXYGEN_FOUND AND DOXYGEN_DOT_FOUND)
     configure_file(Doxyfile.in Doxyfile @ONLY)
