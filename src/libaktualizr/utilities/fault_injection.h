@@ -56,16 +56,16 @@ static inline const char *fault_injection_info_fn() {
     return info_fn;
   }
 
-  snprintf(info_fn, sizeof(info_fn), "/tmp/fiu-ctrl-info-%lu", static_cast<unsigned long>(getpid()));
+  snprintf(info_fn, sizeof(info_fn), "/tmp/fiu-ctrl-info-%lu", static_cast<uint64_t>(getpid()));
 
   return info_fn;
 }
 
 static inline std::string fault_injection_last_info() {
-  auto info_id = reinterpret_cast<unsigned long>(fiu_failinfo());
+  auto info_id = reinterpret_cast<uint64_t>(fiu_failinfo());
 
   std::array<char, fault_injection_info_bs> arr{};
-  size_t offset = (info_id & 0xfffffff) * fault_injection_info_bs;
+  std::streamoff offset = (info_id & 0xfffffff) * fault_injection_info_bs;
   std::ifstream f;
   f.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 
@@ -73,7 +73,7 @@ static inline std::string fault_injection_last_info() {
     // check high bit of info_id to see if it should look into FIU_INFO_FILE or
     // pid-dependent file name
     const char *fn = nullptr;
-    if (info_id & (1lu << 31)) {
+    if ((info_id & (1lu << 31)) != 0) {
       fn = getenv("FIU_INFO_FILE");
     } else {
       fn = fault_injection_info_fn();
@@ -104,7 +104,7 @@ static inline int fault_injection_enable(const char *name, int failnum, const st
     try {
       f.open(fault_injection_info_fn(), std::ios::binary);
       f.seekp(0, std::ios_base::end);
-      size_t fi_id = f.tellp() / fault_injection_info_bs;
+      size_t fi_id = static_cast<size_t>(f.tellp()) / fault_injection_info_bs;
       f.write(arr.data(), arr.size());
       failinfo_id = fi_id;
     } catch (std::ofstream::failure &e) {

@@ -185,6 +185,7 @@ struct InstallationResult {
 
   Json::Value toJson() const;
   bool isSuccess() const { return success; };
+  bool needCompletion() const { return result_code == ResultCode::Numeric::kNeedCompletion; }
 
   bool success{true};
   ResultCode result_code{ResultCode::Numeric::kOk};

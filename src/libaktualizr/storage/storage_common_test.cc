@@ -424,8 +424,8 @@ TEST(storage, load_store_installation_results) {
   EXPECT_EQ(correlation_id, "corrid");
 
   storage->clearInstallationResults();
-
-  EXPECT_TRUE(storage->loadEcuInstallationResults(&res));
+  res.clear();
+  EXPECT_FALSE(storage->loadEcuInstallationResults(&res));
   EXPECT_EQ(res.size(), 0);
   EXPECT_FALSE(storage->loadDeviceInstallationResult(&dev_res, &report, &correlation_id));
 }

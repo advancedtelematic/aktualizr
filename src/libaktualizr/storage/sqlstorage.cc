@@ -1092,6 +1092,11 @@ bool SQLStorage::loadEcuInstallationResults(
     return false;
   }
 
+  if (statement_result == SQLITE_DONE) {
+    // if there are no any record in the DB
+    return false;
+  }
+
   for (; statement_result != SQLITE_DONE; statement_result = statement.step()) {
     try {
       std::string ecu_serial = statement.get_result_col_str(0).value();

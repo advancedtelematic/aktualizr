@@ -147,6 +147,8 @@ class Aktualizr {
   FRIEND_TEST(Aktualizr, DeviceInstallationResult);
   FRIEND_TEST(Aktualizr, FullWithUpdates);
   FRIEND_TEST(Aktualizr, FullWithUpdatesNeedReboot);
+  FRIEND_TEST(Aktualizr, FinalizationFailure);
+  FRIEND_TEST(Aktualizr, InstallationFailure);
   FRIEND_TEST(Aktualizr, AutoRebootAfterUpdate);
   FRIEND_TEST(Aktualizr, FullMultipleSecondaries);
   FRIEND_TEST(Aktualizr, CheckNoUpdates);

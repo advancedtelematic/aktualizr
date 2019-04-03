@@ -11,7 +11,7 @@ namespace Uptane {
 VirtualSecondary::VirtualSecondary(const SecondaryConfig& sconfig_in) : ManagedSecondary(sconfig_in) {}
 
 bool VirtualSecondary::storeFirmware(const std::string& target_name, const std::string& content) {
-  if (fiu_fail((std::string("secondary_install_") + getSerial().ToString()).c_str())) {
+  if (fiu_fail((std::string("secondary_install_") + getSerial().ToString()).c_str()) != 0) {
     return false;
   }
   Utils::writeFile(sconfig.target_name_path, target_name);
