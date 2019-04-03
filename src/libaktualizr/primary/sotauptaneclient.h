@@ -62,6 +62,7 @@ class SotaUptaneClient {
   Uptane::LazyTargetsList allTargets();
 
   bool updateImagesMeta();  // TODO: make private once aktualizr has a proper TUF API
+  bool checkImagesMetaOffline();
   data::InstallationResult PackageInstall(const Uptane::Target &target);
 
  private:
@@ -115,7 +116,6 @@ class SotaUptaneClient {
   std::pair<bool, Uptane::Target> downloadImage(Uptane::Target target, const api::FlowControlToken *token = nullptr);
   void rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::SecondaryInterface &secondary);
   bool updateDirectorMeta();
-  bool checkImagesMetaOffline();
   bool checkDirectorMetaOffline();
   void computeDeviceInstallationResult(data::InstallationResult *result, const std::string &correlation_id);
   std::unique_ptr<Uptane::Target> findTargetInDelegationTree(const Uptane::Target &target);
