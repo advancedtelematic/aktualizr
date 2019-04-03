@@ -88,7 +88,7 @@ bool OfflineSignRepo(const ServerCredentials &push_credentials, const std::strin
     return false;
   }
 
-  std::string cmd("garage-sign targets add --repo aktualizr --format OSTREE --length 0 --url \"https://example.com/\"");
+  std::string cmd("garage-sign targets add --repo aktualizr --format OSTREE --length 0");
   cmd += " --name " + name + " --version " + hash.string() + " --sha256 " + hash.string();
   cmd += " --hardwareids " + hardwareids;
   if (system(cmd.c_str()) != 0) {
