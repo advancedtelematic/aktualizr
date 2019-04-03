@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <iostream>
 
 #include <openssl/ssl.h>
@@ -184,7 +185,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
-  logger_init();
+  logger_init(isatty(1) == 1);
   logger_set_threshold(boost::log::trivial::info);
 
   bpo::variables_map commandline_map = parse_options(argc, argv);
