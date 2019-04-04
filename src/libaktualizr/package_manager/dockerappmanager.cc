@@ -6,6 +6,7 @@ struct DockerApp {
   DockerApp(const std::string app_name, const PackageConfig &config)
       : name(std::move(app_name)),
         app_root(std::move(config.docker_apps_root / app_name)),
+        app_params(std::move(config.docker_app_params)),
         app_bin(std::move(config.docker_app_bin)),
         compose_bin(std::move(config.docker_compose_bin)) {}
 
@@ -13,6 +14,9 @@ struct DockerApp {
     auto bin = boost::filesystem::canonical(app_bin).string();
     Utils::writeFile(app_root / (name + ".dockerapp"), app_content);
     std::string cmd("cd " + app_root.string() + " && " + bin + " app render " + name);
+    if (!app_params.empty()) {
+      cmd += " -f " + app_params.string();
+    }
     std::string yaml;
     if (Utils::shell(cmd, &yaml, true) != 0) {
       LOG_ERROR << "Unable to run " << cmd << " output:\n" << yaml;
@@ -37,6 +41,7 @@ struct DockerApp {
 
   std::string name;
   boost::filesystem::path app_root;
+  boost::filesystem::path app_params;
   boost::filesystem::path app_bin;
   boost::filesystem::path compose_bin;
 };
