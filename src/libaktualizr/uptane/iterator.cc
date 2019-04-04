@@ -102,7 +102,7 @@ const Target &LazyTargetsList::DelegationIterator::operator*() {
     renewTargetsData();
   }
 
-  if (target_idx_ >= cur_targets_->targets.size()) {
+  if (!cur_targets_ || target_idx_ >= cur_targets_->targets.size()) {
     throw std::runtime_error("Inconsistent delegation iterator");  // TODO: UptaneException
   }
 
