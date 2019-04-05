@@ -1,4 +1,4 @@
-add_custom_command(OUTPUT sql_schemas.cc sql_schemas_target
+add_custom_command(OUTPUT sql_schemas.cc
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/embed_schemas.py ${PROJECT_SOURCE_DIR}/config/sql/ ${CMAKE_CURRENT_BINARY_DIR}/sql_schemas.cc libaktualizr
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
