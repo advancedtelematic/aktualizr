@@ -10,7 +10,7 @@ https://opensource.org/licenses/MPL-2.0[image:https://img.shields.io/badge/Licen
 C++ implementation of https://uptane.github.io[Uptane] OTA update client.
 ====
 
-The client is intended to be installed on devices that wish to receive OTA updates from an Uptane-compatible OTA server.
+The client is intended to be installed on devices that wish to receive OTA updates from an Uptane-compatible OTA server such as https://connect.ota.here.com/[HERE OTA Connect]. It is most commonly built by using the https://github.com/advancedtelematic/meta-updater[meta-updater] layer in a Yocto environment. You can use aktualizr as a stand-alone system tool or you can integrate libaktualizr into a larger project.
 
 The client is responsible for:
 
@@ -18,7 +18,7 @@ The client is responsible for:
 * Authenticating using locally available device and user credentials
 * Reporting current software and hardware configuration to the server
 * Checking for any available updates for the device
-* Downloaded any available updates
+* Downloading any available updates
 * Installing the updates on the system, or notifying other services of the availability of the downloaded file
 * Receiving or generating installation reports (success or failure) for attempts to install received software
 * Submitting installation reports to the server
@@ -32,46 +32,41 @@ toc::[]
 
 == Security
 
-This client is aligned with the https://uptane.github.io[Uptane] security framework for software updates. Full details and whitepapers can be found on their site.
+This client is aligned with the https://uptane.github.io[Uptane] security framework for software updates. Full details and documentation can be found on their site.
 
 == Installation
 
 === Dependencies
 
-The following debian packages are used in the project:
+To install the minimal requirements on Debian/Ubuntu, run this:
 
-* asn1c
-* build-essential
-* clang (optional)
-* clang-format-6.0 (optional)
-* clang-tidy-6.0 (optional)
+----
+sudo apt install asn1c build-essential cmake curl libarchive-dev libboost-dev libboost-filesystem-dev libboost-log-dev libboost-program-options-dev libcurl4-openssl-dev libpthread-stubs0-dev libsodium-dev libsqlite3-dev libssl-dev
+----
+
+The default versions packaged in recent Debian/Ubuntu releases are generally new enough to be compatible. If you are using older releases or a different variety of Linux, there are a few known minimum versions:
+
 * cmake (>= 3.5)
 * curl (>= 7.47)
-* doxygen (when building additional documentation)
-* graphviz (when building additional documentation)
-* lcov (when building for code coverage)
-* libarchive-dev
-* libboost-dev
-* libboost-filesystem-dev (>= 1.58.0)
-* libboost-log-dev (>= 1.58.0)
-* libboost-program-options-dev (>= 1.58.0)
-* libboost-serialization-dev (>= 1.58.0, when building with OPCUA support)
-* libboost-iostreams-dev (>= 1.58.0, when building with OPCUA support)
+* libboost-* (>= 1.58.0)
 * libcurl4-openssl-dev (>= 7.47)
-* libdpkg-dev (when building with Debian packaging support)
-* libostree-dev (>= 2017.7, when building with OSTree support)
-* libp11-2 (when building with PKCS#11 support)
-* libp11-dev (when building with PKCS#11 support)
-* libpthread-stubs0-dev (>=0.3)
-* libsodium-dev
-* libsqlite3-dev
-* libssl-dev
-* libsystemd-dev (when building with systemd support for secondaries)
-* python3-dev (when building tests)
-* python3-openssl (when building tests)
-* python3-venv (when building tests)
-* sqlite3 (when building tests)
-* valgrind (when building tests)
+* libpthread-stubs0-dev (>= 0.3)
+
+Additional packages are used for non-essential components:
+
+* To build the test suite, you will need `python3-dev python3-openssl python3-venv sqlite3 valgrind`.
+* To run the lintint tools, you will need `clang clang-format-6.0 clang-tidy-6.0`.
+* To build additional documentation, you will need `doxygen graphviz`.
+* To build with code coverage, you will need `lcov`.
+
+Some features also require additional packages:
+
+* For OSTree support, you will need `libostree-dev` (>= 2017.7).
+* For PKCS#11 support, you will need `libp11-2 libp11-dev`.
+* For systemd support for secondaries, you will need `libsystemd-dev`.
+* For fault injection, you will need `fiu-utils libfiu-dev`.
+* For OPCUA support, you will need `libboost-iostreams-dev libboost-serialization-dev`.
+* For Debian packagin support, you will need `libdpkg-dev`.
 
 ==== Mac support
 
@@ -207,78 +202,6 @@ Alternatively, link:scripts/run_docker_test.sh[] can directly run the test scrip
                             -- ./scripts/test.sh
 ----
 
-=== Developing and debugging with an OpenEmbedded system
-
-By default OpenEmbedded builds fixed versions of software from a VCS using bitbake recipes. When developing Aktualizr itself it is useful to have a quicker edit-compile-run cycle and access to a debugger. The following steps will use OpenEmbedded to create a cross-compilation environment, then build inside that.
-
-1. Add the following to local.conf:
-+
-----
-TOOLCHAIN_HOST_TASK_append = " nativesdk-cmake "
-----
-
-2. Build the SDK:
-+
-----
-bitbake -c populate_sdk core-image-minimal
-----
-
-3. That will create a self-extracting installer that can be copied to your development machine. Install it by executing this script (or a similarly-named one, depending on your environment):
-+
-----
-./tmp/deploy/sdk/poky-sota-glibc-x86_64-core-image-minimal-core2-64-toolchain-2.2.2.sh
-----
-
-4. Execute this script (or something similar, depending on where you installed it) to update the environment to point to the cross compilers:
-+
-----
-. /opt/poky-sota/2.2.2/environment-setup-core2-64-poky-linux
-----
-+
-You may want to verify that `which cmake` returns something like this:
-+
-----
-/opt/poky-sota/2.2.2/sysroots/x86_64-pokysdk-linux/usr/bin/cmake
-----
-
-5. Create a cmake build directory for this cross-compile:
-+
-----
-mkdir build-cross
-cd build-cross
-cmake .. <options>
-make aktualizr
-----
-
-The compiled 'aktualizr' executable can be copied to the remote system and run.
-
-Aktualizr can be debugged remotely by exposing a port from the VM to development machine (the --gdb option to the https://github.com/advancedtelematic/meta-updater/blob/rocko/scripts/run-qemu-ota[run-qemu-ota script] in https://github.com/advancedtelematic/meta-updater[meta-updater] does this), then:
-
-.On the target:
-----
-gdbserver 0.0.0.0:2159 ./aktualizr --config /usr/lib/sota/sota.toml --loglevel 0
-----
-
-.On the host:
-----
-$ gdb aktualizr
-(gdb) target remote localhost:2159
-----
-
-In CLion the remote debugger is configured as follows:
-
-image:docs/clion-debugger.png[CLion GDB configuration]
-
-It is also possible to run it inside valgrind:
-
-.On the target:
-----
-valgrind --vgdb=yes --vgdb-error=0 ./aktualizr --config /usr/lib/sota/sota.toml
-vgdb --port=2159
-----
-
-Then connect the debugger as usual.
-
 == Usage
 
 === Configuration
@@ -294,21 +217,21 @@ Additional command line options can be found in the code (see link:../src/aktual
 [#fake-device]
 === Running a "fake" device
 
-Aktualizr is generally intended to run on embedded devices, but you may find it convenient to run it on your local system. To get a binary you can run locally, you can:
+Aktualizr is generally intended to run on embedded devices, but you may find it convenient to run it on your local system for development or testing. To get a binary you can run locally, you can:
 
 * follow the <<building,build instructions>>,
 * install a Ubuntu packages from the https://github.com/advancedtelematic/aktualizr/releases[Releases page], or
 * install through <<mac-support,Homebrew on MacOS>>
 
-Some more detailed instructions on how to configure a fake device can be found on https://docs.atsgarage.com/quickstarts/install-a-client-locally-with-fake-secondaries.html[the OTA Connect docs site].
+Some more detailed instructions on how to configure a fake device can be found on https://docs.ota.here.com/quickstarts/install-a-client-locally-with-fake-secondaries.html[the OTA Connect docs site].
 
 === Provisioning
 
-If you intend to use aktualizr to authenticate with a server, you will need some form of provisioning. Aktualizr currently supports three methods of provisioning: link:docs/automatic-provisioning.adoc[automatic], link:docs/implicit-provisioning.adoc[implicit], and link:docs/hsm-provisioning.adoc[by using an HSM]. You can learn more about the credentials files used to support provisioning in link:docs/credentials.adoc[].
+If you intend to use aktualizr to authenticate with a server, you will need some form of provisioning. Aktualizr currently supports two methods of provisioning: link:docs/automatic-provisioning.adoc[automatic] and link:docs/implicit-provisioning.adoc[implicit]. You can also implicitly provision link:docs/hsm-provisioning.adoc[by using an HSM]. You can learn more about the credentials files used to support provisioning in link:docs/credentials.adoc[].
 
 == Maintainers
 
-This code is maintained by the OTA team at https://www.here.com/en/products-services/here-automotive-suite/ota-software-management/here-ota-connect[HERE Technologies]. If you have questions about the project, please reach us through Github issues for this repository.
+This code is maintained by the OTA team at https://www.here.com/products/automotive/ota-technology[HERE Technologies]. If you have questions about the project, please reach us through Github issues for this repository or email us at otaconnect.support@here.com.
 
 == Contribute
 

@@ -8,7 +8,7 @@ sudo apt install ./aktualizr.deb
 
 === Setting up aktualizr
 
-The debian package will install, enable, and start an `aktualizr` systemd service immediately after it's installed. However, there are some configuration steps that should be taken before the service starts. To use aktualizr with a server (i.e. https://github.com/advancedtelematic/ota-community-edition/[OTA Community Edition] or https://docs.atsgarage.com[HERE OTA Connect]), you will need to download the provisioning credentials file provided by the server and place it at `/var/sota/sota_provisioning_credentials.zip`.
+The debian package will install, enable, and start an `aktualizr` systemd service immediately after it's installed. However, there are some configuration steps that should be taken before the service starts. To use aktualizr with a server (i.e. https://github.com/advancedtelematic/ota-community-edition/[OTA Community Edition] or https://docs.ota.here.com[HERE OTA Connect]), you will need to download the provisioning credentials file provided by the server and place it at `/var/sota/sota_provisioning_credentials.zip`.
 
 You can pass any other command line arguments in this file, as well.
 

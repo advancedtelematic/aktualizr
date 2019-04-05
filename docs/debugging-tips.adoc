@@ -81,11 +81,11 @@ TARGET_LENGTH="130"       # the size of the target
 
 
 # This command will create the update (but not schedule it anywhere)
-MTU_UPDATE=$(http POST 'https://ci-app.atsgarage.com/api/v1/multi_target_updates' Csrf-Token:"$CSRF_TOKEN" Cookie:"$COOKIE" targets:="{\"$ECU_HARDWARE\": {\"to\": {\"target\": \"$TARGET\", \"checksum\": {\"method\": \"sha256\", \"hash\":\"$HASH\"}, \"targetLength\": $TARGET_LENGTH}}}" | tr -d '"')
+MTU_UPDATE=$(http POST 'https://app.atsgarage.com/api/v1/multi_target_updates' Csrf-Token:"$CSRF_TOKEN" Cookie:"$COOKIE" targets:="{\"$ECU_HARDWARE\": {\"to\": {\"target\": \"$TARGET\", \"checksum\": {\"method\": \"sha256\", \"hash\":\"$HASH\"}, \"targetLength\": $TARGET_LENGTH}}}" | tr -d '"')
 echo "The mtu-update is: $MTU_UPDATE"
 
 # Schedule the update on the device
-http PUT "https://ci-app.atsgarage.com/api/v1/admin/devices/$DEVICE/multi_target_update/$MTU_UPDATE" Csrf-Token:"$CSRF_TOKEN" Cookie:"$COOKIE"
+http PUT "https://app.atsgarage.com/api/v1/admin/devices/$DEVICE/multi_target_update/$MTU_UPDATE" Csrf-Token:"$CSRF_TOKEN" Cookie:"$COOKIE"
 
 
 ```
@@ -149,7 +149,7 @@ aktualizr can be tested against a dummy repository containing fake images
 
 First, generate a repository using `aktualizr-repo` command:
 
-    `aktualizr-repo generate repo_dir` 
+    `aktualizr-repo generate repo_dir`
 
 Then, serve the generated directory using a web server.
 
@@ -176,3 +176,77 @@ server {
 == Inject faults
 
 See link:./fault-injection.adoc[fault-injection.adoc]
+
+== Developing and debugging with an OpenEmbedded system
+
+By default OpenEmbedded builds fixed versions of software from a VCS using bitbake recipes. When developing Aktualizr itself it is useful to have a quicker edit-compile-run cycle and access to a debugger. The following steps will use OpenEmbedded to create a cross-compilation environment, then build inside that.
+
+1. Add the following to local.conf:
++
+----
+TOOLCHAIN_HOST_TASK_append = " nativesdk-cmake "
+----
+
+2. Build the SDK:
++
+----
+bitbake -c populate_sdk core-image-minimal
+----
+
+3. That will create a self-extracting installer that can be copied to your development machine. Install it by executing this script (or a similarly-named one, depending on your environment):
++
+----
+./tmp/deploy/sdk/poky-sota-glibc-x86_64-core-image-minimal-core2-64-toolchain-2.2.2.sh
+----
+
+4. Execute this script (or something similar, depending on where you installed it) to update the environment to point to the cross compilers:
++
+----
+. /opt/poky-sota/2.2.2/environment-setup-core2-64-poky-linux
+----
++
+You may want to verify that `which cmake` returns something like this:
++
+----
+/opt/poky-sota/2.2.2/sysroots/x86_64-pokysdk-linux/usr/bin/cmake
+----
+
+5. Create a cmake build directory for this cross-compile:
++
+----
+mkdir build-cross
+cd build-cross
+cmake .. <options>
+make aktualizr
+----
+
+The compiled 'aktualizr' executable can be copied to the remote system and run.
+
+Aktualizr can be debugged remotely by exposing a port from the VM to development machine (the --gdb option to the https://github.com/advancedtelematic/meta-updater/blob/master/scripts/run-qemu-ota[run-qemu-ota script] in https://github.com/advancedtelematic/meta-updater[meta-updater] does this), then:
+
+.On the target:
+----
+gdbserver 0.0.0.0:2159 ./aktualizr --config /usr/lib/sota/sota.toml --loglevel 0
+----
+
+.On the host:
+----
+$ gdb aktualizr
+(gdb) target remote localhost:2159
+----
+
+In CLion the remote debugger is configured as follows:
+
+image:clion-debugger.png[CLion GDB configuration]
+
+It is also possible to run it inside valgrind:
+
+.On the target:
+----
+valgrind --vgdb=yes --vgdb-error=0 ./aktualizr --config /usr/lib/sota/sota.toml
+vgdb --port=2159
+----
+
+Then connect the debugger as usual.
+
+
