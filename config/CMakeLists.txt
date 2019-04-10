@@ -17,5 +17,4 @@ if(BUILD_DEB)
         COMPONENT aktualizr)
 endif(BUILD_DEB)
 
-install(DIRECTORY DESTINATION etc/sota/conf.d COMPONENT aktualizr)
 install(DIRECTORY DESTINATION lib/sota/conf.d COMPONENT aktualizr)
