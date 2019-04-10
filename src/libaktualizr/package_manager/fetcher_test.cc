@@ -248,7 +248,7 @@ int main(int argc, char** argv) {
     return -1;
   }
   r = system((std::string("ostree config --repo=") + temp_dir.PathString() +
-              std::string("/ostree/repo set core.mode bare-user"))
+              std::string("/ostree/repo set core.mode bare-user-only"))
                  .c_str());
   if (r != 0) {
     return -1;
