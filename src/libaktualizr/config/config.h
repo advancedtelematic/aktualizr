@@ -9,8 +9,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ini_parser.hpp>
-
-#include "asn1/asn1-cerstream.h"
 #include "bootloader/bootloader.h"
 #include "crypto/keymanager_config.h"
 #include "crypto/p11_config.h"
@@ -47,9 +45,6 @@ struct TlsConfig {
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;
 };
-
-asn1::Serializer& operator<<(asn1::Serializer& ser, const TlsConfig& tls_conf);
-asn1::Deserializer& operator>>(asn1::Deserializer& des, TlsConfig& tls_conf);
 
 struct ProvisionConfig {
   std::string server;

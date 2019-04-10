@@ -6,8 +6,8 @@
 #include "uptane/secondaryfactory.h"
 #include "uptane/secondaryinterface.h"
 
+#include "ipsecondarydiscovery.h"
 #include "logging/logging.h"
-#include "uptane/ipsecondarydiscovery.h"
 
 namespace po = boost::program_options;
 

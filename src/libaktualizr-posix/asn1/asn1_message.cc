@@ -1,4 +1,4 @@
-#include "asn1/asn1_message.h"
+#include "asn1_message.h"
 #include "logging/logging.h"
 #include "utilities/dequeue_buffer.h"
 #include "utilities/sockaddr_io.h"

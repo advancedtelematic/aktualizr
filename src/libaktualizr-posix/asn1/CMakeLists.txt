@@ -16,6 +16,6 @@ compile_asn1_lib(SOURCES
     messages/tlsconfig.asn1
 )
 
-add_aktualizr_test(NAME asn1 SOURCES asn1_test.cc)
+add_aktualizr_test(NAME asn1 LIBRARIES asn1 asn1_lib SOURCES asn1_test.cc)
 
 aktualizr_source_file_checks(${SOURCES} ${HEADERS} ${TEST_SOURCES})

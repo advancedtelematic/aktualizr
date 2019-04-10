@@ -7,9 +7,49 @@
 #include <iostream>
 #include <string>
 
-#include "asn1/asn1_message.h"
+#include "asn1-cerstream.h"
+#include "asn1_message.h"
 #include "config/config.h"
 #include "der_encoder.h"
+
+asn1::Serializer& operator<<(asn1::Serializer& ser, CryptoSource cs) {
+  ser << asn1::implicit<kAsn1Enum>(static_cast<const int32_t&>(static_cast<int>(cs)));
+
+  return ser;
+}
+
+asn1::Serializer& operator<<(asn1::Serializer& ser, const TlsConfig& tls_conf) {
+  ser << asn1::seq << asn1::implicit<kAsn1Utf8String>(tls_conf.server)
+      << asn1::implicit<kAsn1Utf8String>(tls_conf.server_url_path.string()) << tls_conf.ca_source
+      << tls_conf.pkey_source << tls_conf.cert_source << asn1::endseq;
+  return ser;
+}
+
+asn1::Deserializer& operator>>(asn1::Deserializer& des, CryptoSource& cs) {
+  int32_t cs_i;
+  des >> asn1::implicit<kAsn1Enum>(cs_i);
+
+  if (cs_i < static_cast<int>(CryptoSource::kFile) || cs_i > static_cast<int>(CryptoSource::kPkcs11)) {
+    throw deserialization_error();
+  }
+
+  cs = static_cast<CryptoSource>(cs_i);
+
+  return des;
+}
+
+asn1::Deserializer& operator>>(asn1::Deserializer& des, boost::filesystem::path& path) {
+  std::string path_string;
+  des >> asn1::implicit<kAsn1Utf8String>(path_string);
+  path = path_string;
+  return des;
+}
+
+asn1::Deserializer& operator>>(asn1::Deserializer& des, TlsConfig& tls_conf) {
+  des >> asn1::seq >> asn1::implicit<kAsn1Utf8String>(tls_conf.server) >> tls_conf.server_url_path >>
+      tls_conf.ca_source >> tls_conf.pkey_source >> tls_conf.cert_source >> asn1::endseq;
+  return des;
+}
 
 void printStringHex(const std::string& s) {
   for (char c : s) {
