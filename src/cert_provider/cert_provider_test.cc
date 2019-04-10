@@ -249,7 +249,7 @@ TEST_F(AktualizrCertProviderTest, DeviceCertParams) {
   ASSERT_NE(openssl.lastStdOut().find(expected_subject_str), std::string::npos);
 
   // check RSA length
-  const std::string expected_key_str = str(boost::format("Private-Key: (%1% bit)") % rsa_bits);
+  const std::string expected_key_str = str(boost::format("Private-Key: (%1% bit") % rsa_bits);
 
   openssl.run({"rsa", "-in", device_cred_path.privateKeyFileFullPath.string(), "-text", "-noout"});
   ASSERT_EQ(openssl.lastExitCode(), 0) << openssl.lastStdErr();
