@@ -522,7 +522,7 @@ class HttpInstallationFailed : public HttpFake {
     return HttpResponse("", 200, CURLE_OK, "");
   }
 
-  bool checkRecievedReports(const std::vector<std::string>& expected_event_order) {
+  bool checkReceivedReports(const std::vector<std::string>& expected_event_order) {
     bool result = true;
     auto received_event_it = report_events_.begin();
 
@@ -567,7 +567,7 @@ class EventHandler {
     received_events_.push_back(event->variant);
   }
 
-  bool checkRecievedEvents(const std::vector<std::string>& expected_event_order) {
+  bool checkReceivedEvents(const std::vector<std::string>& expected_event_order) {
     bool result = true;
     auto received_event_it = received_events_.begin();
 
@@ -649,11 +649,11 @@ TEST(Aktualizr, FinalizationFailure) {
 
     ASSERT_EQ(aktualizr_cycle_thread_status, std::future_status::ready);
     ASSERT_TRUE(aktualizr.uptane_client_->bootloader->rebootDetected());
-    ASSERT_TRUE(event_hdlr.checkRecievedEvents(expected_event_order));
+    ASSERT_TRUE(event_hdlr.checkReceivedEvents(expected_event_order));
     ASSERT_TRUE(aktualizr.uptane_client_->hasPendingUpdates());
-    ASSERT_TRUE(http_server_mock->checkRecievedReports(expected_report_order));
+    ASSERT_TRUE(http_server_mock->checkReceivedReports(expected_report_order));
     // Aktualizr reports to a server that installation was successfull for the secondary
-    // checkRecievedReports() verifies whether EcuInstallationApplied was reported for the primary
+    // checkReceivedReports() verifies whether EcuInstallationApplied was reported for the primary
     ASSERT_FALSE(http_server_mock->wasInstallSuccessful(primary_ecu_id));
     ASSERT_TRUE(http_server_mock->wasInstallSuccessful(secondary_ecu_id));
 
@@ -721,7 +721,7 @@ TEST(Aktualizr, FinalizationFailure) {
     fiu_disable("fake_install_finalization_failure");
 
     ASSERT_FALSE(aktualizr.uptane_client_->hasPendingUpdates());
-    ASSERT_TRUE(http_server_mock->checkRecievedReports({"EcuInstallationCompleted"}));
+    ASSERT_TRUE(http_server_mock->checkReceivedReports({"EcuInstallationCompleted"}));
     ASSERT_FALSE(http_server_mock->wasInstallSuccessful(primary_ecu_id));
 
     data::InstallationResult dev_installation_res;
@@ -814,9 +814,9 @@ TEST(Aktualizr, InstallationFailure) {
     aktualizr.UptaneCycle();
     aktualizr.uptane_client_->completeInstall();
 
-    ASSERT_TRUE(event_hdlr.checkRecievedEvents(expected_event_order));
+    ASSERT_TRUE(event_hdlr.checkReceivedEvents(expected_event_order));
     ASSERT_FALSE(aktualizr.uptane_client_->hasPendingUpdates());
-    ASSERT_TRUE(http_server_mock->checkRecievedReports(expected_report_order));
+    ASSERT_TRUE(http_server_mock->checkReceivedReports(expected_report_order));
     ASSERT_FALSE(http_server_mock->wasInstallSuccessful(primary_ecu_id));
     ASSERT_TRUE(http_server_mock->wasInstallSuccessful(secondary_ecu_id));
 
