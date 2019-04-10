@@ -67,12 +67,6 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage
     bootloader->setBootOK();
   }
 
-  if (config.discovery.ipuptane) {
-    IpSecondaryDiscovery ip_uptane_discovery{config.network};
-    auto ipuptane_secs = ip_uptane_discovery.discover();
-    config.uptane.secondary_configs.insert(config.uptane.secondary_configs.end(), ipuptane_secs.begin(),
-                                           ipuptane_secs.end());
-  }
   std::vector<Uptane::SecondaryConfig>::const_iterator it;
   for (it = config.uptane.secondary_configs.begin(); it != config.uptane.secondary_configs.end(); ++it) {
     auto sec = Uptane::SecondaryFactory::makeSecondary(*it);

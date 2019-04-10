@@ -1,7 +1,5 @@
 set(SOURCES
     fetcher.cc
-    ipsecondarydiscovery.cc
-    ipuptanesecondary.cc
     iterator.cc
     managedsecondary.cc
     metawithkeys.cc
@@ -19,8 +17,6 @@ set(SOURCES
 set(HEADERS
     exceptions.h
     fetcher.h
-    ipsecondarydiscovery.h
-    ipuptanesecondary.h
     iterator.h
     managedsecondary.h
     partialverificationsecondary.h
@@ -46,10 +42,6 @@ if (BUILD_ISOTP)
     target_include_directories(uptane PRIVATE ${PROJECT_SOURCE_DIR}/third_party/isotp-c/src)
 endif (BUILD_ISOTP)
 
-get_property(ASN1_INCLUDE_DIRS TARGET asn1_lib PROPERTY INCLUDE_DIRECTORIES)
-target_include_directories(uptane PUBLIC ${ASN1_INCLUDE_DIRS})
-
-add_aktualizr_test(NAME discovery_secondary SOURCES ipsecondary_discovery_test.cc PROJECT_WORKING_DIRECTORY)
 add_aktualizr_test(NAME tuf SOURCES tuf_test.cc PROJECT_WORKING_DIRECTORY)
 add_aktualizr_test(NAME tuf_hash SOURCES tuf_hash_test.cc PROJECT_WORKING_DIRECTORY)
 

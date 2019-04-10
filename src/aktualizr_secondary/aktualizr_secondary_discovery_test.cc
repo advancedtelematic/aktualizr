@@ -4,7 +4,7 @@
 
 #include "aktualizr_secondary_discovery.h"
 #include "config/config.h"
-#include "uptane/ipsecondarydiscovery.h"  // to test from the other side
+#include "ipsecondarydiscovery.h"  // to test from the other side
 
 #include "logging/logging.h"
 
