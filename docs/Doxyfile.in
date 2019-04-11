@@ -805,7 +805,6 @@ INPUT                  = @CMAKE_SOURCE_DIR@/CONTRIBUTING.md \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/crypto \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/http \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/logging \
-                         @CMAKE_SOURCE_DIR@/src/libaktualizr/opcuabridge \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/package_manager \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/primary \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/socket_activation \

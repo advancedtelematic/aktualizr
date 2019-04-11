@@ -1050,13 +1050,7 @@ std::vector<result::Install::EcuReport> SotaUptaneClient::sendImagesToEcus(const
       }
       Uptane::SecondaryInterface &sec = *f->second;
 
-      if (sec.sconfig.secondary_type == Uptane::SecondaryType::kOpcuaUptane) {
-        Json::Value data;
-        data["sysroot_path"] = config.pacman.sysroot.string();
-        data["ref_hash"] = targets_it->sha256Hash();
-        firmwareFutures.emplace_back(result::Install::EcuReport(*targets_it, ecu_serial, data::InstallationResult()),
-                                     sendFirmwareAsync(sec, std::make_shared<std::string>(Utils::jsonToStr(data))));
-      } else if (targets_it->IsOstree()) {
+      if (targets_it->IsOstree()) {
         // empty firmware means OSTree secondaries: pack credentials instead
         const std::string creds_archive = secondaryTreehubCredentials();
         if (creds_archive.empty()) {

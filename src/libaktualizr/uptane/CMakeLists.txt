@@ -31,11 +31,6 @@ set(HEADERS
 
 
 add_library(uptane OBJECT ${SOURCES})
-if (BUILD_OPCUA)
-    target_sources(uptane PRIVATE opcuasecondary.cc)
-    target_include_directories(uptane PRIVATE ${PROJECT_SOURCE_DIR}/third_party/open62541)
-    set_source_files_properties(opcuasecondary.cc PROPERTIES COMPILE_FLAGS "-Wno-unused-parameter -Wno-float-equal")
-endif (BUILD_OPCUA)
 
 if (BUILD_ISOTP)
     target_sources(uptane PRIVATE isotpsecondary.cc)
@@ -78,4 +73,4 @@ add_aktualizr_test(NAME uptane_serial SOURCES uptane_serial_test.cc ARGS ${PROJE
 
 add_aktualizr_test(NAME uptane_init SOURCES uptane_init_test.cc PROJECT_WORKING_DIRECTORY)
 
-aktualizr_source_file_checks(${SOURCES} ${HEADERS} opcuasecondary.cc opcuasecondary.h isotpsecondary.cc isotpsecondary.h ${TEST_SOURCES})
+aktualizr_source_file_checks(${SOURCES} ${HEADERS} isotpsecondary.cc isotpsecondary.h ${TEST_SOURCES})

@@ -17,10 +17,6 @@ if(BUILD_ISOTP)
     add_subdirectory("isotp_conn")
 endif(BUILD_ISOTP)
 
-if (BUILD_OPCUA)
-    add_subdirectory("opcuabridge")
-endif (BUILD_OPCUA)
-
 add_library(aktualizr_static_lib STATIC
     $<TARGET_OBJECTS:bootloader>
     $<TARGET_OBJECTS:bootstrap>
@@ -37,10 +33,6 @@ add_library(aktualizr_static_lib STATIC
     $<TARGET_OBJECTS:uptane>
     $<TARGET_OBJECTS:socket_activation>
     $<TARGET_OBJECTS:telemetry>)
-
-if (BUILD_OPCUA)
-    target_sources(aktualizr_static_lib PRIVATE $<TARGET_OBJECTS:opcua_bridge>)
-endif (BUILD_OPCUA)
 
 if (BUILD_ISOTP)
     target_sources(aktualizr_static_lib PRIVATE $<TARGET_OBJECTS:isotp_conn>)

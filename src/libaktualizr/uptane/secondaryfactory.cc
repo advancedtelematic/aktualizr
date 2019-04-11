@@ -7,10 +7,6 @@
 #include "isotpsecondary.h"
 #endif
 
-#ifdef OPCUA_SECONDARY_ENABLED
-#include "uptane/opcuasecondary.h"
-#endif
-
 namespace Uptane {
 
 std::shared_ptr<SecondaryInterface> SecondaryFactory::makeSecondary(const SecondaryConfig& sconfig) {
@@ -25,13 +21,6 @@ std::shared_ptr<SecondaryInterface> SecondaryFactory::makeSecondary(const Second
       return std::make_shared<IsoTpSecondary>(sconfig);
 #else
       LOG_ERROR << "libaktualizr was built without ISO/TP secondary support.";
-      return std::shared_ptr<SecondaryInterface>();  // NULL-equivalent
-#endif
-    case SecondaryType::kOpcuaUptane:
-#ifdef OPCUA_SECONDARY_ENABLED
-      return std::make_shared<OpcuaSecondary>(sconfig);
-#else
-      LOG_ERROR << "libaktualizr was built without OPC-UA secondary support.";
       return std::shared_ptr<SecondaryInterface>();  // NULL-equivalent
 #endif
     default:
