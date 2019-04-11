@@ -269,7 +269,6 @@ These are internal requirements that are relatively opaque to the user and/or co
   - [x] Support virtual partial verification secondaries for testing
     - [x] Partial verification secondaries generate and store public keys (uptane_secondary_test.cc)
     - [x] Partial verification secondaries can verify Uptane metadata (uptane_secondary_test.cc)
-  - [x] Support OPC-UA secondaries (opcuabridge_messaging_test.cc, opcuabridge_secondary_update_test.cc, run_opcuabridge_ostree_repo_sync_test.sh)
 
 ### Expected action sequences
 

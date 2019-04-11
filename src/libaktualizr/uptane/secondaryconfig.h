@@ -18,8 +18,6 @@ enum class SecondaryType {
 
   kLegacy,  // Deprecated. Do not use.
 
-  kOpcuaUptane,  // Uptane protocol over OPC-UA
-
   kIpUptane,  // Custom Uptane protocol over TCP/IP network
 
   kVirtualUptane,  // Partial UPTANE secondary implemented inside primary
@@ -38,8 +36,6 @@ class SecondaryConfig {
   std::string ecu_private_key;
   std::string ecu_public_key;
   KeyType key_type{KeyType::kRSA2048};
-
-  std::string opcua_lds_url;
 
   boost::filesystem::path full_client_dir;   // SecondaryType::kVirtual
   boost::filesystem::path firmware_path;     // SecondaryType::kVirtual

@@ -9,9 +9,6 @@
 #include "aktualizr_secondary.h"
 #include "aktualizr_secondary_config.h"
 #include "aktualizr_secondary_discovery.h"
-#ifdef OPCUA_SECONDARY_ENABLED
-#include "aktualizr_secondary_opcua.h"
-#endif
 #include "utilities/utils.h"
 
 #include "logging/logging.h"
@@ -44,10 +41,6 @@ class AktualizrSecondaryWithDiscovery : public AktualizrSecondaryInterface {
   std::thread discovery_thread_;
 };
 
-#ifdef OPCUA_SECONDARY_ENABLED
-typedef AktualizrSecondaryOpcua AktualizrSecondaryOpcuaWithDiscovery;
-#endif
-
 void check_secondary_options(const bpo::options_description &description, const bpo::variables_map &vm) {
   if (vm.count("help") != 0) {
     std::cout << description << '\n';
@@ -70,8 +63,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("server-port,p", bpo::value<int>(), "command server listening port")
       ("discovery-port,d", bpo::value<int>(), "discovery service listening port (0 to disable)")
       ("ecu-serial", bpo::value<std::string>(), "serial number of secondary ecu")
-      ("ecu-hardware-id", bpo::value<std::string>(), "hardware ID of secondary ecu")
-      ("opcua", "use OPC-UA protocol");
+      ("ecu-hardware-id", bpo::value<std::string>(), "hardware ID of secondary ecu");
   // clang-format on
 
   bpo::variables_map vm;
@@ -127,20 +119,8 @@ int main(int argc, char *argv[]) {
 
     // storage (share class with primary)
     std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
-
     std::unique_ptr<AktualizrSecondaryInterface> secondary;
-
-    if (commandline_map.count("opcua") != 0) {
-#ifdef OPCUA_SECONDARY_ENABLED
-      secondary = std_::make_unique<AktualizrSecondaryOpcuaWithDiscovery>(config, storage);
-#else
-      LOG_ERROR << "Built without OPC-UA support!";
-      return EXIT_FAILURE;
-#endif
-    } else {
-      secondary = std_::make_unique<AktualizrSecondaryWithDiscovery>(config, storage);
-    }
-
+    secondary = std_::make_unique<AktualizrSecondaryWithDiscovery>(config, storage);
     secondary->run();
 
   } catch (std::runtime_error &exc) {

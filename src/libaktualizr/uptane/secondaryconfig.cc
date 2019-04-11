@@ -14,8 +14,6 @@ SecondaryConfig::SecondaryConfig(const boost::filesystem::path &config_file) {
     throw FatalException("Legacy secondaries are deprecated.");
   } else if (stype == "ip_uptane") {
     secondary_type = Uptane::SecondaryType::kIpUptane;
-  } else if (stype == "opcua_uptane") {
-    secondary_type = Uptane::SecondaryType::kOpcuaUptane;
   } else if (stype == "isotp_uptane") {
     secondary_type = Uptane::SecondaryType::kIsoTpUptane;
   } else {

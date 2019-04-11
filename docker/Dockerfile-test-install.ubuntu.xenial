@@ -6,7 +6,6 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get -y install debian-archive-keyring
 RUN apt-get update && apt-get install -y \
   libarchive13 \
-  libboost-iostreams1.58.0 \
   libboost-log1.58.0 \
   libboost-program-options1.58.0 \
   libboost-system1.58.0 \

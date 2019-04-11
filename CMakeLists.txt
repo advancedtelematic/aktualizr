@@ -31,7 +31,6 @@ option(BUILD_OSTREE "Set to ON to compile with ostree support" OFF)
 option(BUILD_DEB "Set to ON to compile with debian packages support" OFF)
 option(BUILD_P11 "Support for key storage in a HSM via PKCS#11" OFF)
 option(BUILD_SOTA_TOOLS "Set to ON to build SOTA tools" OFF)
-option(BUILD_OPCUA "Set to ON to compile with OPC-UA protocol support" OFF)
 option(BUILD_PARTIAL "Set to ON to compile with partial secondaries support" OFF)
 option(BUILD_ISOTP "Set to ON to compile with ISO/TP protocol support" OFF)
 option(BUILD_SYSTEMD "Set to ON to compile with systemd additional support" ${BUILD_SYSTEMD_DEFAULT})
@@ -59,7 +58,7 @@ unset(AKTUALIZR_CHECKED_SRCS CACHE)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # find all required libraries
-set(BOOST_COMPONENTS log_setup log filesystem program_options)
+set(BOOST_COMPONENTS log_setup log system filesystem program_options)
 set(Boost_USE_STATIC_LIBS OFF)
 add_definitions(-DBOOST_LOG_DYN_LINK)
 
@@ -71,10 +70,6 @@ if(ANDROID)
         include_directories(${Boost_INCLUDE_DIRS})
     endif()
 endif(ANDROID)
-
-if(BUILD_OPCUA)
-    list(APPEND BOOST_COMPONENTS serialization iostreams)
-endif(BUILD_OPCUA)
 
 # Mac brew library install paths
 
@@ -142,13 +137,6 @@ if(BUILD_SOTA_TOOLS)
     find_package(GLIB2 REQUIRED)
     find_program(STRACE NAMES strace)
 endif(BUILD_SOTA_TOOLS)
-
-if(BUILD_OPCUA)
-    add_definitions(-DOPCUA_SECONDARY_ENABLED)
-    if (NOT BUILD_OSTREE)
-        message(FATAL_ERROR "BUILD_OPCUA requires BUILD_OSTREE")
-    endif(NOT BUILD_OSTREE)
-endif(BUILD_OPCUA)
 
 if(BUILD_ISOTP)
     add_definitions(-DISOTP_SECONDARY_ENABLED)
@@ -435,12 +423,6 @@ add_subdirectory("docs")
 file(GLOB_RECURSE ALL_SOURCE_FILES RELATIVE ${CMAKE_SOURCE_DIR}
     src/*.cc src/*.c src/*.h)
 foreach(FILE ${ALL_SOURCE_FILES})
-    # ignore opcuabridge
-    string (FIND ${FILE} "/opcuabridge/" EXCLUDE_DIR_FOUND)
-    if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
-      continue()
-    endif()
-
     string (FIND ${FILE} "/isotp_conn/" EXCLUDE_DIR_FOUND)
     if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
       continue()

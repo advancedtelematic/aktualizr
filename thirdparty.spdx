@@ -5,13 +5,10 @@ Creator: Organization: HERE Technologies
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-googletest
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-jsoncpp
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-HdrHistogram_c
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-open62541
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-program-options-accumulator
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-filesystem
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-program-options
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-log
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-serialization
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-iostreams
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-libcurl
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-openssl
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-libarchive
@@ -66,18 +63,6 @@ FilesAnalyzed: false
 PackageComment: <text>Testing only.</text>
 
 
-PackageName: open62541
-SPDXID: SPDXRef-open62541
-PackageDownloadLocation: https://github.com/open62541/open62541/archive/0.3-rc2.tar.gz
-PackageHomePage: https://open62541.org/
-PackageLicenseConcluded: MPL-2.0
-PackageLicenseDeclared: MPL-2.0
-PackageLicenseInfoFromFiles: MPL-2.0
-PackageCopyrightText: <text>NONE</text>
-FilesAnalyzed: false
-PackageComment: <text>OPCUA only.</text>
-
-
 PackageName: boost-program-options-accumulator
 SPDXID: SPDXRef-boost-program-options-accumulator
 PackageDownloadLocation: https://github.com/bskari/sqlassie/blob/master/src/accumulator.hpp
@@ -120,31 +105,6 @@ PackageLicenseDeclared: BSL-1.0
 PackageLicenseInfoFromFiles: BSL-1.0
 PackageCopyrightText: <text>Copyright © 2007-2016 Andrey Semashev</text>
 FilesAnalyzed: false
-
-
-PackageName: boost-serialization
-SPDXID: SPDXRef-boost-serialization
-PackageDownloadLocation: https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.bz2
-PackageHomePage: http://www.boost.org/
-PackageLicenseConcluded: BSL-1.0
-PackageLicenseDeclared: BSL-1.0
-PackageLicenseInfoFromFiles: BSL-1.0
-PackageCopyrightText: <text>© Copyright Robert Ramey 2002-2004</text>
-FilesAnalyzed: false
-PackageComment: <text>OPCUA only.</text>
-
-
-PackageName: boost-iostreams
-SPDXID: SPDXRef-boost-iostreams
-PackageDownloadLocation: https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.bz2
-PackageHomePage: http://www.boost.org/
-PackageLicenseConcluded: BSL-1.0
-PackageLicenseDeclared: BSL-1.0
-PackageLicenseInfoFromFiles: BSL-1.0
-PackageCopyrightText: <text>© Copyright 2008 CodeRage, LLC
-© Copyright 2004-2007 Jonathan Turkanis</text>
-FilesAnalyzed: false
-PackageComment: <text>OPCUA only.</text>
 
 
 PackageName: libcurl

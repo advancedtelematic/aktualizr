@@ -24,7 +24,6 @@
 #include "uptane/exceptions.h"
 #include "uptane/fetcher.h"
 #include "uptane/imagesrepository.h"
-#include "uptane/ipsecondarydiscovery.h"
 #include "uptane/iterator.h"
 #include "uptane/secondaryinterface.h"
 

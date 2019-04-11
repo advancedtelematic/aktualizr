@@ -1,7 +1,7 @@
 #ifndef ASN1_CER_STREAM_H
 #define ASN1_CER_STREAM_H
 
-#include "asn1/asn1-cer.h"
+#include "asn1-cer.h"
 
 #include <stack>
 #include <utility>

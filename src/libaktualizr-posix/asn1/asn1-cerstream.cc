@@ -1,4 +1,4 @@
-#include "asn1/asn1-cerstream.h"
+#include "asn1-cerstream.h"
 
 namespace asn1 {
 
@@ -278,4 +278,5 @@ Deserializer& Deserializer::operator>>(const Token& tok) {
   // seq_consumed.pop();
   return *this;
 }
+
 }  // namespace asn1
