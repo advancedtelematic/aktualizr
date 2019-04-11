@@ -102,8 +102,7 @@ static inline int fault_injection_enable(const char *name, int failnum, const st
     f.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 
     try {
-      f.open(fault_injection_info_fn(), std::ios::binary);
-      f.seekp(0, std::ios_base::end);
+      f.open(fault_injection_info_fn(), std::ios::binary | std::ios::app);
       size_t fi_id = static_cast<size_t>(f.tellp()) / fault_injection_info_bs;
       f.write(arr.data(), arr.size());
       failinfo_id = fi_id;
