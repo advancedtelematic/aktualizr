@@ -184,7 +184,7 @@ class Aktualizr {
 
   // This constructor is only being used in tests
   Aktualizr(Config& config, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<HttpInterface> http_in);
-  void systemSetup();
+  static void systemSetup();
 
   Config& config_;
   std::shared_ptr<INvStorage> storage_;
