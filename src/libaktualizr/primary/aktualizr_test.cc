@@ -3,6 +3,7 @@
 #include <chrono>
 #include <future>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <boost/filesystem.hpp>
@@ -17,13 +18,7 @@
 #include "uptane_test_common.h"
 #include "utilities/utils.h"
 
-#ifdef FIU_ENABLE
-
-#include <fiu-control.h>
-#include <unordered_map>
 #include "utilities/fault_injection.h"
-
-#endif  // FIU_ENABLE
 
 boost::filesystem::path uptane_repos_dir;
 
@@ -522,7 +517,7 @@ class HttpInstallationFailed : public HttpFake {
     return HttpResponse("", 200, CURLE_OK, "");
   }
 
-  bool checkRecievedReports(const std::vector<std::string>& expected_event_order) {
+  bool checkReceivedReports(const std::vector<std::string>& expected_event_order) {
     bool result = true;
     auto received_event_it = report_events_.begin();
 
@@ -548,9 +543,6 @@ class HttpInstallationFailed : public HttpFake {
   void clearReportEvents() { report_events_.clear(); }
 
  private:
-  void setFlavor(const std::string& flavor) { flavor_ = flavor; }
-
- private:
   std::vector<std::string> report_events_;
   std::unordered_map<std::string, bool> install_completion_status_;
 };
@@ -567,7 +559,7 @@ class EventHandler {
     received_events_.push_back(event->variant);
   }
 
-  bool checkRecievedEvents(const std::vector<std::string>& expected_event_order) {
+  bool checkReceivedEvents(const std::vector<std::string>& expected_event_order) {
     bool result = true;
     auto received_event_it = received_events_.begin();
 
@@ -640,22 +632,22 @@ TEST(Aktualizr, FinalizationFailure) {
 
     // for some reason there is no any installed version at initial Aktualizr boot/run
     // IMHO it should return currently installed version
-    ASSERT_TRUE(installed_versions.empty());
-    ASSERT_EQ(pending_version, SIZE_MAX);
-    ASSERT_EQ(current_version, SIZE_MAX);
+    EXPECT_TRUE(installed_versions.empty());
+    EXPECT_EQ(pending_version, SIZE_MAX);
+    EXPECT_EQ(current_version, SIZE_MAX);
 
     auto aktualizr_cycle_thread = aktualizr.RunForever();
     auto aktualizr_cycle_thread_status = aktualizr_cycle_thread.wait_for(std::chrono::seconds(10));
 
     ASSERT_EQ(aktualizr_cycle_thread_status, std::future_status::ready);
-    ASSERT_TRUE(aktualizr.uptane_client_->bootloader->rebootDetected());
-    ASSERT_TRUE(event_hdlr.checkRecievedEvents(expected_event_order));
-    ASSERT_TRUE(aktualizr.uptane_client_->hasPendingUpdates());
-    ASSERT_TRUE(http_server_mock->checkRecievedReports(expected_report_order));
+    EXPECT_TRUE(aktualizr.uptane_client_->bootloader->rebootDetected());
+    EXPECT_TRUE(event_hdlr.checkReceivedEvents(expected_event_order));
+    EXPECT_TRUE(aktualizr.uptane_client_->hasPendingUpdates());
+    EXPECT_TRUE(http_server_mock->checkReceivedReports(expected_report_order));
     // Aktualizr reports to a server that installation was successfull for the secondary
-    // checkRecievedReports() verifies whether EcuInstallationApplied was reported for the primary
-    ASSERT_FALSE(http_server_mock->wasInstallSuccessful(primary_ecu_id));
-    ASSERT_TRUE(http_server_mock->wasInstallSuccessful(secondary_ecu_id));
+    // checkReceivedReports() verifies whether EcuInstallationApplied was reported for the primary
+    EXPECT_FALSE(http_server_mock->wasInstallSuccessful(primary_ecu_id));
+    EXPECT_TRUE(http_server_mock->wasInstallSuccessful(secondary_ecu_id));
 
     data::InstallationResult dev_installation_res;
     std::string report;
@@ -664,7 +656,7 @@ TEST(Aktualizr, FinalizationFailure) {
     EXPECT_EQ(dev_installation_res.result_code.num_code, data::ResultCode::Numeric::kNeedCompletion);
 
     std::vector<std::pair<Uptane::EcuSerial, data::InstallationResult>> ecu_installation_res;
-    EXPECT_TRUE(storage->loadEcuInstallationResults(&ecu_installation_res));
+    ASSERT_TRUE(storage->loadEcuInstallationResults(&ecu_installation_res));
     EXPECT_EQ(ecu_installation_res.size(), 2);
 
     for (const auto& ecu_install_res : ecu_installation_res) {
@@ -691,10 +683,10 @@ TEST(Aktualizr, FinalizationFailure) {
     ASSERT_TRUE(
         storage->loadInstalledVersions(primary_ecu_id, &installed_versions, &current_version, &pending_version));
     ASSERT_EQ(installed_versions.size(), 1);
-    ASSERT_TRUE(installed_versions[0].IsValid());
+    EXPECT_TRUE(installed_versions[0].IsValid());
     // if pending_version equals 0 then it means that this is a pending version
-    ASSERT_EQ(pending_version, 0);
-    ASSERT_EQ(current_version, SIZE_MAX);
+    EXPECT_EQ(pending_version, 0);
+    EXPECT_EQ(current_version, SIZE_MAX);
 
     pending_version = SIZE_MAX;
     current_version = SIZE_MAX;
@@ -702,10 +694,10 @@ TEST(Aktualizr, FinalizationFailure) {
     ASSERT_TRUE(
         storage->loadInstalledVersions(secondary_ecu_id, &installed_versions, &current_version, &pending_version));
     ASSERT_EQ(installed_versions.size(), 1);
-    ASSERT_TRUE(installed_versions[0].IsValid());
-    ASSERT_EQ(pending_version, SIZE_MAX);
+    EXPECT_TRUE(installed_versions[0].IsValid());
+    EXPECT_EQ(pending_version, SIZE_MAX);
     // if current_version equals 0 then it means that this is a current version
-    ASSERT_EQ(current_version, 0);
+    EXPECT_EQ(current_version, 0);
   }
 
   {
@@ -720,9 +712,9 @@ TEST(Aktualizr, FinalizationFailure) {
 
     fiu_disable("fake_install_finalization_failure");
 
-    ASSERT_FALSE(aktualizr.uptane_client_->hasPendingUpdates());
-    ASSERT_TRUE(http_server_mock->checkRecievedReports({"EcuInstallationCompleted"}));
-    ASSERT_FALSE(http_server_mock->wasInstallSuccessful(primary_ecu_id));
+    EXPECT_FALSE(aktualizr.uptane_client_->hasPendingUpdates());
+    EXPECT_TRUE(http_server_mock->checkReceivedReports({"EcuInstallationCompleted"}));
+    EXPECT_FALSE(http_server_mock->wasInstallSuccessful(primary_ecu_id));
 
     data::InstallationResult dev_installation_res;
     std::string report;
@@ -730,7 +722,7 @@ TEST(Aktualizr, FinalizationFailure) {
 
     // `device_installation_result` and `ecu_installation_results` are cleared
     // at finalizeAfterReboot()->putManifestSimple() once a device manifest is successfully sent to a server
-    ASSERT_FALSE(storage->loadDeviceInstallationResult(&dev_installation_res, &report, &correlation_id));
+    EXPECT_FALSE(storage->loadDeviceInstallationResult(&dev_installation_res, &report, &correlation_id));
 
     // it's used to return `true` even if there is no any record in DB
     // of the uptane cycle just after sending manifest
@@ -746,9 +738,9 @@ TEST(Aktualizr, FinalizationFailure) {
     ASSERT_TRUE(
         storage->loadInstalledVersions(primary_ecu_id, &installed_versions, &current_version, &pending_version));
     ASSERT_EQ(installed_versions.size(), 1);
-    ASSERT_TRUE(installed_versions[0].IsValid());
-    ASSERT_EQ(pending_version, SIZE_MAX);
-    ASSERT_EQ(current_version, SIZE_MAX);
+    EXPECT_TRUE(installed_versions[0].IsValid());
+    EXPECT_EQ(pending_version, SIZE_MAX);
+    EXPECT_EQ(current_version, SIZE_MAX);
 
     current_version = SIZE_MAX;
     pending_version = SIZE_MAX;
@@ -756,9 +748,9 @@ TEST(Aktualizr, FinalizationFailure) {
     ASSERT_TRUE(
         storage->loadInstalledVersions(secondary_ecu_id, &installed_versions, &current_version, &pending_version));
     ASSERT_EQ(installed_versions.size(), 1);
-    ASSERT_TRUE(installed_versions[0].IsValid());
-    ASSERT_EQ(pending_version, SIZE_MAX);
-    ASSERT_EQ(current_version, 0);
+    EXPECT_TRUE(installed_versions[0].IsValid());
+    EXPECT_EQ(pending_version, SIZE_MAX);
+    EXPECT_EQ(current_version, 0);
   }
 }
 
@@ -773,12 +765,6 @@ TEST(Aktualizr, FinalizationFailure) {
  * - [x] Store negative device installation result when an ECU installation failed
  */
 TEST(Aktualizr, InstallationFailure) {
-  TemporaryDirectory temp_dir;
-  auto http_server_mock = std::make_shared<HttpInstallationFailed>(temp_dir.Path());
-  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http_server_mock->tls_server);
-  conf.bootloader.reboot_sentinel_dir = temp_dir.Path();
-  auto storage = INvStorage::newStorage(conf.storage);
-
   std::vector<std::string> expected_event_order = {
       "UpdateCheckComplete",    "DownloadProgressReport", "DownloadTargetComplete", "DownloadProgressReport",
       "DownloadTargetComplete", "AllDownloadsComplete",   "InstallStarted",         "InstallTargetComplete",
@@ -792,6 +778,12 @@ TEST(Aktualizr, InstallationFailure) {
   const std::string secondary_ecu_id = "secondary_ecu_serial";
 
   {
+    TemporaryDirectory temp_dir;
+    auto http_server_mock = std::make_shared<HttpInstallationFailed>(temp_dir.Path());
+    Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http_server_mock->tls_server);
+    conf.bootloader.reboot_sentinel_dir = temp_dir.Path();
+    auto storage = INvStorage::newStorage(conf.storage);
+
     fiu_init(0);
     fiu_enable("fake_package_install", 1, nullptr, 0);
 
@@ -807,18 +799,18 @@ TEST(Aktualizr, InstallationFailure) {
     ASSERT_TRUE(
         storage->loadInstalledVersions(primary_ecu_id, &installed_versions, &current_version, &pending_version));
 
-    ASSERT_TRUE(installed_versions.empty());
-    ASSERT_EQ(pending_version, SIZE_MAX);
-    ASSERT_EQ(current_version, SIZE_MAX);
+    EXPECT_TRUE(installed_versions.empty());
+    EXPECT_EQ(pending_version, SIZE_MAX);
+    EXPECT_EQ(current_version, SIZE_MAX);
 
     aktualizr.UptaneCycle();
     aktualizr.uptane_client_->completeInstall();
 
-    ASSERT_TRUE(event_hdlr.checkRecievedEvents(expected_event_order));
-    ASSERT_FALSE(aktualizr.uptane_client_->hasPendingUpdates());
-    ASSERT_TRUE(http_server_mock->checkRecievedReports(expected_report_order));
-    ASSERT_FALSE(http_server_mock->wasInstallSuccessful(primary_ecu_id));
-    ASSERT_TRUE(http_server_mock->wasInstallSuccessful(secondary_ecu_id));
+    EXPECT_TRUE(event_hdlr.checkReceivedEvents(expected_event_order));
+    EXPECT_FALSE(aktualizr.uptane_client_->hasPendingUpdates());
+    EXPECT_TRUE(http_server_mock->checkReceivedReports(expected_report_order));
+    EXPECT_FALSE(http_server_mock->wasInstallSuccessful(primary_ecu_id));
+    EXPECT_TRUE(http_server_mock->wasInstallSuccessful(secondary_ecu_id));
 
     data::InstallationResult dev_installation_res;
     std::string report;
@@ -826,7 +818,7 @@ TEST(Aktualizr, InstallationFailure) {
 
     // `device_installation_result` and `ecu_installation_results` are cleared
     // at UptaneCycle()->putManifest() once a device manifest is successfully sent to a server
-    ASSERT_FALSE(storage->loadDeviceInstallationResult(&dev_installation_res, &report, &correlation_id));
+    EXPECT_FALSE(storage->loadDeviceInstallationResult(&dev_installation_res, &report, &correlation_id));
 
     std::vector<std::pair<Uptane::EcuSerial, data::InstallationResult>> ecu_installation_res;
     EXPECT_FALSE(storage->loadEcuInstallationResults(&ecu_installation_res));
@@ -842,6 +834,75 @@ TEST(Aktualizr, InstallationFailure) {
     EXPECT_EQ(pending_version, SIZE_MAX);
 
     fiu_disable("fake_package_install");
+  }
+
+  // primary and secondary failure
+  {
+    TemporaryDirectory temp_dir;
+    auto http_server_mock = std::make_shared<HttpInstallationFailed>(temp_dir.Path());
+    Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http_server_mock->tls_server);
+    conf.bootloader.reboot_sentinel_dir = temp_dir.Path();
+    auto storage = INvStorage::newStorage(conf.storage);
+    const std::string sec_fault_name = std::string("secondary_install_") + secondary_ecu_id;
+
+    fiu_init(0);
+    fault_injection_enable("fake_package_install", 1, "PRIMFAIL", 0);
+    fault_injection_enable(sec_fault_name.c_str(), 1, "SECFAIL", 0);
+
+    Aktualizr aktualizr(conf, storage, http_server_mock);
+    EventHandler event_hdlr(aktualizr);
+    aktualizr.Initialize();
+
+    // verify currently installed version
+    std::vector<Uptane::Target> installed_versions;
+    size_t current_version{SIZE_MAX};
+    size_t pending_version{SIZE_MAX};
+
+    ASSERT_TRUE(
+        storage->loadInstalledVersions(primary_ecu_id, &installed_versions, &current_version, &pending_version));
+
+    EXPECT_TRUE(installed_versions.empty());
+    EXPECT_EQ(pending_version, SIZE_MAX);
+    EXPECT_EQ(current_version, SIZE_MAX);
+
+    aktualizr.UptaneCycle();
+    aktualizr.uptane_client_->completeInstall();
+
+    EXPECT_TRUE(event_hdlr.checkReceivedEvents(expected_event_order));
+    EXPECT_FALSE(aktualizr.uptane_client_->hasPendingUpdates());
+    EXPECT_TRUE(http_server_mock->checkReceivedReports(expected_report_order));
+    EXPECT_FALSE(http_server_mock->wasInstallSuccessful(primary_ecu_id));
+    EXPECT_FALSE(http_server_mock->wasInstallSuccessful(secondary_ecu_id));
+
+    LOG_INFO << http_server_mock->last_manifest;
+    Json::Value installation_report = http_server_mock->last_manifest["signed"]["installation_report"]["report"];
+    EXPECT_EQ(installation_report["items"][0]["result"]["code"].asString(), "PRIMFAIL");
+    EXPECT_EQ(installation_report["items"][1]["result"]["code"].asString(), "SECFAIL");
+    EXPECT_EQ(installation_report["result"]["code"].asString(), "primary_hw:PRIMFAIL|secondary_hw:SECFAIL");
+
+    data::InstallationResult dev_installation_res;
+    std::string report;
+    std::string correlation_id;
+
+    // `device_installation_result` and `ecu_installation_results` are cleared
+    // at UptaneCycle()->putManifest() once a device manifest is successfully sent to a server
+    EXPECT_FALSE(storage->loadDeviceInstallationResult(&dev_installation_res, &report, &correlation_id));
+
+    std::vector<std::pair<Uptane::EcuSerial, data::InstallationResult>> ecu_installation_res;
+    EXPECT_FALSE(storage->loadEcuInstallationResults(&ecu_installation_res));
+    EXPECT_EQ(ecu_installation_res.size(), 0);
+
+    ASSERT_TRUE(
+        storage->loadInstalledVersions(primary_ecu_id, &installed_versions, &current_version, &pending_version));
+    // it says that no any installed version found,
+    // which is, on one hand is correct since installation of the found update failed hence nothing was installed,
+    // on the other hand some version should have been installed prior to the failed update
+    EXPECT_EQ(installed_versions.size(), 0);
+    EXPECT_EQ(current_version, SIZE_MAX);
+    EXPECT_EQ(pending_version, SIZE_MAX);
+
+    fault_injection_disable("fake_package_install");
+    fault_injection_disable(sec_fault_name.c_str());
   }
 }
 
