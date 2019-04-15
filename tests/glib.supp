@@ -1,4 +1,6 @@
-# Taken from the suppression list in ostree's test suite
+# From https://salsa.debian.org/debian/flatpak/blob/debian/master/tests/glib.supp
+
+# Based on the libhif supressions
 {
    gobject_init_1
    Memcheck:Leak
@@ -12,16 +14,16 @@
    fun:g_type_register_static
 }
 {
-   g_type_register_dynamic
-   Memcheck:Leak
-   ...
-   fun:g_type_register_dynamic
-}
-{
    g_type_register_fundamental
    Memcheck:Leak
    ...
    fun:g_type_register_fundamental
+}
+{
+   g_type_register_dynamic_1
+   Memcheck:Leak
+   ...
+   fun:g_type_register_dynamic
 }
 {
    g_type_init_with_debug_flags
@@ -50,12 +52,6 @@
    Memcheck:Leak
    ...
    fun:g_type_add_interface_static
-}
-{
-   g_type_add_interface_dynamic
-   Memcheck:Leak
-   ...
-   fun:g_type_add_interface_dynamic
 }
 {
    g_param_spec_internal
@@ -182,12 +178,18 @@
    fun:g_cancellable_push_current
 }
 {
-   _g_io_module_get_default
+   g-io-module-default-singleton-malloc
    Memcheck:Leak
    ...
-   fun:g_io_module_new
-   fun:g_io_modules_scan_all_in_directory_with_scope
-   fun:_g_io_modules_ensure_loaded
+   fun:g_type_create_instance
+   ...
+   fun:_g_io_module_get_default
+}
+{
+   g-io-module-default-singleton-malloc2
+   Memcheck:Leak
+   fun:malloc
+   ...
    fun:_g_io_module_get_default
 }
 {
@@ -397,20 +399,26 @@
    fun:g_task_start_task_thread
 }
 {
-   g_task_to_pool
-   Memcheck:Leak
-   ...
-   fun:g_thread_pool_start_thread
-   ...
-   fun:g_task_run_in_thread
-}
-{
    g_get_language_names
    Memcheck:Leak
    match-leak-kinds: definite
    fun:calloc
    fun:g_malloc0
    fun:g_get_language_names
+}
+{
+   g-get-language-names-malloc
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:g_get_language_names_with_category
+}
+{
+   g-get-language-names-malloc2
+   Memcheck:Leak
+   fun:calloc
+   ...
+   fun:g_get_language_names_with_category
 }
 {
    g_get_filename_charsets
@@ -550,9 +558,109 @@
    fun:glib_worker_main
 }
 {
-   glib_worker_2
+   glib_dispatch_1
    Memcheck:Leak
+   fun:malloc
+   fun:g_malloc
    ...
-   fun:g_thread_new
-   fun:g_get_worker_context
+   fun:get_dispatch
+   fun:g_main_dispatch
+}
+{
+   glib_dispatch_2
+   Memcheck:Leak
+   fun:calloc
+   fun:g_malloc0
+   ...
+   fun:get_dispatch
+   fun:g_main_current_source
+}
+{
+   glib_dlopen_1
+   Memcheck:Leak
+   fun:calloc
+   fun:_dlerror_run
+   fun:dlopen*
+   ...
+   fun:g_module_open
+}
+{
+   libc_tls
+   Memcheck:Leak
+   fun:calloc
+   fun:_dl_allocate_tls
+   fun:pthread_create*
+}
+{
+   soup_callback_1
+   Memcheck:Leak
+   fun:malloc
+   fun:g_malloc
+   fun:g_source_set_callback
+   fun:soup_add_completion_reffed
+   fun:soup_session_real_kick_queue
+}
+{
+   gio_namespace_cache_leak_ns_info
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   fun:g_malloc0
+   fun:_lookup_namespace
+}
+{
+   gio_namespace_cache_leak_ns_name
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:g_malloc
+   fun:g_strdup
+   fun:_lookup_namespace
+}
+{
+   gio_extension_points_global
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   fun:g_malloc0
+   fun:g_io_extension_point_register
+}
+{
+   glib_dbus_thread_private
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   fun:g_malloc0
+   fun:g_private_set_alloc0
+   ...
+   fun:gdbus_shared_thread_func
+}
+{
+   dbus_shared_socket
+   Memcheck:Leak
+   match-leak-kinds: definite
+   ...
+   fun:g_socket_create_source
+   ...
+   fun:gdbus_shared_thread_func
+}
+{
+   polkit_agent_leak
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   fun:g_malloc0
+   fun:g_dbus_connection_register_object
+   ...
+   fun:g_thread_proxy
+}
+{
+   polkit_agent_leak2
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   fun:g_malloc0
+   fun:g_private_set_alloc0
+   ...
+   fun:g_thread_proxy
 }

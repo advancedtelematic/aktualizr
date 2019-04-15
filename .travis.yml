@@ -1,6 +1,8 @@
 dist: trusty
 sudo: false
 language: cpp
+git:
+  depth: false
 branches:
   only:
     - master
