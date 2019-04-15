@@ -26,11 +26,6 @@ void Repo::addDelegationToSnapshot(Json::Value *snapshot, const Uptane::Role &ro
   Json::Value role_json = Utils::parseJSONFile(repo_dir / role_file_name)["signed"];
   std::string signed_role = Utils::readFile(repo_dir / role_file_name);
 
-  (*snapshot)["meta"][role_file_name]["hashes"]["sha256"] =
-      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(signed_role)));
-  (*snapshot)["meta"][role_file_name]["hashes"]["sha512"] =
-      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(signed_role)));
-  (*snapshot)["meta"][role_file_name]["length"] = static_cast<Json::UInt>(signed_role.length());
   (*snapshot)["meta"][role_file_name]["version"] = role_json["version"].asUInt();
 
   if (role_json["delegations"].isObject()) {
@@ -54,11 +49,6 @@ void Repo::updateRepo() {
   Json::Value root = Utils::parseJSONFile(repo_dir / "root.json")["signed"];
   std::string signed_root = Utils::readFile(repo_dir / "root.json");
 
-  snapshot["meta"]["root.json"]["hashes"]["sha256"] =
-      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(signed_root)));
-  snapshot["meta"]["root.json"]["hashes"]["sha512"] =
-      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(signed_root)));
-  snapshot["meta"]["root.json"]["length"] = static_cast<Json::UInt>(signed_root.length());
   snapshot["meta"]["root.json"]["version"] = root["version"].asUInt();
 
   addDelegationToSnapshot(&snapshot, Uptane::Role::Targets());
@@ -205,11 +195,6 @@ void Repo::generateRepo(KeyType key_type) {
       boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(signed_root)));
   snapshot["meta"]["root.json"]["length"] = static_cast<Json::UInt>(signed_root.length());
   snapshot["meta"]["root.json"]["version"] = 1;
-  snapshot["meta"]["targets.json"]["hashes"]["sha256"] =
-      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(signed_targets)));
-  snapshot["meta"]["targets.json"]["hashes"]["sha512"] =
-      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(signed_targets)));
-  snapshot["meta"]["targets.json"]["length"] = static_cast<Json::UInt>(signed_targets.length());
   snapshot["meta"]["targets.json"]["version"] = 1;
   std::string signed_snapshot = Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Snapshot(), snapshot));
   Utils::writeFile(repo_dir / "snapshot.json", signed_snapshot);

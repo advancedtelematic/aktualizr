@@ -18,11 +18,6 @@ void check_repo(boost::filesystem::path repo_dir) {
   std::string signed_targets = Utils::readFile(repo_dir / "targets.json");
 
   Json::Value snapshot = Utils::parseJSONFile(repo_dir / "snapshot.json")["signed"];
-  EXPECT_EQ(snapshot["meta"]["targets.json"]["hashes"]["sha256"].asString(),
-            boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(signed_targets))));
-  EXPECT_EQ(snapshot["meta"]["targets.json"]["hashes"]["sha512"].asString(),
-            boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(signed_targets))));
-  EXPECT_EQ(snapshot["meta"]["targets.json"]["length"].asUInt(), static_cast<Json::UInt>(signed_targets.length()));
   EXPECT_EQ(snapshot["meta"]["targets.json"]["version"].asUInt(), targets["version"].asUInt());
 
   auto signed_snapshot = Utils::readFile(repo_dir / "snapshot.json");

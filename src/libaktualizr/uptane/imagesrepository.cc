@@ -65,7 +65,8 @@ bool ImagesRepository::verifySnapshot(const std::string& snapshot_raw) {
 
 bool ImagesRepository::verifyRoleHashes(const std::string& role_data, const Uptane::Role& role) const {
   const std::string canonical = Utils::jsonToCanonicalStr(Utils::parseJSON(role_data));
-  bool hash_exists = false;
+  // Hashes are not required. If present, however, we may as well check them.
+  // This provides no security benefit, but may help with fault detection.
   for (const auto& it : snapshot.role_hashes(role)) {
     switch (it.type()) {
       case Hash::Type::kSha256:
@@ -73,25 +74,19 @@ bool ImagesRepository::verifyRoleHashes(const std::string& role_data, const Upta
           LOG_ERROR << "Hash verification for " << role.ToString() << " metadata failed";
           return false;
         }
-        hash_exists = true;
         break;
       case Hash::Type::kSha512:
         if (Hash(Hash::Type::kSha512, boost::algorithm::hex(Crypto::sha512digest(canonical))) != it) {
           LOG_ERROR << "Hash verification for " << role.ToString() << " metadata failed";
           return false;
         }
-        hash_exists = true;
         break;
       default:
         break;
     }
   }
 
-  if (!hash_exists) {
-    LOG_ERROR << "No hash found for " << role.ToString() << " role";
-  }
-
-  return hash_exists;
+  return true;
 }
 
 int ImagesRepository::getRoleVersion(const Uptane::Role& role) const { return snapshot.role_version(role); }
