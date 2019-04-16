@@ -57,11 +57,21 @@ void DirectorRepo::signTargets() {
   boost::filesystem::remove(path_ / "repo/director/staging/targets.json");
   updateRepo();
 }
+
 void DirectorRepo::emptyTargets() {
+  const boost::filesystem::path current = path_ / "repo/director/targets.json";
   const boost::filesystem::path staging = path_ / "repo/director/staging/targets.json";
+
+  Json::Value targets_current = Utils::parseJSONFile(current);
   Json::Value targets_unsigned;
   targets_unsigned = Utils::parseJSONFile(staging);
-  targets_unsigned["targets"].clear();
+  targets_unsigned["_type"] = "Targets";
+  targets_unsigned["expires"] = expiration_time_;
+  targets_unsigned["version"] = (targets_current["signed"]["version"].asUInt()) + 1;
+  targets_unsigned["targets"] = Json::objectValue;
+  if (repo_type_ == Uptane::RepositoryType::Director() && correlation_id_ != "") {
+    targets_unsigned["custom"]["correlationId"] = correlation_id_;
+  }
   Utils::writeFile(staging, Utils::jsonToCanonicalStr(targets_unsigned));
 }
 

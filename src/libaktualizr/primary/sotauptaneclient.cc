@@ -607,22 +607,22 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target t
     report_queue->enqueue(std_::make_unique<EcuDownloadStartedReport>(ecu.first, correlation_id));
   }
 
-  bool success = false;
-  const int max_tries = 3;
-  int tries = 0;
-  std::chrono::milliseconds wait(500);
-
   KeyManager keys(storage, config.keymanagerConfig());
   keys.loadKeys();
   auto prog_cb = [this](const Uptane::Target &t, const std::string description, unsigned int progress) {
     report_progress_cb(events_channel.get(), t, description, progress);
   };
 
-  while (tries++ < max_tries) {
+  bool success = false;
+  const int max_tries = 3;
+  int tries = 0;
+  std::chrono::milliseconds wait(500);
+
+  for (; tries < max_tries; tries++) {
     success = package_manager_->fetchTarget(target, *uptane_fetcher, keys, prog_cb, token);
     if (success) {
       break;
-    } else if (tries < max_tries) {
+    } else if (tries < max_tries - 1) {
       std::this_thread::sleep_for(wait);
       wait *= 2;
     }
