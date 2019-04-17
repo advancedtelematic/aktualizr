@@ -69,6 +69,8 @@ RUN ./configure CFLAGS='-Wno-error=missing-prototypes' --with-libarchive --disab
 RUN make VERBOSE=1 -j4
 RUN make install
 
+RUN pip3 install awscli
+
 RUN useradd testuser
 
 WORKDIR /
