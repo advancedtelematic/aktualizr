@@ -176,6 +176,7 @@ class Aktualizr {
   FRIEND_TEST(Aktualizr, UpdateCheckCompleteError);
   FRIEND_TEST(Aktualizr, PauseResumeQueue);
   FRIEND_TEST(Aktualizr, AddSecondary);
+  FRIEND_TEST(Aktualizr, EmptyTargets);
   FRIEND_TEST(Delegation, Basic);
   FRIEND_TEST(Delegation, RevokeAfterCheckUpdates);
   FRIEND_TEST(Delegation, RevokeAfterInstall);
