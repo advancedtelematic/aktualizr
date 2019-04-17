@@ -316,7 +316,7 @@ void SotaUptaneClient::initialize() {
 bool SotaUptaneClient::updateMeta() {
   // Uptane step 1 (build the vehicle version manifest):
   if (!putManifestSimple()) {
-    return false;
+    LOG_ERROR << "Error sending manifest!";
   }
   return uptaneIteration();
 }
