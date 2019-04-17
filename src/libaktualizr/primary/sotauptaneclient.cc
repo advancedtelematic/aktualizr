@@ -860,7 +860,7 @@ void SotaUptaneClient::completeInstall() {
   }
 }
 
-bool SotaUptaneClient::putManifestSimple() {
+bool SotaUptaneClient::putManifestSimple(const Json::Value &custom) {
   // does not send event, so it can be used as a subset of other steps
   if (hasPendingUpdates()) {
     LOG_DEBUG << "An update is pending. Skipping manifest upload until installation is complete";
@@ -868,6 +868,9 @@ bool SotaUptaneClient::putManifestSimple() {
   }
 
   auto manifest = AssembleManifest();
+  if (custom != Json::nullValue) {
+    manifest["custom"] = custom;
+  }
   auto signed_manifest = uptane_manifest.signManifest(manifest);
   HttpResponse response = http->put(config.uptane.director_server + "/manifest", signed_manifest);
   if (response.isOk()) {
@@ -879,8 +882,8 @@ bool SotaUptaneClient::putManifestSimple() {
   return false;
 }
 
-bool SotaUptaneClient::putManifest() {
-  bool success = putManifestSimple();
+bool SotaUptaneClient::putManifest(const Json::Value &custom) {
+  bool success = putManifestSimple(custom);
   sendEvent<event::PutManifestComplete>(success);
   return success;
 }

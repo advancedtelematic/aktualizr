@@ -49,16 +49,16 @@ void Aktualizr::Initialize() {
 
 bool Aktualizr::UptaneCycle() {
   result::UpdateCheck update_result = CheckUpdates().get();
-  if (update_result.updates.size() == 0) {
+  if (update_result.updates.empty()) {
     return true;
   }
 
   result::Download download_result = Download(update_result.updates).get();
-  if (download_result.status != result::DownloadStatus::kSuccess || download_result.updates.size() == 0) {
+  if (download_result.status != result::DownloadStatus::kSuccess || download_result.updates.empty()) {
     return true;
   }
 
-  uptane_client_->uptaneInstall(download_result.updates);
+  Install(download_result.updates).get();
 
   if (uptane_client_->isInstallCompletionRequired()) {
     // If there are some pending updates then effectively either reboot (ostree) or aktualizr restart (fake pack mngr)
@@ -70,7 +70,7 @@ bool Aktualizr::UptaneCycle() {
   if (!uptane_client_->hasPendingUpdates()) {
     // If updates were applied and no any reboot/finalization is required then send/put manifest
     // as soon as possible, don't wait for config_.uptane.polling_sec
-    uptane_client_->putManifest();
+    SendManifest().get();
   }
 
   return true;
@@ -119,6 +119,11 @@ std::future<result::Download> Aktualizr::Download(const std::vector<Uptane::Targ
 
 std::future<result::Install> Aktualizr::Install(const std::vector<Uptane::Target> &updates) {
   std::function<result::Install()> task([this, &updates] { return uptane_client_->uptaneInstall(updates); });
+  return api_queue_.enqueue(task);
+}
+
+std::future<bool> Aktualizr::SendManifest(const Json::Value &custom) {
+  std::function<bool()> task([this, custom]() { return uptane_client_->putManifest(custom); });
   return api_queue_.enqueue(task);
 }
 

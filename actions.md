@@ -168,6 +168,7 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Generate and send manifest (see below)
   - [x] Send PutManifestComplete event if send is successful (aktualizr_test.cc)
   - [x] Send PutManifestComplete event if send is unsuccessful (uptane_test.cc)
+  - [x] Append custom installation report to the "custom" field of the manifest (aktualizr_test.cc)
 
 ### Internal and common actions
 

@@ -1655,6 +1655,24 @@ TEST(Aktualizr, FullNoCorrelationId) {
   EXPECT_EQ(http->events_seen, 8);
 }
 
+TEST(Aktualizr, ManifestCustom) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+
+  {
+    Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+
+    auto storage = INvStorage::newStorage(conf.storage);
+    Aktualizr aktualizr(conf, storage, http);
+
+    aktualizr.Initialize();
+    Json::Value custom = Utils::parseJSON(R"({"test_field":"test_value"})");
+    ASSERT_EQ(custom["test_field"].asString(), "test_value");  // Shouldn't fail, just check that test itself is correct
+    ASSERT_EQ(true, aktualizr.SendManifest(custom).get()) << "Failed to upload manifest with HttpFake server";
+    EXPECT_EQ(http->last_manifest["signed"]["custom"], custom);
+  }
+}
+
 class CountUpdateCheckEvents {
  public:
   CountUpdateCheckEvents() = default;
@@ -1697,11 +1715,14 @@ TEST(Aktualizr, APICheck) {
     Aktualizr aktualizr(conf, storage, http);
     boost::signals2::connection conn = aktualizr.SetSignalHandler(counter.Signal());
     aktualizr.Initialize();
+    std::vector<std::future<result::UpdateCheck>> futures;
     for (int i = 0; i < 5; ++i) {
-      aktualizr.CheckUpdates();
+      futures.push_back(aktualizr.CheckUpdates());
     }
-    std::this_thread::sleep_for(std::chrono::seconds(12));
-    // Wait for the Aktualizr dtor to run in order that processing has finished
+
+    for (auto& f : futures) {
+      f.get();
+    }
   }
 
   EXPECT_EQ(counter.total_events(), 5);
@@ -1712,11 +1733,12 @@ TEST(Aktualizr, APICheck) {
     Aktualizr aktualizr(conf, storage, http);
     boost::signals2::connection conn = aktualizr.SetSignalHandler(counter2.Signal());
     aktualizr.Initialize();
-    for (int i = 0; i < 100; ++i) {
+
+    std::future<result::UpdateCheck> ft = aktualizr.CheckUpdates();
+    for (int i = 0; i < 99; ++i) {
       aktualizr.CheckUpdates();
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(800));
-    // Wait for the Aktualizr dtor to run in order that processing has finished
+    ft.get();
   }
   EXPECT_LT(counter2.total_events(), 100);
   EXPECT_GT(counter2.total_events(), 0);
