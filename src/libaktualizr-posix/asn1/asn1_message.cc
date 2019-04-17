@@ -4,6 +4,7 @@
 #include "utilities/sockaddr_io.h"
 #include "utilities/utils.h"
 
+#include <arpa/inet.h>
 #include <netinet/tcp.h>
 
 #ifndef MSG_NOSIGNAL
@@ -53,14 +54,16 @@ void SetString(OCTET_STRING_t* dest, const std::string& str) {
   OCTET_STRING_fromBuf(dest, str.c_str(), static_cast<int>(str.size()));
 }
 
-Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, const struct sockaddr_storage& client) {
-  int socket_fd = socket(AF_INET6, SOCK_STREAM, 0);
+Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, const struct sockaddr_in& server_sock_addr) {
+  int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
   if (socket_fd < 0) {
     throw std::system_error(errno, std::system_category(), "socket");
   }
+  // what's the point in usage of SocketHandle
   SocketHandle hdl(new int(socket_fd));
-  if (connect(*hdl, reinterpret_cast<const struct sockaddr*>(&client), sizeof(sockaddr_in6)) < 0) {
-    LOG_ERROR << "connect to " << client << " failed:" << std::strerror(errno);
+
+  if (connect(*hdl, reinterpret_cast<const struct sockaddr*>(&server_sock_addr), sizeof(server_sock_addr)) < 0) {
+    LOG_ERROR << "connect to  client failed:" << std::strerror(errno);
     return Asn1Message::Empty();
   }
   der_encode(&asn_DEF_AKIpUptaneMes, &tx->msg_, Asn1SocketWriteCallback, hdl.get());

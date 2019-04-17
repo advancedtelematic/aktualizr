@@ -69,6 +69,7 @@ struct UptaneConfig {
   KeyType key_type{KeyType::kRSA2048};
   bool force_install_completion{false};
   boost::filesystem::path secondary_configs_dir;
+  boost::filesystem::path secondary_config_file;
   std::vector<Uptane::SecondaryConfig> secondary_configs{};
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);

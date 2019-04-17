@@ -61,6 +61,14 @@ void SocketServer::HandleOneConnection(int socket) {
     // Figure out what to do with the message
     Asn1Message::Ptr resp = Asn1Message::Empty();
     switch (msg->present()) {
+      case AKIpUptaneMes_PR_getInfoReq: {
+        Uptane::EcuSerial serial = impl_->getSerial();
+        Uptane::HardwareIdentifier hw_id = impl_->getHwId();
+        resp->present(AKIpUptaneMes_PR_getInfoResp);
+        auto r = resp->getInfoResp();
+        SetString(&r->ecuSerial, serial.ToString());
+        SetString(&r->hwId, hw_id.ToString());
+      } break;
       case AKIpUptaneMes_PR_publicKeyReq: {
         PublicKey pk = impl_->getPublicKey();
         resp->present(AKIpUptaneMes_PR_publicKeyResp);

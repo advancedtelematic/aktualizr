@@ -37,16 +37,18 @@ class SecondaryConfig {
   std::string ecu_public_key;
   KeyType key_type{KeyType::kRSA2048};
 
+  // TODO: secondary config contains secondary specific params
+  // so introduction of any new type of secondary will require changes here/libaktualizr
+  // what we would like to avoid
   boost::filesystem::path full_client_dir;   // SecondaryType::kVirtual
   boost::filesystem::path firmware_path;     // SecondaryType::kVirtual
   boost::filesystem::path metadata_path;     // SecondaryType::kVirtual
   boost::filesystem::path target_name_path;  // SecondaryType::kVirtual
 
-  sockaddr_storage ip_addr{};  // SecondaryType::kIpUptane
-
   uint16_t can_id{0x0000};  // SecondaryType::kIsoTpUptane;
   std::string can_iface;    // SecondaryType::kIsoTpUptane;
 };
+
 }  // namespace Uptane
 
 #endif
