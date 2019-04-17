@@ -7,9 +7,13 @@ variables:
   UBUNTU_BIONIC_MASTER_IMAGE: ${CI_REGISTRY_IMAGE}:ci-master-UBUNTU_BIONIC
   UBUNTU_XENIAL_MASTER_IMAGE: ${CI_REGISTRY_IMAGE}:ci-master-UBUNTU_XENIAL
   DEBIAN_TESTING_MASTER_IMAGE: ${CI_REGISTRY_IMAGE}:ci-master-DEBIAN_TESTING
+  UBUNTU_BIONIC_MASTER_INSTALLIMAGE: ${CI_REGISTRY_IMAGE}:ci-install-master-UBUNTU_BIONIC
+  UBUNTU_XENIAL_MASTER_INSTALLIMAGE: ${CI_REGISTRY_IMAGE}:ci-install-master-UBUNTU_XENIAL
   UBUNTU_BIONIC_PR_IMAGE: ${CI_REGISTRY_IMAGE}:ci-${CI_COMMIT_REF_SLUG}-UBUNTU_BIONIC
   UBUNTU_XENIAL_PR_IMAGE: ${CI_REGISTRY_IMAGE}:ci-${CI_COMMIT_REF_SLUG}-UBUNTU_XENIAL
   DEBIAN_TESTING_PR_IMAGE: ${CI_REGISTRY_IMAGE}:ci-${CI_COMMIT_REF_SLUG}-DEBIAN_TESTING
+  UBUNTU_BIONIC_PR_INSTALLIMAGE: ${CI_REGISTRY_IMAGE}:ci-install-${CI_COMMIT_REF_SLUG}-UBUNTU_BIONIC
+  UBUNTU_XENIAL_PR_INSTALLIMAGE: ${CI_REGISTRY_IMAGE}:ci-install-${CI_COMMIT_REF_SLUG}-UBUNTU_XENIAL
 
   GIT_SUBMODULE_STRATEGY: recursive
 
@@ -22,6 +26,7 @@ Docker Setup:
   before_script:
     - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
   script:
+    # main images
     - docker pull "$UBUNTU_BIONIC_PR_IMAGE" || docker pull "$UBUNTU_BIONIC_MASTER_IMAGE" || true
     - docker build --pull --cache-from "$UBUNTU_BIONIC_MASTER_IMAGE" --cache-from "$UBUNTU_BIONIC_PR_IMAGE" -f "$CI_PROJECT_DIR/docker/Dockerfile.ubuntu.bionic" -t "$UBUNTU_BIONIC_PR_IMAGE" .
     - docker push "$UBUNTU_BIONIC_PR_IMAGE"
@@ -33,6 +38,15 @@ Docker Setup:
     - docker pull "$DEBIAN_TESTING_PR_IMAGE" || docker pull "$DEBIAN_TESTING_MASTER_IMAGE" || true
     - docker build --pull --cache-from "$DEBIAN_TESTING_MASTER_IMAGE" --cache-from "$DEBIAN_TESTING_PR_IMAGE" -f "$CI_PROJECT_DIR/docker/Dockerfile.debian.testing" -t "$DEBIAN_TESTING_PR_IMAGE" .
     - docker push "$DEBIAN_TESTING_PR_IMAGE"
+
+    # used for install tests
+    - docker pull "$UBUNTU_BIONIC_PR_INSTALLIMAGE" || docker pull "$UBUNTU_BIONIC_MASTER_INSTALLIMAGE" || true
+    - docker build --pull --cache-from "$UBUNTU_BIONIC_MASTER_INSTALLIMAGE" --cache-from "$UBUNTU_BIONIC_PR_INSTALLIMAGE" -f "$CI_PROJECT_DIR/docker/Dockerfile-test-install.ubuntu.bionic" -t "$UBUNTU_BIONIC_PR_INSTALLIMAGE" .
+    - docker push "$UBUNTU_BIONIC_PR_INSTALLIMAGE"
+
+    - docker pull "$UBUNTU_XENIAL_PR_INSTALLIMAGE" || docker pull "$UBUNTU_XENIAL_MASTER_INSTALLIMAGE" || true
+    - docker build --pull --cache-from "$UBUNTU_XENIAL_MASTER_INSTALLIMAGE" --cache-from "$UBUNTU_XENIAL_PR_INSTALLIMAGE" -f "$CI_PROJECT_DIR/docker/Dockerfile-test-install.ubuntu.xenial" -t "$UBUNTU_XENIAL_PR_INSTALLIMAGE" .
+    - docker push "$UBUNTU_XENIAL_PR_INSTALLIMAGE"
 
 coverage:
   variables:
@@ -82,7 +96,6 @@ bionic-pkg:
     TEST_BUILD_DIR: 'build-bionic'
     TEST_INSTALL_RELEASE_NAME: '-ubuntu_18.04'
     TEST_INSTALL_DESTDIR: "$CI_PROJECT_DIR/build-bionic/pkg"
-    INSTALL_DOCKERFILE: '$CI_PROJECT_DIR/docker/Dockerfile-test-install.ubuntu.bionic'
 
   image: docker:latest
   services:
@@ -95,9 +108,10 @@ bionic-pkg:
     - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
   script:
     - mkdir -p $TEST_INSTALL_DESTDIR
-    - PWD=$(pwd)
-    - docker run -eTEST_BUILD_DIR=$TEST_BUILD_DIR -eTEST_INSTALL_RELEASE_NAME=$TEST_INSTALL_RELEASE_NAME -u $(id -u):$(id -g) -v $PWD:$PWD -v $TEST_INSTALL_DESTDIR:/persistent -w $PWD --rm $UBUNTU_BIONIC_PR_IMAGE $PWD/scripts/build_ubuntu.sh
-    - $CI_PROJECT_DIR/scripts/test_garage_deploy_deb.sh $TEST_INSTALL_DESTDIR $INSTALL_DOCKERFILE
+    # build package
+    - docker run -eTEST_BUILD_DIR=$TEST_BUILD_DIR -eTEST_INSTALL_RELEASE_NAME=$TEST_INSTALL_RELEASE_NAME -u $(id -u):$(id -g) -v $CI_PROJECT_DIR:$CI_PROJECT_DIR -v $TEST_INSTALL_DESTDIR:/persistent --rm $UBUNTU_BIONIC_PR_IMAGE $CI_PROJECT_DIR/scripts/build_ubuntu.sh
+    # run tests
+    - docker run --rm -v $TEST_INSTALL_DESTDIR:/persistent -v $CI_PROJECT_DIR/scripts/:/scripts/ -t $UBUNTU_BIONIC_PR_INSTALLIMAGE /scripts/test_install_garage_deploy.sh
 
 xenial-pkg:
   # Build and test aktualizr xenial package
@@ -105,7 +119,6 @@ xenial-pkg:
     TEST_BUILD_DIR: 'build-xenial'
     TEST_INSTALL_RELEASE_NAME: '-ubuntu_16.04'
     TEST_INSTALL_DESTDIR: "$CI_PROJECT_DIR/build-xenial/pkg"
-    INSTALL_DOCKERFILE: '$CI_PROJECT_DIR/docker/Dockerfile-test-install.ubuntu.xenial'
 
   image: docker:latest
   services:
@@ -118,11 +131,11 @@ xenial-pkg:
     - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
   script:
     - mkdir -p $TEST_INSTALL_DESTDIR
-    - PWD=$(pwd)
-    - docker run -eTEST_BUILD_DIR="$TEST_BUILD_DIR" -eTEST_INSTALL_RELEASE_NAME="$TEST_INSTALL_RELEASE_NAME" -u $(id -u):$(id -g) -v $PWD:$PWD -v $TEST_INSTALL_DESTDIR:/persistent -w $PWD --rm $UBUNTU_XENIAL_PR_IMAGE $PWD/scripts/build_ubuntu.sh
-    - $CI_PROJECT_DIR/scripts/test_garage_deploy_deb.sh $TEST_INSTALL_DESTDIR $INSTALL_DOCKERFILE
-    - $CI_PROJECT_DIR/scripts/test_aktualizr_deb_ubuntu.sh $TEST_INSTALL_DESTDIR $INSTALL_DOCKERFILE
-
+    # build package
+    - docker run -eTEST_BUILD_DIR="$TEST_BUILD_DIR" -eTEST_INSTALL_RELEASE_NAME="$TEST_INSTALL_RELEASE_NAME" -u $(id -u):$(id -g) -v $CI_PROJECT_DIR:$CI_PROJECT_DIR -v $TEST_INSTALL_DESTDIR:/persistent --rm $UBUNTU_XENIAL_PR_IMAGE $CI_PROJECT_DIR/scripts/build_ubuntu.sh
+    # run tests
+    - docker run --rm -v $TEST_INSTALL_DESTDIR:/persistent -v $CI_PROJECT_DIR/scripts/:/scripts/ -t $UBUNTU_XENIAL_PR_INSTALLIMAGE /scripts/test_install_garage_deploy.sh
+    - docker run --rm -v $TEST_INSTALL_DESTDIR:/persistent -v $CI_PROJECT_DIR/scripts/:/scripts/ -t $UBUNTU_XENIAL_PR_INSTALLIMAGE bash -c "/scripts/test_install_aktualizr_and_update.sh && /scripts/test_aktualizr_repo.sh"
 pages:
   stage: deploy
   dependencies:
