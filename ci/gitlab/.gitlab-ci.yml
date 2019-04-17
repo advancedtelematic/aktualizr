@@ -1,5 +1,5 @@
 stages:
-  - Setup Docker
+  - Docker Setup
   - Build and Test
 
 variables:
@@ -11,9 +11,9 @@ variables:
   GIT_SUBMODULE_STRATEGY: recursive
 
 # Build the Docker image that will be used in subsequent CI/CD stages
-Setup Docker:
+Docker Setup:
   image: docker:latest
-  stage: Setup Docker
+  stage: Docker Setup
   services:
     - docker:dind
   before_script:
@@ -27,7 +27,7 @@ Setup Docker:
     - docker build --pull --cache-from "$DEBIAN_TESTING_MASTER_IMAGE" --cache-from "$DEBIAN_TESTING_PR_IMAGE" -f "$CI_PROJECT_DIR/docker/Dockerfile.debian.testing" -t "$DEBIAN_TESTING_PR_IMAGE" .
     - docker push "$DEBIAN_TESTING_PR_IMAGE"
 
-Test with p11 and coverage:
+Coverage:
   # Build and test aktualizr with p11 and generate coverage reports
   variables:
     TEST_BUILD_DIR: 'build-coverage'
@@ -35,12 +35,14 @@ Test with p11 and coverage:
     TEST_WITH_COVERAGE: '1'
     TEST_WITH_P11: '1'
     TEST_WITH_FAULT_INJECTION: '1'
+    TEST_SOTA_PACKED_CREDENTIALS: '/tmp/credentials.zip'
   image: "$UBUNTU_BIONIC_PR_IMAGE"
   stage: Build and Test
   script:
+    - aws s3 cp s3://ota-gitlab-ci/hereotaconnect_prod.zip /tmp/credentials.zip
     - ${CI_PROJECT_DIR}/scripts/test.sh
 
-Test without p11:
+Test without P11:
   # Build and test aktualizr without p11
   variables:
     TEST_BUILD_DIR: 'build-nop11'
@@ -51,7 +53,7 @@ Test without p11:
   script:
     - ${CI_PROJECT_DIR}/scripts/test.sh
 
-Debian build and test:
+Debian build+static:
   # Build and test aktualizr debian package
   variables:
     TEST_BUILD_DIR: 'build-debian-testing'
