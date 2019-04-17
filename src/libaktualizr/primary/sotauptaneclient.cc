@@ -168,7 +168,7 @@ void SotaUptaneClient::finalizeAfterReboot() {
       LOG_ERROR << "Expected reboot after update on primary but no update found";
     }
   } else {
-    LOG_ERROR << "Invalid UPTANE metadata in storage.";
+    LOG_ERROR << "Invalid Uptane metadata in storage.";
   }
 
   bootloader->rebootFlagClear();
@@ -712,6 +712,7 @@ result::UpdateCheck SotaUptaneClient::fetchMeta() {
 
   if (hasPendingUpdates()) {
     // no need in update checking if there are some pending updates
+    LOG_DEBUG << "An update is pending. Skipping check for update until installation is complete";
     return result::UpdateCheck({}, 0, result::UpdateStatus::kError, Json::nullValue,
                                "There are pending updates, no new updates are checked");
   }
@@ -738,9 +739,9 @@ result::UpdateCheck SotaUptaneClient::checkUpdates() {
   std::vector<Uptane::Target> updates;
   unsigned int ecus_count = 0;
   if (!uptaneOfflineIteration(&updates, &ecus_count)) {
-    LOG_ERROR << "Invalid UPTANE metadata in storage.";
+    LOG_ERROR << "Invalid Uptane metadata in storage.";
     result = result::UpdateCheck({}, 0, result::UpdateStatus::kError, Json::nullValue,
-                                 "Invalid UPTANE metadata in storage.");
+                                 "Invalid Uptane metadata in storage.");
   } else {
     std::string director_targets;
     storage->loadNonRoot(&director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets());

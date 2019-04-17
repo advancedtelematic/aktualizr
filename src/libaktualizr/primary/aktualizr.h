@@ -182,7 +182,7 @@ class Aktualizr {
   FRIEND_TEST(Delegation, RevokeAfterDownload);
   FRIEND_TEST(Delegation, IterateAll);
 
-  // This constructor is only being used in tests
+  // This constructor is only used for tests
   Aktualizr(Config& config, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<HttpInterface> http_in);
   static void systemSetup();
 
