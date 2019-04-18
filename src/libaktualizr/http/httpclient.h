@@ -2,10 +2,10 @@
 #define HTTPCLIENT_H_
 
 #include <future>
+#include <memory>
 
 #include <curl/curl.h>
-#include <gtest/gtest.h>
-#include <memory>
+#include "gtest/gtest_prod.h"
 #include "json/json.h"
 
 #include "httpinterface.h"

@@ -6,9 +6,9 @@
 #include <sstream>
 
 #include <curl/curl.h>
-#include <gtest/gtest.h>
 #include <boost/filesystem.hpp>
 #include <boost/intrusive_ptr.hpp>
+#include "gtest/gtest_prod.h"
 
 #include "garage_common.h"
 #include "treehub_server.h"

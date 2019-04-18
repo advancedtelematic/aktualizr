@@ -230,7 +230,8 @@ TEST(Uptane, PutManifest) {
 
 class HttpPutManifestFail : public HttpFake {
  public:
-  HttpPutManifestFail(const boost::filesystem::path &test_dir_in) : HttpFake(test_dir_in) {}
+  HttpPutManifestFail(const boost::filesystem::path &test_dir_in, std::string flavor = "")
+      : HttpFake(test_dir_in, flavor) {}
   HttpResponse put(const std::string &url, const Json::Value &data) override {
     (void)data;
     return HttpResponse(url, 504, CURLE_OK, "");
@@ -268,6 +269,31 @@ TEST(Uptane, PutManifestError) {
   EXPECT_EQ(num_events_PutManifestError, 1);
 }
 
+/*
+ * Verify that failing to send the manifest will not prevent checking for
+ * updates (which is the only way to recover if something goes wrong with
+ * sending the manifest).
+ */
+TEST(Uptane, FetchMetaFail) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpPutManifestFail>(temp_dir.Path(), "noupdates");
+
+  Config conf("tests/config/basic.toml");
+  conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
+  conf.provision.primary_ecu_hardware_id = "primary_hw";
+  conf.uptane.director_server = http->tls_server + "/director";
+  conf.uptane.repo_server = http->tls_server + "/repo";
+  conf.storage.path = temp_dir.Path();
+  conf.tls.server = http->tls_server;
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  auto up = SotaUptaneClient::newTestClient(conf, storage, http);
+
+  EXPECT_NO_THROW(up->initialize());
+  result::UpdateCheck result = up->fetchMeta();
+  EXPECT_EQ(result.status, result::UpdateStatus::kNoUpdatesAvailable);
+}
+
 unsigned int num_events_Install = 0;
 void process_events_Install(const std::shared_ptr<event::BaseEvent> &event) {
   if (event->variant == "InstallTargetComplete") {
@@ -280,6 +306,7 @@ void process_events_Install(const std::shared_ptr<event::BaseEvent> &event) {
     num_events_Install++;
   }
 }
+
 /*
  * Verify successful installation of a provided fake package. Skip fetching and
  * downloading.

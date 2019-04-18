@@ -1,7 +1,8 @@
 #include "httpclient.h"
-#include "utilities/utils.h"
 
 #include <assert.h>
+#include <sstream>
+
 #include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>

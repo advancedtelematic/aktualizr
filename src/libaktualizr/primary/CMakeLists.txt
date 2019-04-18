@@ -17,5 +17,7 @@ add_aktualizr_test(NAME aktualizr SOURCES aktualizr_test.cc PROJECT_WORKING_DIRE
 add_dependencies(t_aktualizr uptane_repo_full_no_correlation_id)
 
 add_aktualizr_test(NAME reportqueue SOURCES reportqueue_test.cc PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME emptytargets SOURCES empty_targets_test.cc PROJECT_WORKING_DIRECTORY
+                   ARGS "$<TARGET_FILE:aktualizr-repo>")
 
 aktualizr_source_file_checks(${SOURCES} ${HEADERS} ${TEST_SOURCES})

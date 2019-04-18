@@ -3,9 +3,9 @@
 
 #include <memory>
 
-#include <gtest/gtest.h>
 #include <openssl/engine.h>
 #include <openssl/err.h>
+#include "gtest/gtest_prod.h"
 
 #include "logging/logging.h"
 #include "p11_config.h"

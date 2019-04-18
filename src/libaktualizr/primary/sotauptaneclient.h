@@ -7,8 +7,8 @@
 #include <utility>
 #include <vector>
 
-#include <gtest/gtest.h>
 #include <boost/signals2.hpp>
+#include "gtest/gtest_prod.h"
 #include "json/json.h"
 
 #include "bootloader/bootloader.h"
@@ -72,6 +72,7 @@ class SotaUptaneClient {
   FRIEND_TEST(Aktualizr, FinalizationFailure);
   FRIEND_TEST(Aktualizr, InstallationFailure);
   FRIEND_TEST(Aktualizr, AutoRebootAfterUpdate);
+  FRIEND_TEST(Aktualizr, EmptyTargets);
   FRIEND_TEST(Uptane, AssembleManifestGood);
   FRIEND_TEST(Uptane, AssembleManifestBad);
   FRIEND_TEST(Uptane, InstallFake);

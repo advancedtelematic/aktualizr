@@ -10,8 +10,11 @@ void DirectorRepository::resetMeta() {
 bool DirectorRepository::verifyTargets(const std::string& targets_raw) {
   try {
     // Verify the signature:
-    targets = Targets(RepositoryType::Director(), Role::Targets(), Utils::parseJSON(targets_raw),
-                      std::make_shared<MetaWithKeys>(root));
+    latest_targets = Targets(RepositoryType::Director(), Role::Targets(), Utils::parseJSON(targets_raw),
+                             std::make_shared<MetaWithKeys>(root));
+    if (!usePreviousTargets()) {
+      targets = latest_targets;
+    }
   } catch (const Uptane::Exception& e) {
     LOG_ERROR << "Signature verification for director targets metadata failed";
     last_exception = e;
@@ -122,6 +125,9 @@ bool DirectorRepository::updateMeta(INvStorage& storage, Fetcher& fetcher) {
     std::string director_targets_stored;
     if (storage.loadNonRoot(&director_targets_stored, RepositoryType::Director(), Role::Targets())) {
       local_version = extractVersionUntrusted(director_targets_stored);
+      if (!verifyTargets(director_targets_stored)) {
+        LOG_WARNING << "Unable to verify stored director targets metadata.";
+      }
     } else {
       local_version = -1;
     }
@@ -132,7 +138,7 @@ bool DirectorRepository::updateMeta(INvStorage& storage, Fetcher& fetcher) {
 
     if (local_version > remote_version) {
       return false;
-    } else if (local_version < remote_version) {
+    } else if (local_version < remote_version && !usePreviousTargets()) {
       storage.storeNonRoot(director_targets, RepositoryType::Director(), Role::Targets());
     }
 

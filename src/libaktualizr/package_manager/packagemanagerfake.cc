@@ -24,6 +24,8 @@ Uptane::Target PackageManagerFake::getCurrent() const {
 }
 
 data::InstallationResult PackageManagerFake::install(const Uptane::Target &target) const {
+  (void)target;
+
   // fault injection: only enabled with FIU_ENABLE defined
   if (fiu_fail("fake_package_install") != 0) {
     std::string failure_cause = fault_injection_last_info();
@@ -35,17 +37,13 @@ data::InstallationResult PackageManagerFake::install(const Uptane::Target &targe
   }
 
   if (config.fake_need_reboot) {
-    storage_->savePrimaryInstalledVersion(target, InstalledVersionUpdateMode::kPending);
-
     // set reboot flag to be notified later
     if (bootloader_ != nullptr) {
       bootloader_->rebootFlagSet();
     }
-
     return data::InstallationResult(data::ResultCode::Numeric::kNeedCompletion, "Application successful, need reboot");
   }
 
-  storage_->savePrimaryInstalledVersion(target, InstalledVersionUpdateMode::kCurrent);
   return data::InstallationResult(data::ResultCode::Numeric::kOk, "Installing package was successful");
 }
 
@@ -84,6 +82,5 @@ data::InstallationResult PackageManagerFake::finalizeInstall(const Uptane::Targe
         data::InstallationResult(data::ResultCode::Numeric::kInternalError, "Pending and new target do not match");
   }
 
-  storage_->savePrimaryInstalledVersion(target, InstalledVersionUpdateMode::kCurrent);
   return install_res;
 }

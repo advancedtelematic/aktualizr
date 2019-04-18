@@ -4,8 +4,8 @@
 #include <atomic>
 #include <memory>
 
-#include <gtest/gtest.h>
 #include <boost/signals2.hpp>
+#include "gtest/gtest_prod.h"
 
 #include "config/config.h"
 #include "primary/events.h"
@@ -176,13 +176,14 @@ class Aktualizr {
   FRIEND_TEST(Aktualizr, UpdateCheckCompleteError);
   FRIEND_TEST(Aktualizr, PauseResumeQueue);
   FRIEND_TEST(Aktualizr, AddSecondary);
+  FRIEND_TEST(Aktualizr, EmptyTargets);
   FRIEND_TEST(Delegation, Basic);
   FRIEND_TEST(Delegation, RevokeAfterCheckUpdates);
   FRIEND_TEST(Delegation, RevokeAfterInstall);
   FRIEND_TEST(Delegation, RevokeAfterDownload);
   FRIEND_TEST(Delegation, IterateAll);
 
-  // This constructor is only being used in tests
+  // This constructor is only used for tests
   Aktualizr(Config& config, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<HttpInterface> http_in);
   static void systemSetup();
 

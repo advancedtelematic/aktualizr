@@ -22,12 +22,15 @@ class HttpFake : public HttpInterface {
  public:
   // old style HttpFake with centralized multi repo and url rewriting
   HttpFake(const boost::filesystem::path &test_dir_in, std::string flavor = "",
-           const boost::filesystem::path &repo_dir_in = "tests/test_data/repo")
-      : test_dir(test_dir_in), flavor_(std::move(flavor)) {
-    Utils::copyDir(repo_dir_in / "repo" / "image", metadata_path.Path() / "repo");
-    Utils::copyDir(repo_dir_in / "repo" / "director", metadata_path.Path() / "director");
-    if (boost::filesystem::is_directory(repo_dir_in / "campaigner")) {
-      Utils::copyDir(repo_dir_in / "campaigner", metadata_path.Path() / "campaigner");
+           const boost::filesystem::path &meta_dir_in = "")
+      : test_dir(test_dir_in), flavor_(std::move(flavor)), meta_dir(meta_dir_in) {
+    if (meta_dir.empty()) {
+      meta_dir = temp_meta_dir.Path();
+      Utils::copyDir("tests/test_data/repo/repo/image", meta_dir / "repo");
+      Utils::copyDir("tests/test_data/repo/repo/director", meta_dir / "director");
+      if (boost::filesystem::is_directory("tests/test_data/repo/campaigner")) {
+        Utils::copyDir("tests/test_data/repo/campaigner", meta_dir / "campaigner");
+      }
     }
   }
 
@@ -81,7 +84,7 @@ class HttpFake : public HttpInterface {
       }
     }
 
-    const boost::filesystem::path path = metadata_path.Path() / new_url.substr(tls_server.size());
+    const boost::filesystem::path path = meta_dir / new_url.substr(tls_server.size());
 
     std::cout << "file served: " << path << "\n";
 
@@ -123,7 +126,7 @@ class HttpFake : public HttpInterface {
     (void)progress_cb;
 
     std::cout << "URL requested: " << url << "\n";
-    const boost::filesystem::path path = metadata_path.Path() / url.substr(tls_server.size());
+    const boost::filesystem::path path = meta_dir / url.substr(tls_server.size());
     std::cout << "file served: " << path << "\n";
 
     std::promise<HttpResponse> resp_promise;
@@ -157,8 +160,9 @@ class HttpFake : public HttpInterface {
 
  protected:
   boost::filesystem::path test_dir;
-  TemporaryDirectory metadata_path;
   std::string flavor_;
+  boost::filesystem::path meta_dir;
+  TemporaryDirectory temp_meta_dir;
 
  private:
   /**

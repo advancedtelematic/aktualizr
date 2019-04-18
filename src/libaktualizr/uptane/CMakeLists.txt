@@ -73,4 +73,7 @@ add_aktualizr_test(NAME uptane_serial SOURCES uptane_serial_test.cc ARGS ${PROJE
 
 add_aktualizr_test(NAME uptane_init SOURCES uptane_init_test.cc PROJECT_WORKING_DIRECTORY)
 
+add_aktualizr_test(NAME director SOURCES director_test.cc PROJECT_WORKING_DIRECTORY
+                   ARGS "$<TARGET_FILE:aktualizr-repo>")
+
 aktualizr_source_file_checks(${SOURCES} ${HEADERS} isotpsecondary.cc isotpsecondary.h ${TEST_SOURCES})
