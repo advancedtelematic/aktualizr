@@ -38,7 +38,10 @@ void delegation_nested(const boost::filesystem::path& delegation_path, bool revo
 class HttpFakeDelegation : public HttpFake {
  public:
   HttpFakeDelegation(const boost::filesystem::path& test_dir_in)
-      : HttpFake(test_dir_in, "", test_dir_in / "delegation_test") {}
+      : HttpFake(test_dir_in, "", test_dir_in / "delegation_test/repo") {
+    // Work around inconsistent directory naming.
+    Utils::copyDir(test_dir_in / "delegation_test/repo/image", test_dir_in / "delegation_test/repo/repo");
+  }
 
   HttpResponse handle_event(const std::string& url, const Json::Value& data) override {
     (void)url;

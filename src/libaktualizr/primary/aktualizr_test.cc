@@ -1539,7 +1539,7 @@ class HttpFakeCampaign : public HttpFake {
 
   HttpResponse get(const std::string& url, int64_t maxsize) override {
     EXPECT_NE(url.find("campaigner/"), std::string::npos);
-    boost::filesystem::path path = metadata_path.Path() / url.substr(tls_server.size() + strlen("campaigner/"));
+    boost::filesystem::path path = meta_dir / url.substr(tls_server.size() + strlen("campaigner/"));
 
     if (url.find("campaigner/campaigns") != std::string::npos) {
       return HttpResponse(Utils::readFile(path.parent_path() / "campaigner/campaigns.json"), 200, CURLE_OK, "");
@@ -1611,8 +1611,8 @@ TEST(Aktualizr, CampaignCheckAndAccept) {
 
 class HttpFakeNoCorrelationId : public HttpFake {
  public:
-  HttpFakeNoCorrelationId(const boost::filesystem::path& test_dir_in)
-      : HttpFake(test_dir_in, "", uptane_repos_dir / "full_no_correlation_id") {}
+  HttpFakeNoCorrelationId(const boost::filesystem::path& test_dir_in, const boost::filesystem::path& meta_dir_in)
+      : HttpFake(test_dir_in, "", meta_dir_in) {}
 
   HttpResponse handle_event(const std::string& url, const Json::Value& data) override {
     (void)url;
@@ -1629,7 +1629,10 @@ class HttpFakeNoCorrelationId : public HttpFake {
 /* Correlation ID is empty if none was provided in targets metadata. */
 TEST(Aktualizr, FullNoCorrelationId) {
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFakeNoCorrelationId>(temp_dir.Path());
+  TemporaryDirectory meta_dir;
+  Utils::copyDir(uptane_repos_dir / "full_no_correlation_id/repo/image", meta_dir.Path() / "repo");
+  Utils::copyDir(uptane_repos_dir / "full_no_correlation_id/repo/director", meta_dir.Path() / "director");
+  auto http = std::make_shared<HttpFakeNoCorrelationId>(temp_dir.Path(), meta_dir.Path());
 
   // scope `Aktualizr` object, so that the ReportQueue flushes its events before
   // we count them at the end
