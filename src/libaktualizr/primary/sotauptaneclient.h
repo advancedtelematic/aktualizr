@@ -7,8 +7,8 @@
 #include <utility>
 #include <vector>
 
-#include <gtest/gtest.h>
 #include <boost/signals2.hpp>
+#include "gtest/gtest_prod.h"
 #include "json/json.h"
 
 #include "bootloader/bootloader.h"
