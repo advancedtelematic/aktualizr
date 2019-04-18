@@ -1,6 +1,8 @@
 #ifndef DIRECTOR_REPOSITORY_H_
 #define DIRECTOR_REPOSITORY_H_
 
+#include "gtest/gtest_prod.h"
+
 #include "fetcher.h"
 #include "uptanerepository.h"
 
@@ -27,6 +29,7 @@ class DirectorRepository : public RepositoryCommon {
   bool updateMeta(INvStorage& storage, Fetcher& fetcher);
 
  private:
+  FRIEND_TEST(Director, EmptyTargets);
   // Since the Director can send us an empty targets list to mean "no new
   // updates", we have to persist the previous targets list. Use the latest for
   // checking expiration but the most recent non-empty list for everything else.
