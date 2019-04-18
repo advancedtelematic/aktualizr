@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -exuo pipefail
+set -exu
 
 PKG_SRCDIR="${1:-/persistent}"
 INSTALL_DOCKERFILE="${2:-Dockerfile}"
