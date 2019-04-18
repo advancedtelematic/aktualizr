@@ -35,6 +35,7 @@ bool AktualizrSecondaryCommon::uptaneInitialize() {
   if (storage_->loadEcuSerials(&ecu_serials)) {
     ecu_serial_ = ecu_serials[0].first;
     hardware_id_ = ecu_serials[0].second;
+
     return true;
   }
 

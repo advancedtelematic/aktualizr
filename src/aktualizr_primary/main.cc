@@ -9,6 +9,7 @@
 #include "config/config.h"
 #include "logging/logging.h"
 #include "primary/aktualizr.h"
+#include "secondary.h"
 #include "utilities/utils.h"
 
 namespace bpo = boost::program_options;
@@ -42,6 +43,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("primary-ecu-serial", bpo::value<std::string>(), "serial number of primary ecu")
       ("primary-ecu-hardware-id", bpo::value<std::string>(), "hardware ID of primary ecu")
       ("secondary-configs-dir", bpo::value<boost::filesystem::path>(), "directory containing secondary ECU configuration files")
+      ("secondary-config-file", bpo::value<boost::filesystem::path>(), "secondary ECUs configuration file")
       ("campaign-id", bpo::value<std::string>(), "id of the campaign to act on");
   // clang-format on
 
@@ -120,6 +122,11 @@ int main(int argc, char *argv[]) {
     boost::signals2::scoped_connection conn;
 
     conn = aktualizr.SetSignalHandler(f_cb);
+
+    if (!config.uptane.secondary_config_file.empty()) {
+      Primary::initSecondaries(aktualizr, config.uptane.secondary_config_file);
+    }
+
     aktualizr.Initialize();
 
     std::string run_mode;

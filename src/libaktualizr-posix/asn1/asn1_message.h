@@ -68,6 +68,8 @@ class Asn1Message {
     return Asn1Sub<MessageType>(this, &msg_.choice.FieldName); /* NOLINT(cppcoreguidelines-pro-type-union-access) */ \
   }
 
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKGetInfoReqMes_t, getInfoReq);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKGetInfoRespMes_t, getInfoResp);
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKDiscoveryReqMes_t, discoveryReq);
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKDiscoveryRespMes_t, discoveryResp);
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKPublicKeyReqMes_t, publicKeyReq);
@@ -122,5 +124,5 @@ void SetString(OCTET_STRING_t* dest, const std::string& str);
  * Open a TCP connection to client; send a message and wait for a
  * response.
  */
-Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, const struct sockaddr_storage& client);
+Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, const struct sockaddr_in& server_sock_addr);
 #endif  // ASN1_MESSAGE_H_

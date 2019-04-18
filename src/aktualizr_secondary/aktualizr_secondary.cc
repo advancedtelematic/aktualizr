@@ -120,16 +120,20 @@ bool AktualizrSecondary::sendFirmwareResp(const std::shared_ptr<std::string>& fi
   }
 
   std::string treehub_server;
-  try {
-    std::string ca, cert, pkey, server_url;
-    extractCredentialsArchive(*firmware, &ca, &cert, &pkey, &treehub_server);
-    keys_.loadKeys(&ca, &cert, &pkey);
-    boost::trim(server_url);
-    treehub_server = server_url;
-  } catch (std::runtime_error& exc) {
-    LOG_ERROR << exc.what();
 
-    return false;
+  if (target_->IsOstree()) {
+    // this is the ostree specific case
+    try {
+      std::string ca, cert, pkey, server_url;
+      extractCredentialsArchive(*firmware, &ca, &cert, &pkey, &treehub_server);
+      keys_.loadKeys(&ca, &cert, &pkey);
+      boost::trim(server_url);
+      treehub_server = server_url;
+    } catch (std::runtime_error& exc) {
+      LOG_ERROR << exc.what();
+
+      return false;
+    }
   }
 
   data::InstallationResult install_res;
@@ -147,7 +151,7 @@ bool AktualizrSecondary::sendFirmwareResp(const std::shared_ptr<std::string>& fi
     LOG_ERROR << "Could not pull from OSTree. Aktualizr was built without OSTree support!";
     return false;
 #endif
-  } else {
+  } else if (pacman->name() == "debian") {
     // TODO save debian package here.
     LOG_ERROR << "Installation of non ostree images is not suppotrted yet.";
     return false;
