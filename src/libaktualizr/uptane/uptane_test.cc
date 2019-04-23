@@ -987,33 +987,6 @@ TEST(Uptane, SaveAndLoadVersion) {
   EXPECT_EQ(*f, t);
 }
 
-/* Verifies that we've prevented bug PRO-5210. This happened when the Root was
- * created from the default constructor (which sets the policy to kRejectAll)
- * and not overwritten by a valid Root from the storage (because the relevant
- * table existed but was empty, which was unexpected). The solution is not to
- * return a default-constructed Root when reading from storage. */
-TEST(Uptane, kRejectAllTest) {
-  TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
-  Config config("tests/config/basic.toml");
-  config.storage.path = temp_dir.Path();
-  config.uptane.director_server = http->tls_server + "/director";
-  config.uptane.repo_server = http->tls_server + "/repo";
-  config.pacman.type = PackageManager::kNone;
-  config.provision.device_id = "device_id";
-  config.postUpdateValues();
-
-  auto storage = INvStorage::newStorage(config.storage);
-  auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
-  Uptane::EcuSerial primary_ecu_serial("CA:FE:A6:D2:84:9D");
-  Uptane::HardwareIdentifier primary_hw_id("primary_hw");
-  Uptane::EcuSerial secondary_ecu_serial("secondary_ecu_serial");
-  Uptane::HardwareIdentifier secondary_hw_id("secondary_hw");
-  sota_client->hw_ids.insert(std::make_pair(primary_ecu_serial, primary_hw_id));
-  sota_client->hw_ids.insert(std::make_pair(secondary_ecu_serial, secondary_hw_id));
-  EXPECT_TRUE(sota_client->uptaneIteration());
-}
-
 class HttpFakeUnstable : public HttpFake {
  public:
   HttpFakeUnstable(const boost::filesystem::path &test_dir_in) : HttpFake(test_dir_in, "hasupdates") {}
