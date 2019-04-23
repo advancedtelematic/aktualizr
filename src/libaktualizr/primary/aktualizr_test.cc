@@ -409,7 +409,6 @@ TEST(Aktualizr, FullWithUpdatesNeedReboot) {
   auto http = std::make_shared<HttpFakePutCounter>(temp_dir.Path());
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
   conf.pacman.fake_need_reboot = true;
-  conf.bootloader.reboot_sentinel_dir = temp_dir.Path();
 
   {
     // first run: do the install
@@ -602,7 +601,6 @@ TEST(Aktualizr, FinalizationFailure) {
   conf.pacman.fake_need_reboot = true;
   conf.uptane.force_install_completion = true;
   conf.uptane.polling_sec = 0;
-  conf.bootloader.reboot_sentinel_dir = temp_dir.Path();
   auto storage = INvStorage::newStorage(conf.storage);
 
   std::vector<std::string> expected_event_order = {
@@ -781,7 +779,6 @@ TEST(Aktualizr, InstallationFailure) {
     TemporaryDirectory temp_dir;
     auto http_server_mock = std::make_shared<HttpInstallationFailed>(temp_dir.Path());
     Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http_server_mock->tls_server);
-    conf.bootloader.reboot_sentinel_dir = temp_dir.Path();
     auto storage = INvStorage::newStorage(conf.storage);
 
     fiu_init(0);
@@ -841,7 +838,6 @@ TEST(Aktualizr, InstallationFailure) {
     TemporaryDirectory temp_dir;
     auto http_server_mock = std::make_shared<HttpInstallationFailed>(temp_dir.Path());
     Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http_server_mock->tls_server);
-    conf.bootloader.reboot_sentinel_dir = temp_dir.Path();
     auto storage = INvStorage::newStorage(conf.storage);
     const std::string sec_fault_name = std::string("secondary_install_") + secondary_ecu_id;
 
@@ -927,7 +923,6 @@ TEST(Aktualizr, AutoRebootAfterUpdate) {
   conf.pacman.fake_need_reboot = true;
   conf.uptane.force_install_completion = true;
   conf.uptane.polling_sec = 0;
-  conf.bootloader.reboot_sentinel_dir = temp_dir.Path();
 
   {
     // first run: do the install, exit UptaneCycle and emulate reboot since force_install_completion is set
