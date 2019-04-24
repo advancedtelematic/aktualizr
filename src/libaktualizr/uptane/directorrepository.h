@@ -22,6 +22,7 @@ class DirectorRepository : public RepositoryCommon {
   bool targetsExpired() const;
   bool usePreviousTargets() const;
   bool checkMetaOffline(INvStorage& storage);
+  void dropTargets(INvStorage& storage);
 
   Exception getLastException() const { return last_exception; }
   bool updateMeta(INvStorage& storage, Fetcher& fetcher);
