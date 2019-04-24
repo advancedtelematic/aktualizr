@@ -64,16 +64,12 @@ void SocketServer::HandleOneConnection(int socket) {
       case AKIpUptaneMes_PR_getInfoReq: {
         Uptane::EcuSerial serial = impl_->getSerial();
         Uptane::HardwareIdentifier hw_id = impl_->getHwId();
+        PublicKey pk = impl_->getPublicKey();
         resp->present(AKIpUptaneMes_PR_getInfoResp);
         auto r = resp->getInfoResp();
         SetString(&r->ecuSerial, serial.ToString());
         SetString(&r->hwId, hw_id.ToString());
-      } break;
-      case AKIpUptaneMes_PR_publicKeyReq: {
-        PublicKey pk = impl_->getPublicKey();
-        resp->present(AKIpUptaneMes_PR_publicKeyResp);
-        auto r = resp->publicKeyResp();
-        r->type = static_cast<AKIpUptaneKeyType_t>(pk.Type());
+        r->keyType = static_cast<AKIpUptaneKeyType_t>(pk.Type());
         SetString(&r->key, pk.Value());
       } break;
       case AKIpUptaneMes_PR_manifestReq: {

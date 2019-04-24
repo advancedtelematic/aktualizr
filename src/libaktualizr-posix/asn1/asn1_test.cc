@@ -246,7 +246,7 @@ TEST(asn1_common, Asn1MessageSimple) {
 }
 
 TEST(asn1_common, parse) {
-  std::string data = Utils::fromBase64("rAowCAQGaGVsbG8K");
+  std::string data = Utils::fromBase64("pgkwBwQFaGVsbG8=");
   // BER decode
   asn_codec_ctx_t context;
   memset(&context, 0, sizeof(context));

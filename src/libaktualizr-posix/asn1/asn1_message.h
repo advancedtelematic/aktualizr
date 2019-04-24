@@ -68,18 +68,16 @@ class Asn1Message {
     return Asn1Sub<MessageType>(this, &msg_.choice.FieldName); /* NOLINT(cppcoreguidelines-pro-type-union-access) */ \
   }
 
-  ASN1_MESSAGE_DEFINE_ACCESSOR(AKGetInfoReqMes_t, getInfoReq);
-  ASN1_MESSAGE_DEFINE_ACCESSOR(AKGetInfoRespMes_t, getInfoResp);
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKDiscoveryReqMes_t, discoveryReq);
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKDiscoveryRespMes_t, discoveryResp);
-  ASN1_MESSAGE_DEFINE_ACCESSOR(AKPublicKeyReqMes_t, publicKeyReq);
-  ASN1_MESSAGE_DEFINE_ACCESSOR(AKPublicKeyRespMes_t, publicKeyResp);
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKManifestReqMes_t, manifestReq);
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKManifestRespMes_t, manifestResp);
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKPutMetaReqMes_t, putMetaReq);
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKPutMetaRespMes_t, putMetaResp);
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKSendFirmwareReqMes_t, sendFirmwareReq);
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKSendFirmwareRespMes_t, sendFirmwareResp);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKGetInfoReqMes_t, getInfoReq);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKGetInfoRespMes_t, getInfoResp);
 
   /**
    * The underlying message structure. This is public to simplify calls to

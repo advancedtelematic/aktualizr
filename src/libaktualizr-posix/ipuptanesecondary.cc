@@ -11,11 +11,7 @@
 namespace Uptane {
 
 std::shared_ptr<Uptane::SecondaryInterface> IpUptaneSecondary::create(const std::string& address, unsigned short port) {
-  LOG_INFO << "Creating IP Secondary: " << address << ":" << port << "...";
-
-  EcuSerial serial = EcuSerial::Unknown();
-  HardwareIdentifier hw_id = HardwareIdentifier::Unknown();
-  PublicKey pub_key;
+  LOG_INFO << "Connecting to and getting info about IP Secondary: " << address << ":" << port << "...";
 
   struct sockaddr_in sock_address {};
 
@@ -24,45 +20,26 @@ std::shared_ptr<Uptane::SecondaryInterface> IpUptaneSecondary::create(const std:
   inet_pton(AF_INET, address.c_str(), &(sock_address.sin_addr));
   sock_address.sin_port = htons(port);
 
-  // get secondary serial and HW ID
-  {
-    LOG_INFO << "Getting the secondary's hardware ID and serial number...";
-    Asn1Message::Ptr req(Asn1Message::Empty());
-    req->present(AKIpUptaneMes_PR_getInfoReq);
+  Asn1Message::Ptr req(Asn1Message::Empty());
+  req->present(AKIpUptaneMes_PR_getInfoReq);
 
-    auto resp = Asn1Rpc(req, sock_address);
+  auto resp = Asn1Rpc(req, sock_address);
 
-    if (resp->present() != AKIpUptaneMes_PR_getInfoResp) {
-      LOG_ERROR << "Failed to get info response message from secondary";
-      // TODO: make it inline with the overall exception strategy
-      throw std::runtime_error("Failed to obtain information about a secondary: " + address + std::to_string(port));
-    }
-    auto r = resp->getInfoResp();
-
-    serial = EcuSerial(ToString(r->ecuSerial));
-    hw_id = HardwareIdentifier(ToString(r->hwId));
+  if (resp->present() != AKIpUptaneMes_PR_getInfoResp) {
+    LOG_ERROR << "Failed to get info response message from secondary";
+    throw std::runtime_error("Failed to obtain information about a secondary: " + address + std::to_string(port));
   }
+  auto r = resp->getInfoResp();
 
-  // get pub key
-  {
-    LOG_INFO << "Getting the secondary's public key...";
-    Asn1Message::Ptr req(Asn1Message::Empty());
+  EcuSerial serial = EcuSerial(ToString(r->ecuSerial));
+  HardwareIdentifier hw_id = HardwareIdentifier(ToString(r->hwId));
+  std::string key = ToString(r->key);
+  auto type = static_cast<KeyType>(r->keyType);
+  PublicKey pub_key = PublicKey(key, type);
 
-    req->present(AKIpUptaneMes_PR_publicKeyReq);
+  LOG_INFO << "Connected to IP Secondary: "
+           << "hw-ID: " << hw_id << " serial: " << serial << "addr: " << address << ":" << port;
 
-    auto resp = Asn1Rpc(req, sock_address);
-
-    if (resp->present() != AKIpUptaneMes_PR_publicKeyResp) {
-      LOG_ERROR << "Failed to get public key response message from secondary";
-      throw std::runtime_error("Failed to obtain information about a secondary: " + address + std::to_string(port));
-    }
-    auto r = resp->publicKeyResp();
-
-    std::string key = ToString(r->key);
-
-    auto type = static_cast<KeyType>(r->type);
-    pub_key = PublicKey(key, type);
-  }
   return std::make_shared<IpUptaneSecondary>(sock_address, serial, hw_id, pub_key);
 }
 
