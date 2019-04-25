@@ -36,6 +36,7 @@ int main(int argc, char **argv) {
     ("path", po::value<boost::filesystem::path>(), "path to the repository")
     ("filename", po::value<boost::filesystem::path>(), "path to the image")
     ("hwid", po::value<std::string>(), "target hardware identifier")
+    ("targetformat", po::value<std::string>(), "format of target for 'image' command")
     ("targetcustom", po::value<boost::filesystem::path>(), "path to custom JSON for 'image' command")
     ("serial", po::value<std::string>(), "target ECU serial")
     ("expires", po::value<std::string>(), "expiration time")
@@ -117,9 +118,16 @@ int main(int argc, char **argv) {
             hash = std_::make_unique<Uptane::Hash>(Uptane::Hash::Type::kSha512, vm["targetsha512"].as<std::string>());
           }
           Json::Value custom;
+          if (vm.count("targetcustom") > 0 && vm.count("targetformat") > 0) {
+            std::cerr << "--targetcustom and --targetformat cannot be used together";
+            exit(EXIT_FAILURE);
+          }
           if (vm.count("targetcustom") > 0) {
             std::ifstream custom_file(vm["targetcustom"].as<boost::filesystem::path>().c_str());
             custom_file >> custom;
+          } else if (vm.count("targetformat") > 0) {
+            custom = Json::Value();
+            custom["targetFormat"] = vm["targetformat"].as<std::string>();
           }
           repo.addCustomImage(targetname.string(), *hash, vm["targetlength"].as<uint64_t>(), delegation, custom);
         }
