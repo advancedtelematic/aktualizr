@@ -60,6 +60,9 @@ include(CMakeParseArguments)
 
 add_library(testutilities test_utils.cc)
 
+add_library(ostree_mock SHARED ostree_mock.c)
+aktualizr_source_file_checks(ostree_mock.c)
+
 # Setup coverage
 if(BUILD_WITH_CODE_COVERAGE)
     add_definitions(${COVERAGE_COMPILER_FLAGS})
