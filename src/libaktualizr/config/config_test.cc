@@ -41,12 +41,6 @@ TEST(config, TomlInt) {
   EXPECT_EQ(conf.uptane.polling_sec, 99u);
 }
 
-TEST(config, TomlNetport) {
-  Config conf;
-  conf.updateFromTomlString("[network]\nipuptane_port = 9099\n\n");
-  EXPECT_EQ(conf.network.ipuptane_port, 9099);
-}
-
 /*
  * Check that user can specify primary serial via a config file.
  */

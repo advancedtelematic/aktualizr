@@ -22,20 +22,6 @@ Configuration for the logger.
 | `loglevel` | `2`      | Log level, 0-5 (trace, debug, info, warning, error, fatal).
 |==========================================================================================
 
-== `network`
-
-Config options for networking and secondary device detection by the primary.
-
-[options="header"]
-|==========================================================================================
-| Name                       | Default                                | Description
-| `ipdiscovery_host`         | `"127.0.0.1"`                          | Subnetmask for primary to broadcast for secondary discovery.
-| `ipdiscovery_port`         | `9031`                                 | Port for primary to broadcast for secondary discovery.
-| `ipdiscovery_wait_seconds` | `2`                                   | Seconds to wait for secondaries to respond to discovery broadcast message.
-| `ipuptane_port`            | `9030`                                 | Port to listen on for incoming messages
-
-|==========================================================================================
-
 == `p11`
 
 Options for using a PKCS#11 compliant device for storing cryptographic keys.
@@ -102,16 +88,6 @@ Options for Uptane.
 | `key_type`                | `"RSA2048"`  | Type of cryptographic keys to use. Options: `"ED25519"`, `"RSA2048"`, `"RSA3072"` or `"RSA4096"`.
 | `secondary_configs_dir`   | `""`         | Directory containing individual secondary json configuration files. Example here: link:{aktualizr-github-url}/config/secondary/virtualsec.json[]
 | `force_install_completion`| false        | Forces installation completion. Causes a system reboot in case of an ostree package manager. Emulates a reboot in case of a fake package manager.
-|==========================================================================================
-
-== `discovery`
-
-Config options for how secondary devices are detected by the primary.
-
-[options="header"]
-|==========================================================================================
-| Name       | Default | Description
-| `ipuptane` | `false` | Enable UDP multicast for secondary discovery.
 |==========================================================================================
 
 == `pacman`

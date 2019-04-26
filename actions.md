@@ -8,7 +8,6 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [ ] Set boot count to 0 to indicate successful boot
   - [x] Detect a system reboot on the primary, if expected (bootloader_test.cc)
   - [x] Initialize secondaries
-    - [x] Discover secondaries over TCP-IP (ipsecondary_discovery_test.cc)
     - [x] Add secondaries from configuration (uptane_test.cc)
       - [x] Parse secondary config files in JSON format (config_test.cc)
       - [x] Create secondary object
@@ -308,7 +307,6 @@ These tools all link with libaktualizr, although they do not necessary use the A
 
 - [x] Parse config files in TOML format (aktualizr_secondary_config_test.cc)
 - [x] Write its config to file or to the log (aktualizr_secondary_config_test.cc)
-- [x] Announce itself to aktualizr primary (aktualizr_secondary_discovery_test.cc)
 
 - [x] Generate a serial (aktualizr_secondary/uptane_test.cc)
 - [x] Generate a hardware ID (aktualizr_secondary/uptane_test.cc)
@@ -533,6 +531,5 @@ These tools also use libaktualizr, but only for common utility functions. They a
 - [x] Build an image for Raspberry Pi
 - [x] Build an image using grub as a bootloader that provisions successfully
 - [x] Build an image for a secondary
-- [x] Build an image that listens for discovery
 - [x] Build an image for a primary intended to connect to a secondary
 

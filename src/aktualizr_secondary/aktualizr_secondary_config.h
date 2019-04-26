@@ -18,8 +18,6 @@
 
 struct AktualizrSecondaryNetConfig {
   in_port_t port{9030};
-  bool discovery{true};
-  in_port_t discovery_port{9031};
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;

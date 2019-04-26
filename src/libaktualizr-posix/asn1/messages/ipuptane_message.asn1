@@ -43,18 +43,6 @@ IpUptane DEFINITIONS ::= BEGIN
 		...
 	}
 
-	AKDiscoveryReqMes ::= SEQUENCE {
-		port INTEGER(0..65535),
-		...
-	}
-
-	AKDiscoveryRespMes ::= SEQUENCE {
-		ecuSerial UTF8String,
-		hwId UTF8String,
-		port INTEGER(0..65535),
-		...
-	}
-
 	AKManifestReqMes ::= SEQUENCE {
 		...
 	}
@@ -93,16 +81,14 @@ IpUptane DEFINITIONS ::= BEGIN
 	}
 
 	AKIpUptaneMes ::= CHOICE {
-		discoveryReq [0] AKDiscoveryReqMes,
-		discoveryResp [1] AKDiscoveryRespMes,
+		getInfoReq [0] AKGetInfoReqMes,
+                getInfoResp [1] AKGetInfoRespMes,
 		manifestReq [2] AKManifestReqMes,
 		manifestResp [3] AKManifestRespMes,
 		putMetaReq [4] AKPutMetaReqMes,
 		putMetaResp [5] AKPutMetaRespMes,
 		sendFirmwareReq [6] AKSendFirmwareReqMes,
 		sendFirmwareResp [7] AKSendFirmwareRespMes,
-		getInfoReq [8] AKGetInfoReqMes,
-		getInfoResp [9] AKGetInfoRespMes,
 		...
 	}
 

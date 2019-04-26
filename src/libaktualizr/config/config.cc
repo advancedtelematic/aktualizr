@@ -10,20 +10,6 @@
 #include "utilities/exceptions.h"
 #include "utilities/utils.h"
 
-void NetworkConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  CopyFromConfig(ipdiscovery_host, "ipdiscovery_host", pt);
-  CopyFromConfig(ipdiscovery_port, "ipdiscovery_port", pt);
-  CopyFromConfig(ipdiscovery_wait_seconds, "ipdiscovery_wait_seconds", pt);
-  CopyFromConfig(ipuptane_port, "ipuptane_port", pt);
-}
-
-void NetworkConfig::writeToStream(std::ostream& out_stream) const {
-  writeOption(out_stream, ipdiscovery_host, "ipdiscovery_host");
-  writeOption(out_stream, ipdiscovery_port, "ipdiscovery_port");
-  writeOption(out_stream, ipdiscovery_wait_seconds, "ipdiscovery_wait_seconds");
-  writeOption(out_stream, ipuptane_port, "ipuptane_port");
-}
-
 void TlsConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(server, "server", pt);
   CopyFromConfig(server_url_path, "server_url_path", pt);
@@ -86,12 +72,6 @@ void UptaneConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, secondary_config_file, "secondary_config_file");
   writeOption(out_stream, secondary_configs_dir, "secondary_configs_dir");
 }
-
-void DiscoveryConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  CopyFromConfig(ipuptane, "ipuptane", pt);
-}
-
-void DiscoveryConfig::writeToStream(std::ostream& out_stream) const { writeOption(out_stream, ipuptane, "ipuptane"); }
 
 /**
  * \par Description:
@@ -209,12 +189,10 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
     // affects the rest of the config processing.
     logger_set_threshold(logger);
   }
-  CopySubtreeFromConfig(network, "network", pt);
   CopySubtreeFromConfig(p11, "p11", pt);
   CopySubtreeFromConfig(tls, "tls", pt);
   CopySubtreeFromConfig(provision, "provision", pt);
   CopySubtreeFromConfig(uptane, "uptane", pt);
-  CopySubtreeFromConfig(discovery, "discovery", pt);
   CopySubtreeFromConfig(pacman, "pacman", pt);
   CopySubtreeFromConfig(storage, "storage", pt);
   CopySubtreeFromConfig(import, "import", pt);
@@ -268,12 +246,10 @@ void Config::writeToStream(std::ostream& sink) const {
   // Keep this order the same as in config.h and
   // Config::updateFromPropertyTree().
   WriteSectionToStream(logger, "logger", sink);
-  WriteSectionToStream(network, "network", sink);
   WriteSectionToStream(p11, "p11", sink);
   WriteSectionToStream(tls, "tls", sink);
   WriteSectionToStream(provision, "provision", sink);
   WriteSectionToStream(uptane, "uptane", sink);
-  WriteSectionToStream(discovery, "discovery", sink);
   WriteSectionToStream(pacman, "pacman", sink);
   WriteSectionToStream(storage, "storage", sink);
   WriteSectionToStream(import, "import", sink);
