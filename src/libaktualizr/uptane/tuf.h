@@ -432,6 +432,12 @@ class Targets : public MetaWithKeys {
     return version_ == rhs.version() && expiry_ == rhs.expiry() && targets == rhs.targets;
   }
   const std::string &correlation_id() const { return correlation_id_; }
+  void clear() {
+    targets.clear();
+    delegated_role_names_.clear();
+    paths_for_role_.clear();
+    terminating_role_.clear();
+  }
 
   std::vector<Uptane::Target> targets;
   std::vector<std::string> delegated_role_names_;

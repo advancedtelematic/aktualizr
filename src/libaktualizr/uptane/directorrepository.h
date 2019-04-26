@@ -19,11 +19,10 @@ class DirectorRepository : public RepositoryCommon {
   bool verifyTargets(const std::string& targets_raw);
   const std::vector<Target>& getTargets() const { return targets.targets; }
   const std::string& getCorrelationId() const { return targets.correlation_id(); }
-  bool targetsExpired() const { return latest_targets.isExpired(TimeStamp::Now()); }
-  // Don't store the new targets if they are empty and we've previously received
-  // a non-empty list.
-  bool usePreviousTargets() const { return !targets.targets.empty() && latest_targets.targets.empty(); }
+  bool targetsExpired() const;
+  bool usePreviousTargets() const;
   bool checkMetaOffline(INvStorage& storage);
+  void dropTargets(INvStorage& storage);
 
   Exception getLastException() const { return last_exception; }
   bool updateMeta(INvStorage& storage, Fetcher& fetcher);

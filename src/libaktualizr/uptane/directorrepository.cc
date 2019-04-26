@@ -5,6 +5,15 @@ namespace Uptane {
 void DirectorRepository::resetMeta() {
   resetRoot();
   targets = Targets();
+  latest_targets = Targets();
+}
+
+bool DirectorRepository::targetsExpired() const { return latest_targets.isExpired(TimeStamp::Now()); }
+
+bool DirectorRepository::usePreviousTargets() const {
+  // Don't store the new targets if they are empty and we've previously received
+  // a non-empty list.
+  return !targets.targets.empty() && latest_targets.targets.empty();
 }
 
 bool DirectorRepository::verifyTargets(const std::string& targets_raw) {
@@ -148,6 +157,11 @@ bool DirectorRepository::updateMeta(INvStorage& storage, Fetcher& fetcher) {
   }
 
   return true;
+}
+
+void DirectorRepository::dropTargets(INvStorage& storage) {
+  storage.clearNonRootMeta(RepositoryType::Director());
+  resetMeta();
 }
 
 }  // namespace Uptane
