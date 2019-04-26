@@ -62,7 +62,7 @@ coverage:
     paths:
       - build-coverage/coverage/
   script:
-    - aws s3 cp s3://ota-gitlab-ci/hereotaconnect_prod.zip /tmp/credentials.zip
+    - aws s3 cp s3://${GITLAB_S3_BUCKET}/hereotaconnect_prod.zip /tmp/credentials.zip
     - $CI_PROJECT_DIR/scripts/test.sh
 
 nop11:
