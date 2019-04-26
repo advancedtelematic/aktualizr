@@ -1,48 +1,55 @@
 #!/usr/bin/python3
 
+import argparse
 import sys
 import socket
+
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from time import sleep
 
+file_path = None
+meta_path = None
+
+
 class Handler(SimpleHTTPRequestHandler):
+    def _serve_simple(self, uri):
+        with open(uri, 'rb') as source:
+            while True:
+                data = source.read(1024)
+                if not data:
+                    break
+                self.wfile.write(data)
+
+    def serve_meta(self, uri):
+        if meta_path is None:
+            raise RuntimeError("Please supply a path for metadata")
+        self._serve_simple(meta_path + uri)
+
+    def serve_target(self, filename):
+        if file_path is None:
+            raise RuntimeError("Please supply a path for targets")
+        self._serve_simple(file_path + filename)
+
     def do_GET(self):
+        print("path: " + self.path)
 
         if self.path.startswith("/director/") and self.path.endswith(".json"):
             self.send_response(200)
             self.end_headers()
             role = self.path[len("/director/"):]
-            with open(meta_path + '/repo/director/' + role, 'rb') as source:
-                while True:
-                    data = source.read(1024)
-                    if not data:
-                        break
-                    self.wfile.write(data)
-            return
+            self.serve_meta("/repo/director/" + role)
         elif self.path.startswith("/repo/") and self.path.endswith(".json"):
             self.send_response(200)
             self.end_headers()
             role = self.path[len("/repo/"):]
-            with open(meta_path + '/repo/image/' + role, 'rb') as source:
-                while True:
-                    data = source.read(1024)
-                    if not data:
-                        break
-                    self.wfile.write(data)
-            return
+            self.serve_meta('/repo/image/' + role)
         elif self.path.startswith("/repo/targets"):
             self.send_response(200)
             self.end_headers()
             filename = self.path[len("/repo/targets"):]
-            with open(file_path + filename, 'rb') as source:
-                while True:
-                    data = source.read(1024)
-                    if not data:
-                        break
-                    self.wfile.write(data)
-            return
+            self.serve_target(filename)
 
-        if self.path == '/download':
+        elif self.path == '/download':
             self.send_response(301)
             self.send_header('Location', '/download/file')
             self.end_headers()
@@ -85,12 +92,12 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_response(200)
             self.end_headers()
             for i in range(5):
-              self.wfile.write(b'aa')
-              sleep(1)
+                self.wfile.write(b'aa')
+                sleep(1)
         else:
             self.send_response(200)
             self.end_headers()
-            self.wfile.write(b'{"path": "%b"}'%bytes(self.path, "utf8"))
+            self.wfile.write(b'{"path": "%b"}' % bytes(self.path, "utf8"))
 
     def do_POST(self):
         if self.path == '/devices':
@@ -137,13 +144,25 @@ class ReUseHTTPServer(HTTPServer):
         HTTPServer.server_bind(self)
 
 
-server_address = ('', int(sys.argv[1]))
-file_path = sys.argv[2]
-meta_path = sys.argv[3]
+def main():
+    global file_path, meta_path
 
-httpd = ReUseHTTPServer(server_address, Handler)
-try:
-    httpd.serve_forever()
-except KeyboardInterrupt:
-    httpd.server_close()
+    parser = argparse.ArgumentParser(description='Run a fake OTA backend')
+    parser.add_argument('port', type=int, help='server port')
+    parser.add_argument('-t', '--targets', help='targets directory', default=None)
+    parser.add_argument('-m', '--meta', help='meta directory', default=None)
+    args = parser.parse_args()
 
+    server_address = ('', args.port)
+    file_path = args.targets
+    meta_path = args.meta
+
+    httpd = ReUseHTTPServer(server_address, Handler)
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        httpd.server_close()
+
+
+if __name__ == "__main__":
+    sys.exit(main())

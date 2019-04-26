@@ -79,14 +79,27 @@ class Handler(SimpleHTTPRequestHandler):
             return
         else:
             last_fails = False
-        if self.path == '/token':
+        if self.path == '/devices':
+            self.send_response(200)
+            self.end_headers()
+            with open('tests/test_data/cred.p12', 'rb') as source:
+                while True:
+                    data = source.read(1024)
+                    if not data:
+                        break
+                    self.wfile.write(data)
+        elif self.path == '/token':
             self.send_response(200)
             self.end_headers()
             if 'Authorization' in self.headers:
                 self.wfile.write(b"{\"access_token\": \"token\"}")
             else:
                 self.wfile.write(b'')
-
+        elif self.path == "/director/ecus":
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"{}")
+            return
         else:
             self.send_response(200)
             self.end_headers()

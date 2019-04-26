@@ -16,6 +16,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/process.hpp>
 
+#include "logging/logging.h"
+
 std::string TestUtils::getFreePort() {
   int s = socket(AF_INET, SOCK_STREAM, 0);
   if (s == -1) {
@@ -90,7 +92,13 @@ Process::Result Process::spawn(const std::string &executable_to_run, const std::
   boost::asio::io_service io_service;
 
   try {
-    boost::process::child child_process(boost::process::exe = executable_to_run, boost::process::args = executable_args,
+    std::string executable_path;
+    if (boost::filesystem::exists(executable_to_run)) {
+      executable_path = executable_to_run;
+    } else {
+      executable_path = boost::process::search_path(executable_to_run).string();
+    }
+    boost::process::child child_process(boost::process::exe = executable_path, boost::process::args = executable_args,
                                         boost::process::std_out > output, boost::process::std_err > err_output,
                                         boost::process::on_exit = child_process_exit_code, io_service);
 
@@ -119,6 +127,9 @@ Process::Result Process::run(const std::vector<std::string> &args) {
 
   auto cred_gen_result = Process::spawn(exe_path_, args);
   std::tie(last_exit_code_, last_stdout_, last_stderr_) = cred_gen_result;
+  if (last_exit_code_ != 0) {
+    LOG_WARNING << last_stderr_;
+  }
 
   return cred_gen_result;
 }

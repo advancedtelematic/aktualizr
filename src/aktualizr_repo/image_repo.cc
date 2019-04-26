@@ -16,7 +16,7 @@ void ImageRepo::addImage(const std::string &name, const Json::Value &target, con
 }
 
 void ImageRepo::addBinaryImage(const boost::filesystem::path &image_path, const boost::filesystem::path &targetname,
-                         const Delegation &delegation) {
+                               const Delegation &delegation) {
   boost::filesystem::path repo_dir(path_ / "repo/image");
 
   boost::filesystem::path targets_path = repo_dir / "targets";
