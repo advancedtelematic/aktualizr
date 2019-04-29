@@ -3,9 +3,3 @@ provision_path = "/var/sota/sota_provisioning_credentials.zip"
 
 [storage]
 type = "sqlite"
-
-[discovery]
-ipuptane = true
-
-[network]
-ipdiscovery_host = "10.0.3.255"

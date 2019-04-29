@@ -215,9 +215,10 @@ zQIDAQAB\
 TEST(asn1_common, Asn1MessageSimple) {
   // Fill in a message
   Asn1Message::Ptr original(Asn1Message::Empty());
-  original->present(AKIpUptaneMes_PR_discoveryResp);
-  Asn1Message::SubPtr<AKDiscoveryRespMes_t> req = original->discoveryResp();
+  original->present(AKIpUptaneMes_PR_getInfoResp);
+  Asn1Message::SubPtr<AKGetInfoRespMes> req = original->getInfoResp();
   SetString(&req->ecuSerial, "serial1234");
+  SetString(&req->hwId, "hd-id-001");
 
   // BER encode
   std::string buffer;
@@ -239,10 +240,11 @@ TEST(asn1_common, Asn1MessageSimple) {
   EXPECT_EQ(res.consumed, buffer.size());
 
   // Check results are what we started with
-  EXPECT_EQ(msg->present(), AKIpUptaneMes_PR_discoveryResp);
-  Asn1Message::SubPtr<AKDiscoveryRespMes_t> resp = msg->discoveryResp();
+  EXPECT_EQ(msg->present(), AKIpUptaneMes_PR_getInfoResp);
+  Asn1Message::SubPtr<AKGetInfoRespMes> resp = msg->getInfoResp();
   msg.reset();  // Asn1Message::SubPtr<T> keeps the root object alive
   EXPECT_EQ(ToString(resp->ecuSerial), "serial1234");
+  EXPECT_EQ(ToString(resp->hwId), "hd-id-001");
 }
 
 TEST(asn1_common, parse) {

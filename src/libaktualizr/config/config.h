@@ -25,16 +25,6 @@ enum class ProvisionMode { kAutomatic = 0, kImplicit };
 // Try to keep the order of config options the same as in Config::writeToStream()
 // and Config::updateFromPropertyTree() in config.cc.
 
-struct NetworkConfig {
-  std::string ipdiscovery_host{"127.0.0.1"};
-  in_port_t ipdiscovery_port{9031};
-  uint32_t ipdiscovery_wait_seconds{2};
-  in_port_t ipuptane_port{9030};
-
-  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
-  void writeToStream(std::ostream& out_stream) const;
-};
-
 struct TlsConfig {
   std::string server;
   boost::filesystem::path server_url_path;
@@ -76,13 +66,6 @@ struct UptaneConfig {
   void writeToStream(std::ostream& out_stream) const;
 };
 
-struct DiscoveryConfig {
-  bool ipuptane{false};
-
-  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
-  void writeToStream(std::ostream& out_stream) const;
-};
-
 /**
  * Configuration object for an aktualizr instance running on a primary ECU.
  *
@@ -106,12 +89,10 @@ class Config : public BaseConfig {
   // Config data structures. Keep logger first so that it is taken into account
   // while processing the others.
   LoggerConfig logger;
-  NetworkConfig network;
   P11Config p11;
   TlsConfig tls;
   ProvisionConfig provision;
   UptaneConfig uptane;
-  DiscoveryConfig discovery;
   PackageConfig pacman;
   StorageConfig storage;
   ImportConfig import;

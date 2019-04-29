@@ -4,7 +4,6 @@ set(AKTUALIZR_SECONDARY_LIB_SRC
     aktualizr_secondary.cc
     aktualizr_secondary_config.cc
     aktualizr_secondary_common.cc
-    aktualizr_secondary_discovery.cc
     socket_server.cc
     )
 
@@ -43,7 +42,6 @@ set(ALL_AKTUALIZR_SECONDARY_HEADERS
     aktualizr_secondary_interface.h
     aktualizr_secondary_config.h
     aktualizr_secondary_common.h
-    aktualizr_secondary_discovery.h
     socket_server.h
     )
 
@@ -60,16 +58,12 @@ add_aktualizr_test(NAME aktualizr_secondary_update
                    ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
 
 if(BUILD_OSTREE)
-    add_aktualizr_test(NAME aktualizr_secondary_discovery
-                       SOURCES aktualizr_secondary_discovery_test.cc
-                       ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
-
     add_aktualizr_test(NAME aktualizr_secondary_uptane
                        SOURCES uptane_test.cc
                        LIBRARIES aktualizr-posix
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
 else(BUILD_OSTREE)
-    list(APPEND TEST_SOURCES aktualizr_secondary_discovery_test.cc uptane_test.cc)
+    list(APPEND TEST_SOURCES uptane_test.cc)
 endif(BUILD_OSTREE)
 
 # test running the executable with command line option --help

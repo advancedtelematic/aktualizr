@@ -4,14 +4,10 @@
 
 void AktualizrSecondaryNetConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(port, "port", pt);
-  CopyFromConfig(discovery, "discovery", pt);
-  CopyFromConfig(discovery_port, "discovery_port", pt);
 }
 
 void AktualizrSecondaryNetConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, port, "port");
-  writeOption(out_stream, discovery, "discovery");
-  writeOption(out_stream, discovery_port, "discovery_port");
 }
 
 void AktualizrSecondaryUptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
@@ -69,15 +65,6 @@ void AktualizrSecondaryConfig::updateFromCommandLine(const boost::program_option
   }
   if (cmd.count("server-port") != 0) {
     network.port = cmd["server-port"].as<in_port_t>();
-  }
-  if (cmd.count("discovery-port") != 0) {
-    in_port_t p = cmd["discovery_port"].as<in_port_t>();
-    if (p == 0) {
-      network.discovery = false;
-    } else {
-      network.discovery = true;
-    }
-    network.discovery_port = p;
   }
   if (cmd.count("ecu-serial") != 0) {
     uptane.ecu_serial = cmd["ecu-serial"].as<std::string>();

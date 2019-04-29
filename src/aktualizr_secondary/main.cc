@@ -8,38 +8,11 @@
 
 #include "aktualizr_secondary.h"
 #include "aktualizr_secondary_config.h"
-#include "aktualizr_secondary_discovery.h"
 #include "utilities/utils.h"
 
 #include "logging/logging.h"
 
 namespace bpo = boost::program_options;
-
-class AktualizrSecondaryWithDiscovery : public AktualizrSecondaryInterface {
- public:
-  AktualizrSecondaryWithDiscovery(const AktualizrSecondaryConfig &config, const std::shared_ptr<INvStorage> &storage)
-      : aktualizr_secondary_(new AktualizrSecondary(config, storage)),
-        discovery_(new AktualizrSecondaryDiscovery(config.network, *aktualizr_secondary_)) {}
-  AktualizrSecondaryWithDiscovery(const AktualizrSecondaryWithDiscovery &) = delete;
-  AktualizrSecondaryWithDiscovery &operator=(const AktualizrSecondaryWithDiscovery &) = delete;
-
-  ~AktualizrSecondaryWithDiscovery() override {
-    discovery_->stop();
-    discovery_thread_.join();
-  }
-  void run() override {
-    // run discovery service
-    discovery_thread_ = std::thread(&AktualizrSecondaryDiscovery::run, discovery_.get());
-
-    aktualizr_secondary_->run();
-  }
-  void stop() override { aktualizr_secondary_->stop(); }
-
- private:
-  std::unique_ptr<AktualizrSecondary> aktualizr_secondary_;
-  std::unique_ptr<AktualizrSecondaryDiscovery> discovery_;
-  std::thread discovery_thread_;
-};
 
 void check_secondary_options(const bpo::options_description &description, const bpo::variables_map &vm) {
   if (vm.count("help") != 0) {
@@ -61,7 +34,6 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
       ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
       ("server-port,p", bpo::value<int>(), "command server listening port")
-      ("discovery-port,d", bpo::value<int>(), "discovery service listening port (0 to disable)")
       ("ecu-serial", bpo::value<std::string>(), "serial number of secondary ecu")
       ("ecu-hardware-id", bpo::value<std::string>(), "hardware ID of secondary ecu");
   // clang-format on
@@ -120,7 +92,7 @@ int main(int argc, char *argv[]) {
     // storage (share class with primary)
     std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
     std::unique_ptr<AktualizrSecondaryInterface> secondary;
-    secondary = std_::make_unique<AktualizrSecondaryWithDiscovery>(config, storage);
+    secondary = std_::make_unique<AktualizrSecondary>(config, storage);
     secondary->run();
 
   } catch (std::runtime_error &exc) {
