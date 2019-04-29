@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
 
   std::string port = TestUtils::getFreePort();
   server += port;
-  boost::process::child server_process("tests/fake_http_server/fake_http_server.py", port);
+  boost::process::child server_process("tests/fake_http_server/fake_test_server.py", port, "-f");
   TestUtils::waitForServer(server + "/");
 
   return RUN_ALL_TESTS();

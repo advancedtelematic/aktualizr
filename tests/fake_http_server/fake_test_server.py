@@ -9,6 +9,23 @@ from time import sleep
 
 file_path = None
 meta_path = None
+fail_injector = None
+
+
+class FailInjector:
+    def __init__(self):
+        self.last_fails = False
+
+    def fail(self, http_handler):
+        if self.last_fails:
+            self.last_fails = False
+            return False
+        else:
+            http_handler.send_response(503)
+            http_handler.end_headers()
+            http_handler.wfile.write(b"Internal server error")
+            self.last_fails = True
+            return True
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -31,8 +48,6 @@ class Handler(SimpleHTTPRequestHandler):
         self._serve_simple(file_path + filename)
 
     def do_GET(self):
-        print("path: " + self.path)
-
         if self.path.startswith("/director/") and self.path.endswith(".json"):
             self.send_response(200)
             self.end_headers()
@@ -72,7 +87,7 @@ class Handler(SimpleHTTPRequestHandler):
                 r = self.headers["Range"]
                 r_from = int(r.split("=")[1].split("-")[0])
                 self.send_response(206)
-                self.send_header('Content-Range', 'bytes %d-%d/%d' %(r_from, response_size-1, response_size))
+                self.send_header('Content-Range', 'bytes %d-%d/%d' % (r_from, response_size-1, response_size))
                 response_size = response_size - r_from
             else:
                 self.send_response(200)
@@ -95,11 +110,16 @@ class Handler(SimpleHTTPRequestHandler):
                 self.wfile.write(b'aa')
                 sleep(1)
         else:
+            if fail_injector is not None and fail_injector.fail(self):
+                return
             self.send_response(200)
             self.end_headers()
             self.wfile.write(b'{"path": "%b"}' % bytes(self.path, "utf8"))
 
     def do_POST(self):
+        if fail_injector is not None and fail_injector.fail(self):
+            return
+
         if self.path == '/devices':
             self.send_response(200)
             self.end_headers()
@@ -129,10 +149,13 @@ class Handler(SimpleHTTPRequestHandler):
                 self.wfile.write(b"{\"access_token\": \"token\"}")
             else:
                 self.wfile.write(b'')
-
         else:
-            self.send_response(404)
+            # for httpclient_test
+            self.send_response(200)
             self.end_headers()
+            length = int(self.headers.get('content-length'))
+            result = b'{"data": %b, "path": "%b"}'%(self.rfile.read(length), bytes(self.path, "utf8"))
+            self.wfile.write(result)
 
     def do_PUT(self):
         self.do_POST()
@@ -145,17 +168,20 @@ class ReUseHTTPServer(HTTPServer):
 
 
 def main():
-    global file_path, meta_path
+    global file_path, meta_path, fail_injector
 
     parser = argparse.ArgumentParser(description='Run a fake OTA backend')
     parser.add_argument('port', type=int, help='server port')
     parser.add_argument('-t', '--targets', help='targets directory', default=None)
     parser.add_argument('-m', '--meta', help='meta directory', default=None)
+    parser.add_argument('-f', '--fail', help='enable intermittent failure', action='store_true')
     args = parser.parse_args()
 
     server_address = ('', args.port)
     file_path = args.targets
     meta_path = args.meta
+    if args.fail:
+        fail_injector = FailInjector()
 
     httpd = ReUseHTTPServer(server_address, Handler)
     try:

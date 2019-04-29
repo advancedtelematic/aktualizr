@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
   std::string port = TestUtils::getFreePort();
   server = "http://127.0.0.1:" + port;
   config.uptane.repo_server = server;
-  boost::process::child http_server_process("tests/fake_http_server/fake_http_server.py", port);
+  boost::process::child http_server_process("tests/fake_http_server/fake_test_server.py", port, "-f");
   TestUtils::waitForServer(server + "/");
   return RUN_ALL_TESTS();
 }
