@@ -6,9 +6,34 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ## [??? (unreleased)]
 
+## [2019.3] - 2019-04-29
+
+### Added
+
+- New tool aktualizr-lite for anonymous TUF-only updates: [PR](https://github.com/advancedtelematic/aktualizr/pull/1107)
+- [Abort() API call](src/libaktualizr/primary/aktualizr.h): [PR](https://github.com/advancedtelematic/aktualizr/pull/1122)
+- [Option to print delegation metadata with aktualizr-info](src/aktualizr_info/main.cc): [PR](https://github.com/advancedtelematic/aktualizr/pull/1138)
+- Support for custom URIs for downloading targets: [PR](https://github.com/advancedtelematic/aktualizr/pull/1147)
+- [SendManifest() API call](src/libaktualizr/primary/aktualizr.h): [PR](https://github.com/advancedtelematic/aktualizr/pull/1176)
+- [Support for Android package management](src/libaktualizr/package_manager/androidmanager.h): [PR](https://github.com/advancedtelematic/aktualizr/pull/1034)
+
 ### Changed
 
-- Device installation failure result codes are deduced as concatenation of ECU failure result codes
+- Device installation failure result codes are deduced as concatenation of ECU failure result codes: [PR](https://github.com/advancedtelematic/aktualizr/pull/1145)
+- No longer require hashes and sizes of Tagets objects in Snapshot metadata: [PR](https://github.com/advancedtelematic/aktualizr/pull/1162)
+- [Updated documentation](README.adoc): [PR](https://github.com/advancedtelematic/aktualizr/pull/1164)
+
+### Removed
+
+- example.com is no longer set as the default URL when using garage-sign via garage-deploy: [PR](https://github.com/advancedtelematic/aktualizr/pull/1169)
+- OPC-UA secondary support: [PR](https://github.com/advancedtelematic/aktualizr/pull/1177)
+
+### Fixed
+
+- Check for updates even if sending the manifest fails: [PR](https://github.com/advancedtelematic/aktualizr/pull/1186)
+- Correctly handle empty targets metadata: [PR #1186](https://github.com/advancedtelematic/aktualizr/pull/1186) and [PR #1192](https://github.com/advancedtelematic/aktualizr/pull/1192)
+- Various OSTree-related memory leaks and suppressions: [PR #1114](https://github.com/advancedtelematic/aktualizr/pull/1114), [PR #1120](https://github.com/advancedtelematic/aktualizr/pull/1120), and [PR #1179](https://github.com/advancedtelematic/aktualizr/pull/1179)
+- Various spurious and/or confusing log messages, e.g.: [PR #1112](https://github.com/advancedtelematic/aktualizr/pull/1112), [PR #1137](https://github.com/advancedtelematic/aktualizr/pull/1137), and [PR #1180](https://github.com/advancedtelematic/aktualizr/pull/1180)
 
 ## [2019.2] - 2019-02-21
 
