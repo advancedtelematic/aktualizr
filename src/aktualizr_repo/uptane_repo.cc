@@ -30,7 +30,7 @@ void UptaneRepo::revokeDelegation(const Uptane::Role &name) {
 
 void UptaneRepo::addImage(const boost::filesystem::path &image_path, const boost::filesystem::path &targetname,
                           const Delegation &delegation) {
-  image_repo_.addImage(image_path, targetname, delegation);
+  image_repo_.addBinaryImage(image_path, targetname, delegation);
 }
 void UptaneRepo::addCustomImage(const std::string &name, const Uptane::Hash &hash, uint64_t length,
                                 const Delegation &delegation, const Json::Value &custom) {

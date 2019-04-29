@@ -233,7 +233,7 @@ int main(int argc, char** argv) {
 
   std::string port = TestUtils::getFreePort();
   server += port;
-  boost::process::child http_server_process("tests/fake_http_server/fake_http_server.py", port);
+  boost::process::child http_server_process("tests/fake_http_server/fake_test_server.py", port, "-f");
   TestUtils::waitForServer(server + "/");
 #ifdef BUILD_OSTREE
   std::string treehub_port = TestUtils::getFreePort();

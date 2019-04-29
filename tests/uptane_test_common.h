@@ -38,6 +38,7 @@ struct UptaneTestCommon {
     conf.provision.primary_ecu_hardware_id = "primary_hw";
     conf.storage.path = temp_dir.Path();
     conf.tls.server = url;
+    conf.bootloader.reboot_sentinel_dir = temp_dir.Path();
     UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "secondary_ecu_serial", "secondary_hw");
     return conf;
   }

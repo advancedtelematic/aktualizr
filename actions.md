@@ -137,7 +137,7 @@ These are the primary actions that a user of libaktualizr can perform through th
     - [x] Send EcuInstallationStartedReport to server for primary (uptane_test.cc, aktualizr_test.cc)
       - [x] Send an event report (see below)
     - [x] Install an update on the primary
-      - [ ] Install an OSTree update on the primary
+      - [x] Install an OSTree update on the primary (aktualizr_fullostree_test.cc)
       - [ ] Notify "reboot needed" after an OSTree update trigger
       - [x] Set new version to pending status after an OSTree update trigger (aktualizr_test.cc)
       - [x] Send EcuInstallationAppliedReport to server after an OSTree update trigger (aktualizr_test.cc)

@@ -41,7 +41,6 @@ TEST(Aktualizr, EmptyTargets) {
   auto http = std::make_shared<HttpRejectEmptyCorrId>(temp_dir.Path(), meta_dir.Path() / "repo");
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
   conf.pacman.fake_need_reboot = true;
-  conf.bootloader.reboot_sentinel_dir = temp_dir / "aktualizr-session";
   logger_set_threshold(boost::log::trivial::trace);
 
   Process akt_repo(aktualizr_repo_path.string());

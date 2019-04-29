@@ -108,4 +108,6 @@ class Config : public BaseConfig {
   bool loglevel_from_cmdline{false};
 };
 
+std::ostream& operator<<(std::ostream& os, const Config& cfg);
+
 #endif  // CONFIG_H_
