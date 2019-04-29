@@ -42,6 +42,9 @@ extern "C" const char *ostree_deployment_get_csum(OstreeDeployment *self) {
   return ostree_deployment.rev.c_str();
 }
 
+/*
+ * Install an OSTree update on the primary.
+ */
 TEST(Aktualizr, FullOstreeUpdate) {
   TemporaryDirectory temp_dir;
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, server);
