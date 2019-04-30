@@ -1,20 +1,23 @@
 dist: xenial
 language: minimal
+addons:
+  apt:
+    packages:
+      - "python3"
+      - "python3-pip"
 git:
   depth: false
 branches:
   only:
     - master
-    - /^\d\d\d\d\.\d+$/
+    - /^\d\d\d\d\.\d+(-\w+)?$/
 env:
-  global:
-    - APIKEY_SECURE="K1Qb6xwVTuCns2xyvfc5l7RDlEniIT2+xvViEpu2gG+pDuVqx+yX7F0qL59RMLxcoP1F4g+11OYrZXrcMys39QhOC0guNZlZo4UJx15KeHbWGM7gNkbGjifPuCSECGS9poUthMLyv86Q2u29wlpj6GffemKxPA3hmj4fR8Ph0vEfD//HL8ANZs+867w8W2Gco5E9FnWO6BINuife6QkapMJ9wL7GhenK4Ykkf1Kgxklu2hey8PXVXf7Oj/wISGMgndZULdRvnzgkEFpSlBZENG3yTuL1++acsoYWhLOIzwqob3Fgc+EeWiIFQbf9C4LMMN43nYG4w8lx/X6mXvJ1oUdHmEMeYv7ewDoRmbtR22I++KgDd96C60Od1JNEDW8uA6x6wmagGKP1PwYMetgaSsCgvIWVfMVxNN0o78YjNrtob2Hrb93ZK+5/f0v0W4zhtk7bOfCbxe/uSpkW37uu1Mp5PG9cGi1bFluuGc2F/zsqNk30R6QbPSNxo4p13CfzKLNaOXQn2BIbMCV3gpkZiz3/9mW0l5KAXYbCWag1yEZ/ZSoCE22aap2i00+5sYBg1QrxKBN8Z7RhepsXU4Wfl4tNhUJeSXC/Y7kb6TwTkaKlqhMRdaMeU9sDxBvTSnhWpNI21X9B9dFgPAQnOmqFEoxtno4dqHF3Ii2jeKYSFLY="
   matrix:
     - DOCKERFILE=docker/Dockerfile.ubuntu.bionic SCRIPT=scripts/test.sh
       DARGS="-eTEST_CMAKE_BUILD_TYPE=Valgrind -eTEST_WITH_COVERAGE=1 -eTEST_WITH_P11=1 -eTEST_WITH_FAULT_INJECTION=1 -eTEST_TESTSUITE_EXCLUDE=credentials -eTEST_SOTA_PACKED_CREDENTIALS=dummy-credentials"
     - DOCKERFILE=docker/Dockerfile.debian.testing SCRIPT=scripts/test.sh
       DARGS="-eTEST_CC=clang -eTEST_WITH_LOAD_TESTS=1 -eTEST_WITH_TESTSUITE=0 -eTEST_WITH_STATICTESTS=1"
-    - DEPLOY_PKGS=1 RELEASE_NAME=ubuntu_18.04 DOCKERFILE=docker/Dockerfile.ubuntu.bionic INSTALL_DOCKERFILE=docker/Dockerfile-test-install.ubuntu.bionic SCRIPT=scripts/build_ubuntu.sh DARGS="-eTEST_INSTALL_RELEASE_NAME=-ubuntu_18.04"
+    - DEPLOY_SRC=1 DEPLOY_PKGS=1 RELEASE_NAME=ubuntu_18.04 DOCKERFILE=docker/Dockerfile.ubuntu.bionic INSTALL_DOCKERFILE=docker/Dockerfile-test-install.ubuntu.bionic SCRIPT=scripts/build_ubuntu.sh DARGS="-eTEST_INSTALL_RELEASE_NAME=-ubuntu_18.04"
     - DEPLOY_PKGS=1 RELEASE_NAME=ubuntu_16.04 DOCKERFILE=docker/Dockerfile.ubuntu.xenial INSTALL_DOCKERFILE=docker/Dockerfile-test-install.ubuntu.xenial SCRIPT=scripts/build_ubuntu.sh DARGS="-eTEST_INSTALL_RELEASE_NAME=-ubuntu_16.04"
 services:
 - docker
@@ -24,7 +27,18 @@ script:
 - docker run -v $TRAVIS_BUILD_DIR:/aktualizr -v /persistent:/persistent -w /aktualizr $ci_env $DARGS -it advancedtelematic/aktualizr ${SCRIPT}
 - if [[ $DEPLOY_PKGS = 1 ]]; then ./scripts/test_garage_deploy_deb.sh /persistent "${INSTALL_DOCKERFILE}"; fi
 - if [[ $RELEASE_NAME = ubuntu_16.04 ]]; then ./scripts/test_aktualizr_deb_ubuntu.sh /persistent "${INSTALL_DOCKERFILE}"; fi
+- if [[ $DEPLOY_SRC = 1 && -n $TRAVIS_TAG ]]; then ./scripts/make_src_archive.sh $TRAVIS_BUILD_DIR "$TRAVIS_BUILD_DIR/aktualizr_src-$TRAVIS_TAG.tar.gz"; fi
 deploy:
+        - provider: releases
+          file: $TRAVIS_BUILD_DIR/aktualizr_src-$TRAVIS_TAG.tar.gz
+          skip-cleanup: true
+          on:
+                  tags: true
+                  all_branches: true
+                  repo: advancedtelematic/aktualizr
+                  condition: $DEPLOY_SRC = 1
+          api_key:
+            secure: "jMiMN9cL9Fqpvsw6TVYfo4NxTo0zQIpYXnvAtOjirbewm17JdRgAxzCJs/EibFerHZ4yKLJuor5yZ7o4y1rVkrhQdCnVKP4ksopmccrjzDOqVd5gLCxgz2DFjTMfCgfgHW83lXF+I1rILlNyKItqTROA8l3rJiEJ6XwkNJUtme7RZ30h5KOZy7U9ujSRuuhSj7s3k4y3BOdr/2jmv0RSw3ksNXODhJ9/17Uw9NmozkpUfPmE5CoU+847F3fhI3jMskFyfD9W+YtoCKOXd0UmnuOyay0k1qhO0kOz7OJkDHOAKBcr5UmtdQeKuP/sg6vzPSIrRJNE1fh9HqYgFEjKLontgJgap4LuFwYxucw930GrEoT5UUOoWo5CztGd31D3KytpUA2eWc7+5cKZk503ZGxYylhoUj3oUJzu58kb/S7eq1eF6zGMqetszxlB42r5mzKq42ZUGPfmcEhqsgwvOz3Tw3KdH5yH9jP0Oy+oE5YXjA9UiER4YhAsFc+HRNEgwPm3mop7iPYCy8p/mIcyv4XrJ/yT/1/83qyfwIa+E9eoCpTyzKkmPz20hly/fuBNRL03OobvLbAcyxzOFCC6cfBTUa0w7eSsZDa2WztRAkq6lWwJWnRzfq21rAF0/jQqYvZdJPEy23qCZAG5eLlQ9H/aOMgBpRy7NrKn3/NjCBs="
         - provider: releases
           file: /persistent/garage_deploy-ubuntu_18.04.deb
           skip-cleanup: true
@@ -33,9 +47,8 @@ deploy:
                   all_branches: true
                   repo: advancedtelematic/aktualizr
                   condition: $RELEASE_NAME = "ubuntu_18.04"
-
           api_key:
-            secure: $APIKEY_SECURE
+            secure: "jMiMN9cL9Fqpvsw6TVYfo4NxTo0zQIpYXnvAtOjirbewm17JdRgAxzCJs/EibFerHZ4yKLJuor5yZ7o4y1rVkrhQdCnVKP4ksopmccrjzDOqVd5gLCxgz2DFjTMfCgfgHW83lXF+I1rILlNyKItqTROA8l3rJiEJ6XwkNJUtme7RZ30h5KOZy7U9ujSRuuhSj7s3k4y3BOdr/2jmv0RSw3ksNXODhJ9/17Uw9NmozkpUfPmE5CoU+847F3fhI3jMskFyfD9W+YtoCKOXd0UmnuOyay0k1qhO0kOz7OJkDHOAKBcr5UmtdQeKuP/sg6vzPSIrRJNE1fh9HqYgFEjKLontgJgap4LuFwYxucw930GrEoT5UUOoWo5CztGd31D3KytpUA2eWc7+5cKZk503ZGxYylhoUj3oUJzu58kb/S7eq1eF6zGMqetszxlB42r5mzKq42ZUGPfmcEhqsgwvOz3Tw3KdH5yH9jP0Oy+oE5YXjA9UiER4YhAsFc+HRNEgwPm3mop7iPYCy8p/mIcyv4XrJ/yT/1/83qyfwIa+E9eoCpTyzKkmPz20hly/fuBNRL03OobvLbAcyxzOFCC6cfBTUa0w7eSsZDa2WztRAkq6lWwJWnRzfq21rAF0/jQqYvZdJPEy23qCZAG5eLlQ9H/aOMgBpRy7NrKn3/NjCBs="
         - provider: releases
           file: /persistent/aktualizr-ubuntu_18.04.deb
           skip-cleanup: true
@@ -45,7 +58,7 @@ deploy:
                   repo: advancedtelematic/aktualizr
                   condition: $RELEASE_NAME = "ubuntu_18.04"
           api_key:
-            secure: $APIKEY_SECURE
+            secure: "jMiMN9cL9Fqpvsw6TVYfo4NxTo0zQIpYXnvAtOjirbewm17JdRgAxzCJs/EibFerHZ4yKLJuor5yZ7o4y1rVkrhQdCnVKP4ksopmccrjzDOqVd5gLCxgz2DFjTMfCgfgHW83lXF+I1rILlNyKItqTROA8l3rJiEJ6XwkNJUtme7RZ30h5KOZy7U9ujSRuuhSj7s3k4y3BOdr/2jmv0RSw3ksNXODhJ9/17Uw9NmozkpUfPmE5CoU+847F3fhI3jMskFyfD9W+YtoCKOXd0UmnuOyay0k1qhO0kOz7OJkDHOAKBcr5UmtdQeKuP/sg6vzPSIrRJNE1fh9HqYgFEjKLontgJgap4LuFwYxucw930GrEoT5UUOoWo5CztGd31D3KytpUA2eWc7+5cKZk503ZGxYylhoUj3oUJzu58kb/S7eq1eF6zGMqetszxlB42r5mzKq42ZUGPfmcEhqsgwvOz3Tw3KdH5yH9jP0Oy+oE5YXjA9UiER4YhAsFc+HRNEgwPm3mop7iPYCy8p/mIcyv4XrJ/yT/1/83qyfwIa+E9eoCpTyzKkmPz20hly/fuBNRL03OobvLbAcyxzOFCC6cfBTUa0w7eSsZDa2WztRAkq6lWwJWnRzfq21rAF0/jQqYvZdJPEy23qCZAG5eLlQ9H/aOMgBpRy7NrKn3/NjCBs="
         - provider: releases
           file: /persistent/garage_deploy-ubuntu_16.04.deb
           skip-cleanup: true
@@ -56,7 +69,7 @@ deploy:
                   condition: $RELEASE_NAME = "ubuntu_16.04"
 
           api_key:
-            secure: $APIKEY_SECURE
+            secure: "jMiMN9cL9Fqpvsw6TVYfo4NxTo0zQIpYXnvAtOjirbewm17JdRgAxzCJs/EibFerHZ4yKLJuor5yZ7o4y1rVkrhQdCnVKP4ksopmccrjzDOqVd5gLCxgz2DFjTMfCgfgHW83lXF+I1rILlNyKItqTROA8l3rJiEJ6XwkNJUtme7RZ30h5KOZy7U9ujSRuuhSj7s3k4y3BOdr/2jmv0RSw3ksNXODhJ9/17Uw9NmozkpUfPmE5CoU+847F3fhI3jMskFyfD9W+YtoCKOXd0UmnuOyay0k1qhO0kOz7OJkDHOAKBcr5UmtdQeKuP/sg6vzPSIrRJNE1fh9HqYgFEjKLontgJgap4LuFwYxucw930GrEoT5UUOoWo5CztGd31D3KytpUA2eWc7+5cKZk503ZGxYylhoUj3oUJzu58kb/S7eq1eF6zGMqetszxlB42r5mzKq42ZUGPfmcEhqsgwvOz3Tw3KdH5yH9jP0Oy+oE5YXjA9UiER4YhAsFc+HRNEgwPm3mop7iPYCy8p/mIcyv4XrJ/yT/1/83qyfwIa+E9eoCpTyzKkmPz20hly/fuBNRL03OobvLbAcyxzOFCC6cfBTUa0w7eSsZDa2WztRAkq6lWwJWnRzfq21rAF0/jQqYvZdJPEy23qCZAG5eLlQ9H/aOMgBpRy7NrKn3/NjCBs="
         - provider: releases
           file: /persistent/aktualizr-ubuntu_16.04.deb
           skip-cleanup: true
@@ -66,4 +79,4 @@ deploy:
                   repo: advancedtelematic/aktualizr
                   condition: $RELEASE_NAME = "ubuntu_16.04"
           api_key:
-            secure: $APIKEY_SECURE
+            secure: "jMiMN9cL9Fqpvsw6TVYfo4NxTo0zQIpYXnvAtOjirbewm17JdRgAxzCJs/EibFerHZ4yKLJuor5yZ7o4y1rVkrhQdCnVKP4ksopmccrjzDOqVd5gLCxgz2DFjTMfCgfgHW83lXF+I1rILlNyKItqTROA8l3rJiEJ6XwkNJUtme7RZ30h5KOZy7U9ujSRuuhSj7s3k4y3BOdr/2jmv0RSw3ksNXODhJ9/17Uw9NmozkpUfPmE5CoU+847F3fhI3jMskFyfD9W+YtoCKOXd0UmnuOyay0k1qhO0kOz7OJkDHOAKBcr5UmtdQeKuP/sg6vzPSIrRJNE1fh9HqYgFEjKLontgJgap4LuFwYxucw930GrEoT5UUOoWo5CztGd31D3KytpUA2eWc7+5cKZk503ZGxYylhoUj3oUJzu58kb/S7eq1eF6zGMqetszxlB42r5mzKq42ZUGPfmcEhqsgwvOz3Tw3KdH5yH9jP0Oy+oE5YXjA9UiER4YhAsFc+HRNEgwPm3mop7iPYCy8p/mIcyv4XrJ/yT/1/83qyfwIa+E9eoCpTyzKkmPz20hly/fuBNRL03OobvLbAcyxzOFCC6cfBTUa0w7eSsZDa2WztRAkq6lWwJWnRzfq21rAF0/jQqYvZdJPEy23qCZAG5eLlQ9H/aOMgBpRy7NrKn3/NjCBs="
