@@ -30,15 +30,23 @@ SecondaryConfigParser::Configs SecondaryConfigParser::parse_config_file(const bo
 config file example
 
 {
-  "ip": [
-          {"addr": "127.0.0.1:9031"},
-          {"addr": "127.0.0.1:9032"}
-  ],
-  "socketcan": [
-          {"key": "value", "key1": "value1"},
-          {"key": "value", "key1": "value1"}
-  ]
+  "IP": {
+                "secondaries_wait_port": 9040,
+                "secondaries_wait_timeout": 20,
+                "secondaries": [
+                        {"addr": "127.0.0.1:9031"}
+                        {"addr": "127.0.0.1:9032"}
+                ]
+  },
+  "socketcan": {
+                "common-key": "common-value",
+                "secondaries": [
+                        {"key": "value", "key1": "value1"},
+                        {"key": "value", "key1": "value1"}
+                ]
+  }
 }
+
 
 */
 
@@ -81,11 +89,23 @@ static std::pair<std::string, uint16_t> getIPAndPort(const std::string& addr) {
   return std::make_pair(ip, port);
 }
 
-void JsonConfigParser::createIPSecondaryConfig(Configs& configs, Json::Value& ip_sec_cfgs) {
-  for (const auto& ip_sec_cfg : ip_sec_cfgs) {
-    auto addr = getIPAndPort(ip_sec_cfg[IPSecondaryConfig::AddrField].asString());
-    configs.emplace_back(std::make_shared<IPSecondaryConfig>(addr.first, addr.second));
+void JsonConfigParser::createIPSecondariesCfg(Configs& configs, Json::Value& json_ip_sec_cfg) {
+  auto resultant_cfg = std::make_shared<IPSecondariesConfig>(
+      static_cast<uint16_t>(json_ip_sec_cfg[IPSecondariesConfig::PortField].asUInt()),
+      json_ip_sec_cfg[IPSecondariesConfig::TimeoutField].asUInt());
+  auto secondaries = json_ip_sec_cfg[IPSecondariesConfig::SecondariesField];
+
+  LOG_INFO << "Found IP secondaries config: " << *resultant_cfg;
+
+  for (const auto& secondary : secondaries) {
+    auto addr = getIPAndPort(secondary[IPSecondaryConfig::AddrField].asString());
+    IPSecondaryConfig sec_cfg{addr.first, addr.second};
+
+    LOG_INFO << "   found IP secondary config: " << sec_cfg;
+    resultant_cfg->secondaries_cfg.push_back(sec_cfg);
   }
+
+  configs.push_back(resultant_cfg);
 }
 
 }  // namespace Primary

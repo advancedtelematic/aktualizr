@@ -7,21 +7,23 @@
 
 namespace Primary {
 
-using SecondaryFactoryRegistry =
-    std::unordered_map<std::string, std::function<std::shared_ptr<Uptane::SecondaryInterface>(const SecondaryConfig&)>>;
+using Secondaries = std::vector<std::shared_ptr<Uptane::SecondaryInterface>>;
+using SecondaryFactoryRegistry = std::unordered_map<std::string, std::function<Secondaries(const SecondaryConfig&)>>;
+
+static Secondaries createIPSecondaries(const IPSecondariesConfig& config);
 
 static SecondaryFactoryRegistry sec_factory_registry = {
-    {IPSecondaryConfig::Type,
+    {IPSecondariesConfig::Type,
      [](const SecondaryConfig& config) {
-       auto ip_sec_cgf = dynamic_cast<const IPSecondaryConfig&>(config);
-       return Uptane::IpUptaneSecondary::create(ip_sec_cgf.ip, ip_sec_cgf.port);
+       auto ip_sec_cgf = dynamic_cast<const IPSecondariesConfig&>(config);
+       return createIPSecondaries(ip_sec_cgf);
      }},
     //  {
     //     Add another secondary factory here
     //  }
 };
 
-static std::shared_ptr<Uptane::SecondaryInterface> createSecondary(const SecondaryConfig& config) {
+static Secondaries createSecondaries(const SecondaryConfig& config) {
   return (sec_factory_registry.at(config.type()))(config);
 }
 
@@ -34,13 +36,14 @@ void initSecondaries(Aktualizr& aktualizr, const boost::filesystem::path& config
 
   for (auto& config : secondary_configs) {
     try {
-      LOG_INFO << "Creating Secondary of type: " << config->type();
-      std::shared_ptr<Uptane::SecondaryInterface> secondary = createSecondary(*config);
+      LOG_INFO << "Creating " << config->type() << " secondaries...";
+      Secondaries secondaries = createSecondaries(*config);
 
-      LOG_INFO << "Adding Secondary to Aktualizr."
-               << "HW_ID: " << secondary->getHwId() << " Serial: " << secondary->getSerial();
-      aktualizr.AddSecondary(secondary);
-
+      for (auto secondary : secondaries) {
+        LOG_INFO << "Adding Secondary to Aktualizr."
+                 << "HW_ID: " << secondary->getHwId() << " Serial: " << secondary->getSerial();
+        aktualizr.AddSecondary(secondary);
+      }
     } catch (const std::exception& exc) {
       LOG_ERROR << "Failed to initialize a secondary: " << exc.what();
       LOG_ERROR << "Continue with initialization of the remaining secondaries, if any left.";
@@ -48,4 +51,14 @@ void initSecondaries(Aktualizr& aktualizr, const boost::filesystem::path& config
     }
   }
 }
+
+static Secondaries createIPSecondaries(const IPSecondariesConfig& config) {
+  Secondaries result;
+
+  for (auto& ip_sec_cfg : config.secondaries_cfg) {
+    result.push_back(Uptane::IpUptaneSecondary::create(ip_sec_cfg.ip, ip_sec_cfg.port));
+  }
+  return result;
+}
+
 }  // namespace Primary
