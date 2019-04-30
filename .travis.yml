@@ -5,7 +5,7 @@ git:
 branches:
   only:
     - master
-    - /^\d\d\d\d\.\d+$/
+    - /^\d\d\d\d\.\d+(-\w+)?$/
 env:
   global:
     - APIKEY_SECURE="K1Qb6xwVTuCns2xyvfc5l7RDlEniIT2+xvViEpu2gG+pDuVqx+yX7F0qL59RMLxcoP1F4g+11OYrZXrcMys39QhOC0guNZlZo4UJx15KeHbWGM7gNkbGjifPuCSECGS9poUthMLyv86Q2u29wlpj6GffemKxPA3hmj4fR8Ph0vEfD//HL8ANZs+867w8W2Gco5E9FnWO6BINuife6QkapMJ9wL7GhenK4Ykkf1Kgxklu2hey8PXVXf7Oj/wISGMgndZULdRvnzgkEFpSlBZENG3yTuL1++acsoYWhLOIzwqob3Fgc+EeWiIFQbf9C4LMMN43nYG4w8lx/X6mXvJ1oUdHmEMeYv7ewDoRmbtR22I++KgDd96C60Od1JNEDW8uA6x6wmagGKP1PwYMetgaSsCgvIWVfMVxNN0o78YjNrtob2Hrb93ZK+5/f0v0W4zhtk7bOfCbxe/uSpkW37uu1Mp5PG9cGi1bFluuGc2F/zsqNk30R6QbPSNxo4p13CfzKLNaOXQn2BIbMCV3gpkZiz3/9mW0l5KAXYbCWag1yEZ/ZSoCE22aap2i00+5sYBg1QrxKBN8Z7RhepsXU4Wfl4tNhUJeSXC/Y7kb6TwTkaKlqhMRdaMeU9sDxBvTSnhWpNI21X9B9dFgPAQnOmqFEoxtno4dqHF3Ii2jeKYSFLY="
