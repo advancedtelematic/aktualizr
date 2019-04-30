@@ -10,20 +10,30 @@
 
 namespace Uptane {
 
-std::shared_ptr<Uptane::SecondaryInterface> IpUptaneSecondary::create(const std::string& address, unsigned short port) {
+std::pair<bool, std::shared_ptr<Uptane::SecondaryInterface>> IpUptaneSecondary::connectAndCreate(
+    const std::string& address, unsigned short port) {
   LOG_INFO << "Connecting to and getting info about IP Secondary: " << address << ":" << port << "...";
 
-  struct sockaddr_in sock_address {};
+  Socket con_sock{address, port};
 
-  memset(&sock_address, 0, sizeof(sock_address));
-  sock_address.sin_family = AF_INET;
-  inet_pton(AF_INET, address.c_str(), &(sock_address.sin_addr));
-  sock_address.sin_port = htons(port);
+  if (con_sock.connect() != 0) {
+    LOG_ERROR << "Failed to connect to a secondary: " << std::strerror(errno);
+    return {false, std::shared_ptr<Uptane::SecondaryInterface>()};
+  }
 
+  LOG_INFO << "Connected to IP Secondary: "
+           << "(" << address << ":" << port << ")";
+
+  return create(address, port, con_sock.getFD());
+}
+
+std::pair<bool, std::shared_ptr<Uptane::SecondaryInterface>> IpUptaneSecondary::create(const std::string& address,
+                                                                                       unsigned short port,
+                                                                                       int con_fd) {
   Asn1Message::Ptr req(Asn1Message::Empty());
   req->present(AKIpUptaneMes_PR_getInfoReq);
 
-  auto resp = Asn1Rpc(req, sock_address);
+  auto resp = Asn1Rpc(req, con_fd);
 
   if (resp->present() != AKIpUptaneMes_PR_getInfoResp) {
     LOG_ERROR << "Failed to get info response message from secondary";
@@ -37,15 +47,15 @@ std::shared_ptr<Uptane::SecondaryInterface> IpUptaneSecondary::create(const std:
   auto type = static_cast<KeyType>(r->keyType);
   PublicKey pub_key = PublicKey(key, type);
 
-  LOG_INFO << "Connected to IP Secondary: "
-           << "hw-ID: " << hw_id << " serial: " << serial << "addr: " << address << ":" << port;
+  LOG_INFO << "Got info on IP Secondary: "
+           << "hw-ID: " << hw_id << " serial: " << serial;
 
-  return std::make_shared<IpUptaneSecondary>(sock_address, serial, hw_id, pub_key);
+  return {true, std::make_shared<IpUptaneSecondary>(address, port, serial, hw_id, pub_key)};
 }
 
-IpUptaneSecondary::IpUptaneSecondary(const sockaddr_in& sock_addr, EcuSerial serial, HardwareIdentifier hw_id,
-                                     PublicKey pub_key)
-    : sock_address_{sock_addr}, serial_{std::move(serial)}, hw_id_{std::move(hw_id)}, pub_key_{std::move(pub_key)} {}
+IpUptaneSecondary::IpUptaneSecondary(const std::string& address, unsigned short port, EcuSerial serial,
+                                     HardwareIdentifier hw_id, PublicKey pub_key)
+    : addr_{address, port}, serial_{std::move(serial)}, hw_id_{std::move(hw_id)}, pub_key_{std::move(pub_key)} {}
 
 bool IpUptaneSecondary::putMetadata(const RawMetaPack& meta_pack) {
   LOG_INFO << "Sending Uptane metadata to the secondary";

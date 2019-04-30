@@ -14,6 +14,11 @@
 #include <sys/types.h>
 
 void SocketServer::Run() {
+  if (listen(*socket_, SOMAXCONN) < 0) {
+    throw std::system_error(errno, std::system_category(), "listen");
+  }
+  LOG_INFO << "Listening on " << Utils::ipGetSockaddr(*socket_);
+
   while (true) {
     int con_fd;
     sockaddr_storage peer_sa{};
@@ -178,10 +183,5 @@ SocketHandle SocketFromSystemdOrPort(in_port_t port) {
     throw std::system_error(errno, std::system_category(), "bind");
   }
 
-  if (listen(*hdl, SOMAXCONN) < 0) {
-    throw std::system_error(errno, std::system_category(), "listen");
-  }
-
-  LOG_INFO << "Listening on " << Utils::ipGetSockaddr(*hdl);
   return hdl;
 }

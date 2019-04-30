@@ -4,10 +4,14 @@
 
 void AktualizrSecondaryNetConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(port, "port", pt);
+  CopyFromConfig(primary_ip, "primary_ip", pt);
+  CopyFromConfig(primary_port, "primary_port", pt);
 }
 
 void AktualizrSecondaryNetConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, port, "port");
+  writeOption(out_stream, primary_ip, "primary_ip");
+  writeOption(out_stream, primary_port, "primary_port");
 }
 
 void AktualizrSecondaryUptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {

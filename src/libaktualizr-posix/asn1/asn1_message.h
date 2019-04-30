@@ -120,5 +120,6 @@ void SetString(OCTET_STRING_t* dest, const std::string& str);
  * Open a TCP connection to client; send a message and wait for a
  * response.
  */
-Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, const struct sockaddr_in& server_sock_addr);
+Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, int con_fd);
+Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, const std::pair<std::string, uint16_t>& addr);
 #endif  // ASN1_MESSAGE_H_

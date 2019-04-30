@@ -7,7 +7,7 @@
 
 namespace Primary {
 
-const char* const IPSecondaryConfig::Type = "ip";
+const char* const IPSecondariesConfig::Type = "IP";
 
 SecondaryConfigParser::Configs SecondaryConfigParser::parse_config_file(const boost::filesystem::path& config_file) {
   if (!boost::filesystem::exists(config_file)) {

@@ -33,6 +33,9 @@ class AktualizrSecondary : public AktualizrSecondaryInterface, private Aktualizr
                                         std::string* pkey, std::string* treehub_server);
 
  private:
+  void connectToPrimary();
+
+ private:
   SocketServer socket_server_;
 };
 

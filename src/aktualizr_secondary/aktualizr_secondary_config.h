@@ -18,6 +18,8 @@
 
 struct AktualizrSecondaryNetConfig {
   in_port_t port{9030};
+  std::string primary_ip;
+  in_port_t primary_port{9030};
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;

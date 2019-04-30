@@ -17,13 +17,11 @@ class SecondaryConfig {
   const char* const type_;
 };
 
-class IPSecondaryConfig : public SecondaryConfig {
+class IPSecondaryConfig {
  public:
-  static const char* const Type;
   static constexpr const char* const AddrField{"addr"};
 
-  IPSecondaryConfig(std::string addr_ip, uint16_t addr_port)
-      : SecondaryConfig(Type), ip(std::move(addr_ip)), port(addr_port) {}
+  IPSecondaryConfig(std::string addr_ip, uint16_t addr_port) : ip(std::move(addr_ip)), port(addr_port) {}
 
   friend std::ostream& operator<<(std::ostream& os, const IPSecondaryConfig& cfg) {
     os << "(addr: " << cfg.ip << ":" << cfg.port << ")";
@@ -37,7 +35,7 @@ class IPSecondaryConfig : public SecondaryConfig {
 
 class IPSecondariesConfig : public SecondaryConfig {
  public:
-  static constexpr const char* const Type{"IP"};
+  static const char* const Type;
   static constexpr const char* const PortField{"secondaries_wait_port"};
   static constexpr const char* const TimeoutField{"secondaries_wait_timeout"};
   static constexpr const char* const SecondariesField{"secondaries"};
