@@ -10,103 +10,13 @@ The `sota_local.toml` configuration file sets the package manager to `PackageMan
 
 For VS code, there is a `launch.json` provided in the `.vscode` directory.  This assumes that the cmake build directory is `build`.
 
-== Dumping information about SSL Certificates
-
-    openssl s_client -state -debug -connect d3db2ce3-848b-4ca1-bd61-f76354601371.tcpgw.prod01.advancedtelematic.com:8000 -key bootstrap_pkey.pem -cert bootstrap_cert.pem -CAfile bootstrap_ca.pem   -servername d3db2ce3-848b-4ca1-bd61-f76354601371.tcpgw.prod01.advancedtelematic.com
-
-
-    openssl x509 -in phil.p12.pem -text -noout
-
 == Creating a temporary OSTree environment
 
-    ostree admin os-init --sysroot /tmp/sysroot myos
-    sudo ostree pull-local --repo /tmp/sysroot/ostree/repo/ /build-qemu/tmp/deploy/images/qemux86-64/ostree_repo/ -v
-    sudo ostree admin deploy --sysroot /tmp/sysroot --os myos a818c3132783a652f913ea337ddc81d6900a3da618b0a0456953819d3d546e9b
-
-== Running against a local test OSTree environment
-
-Edit ../config/basic.toml to point `provision_path` to your automatic provisioning credentials, then from the build directory:
-
-    wget https://s3.eu-central-1.amazonaws.com/pw-dropbox/ostree-sysroot.tar.gz
-    tar -xf ostree-sysroot.tar.gz
-    src/aktualizr_primary/aktualizr --config ../config/basic.toml
-
-== Debuging secondaries update
-
-To do it, You need to create temporary OSTree environment described above and add `sysroot` and `os` to your config file:
-
-```
-[ostree]
-os = "myos"
-sysroot = "/tmp/sysroot "
-
-```
-
-Then for each secondary you need to create a config file:
-
-```
-{
-    "ecu_serial": "Your secondary serial",
-    "ecu_hardware_id": "Your secondary hardware id",
-    "ecu_private_key": "/tmp/priv.key",
-    "ecu_public_key": "/tmp/pub.key",
-    "firmware_path": "/firmware.txt"
-}
-```
-
-Then, save them as `.json` files in a common directory.
-
-Now You are ready to run aktualizr:
-
-`./aktualizr -c config.toml --secondary-config secondaries_dir`
-
-This will create needed keys and register Your secondaries. But currently You cannot shcedule updates
-for secondaries because of it is not implemented in UI. So You have 2 options, You can change the ecu_serial
-for Your secondary to primaries ecu_serial. By default it is located in ${certificates_directory}/primary_ecu_serial.
-
-The second option is to use the following script to schedule your updates for the secondaries:
-```
-# We need the csrf-token and the cookies so that we can proxy via ci-app
-# These needs to be filled in
-CSRF_TOKEN=""
-COOKIE=""
-# The device we will target
-DEVICE=""
-
-# We will create a multi target update, though only targeting one thing
-ECU_HARDWARE="qemux86-64" # hardware of the ecu to target
-TARGET="target"           # the filepath of target
-HASH="ea5fb32a7a43f081de0abe11528d7dee41cf2f36c13b66308b9b69d83f4dbd11" # the hash of the target
-TARGET_LENGTH="130"       # the size of the target
-
-
-# This command will create the update (but not schedule it anywhere)
-MTU_UPDATE=$(http POST 'https://app.atsgarage.com/api/v1/multi_target_updates' Csrf-Token:"$CSRF_TOKEN" Cookie:"$COOKIE" targets:="{\"$ECU_HARDWARE\": {\"to\": {\"target\": \"$TARGET\", \"checksum\": {\"method\": \"sha256\", \"hash\":\"$HASH\"}, \"targetLength\": $TARGET_LENGTH}}}" | tr -d '"')
-echo "The mtu-update is: $MTU_UPDATE"
-
-# Schedule the update on the device
-http PUT "https://app.atsgarage.com/api/v1/admin/devices/$DEVICE/multi_target_update/$MTU_UPDATE" Csrf-Token:"$CSRF_TOKEN" Cookie:"$COOKIE"
-
-
-```
+Try the scripts available in the link:../tests/ostree-scripts[tests/ostree-scripts] directory.
 
 == Inspect stored info with aktualizr-info
 
-To get information stored in data storage, could be used aktualizr-info utility.
-By default, without any commandline arguments this utility displays only basic information including storage type, device ID, primary ECU serial and hardware ID and provisioning status.
-Additional information can be requested with the following command line parameters:
-
-```
-  --tls-creds				Output root CA certificate, client certificate and client private key
-  --ecu-keys				Output UPTANE keys for primary ECU
-  --images-root                         Outputs root.json from images repo
-  --images-target                       Outputs targets.json from images repo
-  --director-root                       Outputs root.json from director repo
-  --director-target                     Outputs targets.json from director repo
-```
-
-If You didn't specify the config file, the latest used with aktualizr config will be used.
-Otherwise You could specify config file with `-c` commandline argument.
+The aktualizr-info tool can be used to dump information stored in the libaktualizr database. By default, it displays basic information such as storage type, device ID, primary ECU serial and hardware ID and provisioning status. Additional information can be requested with link:../src/aktualizr_info/main.cc[various command line parameters].
 
 == Valgrind and gdb
 
@@ -147,11 +57,13 @@ Fetch both of these down. In wireshark preferences set ssl.keylog_file to point 
 
 aktualizr can be tested against a dummy repository containing fake images
 
-First, generate a repository using `aktualizr-repo` command:
+First, generate a repository using link:../src/aktualizr_repo/main.cc[aktualizr-repo] tool:
 
-    `aktualizr-repo generate repo_dir`
+```
+aktualizr-repo generate <repo_dir>
+```
 
-Then, serve the generated directory using a web server.
+Then, serve the generated directory using a web server such as the link:../tests/fake_http_server/fake_test_server.py[fake test server].
 
 Here is an example configuration for nginx:
 
