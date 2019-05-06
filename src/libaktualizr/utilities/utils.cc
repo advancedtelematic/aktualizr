@@ -804,3 +804,39 @@ bool operator<(const sockaddr_storage &left, const sockaddr_storage &right) {
 
   return (res < 0);
 }
+
+Socket::Socket(const std::string &ip, uint16_t port) : sock_address_{} {
+  memset(&sock_address_, 0, sizeof(sock_address_));
+  sock_address_.sin_family = AF_INET;
+  inet_pton(AF_INET, ip.c_str(), &(sock_address_.sin_addr));
+  sock_address_.sin_port = htons(port);
+
+  socket_fd_ = socket(AF_INET, SOCK_STREAM, 0);
+  if (socket_fd_ < 0) {
+    throw std::system_error(errno, std::system_category(), "socket");
+  }
+}
+
+Socket::~Socket() {
+  shutdown(socket_fd_, SHUT_RDWR);
+  ::close(socket_fd_);
+}
+
+int Socket::bind(in_port_t port, bool reuse) {
+  sockaddr_in sa{};
+  memset(&sa, 0, sizeof(sa));
+  sa.sin_family = AF_INET;
+  sa.sin_port = htons(port);
+  sa.sin_addr.s_addr = htonl(INADDR_ANY);
+
+  int reuseaddr = reuse ? 1 : 0;
+  if (setsockopt(socket_fd_, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr)) < 0) {
+    return errno;
+  }
+
+  return ::bind(socket_fd_, reinterpret_cast<const sockaddr *>(&sa), sizeof(sa));
+}
+
+int Socket::connect() {
+  return ::connect(socket_fd_, reinterpret_cast<const struct sockaddr *>(&sock_address_), sizeof(sock_address_));
+}

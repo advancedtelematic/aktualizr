@@ -47,7 +47,10 @@ AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig& config,
   }
 }
 
-void AktualizrSecondary::run() { socket_server_.Run(); }
+void AktualizrSecondary::run() {
+  connectToPrimary();
+  socket_server_.Run();
+}
 
 void AktualizrSecondary::stop() { /* TODO? */
 }
@@ -183,5 +186,21 @@ void AktualizrSecondary::extractCredentialsArchive(const std::string& archive, s
   {
     std::stringstream as(archive);
     *treehub_server = Utils::readFileFromArchive(as, "server.url", true);
+  }
+}
+
+void AktualizrSecondary::connectToPrimary() {
+  Socket socket(config_.network.primary_ip, config_.network.primary_port);
+
+  if (socket.bind(config_.network.port) != 0) {
+    LOG_ERROR << "Failed to bind a connection socket to the secondary's port";
+    return;
+  }
+
+  if (socket.connect() == 0) {
+    LOG_INFO << "Connected to Primary, sending info about this secondary...";
+    socket_server_.HandleOneConnection(socket.getFD());
+  } else {
+    LOG_INFO << "Failed to connect to Primary";
   }
 }

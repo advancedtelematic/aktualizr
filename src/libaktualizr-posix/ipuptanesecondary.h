@@ -10,10 +10,14 @@ namespace Uptane {
 
 class IpUptaneSecondary : public SecondaryInterface {
  public:
-  static std::shared_ptr<Uptane::SecondaryInterface> create(const std::string& address, unsigned short port);
+  static std::pair<bool, std::shared_ptr<Uptane::SecondaryInterface>> connectAndCreate(const std::string& address,
+                                                                                       unsigned short port);
 
-  explicit IpUptaneSecondary(const sockaddr_in& sock_addr, EcuSerial serial, HardwareIdentifier hw_id,
-                             PublicKey pub_key);
+  static std::pair<bool, std::shared_ptr<Uptane::SecondaryInterface>> create(const std::string& address,
+                                                                             unsigned short port, int con_fd);
+
+  explicit IpUptaneSecondary(const std::string& address, unsigned short port, EcuSerial serial,
+                             HardwareIdentifier hw_id, PublicKey pub_key);
 
   // what this method for ? Looks like should be removed out of SecondaryInterface
   void Initialize() override{};
@@ -31,12 +35,12 @@ class IpUptaneSecondary : public SecondaryInterface {
   Json::Value getManifest() override;
 
  private:
-  const sockaddr_in& getAddr() const { return sock_address_; }
+  const std::pair<std::string, uint16_t>& getAddr() const { return addr_; }
 
  private:
   std::mutex install_mutex;
 
-  struct sockaddr_in sock_address_;
+  std::pair<std::string, uint16_t> addr_;
   const EcuSerial serial_;
   const HardwareIdentifier hw_id_;
   const PublicKey pub_key_;

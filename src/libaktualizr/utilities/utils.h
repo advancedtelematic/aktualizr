@@ -126,6 +126,20 @@ struct SocketCloser {
 using SocketHandle = std::unique_ptr<int, SocketCloser>;
 bool operator<(const sockaddr_storage &left, const sockaddr_storage &right);  // required by std::map
 
+class Socket {
+ public:
+  Socket(const std::string &ip, uint16_t port);
+  ~Socket();
+
+  int bind(in_port_t port, bool reuse = true);
+  int connect();
+  int getFD() { return socket_fd_; }
+
+ private:
+  struct sockaddr_in sock_address_;
+  int socket_fd_;
+};
+
 // wrapper for curl handles
 class CurlEasyWrapper {
  public:

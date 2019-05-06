@@ -54,25 +54,14 @@ void SetString(OCTET_STRING_t* dest, const std::string& str) {
   OCTET_STRING_fromBuf(dest, str.c_str(), static_cast<int>(str.size()));
 }
 
-Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, const struct sockaddr_in& server_sock_addr) {
-  int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-  if (socket_fd < 0) {
-    throw std::system_error(errno, std::system_category(), "socket");
-  }
-  // what's the point in usage of SocketHandle
-  SocketHandle hdl(new int(socket_fd));
-
-  if (connect(*hdl, reinterpret_cast<const struct sockaddr*>(&server_sock_addr), sizeof(server_sock_addr)) < 0) {
-    LOG_ERROR << "connect to  client failed:" << std::strerror(errno);
-    return Asn1Message::Empty();
-  }
-  der_encode(&asn_DEF_AKIpUptaneMes, &tx->msg_, Asn1SocketWriteCallback, hdl.get());
+Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, int con_fd) {
+  der_encode(&asn_DEF_AKIpUptaneMes, &tx->msg_, Asn1SocketWriteCallback, &con_fd);
 
   // Bounce TCP_NODELAY to flush the TCP send buffer
   int no_delay = 1;
-  setsockopt(*hdl, IPPROTO_TCP, TCP_NODELAY, &no_delay, sizeof(int));
+  setsockopt(con_fd, IPPROTO_TCP, TCP_NODELAY, &no_delay, sizeof(int));
   no_delay = 0;
-  setsockopt(*hdl, IPPROTO_TCP, TCP_NODELAY, &no_delay, sizeof(int));
+  setsockopt(con_fd, IPPROTO_TCP, TCP_NODELAY, &no_delay, sizeof(int));
 
   AKIpUptaneMes_t* m = nullptr;
   asn_dec_rval_t res;
@@ -80,7 +69,7 @@ Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, const struct sockaddr_in& s
   DequeueBuffer buffer;
   ssize_t received;
   do {
-    received = recv(*hdl, buffer.Tail(), buffer.TailSpace(), 0);
+    received = recv(con_fd, buffer.Tail(), buffer.TailSpace(), 0);
     LOG_TRACE << "Asn1Rpc read " << Utils::toBase64(std::string(buffer.Tail(), static_cast<size_t>(received)));
     buffer.HaveEnqueued(static_cast<size_t>(received));
     res = ber_decode(&context, &asn_DEF_AKIpUptaneMes, reinterpret_cast<void**>(&m), buffer.Head(), buffer.Size());
@@ -93,7 +82,16 @@ Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, const struct sockaddr_in& s
     LOG_ERROR << "Asn1Rpc decoding failed";
     msg->present(AKIpUptaneMes_PR_NOTHING);
   }
-  shutdown(*hdl, SHUT_RDWR);
 
   return msg;
+}
+
+Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, const std::pair<std::string, uint16_t>& addr) {
+  Socket connection(addr.first, addr.second);
+
+  if (connection.connect() < 0) {
+    LOG_ERROR << "Failed to connect to the secondary: " << std::strerror(errno);
+    return Asn1Message::Empty();
+  }
+  return Asn1Rpc(tx, connection.getFD());
 }
