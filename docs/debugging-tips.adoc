@@ -161,4 +161,21 @@ vgdb --port=2159
 
 Then connect the debugger as usual.
 
+== Bitbaking with debug symbols
+
+For every binary you want to debug (executables and shared libraries alike) you need to add these two lines in the recipe:
+
+```
+INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
+INHIBIT_PACKAGE_STRIP = "1"
+```
+
+You also need to make it build with debug symbols, which is recipe-dependent. For akualizr it means specifying
+
+```
+-DCMAKE_BUILD_TYPE=Debug
+```
+
+instead of Release. However, this method does not install the sources on the device, so it helps to open the source file on your host machine.
+
 
