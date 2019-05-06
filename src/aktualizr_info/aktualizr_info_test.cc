@@ -462,6 +462,54 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
 }
 
 /**
+ * Verifies aktualizr-info output of Secondary ECU's current and pending versions
+ *
+ * Checks actions:
+ *
+ *  - [x] Print secondary ECU current and pending versions
+ */
+TEST_F(AktualizrInfoTest, PrintSecondaryEcuCurrentAndPendingVersions) {
+  const std::string secondary_ecu_serial = "c6998d3e-2a68-4ac2-817e-4ea6ef87d21f";
+  const std::string secondary_ecu_id = "secondary-hdwr-af250269-bd6f-4148-9426-4101df7f613a";
+  const std::string secondary_ecu_filename = "secondary.file";
+  const std::string secondary_ecu_filename_update = "secondary.file.update";
+  const std::string current_ecu_version = "639a4e39-e6ba-4832-ace4-8b12cf20d562";
+  const std::string pending_ecu_version = "9636753d-2a09-4c80-8b25-64b2c2d0c4df";
+
+  db_storage_->storeEcuSerials(
+      {{Uptane::EcuSerial(primary_ecu_serial), Uptane::HardwareIdentifier(primary_ecu_id)},
+       {Uptane::EcuSerial(secondary_ecu_serial), Uptane::HardwareIdentifier(secondary_ecu_id)}});
+  db_storage_->storeEcuRegistered();
+
+  db_storage_->saveInstalledVersion(secondary_ecu_serial,
+                                    {secondary_ecu_filename, {{Uptane::Hash::Type::kSha256, current_ecu_version}}, 1},
+                                    InstalledVersionUpdateMode::kCurrent);
+
+  db_storage_->saveInstalledVersion(
+      secondary_ecu_serial, {secondary_ecu_filename_update, {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1},
+      InstalledVersionUpdateMode::kPending);
+
+  aktualizr_info_process_.run();
+  ASSERT_FALSE(aktualizr_info_output.empty());
+
+  EXPECT_NE(aktualizr_info_output.find("installed image hash: " + current_ecu_version), std::string::npos);
+  EXPECT_NE(aktualizr_info_output.find("installed image filename: " + secondary_ecu_filename), std::string::npos);
+  EXPECT_NE(aktualizr_info_output.find("pending image hash: " + pending_ecu_version), std::string::npos);
+  EXPECT_NE(aktualizr_info_output.find("pending image filename: " + secondary_ecu_filename_update), std::string::npos);
+
+  // negative test, no any installed images
+  db_storage_->clearInstalledVersions();
+  db_storage_->clearEcuSerials();
+  db_storage_->storeEcuSerials(
+      {{Uptane::EcuSerial(primary_ecu_serial), Uptane::HardwareIdentifier(primary_ecu_id)},
+       {Uptane::EcuSerial(secondary_ecu_serial), Uptane::HardwareIdentifier(secondary_ecu_id)}});
+
+  aktualizr_info_process_.run();
+  ASSERT_FALSE(aktualizr_info_output.empty());
+  EXPECT_NE(aktualizr_info_output.find("no details about installed nor pending images"), std::string::npos);
+}
+
+/**
  *  Print device name only for scripting purposes.
  */
 TEST_F(AktualizrInfoTest, PrintDeviceNameOnly) {

@@ -108,6 +108,27 @@ int main(int argc, char **argv) {
       for (; it != serials.end(); ++it) {
         std::cout << secondary_number++ << ") serial ID: " << it->first << std::endl;
         std::cout << "   hardware ID: " << it->second << std::endl;
+
+        std::vector<Uptane::Target> installed_targets;
+        size_t current_version = SIZE_MAX;
+        size_t pending_version = SIZE_MAX;
+
+        auto load_installed_version_res = storage->loadInstalledVersions((it->first).ToString(), &installed_targets,
+                                                                         &current_version, &pending_version);
+
+        if (!load_installed_version_res ||
+            (current_version >= installed_targets.size() && pending_version >= installed_targets.size())) {
+          std::cout << "   no details about installed nor pending images\n";
+        } else {
+          if (installed_targets.size() > current_version) {
+            std::cout << "   installed image hash: " << installed_targets[current_version].sha256Hash() << "\n";
+            std::cout << "   installed image filename: " << installed_targets[current_version].filename() << "\n";
+          }
+          if (installed_targets.size() > pending_version) {
+            std::cout << "   pending image hash: " << installed_targets[pending_version].sha256Hash() << "\n";
+            std::cout << "   pending image filename: " << installed_targets[pending_version].filename() << "\n";
+          }
+        }
       }
     }
 
