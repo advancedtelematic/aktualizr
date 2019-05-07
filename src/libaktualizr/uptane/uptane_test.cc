@@ -32,10 +32,16 @@
 #endif
 #endif
 
+static Config config_common() {
+  Config config;
+  config.uptane.key_type = KeyType::kED25519;
+  return config;
+}
+
 TEST(Uptane, Verify) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
-  Config config;
+  Config config = config_common();
   config.uptane.director_server = http->tls_server + "/director";
   config.uptane.repo_server = http->tls_server + "/repo";
 
@@ -50,7 +56,7 @@ TEST(Uptane, Verify) {
 TEST(Uptane, VerifyDataBad) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
-  Config config;
+  Config config = config_common();
   config.uptane.director_server = http->tls_server + "/director";
   config.uptane.repo_server = http->tls_server + "/repo";
 
@@ -67,7 +73,7 @@ TEST(Uptane, VerifyDataBad) {
 TEST(Uptane, VerifyDataUnknownType) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
-  Config config;
+  Config config = config_common();
   config.uptane.director_server = http->tls_server + "/director";
   config.uptane.repo_server = http->tls_server + "/repo";
 
@@ -85,7 +91,7 @@ TEST(Uptane, VerifyDataUnknownType) {
 TEST(Uptane, VerifyDataBadKeyId) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
-  Config config;
+  Config config = config_common();
   config.uptane.director_server = http->tls_server + "/director";
   config.uptane.repo_server = http->tls_server + "/repo";
 
@@ -103,7 +109,7 @@ TEST(Uptane, VerifyDataBadKeyId) {
 TEST(Uptane, VerifyDataBadThreshold) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
-  Config config;
+  Config config = config_common();
   config.uptane.director_server = http->tls_server + "/director";
   config.uptane.repo_server = http->tls_server + "/repo";
 
@@ -125,7 +131,7 @@ TEST(Uptane, VerifyDataBadThreshold) {
 TEST(Uptane, AssembleManifestGood) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
-  Config config;
+  Config config = config_common();
   config.storage.path = temp_dir.Path();
   boost::filesystem::copy_file("tests/test_data/cred.zip", (temp_dir / "cred.zip").string());
   boost::filesystem::copy_file("tests/test_data/firmware.txt", (temp_dir / "firmware.txt").string());
@@ -155,7 +161,7 @@ TEST(Uptane, AssembleManifestGood) {
 TEST(Uptane, AssembleManifestBad) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
-  Config config;
+  Config config = config_common();
   config.storage.path = temp_dir.Path();
   boost::filesystem::copy_file("tests/test_data/cred.zip", (temp_dir / "cred.zip").string());
   boost::filesystem::copy_file("tests/test_data/firmware.txt", (temp_dir / "firmware.txt").string());
@@ -194,7 +200,7 @@ TEST(Uptane, AssembleManifestBad) {
 TEST(Uptane, PutManifest) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
-  Config config;
+  Config config = config_common();
   config.storage.path = temp_dir.Path();
   boost::filesystem::copy_file("tests/test_data/cred.zip", (temp_dir / "cred.zip").string());
   boost::filesystem::copy_file("tests/test_data/firmware.txt", (temp_dir / "firmware.txt").string());
@@ -473,7 +479,7 @@ TEST(Uptane, SendMetadataToSeconadry) {
 TEST(Uptane, UptaneSecondaryAdd) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
-  Config config;
+  Config config = config_common();
   boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir / "cred.zip");
   config.provision.provision_path = temp_dir / "cred.zip";
   config.provision.mode = ProvisionMode::kAutomatic;
@@ -505,7 +511,7 @@ TEST(Uptane, UptaneSecondaryAddSameSerial) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir / "cred.zip");
-  Config config;
+  Config config = config_common();
   config.provision.provision_path = temp_dir / "cred.zip";
   config.provision.mode = ProvisionMode::kAutomatic;
   config.pacman.type = PackageManager::kNone;
@@ -527,7 +533,7 @@ TEST(Uptane, UptaneSecondaryMisconfigured) {
   boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir / "cred.zip");
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   {
-    Config config;
+    Config config = config_common();
     config.provision.provision_path = temp_dir / "cred.zip";
     config.provision.mode = ProvisionMode::kAutomatic;
     config.pacman.type = PackageManager::kNone;
@@ -543,7 +549,7 @@ TEST(Uptane, UptaneSecondaryMisconfigured) {
     EXPECT_EQ(ecus.size(), 0);
   }
   {
-    Config config;
+    Config config = config_common();
     config.provision.provision_path = temp_dir / "cred.zip";
     config.provision.mode = ProvisionMode::kAutomatic;
     config.pacman.type = PackageManager::kNone;
@@ -569,7 +575,7 @@ TEST(Uptane, UptaneSecondaryMisconfigured) {
     }
   }
   {
-    Config config;
+    Config config = config_common();
     config.provision.provision_path = temp_dir / "cred.zip";
     config.provision.mode = ProvisionMode::kAutomatic;
     config.pacman.type = PackageManager::kNone;
@@ -922,7 +928,7 @@ TEST(Uptane, FsToSqlFull) {
 
 /* Import a list of installed packages into the storage. */
 TEST(Uptane, InstalledVersionImport) {
-  Config config;
+  Config config = config_common();
 
   TemporaryDirectory temp_dir;
   Utils::createDirectories(temp_dir / "import", S_IRWXU);
@@ -962,7 +968,7 @@ TEST(Uptane, InstalledVersionImport) {
 /* Store a list of installed package versions. */
 TEST(Uptane, SaveAndLoadVersion) {
   TemporaryDirectory temp_dir;
-  Config config;
+  Config config = config_common();
   config.storage.path = temp_dir.Path();
   config.provision.device_id = "device_id";
   config.postUpdateValues();
