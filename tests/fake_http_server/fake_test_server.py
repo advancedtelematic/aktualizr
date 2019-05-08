@@ -7,10 +7,6 @@ import socket
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from time import sleep
 
-file_path = None
-meta_path = None
-fail_injector = None
-
 
 class FailInjector:
     def __init__(self):
@@ -38,14 +34,14 @@ class Handler(SimpleHTTPRequestHandler):
                 self.wfile.write(data)
 
     def serve_meta(self, uri):
-        if meta_path is None:
+        if self.server.meta_path is None:
             raise RuntimeError("Please supply a path for metadata")
-        self._serve_simple(meta_path + uri)
+        self._serve_simple(self.server.meta_path + uri)
 
     def serve_target(self, filename):
-        if file_path is None:
+        if self.server.target_path is None:
             raise RuntimeError("Please supply a path for targets")
-        self._serve_simple(file_path + filename)
+        self._serve_simple(self.server.target_path + filename)
 
     def do_GET(self):
         if self.path.startswith("/director/") and self.path.endswith(".json"):
@@ -110,14 +106,14 @@ class Handler(SimpleHTTPRequestHandler):
                 self.wfile.write(b'aa')
                 sleep(1)
         else:
-            if fail_injector is not None and fail_injector.fail(self):
+            if self.server.fail_injector is not None and self.server.fail_injector.fail(self):
                 return
             self.send_response(200)
             self.end_headers()
             self.wfile.write(b'{"path": "%b"}' % bytes(self.path, "utf8"))
 
     def do_POST(self):
-        if fail_injector is not None and fail_injector.fail(self):
+        if self.server.fail_injector is not None and self.server.fail_injector.fail(self):
             return
 
         if self.path == '/devices':
@@ -137,6 +133,9 @@ class Handler(SimpleHTTPRequestHandler):
             return
 
         elif self.path == "/director/manifest":
+            content_length = int(self.headers['Content-Length'])  # <--- Gets the size of data
+            post_data = self.rfile.read(content_length)  # <--- Gets the data itself
+            print(post_data)  # <-- Print post data
             self.send_response(200)
             self.end_headers()
             self.wfile.write(b"{}")
@@ -162,14 +161,18 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 class ReUseHTTPServer(HTTPServer):
+    def __init__(self, addr, meta_path, target_path, fail_injector=None):
+        super(HTTPServer, self).__init__(server_address=addr, RequestHandlerClass=Handler)
+        self.meta_path = meta_path
+        self.target_path = target_path
+        self.fail_injector = fail_injector
+
     def server_bind(self):
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         HTTPServer.server_bind(self)
 
 
 def main():
-    global file_path, meta_path, fail_injector
-
     parser = argparse.ArgumentParser(description='Run a fake OTA backend')
     parser.add_argument('port', type=int, help='server port')
     parser.add_argument('-t', '--targets', help='targets directory', default=None)
@@ -177,13 +180,8 @@ def main():
     parser.add_argument('-f', '--fail', help='enable intermittent failure', action='store_true')
     args = parser.parse_args()
 
-    server_address = ('', args.port)
-    file_path = args.targets
-    meta_path = args.meta
-    if args.fail:
-        fail_injector = FailInjector()
-
-    httpd = ReUseHTTPServer(server_address, Handler)
+    httpd = ReUseHTTPServer(('', args.port), meta_path=args.meta, target_path=args.targets,
+                            fail_injector=FailInjector() if args.fail else None)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

@@ -195,6 +195,9 @@ add_test(NAME test_log_negative
 set_tests_properties(test_log_negative
                      PROPERTIES PASS_REGULAR_EXPRESSION "Invalid log level")
 
+add_test(NAME test_ip_secondary
+         COMMAND ${PROJECT_SOURCE_DIR}/tests/ipsecondary_test.py --build-dir ${PROJECT_BINARY_DIR})
+
 add_dependencies(qa check)
 
 aktualizr_source_file_checks(${TEST_SOURCES})
