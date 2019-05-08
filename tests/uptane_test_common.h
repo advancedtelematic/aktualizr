@@ -11,7 +11,11 @@
 #include "uptane/tuf.h"
 #include "utilities/utils.h"
 
+static const char* sec_public_key = "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyjUeAzozBEccaGFAJ2Q3\n9QBfItH5i5O7yLRjZlKcEnWnFsxAWHUn5W/msRgZN/pXUrlax0wvrvMvHHLwZA2J\nz+UQApzSqj53HPVAcCH6kB9x0r9PM/0vVTKtmcrdSHj7jJ2yAW2T4Vo/eKlpvz3w\n9kTPAj0j1f5LvUgX5VIjUnsQK1LGzMwnleHk2dkWeWnt3OqomnO7V5C0jkDi58tG\nJ6fnyCYWcMUbpMaldXVXqmQ+iBkWxBjZ99+XJSRjdsskC7x8u8t+sA146VDB977r\nN8D+i+P1tAe810crciUqpYNenDYx47aAm6gaDWr7oeDzp3HyCjx4dZi9Z85rVE36\n8wIDAQAB\n-----END PUBLIC KEY-----\n";
+static const char* sec_private_key = "-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEAyjUeAzozBEccaGFAJ2Q39QBfItH5i5O7yLRjZlKcEnWnFsxA\nWHUn5W/msRgZN/pXUrlax0wvrvMvHHLwZA2Jz+UQApzSqj53HPVAcCH6kB9x0r9P\nM/0vVTKtmcrdSHj7jJ2yAW2T4Vo/eKlpvz3w9kTPAj0j1f5LvUgX5VIjUnsQK1LG\nzMwnleHk2dkWeWnt3OqomnO7V5C0jkDi58tGJ6fnyCYWcMUbpMaldXVXqmQ+iBkW\nxBjZ99+XJSRjdsskC7x8u8t+sA146VDB977rN8D+i+P1tAe810crciUqpYNenDYx\n47aAm6gaDWr7oeDzp3HyCjx4dZi9Z85rVE368wIDAQABAoIBAA0WlxS6Zab3O11+\nPfrOv9h5566HTNG+BD+ffXeYDUYcm24cVmXjX2u4bIQ1/RvkdlaCbN/NjKCUWQ5M\nWkb/oVX1i62/nNssI+WZ8kvPxzog7usnOucwkim/mAEGYoBYZF/brTPudc32W3lh\n7dhVGA24snWAo5ssVJax3eoYAPVLqFK5Pb8VUxpHtjERMDDUxM3w6WGXLxuBdA5s\n5vIdv+XrdiQhdPn1HMYEBBInkkYK8w4UytOCAS1/3xfVi2QwX5H9bHkduFpjLSQt\n2StWR9Kh4I80xXp7FwGpfkdUn+3qj5WwneuGY/JnD7AzjDlAThj0AE9iaYjkzXKJ\nVD4ULmECgYEA+UGQ1aglftFuTO427Xmi7tHhooo9U1pKMrg5CkCLkA+MudFzMEgj\npRtDdj8lTTWHEIYQXo5hhZfhk63j89RAKRz1MDFOvgknE8yJa9rSyCAEcwzRzXcY\n3WtWozEZ+5u4KYFHhGjJCSqVFdwyXmjP9ldb35Uxh06OuTbdNkSbiUsCgYEAz62t\nJ1EftTkd/YA/9Poq1deil5g0btPXnMJMj7C99dexNAXuVhS10Rz1Hi74wCFEbkcV\nGL/8U80pER9YYYeFUmqs1pYu7zwcYBT+iNrvFaPifid8FqlJEJ727swnWdpzXpwv\n/6q0h3JXU2odrEMNaGqiPycHQ/45EWMbCtpSs/kCgYEAwjMgWicA17bqvkuXRhzQ\nIkwqBU65ixi82JmJ73/sfNhwp1IV8hcylnAQdq+qK2a6Ddi2JkW+m6yDF2GTSiUj\nvCSQr/SqygsthBKHOx4pvbycWtsxF2lkWRdJUCpweQWRTd0o0HQntdmUgIyoPcBh\nzyevMBr4lNhTAOFLJv37RNMCgYAQq+ODjXqbJKuopvv7YX3Azt+phbln0C+10M8u\nlcSaEKeUAongdScnU0jGFIU5fzIsHB6wbvEFlSmfy0FgCu4D8LZRP5si71Njzyuj\ntteMiCxtbiQC+bH42JoAD3l1OBkc1jLwNjbpzJ7//jvFkVhpMm413Z8ysRzJrYgF\nNgN/mQKBgQDNT2nFoqanlQPkZekqNQNcVMHPyOWP40z4HC5JD1Z5F18Kg3El4EdS\nNfwaFGRT5qiFJBmmzl+6EFmUrrBNtV01zQ6rO+xgy2Y7qUQMNAUMjh1cCpWwUlN0\ng4aT/RawS5WpWN3+lEs4Ouxpgg4ZStXNZRJkSDHwZpkXtFfKzsEXaA==\n-----END RSA PRIVATE KEY-----\n";
+
 struct UptaneTestCommon {
+
   static Uptane::SecondaryConfig addDefaultSecondary(Config& config, const TemporaryDirectory& temp_dir,
                                                      const std::string& serial, const std::string& hw_id) {
     Uptane::SecondaryConfig ecu_config;
@@ -25,6 +29,9 @@ struct UptaneTestCommon {
     ecu_config.firmware_path = temp_dir / "firmware.txt";
     ecu_config.target_name_path = temp_dir / "firmware_name.txt";
     ecu_config.metadata_path = temp_dir / "secondary_metadata";
+    // store hard-coded keys to make the tests run WAY faster
+    Utils::writeFile((ecu_config.full_client_dir / ecu_config.ecu_private_key), std::string(sec_private_key));
+    Utils::writeFile((ecu_config.full_client_dir / ecu_config.ecu_public_key), std::string(sec_public_key));
     config.uptane.secondary_configs.push_back(ecu_config);
     return ecu_config;
   }
