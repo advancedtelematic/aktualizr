@@ -596,6 +596,59 @@ TEST_F(AktualizrInfoTest, PrintDelegations) {
   }
 }
 
+/**
+ * Verifies aktualizr-info output of snapshot metadata from image repository
+ *
+ * Checks actions:
+ *
+ *  - [x] Print snapshot metadata from image repository
+ */
+TEST_F(AktualizrInfoTest, PrintImageSnapshotMetadata) {
+  Json::Value director_root_json;
+  director_root_json["key-002"] = "value-003";
+  std::string director_root = Utils::jsonToStr(director_root_json);
+  db_storage_->storeRoot(director_root, Uptane::RepositoryType::Director(), Uptane::Version(1));
+
+  Json::Value meta_snapshot;
+  meta_snapshot["signed"]["_type"] = "Snapshot";
+  meta_snapshot["signed"]["expires"] = "2038-01-19T03:14:06Z";
+  meta_snapshot["signed"]["version"] = "2";
+  std::string images_snapshot = Utils::jsonToStr(meta_snapshot);
+  db_storage_->storeNonRoot(images_snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot());
+
+  aktualizr_info_process_.run({"--images-snapshot"});
+  ASSERT_FALSE(aktualizr_info_output.empty());
+
+  EXPECT_NE(aktualizr_info_output.find("snapshot.json content:"), std::string::npos);
+  EXPECT_NE(aktualizr_info_output.find(images_snapshot), std::string::npos);
+}
+
+/**
+ * Verifies aktualizr-info output of a timestamp metadata from the image repository
+ *
+ * Checks actions:
+ *
+ *  - [x] Print timestamp metadata from image repository
+ */
+TEST_F(AktualizrInfoTest, PrintImageTimestampMetadata) {
+  Json::Value director_root_json;
+  director_root_json["key-002"] = "value-003";
+  std::string director_root = Utils::jsonToStr(director_root_json);
+  db_storage_->storeRoot(director_root, Uptane::RepositoryType::Director(), Uptane::Version(1));
+
+  Json::Value meta_timestamp;
+  meta_timestamp["signed"]["_type"] = "Timestamp";
+  meta_timestamp["signed"]["expires"] = "2038-01-19T03:14:06Z";
+  std::string images_timestamp = Utils::jsonToStr(meta_timestamp);
+  db_storage_->storeNonRoot(images_timestamp, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp());
+
+  aktualizr_info_process_.run({"--images-timestamp"});
+  ASSERT_FALSE(aktualizr_info_output.empty());
+
+  EXPECT_NE(aktualizr_info_output.find("timestamp.json content:"), std::string::npos);
+  EXPECT_NE(aktualizr_info_output.find(images_timestamp), std::string::npos);
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);

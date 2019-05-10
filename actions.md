@@ -345,6 +345,8 @@ These tools all link with libaktualizr, although they do not necessary use the A
   - [x] Print secondary ECU current and pending versions (aktualizr_info_test.cc)
   - [x] Print device name only for scripting purposes (aktualizr_info_test.cc)
   - [x] Print delegations (aktualizr_info_test.cc)
+  - [x] Print snapshot (aktualizr_info_test.cc)
+  - [x] Print timestamp (aktualizr_info_test.cc)
 
 ### aktualizr-repo
 
