@@ -57,7 +57,10 @@ RUN apt-get update && apt-get -y install \
   softhsm2 \
   sqlite3 \
   valgrind \
-  wget
+  wget \
+  doxygen \
+  graphviz
+
 
 RUN ln -s clang-6.0 /usr/bin/clang && \
     ln -s clang++-6.0 /usr/bin/clang++
