@@ -1,0 +1,14 @@
+If you followed the xref:getstarted::get-started.adoc[Get Started Guide], you used a provisioning key that was shared by all devices. In this scenario, the OTA Connect server generates the device credentials for you. This method is fine if you're just evaluating OTA Connect and want to get started quickly. If you want to do some serious testing and eventually move to production, you'll need a switch to a more secure provisioning method. 
+
+In this case, you shouldn't use the OTA Connect server to generate your device credentials.  If you generate *and* validate credentials with the same server, you're taking a big risk. Generation and validation should always be done by separate entities. 
+Otherwise, if an attacker were able to infiltrate the OTA Connect server, they would be able to provision their own devices
+
+Instead, you should use your own infrastructure to generate device credentials outside of OTA Connect. We call this method "provisioning with device credentials". 
+
+== How to provision with device credentials
+
+When you provision with device credentials, you install permanent credentials each device *before* the device connects to the OTA Connect server. 
+
+You would use the xref:pki.adoc[private key for your fleet] to sign the device certificates *and* your fleet root certificate. You then register your fleet root certificate on the OTA Connect server.
+
+Every time a device connects to the OTA Connect server, the server verifies that the device credentials are signed by a trusted source. It does this by comparing public key in the device certificate with the public key in your fleet root certificate. If they are both signed by the same private key, they should match and the device can be trusted

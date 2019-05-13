@@ -1,0 +1,5 @@
+= Supporting Technologies
+
+If you've started working on an embedded software project, you've probably reached the point where you looked around for an update system, and found out that there isn't a lot of great tooling out there. Our experience has been that people tend to implement software updates on a case-by-case basis, leading to solutions that are specific to the target platform, proprietary, brittle, or insecure--or sometimes all of the above. {product-name} provides an open source solution that you can plug-and-play into your build process.
+
+In this section, we look at the parts of the system, and how they fit together.

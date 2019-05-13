@@ -1,0 +1,109 @@
+= Update a secondary ECU
+:page-layout: page
+:page-categories: [using-libaktualizr]
+:page-date: 2018-11-28 14:06:25
+:page-order: 6
+:icons: font
+
+This page shows an example of how to use libaktualizr API to update
+a secondary ECU.
+
+[source,cpp]
+----
+boost::filesystem::path cfg_path("/var/sota/sota_local.toml");
+Aktualizr aktualizr(cfg_path);
+----
+This will create a new aktualizr instance based on the provided config file.
+Next, configure a secondary and add it to aktualizr:
+[source,cpp]
+----
+Uptane::SecondaryConfig sconfig;
+sconfig.secondary_type = Uptane::SecondaryType::kVirtual;
+sconfig.ecu_serial = "9b6abd606a761074df0092606465ddc9";
+sconfig.ecu_hardware_id = "TCU";
+sconfig.full_client_dir = "/var/sota/ecus/tcu";
+sconfig.ecu_private_key = "sec.private";
+sconfig.ecu_public_key = "sec.public";
+sconfig.target_name_path = "target_name";
+sconfig.metadata_path = "/var/sota/ecus/tcu/metadata";
+auto secondary = std::make_shared<Uptane::VirtualSecondary>(sconfig);
+aktualizr.AddSecondary(secondary);
+----
+
+Initialize call will provision the device on the backend:
+[source,cpp]
+----
+aktualizr.Initialize();
+----
+
+Then provide the device information (like list of ECUs,
+installed software versions, etc.) to the backend.
+[source,cpp]
+----
+aktualizr.SendDeviceData().get();
+----
+
+Now it is possible to query the server about currently running campaigns for
+the device:
+[source,cpp]
+----
+auto result = aktualizr.CampaignCheck().get();
+if (result.campaigns.empty()) {
+  std::cout << "System is up to date" <<std::endl;
+}
+----
+
+If there are some running campaigns, a vehicle owner must first give his consent
+for the campaign, and this consent should be communicated to the server:
+[source,cpp]
+----
+aktualizr.CampaignAccept(result.campaigns[0].id).get();
+----
+
+Next you can get a list of available updates in the campaign:
+[source,cpp]
+----
+auto update_result = aktualizr.CheckUpdates().get();
+----
+And start the download:
+[source,cpp]
+----
+aktualizr.Download(update_result.updates).get();
+----
+If you want to receive information about the download progress, you should
+first register an event handler:
+[source,cpp]
+----
+std::function<void(const std::shared_ptr<event::BaseEvent>)> handler = event_handler;
+aktualizr.SetSignalHandler(handler);
+----
+The `event_handler()` function may look like this:
+[source,cpp]
+----
+void event_handler(const std::shared_ptr<event::BaseEvent> &event)
+{
+  if (event->variant == "DownloadProgressReport") {
+    const auto download_progress =
+        dynamic_cast<event::DownloadProgressReport *>(event.get());
+    std::cout << "Download progress for file "
+              << download_progress->target.filename() << ": "
+              << download_progress->progress << "%\n";
+  }
+}
+----
+After the targets were downloaded, it is possible to install them,
+if the secondary type is supported:
+[source,cpp]
+----
+aktualizr.Install(update_result.updates).get();
+----
+Alternatively, you can get a file handle to the downloaded target and perform
+the installation yourself.
+[source,cpp]
+----
+for (auto& target : update_result.updates) {
+  std::cout << "Installing file " << target.filename();
+  auto handle = aktualizr.GetStoredTarget(target);
+  custom_install(handle);
+}
+----
