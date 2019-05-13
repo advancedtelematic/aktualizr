@@ -1,0 +1,36 @@
+= OSTree usage
+:page-layout: page
+:page-categories: [tips]
+:page-date: 2017-06-06 15:23:36
+:page-order: 3
+:icons: font
+
+Sometimes, while troubleshooting, it might be helpful to see and manipulate your local OSTree repos. You can do that using the copy of ostree that bitbake builds. For the rest of these commands, we'll assume that you've exported the executable as `$OSTREE`, and the location of your local repo as `$REPO` (for example, like so):
+
+    export OSTREE=$(pwd)/tmp/sysroots/x86_64-linux/usr/bin/ostree
+    export REPO=$(pwd)/tmp/deploy/images/raspberrypi3/ostree_repo/
+
+=== Get a list of all branches in the repo
+
+You'll need a branch name for most other commands, so it's often useful to check your list of branches:
+
+    $OSTREE refs --repo $REPO
+
+The branch name defaults to {MACHINE}-ota, so if you were building for raspberrypi3, your branch name would be raspberrypi3-ota by default. However, you can set the branch name for your build in local.conf using the *OSTREE_BRANCHNAME* configuration option, letting you keep your different builds, projects, or branches under different names.
+
+=== Show the log for a particular branch
+
+    $OSTREE log --repo $REPO [branchname]
+
+=== List files in a particular commit
+
+    $OSTREE ls --repo $REPO [commit] [path]
+
+The -R option is supported, for recursive file listing.
+
+=== See a diff between two commits or references
+
+    $OSTREE diff --repo $REPO [ref1] [ref2]
+
+Refs can be branch names or commit hashes, much like in git. Note that this does not show the contents of the diff; it just shows files added, deleted, and modified.
+

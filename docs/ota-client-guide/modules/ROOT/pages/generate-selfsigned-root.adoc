@@ -1,0 +1,30 @@
+= Generate a self-signed root certificate
+
+When you move to production, you'll need to register your fleet root certificate with OTA Connect server. This certificate needs to be signed by a trusted Certificate Authority (CA).
+
+If you don't yet have your own CA certificate for signing device certificates, you can generate a self-signed certificate for testing.
+
+// tag::install-root-ca[]
+
+To generate a self-signed root certificate, follow these steps: ::
+. Create a directory structure for the keys, and get some sample configurations for the certificates from the OTA Community Edition project:
++
+[source,bash]
+----
+export SERVER_NAME=myservername
+export SERVER_DIR="./${SERVER_NAME}" DEVICES_DIR="./${SERVER_NAME}/devices" CWD="${PWD}"
+mkdir -p "$DEVICES_DIR" certs
+for file in client.cnf device_ca.cnf server.ext client.ext server.cnf server_ca.cnf; do
+  curl -o certs/$file https://raw.githubusercontent.com/advancedtelematic/ota-community-edition/master/scripts/certs/$file
+done
+----
++
+Then, generate the key and cert using openssl on the command line:
++
+[source,bash]
+----
+include::example$start.sh[tags="genserverkeys"]
+----
++
+This will create a `./${SERVER_DIR}/devices/` directory with the `ca.crt` certificate and a `ca.key` private key. Keep the private key safe and secure.
+. Next, xref:provide-testroot-cert.adoc[register the test root certificate with your OTA Connect account]. 

@@ -1,0 +1,22 @@
+= Enable shared-credential provisioning
+
+If you build a disk image with the default configuration, shared-credential provisioning is enabled by default. You can also enable it explicitly in your build configuration.
+
+To enable shared-credential provisioning, follow these steps: ::
+
+. If you haven't done so already, xref:download-prov-key.adoc[download a provisioning key] and note the path to the downloaded `credentials.zip` file.
+. Add the following lines to your `conf/local.conf`:
++
+----
+SOTA_CLIENT_PROV = "aktualizr-shared-prov"
+SOTA_PACKED_CREDENTIALS = "/path/to/your/credentials.zip"
+----
++
+[NOTE]
+====
+If you're updating a configuration that was previously set to device-credential provisioning, make sure that you remove the line `SOTA_DEPLOY_CREDENTIALS = "0"`.
+====
+. Build a standard image using bitbake.
+. Boot the image.
++
+The device should now use the provisioning key to request permanent device credentials from the server. Check the dashboard in the OTA Connect Portal to make sure that the device shows up.

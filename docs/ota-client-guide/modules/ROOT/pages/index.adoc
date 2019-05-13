@@ -1,0 +1,28 @@
+= Introduction
+
+include::dev@getstarted::partial$product-intro.adoc[tags=standard-intro]
+
+
+== Who is this guide for?
+
+This guide is for developers who want to set up OTA update functionality on devices. You can start with our standalone client and then  integrate our client library into your own projects.
+
+Before you start these steps, make sure that you meet the following prerequisites:
+
+* *Access to a Linux-based operating system.*
++
+The more technical steps should work on Mac OS. If you're a Windows user, you can download a Linux-based software image and install it in on a virtual machine by using a free tool such as Oracle VM VirtualBox.
+
+* *Experience with the Linux-command line*.
++
+You might run into trouble if you don't understand what some of the commands in these steps are doing. 
+
+* *Knowledge of C++*.
++
+This is necessary if you intend to do any integration work. You'll need be familiar with C++ to follow our examples.
+
+* *A login to the OTA Connect Portal*
++
+If you don't have one yet, you can find out how to get one in the link:{docs-url}/ota-web/dev/get-access.html[OTA Portal Connect guide].
+
+If those prerequisites look OK to you, you can start by getting to know our xref:developer-tools.adoc[developer tools].

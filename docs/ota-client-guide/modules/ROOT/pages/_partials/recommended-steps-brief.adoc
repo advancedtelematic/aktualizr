@@ -1,0 +1,48 @@
+//  tag::evaluate-steps[] 
+* *Use shared-credential provisioning for your devices*
++
+With shared-credential provisioning, you don't have to worry about installing certificates on your devices. 
+
+* *Build disk images using our demo recipes*
++
+Use our demo build recipes to build an OTA-enabled disk images or simulate a device on your workstation.
+
+* *Use the standalone aktualizr client to test the OTA functionality*
++
+Aktualizr actually part of our demo build recipes and is included in the disk images that you'll build.
+
+
+
+////
+COMMENTING OUT UNTIL ORGANIZATIONS FEATURE STOPS BEING "ALPHA"
+* *Set up different organizations*
++
+In OTA Connect, all devices, software, and user accounts belong to an *organization*. Users can see all devices and software for their organization. However, you don't want to mix up test software and production software.
++
+In a proper production workflow, you'll need separate organizations to manage the different stages:
++
+. A developer organization such as "acme-dev".
+. A QA organization such as "acme-qa".
+. A production organization such as "acme-prod".
++
+A user can belong to multiple organizations, and it's easy to switch between them. This provides you with a convenient way of separating your development, QA and production resources.
+////
+
+// DEVELOP
+
+* *Set up provisioning with device credentials*
++
+The term *device-credential provisioning* refers to the process of installing device certificates yourself rather than having the OTA Connect server install them automatically.
+
+* *Set up different user accounts*
++
+Avoid mixing up test software and production software by creating them all under the same user.
+
+* *Use offline keys to sign software metadata*
++
+Move the most important private keys from the server and take them offline.
+
+* *Integrate libaktualizr with the client software on your board*
++
+When you move to production, you'll want to integrate OTA functionality into your board's native software.
+

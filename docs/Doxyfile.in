@@ -799,7 +799,6 @@ INPUT                  = @CMAKE_SOURCE_DIR@/docs \
                          @CMAKE_SOURCE_DIR@/tests \
                          @CMAKE_SOURCE_DIR@/src/aktualizr_info \
                          @CMAKE_SOURCE_DIR@/src/aktualizr_primary \
-                         @CMAKE_SOURCE_DIR@/src/uptane_generator \
                          @CMAKE_SOURCE_DIR@/src/aktualizr_secondary \
                          @CMAKE_SOURCE_DIR@/src/cert_provider \
                          @CMAKE_SOURCE_DIR@/src/hmi_stub \
@@ -821,6 +820,7 @@ INPUT                  = @CMAKE_SOURCE_DIR@/docs \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/utilities \
                          @CMAKE_SOURCE_DIR@/src/load_tests \
                          @CMAKE_SOURCE_DIR@/src/sota_tools \
+                         @CMAKE_SOURCE_DIR@/src/uptane-generator \
                          @CMAKE_SOURCE_DIR@/CONTRIBUTING.md \
                          @CMAKE_SOURCE_DIR@/CHANGELOG.md
 

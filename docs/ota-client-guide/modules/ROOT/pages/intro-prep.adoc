@@ -1,0 +1,33 @@
+= Build your own OTA-enabled solution
+
+Once you've evaluated the basic functions of OTA Connect, you're ready to build your own OTA-enabled solution. You probably have your client software that runs on your devices. In this phase, you'll start to integrate OTA update functionality into that client. 
+
+You also need to make sure that your device provisioning process reflects what you want to use in production. You also want to set up the software repository for your development account.
+
+Here's our recommended steps for building your own OTA-enabled solution:
+
+* xref:account-setup.adoc[*Set up different user accounts*]
++
+Avoid mixing up test software and production software by uploading software under different user accounts.
+
+* xref:libaktualizr-why-use.adoc[*Integrate libaktualizr with the client software on your board*]
++
+When you move to production, you'll want to integrate OTA functionality into your board's native software.
+
+* xref:build-ota-enabled-images.adoc[*Build and deploy your integration*]
++
+Once have a working version of your integration, you'll want to build a disk image that contains it. You can then flash this image to other test devices.
+
+* xref:cross-deploy-images.adoc[*Transfer disk images to a QA repository*]
++
+After you've build your images, you'll want to hand them over to your QA team, who are ideally testing the software under a QA account with its own software repository.
+
+* xref:device-cred-prov-steps.adoc[*Set up provisioning with device credentials*]
++
+Install device certificates yourself rather than having the OTA Connect server install them automatically. This also allows you to set your own device IDs.
+
+* xref:secure-software-updates.adoc[*Secure your software repository*]
++
+To secure your software updates, all files are accompanied by metadata that is signed with several private keys. You need to move the most important private keys from the server and take them offline.
+
+ 

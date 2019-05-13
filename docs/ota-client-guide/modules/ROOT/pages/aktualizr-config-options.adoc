@@ -1,0 +1,175 @@
+= Client configuration options
+:page-layout: page
+:page-categories: [client-config]
+:page-date: 2018-07-05 11:14:01
+:page-order: 20
+:icons: font
+:aktualizr-github-url: https://github.com/advancedtelematic/aktualizr/tree/master
+ifdef::env-github[]
+:aktualizr-github-url: ..
+endif::[]
+
+Here, we provide reference documentation on aktualizr's usage and configuration. However, if you need to go further than what's possible with the command-line interface, you can also use xref:libaktualizr-why-use.adoc[libaktualizr to make your own client]. In fact, aktualizr is a fairly thin wrapper around libaktualizr itself, and we provide also an https://github.com/advancedtelematic/aktualizr/tree/master/src/hmi_stub[even simpler reference client] along with https://advancedtelematic.github.io/aktualizr/class_aktualizr.html[doxygen docs] of the libaktualizr API.
+
+Aktualizr is configured via `.toml` config files. One or more files or directories can be passed to the application via the `--config` flag (one per file or directory). If `--config` is not specified on the command line, aktualizr searches `/usr/lib/sota/conf.d` and `/etc/sota/conf.d/` for files with a `.toml` extension. Aktualizr searches for and processes these config files in systemd style, meaning that if multiple files are found with the same name, the last one found overrules and hides the others. Files are then processed in alphabetical order, so if a config option is specified in multiple files, the last entry found overrules the others. If an option is left unspecified in a file processed after another file in which it was specified, it is not overruled.
+
+Example config files used by unit tests, continuous integration tests, and https://github.com/advancedtelematic/meta-updater[meta-updater] recipes can be found in link:{aktualizr-github-url}/config/[], link:{aktualizr-github-url}/tests/config/[], and link:https://github.com/advancedtelematic/meta-updater/tree/rocko/recipes-sota/config/files[].
+
+All fields are optional, and most have reasonable defaults that should be used unless you have a particular need to do otherwise.
+
+Some options can also be set on the command line. The command line input always takes precedence over the config files. See link:{aktualizr-github-url}/src/aktualizr_primary/main.cc[] (or run `aktualizr --help`) for the available command line options.
+
+== `logger`
+
+Configuration for the logger.
+
+
+[options="header"]
+|==========================================================================================
+| Name       | Default  | Description
+| `loglevel` | `2`      | Log level, 0-5 (trace, debug, info, warning, error, fatal).
+|==========================================================================================
+
+== `p11`
+
+Options for using a PKCS#11 compliant device for storing cryptographic keys.
+
+NOTE: The key ID options require the corresponding options in the `tls` or `uptane` section to be set to `pkcs11`.
+
+[options="header"]
+|==========================================================================================
+| Name                 | Default | Description
+| `module`             |         | Path to the shared object HSM driver.
+| `pass`               |         | Password for accessing the HSM.
+| `uptane_key_id`      |         | Key ID of the Uptane key in the HSM.
+| `tls_cacert_id`      |         | Key ID of the TLS root CA certificate for authenticating the server.
+| `tls_pkey_id`        |         | Key ID of the client's TLS private key.
+| `tls_clientcert_id`  |         | Key ID of the client's TLS certificate.
+|==========================================================================================
+
+== `tls`
+
+Configuration for client-server TLS connections.
+
+[options="header"]
+|==========================================================================================
+| Name               | Default  | Description
+| `server`           |          | Server URL.
+| `server_url_path`  |          | Path to a file that contains the server URL.
+| `ca_source`        | `"file"` | Where to read the TLS root CA certificate from. Options: `"file"`, `"pkcs11"`.
+| `pkey_source`      | `"file"` | Where to read the client's TLS private key from. Options: `"file"`, `"pkcs11"`.
+| `cert_source`      | `"file"` | Where to read the client's TLS certificate from. Options: `"file"`, `"pkcs11"`.
+|==========================================================================================
+
+Note that `server_url_path` is only used if `server` is empty. If both are empty, the server URL will be read from `provision.provisioning_path` if it is set and contains a file named `autoprov.url`.
+
+== `provision`
+
+Options for how the device is provisioned with the backend.
+
+[options="header"]
+|==========================================================================================
+| Name                        | Default   | Description
+| `server`                    |           | Server provisioning URL. If empty, set to `tls.server`.
+| `p12_password`              |           | Password for PKCS#12 encryption.
+| `expiry_days`               | `"36000"` | Provided in the `ttl` field of the device provisioning request sent to the server.
+| `provision_path`            |           | Path to an archive containing provisioning data. See link:{aktualizr-github-url}/docs/credentials.adoc[] for the specification of the contents of this file.
+| `device_id`                 |           | Device ID of the primary ECU. If left empty, a random name will be generated.
+| `primary_ecu_serial`        |           | Serial number of the primary ECU. If left empty, a random serial will be generated.
+| `primary_ecu_hardware_id`   |           | The hardware ID of the primary ECU (e.g., `"raspberry-pi"`). If left empty, the hostname of the device will be used.
+| `ecu_registration_endpoint` |           | Ecu provisioning URL. If empty, set to `uptane.director_server` with `/ecus` appended.
+|==========================================================================================
+
+If you intend to provision with a server by using https://github.com/advancedtelematic/meta-updater[meta-updater], you will probably want to set `provision.provision_path = "/var/sota/sota_provisioning_credentials.zip"`.
+
+== `uptane`
+
+Options for Uptane.
+
+[options="header"]
+|==========================================================================================
+| Name                      | Default      | Description
+| `polling_sec`             | `10`         | Interval between polls (in seconds).
+| `director_server`         |              | Director server URL. If empty, set to `tls.server` with `/director` appended.
+| `repo_server`             |              | Image repository server URL. If empty, set to `tls.server` with `/repo` appended.
+| `key_source`              | `"file"`     | Where to read the device's private key from. Options: `"file"`, `"pkcs11"`.
+| `key_type`                | `"RSA2048"`  | Type of cryptographic keys to use. Options: `"ED25519"`, `"RSA2048"`, `"RSA3072"` or `"RSA4096"`.
+| `secondary_configs_dir`   | `""`         | Directory containing individual secondary json configuration files. Example here: link:{aktualizr-github-url}/config/secondary/virtualsec.json[]
+| `force_install_completion`| false        | Forces installation completion. Causes a system reboot in case of an ostree package manager. Emulates a reboot in case of a fake package manager.
+|==========================================================================================
+
+== `pacman`
+
+Options for package management and update installation. Note that this only coincidentally shares the name with the ArchLinux `pacman` tool.
+
+[options="header"]
+|==========================================================================================
+| Name               | Default                   | Description
+| `type`             | `"ostree"`                | Which package manager to use. Options: `"ostree"`, `"debian"`, `"none"`.
+| `os`               |                           | OSTree operating system group. Only used with `ostree`.
+| `sysroot`          |                           | Path to an OSTree sysroot. Only used with `ostree`.
+| `ostree_server`    |                           | OSTree server URL. Only used with `ostree`. If empty, set to `tls.server` with `/treehub` appended.
+| `packages_file`    | `"/usr/package.manifest"` | Path to a file for storing package manifest information. Only used with `ostree`.
+| `fake_need_reboot` | false                     | Simulate a wait-for-reboot with the `"none"` package manager. Used for testing.
+|==========================================================================================
+
+== `storage`
+
+Options for how Aktualizr stores data locally.
+
+[options="header"]
+|==========================================================================================
+| Name                      | Default                   | Description
+| `type`                    | `"sqlite"`                | What type of storage driver to use. Options: `"sqlite"`. The former `"filesystem"` option is now disabled, existing devices will be migrated (see note below)
+| `path`                    | `"/var/sota"`             | Directory for storage
+| `sqldb_path`              | `"sql.db"`                | Relative path to the database file.
+| `uptane_metadata_path`    | `"metadata"`              | Path to the uptane metadata store, for migration from `filesystem`.
+| `uptane_private_key_path` | `"ecukey.der"`            | Relative path to the Uptane specific private key, for migration from `filesystem`.
+| `uptane_public_key_path`  | `"ecukey.pub"`            | Relative path to the Uptane specific public key, for migration from `filesystem`.
+| `tls_cacert_path`         | `"root.crt"`              | Relative path to the TLS root CA certificate, for migration from `filesystem`.
+| `tls_pkey_path`           | `"pkey.pem"`              | Relative path to the client's TLS private key, for migration from `filesystem`.
+| `tls_clientcert_path`     | `"client.pem"`            | Relative path to the client's TLS certificate, for migration from `filesystem`.
+|==========================================================================================
+
+The only supported storage option is now `sqlite`.
+
+Old systems configured with `filesystem` can be migrated by changing the `type` field to `sqlite` and keeping all the other fields as-is.
+At the next Aktualizr run, the migration procedure will then run automatically and move existing data inside the database.
+
+== `import`
+
+Options for importing data from the filesystem into the storage.
+
+[options="header"]
+|==========================================================================================
+| Name                      | Default                  | Description
+| `base_path`               | `"/var/sota/import"`     | Path to a common root directory to the subsequent files
+| `uptane_private_key_path` |                          | Path to the device's private key.
+| `uptane_public_key_path`  |                          | Path to the device's public key.
+| `tls_cacert_path`         |                          | Path to the TLS root CA certificate.
+| `tls_pkey_path`           |                          | Path to the TLS private key.
+| `tls_clientcert_path`     |                          | Path to the TLS client certificate.
+|==========================================================================================
+
+== `telemetry`
+
+Options for configuring how aktualizr communicates with the server.
+
+[options="header"]
+|==========================================================================================
+| Name             | Default | Description
+| `report_network` | `true`  | Enable reporting of device networking information to the server.
+|==========================================================================================
+
+== `bootloader`
+
+Options for configuring boot-specific behavior
+
+[options="header"]
+|==========================================================================================
+| Name                   | Default                         | Description
+| `rollback_mode`        | `"none"`                        | Controls rollback on supported platforms, see link:{aktualizr-github-url}/docs/rollback.adoc[]. Options: `"none"`, `"uboot_generic"`, `"uboot_masked"`
+| `reboot_sentinel_dir`  | `"/var/run/aktualizr-session"`  | Base directory for reboot detection sentinel. Must reside in a temporary file system.
+| `reboot_sentinel_name` | `"need_reboot"`                 | Name of the reboot detection sentinel.
+|==========================================================================================
+

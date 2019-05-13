@@ -1,0 +1,56 @@
+= Useful Bitbake commands
+:page-layout: page
+:page-categories: [tips]
+:page-date: 2017-06-06 15:23:05
+:page-order: 2
+:icons: font
+
+You're going to run into Yocto build problems eventually--that's a given. We provide here a guide to a few bitbake commands we find particularly useful.
+
+=== Clean the build environment
+
+Yocto does a lot of caching and tries to be as smart about it as possible. But if you're running into build problems for a particular package, a good first start is
+
+    bitbake -c cleanall [package]
+
+This will remove everything in the work directory, everything in the state cache, and all previously downloaded source files.
+
+=== View the actual build environment bitbake will execute
+
+    bitbake -e [package] > env.log
+
+This is the bazooka of bitbake troubleshooting. It will output the entire build environment that bitbake uses for that package or image. This output will be tens of thousands of lines long, but can be grepped for what you need.
+
+=== Launch the bitbake devshell for a package
+
+    bitbake -c devshell [package]
+
+The devshell is the scalpel of bitbake troubleshooting. This command will open a new terminal in the package's build directory with bitbake's environment set up, after the source files have been fetched and all compile-time dependencies have been built, but before any configure/compile steps for the package have been taken. From here, you can troubleshoot specific problems with your build.
+
+=== Launch the dependency explorer for a package
+
+    bitbake [package] -g -u depexp
+
+A GUI tool for exploring package dependencies.
+
+=== Show the layers currently in your build
+
+   bitbake-layers show-layers
+
+Outputs a list of the layers currently in use, and their priorities. If a package exists in two or more layers, it will be build from the layer with higher priority.
+
+=== Show all available recipes
+
+    bitbake-layers show-recipes
+
+=== List all packages that will be built in an image/package
+
+    bitbake -g [package] && cat pn-depends.dot | grep -v -e '-native' | \
+    grep -v digraph | grep -v -e '-image' | awk '{print $1}' | sort | uniq
+
+A concise text dump of all of the dependencies of a package. Includes both runtime and compile-time dependencies.
+
+=== Save verbose build log
+
+    bitbake -v [package] 2>&1 | tee build.log
+

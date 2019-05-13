@@ -1,0 +1,19 @@
+= How can I check which OSTree commit is deployed?
+:page-layout: page
+:page-categories: [faq]
+:page-date: 2017-01-25 15:42:59
+
+OSTree revisions are identified by a commit hash, just like in Git. You can check the revision running on a device with `ostree admin status`.
+
+The output should be something like this:
+
+----
+$ ostree admin status
+
+* agl fcac1276197670dc98bd082d3edd8e2dd8b349cd0ff7b4529ce103e45882514a.0
+    origin refspec: fcac1276197670dc98bd082d3edd8e2dd8b349cd0ff7b4529ce103e45882514a
+  agl c399da4079f5de110bf8c2c379656ee0c08406daa479407074492ec226462639.0
+    origin refspec: c399da4079f5de110bf8c2c379656ee0c08406daa479407074492ec226462639
+----
+
+The commit with the star next to it is the currently deployed image.
