@@ -1,0 +1,292 @@
+= Get started
+:page-layout: page
+:page-categories: [using-libaktualizr]
+:page-date: 2018-11-28 14:08:55
+:page-order: 2
+:icons: font
+
+== What is libaktualizr?
+
+Libaktualizr is a {cpp} library providing API access to the functionality that aktualizr provides.
+
+.Aktualizr vs. libaktualizr
+****
+* **Aktualizr** is a {cpp} application that implements the client-side functionality for OTA Connect according to the Uptane security framework. It is designed to be run as a standalone component on an embedded system, and can manage the entire software update process. In implementation, it is actually a relatively thin wrapper around libaktualizr.
+* **libaktualizr** provides a {cpp} API allowing developers to integrate OTA Connect updates with Uptane security into their own custom applications.
+****
+
+== How to build libaktualizr
+
+Before you can work with libaktualizr, you must build the main aktualizr project.
+
+Aktualizr is an open-source software project distributed under the Mozilla Public License 2.0 and is located on github: https://github.com/advancedtelematic/aktualizr
+
+You should build the project on a Linux system and your compiler must support the C++11 version of the standard.
+
+The project contains more dependencies than is practical to list here, so have a look at the https://github.com/advancedtelematic/aktualizr#dependencies[main readme] for the aktualizr project.
+
+The README contains an extended description on how to build aktualizr as well as the list of build and run-time dependencies.
+
+Once you have installed the dependencies, build the aktualizr project with the following commands:
+[source,bash]
+----
+git clone --recursive https://github.com/advancedtelematic/aktualizr.git
+cd aktualizr
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Release ..
+make
+----
+
+NOTE: The `--recursive` flag in the `git clone` command is needed to recursively clone all the *git submodules*.
+
+After the build is finished, you'll find the client library at the following location: `${PROJECT_ROOT}/build/src/libaktualizr/libaktualizr_static_lib.a`.
+
+== Integrating libaktualizr into your application
+
+To integrate libaktualizr in your application, you must first decide on one of the following build options:
+
+* Build libaktualizr "in tree" by adding it to an existing cmake project (recommended).
+* Build libaktualizr "out-of-tree".
+
+=== Building libaktualizr in-tree
+The easiest way to integrate with libaktualizr is to add it as a subdirectory to your cmake project.
+
+.To build libaktualizr in-tree, follow these steps:
+. Clone the aktualizr into your project directory:
++
+[source,bash]
+----
+$ git clone --recursive https://github.com/advancedtelematic/aktualizr.git
+----
+
+. Add  it to your CMakeLists.txt:
++
+[source,cmake]
+----
+add_subdirectory(aktualizr)
+----
++
+This command automatically adds the needed entries to `INCLUDE_DIRECTORIES` variable, create the `AKTUALIZR_EXTERNAL_LIBS` variable, which contains the list of external libraries required for linking with libaktualizr, and create the `aktualizr_static_lib` target.
+. Do a test build of your application
++
+Whenever you build your application you must add these libraries as follows:
++
+[source,cmake]
+target_link_libraries(your-app aktualizr_static_lib ${AKTUALIZR_EXTERNAL_LIBS})
++
+You also might need to add the following line if you are using boost libraries:
+[source,cmake]
+add_definitions(-DBOOST_LOG_DYN_LINK)
+
+=== Building libaktualizr out-of-tree
+If you don't want to make libaktualizr part of your cmake project, it's also possible to build libaktualizr out-of-tree. In this case you will need to specify the required libraries and includes for your application manually. Refer to your system's documentation on how to specify additional libraries and include directories for the target application.
+
+Here's an example of how to specify the required libraries for an out-of-tree build in cmake project:
+[source,cmake]
+----
+target_link_libraries(your-app ${AKTUALIZR_PROJECT_DIR}/build/src/libaktualizr/libaktualizr_static_lib.a)
+target_link_libraries(your-app pthread)
+target_link_libraries(your-app archive)
+target_link_libraries(your-app boost_atomic)
+target_link_libraries(your-app boost_chrono)
+target_link_libraries(your-app boost_date_time)
+target_link_libraries(your-app boost_filesystem)
+target_link_libraries(your-app boost_log)
+target_link_libraries(your-app boost_log_setup)
+target_link_libraries(your-app boost_program_options)
+target_link_libraries(your-app boost_regex)
+target_link_libraries(your-app boost_system)
+target_link_libraries(your-app boost_thread)
+target_link_libraries(your-app crypto)
+target_link_libraries(your-app curl)
+target_link_libraries(your-app sodium)
+target_link_libraries(your-app sqlite3)
+target_link_libraries(your-app ssl)
+
+target_include_directories(your-app PRIVATE ${AKTUALIZR_PROJECT_DIR}/src/libaktualizr)
+target_include_directories(your-app PRIVATE ${AKTUALIZR_PROJECT_DIR}/third_party/jsoncpp)
+
+add_definitions(-DBOOST_LOG_DYN_LINK)
+----
+
+
+== How to use the libaktualizr API
+
+Libaktualizr provides a C++ API for fetching information about available updates and currently running OTA campaigns, downloading and installing the updates, and reporting the installation results.
+
+If you're yet not familiar with OTA Connect concepts such as "campaigns", have a look at the https://connect.ota.here.com/#/campaigns[OTA web app] first. You might need to register for a free developer account first.
+
+The main library header is https://github.com/advancedtelematic/aktualizr/blob/master/src/libaktualizr/primary/aktualizr.h[`primary/aktualizr.h`]. It also includes few other libaktualizr headers.
+
+To use the API, add the `src/libaktualizr` directory to your include path and add `# include "primary/aktualizr.h"` to your source file.
+
+When using the API, consider the following points:
+
+* Most of the API calls, unless specified otherwise, are asynchronous and return a `std::future` which contains the corresponding result type.
+* Result types are defined in the https://github.com/advancedtelematic/aktualizr/blob/master/src/libaktualizr/primary/results.h[`primary/results.h`] header.
+* Asynchronous commands are posted to the command queue and executed in sequential order in a separate thread.
+* If the execution is paused, newly issued commands accumulate in the command queue and it's up to the caller to ensure that the queue doesn't get overloaded with unnecessary duplicate commands.
+
+For an example of how to use the libaktualizr API as a primary ECU, there are two applications in the aktualizr tree that you can use as references. Aktualizr itself is in `src/aktualizr_primary`, and there is a very simple demo of using libaktualizr to interact with an HMI (for example, to get user consent) in `src/hmi_stub`.
+
+
+=== API Description
+
+==== General management, configuration and control flow
+
+* *Construct an aktualizr instance*
++
+[source,cpp]
+----
+Aktualizr::Aktualizr(boost::filesystem::path config)
+----
+An instance is constructed based on the provided config. A config should at least contain information about provisioning credentials (see
+https://github.com/advancedtelematic/aktualizr/blob/master/docs/automatic-provisioning.adoc[`automatic-provisioning.adoc`], https://github.com/advancedtelematic/aktualizr/blob/master/docs/implicit-provisioning.adoc[`implicit-provisioning.adoc`] or https://github.com/advancedtelematic/aktualizr/blob/master/docs/hsm-provisioning.adoc[`hsm-provisioning.adoc`] depending on the used provisioning type), and about the local storage which will be used to store updates and metadata.
+For description of all configuration options, please, refer to the https://github.com/advancedtelematic/aktualizr/blob/master/docs/configuration.adoc[`configuration.adoc`] document and to the https://github.com/advancedtelematic/aktualizr/tree/master/config[`config`] folder for configuration examples.
+
+* *Add a new secondary ECU*
++
+[source,cpp]
+----
+void Aktualizr::AddSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &secondary)
+----
+You must call this function before you call `Initialize`. To find out more about primary and secondary ECUs, see our https://docs.ota.here.com/concepts/ats-garage-security-with-uptane.html#primary-and-secondary-ecus[Uptane description].
+
+* *Initialize aktualizr*
++
+[source,cpp]
+----
+void Aktualizr::Initialize()
+----
+Any secondary ECUs should be added before making this
+call. This will provision with the server if required. This must be called before using any other aktualizr functions except `AddSecondary`.
+
+* *Set a callback to receive event notifications*
++
+[source,cpp]
+----
+boost::signals2::connection Aktualizr::SetSignalHandler(std::function<void(shared_ptr<event::BaseEvent>)> &handler)
+----
+Returns a signal connection object, which can be disconnected if desired. The events are defined in the https://github.com/advancedtelematic/aktualizr/blob/master/src/libaktualizr/primary/events.h[`primary/events.h`] header.
+
+* *Pause a command*
++
+[source,cpp]
+----
+void Aktualizr::Pause()
+----
+Requests the currently running command to pause and freezes the command queue. All commands that were scheduled after the currently executed command will wait in the command queue until `Resume()` is issued.
+Commands that are issued after `Resume()` will be put on a command queue, but not executed until `Resume()` is called.
+The `Pause()` function returns immediately, while pausing the running command still may be in progress. The function has no effect if the execution was already paused.
+
+* *Resume a paused command*
++
+[source,cpp]
+----
+void Aktualizr::Resume()
+----
+Resumes the execution of a previously paused command and all subsequent commands in the command queue.
+Returns immediately. The function has no effect if the execution was not paused.
+
+* *Abort execution*
++
+[source,cpp]
+----
+void Aktualizr::Abort()
+----
+Requests the currently running command to abort and flushes the command queue.
+The `Abort()` function will block until the command queue is empty and all currently executing commands have stopped. You can also call Abort() on a previously paused class instance, this will clean the command queue, but aktualizr will remain in the paused state. To continue execution at some later point one needs to call Resume().
++
+Abort() is also called by the Aktualizr class destructor.
+
+==== Campaign management commands
+
+
+* *Check for campaigns*
++
+[source,cpp]
+----
+std::future<result::CampaignCheck> Aktualizr::CampaignCheck()
+----
+The term "campaign" has a specific meaning in OTA Connect. A campaign allows users to approve updates and deploy them to devices.
+
+* *Accept a campaign*
++
+[source,cpp]
+----
+std::future<void> Aktualizr::CampaignAccept(const std::string &campaign_id)
+----
+A campaign contains an update which must be accepted by the end user (or on behalf of the end user) before it can be installed on the device. This call accepts the campaign so that the update can be installed.
+
+
+
+==== Update management commands
+
+[cols="d,a"]
+
+| TASK  |  CALL
+
+* *Sends local device data to the server*
++
+[source,cpp]
+----
+std::future<void> Aktualizr::SendDeviceData()
+----
+This data includes network status, installed packages and hardware information.
+
+* *Check for updates*
++
+[source,cpp]
+----
+std::future<result::UpdateCheck> Aktualizr::CheckUpdates()
+----
+Fetches Uptane metadata and check for updates. This collects a client manifest, PUTs it to the director, updates the Uptane metadata (including root and targets), and then checks the metadata for updates to the target software.
+
+* *Download target files*
++
+[source,cpp]
+----
+std::future<result::Download> Aktualizr::Download(const std::vector<Uptane::Target> &updates)
+----
+Downloads the target files that are specified in the input vector returned by `CheckUpdates`.
+
+* *Install software from target files*
++
+[source,cpp]
+----
+std::future<result::Install> Aktualizr::Install(const std::vector<Uptane::Target> &updates)
+----
+Installs the software contained in the previously downloaded target files.
+
+* *Get a handle for downloaded target*
++
+[source,cpp]
+----
+std::ifstream Aktualizr::GetStoredTarget(const Uptane::Target &target)
+----
+Get target downloaded in Download call. Returned target is guaranteed to be verified and up-to-date according to the Uptane metadata downloaded in CheckUpdates call.
+
+
+
+==== Miscellaneous commands
+
+
+* *Synchronously check for updates and install them*
++
+[source,cpp]
+----
+void Aktualizr::UptaneCycle()
+----
+Synchronously runs an "Uptane cycle" which checks for software updates, downloads any new target files, installs the update, and sends a manifest back to the server.
+
+* *Asynchronously run aktualizr*
++
+[source,cpp]
+----
+std::future<void> Aktualizr::RunForever()
+----
+Automatic check and install updates indefinitely: runs UptaneCycle() in a loop at regular intervals until the destructor is called.
+
+
+

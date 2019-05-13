@@ -1,0 +1,48 @@
+= Software management
+
+When you develop software updates for OTA deployment, it's important to understand the different ways in which you can get software into OTA Connect.
+
+You can upload any file format you want to OTA Connect, but generally OTA Connect is designed to work with *disk images*. 
+
+However, you might instead be accustomed to managing *software packages* with package managers. We don't recommend this method, but there's nothing to stop you delivering software packages with OTA Connect as well.
+
+Here's a summary of how each method works:
+
+== Uploading software within disk images
+
+A disk image is a snapshot of the entire filesystem on an ECU or other microcontroller that you can flash to another controller of the same type.
+
+In a typical development process, you might first simulate a microcontroller on you computer, set up the entire filesystem, create a disk image and flashe the image to a real microcontroller.
+
+For example, in our "Get Started" guide, we explain how to build a disk image for Raspberry Pi on a development computer then flash the image to an actual Raspberry Pi.
+
+*So how do you update individual pieces of software?*
+
+Well, suppose that you wanted to update the Bluetooth driver on your IVI from version 1 to 2. In this scenario, we'll assume that your IVI is already running a disk image that includes aktualizr -- the OTA Connect Client. 
+
+* First, you would prepare an updated disk image of the filesystem that runs on your IVI.
+
+** This disk image is configured to include version 2 of your Bluetooth driver package as well as all the other software that hasn't changed.
+** This "other" software includes aktualizr or another client that uses libaktualizr to regularly checks for updates.
+
+* You would use the OTA Connect build tools to build the final disk image.
+
+** The OTA Connect build process includes a step where the new disk image is automatically uploaded to the OTA Connect server.
+** When you log into the OTA Connect Portal, you'll see the new disk image in your software repository.
+** The disk image should ideally have some notes to explain that it contains the new version 2 Bluetooth driver. You can add more descriptive information in the OTA Connect Portal and select the disk image during the campaign creation process.
+
+In summary, software is added to disk images which get uploaded during the build process.
+
+== Uploading software packages
+
+If you've worked with Linux-based operating systems, you might expect software updates to come in the format of installable packages that have extensions like `.deb`, `.rpm` or in the case of Android, `.apk`. You can also upload these kinds of packages to OTA Connect. 
+
+By default, the OTA Connect Client is designed to install disk images rather than packages. Your developers have to configure the OTA Connect Client to process and install packages instead.
+
+// ask dev how this works.
+
+Another problem with this approach is that it's quite easy to corrupt the filesystem if the installation process is interrupted in any way. For example if the microcontroller loses power or is rebooted, a human being must intervene to fix the filesystem.
+
+This kind of problem might be fine on the desktop or on a server where there's a reasonable expectation that a person could intervene, but there's no easy way to intervene for embedded devices.
+
+If you don't mind the risks and extra work, you can xref:dev@ota-web::upload-software-ui.adoc[upload software packages in the OTA Connect portal].

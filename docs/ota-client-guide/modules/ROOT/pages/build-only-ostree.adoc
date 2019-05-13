@@ -1,0 +1,12 @@
+= I don't need to build the SD card images every time--how can I do a build that only does the OSTree part?
+:page-layout: page
+:page-categories: [faq]
+:page-date: 2017-06-29 13:30:33
+:page-order: 99
+:icons: font
+
+You can select specific tasks to run with the `-c` option in bitbake. To build and push an image without generating the SD card images, you can do
+
+    bitbake rpi-basic-image -c image_garagecheck
+
+NOTE: This will leave one artifact behind: a bzipped copy of the filesystem tree that gets committed to the OSTree repo. This can safely be deleted, however.

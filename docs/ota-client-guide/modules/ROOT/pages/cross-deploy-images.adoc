@@ -1,0 +1,51 @@
+= Transfer disk images to a software repository in another account
+:page-layout: page
+:page-categories: [prod]
+:page-date: 2018-03-15 13:52:05
+:page-order: 3
+:icons: font
+:sectnums:
+:garage-deploy-version: 2018.13
+
+For our recommended production workflow, you will need to move disk images from one account to another from time to time. For example, you might want to send a development build that you're happy with to the QA team, or send that build to the deployment team once it's passed QA. You can do this with our `garage-deploy` tool.
+
+Before you start, make sure that you've installed the xref:install-garage-sign-deploy.adoc[`garage-deploy`] tool first.
+
+To transfer disk images to a different account, follow these steps: ::
+. xref:getstarted::generating-provisioning-credentials.adoc[Download provisioning keys] for both accounts.
++
+We'll assume that you named them `source-credentials.zip` and `dest-credentials.zip`.
++
+. Select an image and commit ID to deploy, and the hardware ID(s) to deploy it to
++
+The image name is the one that appears in your {product-name} account--it will be the same as the `MACHINE` setting in Yocto by default, or the `OSTREE_BRANCHNAME` option if you set it. The commit ID is the hash of the OSTree commit, visible in the package details. The hardware IDs are for the destination account, and are equivalent to the `MACHINE` setting in your Yocto build.
++
+. Run `garage-deploy`
++
+You can see the available options with `--help`:
++
+----
+$ garage-deploy --help
+garage-deploy command line options:
+  --help                         print usage
+  --version                      Current garage-deploy version
+  -v [ --verbose ]               verbose logging (use twice for more
+                                 information)
+  -q [ --quiet ]                 Quiet mode
+  --commit arg                   OSTree commit to deploy
+  --name arg                     Name of image
+  -f [ --fetch-credentials ] arg path to source credentials
+  -p [ --push-credentials ] arg  path to destination credentials
+  -h [ --hardwareids ] arg       list of hardware ids
+  --cacert arg                   override path to CA root certificates, in the
+                                 same format as curl --cacert
+----
++
+For example, to deploy an image called `acme-modelB` with SHA `001ee11a28e3e08f3e93e31425f0721a7fb44946919284b629ca85a1cc3073cb` and make it installable on all Raspberry Pi devices on your target account, the command would be:
++
+----
+garage-deploy --commit 001ee11a28e3e08f3e93e31425f0721a7fb44946919284b629ca85a1cc3073cb \
+  --name acme-modelB -f source-credentials.zip -p dest-credentials.zip -h raspberrypi3
+----
++
+. Log into the destination account, and verify that your image has been deployed
