@@ -198,6 +198,15 @@ set_tests_properties(test_log_negative
 add_test(NAME test_ip_secondary
          COMMAND ${PROJECT_SOURCE_DIR}/tests/ipsecondary_test.py --build-dir ${PROJECT_BINARY_DIR})
 
+add_executable(aktualizr-cycle-simple aktualizr_cycle_simple.cc)
+target_link_libraries(aktualizr-cycle-simple aktualizr_static_lib ${AKTUALIZR_EXTERNAL_LIBS})
+aktualizr_source_file_checks(aktualizr_cycle_simple.cc)
+
+# disabled by default, can be run with `ctest -C disabled ...`
+add_test(NAME test_io_failure CONFIGURATIONS ignored COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/test_io_failure.py
+    --akt-repo $<TARGET_FILE:aktualizr-repo> --akt-test $<TARGET_FILE:aktualizr-cycle-simple>
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
 add_dependencies(qa check)
 
 aktualizr_source_file_checks(${TEST_SOURCES})
