@@ -247,9 +247,8 @@ if(CLANG_FORMAT)
             string(REPLACE "/" "_" TARGETNAME_CI "aktualizr_ci_clang_format-${SUBDIR}-${FILE}")
 
             add_custom_target(${TARGETNAME_CI}
-                COMMAND ${PROJECT_SOURCE_DIR}/scripts/check-formatting.sh ${CLANG_FORMAT} ${FILE}
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                VERBATIM)
+              COMMAND ${CLANG_FORMAT} -style=file ${FILE} | diff -u ${FILE} - || { echo "Found unformatted code! Run make format"\; false\; }
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
             add_dependencies(check-format ${TARGETNAME_CI})
         endforeach()
     endfunction()
