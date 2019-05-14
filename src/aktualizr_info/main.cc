@@ -42,6 +42,8 @@ int main(int argc, char **argv) {
     ("tls-creds",  "Outputs TLS credentials")
     ("ecu-keys",  "Outputs UPTANE keys")
     ("images-root",  "Outputs root.json from images repo")
+    ("images-timestamp", "Outputs timestamp.json from images repo")
+    ("images-snapshot", "Outputs snapshot.json from images repo")
     ("images-target",  "Outputs targets.json from images repo")
     ("delegation",  "Outputs metadata of image repo targets' delegations")
     ("director-root",  "Outputs root.json from director repo")
@@ -74,11 +76,15 @@ int main(int argc, char **argv) {
     std::string director_targets;
     std::string images_root;
     std::string images_targets;
+    std::string snapshot;
+    std::string timestamp;
 
     bool has_metadata = storage->loadLatestRoot(&director_root, Uptane::RepositoryType::Director());
     storage->loadLatestRoot(&images_root, Uptane::RepositoryType::Image());
     storage->loadNonRoot(&director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets());
     storage->loadNonRoot(&images_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets());
+    storage->loadNonRoot(&snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot());
+    storage->loadNonRoot(&timestamp, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp());
 
     std::string device_id;
     if (!storage->loadDeviceId(&device_id)) {
@@ -170,6 +176,16 @@ int main(int argc, char **argv) {
       if (vm.count("director-target") != 0u) {
         std::cout << "director targets.json content:" << std::endl;
         std::cout << director_targets << std::endl;
+      }
+
+      if (vm.count("images-snapshot") != 0u) {
+        std::cout << "snapshot.json content:" << std::endl;
+        std::cout << snapshot << std::endl;
+      }
+
+      if (vm.count("images-timestamp") != 0u) {
+        std::cout << "timestamp.json content:" << std::endl;
+        std::cout << timestamp << std::endl;
       }
     }
 
