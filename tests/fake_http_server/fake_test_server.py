@@ -7,6 +7,7 @@ import logging
 import os
 import sys
 import socket
+import socketserver
 
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from os import path
@@ -168,7 +169,7 @@ class Handler(SimpleHTTPRequestHandler):
         self.do_POST()
 
 
-class FakeTestServer(HTTPServer):
+class FakeTestServer(socketserver.ThreadingMixIn, HTTPServer):
     def __init__(self, addr, meta_path, target_path, srcdir=None, fail_injector=None):
         super(HTTPServer, self).__init__(server_address=addr, RequestHandlerClass=Handler)
         self.meta_path = meta_path

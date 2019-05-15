@@ -27,7 +27,7 @@ model.
 
 On a sample run, this test calls ~3000/4000 io syscalls, so it's recommended
 to run with pf = 1/4000 = 0.00025, so that there should be around one error
-per run, for around 4000*log(n) ~= 50000 runs
+per run, for around 4000*log(4000) ~= 50000 runs
 (see https://en.wikipedia.org/wiki/Coupon_collector%27s_problem)
 """
 
