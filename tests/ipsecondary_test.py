@@ -3,8 +3,6 @@
 import tempfile
 import subprocess
 import json
-import multiprocessing
-import contextlib
 import logging
 import argparse
 
@@ -15,7 +13,7 @@ from os import getcwd, chdir
 from uuid import uuid4
 from functools import wraps
 
-from fake_http_server.fake_test_server import FakeTestServer
+from fake_http_server.fake_test_server import FakeTestServerBackground
 
 logger = logging.getLogger("IPSecondaryTest")
 
@@ -73,44 +71,14 @@ class UptaneTestRepo:
         return target_hash
 
     def __enter__(self):
-        self._repo_root_dir.__enter__()
         self._generate_repo()
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self._repo_root_dir.__exit__(exc_type, exc_val, exc_tb)
-
-    def _generate_repo(self):
-        subprocess.run([self._repo_manager_exe, '--path', self.root_dir, '--command', 'generate'], check=True)
-
-
-class UptaneTestBackend:
-
-    def __init__(self, repo_manager_exe, port=8888):
-        self.port = port
-        self.repo = UptaneTestRepo(repo_manager_exe)
-
-        self._httpd = FakeTestServer(addr=('', port), meta_path=self.repo.root_dir,
-                                    target_path=self.repo.target_dir)
-        self._server_process = UptaneTestBackend.Process(target=self._httpd.serve_forever)
-
-    class Process(multiprocessing.Process):
-        def run(self):
-            with open(devnull, 'w') as devnull_fd:
-                with contextlib.redirect_stdout(devnull_fd),\
-                        contextlib.redirect_stderr(devnull_fd):
-                    super(multiprocessing.Process, self).run()
-
-    def __enter__(self):
-        self.repo.__enter__()
-        self._server_process.start()
-        logger.debug("Uptane server running and listening: {}".format(self.port))
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self._server_process.terminate()
-        self._server_process.join(timeout=10)
-        self.repo.__exit__(exc_type, exc_val, exc_tb)
-        logger.debug("Uptane server has been stopped")
+        self._repo_root_dir.cleanup()
+
+    def _generate_repo(self):
+        subprocess.run([self._repo_manager_exe, '--path', self.root_dir, '--command', 'generate'], check=True)
 
 
 class IPSecondary:
@@ -133,7 +101,7 @@ class IPSecondary:
     [uptane]
     ecu_serial = "{serial}"
     ecu_hardware_id = "{hw_ID}"
-    
+
     [network]
     port = {port}
     primary_ip = "127.0.0.1"
@@ -314,8 +282,10 @@ def with_uptane_backend(repo_manager_exe='src/aktualizr_repo/aktualizr-repo'):
         @wraps(test)
         def wrapper(*args, **kwargs):
             repo_manager_exe_abs_path = path.abspath(repo_manager_exe)
-            with UptaneTestBackend(repo_manager_exe=repo_manager_exe_abs_path) as uptane_server:
-                result = test(*args, **kwargs, uptane_server=uptane_server)
+            with UptaneTestRepo(repo_manager_exe_abs_path) as repo, \
+                    FakeTestServerBackground(meta_path=repo.root_dir,
+                                             target_path=repo.target_dir) as uptane_server:
+                result = test(*args, **kwargs, uptane_repo=repo, uptane_server=uptane_server)
             return result
         return wrapper
     return decorator
@@ -371,12 +341,12 @@ def with_aktualizr(start=True, output_logs=True, id=('primary-hw-ID-001', str(uu
 @with_uptane_backend()
 @with_secondary(start=True)
 @with_aktualizr(start=False, output_logs=False)
-def test_secondary_update_if_secondary_starts_first(uptane_server, secondary, aktualizr):
+def test_secondary_update_if_secondary_starts_first(uptane_repo, secondary, aktualizr, **kwargs):
     '''Test Secondary update if Secondary is booted before Primary'''
 
     # add a new image to the repo in order to update the secondary with it
     secondary_image_filename = "secondary_image_filename_001.img"
-    secondary_image_hash = uptane_server.repo.add_image(id=secondary.id, image_filename=secondary_image_filename)
+    secondary_image_hash = uptane_repo.add_image(id=secondary.id, image_filename=secondary_image_filename)
 
     logger.debug("Trying to update ECU {} with the image {}".
                 format(secondary.id, (secondary_image_hash, secondary_image_filename)))
@@ -393,12 +363,12 @@ def test_secondary_update_if_secondary_starts_first(uptane_server, secondary, ak
 @with_uptane_backend()
 @with_secondary(start=False)
 @with_aktualizr(start=True, output_logs=False)
-def test_secondary_update_if_primary_starts_first(uptane_server, secondary, aktualizr):
+def test_secondary_update_if_primary_starts_first(uptane_repo, secondary, aktualizr, **kwargs):
     '''Test Secondary update if Secondary is booted after Primary'''
 
     # add a new image to the repo in order to update the secondary with it
     secondary_image_filename = "secondary_image_filename_001.img"
-    secondary_image_hash = uptane_server.repo.add_image(id=secondary.id, image_filename=secondary_image_filename)
+    secondary_image_hash = uptane_repo.add_image(id=secondary.id, image_filename=secondary_image_filename)
 
     logger.debug("Trying to update ECU {} with the image {}".
                 format(secondary.id, (secondary_image_hash, secondary_image_filename)))
@@ -414,7 +384,7 @@ def test_secondary_update_if_primary_starts_first(uptane_server, secondary, aktu
 @with_uptane_backend()
 @with_secondary(start=False)
 @with_aktualizr(start=False, output_logs=False)
-def test_secondary_update(uptane_server, secondary, aktualizr):
+def test_secondary_update(uptane_repo, secondary, aktualizr, **kwargs):
     '''Test Secondary update if a boot order of Secondary and Primary is undefined'''
 
     test_result = True
@@ -423,7 +393,7 @@ def test_secondary_update(uptane_server, secondary, aktualizr):
     while ii < number_of_updates and test_result:
         # add a new image to the repo in order to update the secondary with it
         secondary_image_filename = "secondary_image_filename_{}.img".format(ii)
-        secondary_image_hash = uptane_server.repo.add_image(id=secondary.id, image_filename=secondary_image_filename)
+        secondary_image_hash = uptane_repo.add_image(id=secondary.id, image_filename=secondary_image_filename)
 
         logger.debug("Trying to update ECU {} with the image {}".
                     format(secondary.id, (secondary_image_hash, secondary_image_filename)))
@@ -442,11 +412,11 @@ def test_secondary_update(uptane_server, secondary, aktualizr):
 @with_uptane_backend()
 @with_secondary(start=False)
 @with_aktualizr(start=False, output_logs=False, wait_timeout=0.1)
-def test_primary_timeout_during_first_run(uptane_server, secondary, aktualizr):
+def test_primary_timeout_during_first_run(uptane_repo, secondary, aktualizr, **kwargs):
     '''Test Aktualizr's timeout of waiting for Secondaries during initial boot'''
 
     secondary_image_filename = "secondary_image_filename_001.img"
-    secondary_image_hash = uptane_server.repo.add_image(id=secondary.id, image_filename=secondary_image_filename)
+    secondary_image_hash = uptane_repo.add_image(id=secondary.id, image_filename=secondary_image_filename)
 
     logger.debug("Checking Aktualizr behaviour if it timeouts while waiting for a connection from the secondary")
 
@@ -461,7 +431,7 @@ def test_primary_timeout_during_first_run(uptane_server, secondary, aktualizr):
 @with_uptane_backend()
 @with_secondary(start=False)
 @with_aktualizr(start=False, output_logs=False)
-def test_primary_timeout_after_device_is_registered(uptane_server, secondary, aktualizr):
+def test_primary_timeout_after_device_is_registered(uptane_repo, secondary, aktualizr, **kwargs):
     '''Test Aktualizr's timeout of waiting for Secondaries after the device/aktualizr was registered at the backend'''
 
     # run aktualizr and secondary and wait until the device/aktualizr is registered
@@ -479,13 +449,13 @@ def test_primary_timeout_after_device_is_registered(uptane_server, secondary, ak
     # run just aktualizr, the previously registered secondary is off
     # and check if the primary ECU is updatable if the secondary is not connected
     primary_image_filename = "primary_image_filename_001.img"
-    primary_image_hash = uptane_server.repo.add_image(id=aktualizr.id, image_filename=primary_image_filename)
+    primary_image_hash = uptane_repo.add_image(id=aktualizr.id, image_filename=primary_image_filename)
 
     # if a new image for the not-connected secondary is specified in the target
     # then nothing is going to be updated, including the image intended for
     # healthy primary ECU
     # secondary_image_filename = "secondary_image_filename_001.img"
-    # secondary_image_hash = uptane_server.repo.add_image(id=secondary.id, image_filename=secondary_image_filename)
+    # secondary_image_hash = uptane_repo.add_image(id=secondary.id, image_filename=secondary_image_filename)
 
     aktualizr.update_wait_timeout(0.1)
     with aktualizr:
