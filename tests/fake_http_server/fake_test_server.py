@@ -1,10 +1,12 @@
 #!/usr/bin/python3
 
 import argparse
+import os
 import sys
 import socket
 
 from http.server import SimpleHTTPRequestHandler, HTTPServer
+from os import path
 from time import sleep
 
 
@@ -119,7 +121,7 @@ class Handler(SimpleHTTPRequestHandler):
         if self.path == '/devices':
             self.send_response(200)
             self.end_headers()
-            with open('tests/test_data/cred.p12', 'rb') as source:
+            with open(path.join(self.server.srcdir, 'tests/test_data/cred.p12'), 'rb') as source:
                 while True:
                     data = source.read(1024)
                     if not data:
@@ -160,12 +162,13 @@ class Handler(SimpleHTTPRequestHandler):
         self.do_POST()
 
 
-class ReUseHTTPServer(HTTPServer):
-    def __init__(self, addr, meta_path, target_path, fail_injector=None):
+class FakeTestServer(HTTPServer):
+    def __init__(self, addr, meta_path, target_path, srcdir=None, fail_injector=None):
         super(HTTPServer, self).__init__(server_address=addr, RequestHandlerClass=Handler)
         self.meta_path = meta_path
         self.target_path = target_path
         self.fail_injector = fail_injector
+        self.srcdir = srcdir if srcdir is not None else os.getcwd()
 
     def server_bind(self):
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -178,10 +181,12 @@ def main():
     parser.add_argument('-t', '--targets', help='targets directory', default=None)
     parser.add_argument('-m', '--meta', help='meta directory', default=None)
     parser.add_argument('-f', '--fail', help='enable intermittent failure', action='store_true')
+    parser.add_argument('-s', '--srcdir', help='path to the aktualizr source directory')
     args = parser.parse_args()
 
-    httpd = ReUseHTTPServer(('', args.port), meta_path=args.meta, target_path=args.targets,
-                            fail_injector=FailInjector() if args.fail else None)
+    httpd = FakeTestServer(('', args.port), meta_path=args.meta,
+                           target_path=args.targets, srcdir=args.srcdir,
+                           fail_injector=FailInjector() if args.fail else None)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

@@ -15,7 +15,7 @@ from os import getcwd, chdir
 from uuid import uuid4
 from functools import wraps
 
-from fake_http_server.fake_test_server import ReUseHTTPServer as BaseTestServer
+from fake_http_server.fake_test_server import FakeTestServer
 
 logger = logging.getLogger("IPSecondaryTest")
 
@@ -89,7 +89,7 @@ class UptaneTestBackend:
         self.port = port
         self.repo = UptaneTestRepo(repo_manager_exe)
 
-        self._httpd = BaseTestServer(addr=('', port), meta_path=self.repo.root_dir,
+        self._httpd = FakeTestServer(addr=('', port), meta_path=self.repo.root_dir,
                                     target_path=self.repo.target_dir)
         self._server_process = UptaneTestBackend.Process(target=self._httpd.serve_forever)
 
