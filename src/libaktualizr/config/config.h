@@ -52,7 +52,7 @@ struct ProvisionConfig {
 };
 
 struct UptaneConfig {
-  uint64_t polling_sec{10u};
+  uint64_t polling_sec{3600u};
   std::string director_server;
   std::string repo_server;
   CryptoSource key_source{CryptoSource::kFile};

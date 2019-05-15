@@ -81,7 +81,7 @@ Options for Uptane.
 [options="header"]
 |==========================================================================================
 | Name                      | Default      | Description
-| `polling_sec`             | `10`         | Interval between polls (in seconds).
+| `polling_sec`             | `3600`         | Interval between polls (in seconds).
 | `director_server`         |              | Director server URL. If empty, set to `tls.server` with `/director` appended.
 | `repo_server`             |              | Image repository server URL. If empty, set to `tls.server` with `/repo` appended.
 | `key_source`              | `"file"`     | Where to read the device's private key from. Options: `"file"`, `"pkcs11"`.

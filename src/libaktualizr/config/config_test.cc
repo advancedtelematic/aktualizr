@@ -19,7 +19,7 @@ boost::filesystem::path build_dir;
 TEST(config, DefaultValues) {
   Config conf;
   EXPECT_EQ(conf.uptane.key_type, KeyType::kRSA2048);
-  EXPECT_EQ(conf.uptane.polling_sec, 10u);
+  EXPECT_EQ(conf.uptane.polling_sec, 3600u);
 }
 
 TEST(config, TomlBasic) {
@@ -31,7 +31,7 @@ TEST(config, TomlEmpty) {
   Config conf;
   conf.updateFromTomlString("");
   EXPECT_EQ(conf.uptane.key_type, KeyType::kRSA2048);
-  EXPECT_EQ(conf.uptane.polling_sec, 10u);
+  EXPECT_EQ(conf.uptane.polling_sec, 3600u);
 }
 
 TEST(config, TomlInt) {
