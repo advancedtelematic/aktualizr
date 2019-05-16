@@ -78,13 +78,13 @@ endif()
 
 add_executable(aktualizr_uptane_vector_tests uptane_vector_tests.cc)
 target_link_libraries(aktualizr_uptane_vector_tests aktualizr_static_lib ${TEST_LIBS})
+add_dependencies(build_tests aktualizr_uptane_vector_tests)
 
 if(TESTSUITE_VALGRIND)
-    set(VECTOR_TESTS_ARGS "valgrind")
+    set(VECTOR_TESTS_ARGS -v ${CMAKE_CURRENT_BINARY_DIR}/../run-valgrind)
 endif(TESTSUITE_VALGRIND)
 add_test(NAME test_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh
-    ${PROJECT_SOURCE_DIR}/tests ${VECTOR_TESTS_ARGS} ${GOOGLE_TEST_OUTPUT})
-add_dependencies(build_tests aktualizr_uptane_vector_tests)
+    -s ${PROJECT_SOURCE_DIR}/tests ${VECTOR_TESTS_ARGS} -- ${GOOGLE_TEST_OUTPUT})
 set_tests_properties(test_uptane_vectors PROPERTIES LABELS "noptest uptane_vectors")
 
 if(SOTA_PACKED_CREDENTIALS)
