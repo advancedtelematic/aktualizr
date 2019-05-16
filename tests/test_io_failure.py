@@ -58,6 +58,7 @@ def run_test(akt_test, server, srcdir, pf, k):
                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=srcdir)
         if cp_err.returncode == 0:
             return True
+
         print('update failed, checking state')
         cp = run([akt_test, storage_dir, server],
                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=srcdir)
@@ -89,8 +90,6 @@ def main():
     args = parser.parse_args()
 
     srcdir = path.abspath(args.akt_srcdir) if args.akt_srcdir is not None else os.getcwd()
-
-    print(f'srcdir {srcdir}')
 
     with uptane_repo(args.akt_repo) as repo_dir, \
             FakeTestServerBackground(repo_dir, srcdir=srcdir) as uptane_server, \
