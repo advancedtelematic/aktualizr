@@ -196,7 +196,8 @@ set_tests_properties(test_log_negative
                      PROPERTIES PASS_REGULAR_EXPRESSION "Invalid log level")
 
 add_test(NAME test_ip_secondary
-         COMMAND ${PROJECT_SOURCE_DIR}/tests/ipsecondary_test.py --build-dir ${PROJECT_BINARY_DIR})
+         COMMAND ${PROJECT_SOURCE_DIR}/tests/ipsecondary_test.py
+         --build-dir ${PROJECT_BINARY_DIR} --src-dir ${PROJECT_SOURCE_DIR})
 
 add_executable(aktualizr-cycle-simple aktualizr_cycle_simple.cc)
 target_link_libraries(aktualizr-cycle-simple aktualizr_static_lib ${AKTUALIZR_EXTERNAL_LIBS})

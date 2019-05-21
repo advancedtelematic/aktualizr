@@ -307,24 +307,31 @@ def with_secondary(start=True, id=('secondary-hw-ID-001', str(uuid4())),
     return decorator
 
 
+class KeyStore:
+    base_dir = "./"
+
+    @staticmethod
+    def ca():
+        return path.join(KeyStore.base_dir, 'tests/test_data/prov_selfupdate/ca.pem')
+
+    @staticmethod
+    def pkey():
+        return path.join(KeyStore.base_dir, 'tests/test_data/prov_selfupdate/pkey.pem')
+
+    @staticmethod
+    def cert():
+        return path.join(KeyStore.base_dir, 'tests/test_data/prov_selfupdate/client.pem')
+
+
 def with_aktualizr(start=True, output_logs=True, id=('primary-hw-ID-001', str(uuid4())), wait_timeout=60,
                    aktualizr_primary_exe='src/aktualizr_primary/aktualizr',
-                   aktualizr_info_exe='src/aktualizr_info/aktualizr-info',
-                   ca='../tests/test_data/prov_selfupdate/ca.pem',
-                   pkey='../tests/test_data/prov_selfupdate/pkey.pem',
-                   cert='../tests/test_data/prov_selfupdate/client.pem'):
+                   aktualizr_info_exe='src/aktualizr_info/aktualizr-info'):
     def decorator(test):
         @wraps(test)
         def wrapper(*args, **kwargs):
-            # default argument value is evaluated before execution of the script so
-            # we cannot determine absolute path for a current working dir at
-            # function declaration if CWD is changed during the script execution
-            ca_abs = path.abspath(ca)
-            pkey_abs = path.abspath(pkey)
-            cert_abs = path.abspath(cert)
             aktualizr = Aktualizr(aktualizr_primary_exe=aktualizr_primary_exe,
                            aktualizr_info_exe=aktualizr_info_exe,
-                           id=id, ca=ca_abs, pkey=pkey_abs, cert=cert_abs,
+                           id=id, ca=KeyStore.ca(), pkey=KeyStore.pkey(), cert=KeyStore.cert(),
                            server_url='http://localhost:{}'.format(kwargs['uptane_server'].port),
                            secondary=kwargs.get('secondary'), wait_timeout=wait_timeout, output_logs=output_logs)
             if start:
@@ -471,8 +478,10 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Test IP Secondary')
     parser.add_argument('-b', '--build-dir', help='build directory', default='build')
+    parser.add_argument('-s', '--src-dir', help='source directory', default='.')
     input_params = parser.parse_args()
 
+    KeyStore.base_dir = input_params.src_dir
     initial_cwd = getcwd()
     chdir(input_params.build_dir)
 
