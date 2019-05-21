@@ -1,11 +1,20 @@
 #!/usr/bin/python3
 
 import argparse
+import contextlib
+import multiprocessing
+import logging
+import os
 import sys
 import socket
+import socketserver
 
 from http.server import SimpleHTTPRequestHandler, HTTPServer
+from os import path
 from time import sleep
+
+
+logger = logging.getLogger("fake_test_server")
 
 
 class FailInjector:
@@ -119,7 +128,7 @@ class Handler(SimpleHTTPRequestHandler):
         if self.path == '/devices':
             self.send_response(200)
             self.end_headers()
-            with open('tests/test_data/cred.p12', 'rb') as source:
+            with open(path.join(self.server.srcdir, 'tests/test_data/cred.p12'), 'rb') as source:
                 while True:
                     data = source.read(1024)
                     if not data:
@@ -160,16 +169,53 @@ class Handler(SimpleHTTPRequestHandler):
         self.do_POST()
 
 
-class ReUseHTTPServer(HTTPServer):
-    def __init__(self, addr, meta_path, target_path, fail_injector=None):
+class FakeTestServer(socketserver.ThreadingMixIn, HTTPServer):
+    def __init__(self, addr, meta_path, target_path, srcdir=None, fail_injector=None):
         super(HTTPServer, self).__init__(server_address=addr, RequestHandlerClass=Handler)
         self.meta_path = meta_path
-        self.target_path = target_path
+        if target_path is not None:
+            self.target_path = target_path
+        elif meta_path is not None:
+            self.target_path = path.join(meta_path, 'repo/image/targets')
+        else:
+            self.target_path = None
         self.fail_injector = fail_injector
+        self.srcdir = srcdir if srcdir is not None else os.getcwd()
 
     def server_bind(self):
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         HTTPServer.server_bind(self)
+
+
+class FakeTestServerBackground:
+
+    def __init__(self, meta_path, target_path=None, srcdir=None, port=0):
+        if srcdir is None:
+            srcdir = os.getcwd()
+        self._httpd = FakeTestServer(addr=('', port), meta_path=meta_path,
+                                     target_path=target_path, srcdir=srcdir)
+        self._server_process = self.__class__.Process(target=self._httpd.serve_forever)
+
+    class Process(multiprocessing.Process):
+        def run(self):
+            with open(os.devnull, 'w') as devnull_fd:
+                with contextlib.redirect_stdout(devnull_fd),\
+                        contextlib.redirect_stderr(devnull_fd):
+                    super(multiprocessing.Process, self).run()
+
+    @property
+    def port(self):
+        return self._httpd.server_port
+
+    def __enter__(self):
+        self._server_process.start()
+        logger.debug("Uptane server running and listening: {}".format(self.port))
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._server_process.terminate()
+        self._server_process.join(timeout=10)
+        logger.debug("Uptane server has been stopped")
 
 
 def main():
@@ -178,10 +224,12 @@ def main():
     parser.add_argument('-t', '--targets', help='targets directory', default=None)
     parser.add_argument('-m', '--meta', help='meta directory', default=None)
     parser.add_argument('-f', '--fail', help='enable intermittent failure', action='store_true')
+    parser.add_argument('-s', '--srcdir', help='path to the aktualizr source directory')
     args = parser.parse_args()
 
-    httpd = ReUseHTTPServer(('', args.port), meta_path=args.meta, target_path=args.targets,
-                            fail_injector=FailInjector() if args.fail else None)
+    httpd = FakeTestServer(('', args.port), meta_path=args.meta,
+                           target_path=args.targets, srcdir=args.srcdir,
+                           fail_injector=FailInjector() if args.fail else None)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

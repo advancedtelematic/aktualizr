@@ -198,6 +198,19 @@ set_tests_properties(test_log_negative
 add_test(NAME test_ip_secondary
          COMMAND ${PROJECT_SOURCE_DIR}/tests/ipsecondary_test.py --build-dir ${PROJECT_BINARY_DIR})
 
+add_executable(aktualizr-cycle-simple aktualizr_cycle_simple.cc)
+target_link_libraries(aktualizr-cycle-simple aktualizr_static_lib ${AKTUALIZR_EXTERNAL_LIBS})
+aktualizr_source_file_checks(aktualizr_cycle_simple.cc)
+add_dependencies(build_tests aktualizr-cycle-simple)
+
+if(FAULT_INJECTION)
+    # run with a very small amount of tests on CI, should be more useful when
+    # run for several hours
+    add_test(NAME test_io_failure COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/test_io_failure.py
+        --akt-repo $<TARGET_FILE:aktualizr-repo> --akt-test $<TARGET_FILE:aktualizr-cycle-simple> -n 50 -j 10
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+endif(FAULT_INJECTION)
+
 add_dependencies(qa check)
 
 aktualizr_source_file_checks(${TEST_SOURCES})
