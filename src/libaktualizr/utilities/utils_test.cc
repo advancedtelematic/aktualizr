@@ -328,6 +328,19 @@ TEST(Utils, shell) {
   EXPECT_NE(statuscode, 0);
 }
 
+TEST(Utils, createSecureDirectory) {
+  TemporaryDirectory temp_dir;
+
+  EXPECT_TRUE(Utils::createSecureDirectory(temp_dir / "sec"));
+  EXPECT_TRUE(boost::filesystem::is_directory(temp_dir / "sec"));
+  // check that it succeeds the second time
+  EXPECT_TRUE(Utils::createSecureDirectory(temp_dir / "sec"));
+
+  // regular directory is insecure
+  boost::filesystem::create_directory(temp_dir / "unsec");
+  EXPECT_FALSE(Utils::createSecureDirectory(temp_dir / "unsec"));
+}
+
 TEST(Utils, urlencode) { EXPECT_EQ(Utils::urlEncode("test! test@ test#"), "test%21%20test%40%20test%23"); }
 
 TEST(Utils, getDirEntriesByExt) {

@@ -58,22 +58,12 @@ void BootloaderConfig::writeToStream(std::ostream& out_stream) const {
 Bootloader::Bootloader(const BootloaderConfig& config, INvStorage& storage) : config_(config), storage_(storage) {
   reboot_sentinel_ = config_.reboot_sentinel_dir / config_.reboot_sentinel_name;
 
-  if (mkdir(config_.reboot_sentinel_dir.c_str(), S_IRWXU) == -1) {
-    struct stat st {};
-    int ret = stat(config_.reboot_sentinel_dir.c_str(), &st);
-    // checks: - stat succeeded
-    //         - is a directory
-    //         - no read and write permissions for group and others
-    //         - owner is current user
-    if (ret < 0 || ((st.st_mode & S_IFDIR) == 0) || (st.st_mode & (S_IRGRP | S_IROTH | S_IWGRP | S_IWOTH)) != 0 ||
-        (st.st_uid != getuid())) {
-      LOG_WARNING << "Could not create " << config_.reboot_sentinel_dir
-                  << " securely, reboot detection support disabled";
-      reboot_detect_supported_ = false;
-      return;
-    }
-    // mdkir failed but directory is here with correct permissions
+  if (!Utils::createSecureDirectory(config_.reboot_sentinel_dir)) {
+    LOG_WARNING << "Could not create " << config_.reboot_sentinel_dir << " securely, reboot detection support disabled";
+    reboot_detect_supported_ = false;
+    return;
   }
+
   reboot_detect_supported_ = true;
 }
 
