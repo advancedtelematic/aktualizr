@@ -169,9 +169,59 @@ TEST(config, TomlConsistentNonempty) {
   EXPECT_EQ(conf_str1, conf_str2);
 }
 
+static std::vector<boost::filesystem::path> generate_multi_config(TemporaryDirectory &temp_dir) {
+  std::string content;
+  {
+    content += "[storage]\n";
+    content += "path = \"path_a\"\n";
+    content += "\n";
+    content += "[pacman]\n";
+    content += "os = \"os_a\"";
+  }
+  Utils::writeFile((temp_dir / "a_dir/a.toml"), content);
+
+  content.clear();
+  {
+    content += "[storage]\n";
+    content += "path = \"path_z\"\n";
+    content += "\n";
+    content += "[pacman]\n";
+    content += "sysroot = \"sysroot_z\"";
+  }
+  Utils::writeFile((temp_dir / "a_dir/z.toml"), content);
+
+  content.clear();
+  {
+    content += "[storage]\n";
+    content += "path = \"cecond_a\"";
+  }
+  Utils::writeFile((temp_dir / "b_dir/a.toml"), content);
+
+  content.clear();
+  {
+    content += "[storage]\n";
+    content += "path = \"latest_path\"\n";
+    content += "\n";
+    content += "[provision]\n";
+    content += "provision_path = \"y_prov_path\"";
+  }
+  Utils::writeFile((temp_dir / "b_dir/y.toml"), content);
+
+  content.clear();
+  {
+    content += "[storage]\n";
+    content += "path = \"this is path from text file\"";
+  }
+  Utils::writeFile((temp_dir / "b_dir/z.txt"), content);
+
+  return std::vector<boost::filesystem::path>{(temp_dir / "a_dir"), (temp_dir / "b_dir")};
+}
 /* Parse multiple config files in a directory. */
 TEST(config, OneDir) {
-  Config config(std::vector<boost::filesystem::path>{"tests/test_data/config_dirs/one_dir"});
+  TemporaryDirectory temp_dir;
+  std::vector<boost::filesystem::path> dirs = generate_multi_config(temp_dir);
+
+  Config config(std::vector<boost::filesystem::path>{dirs[0]});
   EXPECT_EQ(config.storage.path.string(), "path_z");
   EXPECT_EQ(config.pacman.sysroot.string(), "sysroot_z");
   EXPECT_EQ(config.pacman.os, "os_a");
@@ -179,9 +229,10 @@ TEST(config, OneDir) {
 
 /* Parse multiple config files in multiple directories. */
 TEST(config, TwoDirs) {
-  std::vector<boost::filesystem::path> config_dirs{"tests/test_data/config_dirs/one_dir",
-                                                   "tests/test_data/config_dirs/second_one_dir"};
-  Config config(config_dirs);
+  TemporaryDirectory temp_dir;
+  std::vector<boost::filesystem::path> dirs = generate_multi_config(temp_dir);
+
+  Config config(dirs);
   EXPECT_EQ(config.storage.path.string(), "path_z");
   EXPECT_EQ(config.pacman.sysroot.string(), "sysroot_z");
   EXPECT_NE(config.pacman.os, "os_a");

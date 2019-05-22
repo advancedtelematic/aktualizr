@@ -1,5 +1,0 @@
-[storage]
-path = "path_z"
-
-[pacman]
-sysroot = "sysroot_z"
