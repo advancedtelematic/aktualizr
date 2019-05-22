@@ -36,6 +36,8 @@ void logger_set_threshold(boost::log::trivial::severity_level threshold);
 
 void logger_set_threshold(const LoggerConfig& lconfig);
 
+void logger_set_enable(bool enabled);
+
 int loggerGetSeverity();
 
 #endif
