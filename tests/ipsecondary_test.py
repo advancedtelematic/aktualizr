@@ -216,7 +216,7 @@ class Aktualizr:
         subprocess.run([self._aktualizr_primary_exe, '-c', self._config_file, '--run-mode', run_mode], check=True)
 
     def get_info(self):
-        return str(subprocess.check_output([self._aktualizr_info_exe, '-c', self._config_file]))
+        return str(subprocess.check_output([self._aktualizr_info_exe, '-c', self._config_file, "--info"]))
 
     # ugly stuff that could be removed if Aktualizr had exposed API to check status
     # or aktializr-info had output status/info in a structured way (e.g. json)

@@ -108,7 +108,7 @@ TEST_F(AktualizrInfoTest, PrintPrimaryAndSecondaryInfo) {
   db_storage_->storeEcuRegistered();
   db_storage_->storeRoot(director_root, Uptane::RepositoryType::Director(), Uptane::Version(1));
 
-  aktualizr_info_process_.run();
+  aktualizr_info_process_.run(std::vector<std::string>{"--info"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
@@ -136,12 +136,8 @@ TEST_F(AktualizrInfoTest, PrintProvisioningAndMetadataNegative) {
 
   db_storage_->storeEcuSerials({{Uptane::EcuSerial(primary_ecu_serial), Uptane::HardwareIdentifier(primary_ecu_id)}});
 
-  aktualizr_info_process_.run();
+  aktualizr_info_process_.run(std::vector<std::string>{"--info"});
   ASSERT_FALSE(aktualizr_info_output.empty());
-
-  EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
-  EXPECT_NE(aktualizr_info_output.find(primary_ecu_serial), std::string::npos);
-  EXPECT_NE(aktualizr_info_output.find(primary_ecu_id), std::string::npos);
 
   EXPECT_NE(aktualizr_info_output.find(provisioning_status), std::string::npos);
   EXPECT_NE(aktualizr_info_output.find(fetched_metadata), std::string::npos);
@@ -177,12 +173,8 @@ TEST_F(AktualizrInfoTest, PrintSecondaryNotRegisteredOrRemoved) {
                                        {Uptane::EcuSerial(secondary_ecu_serial_old),
                                         Uptane::HardwareIdentifier(secondary_ecu_id_old), EcuState::kOld}});
 
-  aktualizr_info_process_.run();
+  aktualizr_info_process_.run(std::vector<std::string>{"--info"});
   ASSERT_FALSE(aktualizr_info_output.empty());
-
-  EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
-  EXPECT_NE(aktualizr_info_output.find(primary_ecu_serial), std::string::npos);
-  EXPECT_NE(aktualizr_info_output.find(primary_ecu_id), std::string::npos);
 
   EXPECT_NE(aktualizr_info_output.find("\'18b018a1-fdda-4461-a281-42237256cc2f\' with hardware_id "
                                        "\'secondary-hdwr-cbce3a7a-7cbb-4da4-9fff-8e10e5c3de98\'"
@@ -216,11 +208,6 @@ TEST_F(AktualizrInfoTest, PrintImageRootMetadata) {
   aktualizr_info_process_.run(std::vector<std::string>{"--images-root"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
-  EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
-  EXPECT_NE(aktualizr_info_output.find(primary_ecu_serial), std::string::npos);
-  EXPECT_NE(aktualizr_info_output.find(primary_ecu_id), std::string::npos);
-
-  EXPECT_NE(aktualizr_info_output.find("image root.json content:"), std::string::npos);
   EXPECT_NE(aktualizr_info_output.find(images_root), std::string::npos);
 }
 
@@ -250,11 +237,6 @@ TEST_F(AktualizrInfoTest, PrintImageTargetsMetadata) {
   aktualizr_info_process_.run({"--images-target"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
-  EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
-  EXPECT_NE(aktualizr_info_output.find(primary_ecu_serial), std::string::npos);
-  EXPECT_NE(aktualizr_info_output.find(primary_ecu_id), std::string::npos);
-
-  EXPECT_NE(aktualizr_info_output.find("image targets.json content:"), std::string::npos);
   EXPECT_NE(aktualizr_info_output.find(image_targets_str), std::string::npos);
 }
 
@@ -278,11 +260,6 @@ TEST_F(AktualizrInfoTest, PrintDirectorRootMetadata) {
   aktualizr_info_process_.run({"--director-root"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
-  EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
-  EXPECT_NE(aktualizr_info_output.find(primary_ecu_serial), std::string::npos);
-  EXPECT_NE(aktualizr_info_output.find(primary_ecu_id), std::string::npos);
-
-  EXPECT_NE(aktualizr_info_output.find("director root.json content:"), std::string::npos);
   EXPECT_NE(aktualizr_info_output.find(director_root), std::string::npos);
 }
 
@@ -311,11 +288,6 @@ TEST_F(AktualizrInfoTest, PrintDirectorTargetsMetadata) {
   aktualizr_info_process_.run({"--director-target"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
-  EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
-  EXPECT_NE(aktualizr_info_output.find(primary_ecu_serial), std::string::npos);
-  EXPECT_NE(aktualizr_info_output.find(primary_ecu_id), std::string::npos);
-
-  EXPECT_NE(aktualizr_info_output.find("director targets.json content:"), std::string::npos);
   EXPECT_NE(aktualizr_info_output.find(director_targets_str), std::string::npos);
 }
 
@@ -325,6 +297,8 @@ TEST_F(AktualizrInfoTest, PrintDirectorTargetsMetadata) {
  * Checks actions:
  *
  *  - [x] Print primary ECU keys
+ *  - [x] Print ECU public key
+ *  - [x] Print ECU private key
  */
 TEST_F(AktualizrInfoTest, PrintPrimaryEcuKeys) {
   db_storage_->storeEcuSerials({{Uptane::EcuSerial(primary_ecu_serial), Uptane::HardwareIdentifier(primary_ecu_id)}});
@@ -337,14 +311,18 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuKeys) {
   aktualizr_info_process_.run({"--ecu-keys"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
-  EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
-  EXPECT_NE(aktualizr_info_output.find(primary_ecu_serial), std::string::npos);
-  EXPECT_NE(aktualizr_info_output.find(primary_ecu_id), std::string::npos);
-
   EXPECT_NE(aktualizr_info_output.find("Public key:"), std::string::npos);
   EXPECT_NE(aktualizr_info_output.find(public_key), std::string::npos);
 
   EXPECT_NE(aktualizr_info_output.find("Private key:"), std::string::npos);
+  EXPECT_NE(aktualizr_info_output.find(private_key), std::string::npos);
+
+  aktualizr_info_process_.run({"--ecu-pub-key"});
+  ASSERT_FALSE(aktualizr_info_output.empty());
+  EXPECT_NE(aktualizr_info_output.find(public_key), std::string::npos);
+
+  aktualizr_info_process_.run({"--ecu-prv-key"});
+  ASSERT_FALSE(aktualizr_info_output.empty());
   EXPECT_NE(aktualizr_info_output.find(private_key), std::string::npos);
 }
 
@@ -354,6 +332,9 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuKeys) {
  * Checks actions:
  *
  *  - [x] Print TLS credentials
+ *  - [x] Print TLS Root CA
+ *  - [x] Print TLS client certificate
+ *  - [x] Print TLS client private key
  */
 TEST_F(AktualizrInfoTest, PrintTlsCredentials) {
   db_storage_->storeEcuSerials({{Uptane::EcuSerial(primary_ecu_serial), Uptane::HardwareIdentifier(primary_ecu_id)}});
@@ -368,10 +349,6 @@ TEST_F(AktualizrInfoTest, PrintTlsCredentials) {
   aktualizr_info_process_.run({"--tls-creds"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
-  EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
-  EXPECT_NE(aktualizr_info_output.find(primary_ecu_serial), std::string::npos);
-  EXPECT_NE(aktualizr_info_output.find(primary_ecu_id), std::string::npos);
-
   EXPECT_NE(aktualizr_info_output.find("Root CA certificate:"), std::string::npos);
   EXPECT_NE(aktualizr_info_output.find(ca), std::string::npos);
 
@@ -379,6 +356,18 @@ TEST_F(AktualizrInfoTest, PrintTlsCredentials) {
   EXPECT_NE(aktualizr_info_output.find(cert), std::string::npos);
 
   EXPECT_NE(aktualizr_info_output.find("Client private key:"), std::string::npos);
+  EXPECT_NE(aktualizr_info_output.find(private_key), std::string::npos);
+
+  aktualizr_info_process_.run({"--tls-root-ca"});
+  ASSERT_FALSE(aktualizr_info_output.empty());
+  EXPECT_NE(aktualizr_info_output.find(ca), std::string::npos);
+
+  aktualizr_info_process_.run({"--tls-cert"});
+  ASSERT_FALSE(aktualizr_info_output.empty());
+  EXPECT_NE(aktualizr_info_output.find(cert), std::string::npos);
+
+  aktualizr_info_process_.run({"--tls-prv-key"});
+  ASSERT_FALSE(aktualizr_info_output.empty());
   EXPECT_NE(aktualizr_info_output.find(private_key), std::string::npos);
 }
 
@@ -403,12 +392,8 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersions) {
       {"update-01.bin", {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
       InstalledVersionUpdateMode::kPending);
 
-  aktualizr_info_process_.run();
+  aktualizr_info_process_.run(std::vector<std::string>{"--info"});
   ASSERT_FALSE(aktualizr_info_output.empty());
-
-  EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
-  EXPECT_NE(aktualizr_info_output.find(primary_ecu_serial), std::string::npos);
-  EXPECT_NE(aktualizr_info_output.find(primary_ecu_id), std::string::npos);
 
   EXPECT_NE(aktualizr_info_output.find("Current primary ecu running version: " + current_ecu_version),
             std::string::npos);
@@ -428,7 +413,7 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
 
   const std::string pending_ecu_version = "9636753d-2a09-4c80-8b25-64b2c2d0c4df";
 
-  aktualizr_info_process_.run();
+  aktualizr_info_process_.run(std::vector<std::string>{"--info"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
@@ -442,7 +427,7 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
       {"update-01.bin", {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
       InstalledVersionUpdateMode::kPending);
 
-  aktualizr_info_process_.run();
+  aktualizr_info_process_.run(std::vector<std::string>{"--info"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find("No currently running version on primary ecu"), std::string::npos);
@@ -452,7 +437,7 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
       {"update-01.bin", {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
       InstalledVersionUpdateMode::kCurrent);
 
-  aktualizr_info_process_.run();
+  aktualizr_info_process_.run(std::vector<std::string>{"--info"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   // pending ecu version became the current now
@@ -489,7 +474,7 @@ TEST_F(AktualizrInfoTest, PrintSecondaryEcuCurrentAndPendingVersions) {
       secondary_ecu_serial, {secondary_ecu_filename_update, {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1},
       InstalledVersionUpdateMode::kPending);
 
-  aktualizr_info_process_.run();
+  aktualizr_info_process_.run(std::vector<std::string>{"--info"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find("installed image hash: " + current_ecu_version), std::string::npos);
@@ -504,7 +489,7 @@ TEST_F(AktualizrInfoTest, PrintSecondaryEcuCurrentAndPendingVersions) {
       {{Uptane::EcuSerial(primary_ecu_serial), Uptane::HardwareIdentifier(primary_ecu_id)},
        {Uptane::EcuSerial(secondary_ecu_serial), Uptane::HardwareIdentifier(secondary_ecu_id)}});
 
-  aktualizr_info_process_.run();
+  aktualizr_info_process_.run(std::vector<std::string>{"--info"});
   ASSERT_FALSE(aktualizr_info_output.empty());
   EXPECT_NE(aktualizr_info_output.find("no details about installed nor pending images"), std::string::npos);
 }
@@ -520,7 +505,7 @@ TEST_F(AktualizrInfoTest, PrintDeviceNameOnly) {
   db_storage_->storeEcuRegistered();
   db_storage_->storeRoot(director_root, Uptane::RepositoryType::Director(), Uptane::Version(1));
 
-  aktualizr_info_process_.run({"--name-only", "--loglevel", "4"});
+  aktualizr_info_process_.run({"--name-only"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_EQ(aktualizr_info_output, device_id + "\n");
@@ -619,7 +604,6 @@ TEST_F(AktualizrInfoTest, PrintImageSnapshotMetadata) {
   aktualizr_info_process_.run({"--images-snapshot"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
-  EXPECT_NE(aktualizr_info_output.find("snapshot.json content:"), std::string::npos);
   EXPECT_NE(aktualizr_info_output.find(images_snapshot), std::string::npos);
 }
 
@@ -645,7 +629,6 @@ TEST_F(AktualizrInfoTest, PrintImageTimestampMetadata) {
   aktualizr_info_process_.run({"--images-timestamp"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
-  EXPECT_NE(aktualizr_info_output.find("timestamp.json content:"), std::string::npos);
   EXPECT_NE(aktualizr_info_output.find(images_timestamp), std::string::npos);
 }
 
