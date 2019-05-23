@@ -675,6 +675,23 @@ void Utils::createDirectories(const boost::filesystem::path &path, mode_t mode) 
   std::cout << "created: " << path.native() << "\n";
 }
 
+bool Utils::createSecureDirectory(const boost::filesystem::path &path) {
+  if (mkdir(path.c_str(), S_IRWXU) == 0) {
+    // directory created successfully
+    return true;
+  }
+
+  // mkdir failed, see if the directory already exists with correct permissions
+  struct stat st {};
+  int ret = stat(path.c_str(), &st);
+  // checks: - stat succeeded
+  //         - is a directory
+  //         - no read and write permissions for group and others
+  //         - owner is current user
+  return (ret >= 0 && ((st.st_mode & S_IFDIR) == S_IFDIR) && (st.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO)) == S_IRWXU &&
+          (st.st_uid == getuid()));
+}
+
 std::string Utils::urlEncode(const std::string &input) {
   std::string res;
 

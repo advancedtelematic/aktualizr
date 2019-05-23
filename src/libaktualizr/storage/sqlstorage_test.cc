@@ -396,26 +396,29 @@ TEST(sqlstorage, migrate_from_fs) {
   // (anonymized data)
   Utils::copyDir(test_data_dir / "fs_snapshot", config.path);
   ASSERT_GE(chmod(config.path.c_str(), S_IRWXU), 0);
-  auto storage = INvStorage::newStorage(config);
 
-  EXPECT_TRUE(storage->loadPrimaryKeys(nullptr, nullptr));
-  EXPECT_TRUE(storage->loadTlsCreds(nullptr, nullptr, nullptr));
-  EXPECT_TRUE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Director()));
-  EXPECT_TRUE(storage->loadDeviceId(nullptr));
+  {
+    auto storage = INvStorage::newStorage(config);
 
-  EcuSerials serials;
-  EXPECT_TRUE(storage->loadEcuSerials(&serials));
-  EXPECT_EQ(serials.size(), 3);
+    EXPECT_TRUE(storage->loadPrimaryKeys(nullptr, nullptr));
+    EXPECT_TRUE(storage->loadTlsCreds(nullptr, nullptr, nullptr));
+    EXPECT_TRUE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Director()));
+    EXPECT_TRUE(storage->loadDeviceId(nullptr));
 
-  std::vector<MisconfiguredEcu> misconfigured;
-  EXPECT_TRUE(storage->loadMisconfiguredEcus(&misconfigured));
-  EXPECT_EQ(misconfigured.size(), 1);
+    EcuSerials serials;
+    EXPECT_TRUE(storage->loadEcuSerials(&serials));
+    EXPECT_EQ(serials.size(), 3);
 
-  EXPECT_TRUE(storage->loadEcuRegistered());
+    std::vector<MisconfiguredEcu> misconfigured;
+    EXPECT_TRUE(storage->loadMisconfiguredEcus(&misconfigured));
+    EXPECT_EQ(misconfigured.size(), 1);
 
-  std::vector<Uptane::Target> installed;
-  storage->loadPrimaryInstalledVersions(&installed, nullptr, nullptr);
-  EXPECT_NE(installed.size(), 0);
+    EXPECT_TRUE(storage->loadEcuRegistered());
+
+    std::vector<Uptane::Target> installed;
+    storage->loadPrimaryInstalledVersions(&installed, nullptr, nullptr);
+    EXPECT_NE(installed.size(), 0);
+  }
 
   // note: installation result is not migrated anymore
 
