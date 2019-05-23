@@ -44,6 +44,8 @@ class AktualizrInfoTest : public ::testing::Test {
         : Process("./aktualizr-info"), test_ctx_{test_ctx}, conf_file_{conf_file} {}
     virtual ~AktualizrInfoProcess() {}
 
+    int exit_status = EXIT_SUCCESS;
+
     void run(const std::vector<std::string> args = {}) {
       std::vector<std::string> all_args = {"-c", conf_file_.string()};
 
@@ -53,8 +55,9 @@ class AktualizrInfoTest : public ::testing::Test {
 
       test_ctx_.aktualizr_info_output.clear();
       Process::run(all_args);
-      ASSERT_EQ(lastExitCode(), EXIT_SUCCESS);
+      ASSERT_EQ(lastExitCode(), exit_status);
       test_ctx_.aktualizr_info_output = lastStdOut();
+      exit_status = EXIT_SUCCESS;
     }
 
    private:
@@ -108,7 +111,7 @@ TEST_F(AktualizrInfoTest, PrintPrimaryAndSecondaryInfo) {
   db_storage_->storeEcuRegistered();
   db_storage_->storeRoot(director_root, Uptane::RepositoryType::Director(), Uptane::Version(1));
 
-  aktualizr_info_process_.run(std::vector<std::string>{"--info"});
+  aktualizr_info_process_.run();
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
@@ -136,7 +139,7 @@ TEST_F(AktualizrInfoTest, PrintProvisioningAndMetadataNegative) {
 
   db_storage_->storeEcuSerials({{Uptane::EcuSerial(primary_ecu_serial), Uptane::HardwareIdentifier(primary_ecu_id)}});
 
-  aktualizr_info_process_.run(std::vector<std::string>{"--info"});
+  aktualizr_info_process_.run();
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find(provisioning_status), std::string::npos);
@@ -173,7 +176,7 @@ TEST_F(AktualizrInfoTest, PrintSecondaryNotRegisteredOrRemoved) {
                                        {Uptane::EcuSerial(secondary_ecu_serial_old),
                                         Uptane::HardwareIdentifier(secondary_ecu_id_old), EcuState::kOld}});
 
-  aktualizr_info_process_.run(std::vector<std::string>{"--info"});
+  aktualizr_info_process_.run();
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find("\'18b018a1-fdda-4461-a281-42237256cc2f\' with hardware_id "
@@ -392,7 +395,7 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersions) {
       {"update-01.bin", {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
       InstalledVersionUpdateMode::kPending);
 
-  aktualizr_info_process_.run(std::vector<std::string>{"--info"});
+  aktualizr_info_process_.run();
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find("Current primary ecu running version: " + current_ecu_version),
@@ -413,7 +416,7 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
 
   const std::string pending_ecu_version = "9636753d-2a09-4c80-8b25-64b2c2d0c4df";
 
-  aktualizr_info_process_.run(std::vector<std::string>{"--info"});
+  aktualizr_info_process_.run();
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
@@ -427,7 +430,7 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
       {"update-01.bin", {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
       InstalledVersionUpdateMode::kPending);
 
-  aktualizr_info_process_.run(std::vector<std::string>{"--info"});
+  aktualizr_info_process_.run();
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find("No currently running version on primary ecu"), std::string::npos);
@@ -437,7 +440,7 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
       {"update-01.bin", {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
       InstalledVersionUpdateMode::kCurrent);
 
-  aktualizr_info_process_.run(std::vector<std::string>{"--info"});
+  aktualizr_info_process_.run();
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   // pending ecu version became the current now
@@ -474,7 +477,7 @@ TEST_F(AktualizrInfoTest, PrintSecondaryEcuCurrentAndPendingVersions) {
       secondary_ecu_serial, {secondary_ecu_filename_update, {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1},
       InstalledVersionUpdateMode::kPending);
 
-  aktualizr_info_process_.run(std::vector<std::string>{"--info"});
+  aktualizr_info_process_.run();
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find("installed image hash: " + current_ecu_version), std::string::npos);
@@ -489,7 +492,7 @@ TEST_F(AktualizrInfoTest, PrintSecondaryEcuCurrentAndPendingVersions) {
       {{Uptane::EcuSerial(primary_ecu_serial), Uptane::HardwareIdentifier(primary_ecu_id)},
        {Uptane::EcuSerial(secondary_ecu_serial), Uptane::HardwareIdentifier(secondary_ecu_id)}});
 
-  aktualizr_info_process_.run(std::vector<std::string>{"--info"});
+  aktualizr_info_process_.run();
   ASSERT_FALSE(aktualizr_info_output.empty());
   EXPECT_NE(aktualizr_info_output.find("no details about installed nor pending images"), std::string::npos);
 }
@@ -551,6 +554,7 @@ TEST_F(AktualizrInfoTest, PrintDelegations) {
 
   // case 0: no delegations in the DB
   {
+    aktualizr_info_process_.exit_status = EXIT_FAILURE;
     aktualizr_info_process_.run({"--delegation"});
     ASSERT_FALSE(aktualizr_info_output.empty());
     EXPECT_NE(aktualizr_info_output.find("Delegations are not present"), std::string::npos);
