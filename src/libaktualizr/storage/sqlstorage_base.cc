@@ -5,6 +5,27 @@
 
 boost::filesystem::path SQLStorageBase::dbPath() const { return sqldb_path_; }
 
+StorageLock::StorageLock(boost::filesystem::path path) : lock_path(std::move(path)) {
+  {
+    std::fstream fs;
+    fs.open(lock_path.c_str(), std::fstream::in | std::fstream::out | std::fstream::app);
+  }
+  fl_ = lock_path.c_str();
+  if (!fl_.try_lock()) {
+    throw StorageLock::locked_exception();
+  }
+}
+
+StorageLock::~StorageLock() {
+  try {
+    if (!lock_path.empty()) {
+      fl_.unlock();
+      std::remove(lock_path.c_str());
+    }
+  } catch (std::exception& e) {
+  }
+}
+
 SQLStorageBase::SQLStorageBase(boost::filesystem::path sqldb_path, bool readonly,
                                std::vector<std::string> schema_migrations,
                                std::vector<std::string> schema_rollback_migrations, std::string current_schema,
@@ -32,6 +53,15 @@ SQLStorageBase::SQLStorageBase(boost::filesystem::path sqldb_path, bool readonly
         throw StorageException("Storage directory has unsafe permissions");
       }
     }
+  }
+
+  try {
+    lock = StorageLock(db_parent_path / "storage.lock");
+  } catch (StorageLock::locked_exception& e) {
+    LOG_WARNING << "\033[31m"
+                << "Storage in " << db_parent_path
+                << " is already in use, running several instances concurrently may result in data corruption!"
+                << "\033[0m";
   }
 
   if (!dbMigrate()) {
