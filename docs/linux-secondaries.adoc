@@ -11,7 +11,7 @@ The second network interface is used for the internal network between the device
 
 == To make it go
 
-Add `SOTA_CLIENT_FEATURES = "secondary-network"` to local.conf. This will configure the primary to search for secondary devices.  Note that only automatic provisioning is supported at the moment.
+Add `SOTA_CLIENT_FEATURES = "secondary-network"` to local.conf. This will configure the primary to search for secondary devices. Currently, you can only provision with shared credentials. Provisioning with device credentials is not yet supported.
 
 Build the primary and secondary images with `bitbake primary-image secondary-image`.
 

@@ -1,0 +1,14 @@
+= Integrate aktualizr into other software
+
+The aktualizr client is designed to be run as a standalone component on an embedded system and can manage the entire software update process. However, you might have requirements that got beyond what the standalone client can provide.
+
+For example, some in-vehicle interfaces are proprietary and under NDA, so their implementation must be kept separate from aktualizr. You might want to integrate the OTA update functionality yourself and minimize the involvement of external consultants.
+
+For this purpose, you can also use libaktualizr to make your own OTA update client. Typical scenarios for making your own client could be:
+
+* You want to integrate OTA Connect functionality with a third-party HMI
+* You want to integrate OTA Connect with a third-party interface that installs software on secondary ECUs
+* You want to constrain network traffic and software updates to specific vehicle states
+* You want to provide motorists or service staff with progress indicators for specific software updates.
+
+To get started with libaktualizr see the  link:../src/hmi_stub[reference client] and the https://advancedtelematic.github.io/aktualizr/class_aktualizr.html[reference documentation].
