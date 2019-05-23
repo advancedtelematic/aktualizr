@@ -94,7 +94,7 @@ class TemporaryDirectory {
 // mandating a base directory for each instantiation
 class BasedPath {
  public:
-  BasedPath(boost::filesystem::path p) : p_(std::move(p)) {}
+  BasedPath(const boost::filesystem::path &p) : p_(std::move(p)) {}
 
   boost::filesystem::path get(const boost::filesystem::path &base) const {
     // note: BasedPath(bp.get()) == bp
