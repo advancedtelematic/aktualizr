@@ -1,7 +1,9 @@
 #include "check.h"
 
+#include <primary/aktualizr.h>
 #include <random>
 #include <string>
+#include "utilities/utils.h"
 
 #include "context.h"
 #include "executor.h"
@@ -11,6 +13,8 @@
 #include "storage/invstorage.h"
 #include "storage/sqlstorage.h"
 #include "uptane/uptanerepository.h"
+
+namespace fs = boost::filesystem;
 
 class EphemeralStorage : public SQLStorage {
  public:
@@ -34,31 +38,21 @@ class EphemeralStorage : public SQLStorage {
 class CheckForUpdate {
   Config config;
 
-  std::shared_ptr<INvStorage> storage;
-
-  std::shared_ptr<HttpClient> httpClient;
+  std::unique_ptr<Aktualizr> aktualizr_ptr;
 
  public:
-  CheckForUpdate(Config config_)
-      : config{config_},
-        storage{EphemeralStorage::newStorage(config.storage)},
-        httpClient{std::make_shared<HttpClient>()} {}
+  CheckForUpdate(Config config_) : config{config_}, aktualizr_ptr{std_::make_unique<Aktualizr>(config)} {
+    try {
+      aktualizr_ptr->Initialize();
+    } catch (...) {
+      LOG_ERROR << "Unable to initialize a device: " << config.storage.path;
+    }
+  }
 
   void operator()() {
     LOG_DEBUG << "Updating a device in " << config.storage.path.native();
-    auto client = SotaUptaneClient::newTestClient(config, storage, httpClient);
     try {
-      std::string pkey;
-      std::string cert;
-      std::string ca;
-      if (storage->loadTlsCreds(&ca, &cert, &pkey)) {
-        httpClient->setCerts(ca, CryptoSource::kFile, cert, CryptoSource::kFile, pkey, CryptoSource::kFile);
-        LOG_DEBUG << "Getting targets";
-        client->updateMeta();
-      } else {
-        LOG_ERROR << "Unable to load device's credentials";
-      }
-      /* repo.authenticate(); */
+      aktualizr_ptr->CheckUpdates().get();
     } catch (const Uptane::MissingRepo &e) {
       LOG_DEBUG << e.what();
     } catch (const std::exception &e) {
@@ -83,7 +77,17 @@ class CheckForUpdateTasks {
     rng.seed(seedGen());
   }
 
-  CheckForUpdate nextTask() { return CheckForUpdate{configs[gen(rng)]}; }
+  CheckForUpdate nextTask() {
+    auto srcConfig = configs[gen(rng)];
+    auto config{srcConfig};
+    config.storage.path = fs::temp_directory_path() / fs::unique_path();
+    LOG_DEBUG << "Copy device " << srcConfig.storage.path << " into " << config.storage.path;
+    fs::create_directory(config.storage.path);
+    fs::permissions(config.storage.path, fs::remove_perms | fs::group_write | fs::others_write);
+    fs::copy_file(srcConfig.storage.sqldb_path.get(srcConfig.storage.path),
+                  config.storage.sqldb_path.get(config.storage.path));
+    return CheckForUpdate{config};
+  }
 };
 
 void checkForUpdates(const boost::filesystem::path &baseDir, const unsigned int rate, const unsigned int nr,
