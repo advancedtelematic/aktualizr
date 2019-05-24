@@ -1,5 +1,0 @@
-[storage]
-path = "path_a"
-
-[pacman]
-os = "os_a"
