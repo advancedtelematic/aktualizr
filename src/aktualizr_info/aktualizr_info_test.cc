@@ -44,8 +44,6 @@ class AktualizrInfoTest : public ::testing::Test {
         : Process("./aktualizr-info"), test_ctx_{test_ctx}, conf_file_{conf_file} {}
     virtual ~AktualizrInfoProcess() {}
 
-    int exit_status = EXIT_SUCCESS;
-
     void run(const std::vector<std::string> args = {}) {
       std::vector<std::string> all_args = {"-c", conf_file_.string()};
 
@@ -55,9 +53,8 @@ class AktualizrInfoTest : public ::testing::Test {
 
       test_ctx_.aktualizr_info_output.clear();
       Process::run(all_args);
-      ASSERT_EQ(lastExitCode(), exit_status);
+      ASSERT_EQ(lastExitCode(), EXIT_SUCCESS);
       test_ctx_.aktualizr_info_output = lastStdOut();
-      exit_status = EXIT_SUCCESS;
     }
 
    private:
@@ -554,7 +551,6 @@ TEST_F(AktualizrInfoTest, PrintDelegations) {
 
   // case 0: no delegations in the DB
   {
-    aktualizr_info_process_.exit_status = EXIT_FAILURE;
     aktualizr_info_process_.run({"--delegation"});
     ASSERT_FALSE(aktualizr_info_output.empty());
     EXPECT_NE(aktualizr_info_output.find("Delegations are not present"), std::string::npos);

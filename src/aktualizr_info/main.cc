@@ -27,7 +27,6 @@ static int loadAndPrintDelegations(const std::shared_ptr<INvStorage> &storage) {
     }
   } else {
     std::cout << "Delegations are not present" << std::endl;
-    return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
 }
@@ -83,7 +82,7 @@ int main(int argc, char **argv) {
     std::string device_id;
     if (!storage->loadDeviceId(&device_id)) {
       std::cout << "Couldn't load device ID" << std::endl;
-      return EXIT_FAILURE;
+      return EXIT_SUCCESS;
     }
 
     if (vm.count("name-only") != 0u) {
@@ -154,76 +153,77 @@ int main(int argc, char **argv) {
     bool has_metadata = storage->loadLatestRoot(&director_root, Uptane::RepositoryType::Director());
 
     // An arguments which depend on metadata.
-    std::string msg_metadata_fail = "Error: Metadata is not available";
+    std::string msg_metadata_fail = "Metadata is not available";
     if (vm.count("images-root") != 0u) {
       if (!has_metadata) {
         std::cout << msg_metadata_fail << std::endl;
-        return EXIT_FAILURE;
+      } else {
+        std::string images_root;
+        storage->loadLatestRoot(&images_root, Uptane::RepositoryType::Image());
+        std::cout << images_root << std::endl;
       }
-      std::string images_root;
-      storage->loadLatestRoot(&images_root, Uptane::RepositoryType::Image());
-      std::cout << images_root << std::endl;
       return EXIT_SUCCESS;
     }
 
     if (vm.count("images-target") != 0u) {
       if (!has_metadata) {
         std::cout << msg_metadata_fail << std::endl;
-        return EXIT_FAILURE;
+      } else {
+        std::string images_targets;
+        storage->loadNonRoot(&images_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets());
+        std::cout << images_targets << std::endl;
       }
-      std::string images_targets;
-      storage->loadNonRoot(&images_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets());
-      std::cout << images_targets << std::endl;
       return EXIT_SUCCESS;
     }
 
     if (vm.count("delegation") != 0u) {
       if (!has_metadata) {
         std::cout << msg_metadata_fail << std::endl;
-        return EXIT_FAILURE;
+        return EXIT_SUCCESS;
+      } else {
+        return loadAndPrintDelegations(storage);
       }
-      return loadAndPrintDelegations(storage);
     }
 
     if (vm.count("director-root") != 0u) {
       if (!has_metadata) {
         std::cout << msg_metadata_fail << std::endl;
-        return EXIT_FAILURE;
+      } else {
+        std::cout << director_root << std::endl;
       }
-      std::cout << director_root << std::endl;
       return EXIT_SUCCESS;
     }
 
     if (vm.count("director-target") != 0u) {
       if (!has_metadata) {
         std::cout << msg_metadata_fail << std::endl;
-        return EXIT_FAILURE;
+      } else {
+        std::string director_targets;
+        storage->loadNonRoot(&director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets());
+        std::cout << director_targets << std::endl;
       }
-      std::string director_targets;
-      storage->loadNonRoot(&director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets());
-      std::cout << director_targets << std::endl;
       return EXIT_SUCCESS;
     }
 
     if (vm.count("images-snapshot") != 0u) {
       if (!has_metadata) {
         std::cout << msg_metadata_fail << std::endl;
-        return EXIT_FAILURE;
+      } else {
+        std::string snapshot;
+        storage->loadNonRoot(&snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot());
+        std::cout << snapshot << std::endl;
       }
-      std::string snapshot;
-      storage->loadNonRoot(&snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot());
-      std::cout << snapshot << std::endl;
       return EXIT_SUCCESS;
     }
 
     if (vm.count("images-timestamp") != 0u) {
       if (!has_metadata) {
         std::cout << msg_metadata_fail << std::endl;
-        return EXIT_FAILURE;
+      } else {
+        std::string timestamp;
+        storage->loadNonRoot(&timestamp, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp());
+        std::cout << timestamp << std::endl;
       }
-      std::string timestamp;
-      storage->loadNonRoot(&timestamp, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp());
-      std::cout << timestamp << std::endl;
       return EXIT_SUCCESS;
     }
 
