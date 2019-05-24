@@ -1,0 +1,18 @@
+[uptane]
+ecu_hardware_id = "local-fake-secondary"
+
+[storage]
+type = "sqlite"
+path = "storage"
+sqldb_path = "secondary.db"
+
+[network]
+port = 9050
+primary_ip = "127.0.0.1"
+primary_port = 9040
+
+[pacman]
+type = "fake"
+
+[logger]
+loglevel = 0

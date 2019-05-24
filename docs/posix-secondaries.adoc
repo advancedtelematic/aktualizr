@@ -1,0 +1,86 @@
+= Posix Secondaries aka IP Secondaries
+
+The goal of this doc is to guide a reader on configuring and running two executables that can be built out of the given repository source code and act as Primary and Secondary correspondingly.
+
+The term `Secondary` is being used as it is defined by link:https://uptane.github.io/uptane-standard/uptane-standard.html[the Uptane standard].
+It refers to ECU, software/firmware/package updates of which are managed by another ECU that hosts and runs Uptane compliant software. The later ECU is called Primary and the sotfware it runs in our case is called aktualizr.
+
+A key component of this repository is libaktualizr which is a library implementing Uptane protocol and providing customers and community with capability to build application(s) one of the purposes of which is to update software/firmware/packages in compliance with the Uptane standard. In addition to libaktualizr, an user can find in this repo another two components:
+
+. *aktualizr*, aka aktualizr primary - a reference implementation of an application utilizing libaktualizr, its binary/executable is called aktualizr. Aktualizr can be used to emulate Primary ECU locally on an user's host;
+. *aktualizr-secondary*, aka posix or IP secondary - a reference implementation intended for running on Secondary ECU and capable to communicate with Primary ECU aktualizr via TCP/IP protocol (implemenation relies on Posix API). Aktualizr-secondary is used to emulate Secondary ECU on an user's host.
+
+
+== *Secondary*
+
+*Build*
+
+The Secondary executable is built by default, thus following build instructions outlined in link:../README.adoc[the repo's README] should do the trick. If the build procedure is completed successfully then aktualizr-secondary can be found in ``<build-dir>/src/aktualizr_secondary/aktualizr-secondary``.
+
+*Configure*
+
+A default configuration of aktualizr-secondary can be found in link:../config/posix_secondary.toml[<src-root>/config/posix_secondary.toml].
+
+Configuration parameters that are worth mentioning are located in [uptane] section:
+
+* `port` - TCP port to listen for a connection from Primary
+* `primary_ip` - IP address of Primary ECU
+* `primary_port` - TCP port that Primary's aktualizr listen on for a connection from Secondary
+
+More details on the configuration in general and specific parameters can be found here link:../docs/configuration.adoc[configuration details]
+
+*Run*
+
+``<build-dir>/src/aktualizr_secondary/aktualizr-secondary -c <src-root>/config/posix_secondary.toml``
+Once it's started, you should see a message saying that aktualizr-secondary is listening on the port specified in the config.
+
+
+== *Primary*
+
+*Build*
+
+The Primary executable is built by default, thus following build instructions outlined in link:../README.adoc[the repo's README] should do the trick. If the build procedure is completed successfully then aktualizr executable can be found in ``<build-dir>/src/aktualizr_primary/aktualizr``.
+
+*Configure*
+
+A default configuration of aktualizr acting as Primary can be found in link:../config/sota_local_with_secondaries.toml[<src-root>/config/sota_local_with_secondaries.toml].
+
+Configuration param that is worth mentioning is `[uptane]: secondary_config_file` which specifies a path to secondary(ies) configuration file containing input parameters for aktualizr/Primary to communicate with the secondary(ies). This is a link:../config/posix_secondary_config.json[default secondary configuration for Primary]. In order to use the given default config file please, either copy it into your current working directory or update `[uptane]: secondary_config_file` value so it defines a full path to the secondary config file (e.g. ``<src-root>/config/posix_secondary_config.json``).
+
+Configuration parameters of secondaries for Primary/aktualizr that are worth mentioning are:
+
+* `secondaries_wait_port` - TCP port aktualizr listen on for connections from Secondaries
+* `secondaries_wait_timeout` - timeout (in sec) of waiting for connections from Secondaries. Primary/aktualizr waits for a connection from those secondaries that it failed to connect to at the startup time.
+* `secondaries` -  a list of Secondary TCP/IP addresses
+
+Please, put your credential.zip file into the current working directory or update `[provision] provision_path` in link:../config/sota_local_with_secondaries.toml[the config] so it specifies a full path to your credential file.
+
+*Run*
+
+``<build-dir>/src/aktualizr_primary/aktualizr -c <src-root>/config/sota_local_with_secondaries.toml``
+Once aktualizr is running, check the output for *_Adding Secondary to Aktualizr_* and *_Provisioned successfully on Device Gateway_*. You should then see that a new device has been registered on the server and that it includes two ECUs: your local Primary and Secondary. You can now send updates to either ECU.
+
+== *Tips and Tricks*
+
+* Define an environment variable that points to the aktualizr source root directory on your host. For example:
+....
+echo 'export AKT_PROJ_HOME="<aktualizr-source-root>"' >> ~/.profile
+....
+* Define an environment variable that points to the aktualizr build directory on your host. For example:
+....
+echo 'export AKT_BUILD_DIR="$AKT_PROJ_HOME/build"' >> ~/.profile
+....
+* Use ``$AKT_PROJ_HOME/config/sota_local_with_secondaries.toml`` as the config for your emulated Primary ECU
+* Copy ``$AKT_PROJ_HOME/config/posix_secondary_config.json`` to the directory you run your Primary from, let's call it FAKE_PRIMARY_HOME_DIR further.
+* Copy your credential file ``credentials.zip`` to FAKE_PRIMARY_HOME_DIR
+* Use ``$AKT_PROJ_HOME/config/posix_secondary.toml`` as the config for your emulated Secondary ECU
+* To run the primary launch the following from FAKE_PRIMARY_HOME_DIR
+....
+$AKT_PRIMARY -c $AKT_PROJ_HOME/config/sota_local_with_secondaries.toml
+....
+* To run the secondary launch the following from FAKE_PRIMARY_HOME_DIR (although it can be executed from any directory)
+....
+$AKT_SECNDR -c $AKT_PROJ_HOME/config/posix_secondary.toml
+....
+* Add --loglevel 0 to the aforementioned launch commands if you would like to see more logs
+* To re-register your emulated multi-ECU device (or start playing it from scratch) remove ``storage`` directory from FAKE_PRIMARY_HOME_DIR
