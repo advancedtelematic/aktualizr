@@ -34,5 +34,6 @@ class AktualizrInfoConfig : public BaseConfig {
 
   bool loglevel_from_cmdline{false};
 };
+std::ostream& operator<<(std::ostream& os, const AktualizrInfoConfig& cfg);
 
 #endif  // AKTUALIZR_INFO_CONFIG_H_

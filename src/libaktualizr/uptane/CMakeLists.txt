@@ -6,7 +6,6 @@ set(SOURCES
     partialverificationsecondary.cc
     role.cc
     root.cc
-    secondaryconfig.cc
     secondaryfactory.cc
     tuf.cc
     uptanerepository.cc
@@ -31,6 +30,7 @@ set(HEADERS
 
 
 add_library(uptane OBJECT ${SOURCES})
+target_sources(config PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/secondaryconfig.cc)
 
 if (BUILD_ISOTP)
     target_sources(uptane PRIVATE isotpsecondary.cc)
@@ -73,4 +73,4 @@ add_aktualizr_test(NAME uptane_init SOURCES uptane_init_test.cc PROJECT_WORKING_
 add_aktualizr_test(NAME director SOURCES director_test.cc PROJECT_WORKING_DIRECTORY
                    ARGS "$<TARGET_FILE:aktualizr-repo>")
 
-aktualizr_source_file_checks(${SOURCES} ${HEADERS} isotpsecondary.cc isotpsecondary.h ${TEST_SOURCES})
+aktualizr_source_file_checks(${SOURCES} ${HEADERS} secondaryconfig.cc isotpsecondary.cc isotpsecondary.h ${TEST_SOURCES})

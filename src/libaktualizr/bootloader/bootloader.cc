@@ -7,53 +7,8 @@
 #include <boost/filesystem.hpp>
 
 #include "bootloader.h"
-#include "utilities/config_utils.h"
 #include "utilities/exceptions.h"
 #include "utilities/utils.h"
-
-std::ostream& operator<<(std::ostream& os, const RollbackMode mode) {
-  std::string mode_s;
-  switch (mode) {
-    case RollbackMode::kUbootGeneric:
-      mode_s = "uboot_generic";
-      break;
-    case RollbackMode::kUbootMasked:
-      mode_s = "uboot_masked";
-      break;
-    default:
-      mode_s = "none";
-      break;
-  }
-  os << '"' << mode_s << '"';
-  return os;
-}
-
-template <>
-inline void CopyFromConfig(RollbackMode& dest, const std::string& option_name, const boost::property_tree::ptree& pt) {
-  boost::optional<std::string> value = pt.get_optional<std::string>(option_name);
-  if (value.is_initialized()) {
-    std::string mode{StripQuotesFromStrings(value.get())};
-    if (mode == "uboot_generic") {
-      dest = RollbackMode::kUbootGeneric;
-    } else if (mode == "uboot_masked") {
-      dest = RollbackMode::kUbootMasked;
-    } else {
-      dest = RollbackMode::kBootloaderNone;
-    }
-  }
-}
-
-void BootloaderConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  CopyFromConfig(rollback_mode, "rollback_mode", pt);
-  CopyFromConfig(reboot_sentinel_dir, "reboot_sentinel_dir", pt);
-  CopyFromConfig(reboot_sentinel_name, "reboot_sentinel_name", pt);
-}
-
-void BootloaderConfig::writeToStream(std::ostream& out_stream) const {
-  writeOption(out_stream, rollback_mode, "rollback_mode");
-  writeOption(out_stream, reboot_sentinel_dir, "reboot_sentinel_dir");
-  writeOption(out_stream, reboot_sentinel_name, "reboot_sentinel_name");
-}
 
 Bootloader::Bootloader(const BootloaderConfig& config, INvStorage& storage) : config_(config), storage_(storage) {
   reboot_sentinel_ = config_.reboot_sentinel_dir / config_.reboot_sentinel_name;
