@@ -23,8 +23,8 @@ boost::filesystem::path credentials;
 boost::filesystem::path sysroot;
 
 TEST(UptaneCI, ProvisionAndPutManifest) {
-  // note: see tests/auto_prov_test.py which tests the same functionality, with
-  // the full aktualizr binary
+  // note: see tests/shared_cred_prov_test.py which tests the same
+  // functionality, with the full aktualizr binary
   TemporaryDirectory temp_dir;
   Config config("tests/config/minimal.toml");
   config.provision.provision_path = credentials;

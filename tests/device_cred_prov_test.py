@@ -11,7 +11,7 @@ from prov_test_common import run_subprocess, verify_provisioned
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Run a local implicit provisioning test with aktualizr')
+    parser = argparse.ArgumentParser(description='Run a local device credential provisioning test with aktualizr')
     parser.add_argument('--build-dir', '-b', type=Path, default=Path('../build'), help='build directory')
     parser.add_argument('--credentials', '-c', type=Path, default=Path('.'), help='path to credentials archive')
     args = parser.parse_args()
@@ -44,7 +44,7 @@ tls_pkey_path = "pkey.pem"
 def provision(tmp_dir, build_dir, creds):
     conf_dir = tmp_dir / 'conf.d'
     os.mkdir(str(conf_dir))
-    conf_prov = conf_dir / '20-implicit_prov.toml'
+    conf_prov = conf_dir / '20-device-cred-prov.toml'
     with conf_prov.open('w') as f:
         f.write(CONFIG_TEMPLATE.format(tmp_dir=tmp_dir))
     akt = build_dir / 'src/aktualizr_primary/aktualizr'

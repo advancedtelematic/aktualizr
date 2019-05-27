@@ -23,13 +23,13 @@ These are the primary actions that a user of libaktualizr can perform through th
     - [x] Update is not in pending state anymore after successful finalization (aktualizr_test.cc)
     - [x] Update is not in pending state anymore after failed finalization (aktualizr_test.cc)
   - [x] Provision with the server
-    - [x] Automatically provision (OTA-983, uptane_init_test.cc, uptane_ci_test.cc, auto_prov_test.py)
+    - [x] Provision with shared credentials (OTA-983, uptane_init_test.cc, uptane_ci_test.cc, shared_cred_prov_test.py)
       - [x] Extract credentials from a provided archive (config_test.cc, utils_test.cc)
       - [x] Parse a p12 file containing TLS credentials (crypto_test.cc)
       - [x] aktualizr possesses all necessary credentials after provisioning (OTA-987, uptane_key_test.cc)
-    - [x] Implicitly provision (OTA-996, OTA-1210, config_test.cc, uptane_implicit_test.cc, uptane_test.cc, implicit_prov_test.py)
+    - [x] Provision with device credentials (OTA-996, OTA-1210, config_test.cc, uptane_implicit_test.cc, uptane_test.cc, device_cred_prov_test.py)
       - [x] Fail if TLS credentials are unavailable (OTA-1209, uptane_implicit_test.cc)
-    - [x] Implicitly provision with keys accessed via PKCS#11 (hsm_prov_test.py)
+    - [x] Provision with device credentials using keys accessed via PKCS#11 (device_cred_prov_hsm_test.py)
       - [x] Generate RSA keypairs via PKCS#11 (crypto_test.cc, keymanager_test.cc)
       - [x] Read a TLS certificate via PKCS#11 (crypto_test.cc)
       - [x] Sign and verify a file with RSA via PKCS#11 (crypto_test.cc, keymanager_test.cc)
@@ -283,9 +283,9 @@ This is just the list of sequences currently covered. It is likely that there ar
 - [x] Initialize -> CheckUpdates -> Download -> updates downloaded but not installed (aktualizr_test.cc)
 - [x] Initialize -> Install -> nothing to install (aktualizr_test.cc)
 - [x] Initialize -> CheckUpdates -> Download -> Install -> updates installed (aktualizr_test.cc)
-- [x] Autoprovision with real server. Initialize -> CheckUpdates -> verify state with aktualizr-info (auto_prov_test.py)
-- [x] Implicitly provision with real server. Initialize -> verify not provisioned with aktualizr-info -> run aktualizr-cert-provider -> Initialize -> CheckUpdates -> verify state with aktualizr-info (implicit_prov_test.py)
-- [x] Implicitly provision with HSM with real server. Initialize -> verify not provisioned with aktualizr-info -> run aktualizr-cert-provider -> Initialize -> CheckUpdates -> verify state with aktualizr-info (hsm_prov_test.py)
+- [x] Provision with shared credentials with real server. Initialize -> CheckUpdates -> verify state with aktualizr-info (shared_cred_prov_test.py)
+- [x] Provision with device credentials with real server. Initialize -> verify not provisioned with aktualizr-info -> run aktualizr-cert-provider -> Initialize -> CheckUpdates -> verify state with aktualizr-info (device_cred_prov_test.py)
+- [x] Provision with device credentials with real server using an HSM. Initialize -> verify not provisioned with aktualizr-info -> run aktualizr-cert-provider -> Initialize -> CheckUpdates -> verify state with aktualizr-info (device_cred_prov_hsm_test.py)
 
 
 ## aktualizr tools
