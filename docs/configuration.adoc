@@ -65,7 +65,7 @@ Options for how the device is provisioned with the backend.
 | `server`                    |           | Server provisioning URL. If empty, set to `tls.server`.
 | `p12_password`              |           | Password for PKCS#12 encryption.
 | `expiry_days`               | `"36000"` | Provided in the `ttl` field of the device provisioning request sent to the server.
-| `provision_path`            |           | Path to an archive containing provisioning data. See link:{aktualizr-github-url}/docs/credentials.adoc[] for the specification of the contents of this file.
+| `provision_path`            |           | Path to an archive containing provisioning data. See link:{aktualizr-github-url}/docs/provisioning-methods-and-credentialszip.adoc[] for the specification of the contents of this file.
 | `device_id`                 |           | Device ID of the primary ECU. If left empty, a random name will be generated.
 | `primary_ecu_serial`        |           | Serial number of the primary ECU. If left empty, a random serial will be generated.
 | `primary_ecu_hardware_id`   |           | The hardware ID of the primary ECU (e.g., `"raspberry-pi"`). If left empty, the hostname of the device will be used.
