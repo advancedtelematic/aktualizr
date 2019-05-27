@@ -1147,7 +1147,7 @@ TEST(Uptane, Pkcs11Provision) {
   Config config;
   TemporaryDirectory temp_dir;
   Utils::createDirectories(temp_dir / "import", S_IRWXU);
-  boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", temp_dir / "import/root.crt");
+  boost::filesystem::copy_file("tests/test_data/device_cred_prov/ca.pem", temp_dir / "import/root.crt");
   config.tls.cert_source = CryptoSource::kPkcs11;
   config.tls.pkey_source = CryptoSource::kPkcs11;
   config.p11.module = TEST_PKCS11_MODULE_PATH;
