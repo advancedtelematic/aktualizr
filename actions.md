@@ -365,12 +365,12 @@ These tools all link with libaktualizr, although they do not necessary use the A
 
 ### aktualizr-cert-provider
 
-`aktualizr-cert-provider` assists with generating credentials and uploading them to a device for implicit provisioning.
+`aktualizr-cert-provider` assists with generating credentials and uploading them to a device for device credential provisioning.
 
 - [x] Use file paths from config if provided (cert_provider_test.cc)
-- [x] Use autoprovisioning credentials if fleet CA and private key are not provided (cert_provider_autoprov_test.cc)
+- [x] Use shared provisioning credentials if fleet CA and private key are not provided (cert_provider_shared_cred_test.cc)
   - [x] Generate a random device ID (OTA-986, utils_test.cc, uptane_init_test.cc)
-  - [x] Automatically provision (cert_provider_autoprov_test.cc)
+  - [x] Provision with shared credentials (cert_provider_shared_cred_test.cc)
 - [x] Use fleet credentials if provided (cert_provider_test.cc)
   - [x] Abort if fleet CA is provided without fleet private key (cert_provider_test.cc)
   - [x] Abort if fleet private key is provided without fleet CA (cert_provider_test.cc)
@@ -390,12 +390,12 @@ These tools all link with libaktualizr, although they do not necessary use the A
   - [x] Serialize device certificate to a string (cert_provider_test.cc)
 - [ ] Read server root CA from credentials archive
   - [ ] Read server root CA from server_ca.pem if present (to support community edition use case)
-  - [x] Read server root CA from p12 (cert_provider_autoprov_test.cc)
+  - [x] Read server root CA from p12 (cert_provider_shared_cred_test.cc)
 - [x] Write credentials to a local directory if requested (cert_provider_test.cc)
   - [x] Provide device private key (cert_provider_test.cc)
   - [x] Provide device certificate (cert_provider_test.cc)
-  - [x] Provide root CA if requested (cert_provider_autoprov_test.cc)
-  - [x] Provide server URL if requested (cert_provider_autoprov_test.cc)
+  - [x] Provide root CA if requested (cert_provider_shared_cred_test.cc)
+  - [x] Provide server URL if requested (cert_provider_shared_cred_test.cc)
 - [ ] Copy credentials to a device with ssh
   - [ ] Create parent directories
   - [ ] Provide device private key
@@ -527,9 +527,9 @@ These tools also use libaktualizr, but only for common utility functions. They a
 - [x] Run garage-sign
 - [x] Build credentials into an image
 - [x] Run aktualizr-cert-provider
-- [x] Build an image with automatic provisioning that provisions successfully
-- [x] Build an image with implicit provisioning that provisions successfully
-- [x] Build an image with implicit provisioning using an HSM that provisions successfully
+- [x] Build an image with shared credential provisioning that provisions successfully
+- [x] Build an image with device credential provisioning that provisions successfully
+- [x] Build an image with device credential provisioning using an HSM that provisions successfully
 - [x] Build an image with manual control that provisions successfully
 - [x] Build an image for Raspberry Pi
 - [x] Build an image using grub as a bootloader that provisions successfully

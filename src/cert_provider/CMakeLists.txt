@@ -14,17 +14,14 @@ install(TARGETS aktualizr-cert-provider RUNTIME DESTINATION bin)
 add_aktualizr_test(NAME aktualizr_cert_provider SOURCES cert_provider_test.cc PROJECT_WORKING_DIRECTORY ARGS $<TARGET_FILE:aktualizr-cert-provider>)
 
 if (SOTA_PACKED_CREDENTIALS)
-
-  add_aktualizr_test(NAME aktualizr_cert_provider_auto_prov SOURCES cert_provider_autoprov_test.cc
-    PROJECT_WORKING_DIRECTORY ARGS $<TARGET_FILE:aktualizr-cert-provider> ${SOTA_PACKED_CREDENTIALS})
-
-  set_tests_properties(test_aktualizr_cert_provider_auto_prov PROPERTIES LABELS "credentials")
-
+    add_aktualizr_test(NAME aktualizr_cert_provider_shared_cred SOURCES cert_provider_shared_cred_test.cc
+        PROJECT_WORKING_DIRECTORY ARGS $<TARGET_FILE:aktualizr-cert-provider> ${SOTA_PACKED_CREDENTIALS})
+    set_tests_properties(test_aktualizr_cert_provider_shared_cred PROPERTIES LABELS "credentials")
 endif(SOTA_PACKED_CREDENTIALS)
 
 aktualizr_source_file_checks(${AKTUALIZR_CERT_PROVIDER_SRC}
                              ${AKTUALIZR_CERT_HEADERS}
-                             cert_provider_autoprov_test.cc
+                             cert_provider_shared_cred_test.cc
                              cert_provider_test.cc
                              cert_provider_test.h)
 
