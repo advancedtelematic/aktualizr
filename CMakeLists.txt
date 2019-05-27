@@ -156,8 +156,11 @@ if(FAULT_INJECTION)
     install(PROGRAMS scripts/fiu DESTINATION bin COMPONENT aktualizr)
 endif(FAULT_INJECTION)
 
-# set symbols used when compiling
+# flags for different build types
+list(APPEND CMAKE_EXE_LINKER_FLAGS_RELEASE " -s")
+
 set(CMAKE_CXX_FLAGS_DEBUG "-Og -g")
+set(CMAKE_C_FLAGS_DEBUG "-Og -g")
 
 SET(CMAKE_CXX_FLAGS_VALGRIND "-O1 -g")
 SET(CMAKE_C_FLAGS_VALGRIND "-O1 -g")
@@ -334,7 +337,7 @@ add_library(jsoncpp OBJECT third_party/jsoncpp/jsoncpp.cpp)
 
 # General packaging configuration
 set(CPACK_GENERATOR "DEB")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "anton.gerasimov@here.com")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Patrick Vacek <patrick.vacek@here.com>")
 set(CPACK_DEB_COMPONENT_INSTALL ON)
 set(CPACK_COMPONENTS_GROUPING ONE_PER_GROUP)
 set(CPACK_DEBIAN_PACKAGE_VERSION ${AKTUALIZR_VERSION})
