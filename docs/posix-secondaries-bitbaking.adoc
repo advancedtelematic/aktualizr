@@ -1,0 +1,114 @@
+= Posix Secondaries: bitbaking and usage of Primary and Secondary images
+
+The goal of this doc is to guide a reader on bitbaking of two type of images `primary` and `secondary` that are targeted for QEMU (and RPi TBD)
+and running of which on the target makes it act as `Primary` and `Secondary` ECU of a single device.
+
+Please, refer to link:https://uptane.github.io/uptane-standard/uptane-standard.html[the Uptane standard] in order to grok a meaning of the `Primary` and `Secondary` terms in the given context from a theoretical standpoint.
+Please, check out link:posix-secondaries.doc[this doc] to understand these terms from a practical standpoint and
+to learn how `Primary` and `Secondary` can be emulated locally on an user's host.
+It is highly advisable to follow the doc instructions and play with faked/emulated `Primary` and `Secondary` prior to running steps described further in this doc.
+
+== Bitbaking
+
+It is assumed that a reader is familiar with Yocto and bitbaking in general as well as bitbaking of Aktualizr images in particular,
+details of which are out of scope of this doc and can be found in the following guides:
+
+* link:https://github.com/advancedtelematic/meta-updater/blob/master/README.adoc[meta-updater README].
+* https://docs.ota.here.com/quickstarts/qemuvirtualbox.html[How to build 'core-image-minimal' image for QEMU]
+
+=== Primary
+To bitbake an image for `Primary` run the following:
+....
+bitbake primary-image
+....
+
+
+.Primary configuration variables
+[cols="1,1,10"]
+|===
+|Name |Default |Description
+
+|`PRIMARY_IP`
+|`"10.0.3.1"`
+|An IP address to assign to one of the Primary's NIC for communication with Secondaries
+
+|`PRIMARY_PORT`
+|`"9040"`
+| A TCP port that Primary aktualizr listen on for connections from Secondaries
+
+|`PRIMARY_WAIT_TIMEOUT`
+|`"120"`
+|Time (seconds) to wait for connections from Secondaries. Only the secondaries that connected to Primary will be registered at the server and are part of the device Primary represents.
+
+|`PRIMARY_SECONDARIES`
+|`"10.0.3.2:9050"`
+| A space separated list of TCP/IP addresses of the Secondaries to be included into the list of ECUs served by the given Primary
+|===
+
+
+=== Secondary
+To bitbake an image for `Secondary` run the following
+....
+bitbake secondary-image
+....
+
+.Secondary configuration variables
+[cols="1,1,10"]
+|===
+|Name |Default |Description
+
+|`SECONDARY_IP`
+|`"10.0.3.2"`
+|An IP address to assign to A Secondary NIC for communication with Primary
+
+|`SECONDARY_PORT`
+|`"9050"`
+|A TCP port that Secondary listen on for connections from Primary
+|===
+
+
+== Running
+
+It is assumed that a reader is familiar with details on running of bitbaked images targeted for QEMU, such information can be found in the following docs:
+
+* link:https://github.com/advancedtelematic/meta-updater/blob/master/README.adoc[meta-updater README].
+* https://docs.ota.here.com/quickstarts/qemuvirtualbox.html[How to build 'core-image-minimal' image for QEMU]
+
+=== Primary
+
+To launch QEMU VM acting as Primary run the following from your build directory
+....
+sudo ../meta-updater/scripts/run-qemu-ota --no-gui --secondary-network primary-image
+....
+`--secondary-network` option instructs QEMU to add NIC to the VM in order to communicate with Secondary VM(s) via it.
+
+
+=== Secondary
+
+To launch QEMU VM acting as Secondary run the following from your build directory
+....
+sudo ../meta-updater/scripts/run-qemu-ota --no-gui --secondary-network secondary-image
+....
+`--secondary-network` option instructs QEMU to add NIC to the VM aimed for communication with Primary
+
+== Usage
+
+Once both Primary and Secondary VMs are running you should see that a new device has been registered at the server and you can start testing it.
+The following are Tips & Tricks for using & troubleshooting of the Primary and Secondary VMs.
+
+* run `journalctl -f -u aktualizr` to see logs that are being output by aktualizr running on `Primary` VM;
+* run `journalctl -f -u aktualizr-secondary` to see logs that are being output by aktualizr-secondary (posix/IP secondary) running on `Secondary` VM;
+* By default, both aktualizr and aktualizr-secondary are running as systemd services. Use `systemctl stop|start|restart <aktualizr|aktualizr-secondary>` to control aktualizr and aktualizr-secondary daemons/services managed by systemd;
+* To control aktualizr|aktualizr-secondary manually stop corresponding systemd service (see above) and run it from command line:
+just type `aktualizr' | `aktualizr-secondary`;
+* By default, both executables output logs of level 1 (INFO), specify log level 0 in their config to see debug logs.
+In case of running from command line add corresponding parameter `<aktualizr|aktualizr-secondary> --loglevel 0`.
+In case of running as a systemd service add corresponding configuration fragment into /etc/sota/conf.d/ folder,
+e.g. `echo -e "[logger]\nloglevel = 0" > /etc/sota/conf.d/50-debug-logs.toml` and restart the service;
+* In order to trigger a device re-provisioning, please, remove the DB file on Primary, i.e. `rm /var/sota/sql.db`
+* If the DB file is removed on Secondary then the device should be re-provisioned (see above),
+otherwise Primary/aktualizr will refuse to work with a 'new' secondary as it will have a "new" autogenerated ECU serial
+that doesn't the one already been registered on Primary.
+* OTA Connect does not support adding/removing secondary ECUs to a device that has been already registered.
+Thus adding a new ECU to the list of secondaries on Primary won't take much effect,
+the new ECU won't appear on the UI and it will be listed as not registered by aktualizr-info.
