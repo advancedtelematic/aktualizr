@@ -16,10 +16,10 @@
 #include "utilities/utils.h"
 
 /**
- * Verify that when using implicit provisioning, aktualizr halts if credentials
- * are not available.
+ * Verify that when provisioning with device credentials, aktualizr halts if
+ * credentials are not available.
  */
-TEST(UptaneImplicit, ImplicitFailure) {
+TEST(DeviceCredProv, Failure) {
   RecordProperty("zephyr_key", "OTA-1209,TST-185");
   TemporaryDirectory temp_dir;
   Config config;
@@ -37,10 +37,10 @@ TEST(UptaneImplicit, ImplicitFailure) {
 }
 
 /**
- * Verfiy that aktualizr halts when provided incomplete implicit provisioning
+ * Verfiy that aktualizr halts when provided incomplete device provisioning
  * credentials.
  */
-TEST(UptaneImplicit, ImplicitIncomplete) {
+TEST(DeviceCredProv, Incomplete) {
   RecordProperty("zephyr_key", "OTA-1209,TST-187");
   TemporaryDirectory temp_dir;
   Config config;
@@ -163,9 +163,9 @@ TEST(UptaneImplicit, ImplicitIncomplete) {
 }
 
 /**
- * Verify that aktualizr can implicitly provision with provided credentials.
+ * Verify that aktualizr can provision with provided device credentials.
  */
-TEST(UptaneImplicit, ImplicitProvision) {
+TEST(DeviceCredProv, ImplicitProvision) {
   RecordProperty("zephyr_key", "OTA-996,OTA-1210,TST-186");
   TemporaryDirectory temp_dir;
   Config config;
