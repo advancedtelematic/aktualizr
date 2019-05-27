@@ -457,7 +457,7 @@ int main(int argc, char* argv[]) {
     std::string cert;
     std::string ca;
 
-    if (fleet_ca_path.empty()) {  // no fleet ca => autoprovision
+    if (fleet_ca_path.empty()) {  // no fleet CA => provision with shared credentials
 
       std::string device_id = Utils::genPrettyName();
       std::cout << "Random device ID is " << device_id << "\n";

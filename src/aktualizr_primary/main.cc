@@ -36,7 +36,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
       ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
       ("run-mode", bpo::value<std::string>(), "run mode of aktualizr: full, once, campaign_check, campaign_accept, check, download, or install")
-      ("tls-server", bpo::value<std::string>(), "url, used for auto provisioning")
+      ("tls-server", bpo::value<std::string>(), "url of device gateway")
       ("repo-server", bpo::value<std::string>(), "url of the uptane repo repository")
       ("director-server", bpo::value<std::string>(), "url of the uptane director repository")
       ("ostree-server", bpo::value<std::string>(), "url of the ostree repository")
