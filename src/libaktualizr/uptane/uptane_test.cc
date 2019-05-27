@@ -137,7 +137,7 @@ TEST(Uptane, AssembleManifestGood) {
   boost::filesystem::copy_file("tests/test_data/firmware.txt", (temp_dir / "firmware.txt").string());
   boost::filesystem::copy_file("tests/test_data/firmware_name.txt", (temp_dir / "firmware_name.txt").string());
   config.provision.provision_path = temp_dir / "cred.zip";
-  config.provision.mode = ProvisionMode::kAutomatic;
+  config.provision.mode = ProvisionMode::kSharedCred;
   config.uptane.director_server = http->tls_server + "/director";
   config.uptane.repo_server = http->tls_server + "/repo";
   config.provision.primary_ecu_serial = "testecuserial";
@@ -167,7 +167,7 @@ TEST(Uptane, AssembleManifestBad) {
   boost::filesystem::copy_file("tests/test_data/firmware.txt", (temp_dir / "firmware.txt").string());
   boost::filesystem::copy_file("tests/test_data/firmware_name.txt", (temp_dir / "firmware_name.txt").string());
   config.provision.provision_path = temp_dir / "cred.zip";
-  config.provision.mode = ProvisionMode::kAutomatic;
+  config.provision.mode = ProvisionMode::kSharedCred;
   config.uptane.director_server = http->tls_server + "/director";
   config.uptane.repo_server = http->tls_server + "/repo";
   config.provision.primary_ecu_serial = "testecuserial";
@@ -206,7 +206,7 @@ TEST(Uptane, PutManifest) {
   boost::filesystem::copy_file("tests/test_data/firmware.txt", (temp_dir / "firmware.txt").string());
   boost::filesystem::copy_file("tests/test_data/firmware_name.txt", (temp_dir / "firmware_name.txt").string());
   config.provision.provision_path = temp_dir / "cred.zip";
-  config.provision.mode = ProvisionMode::kAutomatic;
+  config.provision.mode = ProvisionMode::kSharedCred;
   config.uptane.director_server = http->tls_server + "/director";
   config.uptane.repo_server = http->tls_server + "/repo";
   config.provision.primary_ecu_serial = "testecuserial";
@@ -482,7 +482,7 @@ TEST(Uptane, UptaneSecondaryAdd) {
   Config config = config_common();
   boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir / "cred.zip");
   config.provision.provision_path = temp_dir / "cred.zip";
-  config.provision.mode = ProvisionMode::kAutomatic;
+  config.provision.mode = ProvisionMode::kSharedCred;
   config.uptane.director_server = http->tls_server + "/director";
   config.uptane.repo_server = http->tls_server + "/repo";
   config.tls.server = http->tls_server;
@@ -513,7 +513,7 @@ TEST(Uptane, UptaneSecondaryAddSameSerial) {
   boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir / "cred.zip");
   Config config = config_common();
   config.provision.provision_path = temp_dir / "cred.zip";
-  config.provision.mode = ProvisionMode::kAutomatic;
+  config.provision.mode = ProvisionMode::kSharedCred;
   config.pacman.type = PackageManager::kNone;
   config.storage.path = temp_dir.Path();
 
@@ -535,7 +535,7 @@ TEST(Uptane, UptaneSecondaryMisconfigured) {
   {
     Config config = config_common();
     config.provision.provision_path = temp_dir / "cred.zip";
-    config.provision.mode = ProvisionMode::kAutomatic;
+    config.provision.mode = ProvisionMode::kSharedCred;
     config.pacman.type = PackageManager::kNone;
     config.storage.path = temp_dir.Path();
     UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
@@ -551,7 +551,7 @@ TEST(Uptane, UptaneSecondaryMisconfigured) {
   {
     Config config = config_common();
     config.provision.provision_path = temp_dir / "cred.zip";
-    config.provision.mode = ProvisionMode::kAutomatic;
+    config.provision.mode = ProvisionMode::kSharedCred;
     config.pacman.type = PackageManager::kNone;
     config.storage.path = temp_dir.Path();
     auto storage = INvStorage::newStorage(config.storage);
@@ -577,7 +577,7 @@ TEST(Uptane, UptaneSecondaryMisconfigured) {
   {
     Config config = config_common();
     config.provision.provision_path = temp_dir / "cred.zip";
-    config.provision.mode = ProvisionMode::kAutomatic;
+    config.provision.mode = ProvisionMode::kSharedCred;
     config.pacman.type = PackageManager::kNone;
     config.storage.path = temp_dir.Path();
     auto storage = INvStorage::newStorage(config.storage);

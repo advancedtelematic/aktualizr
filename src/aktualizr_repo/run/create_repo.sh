@@ -61,7 +61,7 @@ gen_site_conf () {
         cat <<EOF >${repo_dir}/site.conf
 OSTREE_REPO = "${repo_dir}/ostree"
 SOTA_PACKED_CREDENTIALS = "${repo_dir}/credentials.zip"
-SOTA_CLIENT_PROV = "aktualizr-ca-implicit-prov"
+SOTA_CLIENT_PROV = "aktualizr-device-prov"
 SOTA_CACERT_PATH = "${repo_dir}/certs/client/cacert.pem"
 SOTA_CAKEY_PATH = "${repo_dir}/certs/client/ca.private.pem"
 EOF

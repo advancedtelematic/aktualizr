@@ -26,7 +26,7 @@ TEST(DeviceCredProv, Failure) {
   // Set device_id to prevent trying to read it from the certificate.
   config.provision.device_id = "device_id";
   config.storage.path = temp_dir.Path();
-  EXPECT_EQ(config.provision.mode, ProvisionMode::kImplicit);
+  EXPECT_EQ(config.provision.mode, ProvisionMode::kDeviceCred);
 
   auto storage = INvStorage::newStorage(config.storage);
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -48,7 +48,7 @@ TEST(DeviceCredProv, Incomplete) {
   config.provision.device_id = "device_id";
   config.storage.path = temp_dir.Path();
   config.import.base_path = temp_dir / "import";
-  EXPECT_EQ(config.provision.mode, ProvisionMode::kImplicit);
+  EXPECT_EQ(config.provision.mode, ProvisionMode::kDeviceCred);
 
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
 
@@ -165,7 +165,7 @@ TEST(DeviceCredProv, Incomplete) {
 /**
  * Verify that aktualizr can provision with provided device credentials.
  */
-TEST(DeviceCredProv, ImplicitProvision) {
+TEST(DeviceCredProv, Success) {
   RecordProperty("zephyr_key", "OTA-996,OTA-1210,TST-186");
   TemporaryDirectory temp_dir;
   Config config;
@@ -178,7 +178,7 @@ TEST(DeviceCredProv, ImplicitProvision) {
   config.import.tls_cacert_path = BasedPath("ca.pem");
   config.import.tls_clientcert_path = BasedPath("client.pem");
   config.import.tls_pkey_path = BasedPath("pkey.pem");
-  EXPECT_EQ(config.provision.mode, ProvisionMode::kImplicit);
+  EXPECT_EQ(config.provision.mode, ProvisionMode::kDeviceCred);
 
   auto storage = INvStorage::newStorage(config.storage);
   storage->importData(config.import);

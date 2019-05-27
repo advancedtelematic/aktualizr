@@ -20,9 +20,9 @@ bool Initializer::initDeviceId() {
   // if device_id is specified in config, just use it, otherwise generate a  random one
   device_id = config_.device_id;
   if (device_id.empty()) {
-    if (config_.mode == ProvisionMode::kAutomatic) {
+    if (config_.mode == ProvisionMode::kSharedCred) {
       device_id = Utils::genPrettyName();
-    } else if (config_.mode == ProvisionMode::kImplicit) {
+    } else if (config_.mode == ProvisionMode::kDeviceCred) {
       device_id = keys_.getCN();
     } else {
       LOG_ERROR << "Unknown provisioning method";
@@ -87,7 +87,7 @@ InitRetCode Initializer::initTlsCreds() {
     return InitRetCode::kOk;
   }
 
-  if (config_.mode != ProvisionMode::kAutomatic) {
+  if (config_.mode != ProvisionMode::kSharedCred) {
     LOG_ERROR << "Credentials not found";
     return InitRetCode::kStorageFailure;
   }
@@ -140,7 +140,7 @@ InitRetCode Initializer::initTlsCreds() {
 }
 
 void Initializer::resetTlsCreds() {
-  if (config_.mode != ProvisionMode::kImplicit) {
+  if (config_.mode != ProvisionMode::kDeviceCred) {
     storage_->clearTlsCreds();
   }
 }

@@ -39,7 +39,7 @@ TEST(aktualizr_secondary_uptane, credentialsPassing) {
   config.storage.path = temp_dir.Path();
   boost::filesystem::copy_file("tests/test_data/cred.zip", (temp_dir / "cred.zip").string());
   config.provision.provision_path = temp_dir / "cred.zip";
-  config.provision.mode = ProvisionMode::kAutomatic;
+  config.provision.mode = ProvisionMode::kSharedCred;
   config.provision.primary_ecu_serial = "testecuserial";
   config.uptane.director_server = http->tls_server + "/director";
   config.uptane.repo_server = http->tls_server + "/repo";

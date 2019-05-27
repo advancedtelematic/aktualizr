@@ -123,17 +123,20 @@ TEST(config, SecondaryConfig) {
 }
 
 /**
- * Start in implicit provisioning mode.
+ * Start in device credential provisioning mode.
  */
-TEST(config, ImplicitMode) {
+TEST(config, DeviceCredMode) {
   RecordProperty("zephyr_key", "OTA-996,TST-184");
   Config config;
-  EXPECT_EQ(config.provision.mode, ProvisionMode::kImplicit);
+  EXPECT_EQ(config.provision.mode, ProvisionMode::kDeviceCred);
 }
 
-TEST(config, AutomaticMode) {
+/**
+ * Start in shared credential provisioning mode.
+ */
+TEST(config, SharedCredMode) {
   Config config("tests/config/basic.toml");
-  EXPECT_EQ(config.provision.mode, ProvisionMode::kAutomatic);
+  EXPECT_EQ(config.provision.mode, ProvisionMode::kSharedCred);
 }
 
 /* Write config to file or to the log.

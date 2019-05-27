@@ -28,7 +28,7 @@ TEST(UptaneCI, ProvisionAndPutManifest) {
   TemporaryDirectory temp_dir;
   Config config("tests/config/minimal.toml");
   config.provision.provision_path = credentials;
-  config.provision.mode = ProvisionMode::kAutomatic;
+  config.provision.mode = ProvisionMode::kSharedCred;
   config.storage.path = temp_dir.Path();
   config.pacman.type = PackageManager::kNone;
   config.postUpdateValues();  // re-run copy of urls
@@ -46,7 +46,7 @@ TEST(UptaneCI, CheckKeys) {
   TemporaryDirectory temp_dir;
   Config config("tests/config/minimal.toml");
   config.provision.provision_path = credentials;
-  config.provision.mode = ProvisionMode::kAutomatic;
+  config.provision.mode = ProvisionMode::kSharedCred;
   config.storage.path = temp_dir.Path();
   config.pacman.type = PackageManager::kOstree;
   config.pacman.sysroot = sysroot;

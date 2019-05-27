@@ -123,7 +123,7 @@ KeyManagerConfig Config::keymanagerConfig() const {
 void Config::postUpdateValues() {
   logger_set_threshold(logger);
 
-  provision.mode = provision.provision_path.empty() ? ProvisionMode::kImplicit : ProvisionMode::kAutomatic;
+  provision.mode = provision.provision_path.empty() ? ProvisionMode::kDeviceCred : ProvisionMode::kSharedCred;
 
   if (tls.server.empty()) {
     if (!tls.server_url_path.empty()) {
