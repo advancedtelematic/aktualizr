@@ -11,7 +11,7 @@ TEST(aktualizr_info_config, config_initialized_values) {
 }
 
 TEST(aktualizr_info_config, config_toml_parsing) {
-  AktualizrInfoConfig conf("config/sota_autoprov.toml");
+  AktualizrInfoConfig conf("config/sota-shared-cred.toml");
 
   EXPECT_EQ(conf.storage.type, StorageType::kSqlite);
   EXPECT_EQ(conf.storage.sqldb_path.get(conf.storage.path), "/var/sota/sql.db");

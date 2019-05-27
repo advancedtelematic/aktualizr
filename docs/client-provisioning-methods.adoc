@@ -23,10 +23,10 @@ To configure a device to provision with shared credentials, follow these steps:
 . Download a https://docs.ota.here.com/quickstarts/generating-provisioning-credentials.html[provisioning key].
 . Edit the following `.toml` configuration file:
 +
-link:../config/sota_autoprov.toml[config/sota_autoprov.toml]
+link:../config/sota-shared-cred.toml[config/sota-shared-cred.toml]
 . Update the configuration file with the path to the zip file that you saved in the first step and start Aktualizr on the device.
 +
-** When aktualizr starts, it uses the provisioning key to register with the device gateway HTTPS API. 
+** When aktualizr starts, it uses the provisioning key to register with the device gateway HTTPS API.
 ** The server registers the new device and returns a PKCS#12 archive containing the real credentials for the device. This archive contains the root CA certificate and client certificate.
 ** The device unpacks the archive into the paths that are specified in the `[storage]` section of the config.
 ** The device uses this private key and certificate for all further communication with the server.
