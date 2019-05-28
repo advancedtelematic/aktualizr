@@ -3,6 +3,11 @@ set(SOURCES config.cc)
 include(AddAktualizrTest)
 
 add_library(config OBJECT ${SOURCES})
+# note: the Config object is composed with multiple sub-config objects that live
+# close to the modules their refer too. To make the config module as
+# self-contained as possible, the method definitions of these sub objects are
+# also added to the module with CMake `target_sources(config PRIVATE ...)`
+# declarations.
 
 add_aktualizr_test(NAME config SOURCES config_test.cc ARGS ${PROJECT_BINARY_DIR} PROJECT_WORKING_DIRECTORY)
 
