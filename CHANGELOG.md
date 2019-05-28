@@ -6,6 +6,10 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ## [??? (unreleased)]
 
+### Changed
+
+- Provisioning methods have been renamed. "Autoprovisioning" or "automatic provisioning" is now known as "shared credential provisioning". "Implicit provisioning" is now known as "device credential provisioning". "HSM provisioning" was always a misnomer, so it is now refered to as "device credential provisioning with an HSM". [PR](https://github.com/advancedtelematic/aktualizr/pull/1220)
+
 ## [2019.3] - 2019-04-29
 
 ### Added
