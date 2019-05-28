@@ -78,7 +78,7 @@ It is assumed that a reader is familiar with details on running of bitbaked imag
 
 To launch QEMU VM acting as Primary run the following from your build directory
 ....
-sudo ../meta-updater/scripts/run-qemu-ota --no-gui --secondary-network primary-image
+../meta-updater/scripts/run-qemu-ota --no-gui --secondary-network primary-image
 ....
 `--secondary-network` option instructs QEMU to add NIC to the VM in order to communicate with Secondary VM(s) via it.
 
@@ -87,7 +87,7 @@ sudo ../meta-updater/scripts/run-qemu-ota --no-gui --secondary-network primary-i
 
 To launch QEMU VM acting as Secondary run the following from your build directory
 ....
-sudo ../meta-updater/scripts/run-qemu-ota --no-gui --secondary-network secondary-image
+../meta-updater/scripts/run-qemu-ota --no-gui --secondary-network secondary-image
 ....
 `--secondary-network` option instructs QEMU to add NIC to the VM aimed for communication with Primary
 
