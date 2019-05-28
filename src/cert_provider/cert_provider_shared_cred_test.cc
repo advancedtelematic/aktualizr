@@ -28,18 +28,16 @@ class AktualizrCertProviderTest : public ::testing::Test {
 };
 
 /**
- * Verifies the cert provider work in case of autoprovisioning credentials usage,
- * if the fleet CA and private key are not specified
+ * Verifies that cert-provider works when given shared provisioning credentials
+ * and the fleet CA and private key are not specified.
  *
- * Check actions
- *
- * - [x] Use autoprovisioning credentials if fleet CA and private key are not provided
+ * - [x] Use shared provisioning credentials if fleet CA and private key are not provided
+ *  - [x] Provision with shared credentials
  *  - [x] Read server root CA from p12
  *  - [x] Provide root CA if requested
  *  - [x] Provide server URL if requested
  */
-
-TEST_F(AktualizrCertProviderTest, AutoprovisioningCredsUsage) {
+TEST_F(AktualizrCertProviderTest, SharedCredProvisioning) {
   if (test_args_.credentials_path.empty()) {
     // GTEST_SKIP() was introduced in recent gtest version;
     SUCCEED() << "A path to the credentials file hasn't been proided, so skip the test";
@@ -79,15 +77,15 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
   if (argc < 3) {
-    std::cerr << "Two arguments are required: <path-to-cert-rpvoder> <path-to-credentials>" << std::endl;
+    std::cerr << "Two arguments are required: <path-to-cert-provider> <path-to-credentials>" << std::endl;
     return EXIT_FAILURE;
   }
 
   CERT_PROVIDER_PATH = argv[1];
-  std::cout << "Path to the cert_provider executable: " << CERT_PROVIDER_PATH << std::endl;
+  std::cout << "Path to the cert-provider executable: " << CERT_PROVIDER_PATH << std::endl;
 
   CREDENTIALS_PATH = argv[2];
-  std::cout << "Path to the autoprovisioning credentials: " << CREDENTIALS_PATH << std::endl;
+  std::cout << "Path to the shared provisioning credentials: " << CREDENTIALS_PATH << std::endl;
 
   int test_run_res = RUN_ALL_TESTS();
 

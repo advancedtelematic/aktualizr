@@ -57,9 +57,6 @@ add_aktualizr_test(NAME uptane_delegation SOURCES uptane_delegation_test.cc PROJ
 add_dependencies(t_uptane_delegation aktualizr-repo)
 set_tests_properties(test_uptane_delegation PROPERTIES LABELS "crypto")
 
-add_aktualizr_test(NAME uptane_implicit SOURCES uptane_implicit_test.cc PROJECT_WORKING_DIRECTORY)
-set_tests_properties(test_uptane_implicit PROPERTIES LABELS "crypto")
-
 add_aktualizr_test(NAME uptane_key SOURCES uptane_key_test.cc PROJECT_WORKING_DIRECTORY)
 set_tests_properties(test_uptane_key PROPERTIES LABELS "crypto")
 

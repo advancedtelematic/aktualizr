@@ -11,7 +11,7 @@ from prov_test_common import run_subprocess, verify_provisioned
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Run a local automatic provisioning test with aktualizr')
+    parser = argparse.ArgumentParser(description='Run a local shared device provisioning test with aktualizr')
     parser.add_argument('--build-dir', '-b', type=Path, default=Path('../build'), help='build directory')
     parser.add_argument('--credentials', '-c', type=Path, default=Path('.'), help='path to credentials archive')
     args = parser.parse_args()
@@ -38,7 +38,7 @@ sqldb_path = "{db}"
 
 def provision(tmp_dir, build_dir, creds):
     db = tmp_dir / 'sql.db'
-    conf = tmp_dir / '20-auto_prov.toml'
+    conf = tmp_dir / '20-shared-cred-prov.toml'
     with conf.open('w') as f:
         f.write(CONFIG_TEMPLATE.format(creds=creds, tmp_dir=tmp_dir, db=db))
     akt = build_dir / 'src/aktualizr_primary/aktualizr'

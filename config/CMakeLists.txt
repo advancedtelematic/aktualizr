@@ -5,7 +5,7 @@ if(BUILD_DEB)
         PERMISSIONS OWNER_READ OWNER_WRITE
         COMPONENT aktualizr)
 
-    install(FILES sota_ubuntu.toml
+    install(FILES sota-ubuntu.toml
         DESTINATION lib/sota/conf.d
         PERMISSIONS OWNER_READ OWNER_WRITE
         COMPONENT aktualizr)

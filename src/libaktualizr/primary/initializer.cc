@@ -20,9 +20,9 @@ bool Initializer::initDeviceId() {
   // if device_id is specified in config, just use it, otherwise generate a  random one
   device_id = config_.device_id;
   if (device_id.empty()) {
-    if (config_.mode == ProvisionMode::kAutomatic) {
+    if (config_.mode == ProvisionMode::kSharedCred) {
       device_id = Utils::genPrettyName();
-    } else if (config_.mode == ProvisionMode::kImplicit) {
+    } else if (config_.mode == ProvisionMode::kDeviceCred) {
       device_id = keys_.getCN();
     } else {
       LOG_ERROR << "Unknown provisioning method";
@@ -87,12 +87,13 @@ InitRetCode Initializer::initTlsCreds() {
     return InitRetCode::kOk;
   }
 
-  if (config_.mode != ProvisionMode::kAutomatic) {
+  if (config_.mode != ProvisionMode::kSharedCred) {
     LOG_ERROR << "Credentials not found";
     return InitRetCode::kStorageFailure;
   }
 
-  // Autoprovision is needed and possible => autoprovision
+  // Shared credential provision is required and possible => (automatically)
+  // provision with shared credentials.
 
   // set bootstrap credentials
   Bootstrap boot(config_.provision_path, config_.p12_password);
@@ -102,7 +103,7 @@ InitRetCode Initializer::initTlsCreds() {
   Json::Value data;
   std::string device_id;
   if (!storage_->loadDeviceId(&device_id)) {
-    LOG_ERROR << "device_id unknown during autoprovisioning process";
+    LOG_ERROR << "Unknown device_id during shared credential provisioning.";
     return InitRetCode::kStorageFailure;
   }
   data["deviceId"] = device_id;
@@ -114,7 +115,7 @@ InitRetCode Initializer::initTlsCreds() {
       LOG_ERROR << "Device id" << device_id << "is occupied";
       return InitRetCode::kOccupied;
     }
-    LOG_ERROR << "Autoprovisioning failed, response: " << response.body;
+    LOG_ERROR << "Shared credential provisioning failed, response: " << response.body;
     return InitRetCode::kServerFailure;
   }
 
@@ -140,7 +141,7 @@ InitRetCode Initializer::initTlsCreds() {
 }
 
 void Initializer::resetTlsCreds() {
-  if (config_.mode != ProvisionMode::kImplicit) {
+  if (config_.mode != ProvisionMode::kDeviceCred) {
     storage_->clearTlsCreds();
   }
 }
@@ -188,7 +189,7 @@ InitRetCode Initializer::initEcuRegister() {
     Json::Value resp_code = response.getJson()["code"];
     if (resp_code.isString() &&
         (resp_code.asString() == "ecu_already_registered" || resp_code.asString() == "device_already_registered")) {
-      LOG_ERROR << "Some ECU is already registered";
+      LOG_ERROR << "One or more ECUs are unexpectedly already registered.";
       return InitRetCode::kOccupied;
     }
     LOG_ERROR << "Error registering device on Uptane, response: " << response.body;
@@ -196,7 +197,7 @@ InitRetCode Initializer::initEcuRegister() {
   }
   // do not call storage_->storeEcuRegistered(), it will be called from the top-level Init function after the
   // acknowledgement
-  LOG_INFO << "ECUs have been successfully registered to the server";
+  LOG_INFO << "ECUs have been successfully registered to the server.";
   return InitRetCode::kOk;
 }
 
@@ -213,7 +214,7 @@ Initializer::Initializer(
   success_ = false;
   for (int i = 0; i < MaxInitializationAttempts; i++) {
     if (!initDeviceId()) {
-      LOG_ERROR << "Device ID generation failed, abort initialization";
+      LOG_ERROR << "Device ID generation failed. Aborting initialization.";
       return;
     }
 
@@ -222,22 +223,22 @@ Initializer::Initializer(
     // generate a new one
     if (ret_code == InitRetCode::kOccupied) {
       resetDeviceId();
-      LOG_INFO << "Device name is already registered, restart";
+      LOG_INFO << "Device name is already registered. Restarting.";
       continue;
     } else if (ret_code == InitRetCode::kStorageFailure) {
-      LOG_ERROR << "Error reading existing provisioning data from storage";
+      LOG_ERROR << "Error reading existing provisioning data from storage.";
       return;
     } else if (ret_code != InitRetCode::kOk) {
-      LOG_ERROR << "Autoprovisioning failed, abort initialization";
+      LOG_ERROR << "Shared credential provisioning failed. Aborting initialization.";
       return;
     }
 
     if (!initPrimaryEcuKeys()) {
-      LOG_ERROR << "ECU key generation failed, abort initialization";
+      LOG_ERROR << "ECU key generation failed. Aborting initialization.";
       return;
     }
     if (!initEcuSerials()) {
-      LOG_ERROR << "ECU serial generation failed, abort initialization";
+      LOG_ERROR << "ECU serial generation failed. Aborting initialization.";
       return;
     }
 
@@ -245,9 +246,9 @@ Initializer::Initializer(
     // if ECUs with same ID have been registered to the server, we don't have a
     // clear remediation path right now, just ignore the error
     if (ret_code == InitRetCode::kOccupied) {
-      LOG_INFO << "ECU serial is already registered";
+      LOG_INFO << "ECU serial is already registered.";
     } else if (ret_code != InitRetCode::kOk) {
-      LOG_ERROR << "ECU registration failed, abort initialization";
+      LOG_ERROR << "ECU registration failed. Aborting initialization.";
       return;
     }
 
@@ -260,5 +261,5 @@ Initializer::Initializer(
     success_ = true;
     return;
   }
-  LOG_ERROR << "Initialization failed after " << MaxInitializationAttempts << " attempts";
+  LOG_ERROR << "Initialization failed after " << MaxInitializationAttempts << " attempts.";
 }

@@ -19,9 +19,9 @@ mkdir -p "${TOKEN_DIR}"
 softhsm2-util --init-token --slot 0 --label "Virtual token" --pin 1234 --so-pin 1234
 SLOT=$(softhsm2-util --show-slots | grep -m 1 -oP 'Slot \K[0-9]+')
 echo "Initialized token in slot: $SLOT"
-softhsm2-util --import "${DATA_DIR}/implicit/pkey.pem" --label "pkey" --id 02 --slot "$SLOT" --pin 1234
-openssl x509 -outform der -in "${DATA_DIR}/implicit/client.pem" -out "${TMPDIR}/implicit_client.der"
-pkcs11-tool --module="${TEST_PKCS11_MODULE_PATH}" --id 1 --write-object "${TMPDIR}/implicit_client.der" --type cert --login --pin 1234
+softhsm2-util --import "${DATA_DIR}/device_cred_prov/pkey.pem" --label "pkey" --id 02 --slot "$SLOT" --pin 1234
+openssl x509 -outform der -in "${DATA_DIR}/device_cred_prov/client.pem" -out "${TMPDIR}/client.der"
+pkcs11-tool --module="${TEST_PKCS11_MODULE_PATH}" --id 1 --write-object "${TMPDIR}/client.der" --type cert --login --pin 1234
 
 openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in "${DATA_DIR}/priv.key" -out "${TMPDIR}/priv.p8"
 softhsm2-util --import "${TMPDIR}/priv.p8" --label "uptane" --id 03 --slot "$SLOT" --pin 1234

@@ -28,5 +28,8 @@ endif (BUILD_OSTREE)
 add_aktualizr_test(NAME reportqueue SOURCES reportqueue_test.cc PROJECT_WORKING_DIRECTORY)
 add_aktualizr_test(NAME emptytargets SOURCES empty_targets_test.cc PROJECT_WORKING_DIRECTORY
                    ARGS "$<TARGET_FILE:aktualizr-repo>")
+add_aktualizr_test(NAME device_cred_prov SOURCES device_cred_prov_test.cc PROJECT_WORKING_DIRECTORY)
+set_tests_properties(test_device_cred_prov PROPERTIES LABELS "crypto")
+
 
 aktualizr_source_file_checks(${SOURCES} ${HEADERS} ${TEST_SOURCES})
