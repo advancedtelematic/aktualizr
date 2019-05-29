@@ -96,6 +96,8 @@ find_package(SQLite3 REQUIRED)
 find_package(Git)
 find_package(Asn1c REQUIRED)
 
+pkg_check_modules(JSONCPP REQUIRED jsoncpp)
+
 if(NOT AKTUALIZR_VERSION)
     if (EXISTS ${PROJECT_SOURCE_DIR}/VERSION)
         file(READ ${PROJECT_SOURCE_DIR}/VERSION AKTUALIZR_VERSION)
@@ -330,6 +332,7 @@ include_directories(${sodium_INCLUDE_DIR})
 include_directories(${OPENSSL_INCLUDE_DIR})
 include_directories(${CURL_INCLUDE_DIR})
 include_directories(${LibArchive_INCLUDE_DIR})
+include_directories(${JSONCPP_INCLUDE_DIRS})
 
 # General packaging configuration
 set(CPACK_GENERATOR "DEB")
@@ -364,6 +367,7 @@ set (AKTUALIZR_EXTERNAL_LIBS
     ${CURL_LIBRARIES}
     ${OPENSSL_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
+    ${JSONCPP_LIBRARIES}
     ${sodium_LIBRARY_RELEASE}
     ${LIBOSTREE_LIBRARIES}
     ${SQLITE3_LIBRARIES}

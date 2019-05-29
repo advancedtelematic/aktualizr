@@ -33,7 +33,6 @@ add_library(aktualizr_static_lib STATIC
     $<TARGET_OBJECTS:config>
     $<TARGET_OBJECTS:crypto>
     $<TARGET_OBJECTS:http>
-    $<TARGET_OBJECTS:jsoncpp>
     $<TARGET_OBJECTS:package_manager>
     $<TARGET_OBJECTS:primary>
     $<TARGET_OBJECTS:utilities>

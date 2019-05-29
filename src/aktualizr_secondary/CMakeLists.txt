@@ -22,7 +22,6 @@ add_library(aktualizr_secondary_lib SHARED
     $<TARGET_OBJECTS:config>
     $<TARGET_OBJECTS:bootloader>
     $<TARGET_OBJECTS:crypto>
-    $<TARGET_OBJECTS:jsoncpp>
     $<TARGET_OBJECTS:package_manager>
     $<TARGET_OBJECTS:utilities>
     $<TARGET_OBJECTS:storage>

@@ -3,7 +3,6 @@ add_executable(aktualizr-cert-provider main.cc
     $<TARGET_OBJECTS:bootstrap>
     $<TARGET_OBJECTS:config>
     $<TARGET_OBJECTS:crypto>
-    $<TARGET_OBJECTS:jsoncpp>
     $<TARGET_OBJECTS:http>
     $<TARGET_OBJECTS:logging>
     $<TARGET_OBJECTS:utilities>)
