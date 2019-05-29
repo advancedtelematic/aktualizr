@@ -123,14 +123,14 @@ Target::Target(std::string filename, const Json::Value &content) : filename_(std
     // Images repo provides an array of hardware IDs.
     if (custom_.isMember("hardwareIds")) {
       Json::Value hwids = custom_["hardwareIds"];
-      for (Json::ValueIterator i = hwids.begin(); i != hwids.end(); ++i) {
+      for (auto i = hwids.begin(); i != hwids.end(); ++i) {
         hwids_.emplace_back(HardwareIdentifier((*i).asString()));
       }
     }
 
     // Director provides a map of ECU serials to hardware IDs.
     Json::Value ecus = custom_["ecuIdentifiers"];
-    for (Json::ValueIterator i = ecus.begin(); i != ecus.end(); ++i) {
+    for (auto i = ecus.begin(); i != ecus.end(); ++i) {
       ecus_.insert({EcuSerial(i.key().asString()), HardwareIdentifier((*i)["hardwareId"].asString())});
     }
 
@@ -150,7 +150,7 @@ Target::Target(std::string filename, const Json::Value &content) : filename_(std
   length_ = content["length"].asUInt64();
 
   Json::Value hashes = content["hashes"];
-  for (Json::ValueIterator i = hashes.begin(); i != hashes.end(); ++i) {
+  for (auto i = hashes.begin(); i != hashes.end(); ++i) {
     Hash h(i.key().asString(), (*i).asString());
     if (h.HaveAlgorithm()) {
       hashes_.push_back(h);
@@ -346,7 +346,7 @@ void Uptane::Targets::init(const Json::Value &json) {
   }
 
   const Json::Value target_list = json["signed"]["targets"];
-  for (Json::ValueIterator t_it = target_list.begin(); t_it != target_list.end(); t_it++) {
+  for (auto t_it = target_list.begin(); t_it != target_list.end(); t_it++) {
     Target t(t_it.key().asString(), *t_it);
     targets.push_back(t);
   }
@@ -356,7 +356,7 @@ void Uptane::Targets::init(const Json::Value &json) {
     ParseKeys(Uptane::RepositoryType::Image(), key_list);
 
     const Json::Value role_list = json["signed"]["delegations"]["roles"];
-    for (Json::ValueIterator it = role_list.begin(); it != role_list.end(); it++) {
+    for (auto it = role_list.begin(); it != role_list.end(); it++) {
       const std::string role_name = (*it)["name"].asString();
       const Role role = Role::Delegation(role_name);
       delegated_role_names_.push_back(role_name);
@@ -364,7 +364,7 @@ void Uptane::Targets::init(const Json::Value &json) {
 
       const Json::Value paths_list = (*it)["paths"];
       std::vector<std::string> paths;
-      for (Json::ValueIterator p_it = paths_list.begin(); p_it != paths_list.end(); p_it++) {
+      for (auto p_it = paths_list.begin(); p_it != paths_list.end(); p_it++) {
         paths.emplace_back((*p_it).asString());
       }
       paths_for_role_[role] = paths;
@@ -397,7 +397,7 @@ void Uptane::TimestampMeta::init(const Json::Value &json) {
     throw Uptane::InvalidMetadata("", "timestamp", "invalid timestamp.json");
   }
 
-  for (Json::ValueIterator it = hashes_list.begin(); it != hashes_list.end(); ++it) {
+  for (auto it = hashes_list.begin(); it != hashes_list.end(); ++it) {
     Hash h(it.key().asString(), (*it).asString());
     snapshot_hashes_.push_back(h);
   }
@@ -419,7 +419,7 @@ void Uptane::Snapshot::init(const Json::Value &json) {
     throw Uptane::InvalidMetadata("", "snapshot", "invalid snapshot.json");
   }
 
-  for (Json::ValueIterator it = meta_list.begin(); it != meta_list.end(); ++it) {
+  for (auto it = meta_list.begin(); it != meta_list.end(); ++it) {
     Json::Value hashes_list = (*it)["hashes"];
     Json::Value meta_size = (*it)["length"];
     Json::Value meta_version = (*it)["version"];
@@ -446,7 +446,7 @@ void Uptane::Snapshot::init(const Json::Value &json) {
       role_size_[role_object] = -1;
     }
     if (hashes_list.isObject()) {
-      for (Json::ValueIterator h_it = hashes_list.begin(); h_it != hashes_list.end(); ++h_it) {
+      for (auto h_it = hashes_list.begin(); h_it != hashes_list.end(); ++h_it) {
         Hash h(h_it.key().asString(), (*h_it).asString());
         role_hashes_[role_object].push_back(h);
       }

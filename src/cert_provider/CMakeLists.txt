@@ -14,6 +14,7 @@ target_link_libraries(aktualizr-cert-provider
     ${CMAKE_THREAD_LIBS_INIT}
     ${Boost_SYSTEM_LIBRARIES}
     ${Boost_LIBRARIES}
+    ${JSONCPP_LIBRARIES}
     ${LibArchive_LIBRARIES}
     ${LIBP11_LIBRARIES}
     ${CURL_LIBRARIES}

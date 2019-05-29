@@ -1078,7 +1078,7 @@ bool SQLStorage::loadInstallationLog(const std::string& ecu_serial, std::vector<
         if (reader.parse(custom_str, custom)) {
           t.updateCustom(custom);
         } else {
-          LOG_ERROR << "Unable to parse custom data: " << reader.getFormatedErrorMessages();
+          LOG_ERROR << "Unable to parse custom data: " << reader.getFormattedErrorMessages();
         }
       }
       new_log.emplace_back(t);
@@ -1138,7 +1138,7 @@ bool SQLStorage::loadInstalledVersions(const std::string& ecu_serial, boost::opt
       if (reader.parse(custom_str, custom)) {
         t.updateCustom(custom);
       } else {
-        LOG_ERROR << "Unable to parse custom data: " << reader.getFormatedErrorMessages();
+        LOG_ERROR << "Unable to parse custom data: " << reader.getFormattedErrorMessages();
       }
     }
 

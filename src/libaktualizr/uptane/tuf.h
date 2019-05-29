@@ -330,7 +330,8 @@ class MetaWithKeys : public BaseMeta {
   void ParseKeys(RepositoryType repo, const Json::Value &keys);
   // role is the name of a role described in this object's metadata.
   // meta_role is the name of this object's role.
-  void ParseRole(RepositoryType repo, const Json::ValueIterator &it, const Role &role, const std::string &meta_role);
+  void ParseRole(RepositoryType repo, const Json::ValueConstIterator &it, const Role &role,
+                 const std::string &meta_role);
 
   /**
    * Take a JSON blob that contains a signatures/signed component that is supposedly for a given role, and check that is

@@ -64,7 +64,7 @@ JsonConfigParser::JsonConfigParser(const boost::filesystem::path& config_file) {
 SecondaryConfigParser::Configs JsonConfigParser::parse() {
   Configs res_sec_cfg;
 
-  for (Json::ValueIterator it = root_.begin(); it != root_.end(); ++it) {
+  for (auto it = root_.begin(); it != root_.end(); ++it) {
     std::string secondary_type = it.key().asString();
 
     if (sec_cfg_factory_registry_.find(secondary_type) == sec_cfg_factory_registry_.end()) {

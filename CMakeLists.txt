@@ -311,7 +311,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 ############### BUILD RULES
 include_directories(${PROJECT_SOURCE_DIR}/src/libaktualizr)
 include_directories(${PROJECT_SOURCE_DIR}/third_party/googletest/googletest/include)
-include_directories(${PROJECT_SOURCE_DIR}/third_party/jsoncpp)
+include_directories(${JSONCPP_INCLUDE_DIRS})
 include_directories(${Boost_INCLUDE_DIR})
 include_directories(${LIBOSTREE_INCLUDE_DIRS})
 include_directories(${SQLITE3_INCLUDE_DIRS})
@@ -320,9 +320,6 @@ include_directories(${sodium_INCLUDE_DIR})
 include_directories(${OPENSSL_INCLUDE_DIR})
 include_directories(${CURL_INCLUDE_DIR})
 include_directories(${LibArchive_INCLUDE_DIR})
-
-set_source_files_properties(third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
-add_library(jsoncpp OBJECT third_party/jsoncpp/jsoncpp.cpp)
 
 # General packaging configuration
 set(CPACK_GENERATOR "DEB")
@@ -385,6 +382,14 @@ include(CTest)
 ENABLE_TESTING()
 # It would be great to use GTEST_OUTPUT directly, but I couldn't get it to work.
 set(GOOGLE_TEST_OUTPUT --gtest_output=xml:${CMAKE_BINARY_DIR}/results/)
+
+# amalgamate jsoncpp source at compile time
+# note: jsoncpp has a CMake support that they intent to deprecate and is hard to
+# integrate with.
+execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/amalgamate-jsoncpp.sh ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jsoncpp ${CMAKE_CURRENT_BINARY_DIR}/jsoncpp)
+include_directories(${PROJECT_BINARY_DIR}/jsoncpp)
+set_source_files_properties(${PROJECT_BINARY_DIR}/jsoncpp/jsoncpp.cc PROPERTIES COMPILE_FLAGS "-Wno-float-equal -Wno-switch-default -Wno-implicit-fallthrough")
+add_library(jsoncpp OBJECT ${PROJECT_BINARY_DIR}/jsoncpp/jsoncpp.cc)
 
 add_subdirectory("fuzz")
 add_subdirectory("config")

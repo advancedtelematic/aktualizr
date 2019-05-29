@@ -40,7 +40,7 @@ void Repo::addDelegationToSnapshot(Json::Value *snapshot, const Uptane::Role &ro
   if (role_json["delegations"].isObject()) {
     auto delegations_list = role_json["delegations"]["roles"];
 
-    for (Json::ValueIterator it = delegations_list.begin(); it != delegations_list.end(); it++) {
+    for (auto it = delegations_list.begin(); it != delegations_list.end(); it++) {
       addDelegationToSnapshot(snapshot, Uptane::Role((*it)["name"].asString(), true));
     }
   }

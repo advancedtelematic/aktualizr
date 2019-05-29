@@ -32,7 +32,7 @@ void DirectorRepo::revokeTargets(const std::vector<std::string> &targets_to_remo
   auto targets_unsigned = Utils::parseJSONFile(targets_path)["signed"];
 
   Json::Value new_targets;
-  for (Json::ValueIterator it = targets_unsigned["targets"].begin(); it != targets_unsigned["targets"].end(); ++it) {
+  for (auto it = targets_unsigned["targets"].begin(); it != targets_unsigned["targets"].end(); ++it) {
     if (std::find(targets_to_remove.begin(), targets_to_remove.end(), it.key().asString()) == targets_to_remove.end()) {
       new_targets[it.key().asString()] = *it;
     }

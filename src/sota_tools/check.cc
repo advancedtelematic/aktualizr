@@ -120,7 +120,7 @@ int CheckRefValid(TreehubServer &treehub, const std::string &ref, RunMode mode, 
     }
 
     Json::Value target_list = targets_json["signed"]["targets"];
-    for (Json::ValueIterator t_it = target_list.begin(); t_it != target_list.end(); t_it++) {
+    for (auto t_it = target_list.begin(); t_it != target_list.end(); t_it++) {
       if ((*t_it)["hashes"]["sha256"].asString() == ref) {
         LOG_INFO << "OSTree commit " << ref << " is found in targets.json";
         return EXIT_SUCCESS;

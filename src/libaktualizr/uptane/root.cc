@@ -20,7 +20,7 @@ Root::Root(const RepositoryType repo, const Json::Value &json) : MetaWithKeys(js
   ParseKeys(repo, keys);
 
   const Json::Value roles = json["signed"]["roles"];
-  for (Json::ValueIterator it = roles.begin(); it != roles.end(); it++) {
+  for (auto it = roles.begin(); it != roles.end(); it++) {
     const Role role = Role(it.key().asString());
     ParseRole(repo, it, role, "root");
   }
