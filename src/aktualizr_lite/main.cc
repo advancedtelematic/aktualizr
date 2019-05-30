@@ -11,6 +11,21 @@
 
 namespace bpo = boost::program_options;
 
+static std::shared_ptr<SotaUptaneClient> liteClient(Config &config) {
+  std::string pkey;
+  auto storage = INvStorage::newStorage(config.storage);
+  storage->importData(config.import);
+
+  auto http_client = std::make_shared<HttpClient>();
+  auto bootloader = std::make_shared<Bootloader>(config.bootloader, *storage);
+  auto report_queue = std::make_shared<ReportQueue>(config, http_client);
+
+  KeyManager keys(storage, config.keymanagerConfig());
+  keys.copyCertsToCurl(*http_client);
+
+  return std::make_shared<SotaUptaneClient>(config, storage, http_client, bootloader, report_queue);
+}
+
 static int status_main(Config &config, const bpo::variables_map &unused) {
   (void)unused;
   GObjectUniquePtr<OstreeSysroot> sysroot_smart = OstreeManager::LoadSysroot(config.pacman.sysroot);
@@ -25,8 +40,7 @@ static int status_main(Config &config, const bpo::variables_map &unused) {
 
 static int list_main(Config &config, const bpo::variables_map &unused) {
   (void)unused;
-  auto storage = INvStorage::newStorage(config.storage);
-  auto client = SotaUptaneClient::newDefaultClient(config, storage);
+  auto client = liteClient(config);
   Uptane::HardwareIdentifier hwid(config.provision.primary_ecu_hardware_id);
 
   LOG_INFO << "Refreshing target metadata";
@@ -92,8 +106,7 @@ static std::unique_ptr<Uptane::Target> find_target(const std::shared_ptr<SotaUpt
 }
 
 static int update_main(Config &config, const bpo::variables_map &variables_map) {
-  auto storage = INvStorage::newStorage(config.storage);
-  auto client = SotaUptaneClient::newDefaultClient(config, storage);
+  auto client = liteClient(config);
   Uptane::HardwareIdentifier hwid(config.provision.primary_ecu_hardware_id);
 
   std::string version("latest");
