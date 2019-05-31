@@ -6,6 +6,7 @@
 #include <ostream>
 
 enum class RollbackMode { kBootloaderNone = 0, kUbootGeneric, kUbootMasked };
+std::ostream& operator<<(std::ostream& os, RollbackMode mode);
 
 struct BootloaderConfig {
   RollbackMode rollback_mode{RollbackMode::kBootloaderNone};

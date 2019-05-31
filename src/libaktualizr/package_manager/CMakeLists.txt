@@ -1,5 +1,4 @@
-set(SOURCES packagemanagerconfig.cc
-            packagemanagerfactory.cc
+set(SOURCES packagemanagerfactory.cc
             packagemanagerfake.cc
             packagemanagerinterface.cc)
 
@@ -9,7 +8,9 @@ set(HEADERS packagemanagerconfig.h
             packagemanagerinterface.h)
 
 add_library(package_manager OBJECT ${SOURCES})
-aktualizr_source_file_checks(${SOURCES} ${HEADERS})
+aktualizr_source_file_checks(${SOURCES} packagemanagerconfig.cc ${HEADERS})
+
+target_sources(config PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/packagemanagerconfig.cc)
 
 add_aktualizr_test(NAME packagemanagerfake SOURCES packagemanagerfake_test.cc)
 

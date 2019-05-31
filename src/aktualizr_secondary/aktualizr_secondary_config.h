@@ -61,5 +61,6 @@ class AktualizrSecondaryConfig : public BaseConfig {
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);
   void updateFromPropertyTree(const boost::property_tree::ptree& pt) override;
 };
+std::ostream& operator<<(std::ostream& os, const AktualizrSecondaryConfig& cfg);
 
 #endif  // AKTUALIZR_SECONDARY_CONFIG_H_

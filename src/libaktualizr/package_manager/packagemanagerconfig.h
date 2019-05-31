@@ -8,6 +8,7 @@
 #include "utilities/config_utils.h"
 
 enum class PackageManager { kNone = 0, kOstree, kDebian, kAndroid };
+std::ostream& operator<<(std::ostream& os, PackageManager pm);
 
 struct PackageConfig {
   PackageManager type{PackageManager::kOstree};
