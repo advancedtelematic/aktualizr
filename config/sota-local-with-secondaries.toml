@@ -4,7 +4,7 @@ primary_ecu_hardware_id = "local-fake"
 
 [uptane]
 polling_sec = 1
-secondary_config_file = "posix_secondary_config.json"
+secondary_config_file = "posix-secondary-config.json"
 
 [logger]
 loglevel = 1
