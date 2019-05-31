@@ -86,7 +86,8 @@ Options for Uptane.
 | `repo_server`             |              | Image repository server URL. If empty, set to `tls.server` with `/repo` appended.
 | `key_source`              | `"file"`     | Where to read the device's private key from. Options: `"file"`, `"pkcs11"`.
 | `key_type`                | `"RSA2048"`  | Type of cryptographic keys to use. Options: `"ED25519"`, `"RSA2048"`, `"RSA3072"` or `"RSA4096"`.
-| `secondary_configs_dir`   | `""`         | Directory containing individual secondary json configuration files. Example here: link:{aktualizr-github-url}/config/secondary/virtualsec.json[]
+| `secondary_configs_dir`   | `""`         | Directory containing individual secondary json configuration files. Example here: link:{aktualizr-github-url}/config/secondary/virtualsec.json[]. This is currently only used for virtual secondaries and will be soon replaced entirely by `secondary_configs_file`.
+| `secondary_config_file`   | `""`         | A path to a json file containing configuration of Secondary ECU(s) to be registered with the primary. Example here: link:{aktualizr-github-url}/config/posix-secondary-config.json[].
 | `force_install_completion`| false        | Forces installation completion. Causes a system reboot in case of an ostree package manager. Emulates a reboot in case of a fake package manager.
 |==========================================================================================
 
