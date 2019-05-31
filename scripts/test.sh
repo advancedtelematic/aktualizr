@@ -181,10 +181,13 @@ if [[ $TEST_WITH_TESTSUITE = 1 ]]; then
     fi
 fi
 
-#Make docs
 if [[ $TEST_WITH_DOCS = 1 ]]; then
-   echo ">> Running make docs"
-   make docs
+    echo ">> Running make docs"
+    if [[ $TEST_DRYRUN != 1 ]]; then
+        set -x
+	run_make docs || add_failure "make docs"
+	set +x
+   fi
 fi
 
 collect_failures

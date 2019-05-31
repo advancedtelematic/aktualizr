@@ -17,11 +17,13 @@ RUN apt-get update && apt-get -y install \
   clang-format-6.0 \
   cmake \
   curl \
+  doxygen \
   dpkg-dev \
   e2fslibs-dev \
   g++ \
   gcc \
   git \
+  graphviz \
   lcov \
   libarchive-dev \
   libboost-dev \
@@ -57,9 +59,7 @@ RUN apt-get update && apt-get -y install \
   softhsm2 \
   sqlite3 \
   valgrind \
-  wget \
-  doxygen \
-  graphviz
+  wget 
 
 
 RUN ln -s clang-6.0 /usr/bin/clang && \
