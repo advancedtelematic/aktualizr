@@ -178,7 +178,8 @@ void SotaUptaneClient::finalizeAfterReboot() {
 data::InstallationResult SotaUptaneClient::PackageInstallSetResult(const Uptane::Target &target) {
   data::InstallationResult result;
   Uptane::EcuSerial ecu_serial = uptane_manifest.getPrimaryEcuSerial();
-  if (!target.IsOstree() && config.pacman.type == PackageManager::kOstree) {
+  if (!target.IsOstree() &&
+      (config.pacman.type == PackageManager::kOstree || config.pacman.type == PackageManager::kOstreeDockerApp)) {
     result = data::InstallationResult(data::ResultCode::Numeric::kValidationFailed,
                                       "Cannot install a non-OSTree package on an OSTree system");
   } else {

@@ -7,7 +7,7 @@
 
 #include "utilities/config_utils.h"
 
-enum class PackageManager { kNone = 0, kOstree, kDebian, kAndroid };
+enum class PackageManager { kNone = 0, kOstree, kDebian, kAndroid, kOstreeDockerApp };
 std::ostream& operator<<(std::ostream& os, PackageManager pm);
 
 struct PackageConfig {
@@ -16,6 +16,14 @@ struct PackageConfig {
   boost::filesystem::path sysroot;
   std::string ostree_server;
   boost::filesystem::path packages_file{"/usr/package.manifest"};
+
+#ifdef BUILD_DOCKERAPP
+  std::vector<std::string> docker_apps;
+  boost::filesystem::path docker_apps_root;
+  boost::filesystem::path docker_app_params;
+  boost::filesystem::path docker_app_bin{"/usr/bin/docker-app"};
+  boost::filesystem::path docker_compose_bin{"/usr/bin/docker-compose"};
+#endif
 
   // Options for simulation (to be used with kNone)
   bool fake_need_reboot{false};
@@ -36,6 +44,8 @@ inline void CopyFromConfig(PackageManager& dest, const std::string& option_name,
       dest = PackageManager::kDebian;
     } else if (pm_type == "android") {
       dest = PackageManager::kAndroid;
+    } else if (pm_type == "ostree+docker-app") {
+      dest = PackageManager::kOstreeDockerApp;
     } else {
       dest = PackageManager::kNone;
     }

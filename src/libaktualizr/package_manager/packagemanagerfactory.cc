@@ -3,6 +3,9 @@
 
 #ifdef BUILD_OSTREE
 #include "package_manager/ostreemanager.h"
+#ifdef BUILD_DOCKERAPP
+#include "package_manager/dockerappmanager.h"
+#endif
 #endif
 
 #ifdef BUILD_DEB
@@ -37,6 +40,12 @@ std::shared_ptr<PackageManagerInterface> PackageManagerFactory::makePackageManag
       return std::make_shared<AndroidManager>(pconfig, storage, bootloader, http);
 #else
       throw std::runtime_error("aktualizr was compiled without android support!");
+#endif
+    case PackageManager::kOstreeDockerApp:
+#if defined(BUILD_DOCKERAPP) && defined(BUILD_OSTREE)
+      return std::make_shared<DockerAppManager>(pconfig, storage, bootloader, http);
+#else
+      throw std::runtime_error("aktualizr was compiled without ostree+docker-app support!");
 #endif
     case PackageManager::kNone:
       return std::make_shared<PackageManagerFake>(pconfig, storage, bootloader, http);

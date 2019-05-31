@@ -38,7 +38,7 @@ static int list_main(Config &config, const bpo::variables_map &unused) {
     }
   }
 
-  LOG_INFO << "Updates for available to " << hwid << ":";
+  LOG_INFO << "Updates available to " << hwid << ":";
   for (auto &t : client->allTargets()) {
     for (auto const &it : t.hardwareIds()) {
       if (it == hwid) {
@@ -47,6 +47,21 @@ static int list_main(Config &config, const bpo::variables_map &unused) {
           name = t.custom_version();
         }
         LOG_INFO << name << "\tsha256:" << t.sha256Hash();
+        if (config.pacman.type == PackageManager::kOstreeDockerApp) {
+          bool shown = false;
+          auto apps = t.custom_data()["docker_apps"];
+          for (Json::ValueIterator i = apps.begin(); i != apps.end(); ++i) {
+            if (!shown) {
+              shown = true;
+              LOG_INFO << "\tDocker Apps:";
+            }
+            if ((*i).isObject() && (*i).isMember("filename")) {
+              LOG_INFO << "\t\t" << i.key().asString() << " -> " << (*i)["filename"].asString();
+            } else {
+              LOG_ERROR << "\t\tInvalid custom data for docker-app: " << i.key().asString();
+            }
+          }
+        }
         break;
       }
     }

@@ -40,6 +40,11 @@ if(BUILD_OSTREE)
     add_aktualizr_test(NAME ostree SOURCES ostreemanager_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
 
+    if(BUILD_DOCKERAPP)
+        target_sources(package_manager PRIVATE dockerappmanager.cc)
+        add_aktualizr_test(NAME dockerapp SOURCES dockerappmanager_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND
+                           ARGS ${PROJECT_BINARY_DIR}/ostree_repo "$<TARGET_FILE:aktualizr-repo>")
+    endif(BUILD_DOCKERAPP)
 endif(BUILD_OSTREE)
 
 add_aktualizr_test(NAME packagemanager_factory SOURCES packagemanagerfactory_test.cc NO_VALGRIND
@@ -55,6 +60,7 @@ aktualizr_source_file_checks(ostreemanager.cc ostreereposync.cc
                              ostreemanager.h ostreereposync.h)
 
 aktualizr_source_file_checks(androidmanager.cc androidmanager.h)
+aktualizr_source_file_checks(dockerappmanager.cc dockerappmanager.h dockerappmanager_test.cc)
 
 if(ANDROID)
     target_sources(package_manager PRIVATE androidmanager.cc)
