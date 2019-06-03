@@ -86,6 +86,15 @@ CampaignAcceptedReport::CampaignAcceptedReport(const std::string& campaign_id) :
   custom["campaignId"] = campaign_id;
 }
 
+CampaignDeclinedReport::CampaignDeclinedReport(const std::string& campaign_id) : ReportEvent("campaign_declined", 0) {
+  custom["campaignId"] = campaign_id;
+}
+
+CampaignPostponedReport::CampaignPostponedReport(const std::string& campaign_id)
+    : ReportEvent("campaign_postponed", 0) {
+  custom["campaignId"] = campaign_id;
+}
+
 DevicePausedReport::DevicePausedReport(const std::string& correlation_id) : ReportEvent("DevicePaused", 0) {
   setCorrelationId(correlation_id);
 }

@@ -54,6 +54,8 @@ class SotaUptaneClient {
   result::Install uptaneInstall(const std::vector<Uptane::Target> &updates);
   result::CampaignCheck campaignCheck();
   void campaignAccept(const std::string &campaign_id);
+  void campaignDecline(const std::string &campaign_id);
+  void campaignPostpone(const std::string &campaign_id);
   bool hasPendingUpdates();
   bool isInstallCompletionRequired();
   void completeInstall();

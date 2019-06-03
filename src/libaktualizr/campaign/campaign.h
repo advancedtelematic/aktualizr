@@ -15,6 +15,18 @@ class CampaignParseError : std::exception {
   const char *what() const noexcept override { return "Could not parse Campaign metadata"; }
 };
 
+enum class Cmd {
+  Accept,
+  Decline,
+  Postpone,
+};
+
+static inline Cmd cmdFromName(const std::string &name) {
+  return std::map<std::string, Cmd>{
+      {"campaign_accept", Cmd::Accept}, {"campaign_decline", Cmd::Decline}, {"campaign_postpone", Cmd::Postpone}}
+      .at(name);
+}
+
 // Out of uptane concept: update campaign for a device
 class Campaign {
  public:

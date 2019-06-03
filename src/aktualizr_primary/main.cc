@@ -35,7 +35,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("version,v", "Current aktualizr version")
       ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
       ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
-      ("run-mode", bpo::value<std::string>(), "run mode of aktualizr: full, once, campaign_check, campaign_accept, check, download, or install")
+      ("run-mode", bpo::value<std::string>(), "run mode of aktualizr: full, once, campaign_check, campaign_accept, campaign_decline, campaign_postpone, check, download, or install")
       ("tls-server", bpo::value<std::string>(), "url of device gateway")
       ("repo-server", bpo::value<std::string>(), "url of the uptane repo repository")
       ("director-server", bpo::value<std::string>(), "url of the uptane director repository")
@@ -136,11 +136,12 @@ int main(int argc, char *argv[]) {
     // launch the first event
     if (run_mode == "campaign_check") {
       aktualizr.CampaignCheck().get();
-    } else if (run_mode == "campaign_accept") {
+    } else if (run_mode == "campaign_accept" || run_mode == "campaign_decline" || run_mode == "campaign_postpone") {
       if (commandline_map.count("campaign-id") == 0) {
-        throw std::runtime_error("Accepting a campaign requires a campaign ID");
+        throw std::runtime_error(run_mode + " requires a campaign ID");
       }
-      aktualizr.CampaignAccept(commandline_map["campaign-id"].as<std::string>()).get();
+      aktualizr.CampaignControl(commandline_map["campaign-id"].as<std::string>(), campaign::cmdFromName(run_mode))
+          .get();
     } else if (run_mode == "check") {
       aktualizr.SendDeviceData().get();
       aktualizr.CheckUpdates().get();

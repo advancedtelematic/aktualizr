@@ -856,6 +856,16 @@ void SotaUptaneClient::campaignAccept(const std::string &campaign_id) {
   report_queue->enqueue(std_::make_unique<CampaignAcceptedReport>(campaign_id));
 }
 
+void SotaUptaneClient::campaignDecline(const std::string &campaign_id) {
+  sendEvent<event::CampaignDeclineComplete>();
+  report_queue->enqueue(std_::make_unique<CampaignDeclinedReport>(campaign_id));
+}
+
+void SotaUptaneClient::campaignPostpone(const std::string &campaign_id) {
+  sendEvent<event::CampaignPostponeComplete>();
+  report_queue->enqueue(std_::make_unique<CampaignPostponedReport>(campaign_id));
+}
+
 bool SotaUptaneClient::isInstallCompletionRequired() {
   bool force_install_completion = (hasPendingUpdates() && config.uptane.force_install_completion);
   return force_install_completion;

@@ -168,6 +168,16 @@ class CampaignAcceptComplete : public BaseEvent {
   CampaignAcceptComplete() { variant = "CampaignAcceptComplete"; }
 };
 
+class CampaignDeclineComplete : public BaseEvent {
+ public:
+  CampaignDeclineComplete() { variant = "CampaignDeclineComplete"; }
+};
+
+class CampaignPostponeComplete : public BaseEvent {
+ public:
+  CampaignPostponeComplete() { variant = "CampaignPostponeComplete"; }
+};
+
 using Channel = boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>;
 
 }  // namespace event

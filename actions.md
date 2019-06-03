@@ -72,6 +72,14 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Send campaign acceptance report
     - [x] Send an event report (see below)
   - [x] Send CampaignAcceptComplete event
+- [x] Decline a campaign
+  - [x] Send campaign decline report
+    - [x] Send an event report (see below)
+  - [x] Send CampaignDeclineComplete event
+- [x] Postpone a campaign
+  - [x] Send campaign postpone report
+    - [x] Send an event report (see below)
+  - [x] Send CampaignPostponeComplete event
 - [x] Fetch metadata from server
   - [x] Generate and send manifest (see below)
   - [x] Fetch metadata from the director (uptane_test.cc, uptane_vector_tests.cc)
