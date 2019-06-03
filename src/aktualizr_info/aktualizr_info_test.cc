@@ -8,6 +8,8 @@
 #include "test_utils.h"
 #include "utilities/utils.h"
 
+constexpr char warning_no_meta_data[] = "Metadata is not available\n";
+
 class AktualizrInfoTest : public ::testing::Test {
  protected:
   AktualizrInfoTest() : test_conf_file_{test_dir_ / "conf.toml"}, test_db_file_{test_dir_ / "sql.db"} {
@@ -630,6 +632,25 @@ TEST_F(AktualizrInfoTest, PrintImageTimestampMetadata) {
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find(images_timestamp), std::string::npos);
+}
+
+/**
+ * Verifies aktualizr-info output when metadata is not present
+ *
+ * Check actions:
+ *  - [x]
+ */
+TEST_F(AktualizrInfoTest, PrintMetadataWarnibg) {
+  db_storage_->clearMetadata();
+
+  std::vector<std::string> args = {"--images-root",     "--images-target",   "--delegation",      "--director-root",
+                                   "--director-target", "--images-snapshot", "--images-timestamp"};
+
+  for (auto arg : args) {
+    aktualizr_info_process_.run({arg});
+    ASSERT_FALSE(aktualizr_info_output.empty());
+    EXPECT_NE(aktualizr_info_output.find(std::string(warning_no_meta_data)), std::string::npos);
+  }
 }
 
 #ifndef __NO_MAIN__

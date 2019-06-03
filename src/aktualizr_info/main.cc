@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
     ("help,h", "print usage")
     ("config,c", po::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
     ("loglevel", po::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
-    ("name-only",  "Only output device name (intended for scripting)")
+    ("name-only",  "Only output device name (intended for scripting). Cannot be used in combination with other arguments.")
     ("tls-creds",  "Outputs TLS credentials")
     ("tls-root-ca", "Outputs TLS Root CA")
     ("tls-cert", "Outputs TLS client certificate")
@@ -78,15 +78,15 @@ int main(int argc, char **argv) {
     }
 
     std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage, readonly);
-
+    bool cmd_trigger = false;
     std::string device_id;
-    if (!storage->loadDeviceId(&device_id)) {
-      std::cout << "Couldn't load device ID" << std::endl;
-      return EXIT_SUCCESS;
-    }
-
+    bool load_id = storage->loadDeviceId(&device_id);
     if (vm.count("name-only") != 0u) {
-      std::cout << device_id << std::endl;
+      if (!load_id) {
+        std::cout << "Couldn't load device ID\n";
+      } else {
+        std::cout << device_id << std::endl;
+      }
       return EXIT_SUCCESS;
     }
 
@@ -100,28 +100,28 @@ int main(int argc, char **argv) {
       std::cout << "Root CA certificate:" << std::endl << ca << std::endl;
       std::cout << "Client certificate:" << std::endl << cert << std::endl;
       std::cout << "Client private key:" << std::endl << pkey << std::endl;
-      return EXIT_SUCCESS;
+      cmd_trigger = true;
     }
 
     if (vm.count("tls-root-ca") != 0u) {
       std::string ca;
       storage->loadTlsCa(&ca);
-      std::cout << ca;
-      return EXIT_SUCCESS;
+      std::cout << ca << std::endl;
+      cmd_trigger = true;
     }
 
     if (vm.count("tls-cert") != 0u) {
       std::string cert;
       storage->loadTlsCert(&cert);
-      std::cout << cert;
-      return EXIT_SUCCESS;
+      std::cout << cert << std::endl;
+      cmd_trigger = true;
     }
 
     if (vm.count("tls-prv-key")) {
       std::string key;
       storage->loadTlsPkey(&key);
-      std::cout << key;
-      return EXIT_SUCCESS;
+      std::cout << key << std::endl;
+      cmd_trigger = true;
     }
 
     // ECU credentials
@@ -132,21 +132,21 @@ int main(int argc, char **argv) {
       storage->loadPrimaryKeys(&pub, &priv);
       std::cout << "Public key:" << std::endl << pub << std::endl;
       std::cout << "Private key:" << std::endl << priv << std::endl;
-      return EXIT_SUCCESS;
+      cmd_trigger = true;
     }
 
     if (vm.count("ecu-pub-key") != 0u) {
       std::string key;
       storage->loadPrimaryPublic(&key);
-      std::cout << key;
+      std::cout << key << std::endl;
       return EXIT_SUCCESS;
     }
 
     if (vm.count("ecu-prv-key") != 0u) {
       std::string key;
       storage->loadPrimaryPrivate(&key);
-      std::cout << key;
-      return EXIT_SUCCESS;
+      std::cout << key << std::endl;
+      cmd_trigger = true;
     }
 
     std::string director_root;
@@ -162,7 +162,7 @@ int main(int argc, char **argv) {
         storage->loadLatestRoot(&images_root, Uptane::RepositoryType::Image());
         std::cout << images_root << std::endl;
       }
-      return EXIT_SUCCESS;
+      cmd_trigger = true;
     }
 
     if (vm.count("images-target") != 0u) {
@@ -173,16 +173,16 @@ int main(int argc, char **argv) {
         storage->loadNonRoot(&images_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets());
         std::cout << images_targets << std::endl;
       }
-      return EXIT_SUCCESS;
+      cmd_trigger = true;
     }
 
     if (vm.count("delegation") != 0u) {
       if (!has_metadata) {
         std::cout << msg_metadata_fail << std::endl;
-        return EXIT_SUCCESS;
       } else {
-        return loadAndPrintDelegations(storage);
+        loadAndPrintDelegations(storage);
       }
+      cmd_trigger = true;
     }
 
     if (vm.count("director-root") != 0u) {
@@ -191,7 +191,7 @@ int main(int argc, char **argv) {
       } else {
         std::cout << director_root << std::endl;
       }
-      return EXIT_SUCCESS;
+      cmd_trigger = true;
     }
 
     if (vm.count("director-target") != 0u) {
@@ -202,7 +202,7 @@ int main(int argc, char **argv) {
         storage->loadNonRoot(&director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets());
         std::cout << director_targets << std::endl;
       }
-      return EXIT_SUCCESS;
+      cmd_trigger = true;
     }
 
     if (vm.count("images-snapshot") != 0u) {
@@ -213,7 +213,7 @@ int main(int argc, char **argv) {
         storage->loadNonRoot(&snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot());
         std::cout << snapshot << std::endl;
       }
-      return EXIT_SUCCESS;
+      cmd_trigger = true;
     }
 
     if (vm.count("images-timestamp") != 0u) {
@@ -224,6 +224,10 @@ int main(int argc, char **argv) {
         storage->loadNonRoot(&timestamp, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp());
         std::cout << timestamp << std::endl;
       }
+      cmd_trigger = true;
+    }
+
+    if (cmd_trigger) {
       return EXIT_SUCCESS;
     }
 
