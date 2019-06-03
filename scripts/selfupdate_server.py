@@ -10,7 +10,7 @@ class Handler(BaseHTTPRequestHandler):
         print("GET: " + self.path)
         self.send_response(200)
         self.end_headers()
-        with open("/persistent/fake_root/repo/" + self.path, "rb") as fl:
+        with open(self.server.base_dir + "/fake_root/repo/" + self.path, "rb") as fl:
             self.wfile.write(bytearray(fl.read()))
 
     def do_POST(self):
@@ -22,14 +22,19 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
 
 
-class ReUseHTTPServer(HTTPServer):
+class SelfUpdateHTTPServer(HTTPServer):
+    def __init__(self, base_dir, *kargs, **kwargs):
+        super().__init__(*kargs, **kwargs)
+        self.base_dir = base_dir
+
     def server_bind(self):
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         HTTPServer.server_bind(self)
 
 
 server_address = ('', int(sys.argv[1]))
-httpd = ReUseHTTPServer(server_address, Handler)
+base_dir = sys.argv[2]
+httpd = SelfUpdateHTTPServer(base_dir, server_address, Handler)
 
 try:
     httpd.serve_forever()
