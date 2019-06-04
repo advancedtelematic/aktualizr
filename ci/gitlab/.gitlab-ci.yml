@@ -1,6 +1,7 @@
 stages:
   - docker
   - test
+  - pkg-test
   - deploy
 
 variables:
@@ -17,7 +18,6 @@ variables:
 
   GIT_SUBMODULE_STRATEGY: recursive
 
-# Build the Docker image that will be used in subsequent CI/CD stages
 Docker Setup:
   image: docker:latest
   stage: docker
@@ -55,25 +55,25 @@ coverage:
     TEST_WITH_COVERAGE: '1'
     TEST_WITH_P11: '1'
     TEST_WITH_FAULT_INJECTION: '1'
-    TEST_SOTA_PACKED_CREDENTIALS: '/tmp/credentials.zip'
+    TEST_SOTA_PACKED_CREDENTIALS: "$CI_PROJECT_DIR/credentials.zip"
   image: "$UBUNTU_BIONIC_PR_IMAGE"
   stage: test
   artifacts:
     paths:
       - build-coverage/coverage/
   script:
-    - aws s3 cp s3://ota-gitlab-ci/hereotaconnect_prod.zip /tmp/credentials.zip
-    - $CI_PROJECT_DIR/scripts/test.sh
+    - aws s3 cp s3://ota-gitlab-ci/hereotaconnect_prod.zip $CI_PROJECT_DIR/credentials.zip
+    - ./scripts/test.sh
 
 nop11:
   variables:
     TEST_BUILD_DIR: 'build-nop11'
-    TEST_CMAKE_BUILD_TYPE: 'Valgrind'
-    TEST_TESTSUITE_ONLY: 'crypto'
+    TEST_CMAKE_BUILD_TYPE: 'Debug'
+    TEST_WITH_TESTSUITE: '0'
   image: "$UBUNTU_BIONIC_PR_IMAGE"
   stage: test
   script:
-    - $CI_PROJECT_DIR/scripts/test.sh
+    - ./scripts/test.sh
 
 debian-build+static:
   variables:
@@ -88,54 +88,59 @@ debian-build+static:
   image: "$DEBIAN_TESTING_PR_IMAGE"
   stage: test
   script:
-    - $CI_PROJECT_DIR/scripts/test.sh
+    - ./scripts/test.sh
 
 bionic-pkg:
-  # Build and test aktualizr bionic package
   variables:
     TEST_BUILD_DIR: 'build-bionic'
     TEST_INSTALL_RELEASE_NAME: '-ubuntu_18.04'
     TEST_INSTALL_DESTDIR: "$CI_PROJECT_DIR/build-bionic/pkg"
 
-  image: docker:latest
-  services:
-    - docker:dind
+  image: "$UBUNTU_BIONIC_PR_IMAGE"
   stage: test
   artifacts:
     paths:
-      - build-bionic/pkg/*.deb
-  before_script:
-    - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
+      - build-bionic/pkg
   script:
     - mkdir -p $TEST_INSTALL_DESTDIR
-    # build package
-    - docker run -eTEST_BUILD_DIR=$TEST_BUILD_DIR -eTEST_INSTALL_RELEASE_NAME=$TEST_INSTALL_RELEASE_NAME -u $(id -u):$(id -g) -v $CI_PROJECT_DIR:$CI_PROJECT_DIR -v $TEST_INSTALL_DESTDIR:/persistent --rm $UBUNTU_BIONIC_PR_IMAGE $CI_PROJECT_DIR/scripts/build_ubuntu.sh
-    # run tests
-    - docker run --rm -v $TEST_INSTALL_DESTDIR:/persistent -v $CI_PROJECT_DIR/scripts/:/scripts/ -t $UBUNTU_BIONIC_PR_INSTALLIMAGE /scripts/test_install_garage_deploy.sh
+    - ./scripts/build_ubuntu.sh
 
 xenial-pkg:
-  # Build and test aktualizr xenial package
   variables:
     TEST_BUILD_DIR: 'build-xenial'
     TEST_INSTALL_RELEASE_NAME: '-ubuntu_16.04'
     TEST_INSTALL_DESTDIR: "$CI_PROJECT_DIR/build-xenial/pkg"
 
-  image: docker:latest
-  services:
-    - docker:dind
+  image: "$UBUNTU_XENIAL_PR_IMAGE"
   stage: test
   artifacts:
     paths:
-      - build-xenial/pkg/*.deb
-  before_script:
-    - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
+      - build-xenial/pkg
   script:
     - mkdir -p $TEST_INSTALL_DESTDIR
-    # build package
-    - docker run -eTEST_BUILD_DIR="$TEST_BUILD_DIR" -eTEST_INSTALL_RELEASE_NAME="$TEST_INSTALL_RELEASE_NAME" -u $(id -u):$(id -g) -v $CI_PROJECT_DIR:$CI_PROJECT_DIR -v $TEST_INSTALL_DESTDIR:/persistent --rm $UBUNTU_XENIAL_PR_IMAGE $CI_PROJECT_DIR/scripts/build_ubuntu.sh
-    # run tests
-    - docker run --rm -v $TEST_INSTALL_DESTDIR:/persistent -v $CI_PROJECT_DIR/scripts/:/scripts/ -t $UBUNTU_XENIAL_PR_INSTALLIMAGE /scripts/test_install_garage_deploy.sh
-    - docker run --rm -v $TEST_INSTALL_DESTDIR:/persistent -v $CI_PROJECT_DIR/scripts/:/scripts/ -t $UBUNTU_XENIAL_PR_INSTALLIMAGE bash -c "/scripts/test_install_aktualizr_and_update.sh && /scripts/test_aktualizr_repo.sh"
+    - ./scripts/build_ubuntu.sh
+
+bionic-pkg-test:
+  variables:
+    TEST_INSTALL_DESTDIR: "$CI_PROJECT_DIR/build-bionic/pkg"
+
+  image: "$UBUNTU_BIONIC_PR_INSTALLIMAGE"
+  stage: pkg-test
+  script:
+    - ./scripts/test_install_garage_deploy.sh
+
+xenial-pkg-test:
+  variables:
+    TEST_INSTALL_DESTDIR: "$CI_PROJECT_DIR/build-xenial/pkg"
+
+  image: "$UBUNTU_XENIAL_PR_INSTALLIMAGE"
+  stage: pkg-test
+  script:
+    - ./scripts/test_install_garage_deploy.sh
+    - ./scripts/test_install_aktualizr_and_update.sh
+    - ./scripts/test_aktualizr_repo.sh
+
+# publish coverage results on gitlab pages
 
 pages:
   stage: deploy
