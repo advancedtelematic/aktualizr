@@ -153,7 +153,7 @@ class Aktualizr {
    * @param handler a function that can receive event objects.
    * @return a signal connection object, which can be disconnected if desired.
    */
-  boost::signals2::connection SetSignalHandler(std::function<void(std::shared_ptr<event::BaseEvent>)>& handler);
+  boost::signals2::connection SetSignalHandler(const std::function<void(std::shared_ptr<event::BaseEvent>)>& handler);
 
  private:
   FRIEND_TEST(Aktualizr, FullNoUpdates);

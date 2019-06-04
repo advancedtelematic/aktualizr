@@ -147,7 +147,8 @@ result::Pause Aktualizr::Resume() {
 
 void Aktualizr::Abort() { api_queue_.abort(); }
 
-boost::signals2::connection Aktualizr::SetSignalHandler(std::function<void(shared_ptr<event::BaseEvent>)> &handler) {
+boost::signals2::connection Aktualizr::SetSignalHandler(
+    const std::function<void(shared_ptr<event::BaseEvent>)> &handler) {
   return sig_->connect(handler);
 }
 
