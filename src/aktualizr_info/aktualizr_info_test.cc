@@ -638,13 +638,14 @@ TEST_F(AktualizrInfoTest, PrintImageTimestampMetadata) {
  * Verifies aktualizr-info output when metadata is not present
  *
  * Check actions:
- *  - [x]
+ *  - [x] Print appropriate message if the metadata does not exist in storage..
  */
 TEST_F(AktualizrInfoTest, PrintMetadataWarnibg) {
   db_storage_->clearMetadata();
 
-  std::vector<std::string> args = {"--images-root",     "--images-target",   "--delegation",      "--director-root",
-                                   "--director-target", "--images-snapshot", "--images-timestamp"};
+  const std::vector<std::string> args = {"--images-root",     "--images-target",   "--delegation",
+                                         "--director-root",   "--director-target", "--images-snapshot",
+                                         "--images-timestamp"};
 
   for (auto arg : args) {
     aktualizr_info_process_.run({arg});

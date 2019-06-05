@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
       exit(EXIT_SUCCESS);
     }
 
-    if (!vm.count("loglevel")) {
+    if (vm.count("loglevel") == 0u) {
       logger_set_enable(false);
     }
 
@@ -118,7 +118,7 @@ int main(int argc, char **argv) {
       cmd_trigger = true;
     }
 
-    if (vm.count("tls-prv-key")) {
+    if (vm.count("tls-prv-key") != 0u) {
       std::string key;
       storage->loadTlsPkey(&key);
       std::cout << key << std::endl;
