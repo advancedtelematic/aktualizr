@@ -80,14 +80,15 @@ int main(int argc, char **argv) {
     std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage, readonly);
     bool cmd_trigger = false;
     std::string device_id;
-    bool load_id = storage->loadDeviceId(&device_id);
-    if (vm.count("name-only") != 0u) {
-      if (!load_id) {
-        std::cout << "Couldn't load device ID\n";
-      } else {
+
+    if (!storage->loadDeviceId(&device_id)) {
+      std::cout << "Couldn't load device ID" << std::endl;
+    } else {
+      // Early return if only printing device ID.
+      if (vm.count("name-only") != 0u) {
         std::cout << device_id << std::endl;
+        return EXIT_SUCCESS;
       }
-      return EXIT_SUCCESS;
     }
 
     // TLS credentials
