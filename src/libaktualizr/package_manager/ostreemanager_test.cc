@@ -101,10 +101,20 @@ TEST(OstreeManager, BadSysroot) {
 /* Parse a provided list of installed packages. */
 TEST(OstreeManager, ParseInstalledPackages) {
   TemporaryDirectory temp_dir;
+  boost::filesystem::path packages_file = temp_dir / "package.manifest";
+
+  std::string content;
+  {
+    content += "vim 1.0\n";
+    content += "emacs 2.0\n";
+    content += "bash 1.1\n";
+  }
+  Utils::writeFile(packages_file, content);
+
   Config config;
   config.pacman.type = PackageManager::kOstree;
   config.pacman.sysroot = test_sysroot;
-  config.pacman.packages_file = "tests/test_data/package.manifest";
+  config.pacman.packages_file = packages_file;
   config.storage.path = temp_dir.Path();
 
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
