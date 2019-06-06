@@ -48,13 +48,16 @@ class Aktualizr {
   std::future<result::CampaignCheck> CampaignCheck();
 
   /**
-   * Accept a campaign for the current device.
-   * Campaigns are a concept outside of Uptane, and allow for user approval of
-   * updates before the contents of the update are known.
+   * Act on campaign: accept, decline or postpone.
+   * Accepted campaign will be removed from the campaign list but no guarantee
+   * is made for declined or postponed items. Applications are responsible for
+   * tracking their state but this method will notify the server for device
+   * state monitoring purposes.
    * @param campaign_id Campaign ID as provided by CampaignCheck.
+   * @param cmd action to apply on the campaign: accept, decline or postpone
    * @return Empty std::future object
    */
-  std::future<void> CampaignAccept(const std::string& campaign_id);
+  std::future<void> CampaignControl(const std::string& campaign_id, campaign::Cmd cmd);
 
   /**
    * Send local device data to the server.
@@ -153,7 +156,7 @@ class Aktualizr {
    * @param handler a function that can receive event objects.
    * @return a signal connection object, which can be disconnected if desired.
    */
-  boost::signals2::connection SetSignalHandler(std::function<void(std::shared_ptr<event::BaseEvent>)>& handler);
+  boost::signals2::connection SetSignalHandler(const std::function<void(std::shared_ptr<event::BaseEvent>)>& handler);
 
  private:
   FRIEND_TEST(Aktualizr, FullNoUpdates);
@@ -169,7 +172,7 @@ class Aktualizr {
   FRIEND_TEST(Aktualizr, DownloadFailures);
   FRIEND_TEST(Aktualizr, InstallWithUpdates);
   FRIEND_TEST(Aktualizr, ReportDownloadProgress);
-  FRIEND_TEST(Aktualizr, CampaignCheckAndAccept);
+  FRIEND_TEST(Aktualizr, CampaignCheckAndControl);
   FRIEND_TEST(Aktualizr, FullNoCorrelationId);
   FRIEND_TEST(Aktualizr, ManifestCustom);
   FRIEND_TEST(Aktualizr, APICheck);

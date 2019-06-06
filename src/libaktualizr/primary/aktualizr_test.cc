@@ -1546,7 +1546,8 @@ class HttpFakeCampaign : public HttpFake {
     (void)url;
     for (auto it = data.begin(); it != data.end(); it++) {
       auto ev = *it;
-      if (ev["eventType"]["id"] == "campaign_accepted") {
+      auto id = ev["eventType"]["id"];
+      if (id == "campaign_accepted" || id == "campaign_declined" || id == "campaign_postponed") {
         seen_events.push_back(ev);
       }
     }
@@ -1556,39 +1557,59 @@ class HttpFakeCampaign : public HttpFake {
   std::vector<Json::Value> seen_events;
 };
 
-bool campaignaccept_seen = false;
-void CampaignCheck_events(const std::shared_ptr<event::BaseEvent>& event) {
-  std::cout << event->variant << "\n";
-  if (event->variant == "CampaignCheckComplete") {
-    auto concrete_event = std::static_pointer_cast<event::CampaignCheckComplete>(event);
-    EXPECT_EQ(concrete_event->result.campaigns.size(), 1);
-    EXPECT_EQ(concrete_event->result.campaigns[0].name, "campaign1");
-    EXPECT_EQ(concrete_event->result.campaigns[0].id, "c2eb7e8d-8aa0-429d-883f-5ed8fdb2a493");
-    EXPECT_EQ(concrete_event->result.campaigns[0].size, 62470);
-    EXPECT_EQ(concrete_event->result.campaigns[0].autoAccept, true);
-    EXPECT_EQ(concrete_event->result.campaigns[0].description, "this is my message to show on the device");
-  } else if (event->variant == "CampaignAcceptComplete") {
-    campaignaccept_seen = true;
+class CampaignEvents {
+ public:
+  bool campaignaccept_seen{false};
+  bool campaigndecline_seen{false};
+  bool campaignpostpone_seen{false};
+
+  void handler(const std::shared_ptr<event::BaseEvent>& event) {
+    std::cout << event->variant << "\n";
+    if (event->variant == "CampaignCheckComplete") {
+      auto concrete_event = std::static_pointer_cast<event::CampaignCheckComplete>(event);
+      EXPECT_EQ(concrete_event->result.campaigns.size(), 1);
+      EXPECT_EQ(concrete_event->result.campaigns[0].name, "campaign1");
+      EXPECT_EQ(concrete_event->result.campaigns[0].id, "c2eb7e8d-8aa0-429d-883f-5ed8fdb2a493");
+      EXPECT_EQ(concrete_event->result.campaigns[0].size, 62470);
+      EXPECT_EQ(concrete_event->result.campaigns[0].autoAccept, true);
+      EXPECT_EQ(concrete_event->result.campaigns[0].description, "this is my message to show on the device");
+    } else if (event->variant == "CampaignAcceptComplete") {
+      campaignaccept_seen = true;
+    } else if (event->variant == "CampaignDeclineComplete") {
+      campaigndecline_seen = true;
+    } else if (event->variant == "CampaignPostponeComplete") {
+      campaignpostpone_seen = true;
+    }
   }
-}
+};
 
 /* Check for campaigns with manual control.
- * Accept a campaign.
+ * Send CampaignCheckComplete event with campaign data.
  * Fetch campaigns from the server.
+ *
+ * Accept a campaign.
  * Send campaign acceptance report.
  * Send CampaignAcceptComplete event.
- * Send CampaignCheckComplete event with campaign data.
+ *
+ * Decline a campaign.
+ * Send campaign decline report.
+ * Send CampaignDeclineComplete event.
+ *
+ * Postpone a campaign.
+ * Send campaign postpone report.
+ * Send CampaignPostponeComplete event.
  */
-TEST(Aktualizr, CampaignCheckAndAccept) {
+TEST(Aktualizr, CampaignCheckAndControl) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFakeCampaign>(temp_dir.Path());
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
+  CampaignEvents campaign_events;
+
   {
     auto storage = INvStorage::newStorage(conf.storage);
     Aktualizr aktualizr(conf, storage, http);
-    std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = CampaignCheck_events;
-    aktualizr.SetSignalHandler(f_cb);
+    aktualizr.SetSignalHandler(std::bind(&CampaignEvents::handler, &campaign_events, std::placeholders::_1));
     aktualizr.Initialize();
 
     // check for campaign
@@ -1596,12 +1617,20 @@ TEST(Aktualizr, CampaignCheckAndAccept) {
     EXPECT_EQ(result.campaigns.size(), 1);
 
     // accept the campaign
-    aktualizr.CampaignAccept("c2eb7e8d-8aa0-429d-883f-5ed8fdb2a493").get();
+    aktualizr.CampaignControl("c2eb7e8d-8aa0-429d-883f-5ed8fdb2a493", campaign::Cmd::Accept).get();
+
+    aktualizr.CampaignControl("c2eb7e8d-8aa0-429d-883f-5ed8fdb2a493", campaign::Cmd::Decline).get();
+
+    aktualizr.CampaignControl("c2eb7e8d-8aa0-429d-883f-5ed8fdb2a493", campaign::Cmd::Postpone).get();
   }
 
-  ASSERT_EQ(http->seen_events.size(), 1);
-  ASSERT_EQ(http->seen_events[0]["event"]["campaignId"], "c2eb7e8d-8aa0-429d-883f-5ed8fdb2a493");
-  ASSERT_TRUE(campaignaccept_seen);
+  ASSERT_EQ(http->seen_events.size(), 3);
+  for (const auto& ev : http->seen_events) {
+    EXPECT_EQ(ev["event"]["campaignId"], "c2eb7e8d-8aa0-429d-883f-5ed8fdb2a493");
+  }
+  EXPECT_TRUE(campaign_events.campaignaccept_seen);
+  EXPECT_TRUE(campaign_events.campaigndecline_seen);
+  EXPECT_TRUE(campaign_events.campaignpostpone_seen);
 }
 
 class HttpFakeNoCorrelationId : public HttpFake {

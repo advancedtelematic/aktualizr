@@ -96,8 +96,22 @@ std::future<result::CampaignCheck> Aktualizr::CampaignCheck() {
   return api_queue_.enqueue(task);
 }
 
-std::future<void> Aktualizr::CampaignAccept(const std::string &campaign_id) {
-  std::function<void()> task([this, &campaign_id] { uptane_client_->campaignAccept(campaign_id); });
+std::future<void> Aktualizr::CampaignControl(const std::string &campaign_id, campaign::Cmd cmd) {
+  std::function<void()> task([this, &campaign_id, cmd] {
+    switch (cmd) {
+      case campaign::Cmd::Accept:
+        uptane_client_->campaignAccept(campaign_id);
+        break;
+      case campaign::Cmd::Decline:
+        uptane_client_->campaignDecline(campaign_id);
+        break;
+      case campaign::Cmd::Postpone:
+        uptane_client_->campaignPostpone(campaign_id);
+        break;
+      default:
+        break;
+    }
+  });
   return api_queue_.enqueue(task);
 }
 
@@ -147,7 +161,8 @@ result::Pause Aktualizr::Resume() {
 
 void Aktualizr::Abort() { api_queue_.abort(); }
 
-boost::signals2::connection Aktualizr::SetSignalHandler(std::function<void(shared_ptr<event::BaseEvent>)> &handler) {
+boost::signals2::connection Aktualizr::SetSignalHandler(
+    const std::function<void(shared_ptr<event::BaseEvent>)> &handler) {
   return sig_->connect(handler);
 }
 

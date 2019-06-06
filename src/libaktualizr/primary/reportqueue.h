@@ -37,6 +37,16 @@ class CampaignAcceptedReport : public ReportEvent {
   CampaignAcceptedReport(const std::string& campaign_id);
 };
 
+class CampaignDeclinedReport : public ReportEvent {
+ public:
+  CampaignDeclinedReport(const std::string& campaign_id);
+};
+
+class CampaignPostponedReport : public ReportEvent {
+ public:
+  CampaignPostponedReport(const std::string& campaign_id);
+};
+
 class DevicePausedReport : public ReportEvent {
  public:
   DevicePausedReport(const std::string& correlation_id);
