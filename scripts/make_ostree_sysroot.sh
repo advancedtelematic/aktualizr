@@ -8,8 +8,7 @@ fi
 
 SCRIPT="${1}/tests/ostree-scripts/makephysical.sh"
 REPO="${2}/ostree_repo"
-PORT=$("${1}/tests/get_open_port.py")
 
 if [ ! -d "${REPO}" ]; then
-  "${SCRIPT}" "${REPO}" ${PORT}
+  "${SCRIPT}" "${REPO}"
 fi
