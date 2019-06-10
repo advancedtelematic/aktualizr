@@ -85,6 +85,7 @@ debian-build+static:
     TEST_TESTSUITE_ONLY: 'crypto'
     TEST_WITH_STATICTESTS: '1'
     TEST_WITH_LOAD_TESTS: '1'
+    TEST_WITH_DOCS: '1'
   image: "$DEBIAN_TESTING_PR_IMAGE"
   stage: test
   script:

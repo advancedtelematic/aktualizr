@@ -12,6 +12,7 @@ TEST_WITH_STATICTESTS=${TEST_WITH_STATICTESTS:-0}
 TEST_WITH_BUILD=${TEST_WITH_BUILD:-1}
 TEST_WITH_INSTALL_DEB_PACKAGES=${TEST_WITH_INSTALL_DEB_PACKAGES:-0}
 TEST_WITH_TESTSUITE=${TEST_WITH_TESTSUITE:-1}
+TEST_WITH_DOCS=${TEST_WITH_DOCS:-0}
 
 TEST_WITH_COVERAGE=${TEST_WITH_COVERAGE:-0}
 TEST_WITH_SOTA_TOOLS=${TEST_WITH_SOTA_TOOLS:-1}
@@ -178,6 +179,15 @@ if [[ $TEST_WITH_TESTSUITE = 1 ]]; then
             set +x
         fi
     fi
+fi
+
+if [[ $TEST_WITH_DOCS = 1 ]]; then
+    echo ">> Running make docs"
+    if [[ $TEST_DRYRUN != 1 ]]; then
+        set -x
+        run_make docs || add_failure "make docs"
+        set +x
+   fi
 fi
 
 collect_failures
