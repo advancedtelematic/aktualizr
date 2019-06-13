@@ -360,6 +360,7 @@ class MetaWithKeys : public BaseMeta {
    * * "expires" is in the past (vs 'now')
    * * The blob has valid signatures from enough keys to cross the threshold for this role
    * @param repo - Repository type (only used to improve the error messages)
+   * @param role - The Uptane role of the signed metadata object
    * @param signed_object
    * @return
    */
@@ -406,6 +407,7 @@ class Root : public MetaWithKeys {
    * * "expires" is in the past (vs 'now')
    * * The blob has valid signatures from enough keys to cross the threshold for this role
    * @param repo - Repository type (only used to improve the error messages)
+   * @param role - The Uptane role of the signed metadata object
    * @param signed_object
    * @return
    */

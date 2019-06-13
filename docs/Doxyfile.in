@@ -758,7 +758,7 @@ WARN_NO_PARAMDOC       = NO
 # a warning is encountered.
 # The default value is: NO.
 
-WARN_AS_ERROR          = NO
+WARN_AS_ERROR          = YES
 
 # The WARN_FORMAT tag determines the format of the warning messages that doxygen
 # can produce. The string should contain the $file, $line, and $text tags, which
@@ -796,8 +796,8 @@ INPUT                  = @CMAKE_SOURCE_DIR@/CONTRIBUTING.md \
                          @CMAKE_SOURCE_DIR@/src/cert_provider \
                          @CMAKE_SOURCE_DIR@/src/hmi_stub \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr \
-                         @CMAKE_SOURCE_DIR@/src/libaktualizr/asn1 \
-                         @CMAKE_SOURCE_DIR@/src/libaktualizr/asn1/messages \
+                         @CMAKE_SOURCE_DIR@/src/libaktualizr-posix/asn1 \
+                         @CMAKE_SOURCE_DIR@/src/libaktualizr-posix/asn1/messages \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/bootloader \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/bootstrap \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/config \
