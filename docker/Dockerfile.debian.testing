@@ -49,6 +49,7 @@ RUN apt-get update && apt-get -y install \
   libtool \
   lshw \
   make \
+  net-tools \
   opensc \
   pkg-config \
   psmisc \

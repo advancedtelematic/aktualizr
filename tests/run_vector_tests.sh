@@ -23,15 +23,15 @@ TTV_DIR="$TESTS_SRC_DIR/tuf-test-vectors"
 python -m pip install wheel
 python -m pip install -r "$TTV_DIR/requirements.txt"
 
-PORT=$("$TESTS_SRC_DIR/get_open_port.py")
 ECU_SERIAL=test_primary_ecu_serial
 HARDWARE_ID=test_primary_hardware_id
 
 "$TTV_DIR/generator.py" --signature-encoding base64 -o vectors --cjson json-subset \
                         --ecu-identifier $ECU_SERIAL --hardware-id $HARDWARE_ID
 # disable werkzeug debug pin which causes issues on Jenkins
-WERKZEUG_DEBUG_PIN=off "$TTV_DIR/server.py" --signature-encoding base64 -P "$PORT" \
+WERKZEUG_DEBUG_PIN=off "$TTV_DIR/server.py" --signature-encoding base64 -P 0 \
                                             --ecu-identifier $ECU_SERIAL --hardware-id $HARDWARE_ID &
+PORT=$("$TESTS_SRC_DIR/find_listening_port.sh" $!)
 trap 'kill %1' EXIT
 
 # wait for server to go up

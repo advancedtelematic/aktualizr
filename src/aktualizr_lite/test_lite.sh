@@ -7,7 +7,6 @@ akrepo_bin=$2
 tests_dir=$3
 #valgrind=$4
 valgrind=""
-port=$($tests_dir/get_open_port.py)
 
 dest_dir=$(mktemp -d)
 
@@ -49,10 +48,10 @@ add_target foo2
 akrepo --command signtargets
 
 pushd $dest_dir
-python3 -m http.server $port &
+python3 -m http.server 0&
 pid=$!
-
-# curl http://localhost:$port/repo/image/targets.json | json_pp
+port=$("$tests_dir/find_listening_port.sh" "$pid")
+echo "http server listening on $port"
 
 export OSTREE_SYSROOT=$dest_dir/sysroot
 mkdir $OSTREE_SYSROOT

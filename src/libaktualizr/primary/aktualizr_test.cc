@@ -635,7 +635,7 @@ TEST(Aktualizr, FinalizationFailure) {
     EXPECT_EQ(current_version, SIZE_MAX);
 
     auto aktualizr_cycle_thread = aktualizr.RunForever();
-    auto aktualizr_cycle_thread_status = aktualizr_cycle_thread.wait_for(std::chrono::seconds(10));
+    auto aktualizr_cycle_thread_status = aktualizr_cycle_thread.wait_for(std::chrono::seconds(20));
 
     ASSERT_EQ(aktualizr_cycle_thread_status, std::future_status::ready);
     EXPECT_TRUE(aktualizr.uptane_client_->bootloader->rebootDetected());
@@ -931,7 +931,7 @@ TEST(Aktualizr, AutoRebootAfterUpdate) {
 
     aktualizr.Initialize();
     auto aktualizr_cycle_thread = aktualizr.RunForever();
-    auto aktualizr_cycle_thread_status = aktualizr_cycle_thread.wait_for(std::chrono::seconds(10));
+    auto aktualizr_cycle_thread_status = aktualizr_cycle_thread.wait_for(std::chrono::seconds(20));
 
     EXPECT_EQ(aktualizr_cycle_thread_status, std::future_status::ready);
     EXPECT_TRUE(aktualizr.uptane_client_->bootloader->rebootDetected());

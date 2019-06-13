@@ -48,6 +48,7 @@ RUN apt-get update && apt-get -y install \
   lshw \
   make \
   opensc \
+  net-tools \
   pkg-config \
   psmisc \
   python3-dev \
