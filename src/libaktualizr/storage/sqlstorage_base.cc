@@ -55,13 +55,15 @@ SQLStorageBase::SQLStorageBase(boost::filesystem::path sqldb_path, bool readonly
     }
   }
 
-  try {
-    lock = StorageLock(db_parent_path / "storage.lock");
-  } catch (StorageLock::locked_exception& e) {
-    LOG_WARNING << "\033[31m"
-                << "Storage in " << db_parent_path
-                << " is already in use, running several instances concurrently may result in data corruption!"
-                << "\033[0m";
+  if (!readonly) {
+    try {
+      lock = StorageLock(db_parent_path / "storage.lock");
+    } catch (StorageLock::locked_exception& e) {
+      LOG_WARNING << "\033[31m"
+                  << "Storage in " << db_parent_path
+                  << " is already in use, running several instances concurrently may result in data corruption!"
+                  << "\033[0m";
+    }
   }
 
   if (!dbMigrate()) {
