@@ -6,9 +6,28 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ## [??? (unreleased)]
 
+
+## [2019.4] - 2019-06-14
+
+### Added
+
+- Campaigns can be declined and postponed via the API: [PR](https://github.com/advancedtelematic/aktualizr/pull/1225)
+- Warn when running two libaktualizr instances simultaneously: [PR #1217](https://github.com/advancedtelematic/aktualizr/pull/1217) and [PR #1229](https://github.com/advancedtelematic/aktualizr/pull/1229)
+- aktualizr-info can output the Snapshot and Timestamp metadata from the Images repository: [PR](https://github.com/advancedtelematic/aktualizr/pull/1207)
+- aktualizr-info can output the current and pending image versions for secondaries: [PR](https://github.com/advancedtelematic/aktualizr/pull/1201)
+- [Support for docker-app package management on top of OSTree](src/libaktualizr/package_manager/dockerappmanager.h): [PR](https://github.com/advancedtelematic/aktualizr/pull/1189)
+
 ### Changed
 
-- Provisioning methods have been renamed. "Autoprovisioning" or "automatic provisioning" is now known as "shared credential provisioning". "Implicit provisioning" is now known as "device credential provisioning". "HSM provisioning" was always a misnomer, so it is now refered to as "device credential provisioning with an HSM". [PR](https://github.com/advancedtelematic/aktualizr/pull/1220)
+- [Provisioning methods have been renamed](https://github.com/advancedtelematic/aktualizr/blob/master/docs/client-provisioning-methods.adoc). "Autoprovisioning" or "automatic provisioning" is now known as "shared credential provisioning". "Implicit provisioning" is now known as "device credential provisioning". "HSM provisioning" was always a misnomer, so it is now refered to as "device credential provisioning with an HSM". [PR# 1208](https://github.com/advancedtelematic/aktualizr/pull/1208) and [PR #1220](https://github.com/advancedtelematic/aktualizr/pull/1220)
+- aktualizr-cert-provider is now included in the garage_deploy.deb releases: [PR](https://github.com/advancedtelematic/aktualizr/pull/1218)
+- aktualizr-info metadata and key output is now printed without additional text for easier machine parsing (and piping to jq): [PR](https://github.com/advancedtelematic/aktualizr/pull/1215)
+- The IP secondary implementation has been substantially refactored and improved with support for POSIX sockets and easier configuration: [PR #1183](https://github.com/advancedtelematic/aktualizr/pull/1183) and [PR #1198](https://github.com/advancedtelematic/aktualizr/pull/1198)
+
+### Removed
+
+- aktualizr-check-discovery (due to obsolescence): [PR](https://github.com/advancedtelematic/aktualizr/pull/1191)
+
 
 ## [2019.3] - 2019-04-29
 
@@ -39,6 +58,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 - Various OSTree-related memory leaks and suppressions: [PR #1114](https://github.com/advancedtelematic/aktualizr/pull/1114), [PR #1120](https://github.com/advancedtelematic/aktualizr/pull/1120), and [PR #1179](https://github.com/advancedtelematic/aktualizr/pull/1179)
 - Various spurious and/or confusing log messages, e.g.: [PR #1112](https://github.com/advancedtelematic/aktualizr/pull/1112), [PR #1137](https://github.com/advancedtelematic/aktualizr/pull/1137), and [PR #1180](https://github.com/advancedtelematic/aktualizr/pull/1180)
 
+
 ## [2019.2] - 2019-02-21
 
 ### Added
@@ -52,6 +72,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 - Image files are now stored on the filesystem instead of SQL. This was necessitated by blob size limits in SQLite. [PR](https://github.com/advancedtelematic/aktualizr/pull/1091)
 - The Pause and Resume can now be called at any time and will also pause the internal event queue. API calls during the pause period will be queued up and resumed in order at the end. [PR](https://github.com/advancedtelematic/aktualizr/pull/1075)
 - Boost libraries are now linked dynamically (as with all other dependencies): [PR](https://github.com/advancedtelematic/aktualizr/pull/1067)
+
 
 ## [2019.1] - 2019-01-10
 
@@ -78,6 +99,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 - Correctly download targets with characters disallowed in URI in their name: [PR](https://github.com/advancedtelematic/aktualizr/pull/996)
 
+
 ## [2018.13] - 2018-11-05
 
 ### Added
@@ -98,6 +120,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 - Now trim whitespaces in some of our configuration and provisioning files ([from meta-updater #420](https://github.com/advancedtelematic/meta-updater/issues/420))
 
+
 ## [2018.12] - 2018-10-10
 
 ### Changed
@@ -111,11 +134,13 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 - HSM provisioning should not import certificate and private key, they belong to HSM, not to storage
 - Make cert provider respect path to import directory
 
+
 ## [2018.11] - 2018-09-05
 
 ### Fixed
 
 - Really remove the local tuf repo before and after garage-sign.
+
 
 ## [2018.10] - 2018-09-04
 
@@ -127,11 +152,13 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 - Prevent re-use of existing tuf repos
 
+
 ## [2018.9] - 2018-08-30
 
 ### Fixed
 
 - Fixes to garage-deploy to improve reliability and logging
+
 
 ## [2018.8] - 2018-08-16
 
@@ -139,17 +166,20 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 - Bug with path concatenation in garage-deploy
 
+
 ## [2018.7] - 2018-05-31
 
 ### Changed
 
 - garage-deploy package is now built against Ubuntu 16.04
 
+
 ## [2018.6] - 2018-05-28
 
 ### Fixed
 
 - Expiration in garage-sign
+
 
 ## [2018.5] - 2018-02-26
 
