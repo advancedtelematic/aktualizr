@@ -1,4 +1,4 @@
-Contributing to the SOTA Client CPP Project
+Contributing to the aktualizr project
 =====
 
 We welcome code contributions from the community and are very happy to receive feedback, issue reports and code in the form of pull requests.
