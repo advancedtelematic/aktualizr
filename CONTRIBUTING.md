@@ -6,7 +6,7 @@ We welcome code contributions from the community and are very happy to receive f
 Issue Tracker
 ----
 
-This project uses the Github issue tracker. Please report bugs, issues and feature requests here.
+This project uses the Github issue tracker. Please report bugs, issues and feature requests there or email us at otaconnect.support@here.com.
 
 Code quality and style
 ----
@@ -28,14 +28,15 @@ All code should be developed according to the [Google C++ style guide](https://g
          - Code failing the active unit or integration tests for a project is undeployable
          - Functionally incomplete code is not necessarily undeployable
    * Feature branches should only contain single features
-      - Developers should not create large, week-long, multiple-feature branches
-      - Developers should try to have their code merged at least once every two days
+      - Developers should not create large, month-long, multiple-feature branches
+      - Developers should try to have their code merged at least once every week
    * All code must be reviewed before it is merged to a master branch.
       - The reviewer can not be the code author
       - All the reviewer's concerns must be resolved to reviewer's satisfaction
       - Reviews should enforce the coding guidelines for the project
    * Bugs reported against code on a master branch should be reproduced with a failing test case before they are resolved
       - Reviewers of code including bug fixes should check that a covering test has been included with the fix
+   * New features, bug fixes, and removed functionality should be documented in the [changelog](CHANGELOG.md)
 
 Making a Pull Request
 ----
