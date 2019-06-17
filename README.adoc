@@ -242,7 +242,7 @@ A changelog can be found in link:CHANGELOG.md[].
 
 == License
 
-This code is licensed under the link:LICENSE[Mozilla Public License 2.0], a copy of which can be found in this repository. All code is copyright https://www.advancedtelematic.com[ATS Advanced Telematic Systems GmbH], 2016-2018.
+This code is licensed under the link:LICENSE[Mozilla Public License 2.0], a copy of which can be found in this repository. All code is copyright HERE Europe B.V., 2016-2019.
 
 We also require that contributors accept the terms of Linux Foundation's link:https://developercertificate.org/[Developer Certificate of Origin]:
 
