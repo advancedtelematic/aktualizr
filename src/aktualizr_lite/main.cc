@@ -4,6 +4,8 @@
 #include <openssl/ssl.h>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 #include "config/config.h"
 #include "package_manager/ostreemanager.h"
@@ -15,6 +17,22 @@ static std::shared_ptr<SotaUptaneClient> liteClient(Config &config) {
   std::string pkey;
   auto storage = INvStorage::newStorage(config.storage);
   storage->importData(config.import);
+
+  EcuSerials ecu_serials;
+  if (!storage->loadEcuSerials(&ecu_serials)) {
+    // Set a "random" serial so we don't get warning messages.
+    std::string serial = config.provision.primary_ecu_serial;
+    std::string hwid = config.provision.primary_ecu_hardware_id;
+    if (hwid.empty()) {
+      hwid = Utils::getHostname();
+    }
+    if (serial.empty()) {
+      boost::uuids::uuid tmp = boost::uuids::random_generator()();
+      serial = boost::uuids::to_string(tmp);
+    }
+    ecu_serials.emplace_back(Uptane::EcuSerial(serial), Uptane::HardwareIdentifier(serial));
+    storage->storeEcuSerials(ecu_serials);
+  }
 
   auto http_client = std::make_shared<HttpClient>();
   auto bootloader = std::make_shared<Bootloader>(config.bootloader, *storage);
