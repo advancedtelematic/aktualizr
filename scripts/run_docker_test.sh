@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-# Utility to help running in-docker tests in the same conditions as CI (Jenkins)
+# Utility to help running in-docker tests in the same conditions as CI (Gitlab)
 #
 # example:
 # ./scripts/run_docker_test.sh docker/Dockerfile.debian.testing \
@@ -51,4 +51,7 @@ docker build -t "${IMG_TAG}" -f "$DOCKERFILE" .
 OPTS_STR=${DOCKER_OPTS[@]+"${DOCKER_OPTS[@]}"}
 
 # run under current user, mounting current directory at the same location in the container
+#
+# note: we've switched back to running the tests as root on CI when we switched from Jenkins to Gitlab
+# it would be great to revert to the old way at some point
 docker run -u "$(id -u):$(id -g)" -v "$PWD:$PWD" -w "$PWD" --rm $OPTS_STR -it "${IMG_TAG}" "$@"
