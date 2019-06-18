@@ -13,7 +13,8 @@ export TEST_WITH_TESTSUITE=0
 
 # build and copy aktualizr.deb and garage_deploy.deb to $TEST_INSTALL_DESTDIR
 mkdir -p "$TEST_INSTALL_DESTDIR"
-"$GITREPO_ROOT/scripts/test.sh"
+# note: executables are stripped, following common conventions in .deb packages
+LDFLAGS="-s" "$GITREPO_ROOT/scripts/test.sh"
 
 # copy provisioning data and scripts
 cp -rf "$GITREPO_ROOT/tests/test_data/prov_selfupdate" "$TEST_INSTALL_DESTDIR"

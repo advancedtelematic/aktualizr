@@ -162,8 +162,6 @@ if(FAULT_INJECTION)
 endif(FAULT_INJECTION)
 
 # flags for different build types
-list(APPEND CMAKE_EXE_LINKER_FLAGS_RELEASE " -s")
-
 set(CMAKE_CXX_FLAGS_DEBUG "-Og -g")
 set(CMAKE_C_FLAGS_DEBUG "-Og -g")
 
