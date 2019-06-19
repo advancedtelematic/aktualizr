@@ -3,7 +3,6 @@
 set -euo pipefail
 
 GITREPO_ROOT="${1:-$(readlink -f "$(dirname "$0")/..")}"
-JENKINS_RUN=${JENKINS_RUN:-}
 TRAVIS_COMMIT=${TRAVIS_COMMIT:-}
 
 # Test options: test stages, additional checkers, compile options

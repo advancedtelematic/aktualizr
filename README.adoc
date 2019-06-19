@@ -156,7 +156,7 @@ Some tests require additional setups, such as code coverage, HSM emulation or pr
 
 Note that it will run CMake itself in a dedicated build directory.
 
-To get a list of the common environment variables and their corresponding system requirements, have a look at the link:Jenkinsfile[Jenkins Pipelines definitions] and the project's link:docker/[Dockerfiles].
+To get a list of the common environment variables and their corresponding system requirements, have a look at the link:ci/gitlab/.gitlab-ci.yml[Gitlab CI configuration] and the project's link:docker/[Dockerfiles].
 
 
 === Tags
@@ -189,7 +189,7 @@ Inside the container, the test suite with coverage can be run with:
 TEST_WITH_COVERAGE=1 TEST_WITH_P11=1 TEST_WITH_STATICTESTS=1 ./scripts/test.sh
 ----
 
-(see the content of link:Jenkinsfile[] and link:scripts/test.sh[] for more testing options)
+(see the content of link:ci/gitlab/.gitlab-ci.yml[] and link:scripts/test.sh[] for more testing options)
 
 Alternatively, link:scripts/run_docker_test.sh[] can directly run the test script:
 
