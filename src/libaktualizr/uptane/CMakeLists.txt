@@ -40,12 +40,12 @@ else(BUILD_OSTREE AND SOTA_PACKED_CREDENTIALS)
 endif(BUILD_OSTREE AND SOTA_PACKED_CREDENTIALS)
 
 
-add_aktualizr_test(NAME uptane SOURCES uptane_test.cc PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME uptane SOURCES uptane_test.cc PROJECT_WORKING_DIRECTORY LIBRARIES aktualizr_repo_lib)
 set_tests_properties(test_uptane PROPERTIES LABELS "crypto")
 target_link_libraries(t_uptane virtual_secondary)
 
 add_aktualizr_test(NAME uptane_delegation SOURCES uptane_delegation_test.cc PROJECT_WORKING_DIRECTORY
-                   ARGS "$<TARGET_FILE:aktualizr-repo>")
+                   ARGS "$<TARGET_FILE:aktualizr-repo>" LIBRARIES aktualizr_repo_lib)
 add_dependencies(t_uptane_delegation aktualizr-repo)
 target_link_libraries(t_uptane_delegation virtual_secondary)
 set_tests_properties(test_uptane_delegation PROPERTIES LABELS "crypto")
@@ -55,10 +55,10 @@ set_tests_properties(test_uptane_network PROPERTIES LABELS "crypto")
 target_link_libraries(t_uptane_network virtual_secondary)
 
 add_aktualizr_test(NAME uptane_serial SOURCES uptane_serial_test.cc ARGS ${PROJECT_BINARY_DIR}
-                   PROJECT_WORKING_DIRECTORY)
+                   PROJECT_WORKING_DIRECTORY LIBRARIES aktualizr_repo_lib)
 target_link_libraries(t_uptane_serial virtual_secondary)
 
-add_aktualizr_test(NAME uptane_init SOURCES uptane_init_test.cc PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME uptane_init SOURCES uptane_init_test.cc PROJECT_WORKING_DIRECTORY LIBRARIES PUBLIC aktualizr_repo_lib)
 
 add_aktualizr_test(NAME director SOURCES director_test.cc PROJECT_WORKING_DIRECTORY
                    ARGS "$<TARGET_FILE:aktualizr-repo>")

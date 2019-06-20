@@ -49,7 +49,7 @@ endif(BUILD_OSTREE)
 
 add_aktualizr_test(NAME packagemanager_factory SOURCES packagemanagerfactory_test.cc NO_VALGRIND
                    ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
-add_aktualizr_test(NAME fetcher SOURCES fetcher_test.cc ARGS PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME fetcher SOURCES fetcher_test.cc ARGS PROJECT_WORKING_DIRECTORY LIBRARIES PUBLIC aktualizr_repo_lib)
 add_aktualizr_test(NAME fetcher_death SOURCES fetcher_death_test.cc NO_VALGRIND ARGS PROJECT_WORKING_DIRECTORY)
 
 aktualizr_source_file_checks(fetcher_death_test.cc fetcher_test.cc)

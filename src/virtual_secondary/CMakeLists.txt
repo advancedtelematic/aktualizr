@@ -8,9 +8,9 @@ add_library(${TARGET} STATIC
   ${SOURCES}
 )
 
-target_include_directories(${TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(${TARGET} PUBLIC ${PROJECT_SOURCE_DIR}/src/virtual_secondary)
 
-add_aktualizr_test(NAME virtual_secondary SOURCES virtual_secondary_test.cc PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME virtual_secondary SOURCES virtual_secondary_test.cc PROJECT_WORKING_DIRECTORY LIBRARIES aktualizr_repo_lib)
 target_link_libraries(t_virtual_secondary virtual_secondary)
 
 aktualizr_source_file_checks(${HEADERS} ${SOURCES} ${TEST_SOURCES})
