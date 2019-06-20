@@ -1,6 +1,6 @@
 = Posix Secondaries: bitbaking and usage of Primary and Secondary images
 
-The goal of this doc is to guide a reader on bitbaking of two type of images `primary` and `secondary` that are targeted for QEMU (and RPi TBD)
+The goal of this doc is to guide a reader on bitbaking of two type of images `primary` and `secondary` that are targeted for QEMU or RPi
 and running of which on the target makes it act as `Primary` and `Secondary` ECU of a single device.
 
 Please, refer to link:https://uptane.github.io/uptane-standard/uptane-standard.html[the Uptane standard] in order to grok the meaning of the `Primary` and `Secondary` terms in the given context from a theoretical standpoint.
@@ -45,6 +45,9 @@ bitbake primary-image
 | A space separated list of TCP/IP addresses of the Secondaries to be included into the list of ECUs served by the given Primary
 |===
 
+Please, note that PRIMARY_SECONDARIES can be a list of TCP/IP addresses in order to fulfill multiple secondaries use case.
+For example, `PRIMARY_SECONDARIES = "10.0.3.2:9050 10.0.3.3:9050 10.0.3.4:9050"`.
+
 
 === Secondary
 To bitbake an image for `Secondary` run the following
@@ -65,6 +68,21 @@ bitbake secondary-image
 |`"9050"`
 |A TCP port that Secondary listen on for connections from Primary
 |===
+
+==== Multiple secondaries use case
+In order to support multiple secondaries use case an user should
+
+* repeat the secondary bitbaking procedure corresponding number of times, each time
+** specifying unique TCP/IP address by means of `SECONDARY_IP` and `SECONDARY_PORT` configuration variables
+** copying and naming uniquely the resultant image file (e.g. `cp tmp/deploy/images/qemux86-64/secondary-image-qemux86-64.ota-ext4 secondary-images/secondary-image-qemux86-64.ota-ext4-001`)
+* bitbake the primary image with `PRIMARY_SECONDARIES` listing the corresponding secondaries TCP/IP addresses
+* run the primary by following the guide in <<Running>>
+* run the secondaries by running the command specified in <<Running>> with a parameter pointing to corresponding secondary image.
+For example,
+
+`../meta-updater/scripts/run-qemu-ota --no-gui --secondary-network secondary-images/secondary-image-qemux86-64.ota-ext4-001`
+
+`../meta-updater/scripts/run-qemu-ota --no-gui --secondary-network secondary-images/secondary-image-qemux86-64.ota-ext4-002`
 
 === Specifics of bitbaking for Raspberry Pi
 
