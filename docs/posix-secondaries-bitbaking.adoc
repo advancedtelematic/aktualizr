@@ -1,6 +1,6 @@
 = Posix Secondaries: bitbaking and usage of Primary and Secondary images
 
-The goal of this doc is to guide a reader on bitbaking of two type of images `primary` and `secondary` that are targeted for QEMU (and RPi TBD)
+The goal of this doc is to guide a reader on bitbaking of two type of images `primary` and `secondary` that are targeted for QEMU or RPi
 and running of which on the target makes it act as `Primary` and `Secondary` ECU of a single device.
 
 Please, refer to link:https://uptane.github.io/uptane-standard/uptane-standard.html[the Uptane standard] in order to grok the meaning of the `Primary` and `Secondary` terms in the given context from a theoretical standpoint.
@@ -45,6 +45,9 @@ bitbake primary-image
 | A space separated list of TCP/IP addresses of the Secondaries to be included into the list of ECUs served by the given Primary
 |===
 
+Please, note that PRIMARY_SECONDARIES can be a list of TCP/IP addresses in order to fulfill multiple secondaries use case.
+For example, `PRIMARY_SECONDARIES = "10.0.3.2:9050 10.0.3.3:9050 10.0.3.4:9050"`.
+
 
 === Secondary
 To bitbake an image for `Secondary` run the following
@@ -65,6 +68,88 @@ bitbake secondary-image
 |`"9050"`
 |A TCP port that Secondary listen on for connections from Primary
 |===
+
+==== Multiple secondaries use case
+In order to support multiple secondaries use case an user should
+
+* repeat the secondary bitbaking procedure corresponding number of times, each time
+** specifying unique TCP/IP address by means of `SECONDARY_IP` and `SECONDARY_PORT` configuration variables
+** copying and naming uniquely the resultant image file (e.g. `cp tmp/deploy/images/qemux86-64/secondary-image-qemux86-64.ota-ext4 secondary-images/secondary-image-qemux86-64.ota-ext4-001`)
+* bitbake the primary image with `PRIMARY_SECONDARIES` listing the corresponding secondaries TCP/IP addresses
+* run the primary by following the guide in <<Running>>
+* run the secondaries by running the command specified in <<Running>> with a parameter pointing to corresponding secondary image.
+For example,
+
+`../meta-updater/scripts/run-qemu-ota --no-gui --secondary-network secondary-images/secondary-image-qemux86-64.ota-ext4-001`
+
+`../meta-updater/scripts/run-qemu-ota --no-gui --secondary-network secondary-images/secondary-image-qemux86-64.ota-ext4-002`
+
+=== Specifics of bitbaking for Raspberry Pi
+
+It is assumed that a reader is a familiar with bitbaking for Raspberry Pi in general, see link:https://docs.ota.here.com/quickstarts/raspberry-pi.html[Build a Raspberry Pi image].
+
+The aforementioned/above guide is relevant and applicable to building a Raspberry images of Primay and Secondary.
+The following is specifics of building such images targeting RPi.
+
+* run `source meta-updater/scripts/envsetup.sh raspberrypi3` to get the build environment set up from a root of the yocto project (updater-repo)
+* specify type of NIC to use for Primary for connection to Internet/backend. There are two options, ethernet NIC or Wifi.
+By default ethernet NIC is used which implies that Raspberry Pi is connected to LAN with an access to Internet. To use WiFi NIC the following configuration variables should be defined in you local configuration (local.conf)
+
+.WiFi configuration variables
+[cols="1,7,10"]
+|===
+|Name |Default |Description
+
+|`RPI_WIFI_ENABLE`
+|`"0"`
+|A flag to enable/disable (default) WiFi on RPi board
+
+|`RPI_WIFI_SSID`
+|`N/A (mandatory if wifi is enabled)`
+|ID of a WiFi network to connect to
+
+|`RPI_WIFI_PWD`
+|`N/A (mandatory if wifi is enabled)`
+|Password to connect to the WiFi network router
+|===
+
+
+==== RPi networking details in a context of Posix secondaries support
+
+IP/Posix secondaries support implies that a single primary ECU connected to two IP networks:
+
+* an IP network with an access to Internet for communication with the OTA backend;
+* an IP network that does not have access to Internet for communication with secondary ECU(s). The secondaries should be connected to this internal network.
+
+Taking into account that RPi has two NICs, ethernet and wifi the aforementioned requirements to networking can be fulfilled by applying the following approaches.
+
+===== Primary uses multihomed ethernet interface, Secondary uses ethernet interface
+
+Both primary and secondary ECUs has wifi turned off and are connected to the same LAN (via switch or router) that has an access to Internet.
+Primary only network interface is configured in such way that it has two IP addresses assigned to it.
+
+The first one (10.0.3.1 by default) is statically defined (can be configured via `PRIMARY_IP` configuration variable)
+and connects the primary to an internal IP network (10.0.3.0/8) that is aimed for communication with secondary ECU(s).
+Secondary(ies) are connected to the same internal network (10.0.3.0/8) by assigning to their
+ethernet interface corresponding IP addresses (10.0.3.x, 10.0.3.2 for the default only secondary, `SECONDARY_IP` configuration variable).
+
+The second IP address assigned to the primary ethernet NIC should be obtained from a DHCP server running on one of
+the devices (usually a router) that is connected to the given LAN, has an access to Internet and provides each host connected to the given IP network with access to Internet
+(via NATing IP packets, DHCP and NAT server can be hosted/running on different devices).
+
+The given networking option is enabled by default.
+
+===== Primary uses both wifi and ethernet interfaces, Secondary uses ethernet interface
+Primary has wifi on, and its wifi NIC is connected to a LAN with an access to Internet. Also, Primary ethernet NIC
+is assigned with an only IP address (10.0.3.1 by default) to connect to the internal network for communication
+with secondary ECUs.
+Secondary(ies) are connected to the same internal network (10.0.3.0/8) by assigning to their
+ethernet interface corresponding IP addresses (10.0.3.x, 10.0.3.2 for the default only secondary, `SECONDARY_IP` configuration variable).
+
+===== Primary and Secondary uses wifi, only Primary uses ethernet NIC
+In this case, both Primary and Secondary(ies) uses wifi NIC to connect to the internal network (wifi router should not have an Internet access). Secondary doesn't use ethernet NIC.
+Primary connects to Internet via ethernet NIC that should be connected to LAN with an access to Internet.
+`(The given approach is not supported by the meta-updater but can be applied by an advanced user)`
 
 
 == Running
