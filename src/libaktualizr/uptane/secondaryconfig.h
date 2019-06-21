@@ -16,8 +16,6 @@ enum class SecondaryType {
 
   kVirtual,  // Virtual secondary (in-process fake implementation).
 
-  kLegacy,  // Deprecated. Do not use.
-
   kIpUptane,  // Custom Uptane protocol over TCP/IP network
 
   kVirtualUptane,  // Partial UPTANE secondary implemented inside primary

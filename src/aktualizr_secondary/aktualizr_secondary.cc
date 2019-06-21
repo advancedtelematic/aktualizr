@@ -9,7 +9,6 @@
 #endif
 #include "socket_activation/socket_activation.h"
 #include "socket_server.h"
-#include "uptane/secondaryfactory.h"
 #include "utilities/utils.h"
 
 class SecondaryAdapter : public Uptane::SecondaryInterface {

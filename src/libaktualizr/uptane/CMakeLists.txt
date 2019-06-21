@@ -6,7 +6,6 @@ set(SOURCES
     partialverificationsecondary.cc
     role.cc
     root.cc
-    secondaryfactory.cc
     tuf.cc
     uptanerepository.cc
     directorrepository.cc
@@ -20,7 +19,6 @@ set(HEADERS
     managedsecondary.h
     partialverificationsecondary.h
     secondaryconfig.h
-    secondaryfactory.h
     secondaryinterface.h
     tuf.h
     uptanerepository.h

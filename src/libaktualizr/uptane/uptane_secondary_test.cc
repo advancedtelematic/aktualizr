@@ -2,11 +2,11 @@
 
 #include "uptane/partialverificationsecondary.h"
 #include "uptane/secondaryconfig.h"
-#include "uptane/secondaryfactory.h"
 #include "uptane/secondaryinterface.h"
+#include "uptane/virtualsecondary.h"
 
 /* Create a virtual secondary for testing. */
-TEST(SecondaryFactory, Virtual) {
+TEST(VirtualSecondary, Instantiation) {
   TemporaryDirectory temp_dir;
   Uptane::SecondaryConfig sconfig;
   sconfig.secondary_type = Uptane::SecondaryType::kVirtual;
@@ -19,29 +19,11 @@ TEST(SecondaryFactory, Virtual) {
   sconfig.firmware_path = temp_dir.Path() / "firmware.txt";
   sconfig.target_name_path = temp_dir.Path() / "firmware_name.txt";
   sconfig.metadata_path = temp_dir.Path() / "metadata";
-  std::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(sconfig);
-  EXPECT_TRUE(sec);
-}
-
-/* Legacy secondaries are deprecated and no longer supported. */
-TEST(SecondaryFactory, Legacy) {
-  TemporaryDirectory temp_dir;
-  Uptane::SecondaryConfig sconfig;
-  sconfig.secondary_type = Uptane::SecondaryType::kLegacy;
-  std::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(sconfig);
-  EXPECT_FALSE(sec);
-}
-
-/* Invalid secondary types are ignored. */
-TEST(SecondaryFactory, Bad) {
-  Uptane::SecondaryConfig sconfig;
-  sconfig.secondary_type = (Uptane::SecondaryType)-1;
-  std::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(sconfig);
-  EXPECT_FALSE(sec);
+  EXPECT_NO_THROW(Uptane::VirtualSecondary virtual_sec(sconfig));
 }
 
 /* Partial verification secondaries generate and store public keys. */
-TEST(SecondaryFactory, Uptane_get_key) {
+TEST(PartialVerificationSecondary, Uptane_get_key) {
   TemporaryDirectory temp_dir;
   Uptane::SecondaryConfig sconfig;
   sconfig.secondary_type = Uptane::SecondaryType::kVirtualUptane;
@@ -63,7 +45,7 @@ TEST(SecondaryFactory, Uptane_get_key) {
 }
 
 /* Partial verification secondaries can verify Uptane metadata. */
-TEST(SecondaryFactory, Uptane_putMetadata_good) {
+TEST(PartialVerificationSecondary, Uptane_putMetadata_good) {
   TemporaryDirectory temp_dir;
   Uptane::SecondaryConfig sconfig;
   sconfig.secondary_type = Uptane::SecondaryType::kVirtualUptane;
@@ -85,7 +67,7 @@ TEST(SecondaryFactory, Uptane_putMetadata_good) {
 }
 
 /* Partial verification secondaries reject invalid Uptane metadata. */
-TEST(SecondaryFactory, Uptane_putMetadata_bad) {
+TEST(PartialVerificationSecondary, Uptane_putMetadata_bad) {
   TemporaryDirectory temp_dir;
   Uptane::SecondaryConfig sconfig;
   sconfig.secondary_type = Uptane::SecondaryType::kVirtualUptane;

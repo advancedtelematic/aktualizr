@@ -13,7 +13,7 @@
 #include "package_manager/packagemanagerfactory.h"
 #include "uptane/exceptions.h"
 #include "uptane/secondaryconfig.h"
-#include "uptane/secondaryfactory.h"
+#include "uptane/virtualsecondary.h"
 #include "utilities/fault_injection.h"
 #include "utilities/utils.h"
 
@@ -32,8 +32,17 @@ std::shared_ptr<SotaUptaneClient> SotaUptaneClient::newDefaultClient(
   std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_in.bootloader, *storage_in);
   std::shared_ptr<ReportQueue> report_queue_in = std::make_shared<ReportQueue>(config_in, http_client_in);
 
-  return std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, bootloader_in, report_queue_in,
-                                            events_channel_in);
+  auto sota_uptane_client = std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, bootloader_in,
+                                                               report_queue_in, events_channel_in);
+
+  // This factory method is used just for manual testing of VirtualSecondaries, so calling VirtualSecondary ctor
+  // directly here is fine for now until the virtual secondary implementation is moved out of libaktualizr
+  std::vector<Uptane::SecondaryConfig>::const_iterator it;
+  for (it = config_in.uptane.secondary_configs.begin(); it != config_in.uptane.secondary_configs.end(); ++it) {
+    sota_uptane_client->addSecondary(std::make_shared<Uptane::VirtualSecondary>(*it));
+  }
+
+  return sota_uptane_client;
 }
 
 std::shared_ptr<SotaUptaneClient> SotaUptaneClient::newTestClient(Config &config_in,
@@ -42,8 +51,17 @@ std::shared_ptr<SotaUptaneClient> SotaUptaneClient::newTestClient(Config &config
                                                                   std::shared_ptr<event::Channel> events_channel_in) {
   std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_in.bootloader, *storage_in);
   std::shared_ptr<ReportQueue> report_queue_in = std::make_shared<ReportQueue>(config_in, http_client_in);
-  return std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, bootloader_in, report_queue_in,
-                                            events_channel_in);
+  auto sota_uptane_client = std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, bootloader_in,
+                                                               report_queue_in, events_channel_in);
+
+  // This factory method is used just for automated tests, so calling VirtualSecondary ctor directly here is fine
+  // for now until the virtual secondary implementation is moved out of libaktualizr
+  std::vector<Uptane::SecondaryConfig>::const_iterator it;
+  for (it = config_in.uptane.secondary_configs.begin(); it != config_in.uptane.secondary_configs.end(); ++it) {
+    sota_uptane_client->addSecondary(std::make_shared<Uptane::VirtualSecondary>(*it));
+  }
+
+  return sota_uptane_client;
 }
 
 SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage> storage_in,
@@ -65,12 +83,6 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage
   package_manager_ = PackageManagerFactory::makePackageManager(config.pacman, storage, bootloader, http);
   if (package_manager_->imageUpdated()) {
     bootloader->setBootOK();
-  }
-
-  std::vector<Uptane::SecondaryConfig>::const_iterator it;
-  for (it = config.uptane.secondary_configs.begin(); it != config.uptane.secondary_configs.end(); ++it) {
-    auto sec = Uptane::SecondaryFactory::makeSecondary(*it);
-    addSecondary(sec);
   }
 }
 

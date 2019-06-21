@@ -14,7 +14,6 @@
 #include "config/config.h"
 #include "logging/logging.h"
 #include "primary/aktualizr.h"
-#include "uptane/secondaryfactory.h"
 #include "utilities/utils.h"
 
 namespace bpo = boost::program_options;
