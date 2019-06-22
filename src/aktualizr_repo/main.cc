@@ -138,7 +138,7 @@ int main(int argc, char **argv) {
             custom["targetFormat"] = vm["targetformat"].as<std::string>();
           }
           repo.addCustomImage(targetname.string(), *hash, vm["targetlength"].as<uint64_t>(), delegation, custom);
-          std::cout << "Added a target " << targetname.string() << " to the custom image" << std::endl;
+          std::cout << "Added a custom image target " << targetname.string() << std::endl;
         }
       } else if (command == "addtarget") {
         if (vm.count("targetname") == 0 || vm.count("hwid") == 0 || vm.count("serial") == 0) {
