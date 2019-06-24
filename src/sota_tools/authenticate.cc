@@ -32,7 +32,7 @@ int authenticate(const string &cacerts, const ServerCredentials &creds, TreehubS
       treehub.ca_certs(cacerts);
       break;
     }
-    case AuthMethod::kCert: {
+    case AuthMethod::kTls: {
       treehub.SetCerts(creds.GetRootCert(), creds.GetClientCert(), creds.GetClientKey());
       break;
     }
