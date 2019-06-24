@@ -9,7 +9,7 @@
 #include "utilities/utils.h"
 
 Bootstrap::Bootstrap(const boost::filesystem::path& provision_path, const std::string& provision_password)
-    : ca(""), cert(""), pkey("") {
+    : ca_(""), cert_(""), pkey_("") {
   if (provision_path.empty()) {
     LOG_ERROR << "Provision path is empty!";
     throw std::runtime_error("Unable to parse bootstrap credentials");
@@ -26,6 +26,11 @@ Bootstrap::Bootstrap(const boost::filesystem::path& provision_path, const std::s
     throw std::runtime_error("Unable to parse bootstrap credentials");
   }
 
+  readTlsP12(p12_str, provision_password, pkey_, cert_, ca_);
+}
+
+void Bootstrap::readTlsP12(const std::string& p12_str, const std::string& provision_password, std::string& pkey,
+                           std::string& cert, std::string& ca) {
   StructGuard<BIO> reg_p12(BIO_new_mem_buf(p12_str.c_str(), static_cast<int>(p12_str.size())), BIO_vfree);
   if (reg_p12 == nullptr) {
     LOG_ERROR << "Unable to open P12 archive: " << std::strerror(errno);
