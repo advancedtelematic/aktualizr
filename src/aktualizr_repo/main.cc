@@ -82,11 +82,17 @@ int main(int argc, char **argv) {
       if (vm.count("correlationid") != 0) {
         correlation_id = vm["correlationid"].as<std::string>();
       }
-      UptaneRepo repo(vm["path"].as<boost::filesystem::path>(), expiration_time, correlation_id);
+      std::string dname;
+      if (vm.count("dname") != 0) {
+        dname = vm["dname"].as<std::string>();
+      }
       std::string command = vm["command"].as<std::string>();
+      boost::filesystem::path repo_dir = vm["path"].as<boost::filesystem::path>();
+      UptaneRepo repo(repo_dir, expiration_time, correlation_id);
       if (command == "generate") {
         KeyType key_type = parseKeyType(vm);
         repo.generateRepo(key_type);
+        std::cout << "Uptane metadata repos generated at " << repo_dir << std::endl;
       } else if (command == "image") {
         if (vm.count("targetname") == 0 && vm.count("filename") == 0) {
           std::cerr << "image command requires --targetname or --filename\n";
@@ -97,14 +103,16 @@ int main(int argc, char **argv) {
 
         Delegation delegation;
         if (vm.count("dname") != 0) {
-          delegation = Delegation(vm["path"].as<boost::filesystem::path>(), vm["dname"].as<std::string>());
+          delegation = Delegation(repo_dir, dname);
           if (!delegation.isMatched(targetname)) {
             std::cerr << "Image path doesn't match delegation!\n";
             exit(EXIT_FAILURE);
           }
+          std::cout << "Added a target " << targetname << " to a delegated role " << dname << std::endl;
         }
         if (vm.count("filename") > 0) {
           repo.addImage(vm["filename"].as<boost::filesystem::path>(), targetname, delegation);
+          std::cout << "Added a target " << targetname << " to the images metadata" << std::endl;
         } else {
           if ((vm.count("targetsha256") == 0 && vm.count("targetsha512") == 0) || vm.count("targetlength") == 0) {
             std::cerr << "image command requires --targetsha256 or --targetsha512, and --targetlength when --filename "
@@ -130,36 +138,47 @@ int main(int argc, char **argv) {
             custom["targetFormat"] = vm["targetformat"].as<std::string>();
           }
           repo.addCustomImage(targetname.string(), *hash, vm["targetlength"].as<uint64_t>(), delegation, custom);
+          std::cout << "Added a custom image target " << targetname.string() << std::endl;
         }
       } else if (command == "addtarget") {
         if (vm.count("targetname") == 0 || vm.count("hwid") == 0 || vm.count("serial") == 0) {
           std::cerr << "addtarget command requires --targetname, --hwid, and --serial\n";
           exit(EXIT_FAILURE);
         }
-        repo.addTarget(vm["targetname"].as<std::string>(), vm["hwid"].as<std::string>(),
-                       vm["serial"].as<std::string>());
+        std::string targetname = vm["targetname"].as<std::string>();
+        std::string hwid = vm["hwid"].as<std::string>();
+        std::string serial = vm["serial"].as<std::string>();
+        repo.addTarget(targetname, hwid, serial);
+        std::cout << "Added target " << targetname << " to director targets metadata for ECU with serial " << serial
+                  << " and hardware ID " << hwid << std::endl;
       } else if (command == "adddelegation") {
         if (vm.count("dname") == 0 || vm.count("dpattern") == 0) {
           std::cerr << "adddelegation command requires --dname and --dpattern\n";
           exit(EXIT_FAILURE);
         }
         std::string dparent = vm["dparent"].as<std::string>();
+        std::string dpattern = vm["dpattern"].as<std::string>();
         KeyType key_type = parseKeyType(vm);
-        repo.addDelegation(Uptane::Role(vm["dname"].as<std::string>(), true),
-                           Uptane::Role(dparent, dparent != "targets"), vm["dpattern"].as<std::string>(),
-                           vm["dterm"].as<bool>(), key_type);
+        repo.addDelegation(Uptane::Role(dname, true), Uptane::Role(dparent, dparent != "targets"),
+                           vm["dpattern"].as<std::string>(), vm["dterm"].as<bool>(), key_type);
+        std::cout << "Added a delegated role " << dname << " with dpattern " << dpattern << " to the images metadata"
+                  << std::endl;
       } else if (command == "revokedelegation") {
         if (vm.count("dname") == 0) {
           std::cerr << "revokedelegation command requires --dname\n";
           exit(EXIT_FAILURE);
         }
-        repo.revokeDelegation(Uptane::Role(vm["dname"].as<std::string>(), true));
+        repo.revokeDelegation(Uptane::Role(dname, true));
+        std::cout << "Revoked the delegation " << dname << std::endl;
       } else if (command == "signtargets") {
         repo.signTargets();
+        std::cout << "Signed the staged director targets metadata" << std::endl;
       } else if (command == "emptytargets") {
         repo.emptyTargets();
+        std::cout << "Cleared the staged director targets metadata" << std::endl;
       } else if (command == "oldtargets") {
         repo.oldTargets();
+        std::cout << "Populated the director targets metadata with the currently signed metadata" << std::endl;
       } else if (command == "sign") {
         if (vm.count("repotype") == 0 || vm.count("keyname") == 0) {
           std::cerr << "sign command requires --repotype and --keyname\n";
@@ -170,8 +189,8 @@ int main(int argc, char **argv) {
         std::istream_iterator<char> end;
         std::string text_to_sign(it, end);
 
-        Repo base_repo(Uptane::RepositoryType(vm["repotype"].as<std::string>()),
-                       vm["path"].as<boost::filesystem::path>(), expiration_time, correlation_id);
+        Repo base_repo(Uptane::RepositoryType(vm["repotype"].as<std::string>()), repo_dir, expiration_time,
+                       correlation_id);
 
         auto json_to_sign = Utils::parseJSON(text_to_sign);
         if (json_to_sign == Json::nullValue) {
