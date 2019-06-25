@@ -10,10 +10,10 @@
 
 #include "httpfake.h"
 #include "logging/logging.h"
+#include "managedsecondary.h"
 #include "primary/reportqueue.h"
 #include "primary/sotauptaneclient.h"
 #include "storage/invstorage.h"
-#include "uptane/managedsecondary.h"
 #include "uptane/secondaryconfig.h"
 #include "uptane/uptanerepository.h"
 

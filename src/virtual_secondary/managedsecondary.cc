@@ -1,4 +1,4 @@
-#include "uptane/managedsecondary.h"
+#include "managedsecondary.h"
 
 #include <sys/stat.h>
 #include <sys/types.h>

@@ -13,9 +13,9 @@
 #include "package_manager/packagemanagerfactory.h"
 #include "uptane/exceptions.h"
 #include "uptane/secondaryconfig.h"
-#include "uptane/virtualsecondary.h"
 #include "utilities/fault_injection.h"
 #include "utilities/utils.h"
+#include "virtualsecondary.h"
 
 static void report_progress_cb(event::Channel *channel, const Uptane::Target &target, const std::string &description,
                                unsigned int progress) {

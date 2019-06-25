@@ -1,4 +1,4 @@
-#include "uptane/virtualsecondary.h"
+#include "virtualsecondary.h"
 
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>

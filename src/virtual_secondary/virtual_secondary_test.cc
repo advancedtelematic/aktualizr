@@ -3,7 +3,7 @@
 #include "uptane/partialverificationsecondary.h"
 #include "uptane/secondaryconfig.h"
 #include "uptane/secondaryinterface.h"
-#include "uptane/virtualsecondary.h"
+#include "virtualsecondary.h"
 
 /* Create a virtual secondary for testing. */
 TEST(VirtualSecondary, Instantiation) {

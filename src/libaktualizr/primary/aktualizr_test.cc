@@ -14,9 +14,9 @@
 #include "primary/aktualizr.h"
 #include "primary/events.h"
 #include "primary/sotauptaneclient.h"
-#include "uptane/virtualsecondary.h"
 #include "uptane_test_common.h"
 #include "utilities/utils.h"
+#include "virtualsecondary.h"
 
 #include "utilities/fault_injection.h"
 
