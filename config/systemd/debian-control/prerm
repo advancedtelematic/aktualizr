@@ -1,16 +1,9 @@
 #!/bin/bash
 
-shell_pid=$(ps -o ppid=  -p $PPID)
-shell_pid=${shell_pid#" "}
+set -e
 
-initiator_pid="$(ps -o ppid=  -p $shell_pid)"
-initiator_pid=${initiator_pid#" "}
-
-initiator_cmdline="$(tr -d '\0' </proc/$initiator_pid/cmdline)"
-
-# Stop aktualizr only if we install this package not from itself.
-if [[ "$initiator_cmdline" != /usr/bin/aktualizr* ]]; then
-    systemctl stop aktualizr || true
-    systemctl disable aktualizr || true
+if [ "$1" = "remove" ]; then
+    if [ -x "/usr/bin/deb-systemd-helper" ]; then
+        deb-systemd-helper stop 'aktualizr.service' >/dev/null || true
+    fi
 fi
-

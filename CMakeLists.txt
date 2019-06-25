@@ -357,10 +357,10 @@ endif(BUILD_SOTA_TOOLS)
 
 set(CPACK_DEBIAN_AKTUALIZR_PACKAGE_NAME "aktualizr")
 set(CPACK_DEBIAN_AKTUALIZR_FILE_NAME "aktualizr.deb")  # only available for CMake >= 3.6.0
-set(CPACK_COMPONENT_AKTUALIZR_DESCRIPTION "UPTANE-compliant embedded software update client")
+set(CPACK_COMPONENT_AKTUALIZR_DESCRIPTION "UPTANE-compliant embedded software update client\n Aktualizr communicates with OTA-Connect,\n reports device information, fetch and install package updates")
 set(CPACK_DEBIAN_AKTUALIZR_PACKAGE_DEPENDS "lshw")
 set(CPACK_DEBIAN_AKTUALIZR_PACKAGE_SHLIBDEPS ON)
-set(CPACK_DEBIAN_AKTUALIZR_PACKAGE_CONTROL_EXTRA "${PROJECT_SOURCE_DIR}/config/systemd/debian-control/preinst;${PROJECT_SOURCE_DIR}/config/systemd/debian-control/postinst;${PROJECT_SOURCE_DIR}/config/systemd/debian-control/prerm;")
+set(CPACK_DEBIAN_AKTUALIZR_PACKAGE_CONTROL_EXTRA "${PROJECT_SOURCE_DIR}/config/systemd/debian-control/postinst;${PROJECT_SOURCE_DIR}/config/systemd/debian-control/prerm;${PROJECT_SOURCE_DIR}/config/systemd/debian-control/postrm;")
 include(CPack)
 include(CPackComponent)
 
@@ -395,7 +395,6 @@ if(BUILD_WITH_CODE_COVERAGE)
     set(COVERAGE_LCOV_EXCLUDES '/usr/include/*' ${CMAKE_BINARY_DIR}'*' ${CMAKE_SOURCE_DIR}'/third_party/*' ${CMAKE_SOURCE_DIR}'/tests/*' '*_test.cc')
     include(CodeCoverage)
     set(COVERAGE_COMPILER_FLAGS "--coverage -fprofile-arcs -ftest-coverage" CACHE INTERNAL "")
-    list(APPEND TEST_LIBS gcov)
 endif(BUILD_WITH_CODE_COVERAGE)
 
 include(CTest)

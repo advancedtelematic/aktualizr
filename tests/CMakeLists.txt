@@ -18,12 +18,6 @@ add_subdirectory(uptane_repo_generation)
 
 include_directories("${PROJECT_SOURCE_DIR}/src/libaktualizr/third_party/jsoncpp")
 
-# use the same libraries as the normal target but add our test utility library, gtest, gmock and gcov
-set(TEST_LIBS
-    ${AKTUALIZR_EXTERNAL_LIBS}
-    testutilities
-    gtest gmock)
-
 add_dependencies(build_tests aktualizr)
 if(BUILD_SOTA_TOOLS)
     add_dependencies(build_tests garage-push)
@@ -59,6 +53,7 @@ set(TEST_SOURCES httpfake.h test_utils.cc test_utils.h uptane_vector_tests.cc)
 include(CMakeParseArguments)
 
 add_library(testutilities test_utils.cc)
+list(APPEND TEST_LIBS testutilities)
 
 add_library(ostree_mock SHARED ostree_mock.c)
 aktualizr_source_file_checks(ostree_mock.c)
