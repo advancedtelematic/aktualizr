@@ -4,12 +4,45 @@
 #include <openssl/ssl.h>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 #include "config/config.h"
 #include "package_manager/ostreemanager.h"
 #include "primary/sotauptaneclient.h"
 
 namespace bpo = boost::program_options;
+
+static std::shared_ptr<SotaUptaneClient> liteClient(Config &config) {
+  std::string pkey;
+  auto storage = INvStorage::newStorage(config.storage);
+  storage->importData(config.import);
+
+  EcuSerials ecu_serials;
+  if (!storage->loadEcuSerials(&ecu_serials)) {
+    // Set a "random" serial so we don't get warning messages.
+    std::string serial = config.provision.primary_ecu_serial;
+    std::string hwid = config.provision.primary_ecu_hardware_id;
+    if (hwid.empty()) {
+      hwid = Utils::getHostname();
+    }
+    if (serial.empty()) {
+      boost::uuids::uuid tmp = boost::uuids::random_generator()();
+      serial = boost::uuids::to_string(tmp);
+    }
+    ecu_serials.emplace_back(Uptane::EcuSerial(serial), Uptane::HardwareIdentifier(serial));
+    storage->storeEcuSerials(ecu_serials);
+  }
+
+  auto http_client = std::make_shared<HttpClient>();
+  auto bootloader = std::make_shared<Bootloader>(config.bootloader, *storage);
+  auto report_queue = std::make_shared<ReportQueue>(config, http_client);
+
+  KeyManager keys(storage, config.keymanagerConfig());
+  keys.copyCertsToCurl(*http_client);
+
+  return std::make_shared<SotaUptaneClient>(config, storage, http_client, bootloader, report_queue);
+}
 
 static int status_main(Config &config, const bpo::variables_map &unused) {
   (void)unused;
@@ -25,8 +58,7 @@ static int status_main(Config &config, const bpo::variables_map &unused) {
 
 static int list_main(Config &config, const bpo::variables_map &unused) {
   (void)unused;
-  auto storage = INvStorage::newStorage(config.storage);
-  auto client = SotaUptaneClient::newDefaultClient(config, storage);
+  auto client = liteClient(config);
   Uptane::HardwareIdentifier hwid(config.provision.primary_ecu_hardware_id);
 
   LOG_INFO << "Refreshing target metadata";
@@ -92,8 +124,7 @@ static std::unique_ptr<Uptane::Target> find_target(const std::shared_ptr<SotaUpt
 }
 
 static int update_main(Config &config, const bpo::variables_map &variables_map) {
-  auto storage = INvStorage::newStorage(config.storage);
-  auto client = SotaUptaneClient::newDefaultClient(config, storage);
+  auto client = liteClient(config);
   Uptane::HardwareIdentifier hwid(config.provision.primary_ecu_hardware_id);
 
   std::string version("latest");
