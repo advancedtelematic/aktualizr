@@ -360,7 +360,7 @@ set(CPACK_DEBIAN_AKTUALIZR_FILE_NAME "aktualizr.deb")  # only available for CMak
 set(CPACK_COMPONENT_AKTUALIZR_DESCRIPTION "UPTANE-compliant embedded software update client\n Aktualizr communicates with OTA-Connect,\n reports device information, fetch and install package updates")
 set(CPACK_DEBIAN_AKTUALIZR_PACKAGE_DEPENDS "lshw")
 set(CPACK_DEBIAN_AKTUALIZR_PACKAGE_SHLIBDEPS ON)
-set(CPACK_DEBIAN_AKTUALIZR_PACKAGE_CONTROL_EXTRA "${PROJECT_SOURCE_DIR}/config/systemd/debian-control/prerm;${PROJECT_SOURCE_DIR}/config/systemd/debian-control/postrm;")
+set(CPACK_DEBIAN_AKTUALIZR_PACKAGE_CONTROL_EXTRA "${PROJECT_SOURCE_DIR}/config/systemd/debian-control/postinst;${PROJECT_SOURCE_DIR}/config/systemd/debian-control/prerm;${PROJECT_SOURCE_DIR}/config/systemd/debian-control/postrm;")
 include(CPack)
 include(CPackComponent)
 
