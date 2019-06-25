@@ -132,11 +132,17 @@ endif(NOT BUILD_SOTA_TOOLS)
 
 ##### tests
 if (BUILD_SOTA_TOOLS)
+    add_custom_target(sota_tools_cert_generation
+        COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/cert_generation/generate-zips.sh
+        ${PROJECT_BINARY_DIR}/sota_tools/certs)
+
     ### common tests
     add_aktualizr_test(NAME sota_tools_auth_test
                        SOURCES authenticate_test.cc
                        LIBRARIES sota_tools_static_lib aktualizr_static_lib
-                       PROJECT_WORKING_DIRECTORY NO_VALGRIND)
+                       PROJECT_WORKING_DIRECTORY NO_VALGRIND
+                       ARGS ${PROJECT_BINARY_DIR}/sota_tools/certs)
+    add_dependencies(t_sota_tools_auth_test sota_tools_cert_generation)
 
     add_aktualizr_test(NAME ostree_hash
                        LIBRARIES sota_tools_static_lib

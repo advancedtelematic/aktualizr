@@ -11,6 +11,8 @@
 #include "treehub_server.h"
 #include "utilities/utils.h"
 
+boost::filesystem::path certs_dir;
+
 /* Authenticate with OAuth2.
  * Parse authentication information from treehub.json. */
 TEST(authenticate, good_zip) {
@@ -27,7 +29,7 @@ TEST(authenticate, good_zip) {
  * Parse images repository URL from a provided archive. */
 TEST(authenticate, good_cert_zip) {
   // Authenticates with ssl_server on port 1443.
-  boost::filesystem::path filepath = "tests/sota_tools/auth_test_cert_good.zip";
+  boost::filesystem::path filepath = certs_dir / "good.zip";
   ServerCredentials creds(filepath);
   EXPECT_EQ(creds.GetMethod(), AuthMethod::kTls);
   TreehubServer treehub;
@@ -63,7 +65,7 @@ TEST(authenticate, bad_cert_zip) {
   // Tries to authenticates with ssl_server on port 1443.
   // Fails because the intermediate cert that signed the client cert was signed
   // by a different root cert.
-  boost::filesystem::path filepath = "tests/sota_tools/auth_test_cert_bad.zip";
+  boost::filesystem::path filepath = certs_dir / "bad.zip";
   ServerCredentials creds(filepath);
   EXPECT_EQ(creds.GetMethod(), AuthMethod::kTls);
   TreehubServer treehub;
@@ -126,7 +128,7 @@ TEST(authenticate, offline_sign_creds) {
 /* Check if credentials do not support offline signing. */
 TEST(authenticate, online_sign_creds) {
   // Authenticates with ssl_server on port 1443.
-  boost::filesystem::path auth_online = "tests/sota_tools/auth_test_cert_good.zip";
+  boost::filesystem::path auth_online = certs_dir / "good.zip";
   ServerCredentials creds_online(auth_online);
   EXPECT_FALSE(creds_online.CanSignOffline());
 }
@@ -134,6 +136,12 @@ TEST(authenticate, online_sign_creds) {
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
+  if (argc != 2) {
+    std::cerr << "Error: " << argv[0] << " requires the path to the directory with generated certificates.\n";
+    return EXIT_FAILURE;
+  }
+  certs_dir = argv[1];
+
   boost::process::child server_process("tests/fake_http_server/ssl_server.py");
   boost::process::child server_noauth_process("tests/fake_http_server/ssl_noauth_server.py");
   // TODO: this do not work because the server expects auth! Let's sleep for now.
