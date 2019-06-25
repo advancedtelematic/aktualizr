@@ -60,11 +60,14 @@ TEST(authenticate, good_cert_noauth_zip) {
 }
 
 TEST(authenticate, bad_cert_zip) {
-  // TODO: fix, still uses cert/ca/key not p12
   // Tries to authenticates with ssl_server on port 1443.
+  // Fails because the intermediate cert that signed the client cert was signed
+  // by a different root cert.
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_cert_bad.zip";
+  ServerCredentials creds(filepath);
+  EXPECT_EQ(creds.GetMethod(), AuthMethod::kTls);
   TreehubServer treehub;
-  int r = authenticate("", ServerCredentials(filepath), treehub);
+  int r = authenticate("", creds, treehub);
   EXPECT_EQ(0, r);
   CurlEasyWrapper curl_handle;
   curlEasySetoptWrapper(curl_handle.get(), CURLOPT_VERBOSE, 1);
