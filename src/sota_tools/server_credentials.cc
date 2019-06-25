@@ -19,9 +19,6 @@ using boost::optional;
 using boost::property_tree::ptree;
 using boost::property_tree::json_parser::json_parser_error;
 
-const std::string kBaseUrl = "https://treehub-staging.gw.prod01.advancedtelematic.com/api/v1/";
-const std::string kPassword = "quochai1ech5oot5gaeJaifooqu6Saew";
-
 std::unique_ptr<std::stringstream> readArchiveFile(archive *a) {
   int r;
   const char *buff = nullptr;
@@ -118,9 +115,9 @@ ServerCredentials::ServerCredentials(const boost::filesystem::path &credentials_
       } else if (optional<ptree &> ba_pt = pt.get_child_optional("basic_auth")) {
         method_ = AuthMethod::kBasic;
         auth_user_ = ba_pt->get<std::string>("user", "");
-        auth_password_ = ba_pt->get<std::string>("password", kPassword);
+        auth_password_ = ba_pt->get<std::string>("password", "");
       }
-      ostree_server_ = pt.get<std::string>("ostree.server", kBaseUrl);
+      ostree_server_ = pt.get<std::string>("ostree.server", "");
     } catch (const json_parser_error &e) {
       throw BadCredentialsJson(std::string("Unable to read ") + credentials_path.string() +
                                " as archive or json file.");
