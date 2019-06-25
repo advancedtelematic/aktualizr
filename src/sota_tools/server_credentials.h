@@ -27,9 +27,7 @@ class ServerCredentials {
   explicit ServerCredentials(const boost::filesystem::path &credentials_path);
   bool CanSignOffline() const;
   AuthMethod GetMethod() const { return method_; };
-  std::string GetClientCert() const { return client_cert_; };
-  std::string GetClientKey() const { return client_key_; };
-  std::string GetRootCert() const { return root_cert_; };
+  std::string GetClientP12() const { return client_p12_; };
   std::string GetRepoUrl() const { return repo_url_; };
   std::string GetAuthUser() const { return auth_user_; };
   std::string GetAuthPassword() const { return auth_password_; };
@@ -46,9 +44,7 @@ class ServerCredentials {
 
  private:
   AuthMethod method_;
-  std::string client_cert_;
-  std::string client_key_;
-  std::string root_cert_;
+  std::string client_p12_;
   std::string repo_url_;
   std::string auth_user_;
   std::string auth_password_;

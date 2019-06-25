@@ -25,12 +25,9 @@ void TreehubServer::SetToken(const string& token) {
   method_ = AuthMethod::kOauth2;
 }
 
-void TreehubServer::SetCerts(const std::string& root_cert, const std::string& client_cert,
-                             const std::string& client_key) {
+void TreehubServer::SetCerts(const std::string& client_p12) {
   method_ = AuthMethod::kTls;
-  root_cert_ = root_cert;
-  client_cert_path_.PutContents(client_cert);
-  client_key_path_.PutContents(client_key);
+  client_p12_path_.PutContents(client_p12);
 }
 
 void TreehubServer::SetAuthBasic(const std::string& username, const std::string& password) {
@@ -63,24 +60,16 @@ void TreehubServer::InjectIntoCurl(const string& url_suffix, CURL* curl_handle, 
     curlEasySetoptWrapper(curl_handle, CURLOPT_PASSWORD, password_.c_str());
   }
 
-  std::string all_root_certs;
   if (method_ == AuthMethod::kTls) {
+    curlEasySetoptWrapper(curl_handle, CURLOPT_SSLCERT, client_p12_path_.PathString().c_str());
+    curlEasySetoptWrapper(curl_handle, CURLOPT_SSLCERTTYPE, "P12");
     curlEasySetoptWrapper(curl_handle, CURLOPT_SSL_VERIFYPEER, 1);
     curlEasySetoptWrapper(curl_handle, CURLOPT_SSL_VERIFYHOST, 2);
     curlEasySetoptWrapper(curl_handle, CURLOPT_USE_SSL, CURLUSESSL_ALL);
+  }
 
-    curlEasySetoptWrapper(curl_handle, CURLOPT_SSLCERT, client_cert_path_.PathString().c_str());
-    curlEasySetoptWrapper(curl_handle, CURLOPT_SSLKEY, client_key_path_.PathString().c_str());
-    if (!root_cert_.empty()) {
-      all_root_certs = root_cert_;
-    }
-  }
   if (!ca_certs_.empty()) {
-    all_root_certs += Utils::readFile(ca_certs_);
-  }
-  if (!all_root_certs.empty()) {
-    Utils::writeFile(root_cert_path_.PathString(), all_root_certs);
-    curlEasySetoptWrapper(curl_handle, CURLOPT_CAINFO, root_cert_path_.PathString().c_str());
+    curlEasySetoptWrapper(curl_handle, CURLOPT_CAINFO, ca_certs_.c_str());
     curlEasySetoptWrapper(curl_handle, CURLOPT_CAPATH, NULL);
   }
 }

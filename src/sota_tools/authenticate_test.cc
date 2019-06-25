@@ -24,24 +24,19 @@ TEST(authenticate, good_zip) {
 }
 
 /* Authenticate with TLS credentials.
- * Parse authentication information from treehub.json.
  * Parse images repository URL from a provided archive. */
-/* TODO: This used to work, but then when the zip file was updated because of
- * expired certs, it was changed to not use cert auth, and there was no check to
- * verify the method at that time. */
 TEST(authenticate, good_cert_zip) {
   // Authenticates with ssl_server on port 1443.
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_cert_good.zip";
   ServerCredentials creds(filepath);
   EXPECT_EQ(creds.GetMethod(), AuthMethod::kTls);
   TreehubServer treehub;
-  int r = authenticate("", creds, treehub);
+  int r = authenticate("tests/fake_http_server/server.crt", creds, treehub);
   EXPECT_EQ(0, r);
   CurlEasyWrapper curl_handle;
   curlEasySetoptWrapper(curl_handle.get(), CURLOPT_VERBOSE, 1);
   treehub.InjectIntoCurl("test.txt", curl_handle.get());
   CURLcode rc = curl_easy_perform(curl_handle.get());
-
   EXPECT_EQ(CURLE_OK, rc);
 }
 
@@ -54,7 +49,7 @@ TEST(authenticate, good_cert_noauth_zip) {
   ServerCredentials creds(filepath);
   EXPECT_EQ(creds.GetMethod(), AuthMethod::kNone);
   TreehubServer treehub;
-  int r = authenticate("tests/fake_http_server/client.crt", creds, treehub);
+  int r = authenticate("tests/fake_http_server/server.crt", creds, treehub);
   EXPECT_EQ(0, r);
   CurlEasyWrapper curl_handle;
   curlEasySetoptWrapper(curl_handle.get(), CURLOPT_VERBOSE, 1);

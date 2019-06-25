@@ -66,8 +66,7 @@ ServerCredentials::ServerCredentials(const boost::filesystem::path &credentials_
         json_stream = readArchiveFile(a);
         found_config = true;
       } else if (strcmp(filename, "client_auth.p12") == 0) {
-        const std::string client_p12 = readArchiveFile(a)->str();
-        Bootstrap::readTlsP12(client_p12, "", client_key_, client_cert_, root_cert_);
+        client_p12_ = readArchiveFile(a)->str();
         method_ = AuthMethod::kTls;
       } else if (strcmp(filename, "api_gateway.url") == 0) {
         use_api_gateway = true;
