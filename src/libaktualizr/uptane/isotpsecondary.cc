@@ -33,7 +33,7 @@ enum class IsoTpUptaneMesType {
 namespace Uptane {
 
 IsoTpSecondary::IsoTpSecondary(const SecondaryConfig& sconfig_in)
-    : SecondaryInterface(sconfig_in), conn(sconfig.can_iface, LIBUPTINY_ISOTP_PRIMARY_CANID, sconfig_in.can_id) {}
+    : conn(sconfig_in.can_iface, LIBUPTINY_ISOTP_PRIMARY_CANID, sconfig_in.can_id) {}
 
 EcuSerial IsoTpSecondary::getSerial() {
   std::string out;

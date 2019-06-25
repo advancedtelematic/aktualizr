@@ -19,9 +19,6 @@ class IpUptaneSecondary : public SecondaryInterface {
   explicit IpUptaneSecondary(const std::string& address, unsigned short port, EcuSerial serial,
                              HardwareIdentifier hw_id, PublicKey pub_key);
 
-  // what this method for ? Looks like should be removed out of SecondaryInterface
-  void Initialize() override{};
-
   // It looks more natural to return const EcuSerial& and const Uptane::HardwareIdentifier&
   // and they should be 'const' methods
   EcuSerial getSerial() /*const*/ override { return serial_; };

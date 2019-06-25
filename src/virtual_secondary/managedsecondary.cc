@@ -13,7 +13,7 @@
 #include <sys/stat.h>
 
 namespace Uptane {
-ManagedSecondary::ManagedSecondary(const SecondaryConfig &sconfig_in) : SecondaryInterface(sconfig_in) {
+ManagedSecondary::ManagedSecondary(SecondaryConfig sconfig_in) : sconfig(std::move(sconfig_in)) {
   // TODO: FIX
   // loadMetadata(meta_pack);
   std::string public_key_string;
@@ -28,6 +28,7 @@ ManagedSecondary::ManagedSecondary(const SecondaryConfig &sconfig_in) : Secondar
     // do not store keys yet, wait until SotaUptaneClient performed device initialization
   }
   public_key_ = PublicKey(public_key_string, sconfig.key_type);
+  Initialize();
 }
 
 void ManagedSecondary::Initialize() {

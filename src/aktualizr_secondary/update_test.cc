@@ -13,8 +13,7 @@ std::string sysroot;
 
 class ShortCircuitSecondary : public Uptane::SecondaryInterface {
  public:
-  ShortCircuitSecondary(const Uptane::SecondaryConfig& sconfig_in, AktualizrSecondary& sec)
-      : SecondaryInterface(sconfig_in), secondary(sec) {}
+  ShortCircuitSecondary(AktualizrSecondary& sec) : secondary(sec) {}
   ~ShortCircuitSecondary() override = default;
 
   Uptane::EcuSerial getSerial() override { return secondary.getSerialResp(); }
@@ -42,8 +41,7 @@ TEST(aktualizr_secondary_protocol, DISABLED_manual_update) {
   AktualizrSecondary as(config, storage);
 
   // secondary interface
-  Uptane::SecondaryConfig config_iface;
-  ShortCircuitSecondary sec_iface{config_iface, as};
+  ShortCircuitSecondary sec_iface{as};
 
   // storage
   TemporaryDirectory temp_dir;

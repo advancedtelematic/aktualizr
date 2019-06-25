@@ -16,8 +16,7 @@ target_include_directories(primary PUBLIC ${PROJECT_SOURCE_DIR}/src/virtual_seco
 
 add_aktualizr_test(NAME aktualizr SOURCES aktualizr_test.cc PROJECT_WORKING_DIRECTORY ARGS ${PROJECT_BINARY_DIR}/uptane_repos)
 add_dependencies(t_aktualizr uptane_repo_full_no_correlation_id)
-target_include_directories(t_aktualizr PUBLIC ${PROJECT_SOURCE_DIR}/src/virtual_secondary)
-target_link_libraries(t_aktualizr virtual-secondary)
+target_link_libraries(t_aktualizr virtual_secondary)
 
 if (BUILD_OSTREE)
     add_aktualizr_test(NAME aktualizr_fullostree SOURCES aktualizr_fullostree_test.cc PROJECT_WORKING_DIRECTORY ARGS $<TARGET_FILE:aktualizr-repo> ${PROJECT_BINARY_DIR}/ostree_repo)
@@ -37,6 +36,6 @@ set_tests_properties(test_device_cred_prov PROPERTIES LABELS "crypto")
 add_aktualizr_test(NAME uptane_key SOURCES uptane_key_test.cc PROJECT_WORKING_DIRECTORY)
 set_tests_properties(test_uptane_key PROPERTIES LABELS "crypto")
 target_include_directories(t_uptane_key PUBLIC ${PROJECT_SOURCE_DIR}/src/virtual_secondary)
-target_link_libraries(t_uptane_key virtual-secondary)
+target_link_libraries(t_uptane_key virtual_secondary)
 
 aktualizr_source_file_checks(${SOURCES} ${HEADERS} ${TEST_SOURCES})
