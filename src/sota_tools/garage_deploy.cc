@@ -5,6 +5,7 @@
 
 #include "accumulator.h"
 #include "authenticate.h"
+#include "check.h"
 #include "deploy.h"
 #include "garage_common.h"
 #include "logging/logging.h"
@@ -118,10 +119,16 @@ int main(int argc, char **argv) {
     } else {
       LOG_INFO << "Dry run. Not attempting offline signing.";
     }
+
+    if (CheckRefValid(fetch_server, ostree_commit, mode, max_curl_requests) != EXIT_SUCCESS) {
+      LOG_FATAL << "Check if the ref is present on the server or in targets.json failed";
+      return EXIT_FAILURE;
+    }
   } catch (OSTreeCommitParseError &e) {
     LOG_FATAL << e.what();
     return EXIT_FAILURE;
   }
+
   return EXIT_SUCCESS;
 }
 // vim: set tabstop=2 shiftwidth=2 expandtab:

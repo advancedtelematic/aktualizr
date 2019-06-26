@@ -1,6 +1,7 @@
 include_directories("${PROJECT_SOURCE_DIR}/src/libaktualizr/third_party/jsoncpp")
 set(SOTA_TOOLS_LIB_SRC
     authenticate.cc
+    check.cc
     deploy.cc
     oauth2.cc
     ostree_dir_repo.cc
@@ -99,6 +100,7 @@ endif (BUILD_SOTA_TOOLS)
 set(ALL_SOTA_TOOLS_HEADERS
     accumulator.h
     authenticate.h
+    check.h
     deploy.h
     garage_common.h
     oauth2.h
