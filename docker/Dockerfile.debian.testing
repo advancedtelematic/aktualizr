@@ -61,7 +61,8 @@ RUN apt-get update && apt-get -y install --no-install-suggests --no-install-reco
   softhsm2 \
   sqlite3 \
   valgrind \
-  wget
+  wget \
+  zip
 
 RUN ln -s clang-6.0 /usr/bin/clang && \
     ln -s clang++-6.0 /usr/bin/clang++
