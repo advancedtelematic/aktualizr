@@ -41,3 +41,6 @@ endif (BUILD_ISOTP)
 
 target_include_directories(aktualizr_static_lib PUBLIC
     $<TARGET_PROPERTY:package_manager,INCLUDE_DIRECTORIES>)
+
+# To be removed once the refactoring is completed
+target_link_libraries(aktualizr_static_lib virtual_secondary)

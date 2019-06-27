@@ -10,10 +10,10 @@
 
 #include "httpfake.h"
 #include "logging/logging.h"
+#include "managedsecondary.h"
 #include "primary/reportqueue.h"
 #include "primary/sotauptaneclient.h"
 #include "storage/invstorage.h"
-#include "uptane/managedsecondary.h"
 #include "uptane/secondaryconfig.h"
 #include "uptane/uptanerepository.h"
 
@@ -87,7 +87,6 @@ class UptaneKey_Check_Test {
     // Verify that each secondary has valid keys.
     std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
     for (it = sota_client->secondaries.begin(); it != sota_client->secondaries.end(); it++) {
-      EXPECT_TRUE(it->second->sconfig.secondary_type == Uptane::SecondaryType::kVirtual);
       std::shared_ptr<Uptane::ManagedSecondary> managed =
           boost::polymorphic_pointer_downcast<Uptane::ManagedSecondary>(it->second);
       std::string public_key;

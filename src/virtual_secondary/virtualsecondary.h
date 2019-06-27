@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "uptane/managedsecondary.h"
+#include "managedsecondary.h"
 #include "utilities/types.h"
 
 namespace Uptane {

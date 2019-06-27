@@ -252,10 +252,6 @@ Initializer::Initializer(
       return;
     }
 
-    for (auto it = secondary_info_.begin(); it != secondary_info_.end(); ++it) {
-      it->second->Initialize();
-    }
-
     // TODO: acknowledge on server _before_ setting the flag
     storage_->storeEcuRegistered();
     success_ = true;

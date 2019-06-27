@@ -1,32 +1,26 @@
 set(SOURCES
     fetcher.cc
     iterator.cc
-    managedsecondary.cc
     metawithkeys.cc
     partialverificationsecondary.cc
     role.cc
     root.cc
-    secondaryfactory.cc
     tuf.cc
     uptanerepository.cc
     directorrepository.cc
-    imagesrepository.cc
-    virtualsecondary.cc)
+    imagesrepository.cc)
 
 set(HEADERS
     exceptions.h
     fetcher.h
     iterator.h
-    managedsecondary.h
     partialverificationsecondary.h
     secondaryconfig.h
-    secondaryfactory.h
     secondaryinterface.h
     tuf.h
     uptanerepository.h
     directorrepository.h
-    imagesrepository.h
-    virtualsecondary.h)
+    imagesrepository.h)
 
 
 add_library(uptane OBJECT ${SOURCES})
@@ -57,13 +51,8 @@ add_aktualizr_test(NAME uptane_delegation SOURCES uptane_delegation_test.cc PROJ
 add_dependencies(t_uptane_delegation aktualizr-repo)
 set_tests_properties(test_uptane_delegation PROPERTIES LABELS "crypto")
 
-add_aktualizr_test(NAME uptane_key SOURCES uptane_key_test.cc PROJECT_WORKING_DIRECTORY)
-set_tests_properties(test_uptane_key PROPERTIES LABELS "crypto")
-
 add_aktualizr_test(NAME uptane_network SOURCES uptane_network_test.cc PROJECT_WORKING_DIRECTORY)
 set_tests_properties(test_uptane_network PROPERTIES LABELS "crypto")
-
-add_aktualizr_test(NAME uptane_secondary SOURCES uptane_secondary_test.cc PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME uptane_serial SOURCES uptane_serial_test.cc ARGS ${PROJECT_BINARY_DIR}
                    PROJECT_WORKING_DIRECTORY)

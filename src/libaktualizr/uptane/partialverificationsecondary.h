@@ -15,7 +15,7 @@ namespace Uptane {
 
 class PartialVerificationSecondary : public SecondaryInterface {
  public:
-  explicit PartialVerificationSecondary(const SecondaryConfig& sconfig_in);
+  explicit PartialVerificationSecondary(SecondaryConfig sconfig_in);
 
   EcuSerial getSerial() override {
     if (!sconfig.ecu_serial.empty()) {
@@ -23,6 +23,7 @@ class PartialVerificationSecondary : public SecondaryInterface {
     }
     return Uptane::EcuSerial(public_key_.KeyId());
   }
+  Uptane::HardwareIdentifier getHwId() override { return Uptane::HardwareIdentifier(sconfig.ecu_hardware_id); }
   PublicKey getPublicKey() override { return public_key_; }
 
   bool putMetadata(const RawMetaPack& meta) override;
@@ -36,6 +37,7 @@ class PartialVerificationSecondary : public SecondaryInterface {
   void storeKeys(const std::string& public_key, const std::string& private_key);
   bool loadKeys(std::string* public_key, std::string* private_key);
 
+  SecondaryConfig sconfig;
   Uptane::Root root_;
   PublicKey public_key_;
   std::string private_key_;

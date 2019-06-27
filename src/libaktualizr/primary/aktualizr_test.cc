@@ -14,9 +14,9 @@
 #include "primary/aktualizr.h"
 #include "primary/events.h"
 #include "primary/sotauptaneclient.h"
-#include "uptane/secondaryfactory.h"
 #include "uptane_test_common.h"
 #include "utilities/utils.h"
+#include "virtualsecondary.h"
 
 #include "utilities/fault_injection.h"
 
@@ -136,7 +136,7 @@ TEST(Aktualizr, AddSecondary) {
 
   Uptane::SecondaryConfig ecu_config = virtual_configuration(temp_dir.Path());
 
-  aktualizr.AddSecondary(Uptane::SecondaryFactory::makeSecondary(ecu_config));
+  aktualizr.AddSecondary(std::make_shared<Uptane::VirtualSecondary>(ecu_config));
 
   aktualizr.Initialize();
 
@@ -156,7 +156,7 @@ TEST(Aktualizr, AddSecondary) {
   EXPECT_EQ(expected_ecus.size(), 0);
 
   ecu_config.ecu_serial = "ecuserial4";
-  auto sec4 = Uptane::SecondaryFactory::makeSecondary(ecu_config);
+  auto sec4 = std::make_shared<Uptane::VirtualSecondary>(ecu_config);
   EXPECT_THROW(aktualizr.AddSecondary(sec4), std::logic_error);
 }
 
@@ -180,7 +180,7 @@ TEST(Aktualizr, DeviceInstallationResult) {
 
   Uptane::SecondaryConfig ecu_config = virtual_configuration(temp_dir.Path());
 
-  aktualizr.AddSecondary(Uptane::SecondaryFactory::makeSecondary(ecu_config));
+  aktualizr.AddSecondary(std::make_shared<Uptane::VirtualSecondary>(ecu_config));
 
   aktualizr.Initialize();
 

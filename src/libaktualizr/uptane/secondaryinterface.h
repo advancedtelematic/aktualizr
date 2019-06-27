@@ -6,7 +6,6 @@
 
 #include "json/json.h"
 
-#include "uptane/secondaryconfig.h"
 #include "uptane/tuf.h"
 
 /* Json snippet returned by sendMetaXXX():
@@ -22,14 +21,16 @@ class SecondaryInterface {
  public:
   // This ctor should be removed as the secondary configuration SecondaryConfig
   // is the secondaries's specific, see SecondaryConfig declaration
-  explicit SecondaryInterface(SecondaryConfig sconfig_in) : sconfig(std::move(sconfig_in)) {}
+  // explicit SecondaryInterface(SecondaryConfig sconfig_in) : sconfig(std::move(sconfig_in)) {}
   virtual ~SecondaryInterface() = default;
   // not clear what this method for, can be removed
-  virtual void Initialize(){};  // optional step, called after device registration
+  // virtual void Initialize(){};  // optional step, called after device registration
   // should be pure virtual, since the current implementation reads from the secondaries specific config
-  virtual EcuSerial getSerial() { return Uptane::EcuSerial(sconfig.ecu_serial); }
+  // virtual EcuSerial getSerial() { return Uptane::EcuSerial(sconfig.ecu_serial); }
+  virtual EcuSerial getSerial() = 0;
   // should be pure virtual, since the current implementation reads from the secondaries specific config
-  virtual Uptane::HardwareIdentifier getHwId() { return Uptane::HardwareIdentifier(sconfig.ecu_hardware_id); }
+  //  virtual Uptane::HardwareIdentifier getHwId() { return Uptane::HardwareIdentifier(sconfig.ecu_hardware_id); }
+  virtual Uptane::HardwareIdentifier getHwId() = 0;
   virtual PublicKey getPublicKey() = 0;
 
   // getSerial(), getHwId() and getPublicKey() can be moved to seperate interface
@@ -42,10 +43,10 @@ class SecondaryInterface {
   // FIXME: Instead of std::string we should use StorageTargetRHandle
   virtual bool sendFirmware(const std::shared_ptr<std::string>& data) = 0;
   // Should be removes as it's secondary specific
-  const SecondaryConfig sconfig;
+  // const SecondaryConfig sconfig;
 
- protected:
-  SecondaryInterface() : sconfig{} {};
+  // protected:
+  // SecondaryInterface() : sconfig{} {};
 };
 }  // namespace Uptane
 

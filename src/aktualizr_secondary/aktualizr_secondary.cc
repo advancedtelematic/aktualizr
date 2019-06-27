@@ -9,13 +9,11 @@
 #endif
 #include "socket_activation/socket_activation.h"
 #include "socket_server.h"
-#include "uptane/secondaryfactory.h"
 #include "utilities/utils.h"
 
 class SecondaryAdapter : public Uptane::SecondaryInterface {
  public:
-  SecondaryAdapter(const Uptane::SecondaryConfig& sconfig_in, AktualizrSecondary& sec)
-      : SecondaryInterface(sconfig_in), secondary(sec) {}
+  SecondaryAdapter(AktualizrSecondary& sec) : secondary(sec) {}
   ~SecondaryAdapter() override = default;
 
   Uptane::EcuSerial getSerial() override { return secondary.getSerialResp(); }
@@ -36,8 +34,7 @@ class SecondaryAdapter : public Uptane::SecondaryInterface {
 AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig& config,
                                        const std::shared_ptr<INvStorage>& storage)
     : AktualizrSecondaryCommon(config, storage),
-      socket_server_(std_::make_unique<SecondaryAdapter>(Uptane::SecondaryConfig(), *this),
-                     SocketFromSystemdOrPort(config.network.port)) {
+      socket_server_(std_::make_unique<SecondaryAdapter>(*this), SocketFromSystemdOrPort(config.network.port)) {
   // note: we don't use TlsConfig here and supply the default to
   // KeyManagerConf. Maybe we should figure a cleaner way to do that
   // (split KeyManager?)

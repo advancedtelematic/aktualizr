@@ -20,10 +20,10 @@ namespace Uptane {
 
 class ManagedSecondary : public SecondaryInterface {
  public:
-  explicit ManagedSecondary(const SecondaryConfig& sconfig_in);
+  explicit ManagedSecondary(SecondaryConfig sconfig_in);
   ~ManagedSecondary() override = default;
 
-  void Initialize() override;
+  void Initialize();
 
   EcuSerial getSerial() override {
     if (!sconfig.ecu_serial.empty()) {
@@ -31,6 +31,7 @@ class ManagedSecondary : public SecondaryInterface {
     }
     return EcuSerial(public_key_.KeyId());
   }
+  Uptane::HardwareIdentifier getHwId() override { return Uptane::HardwareIdentifier(sconfig.ecu_hardware_id); }
   PublicKey getPublicKey() override { return public_key_; }
   bool putMetadata(const RawMetaPack& meta_pack) override;
   int getRootVersion(bool director) override;
@@ -40,6 +41,9 @@ class ManagedSecondary : public SecondaryInterface {
   Json::Value getManifest() override;
 
   bool loadKeys(std::string* pub_key, std::string* priv_key);
+
+ protected:
+  SecondaryConfig sconfig;
 
  private:
   PublicKey public_key_;

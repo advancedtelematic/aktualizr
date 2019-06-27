@@ -390,8 +390,7 @@ class HttpFakeEvents : public HttpFake {
 
 class SecondaryInterfaceMock : public Uptane::SecondaryInterface {
  public:
-  explicit SecondaryInterfaceMock(Uptane::SecondaryConfig sconfig_in)
-      : Uptane::SecondaryInterface(std::move(sconfig_in)) {
+  explicit SecondaryInterfaceMock(Uptane::SecondaryConfig sconfig_in) : sconfig(std::move(sconfig_in)) {
     std::string private_key, public_key;
     Crypto::generateKeyPair(sconfig.key_type, &public_key, &private_key);
     public_key_ = PublicKey(public_key, sconfig.key_type);
@@ -407,15 +406,28 @@ class SecondaryInterfaceMock : public Uptane::SecondaryInterface {
     manifest_["signed"] = manifest_unsigned;
     manifest_["signatures"].append(signature);
   }
-  PublicKey getPublicKey() { return public_key_; };
+  PublicKey getPublicKey() override { return public_key_; }
 
-  Json::Value getManifest() { return manifest_; }
-  MOCK_METHOD1(putMetadata, bool(const Uptane::RawMetaPack &));
-  MOCK_METHOD1(getRootVersion, int32_t(bool));
-  bool putRoot(const std::string &, bool) { return true; }
-  bool sendFirmware(const std::shared_ptr<std::string> &) { return true; }
+  Uptane::HardwareIdentifier getHwId() override { return Uptane::HardwareIdentifier(sconfig.ecu_hardware_id); }
+  Uptane::EcuSerial getSerial() override {
+    if (!sconfig.ecu_serial.empty()) {
+      return Uptane::EcuSerial(sconfig.ecu_serial);
+    }
+    return Uptane::EcuSerial(public_key_.KeyId());
+  }
+  Json::Value getManifest() override { return manifest_; }
+  MOCK_METHOD1(putMetadataMock, bool(const Uptane::RawMetaPack &));
+  MOCK_METHOD1(getRootVersionMock, int32_t(bool));
+
+  bool putMetadata(const Uptane::RawMetaPack &meta_pack) override { return putMetadataMock(meta_pack); }
+  int32_t getRootVersion(bool director) override { return getRootVersionMock(director); }
+
+  bool putRoot(const std::string &, bool) override { return true; }
+  bool sendFirmware(const std::shared_ptr<std::string> &) override { return true; }
   PublicKey public_key_;
   Json::Value manifest_;
+
+  const Uptane::SecondaryConfig sconfig;
 };
 
 MATCHER_P(matchMeta, meta, "") {
@@ -470,7 +482,7 @@ TEST(Uptane, SendMetadataToSeconadry) {
   storage->loadNonRoot(&meta.image_snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot());
   storage->loadNonRoot(&meta.image_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets());
 
-  EXPECT_CALL(*sec, putMetadata(matchMeta(meta)));
+  EXPECT_CALL(*sec, putMetadataMock(matchMeta(meta)));
   up->uptaneInstall(packages_to_install);
   EXPECT_TRUE(EcuInstallationStartedReportGot);
 }
