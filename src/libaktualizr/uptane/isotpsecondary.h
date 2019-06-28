@@ -2,14 +2,14 @@
 #define UPTANE_ISOTPSECONDARY_H_
 
 #include "isotp_conn/isotp_conn.h"
-#include "secondaryconfig.h"
 #include "secondaryinterface.h"
 
 namespace Uptane {
 
 class IsoTpSecondary : public SecondaryInterface {
  public:
-  explicit IsoTpSecondary(const SecondaryConfig& sconfig_in);
+  explicit IsoTpSecondary(const std::string& can_iface, uint16_t can_id);
+
   EcuSerial getSerial() override;
   HardwareIdentifier getHwId() override;
   PublicKey getPublicKey() override;

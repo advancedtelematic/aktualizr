@@ -5,17 +5,10 @@
 #include <boost/filesystem.hpp>
 #include <unordered_map>
 
+#include "primary/secondary_config.h"
+#include "virtualsecondary.h"
+
 namespace Primary {
-
-class SecondaryConfig {
- public:
-  SecondaryConfig(const char* type) : type_(type) {}
-  virtual const char* type() const { return type_; }
-  virtual ~SecondaryConfig() = default;
-
- private:
-  const char* const type_;
-};
 
 class IPSecondaryConfig {
  public:
@@ -73,13 +66,14 @@ class JsonConfigParser : public SecondaryConfigParser {
 
  private:
   static void createIPSecondariesCfg(Configs& configs, Json::Value& json_ip_sec_cfg);
+  static void createVirtualSecondariesCfg(Configs& configs, Json::Value& json_virtual_sec_cfg);
   // add here a factory method for another type of secondary config
 
  private:
   using SecondaryConfigFactoryRegistry = std::unordered_map<std::string, std::function<void(Configs&, Json::Value&)>>;
 
   SecondaryConfigFactoryRegistry sec_cfg_factory_registry_ = {
-      {IPSecondariesConfig::Type, createIPSecondariesCfg}
+      {IPSecondariesConfig::Type, createIPSecondariesCfg}, {VirtualSecondaryConfig::Type, createVirtualSecondariesCfg}
       // add here factory method for another type of secondary config
   };
 

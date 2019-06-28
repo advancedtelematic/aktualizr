@@ -62,6 +62,7 @@ if(BUILD_OSTREE)
                        SOURCES uptane_test.cc
                        LIBRARIES aktualizr-posix
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
+    target_link_libraries(t_aktualizr_secondary_uptane virtual_secondary)
 else(BUILD_OSTREE)
     list(APPEND TEST_SOURCES uptane_test.cc)
 endif(BUILD_OSTREE)

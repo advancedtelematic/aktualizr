@@ -108,4 +108,11 @@ void JsonConfigParser::createIPSecondariesCfg(Configs& configs, Json::Value& jso
   configs.push_back(resultant_cfg);
 }
 
+void JsonConfigParser::createVirtualSecondariesCfg(Configs& configs, Json::Value& json_virtual_sec_cfg) {
+  for (const auto& json_config : json_virtual_sec_cfg) {
+    auto virtual_config = std::make_shared<VirtualSecondaryConfig>(json_config);
+    configs.push_back(virtual_config);
+  }
+}
+
 }  // namespace Primary

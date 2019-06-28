@@ -1,64 +1,69 @@
 #include <gtest/gtest.h>
 
-#include "uptane/partialverificationsecondary.h"
-#include "uptane/secondaryconfig.h"
+#include "partialverificationsecondary.h"
 #include "uptane/secondaryinterface.h"
 #include "virtualsecondary.h"
 
+class VirtualSecondaryTest : public ::testing::Test {
+ protected:
+  VirtualSecondaryTest() {
+    config_.partial_verifying = false;
+    config_.full_client_dir = temp_dir_.Path();
+    config_.ecu_serial = "";
+    config_.ecu_hardware_id = "secondary_hardware";
+    config_.ecu_private_key = "sec.priv";
+    config_.ecu_public_key = "sec.pub";
+    config_.firmware_path = temp_dir_.Path() / "firmware.txt";
+    config_.target_name_path = temp_dir_.Path() / "firmware_name.txt";
+    config_.metadata_path = temp_dir_.Path() / "metadata";
+  }
+
+  virtual void SetUp() {}
+  virtual void TearDown() {}
+
+ protected:
+  TemporaryDirectory temp_dir_;
+  Primary::VirtualSecondaryConfig config_;
+};
+
+class PartialVerificationSecondaryTest : public ::testing::Test {
+ protected:
+  PartialVerificationSecondaryTest() {
+    config_.partial_verifying = true;
+    config_.full_client_dir = temp_dir_.Path();
+    config_.ecu_serial = "";
+    config_.ecu_hardware_id = "secondary_hardware";
+    config_.ecu_private_key = "sec.priv";
+    config_.ecu_public_key = "sec.pub";
+    config_.firmware_path = temp_dir_.Path() / "firmware.txt";
+    config_.target_name_path = temp_dir_.Path() / "firmware_name.txt";
+    config_.metadata_path = temp_dir_.Path() / "metadata";
+  }
+
+  virtual void SetUp() {}
+  virtual void TearDown() {}
+
+ protected:
+  TemporaryDirectory temp_dir_;
+  Primary::PartialVerificationSecondaryConfig config_;
+};
+
 /* Create a virtual secondary for testing. */
-TEST(VirtualSecondary, Instantiation) {
-  TemporaryDirectory temp_dir;
-  Uptane::SecondaryConfig sconfig;
-  sconfig.secondary_type = Uptane::SecondaryType::kVirtual;
-  sconfig.partial_verifying = false;
-  sconfig.full_client_dir = temp_dir.Path();
-  sconfig.ecu_serial = "";
-  sconfig.ecu_hardware_id = "secondary_hardware";
-  sconfig.ecu_private_key = "sec.priv";
-  sconfig.ecu_public_key = "sec.pub";
-  sconfig.firmware_path = temp_dir.Path() / "firmware.txt";
-  sconfig.target_name_path = temp_dir.Path() / "firmware_name.txt";
-  sconfig.metadata_path = temp_dir.Path() / "metadata";
-  EXPECT_NO_THROW(Uptane::VirtualSecondary virtual_sec(sconfig));
-}
+TEST_F(VirtualSecondaryTest, Instantiation) { EXPECT_NO_THROW(Uptane::VirtualSecondary virtual_sec(config_)); }
 
 /* Partial verification secondaries generate and store public keys. */
-TEST(PartialVerificationSecondary, Uptane_get_key) {
-  TemporaryDirectory temp_dir;
-  Uptane::SecondaryConfig sconfig;
-  sconfig.secondary_type = Uptane::SecondaryType::kVirtualUptane;
-  sconfig.partial_verifying = true;
-  sconfig.full_client_dir = temp_dir.Path();
-  sconfig.ecu_serial = "";
-  sconfig.ecu_hardware_id = "secondary_hardware";
-  sconfig.ecu_private_key = "sec.priv";
-  sconfig.ecu_public_key = "sec.pub";
-  sconfig.firmware_path = temp_dir.Path() / "firmware.txt";
-  sconfig.target_name_path = temp_dir.Path() / "firmware_name.txt";
-  sconfig.metadata_path = temp_dir.Path() / "metadata";
-  Uptane::PartialVerificationSecondary sec1(sconfig);
+TEST_F(PartialVerificationSecondaryTest, Uptane_get_key) {
+  Uptane::PartialVerificationSecondary sec1(config_);
   PublicKey key1 = sec1.getPublicKey();
-  Uptane::PartialVerificationSecondary sec2(sconfig);
+  Uptane::PartialVerificationSecondary sec2(config_);
   PublicKey key2 = sec2.getPublicKey();
   // Verify that we store keys
   EXPECT_EQ(key1, key2);
 }
 
 /* Partial verification secondaries can verify Uptane metadata. */
-TEST(PartialVerificationSecondary, Uptane_putMetadata_good) {
-  TemporaryDirectory temp_dir;
-  Uptane::SecondaryConfig sconfig;
-  sconfig.secondary_type = Uptane::SecondaryType::kVirtualUptane;
-  sconfig.partial_verifying = true;
-  sconfig.full_client_dir = temp_dir.Path();
-  sconfig.ecu_serial = "";
-  sconfig.ecu_hardware_id = "secondary_hardware";
-  sconfig.ecu_private_key = "sec.priv";
-  sconfig.ecu_public_key = "sec.pub";
-  sconfig.firmware_path = temp_dir.Path() / "firmware.txt";
-  sconfig.target_name_path = temp_dir.Path() / "firmware_name.txt";
-  sconfig.metadata_path = temp_dir.Path() / "metadata";
-  Uptane::PartialVerificationSecondary sec(sconfig);
+TEST_F(PartialVerificationSecondaryTest, Uptane_putMetadata_good) {
+  Uptane::PartialVerificationSecondary sec(config_);
   Uptane::RawMetaPack metadata;
 
   metadata.director_root = Utils::readFile("tests/test_data/repo/repo/director/root.json");
@@ -67,20 +72,8 @@ TEST(PartialVerificationSecondary, Uptane_putMetadata_good) {
 }
 
 /* Partial verification secondaries reject invalid Uptane metadata. */
-TEST(PartialVerificationSecondary, Uptane_putMetadata_bad) {
-  TemporaryDirectory temp_dir;
-  Uptane::SecondaryConfig sconfig;
-  sconfig.secondary_type = Uptane::SecondaryType::kVirtualUptane;
-  sconfig.partial_verifying = true;
-  sconfig.full_client_dir = temp_dir.Path();
-  sconfig.ecu_serial = "";
-  sconfig.ecu_hardware_id = "secondary_hardware";
-  sconfig.ecu_private_key = "sec.priv";
-  sconfig.ecu_public_key = "sec.pub";
-  sconfig.firmware_path = temp_dir.Path() / "firmware.txt";
-  sconfig.target_name_path = temp_dir.Path() / "firmware_name.txt";
-  sconfig.metadata_path = temp_dir.Path() / "metadata";
-  Uptane::PartialVerificationSecondary sec(sconfig);
+TEST_F(PartialVerificationSecondaryTest, Uptane_putMetadata_bad) {
+  Uptane::PartialVerificationSecondary sec(config_);
   Uptane::RawMetaPack metadata;
 
   metadata.director_root = Utils::readFile("tests/test_data/repo/repo/director/root.json");

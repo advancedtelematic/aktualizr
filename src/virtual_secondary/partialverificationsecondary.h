@@ -7,15 +7,28 @@
 #include <boost/filesystem.hpp>
 #include "json/json.h"
 
-#include "uptane/secondaryconfig.h"
 #include "uptane/secondaryinterface.h"
 #include "utilities/types.h"
+
+#include "managedsecondary.h"
+
+namespace Primary {
+
+class PartialVerificationSecondaryConfig : public ManagedSecondaryConfig {
+ public:
+  PartialVerificationSecondaryConfig() : ManagedSecondaryConfig(Type) {}
+
+ public:
+  constexpr static const char* const Type = "partial-verification";
+};
+
+}  // namespace Primary
 
 namespace Uptane {
 
 class PartialVerificationSecondary : public SecondaryInterface {
  public:
-  explicit PartialVerificationSecondary(SecondaryConfig sconfig_in);
+  explicit PartialVerificationSecondary(Primary::PartialVerificationSecondaryConfig sconfig_in);
 
   EcuSerial getSerial() override {
     if (!sconfig.ecu_serial.empty()) {
@@ -37,7 +50,7 @@ class PartialVerificationSecondary : public SecondaryInterface {
   void storeKeys(const std::string& public_key, const std::string& private_key);
   bool loadKeys(std::string* public_key, std::string* private_key);
 
-  SecondaryConfig sconfig;
+  Primary::PartialVerificationSecondaryConfig sconfig;
   Uptane::Root root_;
   PublicKey public_key_;
   std::string private_key_;

@@ -125,7 +125,7 @@ TEST(UptaneNetwork, DownloadFailure) {
 
   auto storage = INvStorage::newStorage(conf.storage);
   auto http = std::make_shared<HttpClient>();
-  auto up = SotaUptaneClient::newTestClient(conf, storage, http);
+  auto up = newTestClient(conf, storage, http);
   EXPECT_NO_THROW(up->initialize());
 
   Json::Value ot_json;

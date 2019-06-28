@@ -24,6 +24,11 @@ static SecondaryFactoryRegistry sec_factory_registry = {
        auto ip_sec_cgf = dynamic_cast<const IPSecondariesConfig&>(config);
        return createIPSecondaries(ip_sec_cgf);
      }},
+    {VirtualSecondaryConfig::Type,
+     [](const SecondaryConfig& config) {
+       auto virtual_sec_cgf = dynamic_cast<const VirtualSecondaryConfig&>(config);
+       return Secondaries({std::make_shared<Uptane::VirtualSecondary>(virtual_sec_cgf)});
+     }},
     //  {
     //     Add another secondary factory here
     //  }

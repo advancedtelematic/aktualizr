@@ -12,10 +12,9 @@
 #include "logging/logging.h"
 #include "package_manager/packagemanagerfactory.h"
 #include "uptane/exceptions.h"
-#include "uptane/secondaryconfig.h"
+
 #include "utilities/fault_injection.h"
 #include "utilities/utils.h"
-#include "virtualsecondary.h"
 
 static void report_progress_cb(event::Channel *channel, const Uptane::Target &target, const std::string &description,
                                unsigned int progress) {
@@ -32,46 +31,18 @@ std::shared_ptr<SotaUptaneClient> SotaUptaneClient::newDefaultClient(
   std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_in.bootloader, *storage_in);
   std::shared_ptr<ReportQueue> report_queue_in = std::make_shared<ReportQueue>(config_in, http_client_in);
 
-  auto sota_uptane_client = std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, bootloader_in,
-                                                               report_queue_in, events_channel_in);
-
-  // This factory method is used just for manual testing of VirtualSecondaries, so calling VirtualSecondary ctor
-  // directly here is fine for now until the virtual secondary implementation is moved out of libaktualizr
-  std::vector<Uptane::SecondaryConfig>::const_iterator it;
-  for (it = config_in.uptane.secondary_configs.begin(); it != config_in.uptane.secondary_configs.end(); ++it) {
-    sota_uptane_client->addSecondary(std::make_shared<Uptane::VirtualSecondary>(*it));
-  }
-
-  return sota_uptane_client;
+  return std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, bootloader_in, report_queue_in,
+                                            events_channel_in);
 }
 
-std::shared_ptr<SotaUptaneClient> SotaUptaneClient::newTestClient(Config &config_in,
-                                                                  std::shared_ptr<INvStorage> storage_in,
-                                                                  std::shared_ptr<HttpInterface> http_client_in,
-                                                                  std::shared_ptr<event::Channel> events_channel_in) {
-  std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_in.bootloader, *storage_in);
-  std::shared_ptr<ReportQueue> report_queue_in = std::make_shared<ReportQueue>(config_in, http_client_in);
-  auto sota_uptane_client = std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, bootloader_in,
-                                                               report_queue_in, events_channel_in);
-
-  // This factory method is used just for automated tests, so calling VirtualSecondary ctor directly here is fine
-  // for now until the virtual secondary implementation is moved out of libaktualizr
-  std::vector<Uptane::SecondaryConfig>::const_iterator it;
-  for (it = config_in.uptane.secondary_configs.begin(); it != config_in.uptane.secondary_configs.end(); ++it) {
-    sota_uptane_client->addSecondary(std::make_shared<Uptane::VirtualSecondary>(*it));
-  }
-
-  return sota_uptane_client;
-}
-
-SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage> storage_in,
+SotaUptaneClient::SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in,
                                    std::shared_ptr<HttpInterface> http_client,
                                    std::shared_ptr<Bootloader> bootloader_in,
                                    std::shared_ptr<ReportQueue> report_queue_in,
                                    std::shared_ptr<event::Channel> events_channel_in)
     : config(config_in),
       uptane_manifest(config, storage_in),
-      storage(std::move(storage_in)),
+      storage(storage_in),
       http(std::move(http_client)),
       bootloader(std::move(bootloader_in)),
       report_queue(std::move(report_queue_in)),
@@ -240,7 +211,6 @@ void SotaUptaneClient::reportNetworkInfo() {
 Json::Value SotaUptaneClient::AssembleManifest() {
   Json::Value manifest;  // signed top-level
   Uptane::EcuSerial primary_ecu_serial = uptane_manifest.getPrimaryEcuSerial();
-
   manifest["primary_ecu_serial"] = primary_ecu_serial.ToString();
 
   // first part: report current version/state of all ecus
@@ -963,6 +933,7 @@ void SotaUptaneClient::verifySecondaries() {
       misconfigured_ecus.emplace_back(not_registered.first, not_registered.second, EcuState::kOld);
     }
   }
+
   storage->storeMisconfiguredEcus(misconfigured_ecus);
 }
 

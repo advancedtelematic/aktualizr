@@ -95,33 +95,6 @@ TEST(config, ExtractCredentials) {
             "D27E3E56BEF02AAA6D6FFEFDA5357458C477A8E891C5EADF4F04CE67BB5866A4");
 }
 
-/*
- * Parse secondary config files in JSON format.
- */
-TEST(config, SecondaryConfig) {
-  TemporaryDirectory temp_dir;
-  const std::string conf_path_str = (temp_dir.Path() / "config.toml").string();
-  TestUtils::writePathToConfig("tests/config/minimal.toml", conf_path_str, temp_dir.Path());
-
-  bpo::variables_map cmd;
-  bpo::options_description description("some text");
-  // clang-format off
-  description.add_options()
-    ("secondary-configs-dir", bpo::value<boost::filesystem::path>(), "directory containing secondary ECU configuration files")
-    ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory");
-
-  // clang-format on
-  const char *argv[] = {"aktualizr", "--secondary-configs-dir", "config/secondary", "-c", conf_path_str.c_str()};
-  bpo::store(bpo::parse_command_line(5, argv, description), cmd);
-
-  Config conf(cmd);
-  EXPECT_EQ(conf.uptane.secondary_configs.size(), 1);
-  EXPECT_EQ(conf.uptane.secondary_configs[0].secondary_type, Uptane::SecondaryType::kVirtual);
-  EXPECT_EQ(conf.uptane.secondary_configs[0].ecu_hardware_id, "demo-virtual");
-  // If not provided, serial is not generated until SotaUptaneClient is initialized.
-  EXPECT_TRUE(conf.uptane.secondary_configs[0].ecu_serial.empty());
-}
-
 /**
  * Start in device credential provisioning mode.
  */

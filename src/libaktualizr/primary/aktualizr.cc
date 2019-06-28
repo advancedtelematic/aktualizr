@@ -6,6 +6,7 @@
 #include <openssl/rand.h>
 #include <sodium.h>
 
+#include "primary/events.h"
 #include "utilities/timer.h"
 
 using std::make_shared;
@@ -24,7 +25,10 @@ Aktualizr::Aktualizr(Config &config, std::shared_ptr<INvStorage> storage_in, std
   systemSetup();
   sig_ = make_shared<boost::signals2::signal<void(shared_ptr<event::BaseEvent>)>>();
   storage_ = std::move(storage_in);
-  uptane_client_ = SotaUptaneClient::newTestClient(config_, storage_, std::move(http_in), sig_);
+  std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_.bootloader, *storage_);
+  std::shared_ptr<ReportQueue> report_queue_in = std::make_shared<ReportQueue>(config_, http_in);
+
+  uptane_client_ = std::make_shared<SotaUptaneClient>(config_, storage_, http_in, bootloader_in, report_queue_in, sig_);
 }
 
 void Aktualizr::systemSetup() {

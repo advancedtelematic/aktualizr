@@ -14,11 +14,12 @@
 #include "primary/reportqueue.h"
 #include "primary/sotauptaneclient.h"
 #include "storage/invstorage.h"
-#include "uptane/secondaryconfig.h"
 #include "uptane/uptanerepository.h"
+#include "uptane_test_common.h"
 
-void initKeyTests(Config& config, Uptane::SecondaryConfig& ecu_config1, Uptane::SecondaryConfig& ecu_config2,
-                  TemporaryDirectory& temp_dir, const std::string& tls_server) {
+void initKeyTests(Config& config, Primary::VirtualSecondaryConfig& ecu_config1,
+                  Primary::VirtualSecondaryConfig& ecu_config2, TemporaryDirectory& temp_dir,
+                  const std::string& tls_server) {
   boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir / "cred.zip");
   config.provision.primary_ecu_serial = "testecuserial";
   config.provision.provision_path = temp_dir / "cred.zip";
@@ -29,7 +30,6 @@ void initKeyTests(Config& config, Uptane::SecondaryConfig& ecu_config1, Uptane::
   config.storage.path = temp_dir.Path();
   config.pacman.type = PackageManager::kNone;
 
-  ecu_config1.secondary_type = Uptane::SecondaryType::kVirtual;
   ecu_config1.partial_verifying = false;
   ecu_config1.full_client_dir = temp_dir.Path();
   ecu_config1.ecu_serial = "secondary_ecu_serial1";
@@ -39,9 +39,7 @@ void initKeyTests(Config& config, Uptane::SecondaryConfig& ecu_config1, Uptane::
   ecu_config1.firmware_path = temp_dir / "firmware1.txt";
   ecu_config1.target_name_path = temp_dir / "firmware1_name.txt";
   ecu_config1.metadata_path = temp_dir / "secondary1_metadata";
-  config.uptane.secondary_configs.push_back(ecu_config1);
 
-  ecu_config2.secondary_type = Uptane::SecondaryType::kVirtual;
   ecu_config2.partial_verifying = false;
   ecu_config2.full_client_dir = temp_dir.Path();
   ecu_config2.ecu_serial = "secondary_ecu_serial2";
@@ -51,7 +49,6 @@ void initKeyTests(Config& config, Uptane::SecondaryConfig& ecu_config1, Uptane::
   ecu_config2.firmware_path = temp_dir / "firmware2.txt";
   ecu_config2.target_name_path = temp_dir / "firmware2_name.txt";
   ecu_config2.metadata_path = temp_dir / "secondary2_metadata";
-  config.uptane.secondary_configs.push_back(ecu_config2);
 }
 
 // This is a class solely for the purpose of being a FRIEND_TEST to
@@ -115,12 +112,13 @@ TEST(UptaneKey, CheckAllKeys) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   Config config;
-  Uptane::SecondaryConfig ecu_config1;
-  Uptane::SecondaryConfig ecu_config2;
+  Primary::VirtualSecondaryConfig ecu_config1;
+  Primary::VirtualSecondaryConfig ecu_config2;
   initKeyTests(config, ecu_config1, ecu_config2, temp_dir, http->tls_server);
-
   auto storage = INvStorage::newStorage(config.storage);
-  auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+  auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
+  sota_client->addNewSecondary(std::make_shared<Uptane::VirtualSecondary>(ecu_config1));
+  sota_client->addNewSecondary(std::make_shared<Uptane::VirtualSecondary>(ecu_config2));
   EXPECT_NO_THROW(sota_client->initialize());
   UptaneKey_Check_Test::checkKeyTests(storage, sota_client);
 }
@@ -133,15 +131,17 @@ TEST(UptaneKey, RecoverWithoutKeys) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   Config config;
-  Uptane::SecondaryConfig ecu_config1;
-  Uptane::SecondaryConfig ecu_config2;
+  Primary::VirtualSecondaryConfig ecu_config1;
+  Primary::VirtualSecondaryConfig ecu_config2;
+
   initKeyTests(config, ecu_config1, ecu_config2, temp_dir, http->tls_server);
 
   // Initialize.
   {
     auto storage = INvStorage::newStorage(config.storage);
-    auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
-
+    auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
+    sota_client->addNewSecondary(std::make_shared<Uptane::VirtualSecondary>(ecu_config1));
+    sota_client->addNewSecondary(std::make_shared<Uptane::VirtualSecondary>(ecu_config2));
     EXPECT_NO_THROW(sota_client->initialize());
     UptaneKey_Check_Test::checkKeyTests(storage, sota_client);
 
@@ -151,7 +151,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
 
   {
     auto storage = INvStorage::newStorage(config.storage);
-    auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+    auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
 
     EXPECT_NO_THROW(sota_client->initialize());
     UptaneKey_Check_Test::checkKeyTests(storage, sota_client);
@@ -167,7 +167,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
 
   {
     auto storage = INvStorage::newStorage(config.storage);
-    auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+    auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
 
     EXPECT_NO_THROW(sota_client->initialize());
     UptaneKey_Check_Test::checkKeyTests(storage, sota_client);

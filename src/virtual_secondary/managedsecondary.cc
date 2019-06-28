@@ -13,7 +13,7 @@
 #include <sys/stat.h>
 
 namespace Uptane {
-ManagedSecondary::ManagedSecondary(SecondaryConfig sconfig_in) : sconfig(std::move(sconfig_in)) {
+ManagedSecondary::ManagedSecondary(Primary::ManagedSecondaryConfig sconfig_in) : sconfig(std::move(sconfig_in)) {
   // TODO: FIX
   // loadMetadata(meta_pack);
   std::string public_key_string;

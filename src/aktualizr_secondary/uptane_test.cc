@@ -6,6 +6,7 @@
 
 #include "config/config.h"
 #include "httpfake.h"
+#include "uptane_test_common.h"
 
 std::shared_ptr<INvStorage> test_storage;
 AktualizrSecondaryConfig test_config;
@@ -47,7 +48,7 @@ TEST(aktualizr_secondary_uptane, credentialsPassing) {
 
   auto storage = INvStorage::newStorage(config.storage);
 
-  auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+  auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
   EXPECT_NO_THROW(sota_client->initialize());
 
   std::string arch = sota_client->secondaryTreehubCredentials();

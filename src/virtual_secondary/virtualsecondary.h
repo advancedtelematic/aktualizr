@@ -6,10 +6,26 @@
 #include "managedsecondary.h"
 #include "utilities/types.h"
 
+namespace Primary {
+
+class VirtualSecondaryConfig : public ManagedSecondaryConfig {
+ public:
+  VirtualSecondaryConfig() : ManagedSecondaryConfig(Type) {}
+  VirtualSecondaryConfig(const Json::Value& json_config);
+
+  static VirtualSecondaryConfig create_from_file(const boost::filesystem::path& file_full_path);
+  void dump(const boost::filesystem::path& file_full_path) const;
+
+ public:
+  static const char* const Type;
+};
+
+}  // namespace Primary
+
 namespace Uptane {
 class VirtualSecondary : public ManagedSecondary {
  public:
-  explicit VirtualSecondary(const SecondaryConfig& sconfig_in);
+  explicit VirtualSecondary(Primary::VirtualSecondaryConfig sconfig_in);
   ~VirtualSecondary() override = default;
 
  private:

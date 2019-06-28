@@ -157,12 +157,6 @@ add_test(NAME test-help-with-nonexistent-options
 set_tests_properties(test-help-with-nonexistent-options
                      PROPERTIES PASS_REGULAR_EXPRESSION "aktualizr command line options")
 
-add_test(NAME test-secondary-config-with-nonexisting-dir
-         COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/config/sota-shared-cred.toml
-         --tls-server fake --secondary-configs-dir nonexistingdir check)
-set_tests_properties(test-secondary-config-with-nonexisting-dir
-                     PROPERTIES PASS_REGULAR_EXPRESSION "\"nonexistingdir\": not a directory")
-
 # run `aktualizr check` for these tests, as they can run forever if a global
 # configuration is present
 

@@ -158,43 +158,16 @@ class Aktualizr {
    */
   boost::signals2::connection SetSignalHandler(const std::function<void(std::shared_ptr<event::BaseEvent>)>& handler);
 
- private:
-  FRIEND_TEST(Aktualizr, FullNoUpdates);
-  FRIEND_TEST(Aktualizr, DeviceInstallationResult);
-  FRIEND_TEST(Aktualizr, FullWithUpdates);
-  FRIEND_TEST(Aktualizr, FullWithUpdatesNeedReboot);
-  FRIEND_TEST(Aktualizr, FinalizationFailure);
-  FRIEND_TEST(Aktualizr, InstallationFailure);
-  FRIEND_TEST(Aktualizr, AutoRebootAfterUpdate);
-  FRIEND_TEST(Aktualizr, FullMultipleSecondaries);
-  FRIEND_TEST(Aktualizr, CheckNoUpdates);
-  FRIEND_TEST(Aktualizr, DownloadWithUpdates);
-  FRIEND_TEST(Aktualizr, DownloadFailures);
-  FRIEND_TEST(Aktualizr, InstallWithUpdates);
-  FRIEND_TEST(Aktualizr, ReportDownloadProgress);
-  FRIEND_TEST(Aktualizr, CampaignCheckAndControl);
-  FRIEND_TEST(Aktualizr, FullNoCorrelationId);
-  FRIEND_TEST(Aktualizr, ManifestCustom);
-  FRIEND_TEST(Aktualizr, APICheck);
-  FRIEND_TEST(Aktualizr, UpdateCheckCompleteError);
-  FRIEND_TEST(Aktualizr, PauseResumeQueue);
-  FRIEND_TEST(Aktualizr, AddSecondary);
-  FRIEND_TEST(Aktualizr, EmptyTargets);
-  FRIEND_TEST(Aktualizr, EmptyTargetsAfterInstall);
-  FRIEND_TEST(Aktualizr, FullOstreeUpdate);
-  FRIEND_TEST(Delegation, Basic);
-  FRIEND_TEST(Delegation, RevokeAfterCheckUpdates);
-  FRIEND_TEST(Delegation, RevokeAfterInstall);
-  FRIEND_TEST(Delegation, RevokeAfterDownload);
-  FRIEND_TEST(Delegation, IterateAll);
-
-  // This constructor is only used for tests
+ protected:
   Aktualizr(Config& config, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<HttpInterface> http_in);
+
+  std::shared_ptr<SotaUptaneClient> uptane_client_;
+
+ private:
   static void systemSetup();
 
   Config& config_;
   std::shared_ptr<INvStorage> storage_;
-  std::shared_ptr<SotaUptaneClient> uptane_client_;
   std::shared_ptr<event::Channel> sig_;
   api::CommandQueue api_queue_;
 };

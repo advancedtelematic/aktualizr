@@ -7,19 +7,77 @@
 #include "json/json.h"
 
 #include "config/config.h"
-#include "uptane/secondaryconfig.h"
 #include "uptane/tuf.h"
 #include "utilities/utils.h"
+#include "virtualsecondary.h"
+#include "primary/sotauptaneclient.h"
+#include "primary/aktualizr.h"
 
 static const char* sec_public_key = "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyjUeAzozBEccaGFAJ2Q3\n9QBfItH5i5O7yLRjZlKcEnWnFsxAWHUn5W/msRgZN/pXUrlax0wvrvMvHHLwZA2J\nz+UQApzSqj53HPVAcCH6kB9x0r9PM/0vVTKtmcrdSHj7jJ2yAW2T4Vo/eKlpvz3w\n9kTPAj0j1f5LvUgX5VIjUnsQK1LGzMwnleHk2dkWeWnt3OqomnO7V5C0jkDi58tG\nJ6fnyCYWcMUbpMaldXVXqmQ+iBkWxBjZ99+XJSRjdsskC7x8u8t+sA146VDB977r\nN8D+i+P1tAe810crciUqpYNenDYx47aAm6gaDWr7oeDzp3HyCjx4dZi9Z85rVE36\n8wIDAQAB\n-----END PUBLIC KEY-----\n";
 static const char* sec_private_key = "-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEAyjUeAzozBEccaGFAJ2Q39QBfItH5i5O7yLRjZlKcEnWnFsxA\nWHUn5W/msRgZN/pXUrlax0wvrvMvHHLwZA2Jz+UQApzSqj53HPVAcCH6kB9x0r9P\nM/0vVTKtmcrdSHj7jJ2yAW2T4Vo/eKlpvz3w9kTPAj0j1f5LvUgX5VIjUnsQK1LG\nzMwnleHk2dkWeWnt3OqomnO7V5C0jkDi58tGJ6fnyCYWcMUbpMaldXVXqmQ+iBkW\nxBjZ99+XJSRjdsskC7x8u8t+sA146VDB977rN8D+i+P1tAe810crciUqpYNenDYx\n47aAm6gaDWr7oeDzp3HyCjx4dZi9Z85rVE368wIDAQABAoIBAA0WlxS6Zab3O11+\nPfrOv9h5566HTNG+BD+ffXeYDUYcm24cVmXjX2u4bIQ1/RvkdlaCbN/NjKCUWQ5M\nWkb/oVX1i62/nNssI+WZ8kvPxzog7usnOucwkim/mAEGYoBYZF/brTPudc32W3lh\n7dhVGA24snWAo5ssVJax3eoYAPVLqFK5Pb8VUxpHtjERMDDUxM3w6WGXLxuBdA5s\n5vIdv+XrdiQhdPn1HMYEBBInkkYK8w4UytOCAS1/3xfVi2QwX5H9bHkduFpjLSQt\n2StWR9Kh4I80xXp7FwGpfkdUn+3qj5WwneuGY/JnD7AzjDlAThj0AE9iaYjkzXKJ\nVD4ULmECgYEA+UGQ1aglftFuTO427Xmi7tHhooo9U1pKMrg5CkCLkA+MudFzMEgj\npRtDdj8lTTWHEIYQXo5hhZfhk63j89RAKRz1MDFOvgknE8yJa9rSyCAEcwzRzXcY\n3WtWozEZ+5u4KYFHhGjJCSqVFdwyXmjP9ldb35Uxh06OuTbdNkSbiUsCgYEAz62t\nJ1EftTkd/YA/9Poq1deil5g0btPXnMJMj7C99dexNAXuVhS10Rz1Hi74wCFEbkcV\nGL/8U80pER9YYYeFUmqs1pYu7zwcYBT+iNrvFaPifid8FqlJEJ727swnWdpzXpwv\n/6q0h3JXU2odrEMNaGqiPycHQ/45EWMbCtpSs/kCgYEAwjMgWicA17bqvkuXRhzQ\nIkwqBU65ixi82JmJ73/sfNhwp1IV8hcylnAQdq+qK2a6Ddi2JkW+m6yDF2GTSiUj\nvCSQr/SqygsthBKHOx4pvbycWtsxF2lkWRdJUCpweQWRTd0o0HQntdmUgIyoPcBh\nzyevMBr4lNhTAOFLJv37RNMCgYAQq+ODjXqbJKuopvv7YX3Azt+phbln0C+10M8u\nlcSaEKeUAongdScnU0jGFIU5fzIsHB6wbvEFlSmfy0FgCu4D8LZRP5si71Njzyuj\ntteMiCxtbiQC+bH42JoAD3l1OBkc1jLwNjbpzJ7//jvFkVhpMm413Z8ysRzJrYgF\nNgN/mQKBgQDNT2nFoqanlQPkZekqNQNcVMHPyOWP40z4HC5JD1Z5F18Kg3El4EdS\nNfwaFGRT5qiFJBmmzl+6EFmUrrBNtV01zQ6rO+xgy2Y7qUQMNAUMjh1cCpWwUlN0\ng4aT/RawS5WpWN3+lEs4Ouxpgg4ZStXNZRJkSDHwZpkXtFfKzsEXaA==\n-----END RSA PRIVATE KEY-----\n";
 
+std::shared_ptr<SotaUptaneClient> newTestClient(Config &config_in,
+                                                                  std::shared_ptr<INvStorage> storage_in,
+                                                                  std::shared_ptr<HttpInterface> http_client_in,
+                                                                  std::shared_ptr<event::Channel> events_channel_in = nullptr) {
+  std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_in.bootloader, *storage_in);
+  std::shared_ptr<ReportQueue> report_queue_in = std::make_shared<ReportQueue>(config_in, http_client_in);
+  return std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, bootloader_in,
+                                                               report_queue_in, events_channel_in);
+}
+
 struct UptaneTestCommon {
 
-  static Uptane::SecondaryConfig addDefaultSecondary(Config& config, const TemporaryDirectory& temp_dir,
-                                                     const std::string& serial, const std::string& hw_id) {
-    Uptane::SecondaryConfig ecu_config;
-    ecu_config.secondary_type = Uptane::SecondaryType::kVirtual;
+  class TestAktualizr: public Aktualizr {
+   public:
+    TestAktualizr(Config& config): Aktualizr(config) {}
+
+    TestAktualizr(Config& config,
+                  std::shared_ptr<INvStorage> storage,
+                  std::shared_ptr<HttpInterface> http)
+      : Aktualizr(config, storage, http) {
+      if (boost::filesystem::exists(config.uptane.secondary_config_file)) {
+        AddSecondary(std::make_shared<Uptane::VirtualSecondary>(Primary::VirtualSecondaryConfig::create_from_file(config.uptane.secondary_config_file)));
+      }
+    }
+
+    std::shared_ptr<SotaUptaneClient>& uptane_client() { return uptane_client_; }
+  };
+
+  class TestUptaneClient: public SotaUptaneClient
+  {
+   public:
+    TestUptaneClient(Config &config_in,
+                     std::shared_ptr<INvStorage> storage_in,
+                     std::shared_ptr<HttpInterface> http_client,
+                     std::shared_ptr<Bootloader> bootloader_in,
+                     std::shared_ptr<ReportQueue> report_queue_in,
+                     std::shared_ptr<event::Channel> events_channel_in = nullptr):
+      SotaUptaneClient(config_in, storage_in, http_client, bootloader_in, report_queue_in, events_channel_in) {
+
+      if (boost::filesystem::exists(config_in.uptane.secondary_config_file)) {
+        addSecondary(std::make_shared<Uptane::VirtualSecondary>(Primary::VirtualSecondaryConfig::create_from_file(config_in.uptane.secondary_config_file)));
+      }
+    }
+  };
+
+  static std::shared_ptr<SotaUptaneClient> newTestClient(Config &config_in,
+                                                         std::shared_ptr<INvStorage> storage_in,
+                                                         std::shared_ptr<HttpInterface> http_client_in,
+                                                         std::shared_ptr<event::Channel> events_channel_in = nullptr) {
+
+    std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_in.bootloader, *storage_in);
+    std::shared_ptr<ReportQueue> report_queue_in = std::make_shared<ReportQueue>(config_in, http_client_in);
+
+    return std::make_shared<TestUptaneClient>(config_in, storage_in, http_client_in, bootloader_in,
+                                              report_queue_in, events_channel_in);
+  }
+
+  static Primary::VirtualSecondaryConfig addDefaultSecondary(Config& config, const TemporaryDirectory& temp_dir,
+                                                             const std::string& serial, const std::string& hw_id,
+                                                             bool hardcoded_keys = true) {
+    Primary::VirtualSecondaryConfig ecu_config;
+
     ecu_config.partial_verifying = false;
     ecu_config.full_client_dir = temp_dir.Path();
     ecu_config.ecu_serial = serial;
@@ -29,10 +87,15 @@ struct UptaneTestCommon {
     ecu_config.firmware_path = temp_dir / "firmware.txt";
     ecu_config.target_name_path = temp_dir / "firmware_name.txt";
     ecu_config.metadata_path = temp_dir / "secondary_metadata";
-    // store hard-coded keys to make the tests run WAY faster
-    Utils::writeFile((ecu_config.full_client_dir / ecu_config.ecu_private_key), std::string(sec_private_key));
-    Utils::writeFile((ecu_config.full_client_dir / ecu_config.ecu_public_key), std::string(sec_public_key));
-    config.uptane.secondary_configs.push_back(ecu_config);
+
+    config.uptane.secondary_config_file = temp_dir / boost::filesystem::unique_path() / "virtual_secondary_conf.json";
+    ecu_config.dump(config.uptane.secondary_config_file);
+
+    if (hardcoded_keys) {
+      // store hard-coded keys to make the tests run WAY faster
+      Utils::writeFile((ecu_config.full_client_dir / ecu_config.ecu_private_key), std::string(sec_private_key));
+      Utils::writeFile((ecu_config.full_client_dir / ecu_config.ecu_public_key), std::string(sec_public_key));
+    }
     return ecu_config;
   }
 

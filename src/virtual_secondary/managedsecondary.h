@@ -8,9 +8,33 @@
 #include <boost/filesystem.hpp>
 #include "json/json.h"
 
-#include "uptane/secondaryconfig.h"
+#include "primary/secondary_config.h"
 #include "uptane/secondaryinterface.h"
 #include "utilities/types.h"
+
+namespace Primary {
+
+class ManagedSecondaryConfig : public SecondaryConfig {
+ public:
+  ManagedSecondaryConfig(const char* type = Type) : SecondaryConfig(type) {}
+
+ public:
+  constexpr static const char* const Type = "managed";
+
+ public:
+  bool partial_verifying{false};
+  std::string ecu_serial;
+  std::string ecu_hardware_id;
+  boost::filesystem::path full_client_dir;
+  std::string ecu_private_key;
+  std::string ecu_public_key;
+  boost::filesystem::path firmware_path;
+  boost::filesystem::path target_name_path;
+  boost::filesystem::path metadata_path;
+  KeyType key_type{KeyType::kRSA2048};
+};
+
+}  // namespace Primary
 
 namespace Uptane {
 
@@ -20,7 +44,7 @@ namespace Uptane {
 
 class ManagedSecondary : public SecondaryInterface {
  public:
-  explicit ManagedSecondary(SecondaryConfig sconfig_in);
+  explicit ManagedSecondary(Primary::ManagedSecondaryConfig sconfig_in);
   ~ManagedSecondary() override = default;
 
   void Initialize();
@@ -43,7 +67,7 @@ class ManagedSecondary : public SecondaryInterface {
   bool loadKeys(std::string* pub_key, std::string* priv_key);
 
  protected:
-  SecondaryConfig sconfig;
+  Primary::ManagedSecondaryConfig sconfig;
 
  private:
   PublicKey public_key_;
