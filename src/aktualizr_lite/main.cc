@@ -10,6 +10,7 @@
 #include "config/config.h"
 #include "package_manager/ostreemanager.h"
 #include "primary/sotauptaneclient.h"
+#include "version.h"
 
 namespace bpo = boost::program_options;
 
@@ -111,14 +112,24 @@ static std::unique_ptr<Uptane::Target> find_target(const std::shared_ptr<SotaUpt
       throw std::runtime_error("Unable to find update");
     }
   }
+
+  bool find_latest = (version == "latest");
+  std::unique_ptr<Uptane::Target> latest = nullptr;
   for (auto &t : client->allTargets()) {
     for (auto const &it : t.hardwareIds()) {
       if (it == hwid) {
-        if (version == "latest" || version == t.filename() || version == t.custom_version()) {
+        if (find_latest) {
+          if (latest == nullptr || Version(latest->custom_version()) < Version(t.custom_version())) {
+            latest = std_::make_unique<Uptane::Target>(t);
+          }
+        } else if (version == t.filename() || version == t.custom_version()) {
           return std_::make_unique<Uptane::Target>(t);
         }
       }
     }
+  }
+  if (find_latest) {
+    return latest;
   }
   throw std::runtime_error("Unable to find update");
 }
