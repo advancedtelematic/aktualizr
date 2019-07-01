@@ -56,9 +56,6 @@ void VirtualSecondaryConfig::dump(const boost::filesystem::path& file_full_path)
   json_file.close();
 }
 
-}  // namespace Primary
-
-namespace Uptane {
 VirtualSecondary::VirtualSecondary(Primary::VirtualSecondaryConfig sconfig_in)
     : ManagedSecondary(std::move(sconfig_in)) {}
 
@@ -87,4 +84,5 @@ bool VirtualSecondary::getFirmwareInfo(std::string* target_name, size_t& target_
 
   return true;
 }
-}  // namespace Uptane
+
+}  // namespace Primary

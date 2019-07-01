@@ -89,7 +89,7 @@ static std::pair<std::string, uint16_t> getIPAndPort(const std::string& addr) {
   return std::make_pair(ip, port);
 }
 
-void JsonConfigParser::createIPSecondariesCfg(Configs& configs, Json::Value& json_ip_sec_cfg) {
+void JsonConfigParser::createIPSecondariesCfg(Configs& configs, const Json::Value& json_ip_sec_cfg) {
   auto resultant_cfg = std::make_shared<IPSecondariesConfig>(
       static_cast<uint16_t>(json_ip_sec_cfg[IPSecondariesConfig::PortField].asUInt()),
       json_ip_sec_cfg[IPSecondariesConfig::TimeoutField].asUInt());
@@ -108,7 +108,7 @@ void JsonConfigParser::createIPSecondariesCfg(Configs& configs, Json::Value& jso
   configs.push_back(resultant_cfg);
 }
 
-void JsonConfigParser::createVirtualSecondariesCfg(Configs& configs, Json::Value& json_virtual_sec_cfg) {
+void JsonConfigParser::createVirtualSecondariesCfg(Configs& configs, const Json::Value& json_virtual_sec_cfg) {
   for (const auto& json_config : json_virtual_sec_cfg) {
     auto virtual_config = std::make_shared<VirtualSecondaryConfig>(json_config);
     configs.push_back(virtual_config);

@@ -1,12 +1,25 @@
 {
-  "secondary_type" : "virtual",
-  "partial_verifying" : "false",
-  "ecu_hardware_id" : "demo-virtual",
+  "virtual": [
+                {
+                        "partial_verifying": "false",
+                        "ecu_hardware_id": "demo-virtual",
+                        "full_client_dir": "storage/demo-vsec1",
+                        "ecu_private_key": "sec.private",
+                        "ecu_public_key": "sec.public",
+                        "firmware_path": "storage/demo-vsec1/firmware.bin",
+                        "target_name_path": "storage/demo-vsec1/target_name",
+                        "metadata_path": "storage/demo-vsec1/metadata"
+                },
+                {
+                        "partial_verifying": "false",
+                        "ecu_hardware_id": "demo-virtual",
+                        "full_client_dir": "storage/demo-vsec2",
+                        "ecu_private_key": "sec.private",
+                        "ecu_public_key": "sec.public",
+                        "firmware_path": "storage/demo-vsec2/firmware.bin",
+                        "target_name_path": "storage/demo-vsec2/target_name",
+                        "metadata_path": "storage/demo-vsec2/metadata"
 
-  "full_client_dir" : "storage/demo-vsec1",
-  "ecu_private_key" : "sec.private",
-  "ecu_public_key" : "sec.public",
-  "firmware_path" : "storage/demo-vsec1/firmware.bin",
-  "target_name_path" : "storage/demo-vsec1/target_name",
-  "metadata_path" : "storage/demo-vsec1/metadata"
+                }
+  ]
 }

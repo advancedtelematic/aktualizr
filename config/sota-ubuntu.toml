@@ -2,9 +2,6 @@
 provision_path = "/var/sota/sota_provisioning_credentials.zip"
 primary_ecu_hardware_id = "ubuntu"
 
-[uptane]
-secondary_configs_dir = "/usr/lib/sota/secondaries"
-
 [storage]
 type = "sqlite"
 

@@ -65,8 +65,8 @@ class JsonConfigParser : public SecondaryConfigParser {
   Configs parse() override;
 
  private:
-  static void createIPSecondariesCfg(Configs& configs, Json::Value& json_ip_sec_cfg);
-  static void createVirtualSecondariesCfg(Configs& configs, Json::Value& json_virtual_sec_cfg);
+  static void createIPSecondariesCfg(Configs& configs, const Json::Value& json_ip_sec_cfg);
+  static void createVirtualSecondariesCfg(Configs& configs, const Json::Value& json_virtual_sec_cfg);
   // add here a factory method for another type of secondary config
 
  private:

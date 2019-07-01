@@ -84,8 +84,8 @@ class UptaneKey_Check_Test {
     // Verify that each secondary has valid keys.
     std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
     for (it = sota_client->secondaries.begin(); it != sota_client->secondaries.end(); it++) {
-      std::shared_ptr<Uptane::ManagedSecondary> managed =
-          boost::polymorphic_pointer_downcast<Uptane::ManagedSecondary>(it->second);
+      std::shared_ptr<Primary::ManagedSecondary> managed =
+          boost::polymorphic_pointer_downcast<Primary::ManagedSecondary>(it->second);
       std::string public_key;
       std::string private_key;
       EXPECT_TRUE(managed->loadKeys(&public_key, &private_key));
@@ -117,8 +117,8 @@ TEST(UptaneKey, CheckAllKeys) {
   initKeyTests(config, ecu_config1, ecu_config2, temp_dir, http->tls_server);
   auto storage = INvStorage::newStorage(config.storage);
   auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
-  sota_client->addNewSecondary(std::make_shared<Uptane::VirtualSecondary>(ecu_config1));
-  sota_client->addNewSecondary(std::make_shared<Uptane::VirtualSecondary>(ecu_config2));
+  sota_client->addNewSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config1));
+  sota_client->addNewSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config2));
   EXPECT_NO_THROW(sota_client->initialize());
   UptaneKey_Check_Test::checkKeyTests(storage, sota_client);
 }
@@ -140,8 +140,8 @@ TEST(UptaneKey, RecoverWithoutKeys) {
   {
     auto storage = INvStorage::newStorage(config.storage);
     auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
-    sota_client->addNewSecondary(std::make_shared<Uptane::VirtualSecondary>(ecu_config1));
-    sota_client->addNewSecondary(std::make_shared<Uptane::VirtualSecondary>(ecu_config2));
+    sota_client->addNewSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config1));
+    sota_client->addNewSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config2));
     EXPECT_NO_THROW(sota_client->initialize());
     UptaneKey_Check_Test::checkKeyTests(storage, sota_client);
 

@@ -136,7 +136,7 @@ TEST(Aktualizr, AddSecondary) {
 
   Primary::VirtualSecondaryConfig ecu_config = virtual_configuration(temp_dir.Path());
 
-  aktualizr.AddSecondary(std::make_shared<Uptane::VirtualSecondary>(ecu_config));
+  aktualizr.AddSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config));
 
   aktualizr.Initialize();
 
@@ -156,7 +156,7 @@ TEST(Aktualizr, AddSecondary) {
   EXPECT_EQ(expected_ecus.size(), 0);
 
   ecu_config.ecu_serial = "ecuserial4";
-  auto sec4 = std::make_shared<Uptane::VirtualSecondary>(ecu_config);
+  auto sec4 = std::make_shared<Primary::VirtualSecondary>(ecu_config);
   EXPECT_THROW(aktualizr.AddSecondary(sec4), std::logic_error);
 }
 
@@ -180,7 +180,7 @@ TEST(Aktualizr, DeviceInstallationResult) {
 
   Primary::VirtualSecondaryConfig ecu_config = virtual_configuration(temp_dir.Path());
 
-  aktualizr.AddSecondary(std::make_shared<Uptane::VirtualSecondary>(ecu_config));
+  aktualizr.AddSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config));
 
   aktualizr.Initialize();
 
@@ -1004,10 +1004,9 @@ TEST(Aktualizr, FullMultipleSecondaries) {
   auto storage = INvStorage::newStorage(conf.storage);
   UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
   UptaneTestCommon::addDefaultSecondary(conf, temp_dir2, "sec_serial2", "sec_hwid2");
-  if (boost::filesystem::exists(conf.uptane.secondary_config_file)) {
-    aktualizr.AddSecondary(std::make_shared<Uptane::VirtualSecondary>(
-        Primary::VirtualSecondaryConfig::create_from_file(conf.uptane.secondary_config_file)));
-  }
+  ASSERT_NO_THROW(aktualizr.AddSecondary(std::make_shared<Primary::VirtualSecondary>(
+      Primary::VirtualSecondaryConfig::create_from_file(conf.uptane.secondary_config_file))));
+
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_FullMultipleSecondaries;
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 

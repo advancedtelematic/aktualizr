@@ -124,7 +124,12 @@ int main(int argc, char *argv[]) {
     conn = aktualizr.SetSignalHandler(f_cb);
 
     if (!config.uptane.secondary_config_file.empty()) {
-      Primary::initSecondaries(aktualizr, config.uptane.secondary_config_file);
+      if (boost::filesystem::exists(config.uptane.secondary_config_file)) {
+        Primary::initSecondaries(aktualizr, config.uptane.secondary_config_file);
+      } else {
+        LOG_WARNING << "The specified secondary config file does not exist: " << config.uptane.secondary_config_file
+                    << "\nProceed further without secondary(ies)";
+      }
     }
 
     aktualizr.Initialize();

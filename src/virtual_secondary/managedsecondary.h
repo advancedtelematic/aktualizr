@@ -1,5 +1,5 @@
-#ifndef UPTANE_MANAGEDSECONDARY_H_
-#define UPTANE_MANAGEDSECONDARY_H_
+#ifndef PRIMARY_MANAGEDSECONDARY_H_
+#define PRIMARY_MANAGEDSECONDARY_H_
 
 #include <future>
 #include <string>
@@ -34,30 +34,26 @@ class ManagedSecondaryConfig : public SecondaryConfig {
   KeyType key_type{KeyType::kRSA2048};
 };
 
-}  // namespace Primary
-
-namespace Uptane {
-
 // Managed secondary is an abstraction over virtual and other types of legacy
 // (non-UPTANE) secondaries. They require all the UPTANE-related functionality
 // to be implemented in aktualizr itself, so there's some shared code.
 
-class ManagedSecondary : public SecondaryInterface {
+class ManagedSecondary : public Uptane::SecondaryInterface {
  public:
   explicit ManagedSecondary(Primary::ManagedSecondaryConfig sconfig_in);
   ~ManagedSecondary() override = default;
 
   void Initialize();
 
-  EcuSerial getSerial() override {
+  Uptane::EcuSerial getSerial() override {
     if (!sconfig.ecu_serial.empty()) {
-      return EcuSerial(sconfig.ecu_serial);
+      return Uptane::EcuSerial(sconfig.ecu_serial);
     }
-    return EcuSerial(public_key_.KeyId());
+    return Uptane::EcuSerial(public_key_.KeyId());
   }
   Uptane::HardwareIdentifier getHwId() override { return Uptane::HardwareIdentifier(sconfig.ecu_hardware_id); }
   PublicKey getPublicKey() override { return public_key_; }
-  bool putMetadata(const RawMetaPack& meta_pack) override;
+  bool putMetadata(const Uptane::RawMetaPack& meta_pack) override;
   int getRootVersion(bool director) override;
   bool putRoot(const std::string& root, bool director) override;
 
@@ -75,11 +71,11 @@ class ManagedSecondary : public SecondaryInterface {
 
   std::string detected_attack;
   std::string expected_target_name;
-  std::vector<Hash> expected_target_hashes;
+  std::vector<Uptane::Hash> expected_target_hashes;
   uint64_t expected_target_length{};
 
-  MetaPack current_meta;
-  RawMetaPack current_raw_meta;
+  Uptane::MetaPack current_meta;
+  Uptane::RawMetaPack current_raw_meta;
   std::mutex install_mutex;
 
   virtual bool storeFirmware(const std::string& target_name, const std::string& content) = 0;
@@ -89,9 +85,10 @@ class ManagedSecondary : public SecondaryInterface {
   void rawToMeta();
 
   // TODO: implement
-  void storeMetadata(const RawMetaPack& meta_pack) { (void)meta_pack; }
-  bool loadMetadata(RawMetaPack* meta_pack);
+  void storeMetadata(const Uptane::RawMetaPack& meta_pack) { (void)meta_pack; }
+  bool loadMetadata(Uptane::RawMetaPack* meta_pack);
 };
-}  // namespace Uptane
 
-#endif  // UPTANE_MANAGEDSECONDARY_H_
+}  // namespace Primary
+
+#endif  // PRIMARY_MANAGEDSECONDARY_H_

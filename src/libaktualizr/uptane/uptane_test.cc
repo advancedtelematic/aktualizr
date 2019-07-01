@@ -531,7 +531,7 @@ TEST(Uptane, UptaneSecondaryAddSameSerial) {
   auto storage = INvStorage::newStorage(config.storage);
   auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
   UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware_new");
-  EXPECT_THROW(sota_client->addNewSecondary(std::make_shared<Uptane::VirtualSecondary>(
+  EXPECT_THROW(sota_client->addNewSecondary(std::make_shared<Primary::VirtualSecondary>(
                    Primary::VirtualSecondaryConfig::create_from_file(config.uptane.secondary_config_file))),
                std::runtime_error);
 }
