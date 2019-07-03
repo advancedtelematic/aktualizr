@@ -1,6 +1,5 @@
 if(BUILD_OSTREE)
-set(SOURCES main.cc version.h)
-add_executable(aktualizr-lite ${SOURCES})
+add_executable(aktualizr-lite main.cc version.h)
 target_link_libraries(aktualizr-lite aktualizr_static_lib ${AKTUALIZR_EXTERNAL_LIBS})
 
 install(TARGETS aktualizr-lite RUNTIME DESTINATION bin COMPONENT aktualizr-lite)
@@ -21,5 +20,5 @@ endif(BUILD_OSTREE)
 
 add_aktualizr_test(NAME lite-version SOURCES version_test.cc)
 
-aktualizr_source_file_checks(${SOURCES} version_test.cc)
+aktualizr_source_file_checks(main.cc version.h version_test.cc)
 # vim: set tabstop=4 shiftwidth=4 expandtab:
