@@ -39,6 +39,7 @@ option(BUILD_LOAD_TESTS "Set to ON to build load tests" OFF)
 option(FAULT_INJECTION "Set to ON to enable fault injection" OFF)
 option(INSTALL_LIB "Set to ON to install library and headers" OFF)
 option(TESTSUITE_VALGRIND "Set to ON to make tests to run under valgrind (default when CMAKE_BUILD_TYPE=Valgrind)" ${TESTSUITE_VALGRIND_DEFAULT})
+option(CCACHE "Set to ON to use ccache if available" ON)
 
 set(SOTA_PACKED_CREDENTIALS "" CACHE STRING "Credentials.zip for tests involving the server")
 
@@ -57,6 +58,13 @@ configure_file(CTestCustom.cmake CTestCustom.cmake)
 unset(AKTUALIZR_CHECKED_SRCS CACHE)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+if (CCACHE)
+    find_program(CCACHE_PROGRAM ccache)
+    if (CCACHE_PROGRAM)
+        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+    endif (CCACHE_PROGRAM)
+endif (CCACHE)
 
 # find all required libraries
 set(BOOST_COMPONENTS log_setup log system filesystem program_options)
