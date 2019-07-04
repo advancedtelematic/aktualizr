@@ -145,7 +145,7 @@ TEST(Uptane, AssembleManifestGood) {
   UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
 
   auto storage = INvStorage::newStorage(config.storage);
-  auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+  auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
   EXPECT_NO_THROW(sota_client->initialize());
 
   Json::Value manifest = sota_client->AssembleManifest()["ecu_version_manifests"];
@@ -172,7 +172,7 @@ TEST(Uptane, AssembleManifestBad) {
   config.uptane.repo_server = http->tls_server + "/repo";
   config.provision.primary_ecu_serial = "testecuserial";
   config.pacman.type = PackageManager::kNone;
-  Uptane::SecondaryConfig ecu_config =
+  Primary::VirtualSecondaryConfig ecu_config =
       UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
 
   /* Overwrite the secondary's keys on disk. */
@@ -183,7 +183,7 @@ TEST(Uptane, AssembleManifestBad) {
   Utils::writeFile(ecu_config.full_client_dir / ecu_config.ecu_public_key, public_key);
 
   auto storage = INvStorage::newStorage(config.storage);
-  auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+  auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
   EXPECT_NO_THROW(sota_client->initialize());
 
   Json::Value manifest = sota_client->AssembleManifest()["ecu_version_manifests"];
@@ -215,7 +215,7 @@ TEST(Uptane, PutManifest) {
 
   auto storage = INvStorage::newStorage(config.storage);
 
-  auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+  auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
   EXPECT_NO_THROW(sota_client->initialize());
   EXPECT_TRUE(sota_client->putManifestSimple());
 
@@ -268,7 +268,7 @@ TEST(Uptane, PutManifestError) {
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_PutManifestError;
   events_channel->connect(f_cb);
   num_events_PutManifestError = 0;
-  auto sota_client = SotaUptaneClient::newTestClient(conf, storage, http, events_channel);
+  auto sota_client = UptaneTestCommon::newTestClient(conf, storage, http, events_channel);
   EXPECT_NO_THROW(sota_client->initialize());
   auto result = sota_client->putManifest();
   EXPECT_FALSE(result);
@@ -293,7 +293,7 @@ TEST(Uptane, FetchMetaFail) {
   conf.tls.server = http->tls_server;
 
   auto storage = INvStorage::newStorage(conf.storage);
-  auto up = SotaUptaneClient::newTestClient(conf, storage, http);
+  auto up = UptaneTestCommon::newTestClient(conf, storage, http);
 
   EXPECT_NO_THROW(up->initialize());
   result::UpdateCheck result = up->fetchMeta();
@@ -338,7 +338,7 @@ TEST(Uptane, InstallFake) {
   auto events_channel = std::make_shared<event::Channel>();
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_Install;
   events_channel->connect(f_cb);
-  auto up = SotaUptaneClient::newTestClient(conf, storage, http, events_channel);
+  auto up = UptaneTestCommon::newTestClient(conf, storage, http, events_channel);
   EXPECT_NO_THROW(up->initialize());
   std::vector<Uptane::Target> packages_to_install = UptaneTestCommon::makePackage("testecuserial", "testecuhwid");
   up->uptaneInstall(packages_to_install);
@@ -390,7 +390,7 @@ class HttpFakeEvents : public HttpFake {
 
 class SecondaryInterfaceMock : public Uptane::SecondaryInterface {
  public:
-  explicit SecondaryInterfaceMock(Uptane::SecondaryConfig sconfig_in) : sconfig(std::move(sconfig_in)) {
+  explicit SecondaryInterfaceMock(Primary::VirtualSecondaryConfig &sconfig_in) : sconfig(std::move(sconfig_in)) {
     std::string private_key, public_key;
     Crypto::generateKeyPair(sconfig.key_type, &public_key, &private_key);
     public_key_ = PublicKey(public_key, sconfig.key_type);
@@ -427,7 +427,7 @@ class SecondaryInterfaceMock : public Uptane::SecondaryInterface {
   PublicKey public_key_;
   Json::Value manifest_;
 
-  const Uptane::SecondaryConfig sconfig;
+  Primary::VirtualSecondaryConfig sconfig;
 };
 
 MATCHER_P(matchMeta, meta, "") {
@@ -451,8 +451,7 @@ TEST(Uptane, SendMetadataToSeconadry) {
   conf.storage.path = temp_dir.Path();
   conf.tls.server = http->tls_server;
 
-  Uptane::SecondaryConfig ecu_config;
-  ecu_config.secondary_type = Uptane::SecondaryType::kVirtual;
+  Primary::VirtualSecondaryConfig ecu_config;
   ecu_config.partial_verifying = false;
   ecu_config.full_client_dir = temp_dir.Path();
   ecu_config.ecu_serial = "secondary_ecu_serial";
@@ -464,10 +463,8 @@ TEST(Uptane, SendMetadataToSeconadry) {
   ecu_config.metadata_path = temp_dir / "secondary_metadata";
 
   auto sec = std::make_shared<SecondaryInterfaceMock>(ecu_config);
-
   auto storage = INvStorage::newStorage(conf.storage);
-  auto up = SotaUptaneClient::newTestClient(conf, storage, http);
-
+  auto up = UptaneTestCommon::newTestClient(conf, storage, http);
   up->addNewSecondary(sec);
   EXPECT_NO_THROW(up->initialize());
   up->fetchMeta();
@@ -504,7 +501,7 @@ TEST(Uptane, UptaneSecondaryAdd) {
   UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
 
   auto storage = INvStorage::newStorage(config.storage);
-  auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+  auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
   EXPECT_NO_THROW(sota_client->initialize());
 
   /* Verify the correctness of the metadata sent to the server about the
@@ -530,10 +527,13 @@ TEST(Uptane, UptaneSecondaryAddSameSerial) {
   config.storage.path = temp_dir.Path();
 
   UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
-  UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "second_secondary_hardware");
 
   auto storage = INvStorage::newStorage(config.storage);
-  EXPECT_THROW(SotaUptaneClient::newTestClient(config, storage, http), std::runtime_error);
+  auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
+  UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware_new");
+  EXPECT_THROW(sota_client->addNewSecondary(std::make_shared<Primary::VirtualSecondary>(
+                   Primary::VirtualSecondaryConfig::create_from_file(config.uptane.secondary_config_file))),
+               std::runtime_error);
 }
 
 /*
@@ -553,7 +553,7 @@ TEST(Uptane, UptaneSecondaryMisconfigured) {
     UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
 
     auto storage = INvStorage::newStorage(config.storage);
-    auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+    auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
     EXPECT_NO_THROW(sota_client->initialize());
 
     std::vector<MisconfiguredEcu> ecus;
@@ -568,7 +568,7 @@ TEST(Uptane, UptaneSecondaryMisconfigured) {
     config.storage.path = temp_dir.Path();
     auto storage = INvStorage::newStorage(config.storage);
     UptaneTestCommon::addDefaultSecondary(config, temp_dir, "new_secondary_ecu_serial", "new_secondary_hardware");
-    auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+    auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
     EXPECT_NO_THROW(sota_client->initialize());
 
     std::vector<MisconfiguredEcu> ecus;
@@ -594,7 +594,7 @@ TEST(Uptane, UptaneSecondaryMisconfigured) {
     config.storage.path = temp_dir.Path();
     auto storage = INvStorage::newStorage(config.storage);
     UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
-    auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+    auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
     EXPECT_NO_THROW(sota_client->initialize());
 
     std::vector<MisconfiguredEcu> ecus;
@@ -753,7 +753,7 @@ TEST(Uptane, ProvisionOnServer) {
   auto events_channel = std::make_shared<event::Channel>();
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_ProvisionOnServer;
   events_channel->connect(f_cb);
-  auto up = SotaUptaneClient::newTestClient(config, storage, http, events_channel);
+  auto up = UptaneTestCommon::newTestClient(config, storage, http, events_channel);
 
   EXPECT_EQ(http->devices_count, 0);
   EXPECT_EQ(http->ecus_count, 0);
@@ -1043,7 +1043,7 @@ TEST(Uptane, restoreVerify) {
   config.postUpdateValues();
 
   auto storage = INvStorage::newStorage(config.storage);
-  auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+  auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
 
   EXPECT_NO_THROW(sota_client->initialize());
   sota_client->AssembleManifest();
@@ -1101,7 +1101,7 @@ TEST(Uptane, offlineIteration) {
   config.postUpdateValues();
 
   auto storage = INvStorage::newStorage(config.storage);
-  auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+  auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
 
   EXPECT_NO_THROW(sota_client->initialize());
   sota_client->AssembleManifest();
@@ -1132,7 +1132,7 @@ TEST(Uptane, IgnoreUnknownUpdate) {
   config.postUpdateValues();
 
   auto storage = INvStorage::newStorage(config.storage);
-  auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+  auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
 
   EXPECT_NO_THROW(sota_client->initialize());
   sota_client->AssembleManifest();

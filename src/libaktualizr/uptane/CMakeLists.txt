@@ -2,7 +2,6 @@ set(SOURCES
     fetcher.cc
     iterator.cc
     metawithkeys.cc
-    partialverificationsecondary.cc
     role.cc
     root.cc
     tuf.cc
@@ -14,8 +13,6 @@ set(HEADERS
     exceptions.h
     fetcher.h
     iterator.h
-    partialverificationsecondary.h
-    secondaryconfig.h
     secondaryinterface.h
     tuf.h
     uptanerepository.h
@@ -24,7 +21,6 @@ set(HEADERS
 
 
 add_library(uptane OBJECT ${SOURCES})
-target_sources(config PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/secondaryconfig.cc)
 
 if (BUILD_ISOTP)
     target_sources(uptane PRIVATE isotpsecondary.cc)
@@ -38,6 +34,7 @@ if(BUILD_OSTREE AND SOTA_PACKED_CREDENTIALS)
     add_aktualizr_test(NAME uptane_ci SOURCES uptane_ci_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND
                         ARGS ${SOTA_PACKED_CREDENTIALS} ${PROJECT_BINARY_DIR}/ostree_repo)
     set_tests_properties(test_uptane_ci PROPERTIES LABELS "credentials")
+    target_link_libraries(t_uptane_ci virtual_secondary)
 else(BUILD_OSTREE AND SOTA_PACKED_CREDENTIALS)
     list(APPEND TEST_SOURCES uptane_ci_test.cc)
 endif(BUILD_OSTREE AND SOTA_PACKED_CREDENTIALS)
@@ -45,21 +42,25 @@ endif(BUILD_OSTREE AND SOTA_PACKED_CREDENTIALS)
 
 add_aktualizr_test(NAME uptane SOURCES uptane_test.cc PROJECT_WORKING_DIRECTORY)
 set_tests_properties(test_uptane PROPERTIES LABELS "crypto")
+target_link_libraries(t_uptane virtual_secondary)
 
 add_aktualizr_test(NAME uptane_delegation SOURCES uptane_delegation_test.cc PROJECT_WORKING_DIRECTORY
                    ARGS "$<TARGET_FILE:aktualizr-repo>")
 add_dependencies(t_uptane_delegation aktualizr-repo)
+target_link_libraries(t_uptane_delegation virtual_secondary)
 set_tests_properties(test_uptane_delegation PROPERTIES LABELS "crypto")
 
 add_aktualizr_test(NAME uptane_network SOURCES uptane_network_test.cc PROJECT_WORKING_DIRECTORY)
 set_tests_properties(test_uptane_network PROPERTIES LABELS "crypto")
+target_link_libraries(t_uptane_network virtual_secondary)
 
 add_aktualizr_test(NAME uptane_serial SOURCES uptane_serial_test.cc ARGS ${PROJECT_BINARY_DIR}
                    PROJECT_WORKING_DIRECTORY)
+target_link_libraries(t_uptane_serial virtual_secondary)
 
 add_aktualizr_test(NAME uptane_init SOURCES uptane_init_test.cc PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME director SOURCES director_test.cc PROJECT_WORKING_DIRECTORY
                    ARGS "$<TARGET_FILE:aktualizr-repo>")
 
-aktualizr_source_file_checks(${SOURCES} ${HEADERS} secondaryconfig.cc isotpsecondary.cc isotpsecondary.h ${TEST_SOURCES})
+aktualizr_source_file_checks(${SOURCES} ${HEADERS} isotpsecondary.cc isotpsecondary.h ${TEST_SOURCES})

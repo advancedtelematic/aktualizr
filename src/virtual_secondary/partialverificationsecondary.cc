@@ -1,4 +1,4 @@
-#include "uptane/partialverificationsecondary.h"
+#include "partialverificationsecondary.h"
 
 #include <string>
 #include <vector>
@@ -7,14 +7,13 @@
 #include "json/json.h"
 
 #include "logging/logging.h"
-#include "uptane/secondaryconfig.h"
 #include "uptane/secondaryinterface.h"
 #include "utilities/exceptions.h"
 #include "utilities/types.h"
 
 namespace Uptane {
 
-PartialVerificationSecondary::PartialVerificationSecondary(SecondaryConfig sconfig_in)
+PartialVerificationSecondary::PartialVerificationSecondary(Primary::PartialVerificationSecondaryConfig sconfig_in)
     : sconfig(std::move(sconfig_in)), root_(Root::Policy::kAcceptAll) {
   boost::filesystem::create_directories(sconfig.metadata_path);
 

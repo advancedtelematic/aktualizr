@@ -43,10 +43,9 @@ void verifyNothingInstalled(const Json::Value& manifest) {
       "noimage");
 }
 
-static Uptane::SecondaryConfig virtual_configuration(const boost::filesystem::path& client_dir) {
-  Uptane::SecondaryConfig ecu_config;
+static Primary::VirtualSecondaryConfig virtual_configuration(const boost::filesystem::path& client_dir) {
+  Primary::VirtualSecondaryConfig ecu_config;
 
-  ecu_config.secondary_type = Uptane::SecondaryType::kVirtual;
   ecu_config.partial_verifying = false;
   ecu_config.full_client_dir = client_dir;
   ecu_config.ecu_serial = "ecuserial3";
@@ -106,7 +105,8 @@ TEST(Aktualizr, FullNoUpdates) {
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
-  Aktualizr aktualizr(conf, storage, http);
+  UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
+
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_FullNoUpdates;
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
@@ -120,7 +120,7 @@ TEST(Aktualizr, FullNoUpdates) {
     FAIL() << "Timed out waiting for metadata to be fetched.";
   }
 
-  verifyNothingInstalled(aktualizr.uptane_client_->AssembleManifest());
+  verifyNothingInstalled(aktualizr.uptane_client()->AssembleManifest());
 }
 
 /*
@@ -132,11 +132,11 @@ TEST(Aktualizr, AddSecondary) {
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
-  Aktualizr aktualizr(conf, storage, http);
+  UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
 
-  Uptane::SecondaryConfig ecu_config = virtual_configuration(temp_dir.Path());
+  Primary::VirtualSecondaryConfig ecu_config = virtual_configuration(temp_dir.Path());
 
-  aktualizr.AddSecondary(std::make_shared<Uptane::VirtualSecondary>(ecu_config));
+  aktualizr.AddSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config));
 
   aktualizr.Initialize();
 
@@ -156,7 +156,7 @@ TEST(Aktualizr, AddSecondary) {
   EXPECT_EQ(expected_ecus.size(), 0);
 
   ecu_config.ecu_serial = "ecuserial4";
-  auto sec4 = std::make_shared<Uptane::VirtualSecondary>(ecu_config);
+  auto sec4 = std::make_shared<Primary::VirtualSecondary>(ecu_config);
   EXPECT_THROW(aktualizr.AddSecondary(sec4), std::logic_error);
 }
 
@@ -176,11 +176,11 @@ TEST(Aktualizr, DeviceInstallationResult) {
   };
   storage->storeEcuSerials(serials);
 
-  Aktualizr aktualizr(conf, storage, http);
+  UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
 
-  Uptane::SecondaryConfig ecu_config = virtual_configuration(temp_dir.Path());
+  Primary::VirtualSecondaryConfig ecu_config = virtual_configuration(temp_dir.Path());
 
-  aktualizr.AddSecondary(std::make_shared<Uptane::VirtualSecondary>(ecu_config));
+  aktualizr.AddSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config));
 
   aktualizr.Initialize();
 
@@ -190,7 +190,7 @@ TEST(Aktualizr, DeviceInstallationResult) {
                                      data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, ""));
 
   data::InstallationResult result;
-  aktualizr.uptane_client_->computeDeviceInstallationResult(&result, "correlation_id");
+  aktualizr.uptane_client()->computeDeviceInstallationResult(&result, "correlation_id");
   auto res_json = result.toJson();
   EXPECT_EQ(res_json["code"].asString(), "primary_hw:INSTALL_FAILED");
   EXPECT_EQ(res_json["success"], false);
@@ -198,7 +198,7 @@ TEST(Aktualizr, DeviceInstallationResult) {
   storage->saveEcuInstallationResult(
       Uptane::EcuSerial("ecuserial3"),
       data::InstallationResult(data::ResultCode(data::ResultCode::Numeric::kInstallFailed, "SECOND_FAIL"), ""));
-  aktualizr.uptane_client_->computeDeviceInstallationResult(&result, "correlation_id");
+  aktualizr.uptane_client()->computeDeviceInstallationResult(&result, "correlation_id");
   res_json = result.toJson();
   EXPECT_EQ(res_json["code"].asString(), "primary_hw:INSTALL_FAILED|hw_id3:SECOND_FAIL");
   EXPECT_EQ(res_json["success"], false);
@@ -340,7 +340,8 @@ TEST(Aktualizr, FullWithUpdates) {
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
-  Aktualizr aktualizr(conf, storage, http);
+  UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
+
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_FullWithUpdates;
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
@@ -413,8 +414,7 @@ TEST(Aktualizr, FullWithUpdatesNeedReboot) {
   {
     // first run: do the install
     auto storage = INvStorage::newStorage(conf.storage);
-    Aktualizr aktualizr(conf, storage, http);
-
+    UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
     aktualizr.Initialize();
     aktualizr.UptaneCycle();
 
@@ -435,8 +435,7 @@ TEST(Aktualizr, FullWithUpdatesNeedReboot) {
   {
     // second run: before reboot, re-use the storage
     auto storage = INvStorage::newStorage(conf.storage);
-    Aktualizr aktualizr(conf, storage, http);
-
+    UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
     aktualizr.Initialize();
 
     // check that everything is still pending
@@ -459,8 +458,7 @@ TEST(Aktualizr, FullWithUpdatesNeedReboot) {
   {
     // third run: after reboot, re-use the storage
     auto storage = INvStorage::newStorage(conf.storage);
-    Aktualizr aktualizr(conf, storage, http);
-
+    UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
     aktualizr.Initialize();
 
     result::UpdateCheck update_res = aktualizr.CheckUpdates().get();
@@ -617,7 +615,7 @@ TEST(Aktualizr, FinalizationFailure) {
 
   {
     // get update, install them and emulate reboot
-    Aktualizr aktualizr(conf, storage, http_server_mock);
+    UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http_server_mock);
     EventHandler event_hdlr(aktualizr);
     aktualizr.Initialize();
 
@@ -638,9 +636,9 @@ TEST(Aktualizr, FinalizationFailure) {
     auto aktualizr_cycle_thread_status = aktualizr_cycle_thread.wait_for(std::chrono::seconds(20));
 
     ASSERT_EQ(aktualizr_cycle_thread_status, std::future_status::ready);
-    EXPECT_TRUE(aktualizr.uptane_client_->bootloader->rebootDetected());
+    EXPECT_TRUE(aktualizr.uptane_client()->bootloader->rebootDetected());
     EXPECT_TRUE(event_hdlr.checkReceivedEvents(expected_event_order));
-    EXPECT_TRUE(aktualizr.uptane_client_->hasPendingUpdates());
+    EXPECT_TRUE(aktualizr.uptane_client()->hasPendingUpdates());
     EXPECT_TRUE(http_server_mock->checkReceivedReports(expected_report_order));
     // Aktualizr reports to a server that installation was successfull for the secondary
     // checkReceivedReports() verifies whether EcuInstallationApplied was reported for the primary
@@ -704,13 +702,13 @@ TEST(Aktualizr, FinalizationFailure) {
     fiu_enable("fake_install_finalization_failure", 1, nullptr, 0);
     http_server_mock->clearReportEvents();
 
-    Aktualizr aktualizr(conf, storage, http_server_mock);
+    UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http_server_mock);
     EventHandler event_hdlr(aktualizr);
     aktualizr.Initialize();
 
     fiu_disable("fake_install_finalization_failure");
 
-    EXPECT_FALSE(aktualizr.uptane_client_->hasPendingUpdates());
+    EXPECT_FALSE(aktualizr.uptane_client()->hasPendingUpdates());
     EXPECT_TRUE(http_server_mock->checkReceivedReports({"EcuInstallationCompleted"}));
     EXPECT_FALSE(http_server_mock->wasInstallSuccessful(primary_ecu_id));
 
@@ -784,7 +782,7 @@ TEST(Aktualizr, InstallationFailure) {
     fiu_init(0);
     fiu_enable("fake_package_install", 1, nullptr, 0);
 
-    Aktualizr aktualizr(conf, storage, http_server_mock);
+    UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http_server_mock);
     EventHandler event_hdlr(aktualizr);
     aktualizr.Initialize();
 
@@ -801,10 +799,10 @@ TEST(Aktualizr, InstallationFailure) {
     EXPECT_EQ(current_version, SIZE_MAX);
 
     aktualizr.UptaneCycle();
-    aktualizr.uptane_client_->completeInstall();
+    aktualizr.uptane_client()->completeInstall();
 
     EXPECT_TRUE(event_hdlr.checkReceivedEvents(expected_event_order));
-    EXPECT_FALSE(aktualizr.uptane_client_->hasPendingUpdates());
+    EXPECT_FALSE(aktualizr.uptane_client()->hasPendingUpdates());
     EXPECT_TRUE(http_server_mock->checkReceivedReports(expected_report_order));
     EXPECT_FALSE(http_server_mock->wasInstallSuccessful(primary_ecu_id));
     EXPECT_TRUE(http_server_mock->wasInstallSuccessful(secondary_ecu_id));
@@ -845,7 +843,7 @@ TEST(Aktualizr, InstallationFailure) {
     fault_injection_enable("fake_package_install", 1, "PRIMFAIL", 0);
     fault_injection_enable(sec_fault_name.c_str(), 1, "SECFAIL", 0);
 
-    Aktualizr aktualizr(conf, storage, http_server_mock);
+    UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http_server_mock);
     EventHandler event_hdlr(aktualizr);
     aktualizr.Initialize();
 
@@ -862,10 +860,10 @@ TEST(Aktualizr, InstallationFailure) {
     EXPECT_EQ(current_version, SIZE_MAX);
 
     aktualizr.UptaneCycle();
-    aktualizr.uptane_client_->completeInstall();
+    aktualizr.uptane_client()->completeInstall();
 
     EXPECT_TRUE(event_hdlr.checkReceivedEvents(expected_event_order));
-    EXPECT_FALSE(aktualizr.uptane_client_->hasPendingUpdates());
+    EXPECT_FALSE(aktualizr.uptane_client()->hasPendingUpdates());
     EXPECT_TRUE(http_server_mock->checkReceivedReports(expected_report_order));
     EXPECT_FALSE(http_server_mock->wasInstallSuccessful(primary_ecu_id));
     EXPECT_FALSE(http_server_mock->wasInstallSuccessful(secondary_ecu_id));
@@ -927,20 +925,20 @@ TEST(Aktualizr, AutoRebootAfterUpdate) {
   {
     // first run: do the install, exit UptaneCycle and emulate reboot since force_install_completion is set
     auto storage = INvStorage::newStorage(conf.storage);
-    Aktualizr aktualizr(conf, storage, http);
+    UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
 
     aktualizr.Initialize();
     auto aktualizr_cycle_thread = aktualizr.RunForever();
     auto aktualizr_cycle_thread_status = aktualizr_cycle_thread.wait_for(std::chrono::seconds(20));
 
     EXPECT_EQ(aktualizr_cycle_thread_status, std::future_status::ready);
-    EXPECT_TRUE(aktualizr.uptane_client_->bootloader->rebootDetected());
+    EXPECT_TRUE(aktualizr.uptane_client()->bootloader->rebootDetected());
   }
 
   {
     // second run: after emulated reboot, check if the update was applied
     auto storage = INvStorage::newStorage(conf.storage);
-    Aktualizr aktualizr(conf, storage, http);
+    UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
 
     aktualizr.Initialize();
 
@@ -1002,10 +1000,13 @@ TEST(Aktualizr, FullMultipleSecondaries) {
 
   TemporaryDirectory temp_dir2;
   UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "sec_serial1", "sec_hwid1");
-  UptaneTestCommon::addDefaultSecondary(conf, temp_dir2, "sec_serial2", "sec_hwid2");
 
   auto storage = INvStorage::newStorage(conf.storage);
-  Aktualizr aktualizr(conf, storage, http);
+  UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
+  UptaneTestCommon::addDefaultSecondary(conf, temp_dir2, "sec_serial2", "sec_hwid2");
+  ASSERT_NO_THROW(aktualizr.AddSecondary(std::make_shared<Primary::VirtualSecondary>(
+      Primary::VirtualSecondaryConfig::create_from_file(conf.uptane.secondary_config_file))));
+
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_FullMultipleSecondaries;
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
@@ -1085,7 +1086,7 @@ TEST(Aktualizr, CheckNoUpdates) {
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
-  Aktualizr aktualizr(conf, storage, http);
+  UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_CheckNoUpdates;
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
@@ -1106,7 +1107,7 @@ TEST(Aktualizr, CheckNoUpdates) {
     FAIL() << "Timed out waiting for metadata to be fetched.";
   }
 
-  verifyNothingInstalled(aktualizr.uptane_client_->AssembleManifest());
+  verifyNothingInstalled(aktualizr.uptane_client()->AssembleManifest());
 }
 
 int num_events_DownloadWithUpdates = 0;
@@ -1179,7 +1180,7 @@ TEST(Aktualizr, DownloadWithUpdates) {
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
-  Aktualizr aktualizr(conf, storage, http);
+  UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_DownloadWithUpdates;
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
@@ -1196,7 +1197,7 @@ TEST(Aktualizr, DownloadWithUpdates) {
     FAIL() << "Timed out waiting for downloads to complete.";
   }
 
-  verifyNothingInstalled(aktualizr.uptane_client_->AssembleManifest());
+  verifyNothingInstalled(aktualizr.uptane_client()->AssembleManifest());
 }
 
 class HttpDownloadFailure : public HttpFake {
@@ -1299,7 +1300,7 @@ TEST(Aktualizr, DownloadFailures) {
     Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
     auto storage = INvStorage::newStorage(conf.storage);
 
-    Aktualizr aktualizr(conf, storage, http);
+    UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
     DownloadEventHandler event_hdlr{aktualizr};
 
     aktualizr.Initialize();
@@ -1428,7 +1429,7 @@ TEST(Aktualizr, InstallWithUpdates) {
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
-  Aktualizr aktualizr(conf, storage, http);
+  UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_InstallWithUpdates;
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
@@ -1488,7 +1489,7 @@ TEST(Aktualizr, ReportDownloadProgress) {
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
   auto storage = INvStorage::newStorage(conf.storage);
-  Aktualizr aktualizr(conf, storage, http);
+  UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
 
   unsigned int report_counter = {0};
   std::shared_ptr<const event::DownloadProgressReport> lastProgressReport{nullptr};
@@ -1608,7 +1609,7 @@ TEST(Aktualizr, CampaignCheckAndControl) {
 
   {
     auto storage = INvStorage::newStorage(conf.storage);
-    Aktualizr aktualizr(conf, storage, http);
+    UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
     aktualizr.SetSignalHandler(std::bind(&CampaignEvents::handler, &campaign_events, std::placeholders::_1));
     aktualizr.Initialize();
 
@@ -1664,7 +1665,7 @@ TEST(Aktualizr, FullNoCorrelationId) {
     Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
     auto storage = INvStorage::newStorage(conf.storage);
-    Aktualizr aktualizr(conf, storage, http);
+    UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
 
     aktualizr.Initialize();
     result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
@@ -1690,7 +1691,7 @@ TEST(Aktualizr, ManifestCustom) {
     Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
     auto storage = INvStorage::newStorage(conf.storage);
-    Aktualizr aktualizr(conf, storage, http);
+    UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
 
     aktualizr.Initialize();
     Json::Value custom = Utils::parseJSON(R"({"test_field":"test_value"})");
@@ -1739,7 +1740,7 @@ TEST(Aktualizr, APICheck) {
 
   CountUpdateCheckEvents counter;
   {
-    Aktualizr aktualizr(conf, storage, http);
+    UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
     boost::signals2::connection conn = aktualizr.SetSignalHandler(counter.Signal());
     aktualizr.Initialize();
     std::vector<std::future<result::UpdateCheck>> futures;
@@ -1757,7 +1758,7 @@ TEST(Aktualizr, APICheck) {
   // try again, but shutdown before it finished all calls
   CountUpdateCheckEvents counter2;
   {
-    Aktualizr aktualizr(conf, storage, http);
+    UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
     boost::signals2::connection conn = aktualizr.SetSignalHandler(counter2.Signal());
     aktualizr.Initialize();
 
@@ -1790,7 +1791,7 @@ TEST(Aktualizr, UpdateCheckCompleteError) {
   auto storage = INvStorage::newStorage(conf.storage);
   CountUpdateCheckEvents counter;
 
-  Aktualizr aktualizr(conf, storage, http);
+  UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
   boost::signals2::connection conn = aktualizr.SetSignalHandler(counter.Signal());
   aktualizr.Initialize();
   auto result = aktualizr.CheckUpdates().get();
@@ -1837,7 +1838,7 @@ TEST(Aktualizr, PauseResumeQueue) {
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
-  Aktualizr aktualizr(conf, storage, http);
+  UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
   aktualizr.Initialize();
 
   std::mutex mutex;

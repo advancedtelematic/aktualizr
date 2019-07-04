@@ -71,7 +71,7 @@ TEST(Delegation, Basic) {
       Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
       auto storage = INvStorage::newStorage(conf.storage);
-      Aktualizr aktualizr(conf, storage, http);
+      UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
 
       aktualizr.Initialize();
       result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
@@ -99,7 +99,7 @@ TEST(Delegation, RevokeAfterCheckUpdates) {
       auto http = std::make_shared<HttpFakeDelegation>(temp_dir.Path());
       Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
       auto storage = INvStorage::newStorage(conf.storage);
-      Aktualizr aktualizr(conf, storage, http);
+      UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
       aktualizr.Initialize();
 
       result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
@@ -112,7 +112,7 @@ TEST(Delegation, RevokeAfterCheckUpdates) {
       auto http = std::make_shared<HttpFakeDelegation>(temp_dir.Path());
       Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
       auto storage = INvStorage::newStorage(conf.storage);
-      Aktualizr aktualizr(conf, storage, http);
+      UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
       aktualizr.Initialize();
 
       auto update_result = aktualizr.CheckUpdates().get();
@@ -139,7 +139,7 @@ TEST(Delegation, RevokeAfterDownload) {
       auto http = std::make_shared<HttpFakeDelegation>(temp_dir.Path());
       Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
       auto storage = INvStorage::newStorage(conf.storage);
-      Aktualizr aktualizr(conf, storage, http);
+      UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
       aktualizr.Initialize();
 
       result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
@@ -155,7 +155,7 @@ TEST(Delegation, RevokeAfterDownload) {
       auto http = std::make_shared<HttpFakeDelegation>(temp_dir.Path());
       Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
       auto storage = INvStorage::newStorage(conf.storage);
-      Aktualizr aktualizr(conf, storage, http);
+      UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
       aktualizr.Initialize();
 
       auto update_result = aktualizr.CheckUpdates().get();
@@ -182,7 +182,7 @@ TEST(Delegation, RevokeAfterInstall) {
       auto http = std::make_shared<HttpFakeDelegation>(temp_dir.Path());
       Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
       auto storage = INvStorage::newStorage(conf.storage);
-      Aktualizr aktualizr(conf, storage, http);
+      UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
       aktualizr.Initialize();
 
       result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
@@ -203,7 +203,7 @@ TEST(Delegation, RevokeAfterInstall) {
       auto http = std::make_shared<HttpFakeDelegation>(temp_dir.Path());
       Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
       auto storage = INvStorage::newStorage(conf.storage);
-      Aktualizr aktualizr(conf, storage, http);
+      UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
       aktualizr.Initialize();
 
       auto update_result = aktualizr.CheckUpdates().get();
@@ -222,7 +222,7 @@ TEST(Delegation, IterateAll) {
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
-  Aktualizr aktualizr(conf, storage, http);
+  UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
 
   aktualizr.Initialize();
   result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
@@ -231,7 +231,7 @@ TEST(Delegation, IterateAll) {
   std::vector<std::string> expected_target_names = {"primary.txt", "abracadabra", "abc/secondary.txt", "abc/target0",
                                                     "abc/target1", "abc/target2", "bcd/target0",       "cde/target0",
                                                     "cde/target1", "def/target0"};
-  for (auto& target : aktualizr.uptane_client_->allTargets()) {
+  for (auto& target : aktualizr.uptane_client()->allTargets()) {
     EXPECT_EQ(target.filename(), expected_target_names[0]);
     expected_target_names.erase(expected_target_names.begin());
   }

@@ -81,15 +81,14 @@ TEST(Aktualizr, FullOstreeUpdate) {
   boost::filesystem::remove(conf.bootloader.reboot_sentinel_dir / conf.bootloader.reboot_sentinel_name);
 
   {
-    Aktualizr aktualizr(conf);
-
+    UptaneTestCommon::TestAktualizr aktualizr(conf);
     aktualizr.Initialize();
 
     result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
     ASSERT_EQ(update_result.status, result::UpdateStatus::kNoUpdatesAvailable);
 
     // check new version
-    const auto target = aktualizr.uptane_client_->package_manager_->getCurrent();
+    const auto target = aktualizr.uptane_client()->package_manager_->getCurrent();
     EXPECT_EQ(target.sha256Hash(), new_rev);
   }
 }

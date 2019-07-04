@@ -55,7 +55,7 @@ TEST(Aktualizr, EmptyTargets) {
 
   auto storage = INvStorage::newStorage(conf.storage);
   {
-    Aktualizr aktualizr(conf, storage, http);
+    UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
     aktualizr.Initialize();
 
     result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
@@ -75,10 +75,10 @@ TEST(Aktualizr, EmptyTargets) {
     EXPECT_EQ(install_result.ecu_reports[0].install_res.result_code.num_code,
               data::ResultCode::Numeric::kNeedCompletion);
 
-    aktualizr.uptane_client_->package_manager_->completeInstall();
+    aktualizr.uptane_client()->package_manager_->completeInstall();
   }
   {
-    Aktualizr aktualizr(conf, storage, http);
+    UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
     aktualizr.Initialize();
 
     const Json::Value manifest = http->last_manifest["signed"];
@@ -121,7 +121,7 @@ TEST(Aktualizr, EmptyTargetsAfterInstall) {
   // failing install
   auto storage = INvStorage::newStorage(conf.storage);
   {
-    Aktualizr aktualizr(conf, storage, http);
+    UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
     aktualizr.Initialize();
 
     result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
@@ -146,7 +146,7 @@ TEST(Aktualizr, EmptyTargetsAfterInstall) {
 
   // check that no update is available
   {
-    Aktualizr aktualizr(conf, storage, http);
+    UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
     aktualizr.Initialize();
 
     result::UpdateCheck update_result = aktualizr.CheckUpdates().get();

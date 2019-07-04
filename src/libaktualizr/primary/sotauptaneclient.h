@@ -32,10 +32,8 @@ class SotaUptaneClient {
   static std::shared_ptr<SotaUptaneClient> newDefaultClient(
       Config &config_in, std::shared_ptr<INvStorage> storage_in,
       std::shared_ptr<event::Channel> events_channel_in = nullptr);
-  static std::shared_ptr<SotaUptaneClient> newTestClient(Config &config_in, std::shared_ptr<INvStorage> storage_in,
-                                                         std::shared_ptr<HttpInterface> http_client_in,
-                                                         std::shared_ptr<event::Channel> events_channel_in = nullptr);
-  SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage> storage_in,
+
+  SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in,
                    std::shared_ptr<HttpInterface> http_client, std::shared_ptr<Bootloader> bootloader_in,
                    std::shared_ptr<ReportQueue> report_queue_in,
                    std::shared_ptr<event::Channel> events_channel_in = nullptr);
@@ -64,6 +62,9 @@ class SotaUptaneClient {
   bool updateImagesMeta();  // TODO: make private once aktualizr has a proper TUF API
   bool checkImagesMetaOffline();
   data::InstallationResult PackageInstall(const Uptane::Target &target);
+
+ protected:
+  void addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
 
  private:
   FRIEND_TEST(Aktualizr, FullNoUpdates);
@@ -108,7 +109,6 @@ class SotaUptaneClient {
   void reportHwInfo();
   void reportInstalledPackages();
   void reportNetworkInfo();
-  void addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
   void verifySecondaries();
   void sendMetadataToEcus(const std::vector<Uptane::Target> &targets);
   std::future<bool> sendFirmwareAsync(Uptane::SecondaryInterface &secondary, const std::shared_ptr<std::string> &data);
@@ -143,7 +143,7 @@ class SotaUptaneClient {
   std::shared_ptr<PackageManagerInterface> package_manager_;
   std::shared_ptr<HttpInterface> http;
   std::shared_ptr<Uptane::Fetcher> uptane_fetcher;
-  const std::shared_ptr<Bootloader> bootloader;
+  std::shared_ptr<Bootloader> bootloader;
   std::shared_ptr<ReportQueue> report_queue;
   Json::Value last_network_info_reported;
   std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> hw_ids;

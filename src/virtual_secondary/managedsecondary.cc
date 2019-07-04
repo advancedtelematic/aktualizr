@@ -12,8 +12,9 @@
 
 #include <sys/stat.h>
 
-namespace Uptane {
-ManagedSecondary::ManagedSecondary(SecondaryConfig sconfig_in) : sconfig(std::move(sconfig_in)) {
+namespace Primary {
+
+ManagedSecondary::ManagedSecondary(Primary::ManagedSecondaryConfig sconfig_in) : sconfig(std::move(sconfig_in)) {
   // TODO: FIX
   // loadMetadata(meta_pack);
   std::string public_key_string;
@@ -60,15 +61,16 @@ void ManagedSecondary::Initialize() {
 void ManagedSecondary::rawToMeta() {
   // raw meta is trusted
   current_meta.director_root =
-      Uptane::Root(RepositoryType::Director(), Utils::parseJSON(current_raw_meta.director_root));
+      Uptane::Root(Uptane::RepositoryType::Director(), Utils::parseJSON(current_raw_meta.director_root));
   current_meta.director_targets = Uptane::Targets(Utils::parseJSON(current_raw_meta.director_targets));
-  current_meta.image_root = Uptane::Root(RepositoryType::Image(), Utils::parseJSON(current_raw_meta.image_root));
+  current_meta.image_root =
+      Uptane::Root(Uptane::RepositoryType::Image(), Utils::parseJSON(current_raw_meta.image_root));
   current_meta.image_targets = Uptane::Targets(Utils::parseJSON(current_raw_meta.image_targets));
   current_meta.image_timestamp = Uptane::TimestampMeta(Utils::parseJSON(current_raw_meta.image_timestamp));
   current_meta.image_snapshot = Uptane::Snapshot(Utils::parseJSON(current_raw_meta.image_snapshot));
 }
 
-bool ManagedSecondary::putMetadata(const RawMetaPack &meta_pack) {
+bool ManagedSecondary::putMetadata(const Uptane::RawMetaPack &meta_pack) {
   // No verification is currently performed, we can add verification in future for testing purposes
   detected_attack = "";
 
@@ -117,8 +119,8 @@ int ManagedSecondary::getRootVersion(const bool director) {
 bool ManagedSecondary::putRoot(const std::string &root, const bool director) {
   Uptane::Root &prev_root = (director) ? current_meta.director_root : current_meta.image_root;
   std::string &prev_raw_root = (director) ? current_raw_meta.director_root : current_raw_meta.image_root;
-  Uptane::Root new_root =
-      Uptane::Root((director) ? RepositoryType::Director() : RepositoryType::Image(), Utils::parseJSON(root));
+  Uptane::Root new_root = Uptane::Root(
+      (director) ? Uptane::RepositoryType::Director() : Uptane::RepositoryType::Image(), Utils::parseJSON(root));
 
   // No verification is currently performed, we can add verification in future for testing purposes
   if (new_root.version() == prev_root.version() + 1) {
@@ -151,7 +153,7 @@ bool ManagedSecondary::sendFirmware(const std::shared_ptr<std::string> &data) {
     return false;
   }
 
-  std::vector<Hash>::const_iterator it;
+  std::vector<Uptane::Hash>::const_iterator it;
   for (it = expected_target_hashes.begin(); it != expected_target_hashes.end(); it++) {
     if (it->TypeString() == "sha256") {
       if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(*data))) !=
@@ -227,4 +229,5 @@ bool ManagedSecondary::loadKeys(std::string *pub_key, std::string *priv_key) {
   *pub_key = Utils::readFile(public_key_path.string());
   return true;
 }
-}  // namespace Uptane
+
+}  // namespace Primary
