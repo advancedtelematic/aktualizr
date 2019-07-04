@@ -16,6 +16,7 @@
 #include "crypto/crypto.h"
 #include "http/httpclient.h"
 #include "logging/logging.h"
+#include "utilities/aktualizr_version.h"
 #include "utilities/utils.h"
 
 namespace bpo = boost::program_options;
@@ -26,7 +27,7 @@ void check_info_options(const bpo::options_description& description, const bpo::
     exit(EXIT_SUCCESS);
   }
   if (vm.count("version") != 0) {
-    std::cout << "Current aktualizr-cert-provider version is: " << AKTUALIZR_VERSION << "\n";
+    std::cout << "Current aktualizr-cert-provider version is: " << aktualizr_version() << "\n";
     exit(EXIT_SUCCESS);
   }
 }

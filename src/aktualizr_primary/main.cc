@@ -10,6 +10,7 @@
 #include "logging/logging.h"
 #include "primary/aktualizr.h"
 #include "secondary.h"
+#include "utilities/aktualizr_version.h"
 #include "utilities/utils.h"
 
 namespace bpo = boost::program_options;
@@ -20,7 +21,7 @@ void check_info_options(const bpo::options_description &description, const bpo::
     exit(EXIT_SUCCESS);
   }
   if (vm.count("version") != 0) {
-    std::cout << "Current aktualizr version is: " << AKTUALIZR_VERSION << "\n";
+    std::cout << "Current aktualizr version is: " << aktualizr_version() << "\n";
     exit(EXIT_SUCCESS);
   }
 }
@@ -102,7 +103,7 @@ int main(int argc, char *argv[]) {
 
   bpo::variables_map commandline_map = parse_options(argc, argv);
 
-  LOG_INFO << "Aktualizr version " AKTUALIZR_VERSION " starting";
+  LOG_INFO << "Aktualizr version " << aktualizr_version() << " starting";
 
   int r = EXIT_FAILURE;
 

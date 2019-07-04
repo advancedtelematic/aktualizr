@@ -8,6 +8,7 @@
 
 #include "aktualizr_secondary.h"
 #include "aktualizr_secondary_config.h"
+#include "utilities/aktualizr_version.h"
 #include "utilities/utils.h"
 
 #include "logging/logging.h"
@@ -20,7 +21,7 @@ void check_secondary_options(const bpo::options_description &description, const 
     exit(EXIT_SUCCESS);
   }
   if (vm.count("version") != 0) {
-    std::cout << "Current aktualizr-secondary version is: " << AKTUALIZR_VERSION << "\n";
+    std::cout << "Current aktualizr-secondary version is: " << aktualizr_version() << "\n";
     exit(EXIT_SUCCESS);
   }
 }
@@ -77,7 +78,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
 int main(int argc, char *argv[]) {
   logger_init();
   logger_set_threshold(boost::log::trivial::info);
-  LOG_INFO << "Aktualizr-secondary version " AKTUALIZR_VERSION " starting";
+  LOG_INFO << "Aktualizr-secondary version " << aktualizr_version() << " starting";
 
   bpo::variables_map commandline_map = parse_options(argc, argv);
 

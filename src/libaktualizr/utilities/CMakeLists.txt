@@ -1,4 +1,5 @@
-set(SOURCES apiqueue.cc
+set(SOURCES aktualizr_version.cc
+            apiqueue.cc
             dequeue_buffer.cc
             sockaddr_io.cc
             timer.cc
@@ -6,6 +7,7 @@ set(SOURCES apiqueue.cc
             utils.cc)
 
 set(HEADERS apiqueue.h
+            aktualizr_version.h
             config_utils.h
             dequeue_buffer.h
             exceptions.h
@@ -15,6 +17,7 @@ set(HEADERS apiqueue.h
             types.h
             utils.h)
 
+set_property(SOURCE aktualizr_version.cc PROPERTY COMPILE_DEFINITIONS AKTUALIZR_VERSION="${AKTUALIZR_VERSION}")
 
 add_library(utilities OBJECT ${SOURCES})
 include(AddAktualizrTest)

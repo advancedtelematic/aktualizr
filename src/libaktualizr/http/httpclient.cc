@@ -14,6 +14,7 @@
 #include <openssl/ssl.h>
 
 #include "crypto/openssl_compat.h"
+#include "utilities/aktualizr_version.h"
 #include "utilities/utils.h"
 
 struct WriteStringArg {
@@ -45,7 +46,7 @@ static size_t writeString(void* contents, size_t size, size_t nmemb, void* userp
   return size * nmemb;
 }
 
-HttpClient::HttpClient() : user_agent(std::string("Aktualizr/") + AKTUALIZR_VERSION) {
+HttpClient::HttpClient() : user_agent(std::string("Aktualizr/") + aktualizr_version()) {
   curl = curl_easy_init();
   if (curl == nullptr) {
     throw std::runtime_error("Could not initialize curl");

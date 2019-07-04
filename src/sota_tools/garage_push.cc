@@ -6,6 +6,7 @@
 #include "accumulator.h"
 #include "deploy.h"
 #include "garage_common.h"
+#include "garage_tools_version.h"
 #include "logging/logging.h"
 #include "ostree_dir_repo.h"
 #include "ostree_repo.h"
@@ -48,7 +49,7 @@ int main(int argc, char **argv) {
       return EXIT_SUCCESS;
     }
     if (vm.count("version") != 0) {
-      LOG_INFO << "Current garage-push version is: " << GARAGE_TOOLS_VERSION;
+      LOG_INFO << "Current garage-push version is: " << garage_tools_version();
       exit(EXIT_SUCCESS);
     }
     po::notify(vm);

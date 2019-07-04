@@ -112,8 +112,6 @@ if(NOT AKTUALIZR_VERSION)
     endif(GIT_EXECUTABLE)
 endif(NOT AKTUALIZR_VERSION)
 
-add_definitions(-DAKTUALIZR_VERSION="${AKTUALIZR_VERSION}")
-
 if(BUILD_OSTREE)
     find_package(OSTree REQUIRED)
     add_definitions(-DBUILD_OSTREE)

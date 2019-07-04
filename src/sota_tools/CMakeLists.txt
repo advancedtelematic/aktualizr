@@ -2,6 +2,7 @@ include_directories("${PROJECT_SOURCE_DIR}/src/libaktualizr/third_party/jsoncpp"
 set(SOTA_TOOLS_LIB_SRC
     authenticate.cc
     deploy.cc
+    garage_tools_version.cc
     oauth2.cc
     ostree_dir_repo.cc
     ostree_hash.cc
@@ -15,6 +16,8 @@ set(SOTA_TOOLS_LIB_SRC
     treehub_server.cc)
 
 if (BUILD_SOTA_TOOLS)
+    set(GARAGE_TOOLS_VERSION "${AKTUALIZR_VERSION}")
+    set_property(SOURCE garage_tools_version.cc PROPERTY COMPILE_DEFINITIONS GARAGE_TOOLS_VERSION="${GARAGE_TOOLS_VERSION}")
     add_library(sota_tools_static_lib STATIC ${SOTA_TOOLS_LIB_SRC})
     target_include_directories(sota_tools_static_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_SOURCE_DIR} ${GLIB2_INCLUDE_DIRS})
 endif (BUILD_SOTA_TOOLS)
@@ -64,8 +67,6 @@ if (BUILD_SOTA_TOOLS)
     add_executable(garage-deploy ${GARAGE_DEPLOY_SRCS})
     target_link_libraries(garage-deploy sota_tools_static_lib aktualizr_static_lib ${SOTA_TOOLS_EXTERNAL_LIBS})
 
-    add_definitions(-DGARAGE_TOOLS_VERSION="${AKTUALIZR_VERSION}")
-
     add_dependencies(build_tests garage-deploy)
 
     install(TARGETS garage-deploy RUNTIME DESTINATION bin COMPONENT garage_deploy)
@@ -101,6 +102,7 @@ set(ALL_SOTA_TOOLS_HEADERS
     authenticate.h
     deploy.h
     garage_common.h
+    garage_tools_version.h
     oauth2.h
     ostree_dir_repo.h
     ostree_hash.h
