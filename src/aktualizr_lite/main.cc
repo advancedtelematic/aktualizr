@@ -11,6 +11,8 @@
 #include "package_manager/ostreemanager.h"
 #include "primary/sotauptaneclient.h"
 
+#include "utilities/aktualizr_version.h"
+
 namespace bpo = boost::program_options;
 
 static std::shared_ptr<SotaUptaneClient> liteClient(Config &config) {
@@ -170,7 +172,7 @@ void check_info_options(const bpo::options_description &description, const bpo::
     exit(EXIT_SUCCESS);
   }
   if (vm.count("version") != 0) {
-    std::cout << "Current aktualizr version is: " << AKTUALIZR_VERSION << "\n";
+    std::cout << "Current aktualizr version is: " << aktualizr_version() << "\n";
     exit(EXIT_SUCCESS);
   }
 }

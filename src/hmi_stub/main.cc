@@ -14,6 +14,7 @@
 #include "config/config.h"
 #include "logging/logging.h"
 #include "primary/aktualizr.h"
+#include "utilities/aktualizr_version.h"
 #include "utilities/utils.h"
 
 namespace bpo = boost::program_options;
@@ -29,7 +30,7 @@ void check_info_options(const bpo::options_description &description, const bpo::
     exit(EXIT_SUCCESS);
   }
   if (vm.count("version") != 0) {
-    std::cout << "Current hmi_stub version is: " << AKTUALIZR_VERSION << "\n";
+    std::cout << "Current hmi_stub version is: " << aktualizr_version() << "\n";
     exit(EXIT_SUCCESS);
   }
 }
@@ -121,7 +122,7 @@ void process_event(const std::shared_ptr<event::BaseEvent> &event) {
 int main(int argc, char *argv[]) {
   logger_init();
   logger_set_threshold(boost::log::trivial::info);
-  LOG_INFO << "hmi_stub version " AKTUALIZR_VERSION " starting";
+  LOG_INFO << "hmi_stub version " << aktualizr_version() << " starting";
 
   bpo::variables_map commandline_map = parse_options(argc, argv);
 
