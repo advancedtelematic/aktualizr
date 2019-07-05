@@ -11,6 +11,7 @@ RUN apt-get update && apt-get -y install \
   autoconf \
   automake \
   bison \
+  ccache \
   clang-6.0 \
   clang-tidy-6.0 \
   clang-tools-6.0 \
