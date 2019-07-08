@@ -34,6 +34,7 @@ add_target() {
     fi
     cat >$custom_json <<EOF
 {
+  "version": "$1",
   "hardwareIds": ["hwid-for-test"],
   "targetFormat": "OSTREE"
 }
@@ -95,10 +96,12 @@ fi
 
 ## Check that we can do the update command
 update=$(ostree admin status | head -n 1)
-name=$(echo $update | cut -d\  -f1)
+name="zlast"  # give a name that will cause the custom version to be the latest
 sha=$(echo $update | cut -d\  -f2 | sed 's/\.0$//')
 echo "Adding new target: $name / $sha"
 add_target $name $sha
 
 $valgrind $aklite --loglevel 1 -c $sota_dir/sota.toml update --update-name $name
 ostree admin status
+
+$valgrind $aklite --loglevel 1 -c $sota_dir/sota.toml update | grep "Updating to: Target(zlast"
