@@ -17,6 +17,16 @@ static std::string treehub_server = "http://127.0.0.1:";
 static boost::filesystem::path test_sysroot;
 static boost::filesystem::path akrepo;
 
+static std::shared_ptr<SotaUptaneClient> newTestClient(Config& config_in, std::shared_ptr<INvStorage> storage_in,
+                                                       std::shared_ptr<HttpInterface> http_client_in,
+                                                       std::shared_ptr<event::Channel> events_channel_in = nullptr) {
+  std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_in.bootloader, *storage_in);
+  std::shared_ptr<ReportQueue> report_queue_in = std::make_shared<ReportQueue>(config_in, http_client_in);
+
+  return std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, bootloader_in, report_queue_in,
+                                            events_channel_in);
+}
+
 static void progress_cb(const Uptane::Target& target, const std::string& description, unsigned int progress) {
   (void)description;
   LOG_INFO << "progress_cb " << target << " " << progress;
@@ -70,7 +80,7 @@ TEST(DockerAppManager, DockerApp_Fetch) {
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   KeyManager keys(storage, config.keymanagerConfig());
   auto http = std::make_shared<HttpClient>();
-  auto client = SotaUptaneClient::newTestClient(config, storage, http, nullptr);
+  auto client = newTestClient(config, storage, http, nullptr);
   ASSERT_TRUE(client->updateImagesMeta());
 
   std::string targets = Utils::readFile(repo / "repo/image/targets.json");
