@@ -226,6 +226,9 @@ bool Crypto::RSAPSSVerify(const std::string &public_key, const std::string &sign
   return status == 1;
 }
 bool Crypto::ED25519Verify(const std::string &public_key, const std::string &signature, const std::string &message) {
+  if (public_key.size() < crypto_sign_PUBLICKEYBYTES || signature.size() < crypto_sign_BYTES) {
+    return false;
+  }
   return crypto_sign_verify_detached(reinterpret_cast<const unsigned char *>(signature.c_str()),
                                      reinterpret_cast<const unsigned char *>(message.c_str()), message.size(),
                                      reinterpret_cast<const unsigned char *>(public_key.c_str())) == 0;

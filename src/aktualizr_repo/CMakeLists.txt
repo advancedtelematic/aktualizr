@@ -7,6 +7,7 @@ set(AKTUALIZR_REPO_LIBS
     ${AKTUALIZR_EXTERNAL_LIBS}
 )
 add_library(aktualizr_repo_lib ${AKTUALIZR_REPO_SRC})
+target_include_directories(aktualizr_repo_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 add_executable(aktualizr-repo main.cc ${AKTUALIZR_REPO_SRC})
 target_link_libraries(aktualizr-repo ${AKTUALIZR_REPO_LIBS})
 

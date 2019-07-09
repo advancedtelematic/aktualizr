@@ -14,7 +14,7 @@ set(HEADERS secondary_config.h
 
 add_library(primary OBJECT ${SOURCES})
 
-add_aktualizr_test(NAME aktualizr SOURCES aktualizr_test.cc PROJECT_WORKING_DIRECTORY ARGS ${PROJECT_BINARY_DIR}/uptane_repos)
+add_aktualizr_test(NAME aktualizr SOURCES aktualizr_test.cc PROJECT_WORKING_DIRECTORY ARGS ${PROJECT_BINARY_DIR}/uptane_repos LIBRARIES aktualizr_repo_lib)
 add_dependencies(t_aktualizr uptane_repo_full_no_correlation_id)
 target_link_libraries(t_aktualizr virtual_secondary)
 
@@ -28,15 +28,15 @@ else (BUILD_OSTREE)
     aktualizr_source_file_checks(aktualizr_fullostree_test.cc)
 endif (BUILD_OSTREE)
 
-add_aktualizr_test(NAME reportqueue SOURCES reportqueue_test.cc PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME reportqueue SOURCES reportqueue_test.cc PROJECT_WORKING_DIRECTORY LIBRARIES PUBLIC aktualizr_repo_lib)
 add_aktualizr_test(NAME emptytargets SOURCES empty_targets_test.cc PROJECT_WORKING_DIRECTORY
-                   ARGS "$<TARGET_FILE:aktualizr-repo>")
+                   ARGS "$<TARGET_FILE:aktualizr-repo>" LIBRARIES aktualizr_repo_lib)
 target_link_libraries(t_emptytargets virtual_secondary)
 
-add_aktualizr_test(NAME device_cred_prov SOURCES device_cred_prov_test.cc PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME device_cred_prov SOURCES device_cred_prov_test.cc PROJECT_WORKING_DIRECTORY LIBRARIES PUBLIC aktualizr_repo_lib)
 set_tests_properties(test_device_cred_prov PROPERTIES LABELS "crypto")
 
-add_aktualizr_test(NAME uptane_key SOURCES uptane_key_test.cc PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME uptane_key SOURCES uptane_key_test.cc PROJECT_WORKING_DIRECTORY LIBRARIES aktualizr_repo_lib)
 set_tests_properties(test_uptane_key PROPERTIES LABELS "crypto")
 target_include_directories(t_uptane_key PUBLIC ${PROJECT_SOURCE_DIR}/src/virtual_secondary)
 target_link_libraries(t_uptane_key virtual_secondary)

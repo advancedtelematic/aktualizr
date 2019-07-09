@@ -60,6 +60,7 @@ add_aktualizr_test(NAME aktualizr_secondary_update
 if(BUILD_OSTREE)
     add_aktualizr_test(NAME aktualizr_secondary_uptane
                        SOURCES uptane_test.cc
+                       LIBRARIES aktualizr_repo_lib
                        LIBRARIES aktualizr-posix
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
     target_link_libraries(t_aktualizr_secondary_uptane virtual_secondary)

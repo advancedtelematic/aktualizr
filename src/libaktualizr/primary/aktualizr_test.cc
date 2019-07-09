@@ -21,6 +21,7 @@
 #include "utilities/fault_injection.h"
 
 boost::filesystem::path uptane_repos_dir;
+boost::filesystem::path fake_meta_dir;
 
 void verifyNothingInstalled(const Json::Value& manifest) {
   // Verify nothing has installed for the primary.
@@ -101,7 +102,7 @@ void process_events_FullNoUpdates(const std::shared_ptr<event::BaseEvent>& event
 TEST(Aktualizr, FullNoUpdates) {
   future_FullNoUpdates = promise_FullNoUpdates.get_future();
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates");
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates", fake_meta_dir);
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
@@ -128,7 +129,7 @@ TEST(Aktualizr, FullNoUpdates) {
  */
 TEST(Aktualizr, AddSecondary) {
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates");
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates", fake_meta_dir);
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
@@ -165,7 +166,7 @@ TEST(Aktualizr, AddSecondary) {
  */
 TEST(Aktualizr, DeviceInstallationResult) {
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "", fake_meta_dir);
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
@@ -206,7 +207,8 @@ TEST(Aktualizr, DeviceInstallationResult) {
 
 class HttpFakeEventCounter : public HttpFake {
  public:
-  HttpFakeEventCounter(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in, "hasupdates") {}
+  HttpFakeEventCounter(const boost::filesystem::path& test_dir_in, const boost::filesystem::path& meta_dir_in)
+      : HttpFake(test_dir_in, "hasupdates", meta_dir_in) {}
 
   HttpResponse handle_event(const std::string& url, const Json::Value& data) override {
     (void)url;
@@ -336,7 +338,7 @@ void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& eve
 TEST(Aktualizr, FullWithUpdates) {
   future_FullWithUpdates = promise_FullWithUpdates.get_future();
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFakeEventCounter>(temp_dir.Path());
+  auto http = std::make_shared<HttpFakeEventCounter>(temp_dir.Path(), fake_meta_dir);
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
@@ -356,7 +358,8 @@ TEST(Aktualizr, FullWithUpdates) {
 
 class HttpFakePutCounter : public HttpFake {
  public:
-  HttpFakePutCounter(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in, "hasupdates") {}
+  HttpFakePutCounter(const boost::filesystem::path& test_dir_in, const boost::filesystem::path& meta_dir_in)
+      : HttpFake(test_dir_in, "hasupdates", meta_dir_in) {}
 
   HttpResponse put(const std::string& url, const Json::Value& data) override {
     if (url.find("/manifest") != std::string::npos) {
@@ -407,7 +410,7 @@ class HttpFakePutCounter : public HttpFake {
  */
 TEST(Aktualizr, FullWithUpdatesNeedReboot) {
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFakePutCounter>(temp_dir.Path());
+  auto http = std::make_shared<HttpFakePutCounter>(temp_dir.Path(), fake_meta_dir);
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
   conf.pacman.fake_need_reboot = true;
 
@@ -496,7 +499,8 @@ TEST(Aktualizr, FullWithUpdatesNeedReboot) {
 
 class HttpInstallationFailed : public HttpFake {
  public:
-  HttpInstallationFailed(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in, "hasupdates") {}
+  HttpInstallationFailed(const boost::filesystem::path& test_dir_in, const boost::filesystem::path& meta_dir_in)
+      : HttpFake(test_dir_in, "hasupdates", meta_dir_in) {}
 
   HttpResponse handle_event(const std::string& url, const Json::Value& data) override {
     (void)url;
@@ -594,7 +598,7 @@ class EventHandler {
  */
 TEST(Aktualizr, FinalizationFailure) {
   TemporaryDirectory temp_dir;
-  auto http_server_mock = std::make_shared<HttpInstallationFailed>(temp_dir.Path());
+  auto http_server_mock = std::make_shared<HttpInstallationFailed>(temp_dir.Path(), fake_meta_dir);
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http_server_mock->tls_server);
   conf.pacman.fake_need_reboot = true;
   conf.uptane.force_install_completion = true;
@@ -775,7 +779,7 @@ TEST(Aktualizr, InstallationFailure) {
 
   {
     TemporaryDirectory temp_dir;
-    auto http_server_mock = std::make_shared<HttpInstallationFailed>(temp_dir.Path());
+    auto http_server_mock = std::make_shared<HttpInstallationFailed>(temp_dir.Path(), fake_meta_dir);
     Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http_server_mock->tls_server);
     auto storage = INvStorage::newStorage(conf.storage);
 
@@ -834,7 +838,7 @@ TEST(Aktualizr, InstallationFailure) {
   // primary and secondary failure
   {
     TemporaryDirectory temp_dir;
-    auto http_server_mock = std::make_shared<HttpInstallationFailed>(temp_dir.Path());
+    auto http_server_mock = std::make_shared<HttpInstallationFailed>(temp_dir.Path(), fake_meta_dir);
     Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http_server_mock->tls_server);
     auto storage = INvStorage::newStorage(conf.storage);
     const std::string sec_fault_name = std::string("secondary_install_") + secondary_ecu_id;
@@ -916,7 +920,7 @@ TEST(Aktualizr, InstallationFailure) {
  */
 TEST(Aktualizr, AutoRebootAfterUpdate) {
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFakePutCounter>(temp_dir.Path());
+  auto http = std::make_shared<HttpFakePutCounter>(temp_dir.Path(), fake_meta_dir);
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
   conf.pacman.fake_need_reboot = true;
   conf.uptane.force_install_completion = true;
@@ -989,7 +993,7 @@ void process_events_FullMultipleSecondaries(const std::shared_ptr<event::BaseEve
 TEST(Aktualizr, FullMultipleSecondaries) {
   future_FullMultipleSecondaries = promise_FullMultipleSecondaries.get_future();
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "multisec");
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "multisec", fake_meta_dir);
   Config conf("tests/config/basic.toml");
   conf.provision.primary_ecu_serial = "testecuserial";
   conf.provision.primary_ecu_hardware_id = "testecuhwid";
@@ -1082,7 +1086,7 @@ void process_events_CheckNoUpdates(const std::shared_ptr<event::BaseEvent>& even
 TEST(Aktualizr, CheckNoUpdates) {
   future_CheckNoUpdates = promise_CheckNoUpdates.get_future();
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates");
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates", fake_meta_dir);
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
@@ -1176,7 +1180,7 @@ void process_events_DownloadWithUpdates(const std::shared_ptr<event::BaseEvent>&
 TEST(Aktualizr, DownloadWithUpdates) {
   future_DownloadWithUpdates = promise_DownloadWithUpdates.get_future();
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates", fake_meta_dir);
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
@@ -1205,8 +1209,9 @@ class HttpDownloadFailure : public HttpFake {
   using Responses = std::vector<std::pair<std::string, HttpResponse>>;
 
  public:
-  HttpDownloadFailure(const boost::filesystem::path& test_dir_in, const Responses& file_to_response, std::string flavor)
-      : HttpFake(test_dir_in, flavor) {
+  HttpDownloadFailure(const boost::filesystem::path& test_dir_in, const Responses& file_to_response, std::string flavor,
+                      const boost::filesystem::path& meta_dir_in)
+      : HttpFake(test_dir_in, flavor, meta_dir_in) {
     for (auto resp : file_to_response) {
       url_to_response_[tls_server + target_dir_ + resp.first] = resp.second;
     }
@@ -1296,7 +1301,8 @@ TEST(Aktualizr, DownloadFailures) {
   for (auto test_params : test_case_params) {
     TemporaryDirectory temp_dir;
 
-    auto http = std::make_shared<HttpDownloadFailure>(temp_dir.Path(), test_params.downloadResponse, "hasupdates");
+    auto http = std::make_shared<HttpDownloadFailure>(temp_dir.Path(), test_params.downloadResponse, "hasupdates",
+                                                      fake_meta_dir);
     Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
     auto storage = INvStorage::newStorage(conf.storage);
 
@@ -1425,7 +1431,7 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
 TEST(Aktualizr, InstallWithUpdates) {
   future_InstallWithUpdates = promise_InstallWithUpdates.get_future();
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates", fake_meta_dir);
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
@@ -1486,7 +1492,7 @@ TEST(Aktualizr, ReportDownloadProgress) {
   // The test initialization part is repeated in many tests so maybe it makes sense
   // to define a fixture and move this common initialization part into the fixture's SetUp() method
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates", fake_meta_dir);
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
   auto storage = INvStorage::newStorage(conf.storage);
   UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
@@ -1531,7 +1537,8 @@ TEST(Aktualizr, ReportDownloadProgress) {
 
 class HttpFakeCampaign : public HttpFake {
  public:
-  HttpFakeCampaign(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in) {}
+  HttpFakeCampaign(const boost::filesystem::path& test_dir_in, const boost::filesystem::path& meta_dir_in)
+      : HttpFake(test_dir_in, "", meta_dir_in) {}
 
   HttpResponse get(const std::string& url, int64_t maxsize) override {
     EXPECT_NE(url.find("campaigner/"), std::string::npos);
@@ -1602,7 +1609,7 @@ class CampaignEvents {
  */
 TEST(Aktualizr, CampaignCheckAndControl) {
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFakeCampaign>(temp_dir.Path());
+  auto http = std::make_shared<HttpFakeCampaign>(temp_dir.Path(), fake_meta_dir);
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   CampaignEvents campaign_events;
@@ -1685,7 +1692,7 @@ TEST(Aktualizr, FullNoCorrelationId) {
 
 TEST(Aktualizr, ManifestCustom) {
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "", fake_meta_dir);
 
   {
     Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
@@ -1732,7 +1739,7 @@ class CountUpdateCheckEvents {
 
 TEST(Aktualizr, APICheck) {
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates", fake_meta_dir);
 
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
@@ -1774,7 +1781,8 @@ TEST(Aktualizr, APICheck) {
 
 class HttpPutManifestFail : public HttpFake {
  public:
-  HttpPutManifestFail(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in) {}
+  HttpPutManifestFail(const boost::filesystem::path& test_dir_in, const boost::filesystem::path& meta_dir_in)
+      : HttpFake(test_dir_in, "", meta_dir_in) {}
   HttpResponse put(const std::string& url, const Json::Value& data) override {
     (void)data;
     return HttpResponse(url, 504, CURLE_OK, "");
@@ -1784,7 +1792,7 @@ class HttpPutManifestFail : public HttpFake {
 /* Send UpdateCheckComplete event after failure */
 TEST(Aktualizr, UpdateCheckCompleteError) {
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpPutManifestFail>(temp_dir.Path());
+  auto http = std::make_shared<HttpPutManifestFail>(temp_dir.Path(), fake_meta_dir);
 
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, "http://updatefail");
 
@@ -1806,7 +1814,8 @@ TEST(Aktualizr, UpdateCheckCompleteError) {
 
 class HttpFakePauseCounter : public HttpFake {
  public:
-  HttpFakePauseCounter(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in, "noupdates") {}
+  HttpFakePauseCounter(const boost::filesystem::path& test_dir_in, const boost::filesystem::path& meta_dir_in)
+      : HttpFake(test_dir_in, "noupdates", meta_dir_in) {}
 
   HttpResponse handle_event(const std::string& url, const Json::Value& data) override {
     (void)url;
@@ -1834,7 +1843,7 @@ class HttpFakePauseCounter : public HttpFake {
 
 TEST(Aktualizr, PauseResumeQueue) {
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFakePauseCounter>(temp_dir.Path());
+  auto http = std::make_shared<HttpFakePauseCounter>(temp_dir.Path(), fake_meta_dir);
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
@@ -1908,6 +1917,10 @@ int main(int argc, char** argv) {
 
   logger_init();
   logger_set_threshold(boost::log::trivial::trace);
+
+  TemporaryDirectory tmp_dir;
+  fake_meta_dir = tmp_dir.Path();
+  MetaFake meta_fake(fake_meta_dir);
 
   return RUN_ALL_TESTS();
 }

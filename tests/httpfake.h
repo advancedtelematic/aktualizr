@@ -14,6 +14,7 @@
 #include "crypto/crypto.h"
 #include "http/httpinterface.h"
 #include "logging/logging.h"
+#include "metafake.h"
 #include "utilities/utils.h"
 
 enum class ProvisioningResult { kOK, kFailure };
@@ -26,11 +27,7 @@ class HttpFake : public HttpInterface {
       : test_dir(test_dir_in), flavor_(std::move(flavor)), meta_dir(meta_dir_in) {
     if (meta_dir.empty()) {
       meta_dir = temp_meta_dir.Path();
-      Utils::copyDir("tests/test_data/repo/repo/image", meta_dir / "repo");
-      Utils::copyDir("tests/test_data/repo/repo/director", meta_dir / "director");
-      if (boost::filesystem::is_directory("tests/test_data/repo/campaigner")) {
-        Utils::copyDir("tests/test_data/repo/campaigner", meta_dir / "campaigner");
-      }
+      MetaFake meta(meta_dir);
     }
   }
 

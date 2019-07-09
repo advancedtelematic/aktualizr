@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "metafake.h"
 #include "partialverificationsecondary.h"
 #include "uptane/secondaryinterface.h"
 #include "virtualsecondary.h"
@@ -66,8 +67,10 @@ TEST_F(PartialVerificationSecondaryTest, Uptane_putMetadata_good) {
   Uptane::PartialVerificationSecondary sec(config_);
   Uptane::RawMetaPack metadata;
 
-  metadata.director_root = Utils::readFile("tests/test_data/repo/repo/director/root.json");
-  metadata.director_targets = Utils::readFile("tests/test_data/repo/repo/director/targets_hasupdates.json");
+  TemporaryDirectory temp_dir;
+  MetaFake meta(temp_dir.Path());
+  metadata.director_root = Utils::readFile(temp_dir / "director/root.json");
+  metadata.director_targets = Utils::readFile(temp_dir / "director/targets_hasupdates.json");
   EXPECT_NO_THROW(sec.putMetadata(metadata));
 }
 
@@ -76,9 +79,11 @@ TEST_F(PartialVerificationSecondaryTest, Uptane_putMetadata_bad) {
   Uptane::PartialVerificationSecondary sec(config_);
   Uptane::RawMetaPack metadata;
 
-  metadata.director_root = Utils::readFile("tests/test_data/repo/repo/director/root.json");
+  TemporaryDirectory temp_dir;
+  MetaFake meta(temp_dir.Path());
+  metadata.director_root = Utils::readFile(temp_dir / "director/root.json");
 
-  Json::Value json_targets = Utils::parseJSONFile("tests/test_data/repo/repo/director/targets_hasupdates.json");
+  Json::Value json_targets = Utils::parseJSONFile(temp_dir / "director/targets_hasupdates.json");
   json_targets["signatures"][0]["sig"] = "Wrong signature";
   metadata.director_targets = Utils::jsonToStr(json_targets);
   EXPECT_THROW(sec.putMetadata(metadata), Uptane::BadKeyId);
