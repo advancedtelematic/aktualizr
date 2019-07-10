@@ -1,5 +1,8 @@
+set(AKTUALIZR_LITE_SRC main.cc helpers.cc)
+set(AKTUALIZR_LITE_HEADERS helpers.h)
+
 if(BUILD_OSTREE)
-add_executable(aktualizr-lite main.cc version.h)
+add_executable(aktualizr-lite ${AKTUALIZR_LITE_SRC})
 target_link_libraries(aktualizr-lite aktualizr_static_lib ${AKTUALIZR_EXTERNAL_LIBS})
 
 install(TARGETS aktualizr-lite RUNTIME DESTINATION bin COMPONENT aktualizr-lite)
@@ -19,7 +22,7 @@ add_library(t_lite-mock SHARED ostree_mock.cc)
 
 endif(BUILD_OSTREE)
 
-add_aktualizr_test(NAME lite-version SOURCES version_test.cc)
+add_aktualizr_test(NAME lite-helpers SOURCES helpers.cc helpers_test.cc)
 
-aktualizr_source_file_checks(main.cc version.h version_test.cc ostree_mock.cc)
+aktualizr_source_file_checks(main.cc ${AKTUALIZR_LITE_SRC} ${AKTUALIZR_LITE_HEADERS} helpers_test.cc ostree_mock.cc)
 # vim: set tabstop=4 shiftwidth=4 expandtab:

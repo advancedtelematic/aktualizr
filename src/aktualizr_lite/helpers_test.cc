@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "version.h"
+#include "helpers.h"
 
 TEST(version, bad_versions) {
   ASSERT_TRUE(Version("bar") < Version("foo"));

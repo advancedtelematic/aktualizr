@@ -7,9 +7,9 @@
 #include <boost/uuid/uuid_io.hpp>
 
 #include "config/config.h"
+#include "helpers.h"
 #include "package_manager/ostreemanager.h"
 #include "primary/sotauptaneclient.h"
-#include "version.h"
 
 #include "utilities/aktualizr_version.h"
 
