@@ -72,14 +72,41 @@ static std::shared_ptr<SotaUptaneClient> liteClient(Config &config, std::shared_
   return client;
 }
 
+static void log_info_target(const std::string &prefix, const Config &config, const Uptane::Target &t) {
+  auto name = t.filename();
+  if (t.custom_version().length() > 0) {
+    name = t.custom_version();
+  }
+  LOG_INFO << prefix + name << "\tsha256:" << t.sha256Hash();
+  if (config.pacman.type == PackageManager::kOstreeDockerApp) {
+    bool shown = false;
+    auto apps = t.custom_data()["docker_apps"];
+    for (Json::ValueIterator i = apps.begin(); i != apps.end(); ++i) {
+      if (!shown) {
+        shown = true;
+        LOG_INFO << "\tDocker Apps:";
+      }
+      if ((*i).isObject() && (*i).isMember("filename")) {
+        LOG_INFO << "\t\t" << i.key().asString() << " -> " << (*i)["filename"].asString();
+      } else {
+        LOG_ERROR << "\t\tInvalid custom data for docker-app: " << i.key().asString();
+      }
+    }
+  }
+}
+
 static int status_main(Config &config, const bpo::variables_map &unused) {
   (void)unused;
-  GObjectUniquePtr<OstreeSysroot> sysroot_smart = OstreeManager::LoadSysroot(config.pacman.sysroot);
-  OstreeDeployment *deployment = ostree_sysroot_get_booted_deployment(sysroot_smart.get());
-  if (deployment == nullptr) {
+  auto target = liteClient(config, nullptr)->getCurrent();
+
+  if (target.MatchTarget(Uptane::Target::Unknown())) {
     LOG_INFO << "No active deployment found";
   } else {
-    LOG_INFO << "Active image is: " << ostree_deployment_get_csum(deployment);
+    auto name = target.filename();
+    if (target.custom_version().length() > 0) {
+      name = target.custom_version();
+    }
+    log_info_target("Active image is: ", config, target);
   }
   return 0;
 }
@@ -102,26 +129,7 @@ static int list_main(Config &config, const bpo::variables_map &unused) {
   for (auto &t : client->allTargets()) {
     for (auto const &it : t.hardwareIds()) {
       if (it == hwid) {
-        auto name = t.filename();
-        if (t.custom_version().length() > 0) {
-          name = t.custom_version();
-        }
-        LOG_INFO << name << "\tsha256:" << t.sha256Hash();
-        if (config.pacman.type == PackageManager::kOstreeDockerApp) {
-          bool shown = false;
-          auto apps = t.custom_data()["docker_apps"];
-          for (Json::ValueIterator i = apps.begin(); i != apps.end(); ++i) {
-            if (!shown) {
-              shown = true;
-              LOG_INFO << "\tDocker Apps:";
-            }
-            if ((*i).isObject() && (*i).isMember("filename")) {
-              LOG_INFO << "\t\t" << i.key().asString() << " -> " << (*i)["filename"].asString();
-            } else {
-              LOG_ERROR << "\t\tInvalid custom data for docker-app: " << i.key().asString();
-            }
-          }
-        }
+        log_info_target("", config, t);
         break;
       }
     }

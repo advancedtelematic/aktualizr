@@ -107,3 +107,10 @@ OSTREE_HASH=$sha LD_PRELOAD=$mock_ostree $valgrind $aklite --loglevel 1 -c $sota
 ostree admin status
 
 OSTREE_HASH=$sha LD_PRELOAD=$mock_ostree $valgrind $aklite --loglevel 1 -c $sota_dir/sota.toml update | grep "Updating to: Target(zlast"
+
+out=$(OSTREE_HASH="$sha" LD_PRELOAD=$mock_ostree $valgrind $aklite --loglevel 1 -c $sota_dir/sota.toml status)
+if [[ ! "$out" =~ "Active image is: zlast	sha256:$sha" ]] ; then
+    echo "ERROR: status incorrect:"
+    echo $out
+    exit 1
+fi

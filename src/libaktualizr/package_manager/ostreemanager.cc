@@ -272,8 +272,8 @@ Uptane::Target OstreeManager::getCurrent() const {
   storage_->loadPrimaryInstalledVersions(&installed_versions, nullptr, nullptr);
 
   // Version should be in installed versions
-  std::vector<Uptane::Target>::iterator it;
-  for (it = installed_versions.begin(); it != installed_versions.end(); it++) {
+  std::vector<Uptane::Target>::reverse_iterator it;
+  for (it = installed_versions.rbegin(); it != installed_versions.rend(); it++) {
     if (it->sha256Hash() == current_hash) {
       return *it;
     }
