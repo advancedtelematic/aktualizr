@@ -58,6 +58,7 @@ class SotaUptaneClient {
   bool isInstallCompletionRequired();
   void completeInstall();
   Uptane::LazyTargetsList allTargets();
+  Uptane::Target getCurrent() { return package_manager_->getCurrent(); }
 
   bool updateImagesMeta();  // TODO: make private once aktualizr has a proper TUF API
   bool checkImagesMetaOffline();
