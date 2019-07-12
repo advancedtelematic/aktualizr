@@ -63,6 +63,8 @@ class VectorWrapper {
     } else if (!vector_["image_repo"]["update"]["is_success"].asBool()) {
       std::cout << "exception from image_repo: '" << vector_["image_repo"]["update"]["err"]
                 << " with message: " << vector_["image_repo"]["update"]["err_msg"] << "\n";
+    } else {
+      std::cout << "an exception while fetching targets metadata.\n";
     }
   }
 
