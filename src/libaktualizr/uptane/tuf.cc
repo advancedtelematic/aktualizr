@@ -120,11 +120,15 @@ Target::Target(std::string filename, const Json::Value &content) : filename_(std
   if (content.isMember("custom")) {
     custom_ = content["custom"];
 
-    Json::Value hwids = custom_["hardwareIds"];
-    for (Json::ValueIterator i = hwids.begin(); i != hwids.end(); ++i) {
-      hwids_.emplace_back(HardwareIdentifier((*i).asString()));
+    // Images repo provides an array of hardware IDs.
+    if (custom_.isMember("hardwareIds")) {
+      Json::Value hwids = custom_["hardwareIds"];
+      for (Json::ValueIterator i = hwids.begin(); i != hwids.end(); ++i) {
+        hwids_.emplace_back(HardwareIdentifier((*i).asString()));
+      }
     }
 
+    // Director provides a map of ECU serials to hardware IDs.
     Json::Value ecus = custom_["ecuIdentifiers"];
     for (Json::ValueIterator i = ecus.begin(); i != ecus.end(); ++i) {
       ecus_.insert({EcuSerial(i.key().asString()), HardwareIdentifier((*i)["hardwareId"].asString())});
@@ -226,15 +230,19 @@ Json::Value Target::toDebugJson() const {
 std::ostream &Uptane::operator<<(std::ostream &os, const Target &t) {
   os << "Target(" << t.filename_;
   os << " ecu_identifiers: (";
-
-  for (auto it = t.ecus_.begin(); it != t.ecus_.end(); ++it) {
-    os << it->first;
+  for (const auto &ecu : t.ecus_) {
+    os << ecu.first << " (hw_id: " << ecu.second << "), ";
+  }
+  os << ")"
+     << " hw_ids: (";
+  for (const auto &hwid : t.hwids_) {
+    os << hwid << ", ";
   }
   os << ")"
      << " length:" << t.length();
   os << " hashes: (";
-  for (auto it = t.hashes_.begin(); it != t.hashes_.end(); ++it) {
-    os << *it << ", ";
+  for (const auto &hash : t.hashes_) {
+    os << hash << ", ";
   }
   os << "))";
 

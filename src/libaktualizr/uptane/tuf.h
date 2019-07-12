@@ -6,6 +6,7 @@
  */
 
 #include <functional>
+#include <map>
 #include <ostream>
 #include <set>
 #include <vector>
@@ -259,12 +260,41 @@ class Target {
   bool IsOstree() const;
 
   bool operator==(const Target &t2) const {
-    // if (type_ != t2.type_) return false; // Director doesn't include targetFormat
+    // type_ (targetFormat) is only provided by the Images repo.
+    // ecus_ is only provided by the Images repo.
+    // correlation_id_ is only provided by the Director.
+    // uri_ is unchecked because Uptane mentions it should be provided by the
+    // Director, although it can be provided by the Image repository as well.
     if (filename_ != t2.filename_) {
       return false;
     }
     if (length_ != t2.length_) {
       return false;
+    }
+
+    // If the HWID vector and ECU->HWID map match, we're good. Otherwise, assume
+    // we have a Target from the Director (ECU->HWID map populated, HWID vector
+    // empty) and a Target from the Images repo (HWID vector populated,
+    // ECU->HWID map empty). Figure out which Target has the map, and then for
+    // every item in the map, make sure it's in the other Target's HWID vector.
+    if (hwids_ != t2.hwids_ || ecus_ != t2.ecus_) {
+      std::shared_ptr<std::map<EcuSerial, HardwareIdentifier>> ecu_map;  // Director
+      std::shared_ptr<std::vector<HardwareIdentifier>> hwid_vector;      // Image repo
+      if (!hwids_.empty() && ecus_.empty() && t2.hwids_.empty() && !t2.ecus_.empty()) {
+        ecu_map = std::make_shared<std::map<EcuSerial, HardwareIdentifier>>(t2.ecus_);
+        hwid_vector = std::make_shared<std::vector<HardwareIdentifier>>(hwids_);
+      } else if (!t2.hwids_.empty() && t2.ecus_.empty() && hwids_.empty() && !ecus_.empty()) {
+        ecu_map = std::make_shared<std::map<EcuSerial, HardwareIdentifier>>(ecus_);
+        hwid_vector = std::make_shared<std::vector<HardwareIdentifier>>(t2.hwids_);
+      } else {
+        return false;
+      }
+      for (auto map_it = ecu_map->cbegin(); map_it != ecu_map->cend(); ++map_it) {
+        auto vec_it = find(hwid_vector->cbegin(), hwid_vector->cend(), map_it->second);
+        if (vec_it == hwid_vector->end()) {
+          return false;
+        }
+      }
     }
 
     // requirements:
@@ -291,9 +321,9 @@ class Target {
   bool valid{true};
   std::string filename_;
   std::string type_;
-  std::map<EcuSerial, HardwareIdentifier> ecus_;
+  std::map<EcuSerial, HardwareIdentifier> ecus_;  // Director only
   std::vector<Hash> hashes_;
-  std::vector<HardwareIdentifier> hwids_;
+  std::vector<HardwareIdentifier> hwids_;  // Images repo only
   Json::Value custom_;
   uint64_t length_{0};
   std::string correlation_id_;
