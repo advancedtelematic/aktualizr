@@ -28,7 +28,7 @@ TEST(authenticate, good_zip) {
 /* Authenticate with TLS credentials.
  * Parse images repository URL from a provided archive. */
 TEST(authenticate, good_cert_zip) {
-  // Authenticates with ssl_server on port 1443.
+  // Authenticates with tls_server on port 1443.
   boost::filesystem::path filepath = certs_dir / "good.zip";
   ServerCredentials creds(filepath);
   EXPECT_EQ(creds.GetMethod(), AuthMethod::kTls);
@@ -46,7 +46,7 @@ TEST(authenticate, good_cert_zip) {
  * Parse authentication information from treehub.json.
  * Parse images repository URL from a provided archive. */
 TEST(authenticate, good_cert_noauth_zip) {
-  // Authenticates with ssl_noauth_server on port 2443.
+  // Authenticates with tls_noauth_server on port 2443.
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_noauth_good.zip";
   ServerCredentials creds(filepath);
   EXPECT_EQ(creds.GetMethod(), AuthMethod::kNone);
@@ -62,7 +62,7 @@ TEST(authenticate, good_cert_noauth_zip) {
 }
 
 TEST(authenticate, bad_cert_zip) {
-  // Tries to authenticates with ssl_server on port 1443.
+  // Tries to authenticates with tls_server on port 1443.
   // Fails because the intermediate cert that signed the client cert was signed
   // by a different root cert.
   boost::filesystem::path filepath = certs_dir / "bad.zip";
@@ -127,7 +127,7 @@ TEST(authenticate, offline_sign_creds) {
 
 /* Check if credentials do not support offline signing. */
 TEST(authenticate, online_sign_creds) {
-  // Authenticates with ssl_server on port 1443.
+  // Authenticates with tls_server on port 1443.
   boost::filesystem::path auth_online = certs_dir / "good.zip";
   ServerCredentials creds_online(auth_online);
   EXPECT_FALSE(creds_online.CanSignOffline());
@@ -142,8 +142,8 @@ int main(int argc, char **argv) {
   }
   certs_dir = argv[1];
 
-  boost::process::child server_process("tests/fake_http_server/ssl_server.py");
-  boost::process::child server_noauth_process("tests/fake_http_server/ssl_noauth_server.py");
+  boost::process::child server_process("tests/fake_http_server/tls_server.py");
+  boost::process::child server_noauth_process("tests/fake_http_server/tls_noauth_server.py");
   // TODO: this do not work because the server expects auth! Let's sleep for now.
   // (could be replaced by a check with raw tcp)
   // TestUtils::waitForServer("https://localhost:1443/");
