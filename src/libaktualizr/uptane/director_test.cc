@@ -26,7 +26,7 @@ TEST(Director, EmptyTargets) {
   EXPECT_TRUE(director.latest_targets.targets.empty());
 
   akt_repo.run({"image", "--path", meta_dir.PathString(), "--filename", "tests/test_data/firmware.txt", "--targetname",
-                "firmware.txt"});
+                "firmware.txt", "--hwid", "primary_hw"});
   akt_repo.run({"addtarget", "--path", meta_dir.PathString(), "--targetname", "firmware.txt", "--hwid", "primary_hw",
                 "--serial", "CA:FE:A6:D2:84:9D"});
   akt_repo.run({"signtargets", "--path", meta_dir.PathString()});

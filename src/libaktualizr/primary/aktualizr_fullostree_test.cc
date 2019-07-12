@@ -149,7 +149,7 @@ int main(int argc, char **argv) {
   Process akt_repo(aktualizr_repo_path.string());
   akt_repo.run({"generate", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
   akt_repo.run({"image", "--path", meta_dir.PathString(), "--targetname", "update_1.0", "--targetsha256", new_rev,
-                "--targetlength", "0", "--targetformat", "OSTREE"});
+                "--targetlength", "0", "--targetformat", "OSTREE", "--hwid", "primary_hw"});
   akt_repo.run({"addtarget", "--path", meta_dir.PathString(), "--targetname", "update_1.0", "--hwid", "primary_hw",
                 "--serial", "CA:FE:A6:D2:84:9D"});
   akt_repo.run({"signtargets", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
