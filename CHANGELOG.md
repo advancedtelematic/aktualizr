@@ -6,6 +6,33 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ## [??? (unreleased)]
 
+## [2019.5] - 2019-07-12
+
+### Added
+
+- TLS support by aktualizr-lite: [PR](https://github.com/advancedtelematic/aktualizr/pull/1237)
+- automatic garage-check usage at the end of garage-push/deploy: [PR](https://github.com/advancedtelematic/aktualizr/pull/1244)
+- ccache support: [PR] (https://github.com/advancedtelematic/aktualizr/pull/1248, https://github.com/advancedtelematic/aktualizr/pull/1249)
+- doc on Primary and Secondary bitbaking for RPi: [PR](https://github.com/advancedtelematic/aktualizr/pull/1238)
+
+### Changed
+
+- Stripping of executables in release mode: [PR](https://github.com/advancedtelematic/aktualizr/pull/1234)
+- VirtualSecondary configuration: [PR](https://github.com/advancedtelematic/aktualizr/pull/1246)
+
+### Removed
+
+- Jenkins pipeline and a few references: [PR](https://github.com/advancedtelematic/aktualizr/pull/1236)
+- Test repo meta: [PR](https://github.com/advancedtelematic/aktualizr/pull/1239)
+- SecondaryFactory and VirtualSecondary out of libaktualizr: [PR](https://github.com/advancedtelematic/aktualizr/pull/1241)
+- Fallback on clang-{tidy,format}: [PR](https://github.com/advancedtelematic/aktualizr/pull/1240)
+
+### Fixed
+
+- Logic of finding the latest version by aktualizr-lite: [PR](https://github.com/advancedtelematic/aktualizr/pull/1247)
+- Test regression in docker-app-mgr: [PR] (https://github.com/advancedtelematic/aktualizr/pull/1250)
+- Some more lintian fixes: [PR](https://github.com/advancedtelematic/aktualizr/pull/1242)
+
 
 ## [2019.4] - 2019-06-14
 
