@@ -105,7 +105,7 @@ TEST(aktualizr_repo, add_image) {
   TemporaryDirectory temp_dir;
   UptaneRepo repo(temp_dir.Path(), "", "");
   repo.generateRepo(key_type);
-  repo.addImage(temp_dir.Path() / "repo/director/manifest", "repo/director/manifest", {});
+  repo.addImage(temp_dir.Path() / "repo/director/manifest", "repo/director/manifest", "test-hw", {});
   Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
   EXPECT_EQ(image_targets["signed"]["targets"].size(), 1);
   Json::Value director_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/targets.json");
@@ -120,7 +120,7 @@ TEST(aktualizr_repo, copy_image) {
   TemporaryDirectory temp_dir;
   UptaneRepo repo(temp_dir.Path(), "", "");
   repo.generateRepo(key_type);
-  repo.addImage(temp_dir.Path() / "repo/director/manifest", "manifest", {});
+  repo.addImage(temp_dir.Path() / "repo/director/manifest", "manifest", "test-hw", {});
   repo.addTarget("manifest", "test-hw", "test-serial");
   repo.signTargets();
   Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
@@ -144,8 +144,8 @@ TEST(aktualizr_repo, delegation) {
   if (retval) {
     FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
-  cmd = generate_repo_exec + " adddelegation " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
-  cmd += " --dname test_delegate --dpattern 'tests/test_data/*.txt' ";
+  cmd = generate_repo_exec + " adddelegation " + temp_dir.Path().string() + " --keytype " + keytype_stream.str() +
+        " --dname test_delegate --dpattern 'tests/test_data/*.txt' --hwid primary_hw";
   retval = Utils::shell(cmd, &output);
   if (retval) {
     FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
@@ -156,8 +156,8 @@ TEST(aktualizr_repo, delegation) {
   EXPECT_EQ(targets["signed"]["delegations"]["roles"][0]["name"].asString(), "test_delegate");
   EXPECT_EQ(targets["signed"]["delegations"]["roles"][0]["paths"][0].asString(), "tests/test_data/*.txt");
 
-  cmd = generate_repo_exec + " image " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
-  cmd += " --dname test_delegate --filename tests/test_data/firmware.txt";
+  cmd = generate_repo_exec + " image " + temp_dir.Path().string() + " --keytype " + keytype_stream.str() +
+        " --dname test_delegate --filename tests/test_data/firmware.txt --hwid primary_hw";
   retval = Utils::shell(cmd, &output);
   if (retval) {
     FAIL() << "'" << output << "' exited with error code " << retval << "\n";
@@ -171,10 +171,9 @@ TEST(aktualizr_repo, delegation) {
     EXPECT_EQ(delegate_targets.targets[0].sha256Hash(),
               "d8e9caba8c1697fcbade1057f9c2488044192ff76bb64d4aba2c20e53dc33033");
   }
-  cmd = generate_repo_exec + " image " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
-  cmd +=
-      " --dname test_delegate --targetname tests/test_data/firmware2.txt --targetsha256 "
-      "d8e9caba8c1697fcbade1057f9c2488044192ff76bb64d4aba2c20e53dc33033 --targetlength 17";
+  cmd = generate_repo_exec + " image " + temp_dir.Path().string() + " --keytype " + keytype_stream.str() +
+        " --dname test_delegate --targetname tests/test_data/firmware2.txt --targetsha256 "
+        "d8e9caba8c1697fcbade1057f9c2488044192ff76bb64d4aba2c20e53dc33033 --targetlength 17 --hwid primary_hw";
   retval = Utils::shell(cmd, &output);
   if (retval) {
     FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
@@ -213,8 +212,8 @@ TEST(aktualizr_repo, delegation_revoke) {
   EXPECT_EQ(targets["signed"]["delegations"]["roles"][0]["name"].asString(), "test_delegate");
   EXPECT_EQ(targets["signed"]["delegations"]["roles"][0]["paths"][0].asString(), "tests/test_data/*.txt");
 
-  cmd = generate_repo_exec + " image " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
-  cmd += " --dname test_delegate --filename tests/test_data/firmware.txt";
+  cmd = generate_repo_exec + " image " + temp_dir.Path().string() + " --keytype " + keytype_stream.str() +
+        " --dname test_delegate --filename tests/test_data/firmware.txt --hwid primary_hw";
   retval = Utils::shell(cmd, &output);
   if (retval) {
     FAIL() << "'" << output << "' exited with error code " << retval << "\n";
@@ -228,17 +227,16 @@ TEST(aktualizr_repo, delegation_revoke) {
     EXPECT_EQ(delegate_targets.targets[0].sha256Hash(),
               "d8e9caba8c1697fcbade1057f9c2488044192ff76bb64d4aba2c20e53dc33033");
   }
-  cmd = generate_repo_exec + " image " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
-  cmd +=
-      " --dname test_delegate --targetname tests/test_data/firmware2.txt --targetsha256 "
-      "d8e9caba8c1697fcbade1057f9c2488044192ff76bb64d4aba2c20e53dc33033 --targetlength 17";
+  cmd = generate_repo_exec + " image " + temp_dir.Path().string() + " --keytype " + keytype_stream.str() +
+        " --dname test_delegate --targetname tests/test_data/firmware2.txt --targetsha256 "
+        "d8e9caba8c1697fcbade1057f9c2488044192ff76bb64d4aba2c20e53dc33033 --targetlength 17 --hwid primary_hw";
   retval = Utils::shell(cmd, &output);
   if (retval) {
     FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
 
-  cmd = generate_repo_exec + " addtarget " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
-  cmd += " --hwid primary_hw --serial CA:FE:A6:D2:84:9D --targetname tests/test_data/firmware.txt";
+  cmd = generate_repo_exec + " addtarget " + temp_dir.Path().string() + " --keytype " + keytype_stream.str() +
+        " --hwid primary_hw --serial CA:FE:A6:D2:84:9D --targetname tests/test_data/firmware.txt";
   retval = Utils::shell(cmd, &output);
   if (retval) {
     FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
@@ -269,8 +267,8 @@ TEST(aktualizr_repo, delegation_revoke) {
   }
   check_repo(temp_dir);
 
-  cmd = generate_repo_exec + " revokedelegation " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
-  cmd += " --dname test_delegate";
+  cmd = generate_repo_exec + " revokedelegation " + temp_dir.Path().string() + " --keytype " + keytype_stream.str() +
+        " --dname test_delegate";
   retval = Utils::shell(cmd, &output);
   if (retval) {
     FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
@@ -328,10 +326,9 @@ TEST(aktualizr_repo, image_custom) {
   if (retval) {
     FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
-  cmd = generate_repo_exec + " image " + temp_dir.Path().string();
-  cmd +=
-      " --targetname target1 --targetsha256 8ab755c16de6ee9b6224169b36cbf0f2a545f859be385501ad82cdccc240d0a6 "
-      "--targetlength 123";
+  cmd = generate_repo_exec + " image " + temp_dir.Path().string() +
+        " --targetname target1 --targetsha256 8ab755c16de6ee9b6224169b36cbf0f2a545f859be385501ad82cdccc240d0a6 "
+        "--targetlength 123 --hwid primary_hw";
   retval = Utils::shell(cmd, &output);
   if (retval) {
     FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
@@ -356,17 +353,16 @@ TEST(aktualizr_repo, emptytargets) {
   if (retval) {
     FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
-  cmd = generate_repo_exec + " image " + temp_dir.Path().string();
-  cmd +=
-      " --targetname target1 --targetsha256 8ab755c16de6ee9b6224169b36cbf0f2a545f859be385501ad82cdccc240d0a6 "
-      "--targetlength 123";
+  cmd = generate_repo_exec + " image " + temp_dir.Path().string() +
+        " --targetname target1 --targetsha256 8ab755c16de6ee9b6224169b36cbf0f2a545f859be385501ad82cdccc240d0a6 "
+        "--targetlength 123 --hwid primary_hw";
   retval = Utils::shell(cmd, &output);
   if (retval) {
     FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
 
-  cmd = generate_repo_exec + " addtarget " + temp_dir.Path().string();
-  cmd += " --targetname target1 --hwid hwid123 --serial serial123";
+  cmd = generate_repo_exec + " addtarget " + temp_dir.Path().string() +
+        " --targetname target1 --hwid primary_hw --serial serial123";
   retval = Utils::shell(cmd, &output);
   if (retval) {
     FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
@@ -398,8 +394,8 @@ TEST(aktualizr_repo, oldtargets) {
   UptaneRepo repo(temp_dir.Path(), "", "");
   repo.generateRepo(key_type);
   Uptane::Hash hash(Uptane::Hash::Type::kSha256, "8ab755c16de6ee9b6224169b36cbf0f2a545f859be385501ad82cdccc240d0a6");
-  repo.addCustomImage("target1", hash, 123);
-  repo.addCustomImage("target2", hash, 321);
+  repo.addCustomImage("target1", hash, 123, "test-hw");
+  repo.addCustomImage("target2", hash, 321, "test-hw");
   repo.addTarget("target1", "test-hw", "test-serial");
   repo.signTargets();
   repo.addTarget("target2", "test-hw", "test-serial");

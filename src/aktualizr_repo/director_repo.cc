@@ -15,6 +15,7 @@ void DirectorRepo::addTarget(const std::string &target_name, const Json::Value &
                              "!");
   }
   director_targets["targets"][target_name] = target;
+  director_targets["targets"][target_name]["custom"].removeMember("hardwareIds");
   director_targets["targets"][target_name]["custom"]["ecuIdentifiers"][ecu_serial]["hardwareId"] = hardware_id;
   director_targets["version"] = (Utils::parseJSONFile(current)["signed"]["version"].asUInt()) + 1;
   Utils::writeFile(staging, Utils::jsonToCanonicalStr(director_targets));

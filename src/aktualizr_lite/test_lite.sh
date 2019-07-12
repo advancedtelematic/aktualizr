@@ -40,7 +40,8 @@ add_target() {
 }
 EOF
     akrepo --command image \
-        --targetname $name --targetsha256 $sha --targetlength 0 --targetcustom $custom_json
+        --targetname $name --targetsha256 $sha --targetlength 0 \
+        --hwid hwid-for-test --targetcustom $custom_json
 }
 
 akrepo --command generate --expires 2021-07-04T16:33:27Z

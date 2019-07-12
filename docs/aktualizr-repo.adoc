@@ -43,7 +43,7 @@ aktualizr-repo --path <repo path> --command generate
 2. Add a target to the images metadata:
 +
 ```
-aktualizr-repo --path <repo path> --command image --filename <image name> --targetname <target name>
+aktualizr-repo --path <repo path> --command image --filename <image name> --targetname <target name> --hwid <hardware ID>
 ```
 +
 This step can be repeated as many times as necessary for each target. `--targetname` is optional. If it is not provided, it is assumed to be the same as the image name provided to `--filename`.

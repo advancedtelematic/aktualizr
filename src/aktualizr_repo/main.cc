@@ -98,8 +98,13 @@ int main(int argc, char **argv) {
           std::cerr << "image command requires --targetname or --filename\n";
           exit(EXIT_FAILURE);
         }
+        if (vm.count("hwid") == 0) {
+          std::cerr << "image command requires --hwid\n";
+          exit(EXIT_FAILURE);
+        }
         auto targetname = (vm.count("targetname") > 0) ? vm["targetname"].as<std::string>()
                                                        : vm["filename"].as<boost::filesystem::path>();
+        const std::string hwid = vm["hwid"].as<std::string>();
 
         Delegation delegation;
         if (vm.count("dname") != 0) {
@@ -111,7 +116,7 @@ int main(int argc, char **argv) {
           std::cout << "Added a target " << targetname << " to a delegated role " << dname << std::endl;
         }
         if (vm.count("filename") > 0) {
-          repo.addImage(vm["filename"].as<boost::filesystem::path>(), targetname, delegation);
+          repo.addImage(vm["filename"].as<boost::filesystem::path>(), targetname, hwid, delegation);
           std::cout << "Added a target " << targetname << " to the images metadata" << std::endl;
         } else {
           if ((vm.count("targetsha256") == 0 && vm.count("targetsha512") == 0) || vm.count("targetlength") == 0) {
@@ -137,7 +142,7 @@ int main(int argc, char **argv) {
             custom = Json::Value();
             custom["targetFormat"] = vm["targetformat"].as<std::string>();
           }
-          repo.addCustomImage(targetname.string(), *hash, vm["targetlength"].as<uint64_t>(), delegation, custom);
+          repo.addCustomImage(targetname.string(), *hash, vm["targetlength"].as<uint64_t>(), hwid, delegation, custom);
           std::cout << "Added a custom image target " << targetname.string() << std::endl;
         }
       } else if (command == "addtarget") {
@@ -145,9 +150,9 @@ int main(int argc, char **argv) {
           std::cerr << "addtarget command requires --targetname, --hwid, and --serial\n";
           exit(EXIT_FAILURE);
         }
-        std::string targetname = vm["targetname"].as<std::string>();
-        std::string hwid = vm["hwid"].as<std::string>();
-        std::string serial = vm["serial"].as<std::string>();
+        const std::string targetname = vm["targetname"].as<std::string>();
+        const std::string hwid = vm["hwid"].as<std::string>();
+        const std::string serial = vm["serial"].as<std::string>();
         repo.addTarget(targetname, hwid, serial);
         std::cout << "Added target " << targetname << " to director targets metadata for ECU with serial " << serial
                   << " and hardware ID " << hwid << std::endl;

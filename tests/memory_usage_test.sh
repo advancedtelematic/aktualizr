@@ -27,9 +27,9 @@ EOF
 
 dpkg-deb -Znone -b $TEMP_DIR/deb $TEMP_DIR/good.deb
 PATH="tests/test_data/fake_dpkg":$PATH
-$1/src/aktualizr_repo/aktualizr-repo image --filename $TEMP_DIR/good.deb --targetname good.deb --path $TEMP_DIR/uptane
-$1/src/aktualizr_repo/aktualizr-repo addtarget --targetname good.deb --path $TEMP_DIR/uptane --hwid desktop --serial serial1
-$1/src/aktualizr_repo/aktualizr-repo signtargets  --path $TEMP_DIR/uptane
+$1/src/aktualizr_repo/aktualizr-repo image --path $TEMP_DIR/uptane --filename $TEMP_DIR/good.deb --targetname good.deb --hwid desktop
+$1/src/aktualizr_repo/aktualizr-repo addtarget --path $TEMP_DIR/uptane --targetname good.deb --hwid desktop --serial serial1
+$1/src/aktualizr_repo/aktualizr-repo signtargets --path $TEMP_DIR/uptane
 
 
 sed -i 's/\[provision\]/\[provision\]\nprimary_ecu_serial = serial1/g'  "$TEMP_DIR/sota.toml"

@@ -46,7 +46,7 @@ TEST(Aktualizr, EmptyTargets) {
   Process akt_repo(aktualizr_repo_path.string());
   akt_repo.run({"generate", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
   akt_repo.run({"image", "--path", meta_dir.PathString(), "--filename", "tests/test_data/firmware.txt", "--targetname",
-                "firmware.txt"});
+                "firmware.txt", "--hwid", "primary_hw"});
   akt_repo.run({"addtarget", "--path", meta_dir.PathString(), "--targetname", "firmware.txt", "--hwid", "primary_hw",
                 "--serial", "CA:FE:A6:D2:84:9D"});
   akt_repo.run({"signtargets", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
@@ -111,7 +111,7 @@ TEST(Aktualizr, EmptyTargetsAfterInstall) {
   Process akt_repo(aktualizr_repo_path.string());
   akt_repo.run({"generate", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
   akt_repo.run({"image", "--path", meta_dir.PathString(), "--filename", "tests/test_data/firmware.txt", "--targetname",
-                "firmware.txt"});
+                "firmware.txt", "--hwid", "primary_hw"});
   akt_repo.run({"addtarget", "--path", meta_dir.PathString(), "--targetname", "firmware.txt", "--hwid", "primary_hw",
                 "--serial", "CA:FE:A6:D2:84:9D"});
   akt_repo.run({"signtargets", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
