@@ -4,7 +4,7 @@ LABEL Description="Ubuntu Bionic package testing dockerfile"
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get update && apt-get -y install debian-archive-keyring
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-suggests --no-install-recommends \
   libarchive13 \
   libboost-log1.65.1 \
   libboost-program-options1.65.1 \

@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND noninteractive
 
 # It is important to run these in the same RUN command, because otherwise
 # Docker layer caching breaks us
-RUN apt-get update && apt-get -y install \
+RUN apt-get update && apt-get -y install --no-install-suggests --no-install-recommends \
   apt-transport-https \
   asn1c \
   autoconf \
