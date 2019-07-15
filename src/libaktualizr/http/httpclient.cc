@@ -46,7 +46,8 @@ static size_t writeString(void* contents, size_t size, size_t nmemb, void* userp
   return size * nmemb;
 }
 
-HttpClient::HttpClient() : user_agent(std::string("Aktualizr/") + aktualizr_version()) {
+HttpClient::HttpClient(const std::vector<std::string>* extra_headers)
+    : user_agent(std::string("Aktualizr/") + aktualizr_version()) {
   curl = curl_easy_init();
   if (curl == nullptr) {
     throw std::runtime_error("Could not initialize curl");
@@ -65,6 +66,12 @@ HttpClient::HttpClient() : user_agent(std::string("Aktualizr/") + aktualizr_vers
 
   headers = curl_slist_append(headers, "Content-Type: application/json");
   headers = curl_slist_append(headers, "Accept: */*");
+
+  if (extra_headers != nullptr) {
+    for (const auto& header : *extra_headers) {
+      headers = curl_slist_append(headers, header.c_str());
+    }
+  }
   curlEasySetoptWrapper(curl, CURLOPT_HTTPHEADER, headers);
   curlEasySetoptWrapper(curl, CURLOPT_USERAGENT, user_agent.c_str());
 }

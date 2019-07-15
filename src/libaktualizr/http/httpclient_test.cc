@@ -30,6 +30,14 @@ TEST(GetTest, get_performed) {
   EXPECT_EQ(response["path"].asString(), path);
 }
 
+TEST(GetTestWithHeaders, get_performed) {
+  std::vector<std::string> headers = {"Authorization: Bearer token"};
+  HttpClient http(&headers);
+  std::string path = "/auth_call";
+  Json::Value response = http.get(server + path, HttpInterface::kNoLimit).getJson();
+  EXPECT_EQ(response["status"].asString(), "good");
+}
+
 /* Reject http GET responses that exceed size limit. */
 TEST(GetTest, download_size_limit) {
   HttpClient http;
