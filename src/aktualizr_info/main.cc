@@ -53,7 +53,8 @@ int main(int argc, char **argv) {
     ("delegation",  "Outputs metadata of image repo targets' delegations")
     ("director-root",  "Outputs root.json from director repo")
     ("director-target",  "Outputs targets.json from director repo")
-    ("allow-migrate", "Opens database in read/write mode to make possible to migrate database if needed");
+    ("allow-migrate", "Opens database in read/write mode to make possible to migrate database if needed")
+    ("wait-until-provisioned", "Outputs metadata when device already provisioned");
   // clang-format on
 
   try {
@@ -77,6 +78,11 @@ int main(int argc, char **argv) {
       readonly = false;
     }
 
+    bool wait_provisioning = false;
+    if (vm.count("wait-until-provisioned") != 0) {
+      wait_provisioning = true;
+    }
+
     std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage, readonly);
     bool cmd_trigger = false;
     std::string device_id;
@@ -89,6 +95,17 @@ int main(int argc, char **argv) {
         std::cout << device_id << std::endl;
         return EXIT_SUCCESS;
       }
+    }
+
+    std::string director_root;
+    auto registered = storage->loadEcuRegistered();
+    bool has_metadata = storage->loadLatestRoot(&director_root, Uptane::RepositoryType::Director());
+
+    while (wait_provisioning && (!registered || !has_metadata)) {
+      registered = storage->loadEcuRegistered();
+      has_metadata = storage->loadLatestRoot(&director_root, Uptane::RepositoryType::Director());
+
+      sleep(1);
     }
 
     // TLS credentials
@@ -149,9 +166,6 @@ int main(int argc, char **argv) {
       std::cout << key << std::endl;
       cmd_trigger = true;
     }
-
-    std::string director_root;
-    bool has_metadata = storage->loadLatestRoot(&director_root, Uptane::RepositoryType::Director());
 
     // An arguments which depend on metadata.
     std::string msg_metadata_fail = "Metadata is not available";
@@ -286,7 +300,6 @@ int main(int argc, char **argv) {
       }
     }
 
-    auto registered = storage->loadEcuRegistered();
     std::cout << "Provisioned on server: " << (registered ? "yes" : "no") << std::endl;
     std::cout << "Fetched metadata: " << (has_metadata ? "yes" : "no") << std::endl;
 

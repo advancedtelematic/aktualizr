@@ -6,11 +6,7 @@ from time import sleep
 
 def verify_provisioned(akt_info, conf):
     # Verify that device HAS provisioned.
-    for delay in [5, 5, 5, 5, 10, 10, 10, 10]:
-        sleep(delay)
-        stdout, stderr, retcode = run_subprocess([str(akt_info), '--config', str(conf)])
-        if retcode == 0 and stderr == b'' and 'Fetched metadata: yes' in stdout.decode():
-            break
+    stdout, stderr, retcode = run_subprocess([str(akt_info), '--config', str(conf), '--wait-until-provisioned'])
     machine = platform.node()
     if (b'Device ID: ' not in stdout or
             b'Primary ecu hardware ID: ' + machine.encode() not in stdout or
@@ -28,5 +24,10 @@ def verify_provisioned(akt_info, conf):
 
 def run_subprocess(command, **kwargs):
     print('> Running {}'.format(' '.join(command)))
-    s = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False, **kwargs)
-    return s.stdout, s.stderr, s.returncode
+    proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
+    try:
+        stdout, stderr = proc.communicate(timeout=60)
+    except TimeoutExpired:
+        proc.kill()
+        stdout, stderr = proc.communicate()
+    return stdout, stderr, proc.returncode
