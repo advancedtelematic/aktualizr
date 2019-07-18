@@ -220,18 +220,19 @@ class Hash {
 
 std::ostream &operator<<(std::ostream &os, const Hash &h);
 
+using EcuMap = std::map<EcuSerial, HardwareIdentifier>;
+
 class Target {
  public:
   // From Uptane metadata
   Target(std::string filename, const Json::Value &content);
   // Internal, does not have type. Only used for reading installation_versions
   // list and by various tests.
-  Target(std::string filename, std::map<EcuSerial, HardwareIdentifier> ecus, std::vector<Hash> hashes, uint64_t length,
-         std::string correlation_id = "");
+  Target(std::string filename, EcuMap ecus, std::vector<Hash> hashes, uint64_t length, std::string correlation_id = "");
 
   static Target Unknown();
 
-  const std::map<EcuSerial, HardwareIdentifier> &ecus() const { return ecus_; }
+  const EcuMap &ecus() const { return ecus_; }
   std::string filename() const { return filename_; }
   std::string sha256Hash() const;
   std::string sha512Hash() const;
@@ -268,7 +269,7 @@ class Target {
   bool valid{true};
   std::string filename_;
   std::string type_;
-  std::map<EcuSerial, HardwareIdentifier> ecus_;  // Director only
+  EcuMap ecus_;  // Director only
   std::vector<Hash> hashes_;
   std::vector<HardwareIdentifier> hwids_;  // Images repo only
   Json::Value custom_;

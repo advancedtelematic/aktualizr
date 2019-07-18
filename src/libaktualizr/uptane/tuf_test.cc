@@ -97,8 +97,7 @@ Json::Value generateTarget(const std::string& hash, const int length) {
   return target;
 }
 
-Json::Value generateDirectorTarget(const std::string& hash, const int length,
-                                   const std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier>& ecu_map) {
+Json::Value generateDirectorTarget(const std::string& hash, const int length, const Uptane::EcuMap& ecu_map) {
   Json::Value target = generateTarget(hash, length);
   Json::Value custom;
   Json::Value ecus;
@@ -129,7 +128,7 @@ Json::Value generateImagesTarget(const std::string& hash, const int length,
 TEST(Target, Match) {
   Uptane::HardwareIdentifier hwid("fake-test");
   std::vector<Uptane::HardwareIdentifier> hardwareIds;
-  std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> ecu_map;
+  Uptane::EcuMap ecu_map;
   hardwareIds.emplace_back(hwid);
   ecu_map.insert({Uptane::EcuSerial("serial"), hwid});
   Uptane::Target target1("abc", generateDirectorTarget("hash_good", 739, ecu_map));
@@ -142,7 +141,7 @@ TEST(Target, Match) {
 TEST(Target, MatchDirector) {
   Uptane::HardwareIdentifier hwid("first-test");
   Uptane::HardwareIdentifier hwid2("second-test");
-  std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> ecu_map;
+  Uptane::EcuMap ecu_map;
   ecu_map.insert({Uptane::EcuSerial("serial"), hwid});
   ecu_map.insert({Uptane::EcuSerial("serial2"), hwid2});
   Uptane::Target target1("abc", generateDirectorTarget("hash_good", 739, ecu_map));
@@ -168,7 +167,7 @@ TEST(Target, MatchImages) {
 TEST(Target, MatchExtraHwId) {
   Uptane::HardwareIdentifier hwid("fake-test");
   std::vector<Uptane::HardwareIdentifier> hardwareIds;
-  std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> ecu_map;
+  Uptane::EcuMap ecu_map;
   hardwareIds.emplace_back(hwid);
   ecu_map.insert({Uptane::EcuSerial("serial"), hwid});
   Uptane::Target target1("abc", generateDirectorTarget("hash_good", 739, ecu_map));
@@ -183,7 +182,7 @@ TEST(Target, MatchTwo) {
   Uptane::HardwareIdentifier hwid("first-test");
   Uptane::HardwareIdentifier hwid2("second-test");
   std::vector<Uptane::HardwareIdentifier> hardwareIds;
-  std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> ecu_map;
+  Uptane::EcuMap ecu_map;
   hardwareIds.emplace_back(hwid);
   hardwareIds.emplace_back(hwid2);
   ecu_map.insert({Uptane::EcuSerial("serial"), hwid});
@@ -211,7 +210,7 @@ TEST(Target, MultipleHwIdMismatch) {
 TEST(Target, MissingHwId) {
   Uptane::HardwareIdentifier hwid("fake-test");
   std::vector<Uptane::HardwareIdentifier> hardwareIds;
-  std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> ecu_map;
+  Uptane::EcuMap ecu_map;
   hardwareIds.emplace_back(hwid);
   ecu_map.insert({Uptane::EcuSerial("serial"), hwid});
   Uptane::Target target1("abc", generateDirectorTarget("hash_good", 739, ecu_map));
@@ -225,7 +224,7 @@ TEST(Target, MissingHwId) {
 TEST(Target, FilenameMismatch) {
   Uptane::HardwareIdentifier hwid("fake-test");
   std::vector<Uptane::HardwareIdentifier> hardwareIds;
-  std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> ecu_map;
+  Uptane::EcuMap ecu_map;
   hardwareIds.emplace_back(hwid);
   ecu_map.insert({Uptane::EcuSerial("serial"), hwid});
   Uptane::Target target1("abc", generateDirectorTarget("hash_good", 739, ecu_map));
@@ -238,7 +237,7 @@ TEST(Target, FilenameMismatch) {
 TEST(Target, LengthMismatch) {
   Uptane::HardwareIdentifier hwid("fake-test");
   std::vector<Uptane::HardwareIdentifier> hardwareIds;
-  std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> ecu_map;
+  Uptane::EcuMap ecu_map;
   hardwareIds.emplace_back(hwid);
   ecu_map.insert({Uptane::EcuSerial("serial"), hwid});
   Uptane::Target target1("abc", generateDirectorTarget("hash_good", 739, ecu_map));
@@ -251,7 +250,7 @@ TEST(Target, LengthMismatch) {
 TEST(Target, HardwareIdMismatch) {
   Uptane::HardwareIdentifier hwid("fake-test");
   std::vector<Uptane::HardwareIdentifier> hardwareIds;
-  std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> ecu_map;
+  Uptane::EcuMap ecu_map;
   hardwareIds.emplace_back(hwid);
   ecu_map.insert({Uptane::EcuSerial("serial"), hwid});
   Uptane::Target target1("abc", generateDirectorTarget("hash_good", 739, ecu_map));
@@ -265,7 +264,7 @@ TEST(Target, HardwareIdMismatch) {
 TEST(Target, HashMismatch) {
   Uptane::HardwareIdentifier hwid("fake-test");
   std::vector<Uptane::HardwareIdentifier> hardwareIds;
-  std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> ecu_map;
+  Uptane::EcuMap ecu_map;
   hardwareIds.emplace_back(hwid);
   ecu_map.insert({Uptane::EcuSerial("serial"), hwid});
   Uptane::Target target1("abc", generateDirectorTarget("hash_good", 739, ecu_map));

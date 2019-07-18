@@ -299,8 +299,7 @@ TEST(storage, load_store_installed_versions) {
       Uptane::Hash{Uptane::Hash::Type::kSha256, "2561"},
       Uptane::Hash{Uptane::Hash::Type::kSha512, "5121"},
   };
-  std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> primary_ecu{
-      {Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")}};
+  Uptane::EcuMap primary_ecu{{Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")}};
   Uptane::Target t1{"update.bin", primary_ecu, hashes, 1, "corrid"};
   storage->savePrimaryInstalledVersion(t1, InstalledVersionUpdateMode::kCurrent);
 
@@ -376,8 +375,7 @@ TEST(storage, load_store_installed_versions) {
   }
 
   // Add a secondary installed version
-  std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> secondary_ecu{
-      {Uptane::EcuSerial("secondary1"), Uptane::HardwareIdentifier("secondary_hw")}};
+  Uptane::EcuMap secondary_ecu{{Uptane::EcuSerial("secondary1"), Uptane::HardwareIdentifier("secondary_hw")}};
   Uptane::Target tsec{"secondary.bin", secondary_ecu, {Uptane::Hash{Uptane::Hash::Type::kSha256, "256s"}}, 4};
   storage->saveInstalledVersion("secondary_1", tsec, InstalledVersionUpdateMode::kCurrent);
 

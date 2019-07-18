@@ -979,7 +979,7 @@ bool SQLStorage::loadInstalledVersions(const std::string& ecu_serial, std::vecto
     }
   }
 
-  std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> ecu_map;
+  Uptane::EcuMap ecu_map;
   auto statement =
       db.prepareStatement<std::string>("SELECT hardware_id FROM ecu_serials WHERE serial = ?;", ecu_serial_real);
   if (statement.step() == SQLITE_ROW) {

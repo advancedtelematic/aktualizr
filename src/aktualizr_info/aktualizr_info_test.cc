@@ -382,7 +382,7 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersions) {
   const std::string current_ecu_version = "639a4e39-e6ba-4832-ace4-8b12cf20d562";
   const std::string pending_ecu_version = "9636753d-2a09-4c80-8b25-64b2c2d0c4df";
 
-  std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> ecu_map{{primary_ecu_serial, primary_hw_id}};
+  Uptane::EcuMap ecu_map{{primary_ecu_serial, primary_hw_id}};
   db_storage_->savePrimaryInstalledVersion(
       {"update.bin", ecu_map, {{Uptane::Hash::Type::kSha256, current_ecu_version}}, 1, "corrid"},
       InstalledVersionUpdateMode::kCurrent);
@@ -421,7 +421,7 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
   EXPECT_NE(aktualizr_info_output.find("No currently running version on primary ecu"), std::string::npos);
   EXPECT_EQ(aktualizr_info_output.find("Pending primary ecu version:"), std::string::npos);
 
-  std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> ecu_map{{primary_ecu_serial, primary_hw_id}};
+  Uptane::EcuMap ecu_map{{primary_ecu_serial, primary_hw_id}};
   db_storage_->savePrimaryInstalledVersion(
       {"update-01.bin", ecu_map, {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
       InstalledVersionUpdateMode::kPending);
@@ -463,7 +463,7 @@ TEST_F(AktualizrInfoTest, PrintSecondaryEcuCurrentAndPendingVersions) {
   db_storage_->storeEcuSerials({{primary_ecu_serial, primary_hw_id}, {secondary_ecu_serial, secondary_hw_id}});
   db_storage_->storeEcuRegistered();
 
-  std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> ecu_map{{secondary_ecu_serial, secondary_hw_id}};
+  Uptane::EcuMap ecu_map{{secondary_ecu_serial, secondary_hw_id}};
   db_storage_->saveInstalledVersion(
       secondary_ecu_serial.ToString(),
       {secondary_ecu_filename, ecu_map, {{Uptane::Hash::Type::kSha256, current_ecu_version}}, 1},

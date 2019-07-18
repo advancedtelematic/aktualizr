@@ -101,7 +101,7 @@ TEST_P(UptaneVector, Test) {
   Uptane::EcuSerial ecu_serial(config.provision.primary_ecu_serial);
   Uptane::HardwareIdentifier hw_id(config.provision.primary_ecu_hardware_id);
   uptane_client->hw_ids.insert(std::make_pair(ecu_serial, hw_id));
-  std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> ecu_map{{ecu_serial, hw_id}};
+  Uptane::EcuMap ecu_map{{ecu_serial, hw_id}};
   Uptane::Target target("test_filename", ecu_map, {{Uptane::Hash::Type::kSha256, "sha256"}}, 1, "");
   storage->saveInstalledVersion(ecu_serial.ToString(), target, InstalledVersionUpdateMode::kCurrent);
 

@@ -160,8 +160,7 @@ Target::Target(std::string filename, const Json::Value &content) : filename_(std
   std::sort(hashes_.begin(), hashes_.end(), [](const Hash &l, const Hash &r) { return l.type() < r.type(); });
 }
 
-Target::Target(std::string filename, std::map<EcuSerial, HardwareIdentifier> ecus, std::vector<Hash> hashes,
-               uint64_t length, std::string correlation_id)
+Target::Target(std::string filename, EcuMap ecus, std::vector<Hash> hashes, uint64_t length, std::string correlation_id)
     : filename_(std::move(filename)),
       ecus_(std::move(ecus)),
       hashes_(std::move(hashes)),
@@ -234,13 +233,13 @@ bool Target::operator==(const Target &t2) const {
   // ECU->HWID map empty). Figure out which Target has the map, and then for
   // every item in the map, make sure it's in the other Target's HWID vector.
   if (hwids_ != t2.hwids_ || ecus_ != t2.ecus_) {
-    std::shared_ptr<std::map<EcuSerial, HardwareIdentifier>> ecu_map;  // Director
-    std::shared_ptr<std::vector<HardwareIdentifier>> hwid_vector;      // Image repo
+    std::shared_ptr<EcuMap> ecu_map;                               // Director
+    std::shared_ptr<std::vector<HardwareIdentifier>> hwid_vector;  // Image repo
     if (!hwids_.empty() && ecus_.empty() && t2.hwids_.empty() && !t2.ecus_.empty()) {
-      ecu_map = std::make_shared<std::map<EcuSerial, HardwareIdentifier>>(t2.ecus_);
+      ecu_map = std::make_shared<EcuMap>(t2.ecus_);
       hwid_vector = std::make_shared<std::vector<HardwareIdentifier>>(hwids_);
     } else if (!t2.hwids_.empty() && t2.ecus_.empty() && hwids_.empty() && !ecus_.empty()) {
-      ecu_map = std::make_shared<std::map<EcuSerial, HardwareIdentifier>>(ecus_);
+      ecu_map = std::make_shared<EcuMap>(ecus_);
       hwid_vector = std::make_shared<std::vector<HardwareIdentifier>>(t2.hwids_);
     } else {
       return false;
