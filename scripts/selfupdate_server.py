@@ -7,10 +7,15 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        print("GET: " + self.path)
+        local_path = self.path
+        print("GET: " + local_path)
+        # Fix annoying issue where aktualizr-repo generates metadata for the
+        # images repository in /image but aktualizr expects /repo.
+        if local_path.startswith("/repo/"):
+            local_path = local_path.replace('/repo/', '/image/', 1)
         self.send_response(200)
         self.end_headers()
-        with open(self.server.base_dir + "/fake_root/repo/" + self.path, "rb") as fl:
+        with open(self.server.base_dir + "/fake_root/repo/" + local_path, "rb") as fl:
             self.wfile.write(bytearray(fl.read()))
 
     def do_POST(self):
