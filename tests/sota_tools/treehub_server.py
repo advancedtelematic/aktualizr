@@ -54,6 +54,7 @@ class TreehubServerHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         print("POST: %s\n" % self.path)
         ctype, pdict = cgi.parse_header(self.headers['Content-Type'])
+        print("Upload type: {}".format(ctype))
         if ctype == 'multipart/form-data':
             pdict['boundary'] = bytes(pdict['boundary'], 'utf-8')
             fields = cgi.parse_multipart(self.rfile, pdict)
@@ -65,6 +66,20 @@ class TreehubServerHandler(BaseHTTPRequestHandler):
                 self.send_response_only(200)
                 self.end_headers()
                 return
+        elif ctype == 'application/x-www-form-urlencoded':
+            length = int(self.headers['content-length'])
+            postvars = cgi.parse_qs(self.rfile.read(length), keep_blank_values=1)
+            full_path = os.path.join(repo_path, self.path[1:])
+            os.makedirs(os.path.dirname(full_path), exist_ok=True)
+            with open(full_path, "wb") as f:
+                for key in postvars:
+                    print(key)
+                    f.write(key)
+                    f.write(b'\n') # refs is represented as a string in the source repo and has a trailing newline byte
+            self.send_response_only(200)
+            self.end_headers()
+            return
+
         self.send_response_only(400)
         self.end_headers()
 

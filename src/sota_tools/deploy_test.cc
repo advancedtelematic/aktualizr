@@ -18,15 +18,25 @@ TEST(deploy, UploadToTreehub) {
   OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>("tests/sota_tools/repo");
   boost::filesystem::path filepath = (temp_dir.Path() / "auth.json").string();
   boost::filesystem::path cert_path = "tests/fake_http_server/client.crt";
+  auto server_creds = ServerCredentials(filepath);
+  auto run_mode = RunMode::kDefault;
+  auto test_ref = src_repo->GetRef("master");
 
   const uint8_t hash[32] = {0x16, 0xef, 0x2f, 0x26, 0x29, 0xdc, 0x92, 0x63, 0xfd, 0xf3, 0xc0,
                             0xf0, 0x32, 0x56, 0x3a, 0x2d, 0x75, 0x76, 0x23, 0xbb, 0xc1, 0x1c,
                             0xf9, 0x9d, 0xf2, 0x5c, 0x3c, 0x3f, 0x25, 0x8d, 0xcc, 0xbe};
-  UploadToTreehub(src_repo, ServerCredentials(filepath), OSTreeHash(hash), cert_path.string(), RunMode::kDefault, 2);
+  UploadToTreehub(src_repo, server_creds, OSTreeHash(hash), cert_path.string(), run_mode, 2);
 
   int result = system(
       (std::string("diff -r ") + (temp_dir.Path() / "objects/").string() + " tests/sota_tools/repo/objects/").c_str());
-  EXPECT_EQ(result, 0) << "Diff between source and destination repos is nonzero.";
+  EXPECT_EQ(result, 0) << "Diff between the source repo objects and the destination repo objects is nonzero.";
+
+  bool push_root_ref_res = PushRootRef(server_creds, test_ref, cert_path.string(), run_mode);
+  EXPECT_TRUE(push_root_ref_res);
+
+  result =
+      system((std::string("diff -r ") + (temp_dir.Path() / "refs/").string() + " tests/sota_tools/repo/refs/").c_str());
+  EXPECT_EQ(result, 0) << "Diff between the source repo refs and the destination repos refs is nonzero.";
 }
 
 #ifndef __NO_MAIN__
