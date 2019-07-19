@@ -261,7 +261,9 @@ class Target {
    */
   bool IsOstree() const;
 
-  bool operator==(const Target &t2) const;
+  // Comparison is usually not meaningful. Use MatchTarget instead.
+  bool operator==(const Target &t2) = delete;
+  bool MatchTarget(const Target &t2) const;
   Json::Value toDebugJson() const;
   friend std::ostream &operator<<(std::ostream &os, const Target &t);
 
@@ -401,6 +403,18 @@ class Root : public MetaWithKeys {
   Policy policy_;
 };
 
+static bool MatchTargetVector(const std::vector<Uptane::Target> &v1, const std::vector<Uptane::Target> &v2) {
+  if (v1.size() != v2.size()) {
+    return false;
+  }
+  for (size_t i = 0; i < v1.size(); ++i) {
+    if (!v1[i].MatchTarget(v2[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
 // Also used for delegated targets.
 class Targets : public MetaWithKeys {
  public:
@@ -410,7 +424,7 @@ class Targets : public MetaWithKeys {
   ~Targets() override = default;
 
   bool operator==(const Targets &rhs) const {
-    return version_ == rhs.version() && expiry_ == rhs.expiry() && targets == rhs.targets;
+    return version_ == rhs.version() && expiry_ == rhs.expiry() && MatchTargetVector(targets, rhs.targets);
   }
   const std::string &correlation_id() const { return correlation_id_; }
   void clear() {

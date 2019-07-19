@@ -37,7 +37,7 @@ TEST(PackageManagerFactory, Debian_Install_Good) {
   fhandle->wcommit();
 
   EXPECT_EQ(pacman->install(target).result_code.num_code, data::ResultCode::Numeric::kOk);
-  EXPECT_EQ(pacman->getCurrent(), target);
+  EXPECT_TRUE(pacman->getCurrent().MatchTarget(target));
 }
 
 TEST(PackageManagerFactory, Debian_Install_Bad) {

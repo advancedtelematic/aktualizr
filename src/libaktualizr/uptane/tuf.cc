@@ -214,7 +214,7 @@ bool Target::IsOstree() const {
   }
 }
 
-bool Target::operator==(const Target &t2) const {
+bool Target::MatchTarget(const Target &t2) const {
   // type_ (targetFormat) is only provided by the Images repo.
   // ecus_ is only provided by the Images repo.
   // correlation_id_ is only provided by the Director.

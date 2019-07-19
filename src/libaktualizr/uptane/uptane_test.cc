@@ -936,7 +936,7 @@ TEST(Uptane, FsToSqlFull) {
   EXPECT_EQ(sql_device_id, device_id);
   EXPECT_EQ(sql_serials, serials);
   EXPECT_EQ(sql_ecu_registered, ecu_registered);
-  EXPECT_EQ(sql_installed_versions, fixed_installed_versions);
+  EXPECT_TRUE(Uptane::MatchTargetVector(sql_installed_versions, fixed_installed_versions));
 
   EXPECT_EQ(sql_director_root, director_root);
   EXPECT_EQ(sql_director_targets, director_targets);
@@ -1010,7 +1010,7 @@ TEST(Uptane, SaveAndLoadVersion) {
   EXPECT_NE(f, installed_versions.end());
   EXPECT_EQ(f->sha256Hash(), "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d");
   EXPECT_EQ(f->length(), 123);
-  EXPECT_EQ(*f, t);
+  EXPECT_TRUE(f->MatchTarget(t));
 }
 
 class HttpFakeUnstable : public HttpFake {
@@ -1120,7 +1120,7 @@ TEST(Uptane, offlineIteration) {
 
   std::vector<Uptane::Target> targets_offline;
   EXPECT_TRUE(sota_client->uptaneOfflineIteration(&targets_offline, nullptr));
-  EXPECT_EQ(targets_online, targets_offline);
+  EXPECT_TRUE(Uptane::MatchTargetVector(targets_online, targets_offline));
 }
 /*
  Ignore updates for unrecognized ECUs.

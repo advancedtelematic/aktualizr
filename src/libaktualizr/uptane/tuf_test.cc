@@ -133,8 +133,8 @@ TEST(Target, Match) {
   ecu_map.insert({Uptane::EcuSerial("serial"), hwid});
   Uptane::Target target1("abc", generateDirectorTarget("hash_good", 739, ecu_map));
   Uptane::Target target2("abc", generateImagesTarget("hash_good", 739, hardwareIds));
-  EXPECT_TRUE(target1 == target2);
-  EXPECT_TRUE(target2 == target1);
+  EXPECT_TRUE(target1.MatchTarget(target2));
+  EXPECT_TRUE(target2.MatchTarget(target1));
 }
 
 /* Two Target objects created by the Director should match. */
@@ -146,8 +146,8 @@ TEST(Target, MatchDirector) {
   ecu_map.insert({Uptane::EcuSerial("serial2"), hwid2});
   Uptane::Target target1("abc", generateDirectorTarget("hash_good", 739, ecu_map));
   Uptane::Target target2("abc", generateDirectorTarget("hash_good", 739, ecu_map));
-  EXPECT_TRUE(target1 == target2);
-  EXPECT_TRUE(target2 == target1);
+  EXPECT_TRUE(target1.MatchTarget(target2));
+  EXPECT_TRUE(target2.MatchTarget(target1));
 }
 
 /* Two Target objects created by the Images repo should match. */
@@ -159,8 +159,8 @@ TEST(Target, MatchImages) {
   hardwareIds.emplace_back(hwid2);
   Uptane::Target target1("abc", generateImagesTarget("hash_good", 739, hardwareIds));
   Uptane::Target target2("abc", generateImagesTarget("hash_good", 739, hardwareIds));
-  EXPECT_TRUE(target1 == target2);
-  EXPECT_TRUE(target2 == target1);
+  EXPECT_TRUE(target1.MatchTarget(target2));
+  EXPECT_TRUE(target2.MatchTarget(target1));
 }
 
 /* Extra hardware IDs in the Images Target metadata should still match. */
@@ -173,8 +173,8 @@ TEST(Target, MatchExtraHwId) {
   Uptane::Target target1("abc", generateDirectorTarget("hash_good", 739, ecu_map));
   hardwareIds.emplace_back(Uptane::HardwareIdentifier("extra"));
   Uptane::Target target2("abc", generateImagesTarget("hash_good", 739, hardwareIds));
-  EXPECT_TRUE(target1 == target2);
-  EXPECT_TRUE(target2 == target1);
+  EXPECT_TRUE(target1.MatchTarget(target2));
+  EXPECT_TRUE(target2.MatchTarget(target1));
 }
 
 /* Multiple ECUs should still match. */
@@ -189,8 +189,8 @@ TEST(Target, MatchTwo) {
   ecu_map.insert({Uptane::EcuSerial("serial2"), hwid2});
   Uptane::Target target1("abc", generateDirectorTarget("hash_good", 739, ecu_map));
   Uptane::Target target2("abc", generateImagesTarget("hash_good", 739, hardwareIds));
-  EXPECT_TRUE(target1 == target2);
-  EXPECT_TRUE(target2 == target1);
+  EXPECT_TRUE(target1.MatchTarget(target2));
+  EXPECT_TRUE(target2.MatchTarget(target1));
 }
 
 /* Reject inconsistent sets of multiple hardware IDs. */
@@ -202,8 +202,8 @@ TEST(Target, MultipleHwIdMismatch) {
   Uptane::Target target1("abc", generateImagesTarget("hash_good", 739, hardwareIds));
   hardwareIds.emplace_back(Uptane::HardwareIdentifier("extra2"));
   Uptane::Target target2("abc", generateImagesTarget("hash_good", 739, hardwareIds));
-  EXPECT_FALSE(target1 == target2);
-  EXPECT_FALSE(target2 == target1);
+  EXPECT_FALSE(target1.MatchTarget(target2));
+  EXPECT_FALSE(target2.MatchTarget(target1));
 }
 
 /* Reject a missing hardware ID. */
@@ -216,8 +216,8 @@ TEST(Target, MissingHwId) {
   Uptane::Target target1("abc", generateDirectorTarget("hash_good", 739, ecu_map));
   hardwareIds.clear();
   Uptane::Target target2("abc", generateImagesTarget("hash_good", 739, hardwareIds));
-  EXPECT_FALSE(target1 == target2);
-  EXPECT_FALSE(target2 == target1);
+  EXPECT_FALSE(target1.MatchTarget(target2));
+  EXPECT_FALSE(target2.MatchTarget(target1));
 }
 
 /* Reject mismatched filenames. */
@@ -229,8 +229,8 @@ TEST(Target, FilenameMismatch) {
   ecu_map.insert({Uptane::EcuSerial("serial"), hwid});
   Uptane::Target target1("abc", generateDirectorTarget("hash_good", 739, ecu_map));
   Uptane::Target target2("xyz", generateImagesTarget("hash_good", 739, hardwareIds));
-  EXPECT_FALSE(target1 == target2);
-  EXPECT_FALSE(target2 == target1);
+  EXPECT_FALSE(target1.MatchTarget(target2));
+  EXPECT_FALSE(target2.MatchTarget(target1));
 }
 
 /* Reject mismatched lengths. */
@@ -242,8 +242,8 @@ TEST(Target, LengthMismatch) {
   ecu_map.insert({Uptane::EcuSerial("serial"), hwid});
   Uptane::Target target1("abc", generateDirectorTarget("hash_good", 739, ecu_map));
   Uptane::Target target2("abc", generateImagesTarget("hash_good", 1, hardwareIds));
-  EXPECT_FALSE(target1 == target2);
-  EXPECT_FALSE(target2 == target1);
+  EXPECT_FALSE(target1.MatchTarget(target2));
+  EXPECT_FALSE(target2.MatchTarget(target1));
 }
 
 /* Reject mismatched hardware IDs. */
@@ -256,8 +256,8 @@ TEST(Target, HardwareIdMismatch) {
   Uptane::Target target1("abc", generateDirectorTarget("hash_good", 739, ecu_map));
   hardwareIds[0] = Uptane::HardwareIdentifier("alt-test");
   Uptane::Target target2("abc", generateImagesTarget("hash_good", 739, hardwareIds));
-  EXPECT_FALSE(target1 == target2);
-  EXPECT_FALSE(target2 == target1);
+  EXPECT_FALSE(target1.MatchTarget(target2));
+  EXPECT_FALSE(target2.MatchTarget(target1));
 }
 
 /* Reject mismatched hashes. */
@@ -269,8 +269,8 @@ TEST(Target, HashMismatch) {
   ecu_map.insert({Uptane::EcuSerial("serial"), hwid});
   Uptane::Target target1("abc", generateDirectorTarget("hash_good", 739, ecu_map));
   Uptane::Target target2("abc", generateImagesTarget("hash_bad", 739, hardwareIds));
-  EXPECT_FALSE(target1 == target2);
-  EXPECT_FALSE(target2 == target1);
+  EXPECT_FALSE(target1.MatchTarget(target2));
+  EXPECT_FALSE(target2.MatchTarget(target1));
 }
 
 #ifndef __NO_MAIN__
