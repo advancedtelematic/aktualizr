@@ -245,7 +245,7 @@ class Target {
   uint64_t length() const { return length_; }
   bool IsValid() const { return valid; }
   std::string uri() const { return uri_; };
-  bool MatchWith(const Hash &hash) const;
+  bool MatchHash(const Hash &hash) const;
 
   bool IsForSecondary(const EcuSerial &ecuIdentifier) const {
     return (std::find_if(ecus_.cbegin(), ecus_.cend(), [&ecuIdentifier](std::pair<EcuSerial, HardwareIdentifier> pair) {

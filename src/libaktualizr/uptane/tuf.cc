@@ -181,7 +181,7 @@ Target Target::Unknown() {
   return target;
 }
 
-bool Target::MatchWith(const Hash &hash) const {
+bool Target::MatchHash(const Hash &hash) const {
   return (std::find(hashes_.begin(), hashes_.end(), hash) != hashes_.end());
 }
 

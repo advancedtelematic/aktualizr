@@ -1227,13 +1227,13 @@ boost::optional<std::pair<size_t, std::string>> SQLStorage::checkTargetFile(cons
     bool sha256_match = false;
     bool sha512_match = false;
     if (!(*sha256).empty()) {
-      if (target.MatchWith(Uptane::Hash(Uptane::Hash::Type::kSha256, *sha256))) {
+      if (target.MatchHash(Uptane::Hash(Uptane::Hash::Type::kSha256, *sha256))) {
         sha256_match = true;
       }
     }
 
     if (!(*sha512).empty()) {
-      if (target.MatchWith(Uptane::Hash(Uptane::Hash::Type::kSha512, *sha512))) {
+      if (target.MatchHash(Uptane::Hash(Uptane::Hash::Type::kSha512, *sha512))) {
         sha512_match = true;
       }
     }

@@ -129,7 +129,7 @@ bool PackageManagerInterface::fetchTarget(const Uptane::Target& target, Uptane::
       }
       throw Uptane::Exception("image", "Could not download file, error: " + response.error_message);
     }
-    if (!target.MatchWith(Uptane::Hash(ds.hash_type, ds.hasher().getHexDigest()))) {
+    if (!target.MatchHash(Uptane::Hash(ds.hash_type, ds.hasher().getHexDigest()))) {
       ds.fhandle->wabort();
       throw Uptane::TargetHashMismatch(target.filename());
     }
