@@ -218,8 +218,9 @@ bool Target::MatchTarget(const Target &t2) const {
   // type_ (targetFormat) is only provided by the Images repo.
   // ecus_ is only provided by the Images repo.
   // correlation_id_ is only provided by the Director.
-  // uri_ is unchecked because Uptane mentions it should be provided by the
-  // Director, although it can be provided by the Image repository as well.
+  // uri_ is not matched. If the Director provides it, we use that. If not, but
+  // the Image repository does, use that. Otherwise, leave it empty and use the
+  // default.
   if (filename_ != t2.filename_) {
     return false;
   }
