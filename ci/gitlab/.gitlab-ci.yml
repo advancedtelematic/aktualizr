@@ -185,10 +185,20 @@ xenial-pkg-test:
 OE Docker setup:
   extends: .bb_docker_remote
   stage: docker
+  only:
+    variables:
+      - $OE_PTEST
+      - $CI_COMMIT_REF_NAME == "master"
+      - $CI_COMMIT_REF_NAME =~ /^\d\d\d\d\.\d+(-\w+)?$/
 
 OE Checkout:
   extends: .bb_checkout
   stage: oe-checkout
+  only:
+    variables:
+      - $OE_PTEST
+      - $CI_COMMIT_REF_NAME == "master"
+      - $CI_COMMIT_REF_NAME =~ /^\d\d\d\d\.\d+(-\w+)?$/
 
   variables:
     MANIFEST: master
@@ -198,6 +208,11 @@ Ptest qemux86_64:
   stage: oe-test
   dependencies:
     - OE Checkout
+  only:
+    variables:
+      - $OE_PTEST
+      - $CI_COMMIT_REF_NAME == "master"
+      - $CI_COMMIT_REF_NAME =~ /^\d\d\d\d\.\d+(-\w+)?$/
 
   variables:
     TEST_BUILD_DIR: 'build-ptest'
