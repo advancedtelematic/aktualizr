@@ -31,17 +31,17 @@ class MetaFake {
 
       // add image for "has update" meta
       file_name = "dummy_firmware.txt";
-      repo.addImage(work_dir / file_name, file_name, "dummy", delegation);
+      repo.addImage(work_dir / file_name, file_name, "dummy", "", delegation);
 
       file_name = "primary_firmware.txt";
       hwid = "primary_hw";
-      repo.addImage(work_dir / file_name, file_name, hwid, delegation);
-      repo.addTarget(file_name.string(), hwid, "CA:FE:A6:D2:84:9D");
+      repo.addImage(work_dir / file_name, file_name, hwid, "", delegation);
+      repo.addTarget(file_name.string(), hwid, "CA:FE:A6:D2:84:9D", "");
 
       file_name = "secondary_firmware.txt";
       hwid = "secondary_hw";
-      repo.addImage(work_dir / file_name, file_name, hwid, delegation);
-      repo.addTarget(file_name.string(), hwid, "secondary_ecu_serial");
+      repo.addImage(work_dir / file_name, file_name, hwid, "", delegation);
+      repo.addTarget(file_name.string(), hwid, "secondary_ecu_serial", "");
 
       repo.signTargets();
       rename("_hasupdates");
@@ -50,7 +50,7 @@ class MetaFake {
       restore();
 
       file_name = "dummy_firmware.txt";
-      repo.addImage(work_dir / file_name, file_name, "dummy", delegation);
+      repo.addImage(work_dir / file_name, file_name, "dummy", "", delegation);
 
       repo.signTargets();
       rename("_noupdates");
@@ -59,17 +59,17 @@ class MetaFake {
       restore();
 
       file_name = "dummy_firmware.txt";
-      repo.addImage(work_dir / file_name, file_name, "dummy", delegation);
+      repo.addImage(work_dir / file_name, file_name, "dummy", "", delegation);
 
       file_name = "secondary_firmware.txt";
       hwid = "sec_hw1";
-      repo.addImage(work_dir / file_name, file_name, hwid, delegation);
-      repo.addTarget(file_name.string(), hwid, "sec_serial1");
+      repo.addImage(work_dir / file_name, file_name, hwid, "", delegation);
+      repo.addTarget(file_name.string(), hwid, "sec_serial1", "");
 
       file_name = "secondary_firmware2.txt";
       hwid = "sec_hw2";
-      repo.addImage(work_dir / file_name, file_name, hwid, delegation);
-      repo.addTarget(file_name.string(), hwid, "sec_serial2");
+      repo.addImage(work_dir / file_name, file_name, hwid, "", delegation);
+      repo.addTarget(file_name.string(), hwid, "sec_serial2", "");
 
       repo.signTargets();
       rename("_multisec");
