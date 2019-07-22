@@ -73,14 +73,14 @@ aktualizr-repo --path <repo path> --command adddelegation --dname <delegated rol
 
 To add a target to a delegated role, add the `--dname` parameter to the `image` command. The targetname must match the pattern supplied in `--dpattern` to the `adddelegation` command.
 ```
-aktualizr-repo --path <repo path> --command image --filename <image name> --targetname <target name> --dname <delegated role name>
+aktualizr-repo --path <repo path> --command image --filename <image name> --targetname <target name> --hwid <hardware ID> --dname <delegated role name>
 ```
 
 ==== Generating metadata without a real file
 
 To add a target to the images metadata without providing an actual file, you can supply alternative parameters to the `image` command:
 ```
-aktualizr-repo --path <repo path> --command image --targetname <target name> --targetsha256 <target SHA256 hash> --targetsha512 <target SHA512 hash> --targetlength <target length>
+aktualizr-repo --path <repo path> --command image --targetname <target name> --targetsha256 <target SHA256 hash> --targetsha512 <target SHA512 hash> --targetlength <target length> --hwid <hardware ID>
 ```
 
 ==== Advanced director metadata control
@@ -101,3 +101,17 @@ To sign arbitrary metadata with one of the Uptane keys, use the `sign` command:
 ```
 aktualizr-repo --path <repo path> --command sign --repotype <director|image> --keyname <role name of key> < <input data>
 ```
+
+==== Add custom URLs
+
+To add a custom URL to an image in the Targets metadata of the Images repository:
+```
+aktualizr-repo --path <repo path> --command image --filename <image name> --targetname <target name> --hwid <hardware ID> --url <URL>
+```
+
+To add a custom URL to an image in the Targets metadata of the Director:
+```
+aktualizr-repo --path <repo path> --command addtarget --targetname <image name> --hwid <hardware ID> --serial <ECU serial> --url <URL>
+```
+
+If a custom URL is set in both sets of metadata, libaktualizr will use the URL from the Director.

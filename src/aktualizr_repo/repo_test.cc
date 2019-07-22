@@ -105,9 +105,10 @@ TEST(aktualizr_repo, add_image) {
   TemporaryDirectory temp_dir;
   UptaneRepo repo(temp_dir.Path(), "", "");
   repo.generateRepo(key_type);
-  repo.addImage(temp_dir.Path() / "repo/director/manifest", "repo/director/manifest", "test-hw", {});
+  repo.addImage(temp_dir.Path() / "repo/director/manifest", "repo/director/manifest", "test-hw", "", {});
   Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
   EXPECT_EQ(image_targets["signed"]["targets"].size(), 1);
+  EXPECT_FALSE(image_targets["signed"]["targets"]["repo/director/manifest"]["custom"].isMember("uri"));
   Json::Value director_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/targets.json");
   EXPECT_EQ(director_targets["signed"]["targets"].size(), 0);
   check_repo(temp_dir);
@@ -120,13 +121,54 @@ TEST(aktualizr_repo, copy_image) {
   TemporaryDirectory temp_dir;
   UptaneRepo repo(temp_dir.Path(), "", "");
   repo.generateRepo(key_type);
-  repo.addImage(temp_dir.Path() / "repo/director/manifest", "manifest", "test-hw", {});
-  repo.addTarget("manifest", "test-hw", "test-serial");
+  repo.addImage(temp_dir.Path() / "repo/director/manifest", "manifest", "test-hw", "", {});
+  repo.addTarget("manifest", "test-hw", "test-serial", "");
   repo.signTargets();
   Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
   EXPECT_EQ(image_targets["signed"]["targets"].size(), 1);
+  EXPECT_FALSE(image_targets["signed"]["targets"]["manifest"]["custom"].isMember("uri"));
   Json::Value director_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/targets.json");
   EXPECT_EQ(director_targets["signed"]["targets"].size(), 1);
+  EXPECT_FALSE(director_targets["signed"]["targets"]["manifest"]["custom"].isMember("uri"));
+  check_repo(temp_dir);
+}
+
+/*
+ * Add an image to the images repo with a custom URL.
+ */
+TEST(aktualizr_repo, image_custom_url) {
+  TemporaryDirectory temp_dir;
+  UptaneRepo repo(temp_dir.Path(), "", "");
+  repo.generateRepo(key_type);
+  repo.addImage(temp_dir.Path() / "repo/director/manifest", "manifest", "test-hw", "test-url", {});
+  repo.addTarget("manifest", "test-hw", "test-serial", "");
+  repo.signTargets();
+  Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
+  EXPECT_EQ(image_targets["signed"]["targets"].size(), 1);
+  EXPECT_EQ(image_targets["signed"]["targets"]["manifest"]["custom"]["uri"], "test-url");
+  Json::Value director_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/targets.json");
+  EXPECT_EQ(director_targets["signed"]["targets"].size(), 1);
+  EXPECT_FALSE(director_targets["signed"]["targets"]["manifest"]["custom"].isMember("uri"));
+  check_repo(temp_dir);
+}
+
+/*
+ * Add an image to the images repo with a custom URL.
+ * Copy an image to the director repo with a custom URL.
+ */
+TEST(aktualizr_repo, both_custom_url) {
+  TemporaryDirectory temp_dir;
+  UptaneRepo repo(temp_dir.Path(), "", "");
+  repo.generateRepo(key_type);
+  repo.addImage(temp_dir.Path() / "repo/director/manifest", "manifest", "test-hw", "test-url", {});
+  repo.addTarget("manifest", "test-hw", "test-serial", "test-url2");
+  repo.signTargets();
+  Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
+  EXPECT_EQ(image_targets["signed"]["targets"].size(), 1);
+  EXPECT_EQ(image_targets["signed"]["targets"]["manifest"]["custom"]["uri"], "test-url");
+  Json::Value director_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/targets.json");
+  EXPECT_EQ(director_targets["signed"]["targets"].size(), 1);
+  EXPECT_EQ(director_targets["signed"]["targets"]["manifest"]["custom"]["uri"], "test-url2");
   check_repo(temp_dir);
 }
 
@@ -337,6 +379,7 @@ TEST(aktualizr_repo, image_custom) {
   Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
   EXPECT_EQ(image_targets["signed"]["targets"].size(), 1);
   EXPECT_EQ(image_targets["signed"]["targets"]["target1"]["length"].asUInt(), 123);
+  EXPECT_FALSE(image_targets["signed"]["targets"]["target1"]["custom"].isMember("uri"));
   check_repo(temp_dir);
 }
 
@@ -394,11 +437,11 @@ TEST(aktualizr_repo, oldtargets) {
   UptaneRepo repo(temp_dir.Path(), "", "");
   repo.generateRepo(key_type);
   Uptane::Hash hash(Uptane::Hash::Type::kSha256, "8ab755c16de6ee9b6224169b36cbf0f2a545f859be385501ad82cdccc240d0a6");
-  repo.addCustomImage("target1", hash, 123, "test-hw");
-  repo.addCustomImage("target2", hash, 321, "test-hw");
-  repo.addTarget("target1", "test-hw", "test-serial");
+  repo.addCustomImage("target1", hash, 123, "test-hw", "");
+  repo.addCustomImage("target2", hash, 321, "test-hw", "");
+  repo.addTarget("target1", "test-hw", "test-serial", "");
   repo.signTargets();
-  repo.addTarget("target2", "test-hw", "test-serial");
+  repo.addTarget("target2", "test-hw", "test-serial", "");
 
   Json::Value targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/staging/targets.json");
   EXPECT_EQ(targets["targets"].size(), 2);
