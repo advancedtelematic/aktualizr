@@ -3,6 +3,7 @@ if(BUILD_WITH_CODE_COVERAGE)
 endif()
 
 add_subdirectory("libaktualizr")
+add_subdirectory("libaktualizr-c")
 add_subdirectory("virtual_secondary")
 add_subdirectory("sota_tools")
 add_subdirectory("aktualizr_primary")
