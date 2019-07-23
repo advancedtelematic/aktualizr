@@ -21,10 +21,10 @@ variables:
   GIT_SUBMODULE_STRATEGY: recursive
 
 Docker Setup:
-  image: docker:latest
+  image: docker:18
   stage: docker
   services:
-    - docker:dind
+    - docker:18-dind
   before_script:
     - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
   script:
