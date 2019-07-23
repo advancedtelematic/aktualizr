@@ -29,7 +29,7 @@ HARDWARE_ID=test_primary_hardware_id
 "$TTV_DIR/generator.py" --signature-encoding base64 -o vectors --cjson json-subset \
                         --ecu-identifier $ECU_SERIAL --hardware-id $HARDWARE_ID
 "$TTV_DIR/server.py" --signature-encoding base64 -P 0 \
-                                            --ecu-identifier $ECU_SERIAL --hardware-id $HARDWARE_ID &
+                     --ecu-identifier $ECU_SERIAL --hardware-id $HARDWARE_ID &
 PORT=$("$TESTS_SRC_DIR/find_listening_port.sh" $!)
 trap 'kill %1' EXIT
 

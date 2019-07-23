@@ -26,19 +26,22 @@ class MetaFake {
   private:
   void create_testData(void) {
       boost::filesystem::path file_name;
+      std::string hwid;
       Delegation delegation;
 
       // add image for "has update" meta
       file_name = "dummy_firmware.txt";
-      repo.addImage(work_dir / file_name, file_name, delegation);
+      repo.addImage(work_dir / file_name, file_name, "dummy", delegation);
 
       file_name = "primary_firmware.txt";
-      repo.addImage(work_dir / file_name, file_name, delegation);
-      repo.addTarget(file_name.string(), "primary_hw", "CA:FE:A6:D2:84:9D");
+      hwid = "primary_hw";
+      repo.addImage(work_dir / file_name, file_name, hwid, delegation);
+      repo.addTarget(file_name.string(), hwid, "CA:FE:A6:D2:84:9D");
 
       file_name = "secondary_firmware.txt";
-      repo.addImage(work_dir / file_name, file_name, delegation);
-      repo.addTarget(file_name.string(), "secondary_hw", "secondary_ecu_serial");
+      hwid = "secondary_hw";
+      repo.addImage(work_dir / file_name, file_name, hwid, delegation);
+      repo.addTarget(file_name.string(), hwid, "secondary_ecu_serial");
 
       repo.signTargets();
       rename("_hasupdates");
@@ -47,7 +50,7 @@ class MetaFake {
       restore();
 
       file_name = "dummy_firmware.txt";
-      repo.addImage(work_dir / file_name, file_name, delegation);
+      repo.addImage(work_dir / file_name, file_name, "dummy", delegation);
 
       repo.signTargets();
       rename("_noupdates");
@@ -56,16 +59,18 @@ class MetaFake {
       restore();
 
       file_name = "dummy_firmware.txt";
-      repo.addImage(work_dir / file_name, file_name, delegation);
+      repo.addImage(work_dir / file_name, file_name, "dummy", delegation);
 
       file_name = "secondary_firmware.txt";
-      repo.addImage(work_dir / file_name, file_name, delegation);
-      repo.addTarget(file_name.string(), "sec_hwid1", "sec_serial1");
+      hwid = "sec_hw1";
+      repo.addImage(work_dir / file_name, file_name, hwid, delegation);
+      repo.addTarget(file_name.string(), hwid, "sec_serial1");
 
       file_name = "secondary_firmware2.txt";
-      repo.addImage(work_dir / file_name, file_name, delegation);
-      repo.addTarget(file_name.string(), "sec_hwid2", "sec_serial2");
-      
+      hwid = "sec_hw2";
+      repo.addImage(work_dir / file_name, file_name, hwid, delegation);
+      repo.addTarget(file_name.string(), hwid, "sec_serial2");
+
       repo.signTargets();
       rename("_multisec");
 
@@ -111,7 +116,7 @@ class MetaFake {
 
   void rename(const std::string &appendix) {
       for (unsigned int i=0; i < backup_files.size(); i++) {
-          boost::filesystem::rename(backup_files[i], 
+          boost::filesystem::rename(backup_files[i],
               (backup_files[i].parent_path() / backup_files[i].stem()).string() + appendix + ".json");
       }
   }

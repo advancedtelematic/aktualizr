@@ -830,8 +830,16 @@ TEST(Uptane, FsToSqlFull) {
 
   bool ecu_registered = fs_storage.loadEcuRegistered();
 
-  std::vector<Uptane::Target> installed_versions;
-  fs_storage.loadInstalledVersions(&installed_versions, nullptr);
+  std::vector<Uptane::Target> fs_installed_versions;
+  std::vector<Uptane::Target> fixed_installed_versions;
+  fs_storage.loadInstalledVersions(&fs_installed_versions, nullptr);
+  // Add the serial/hwid mapping to match what the SQL storage will do when
+  // reading it back after it has been copied from FS storage.
+  for (auto &target : fs_installed_versions) {
+    Json::Value dump = target.toDebugJson();
+    dump["custom"]["ecuIdentifiers"][serials[0].first.ToString()]["hardwareId"] = serials[0].second.ToString();
+    fixed_installed_versions.emplace_back(Uptane::Target(target.filename(), dump));
+  }
 
   std::string director_root;
   std::string director_targets;
@@ -928,7 +936,7 @@ TEST(Uptane, FsToSqlFull) {
   EXPECT_EQ(sql_device_id, device_id);
   EXPECT_EQ(sql_serials, serials);
   EXPECT_EQ(sql_ecu_registered, ecu_registered);
-  EXPECT_EQ(sql_installed_versions, installed_versions);
+  EXPECT_TRUE(Uptane::MatchTargetVector(sql_installed_versions, fixed_installed_versions));
 
   EXPECT_EQ(sql_director_root, director_root);
   EXPECT_EQ(sql_director_targets, director_targets);
@@ -1002,7 +1010,7 @@ TEST(Uptane, SaveAndLoadVersion) {
   EXPECT_NE(f, installed_versions.end());
   EXPECT_EQ(f->sha256Hash(), "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d");
   EXPECT_EQ(f->length(), 123);
-  EXPECT_EQ(*f, t);
+  EXPECT_TRUE(f->MatchTarget(t));
 }
 
 class HttpFakeUnstable : public HttpFake {
@@ -1112,7 +1120,7 @@ TEST(Uptane, offlineIteration) {
 
   std::vector<Uptane::Target> targets_offline;
   EXPECT_TRUE(sota_client->uptaneOfflineIteration(&targets_offline, nullptr));
-  EXPECT_EQ(targets_online, targets_offline);
+  EXPECT_TRUE(Uptane::MatchTargetVector(targets_online, targets_offline));
 }
 /*
  Ignore updates for unrecognized ECUs.

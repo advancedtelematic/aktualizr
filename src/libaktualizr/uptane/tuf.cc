@@ -120,11 +120,15 @@ Target::Target(std::string filename, const Json::Value &content) : filename_(std
   if (content.isMember("custom")) {
     custom_ = content["custom"];
 
-    Json::Value hwids = custom_["hardwareIds"];
-    for (Json::ValueIterator i = hwids.begin(); i != hwids.end(); ++i) {
-      hwids_.emplace_back(HardwareIdentifier((*i).asString()));
+    // Images repo provides an array of hardware IDs.
+    if (custom_.isMember("hardwareIds")) {
+      Json::Value hwids = custom_["hardwareIds"];
+      for (Json::ValueIterator i = hwids.begin(); i != hwids.end(); ++i) {
+        hwids_.emplace_back(HardwareIdentifier((*i).asString()));
+      }
     }
 
+    // Director provides a map of ECU serials to hardware IDs.
     Json::Value ecus = custom_["ecuIdentifiers"];
     for (Json::ValueIterator i = ecus.begin(); i != ecus.end(); ++i) {
       ecus_.insert({EcuSerial(i.key().asString()), HardwareIdentifier((*i)["hardwareId"].asString())});
@@ -156,8 +160,9 @@ Target::Target(std::string filename, const Json::Value &content) : filename_(std
   std::sort(hashes_.begin(), hashes_.end(), [](const Hash &l, const Hash &r) { return l.type() < r.type(); });
 }
 
-Target::Target(std::string filename, std::vector<Hash> hashes, uint64_t length, std::string correlation_id)
+Target::Target(std::string filename, EcuMap ecus, std::vector<Hash> hashes, uint64_t length, std::string correlation_id)
     : filename_(std::move(filename)),
+      ecus_(std::move(ecus)),
       hashes_(std::move(hashes)),
       length_(length),
       correlation_id_(std::move(correlation_id)) {
@@ -176,7 +181,7 @@ Target Target::Unknown() {
   return target;
 }
 
-bool Target::MatchWith(const Hash &hash) const {
+bool Target::MatchHash(const Hash &hash) const {
   return (std::find(hashes_.begin(), hashes_.end(), hash) != hashes_.end());
 }
 
@@ -209,15 +214,77 @@ bool Target::IsOstree() const {
   }
 }
 
+bool Target::MatchTarget(const Target &t2) const {
+  // type_ (targetFormat) is only provided by the Images repo.
+  // ecus_ is only provided by the Images repo.
+  // correlation_id_ is only provided by the Director.
+  // uri_ is unchecked because Uptane mentions it should be provided by the
+  // Director, although it can be provided by the Image repository as well.
+  if (filename_ != t2.filename_) {
+    return false;
+  }
+  if (length_ != t2.length_) {
+    return false;
+  }
+
+  // If the HWID vector and ECU->HWID map match, we're good. Otherwise, assume
+  // we have a Target from the Director (ECU->HWID map populated, HWID vector
+  // empty) and a Target from the Images repo (HWID vector populated,
+  // ECU->HWID map empty). Figure out which Target has the map, and then for
+  // every item in the map, make sure it's in the other Target's HWID vector.
+  if (hwids_ != t2.hwids_ || ecus_ != t2.ecus_) {
+    std::shared_ptr<EcuMap> ecu_map;                               // Director
+    std::shared_ptr<std::vector<HardwareIdentifier>> hwid_vector;  // Image repo
+    if (!hwids_.empty() && ecus_.empty() && t2.hwids_.empty() && !t2.ecus_.empty()) {
+      ecu_map = std::make_shared<EcuMap>(t2.ecus_);
+      hwid_vector = std::make_shared<std::vector<HardwareIdentifier>>(hwids_);
+    } else if (!t2.hwids_.empty() && t2.ecus_.empty() && hwids_.empty() && !ecus_.empty()) {
+      ecu_map = std::make_shared<EcuMap>(ecus_);
+      hwid_vector = std::make_shared<std::vector<HardwareIdentifier>>(t2.hwids_);
+    } else {
+      return false;
+    }
+    for (auto map_it = ecu_map->cbegin(); map_it != ecu_map->cend(); ++map_it) {
+      auto vec_it = find(hwid_vector->cbegin(), hwid_vector->cend(), map_it->second);
+      if (vec_it == hwid_vector->end()) {
+        return false;
+      }
+    }
+  }
+
+  // requirements:
+  // - all hashes of the same type should match
+  // - at least one pair of hashes should match
+  bool oneMatchingHash = false;
+  for (const Hash &hash : hashes_) {
+    for (const Hash &hash2 : t2.hashes_) {
+      if (hash.type() == hash2.type() && !(hash == hash2)) {
+        return false;
+      }
+      if (hash == hash2) {
+        oneMatchingHash = true;
+      }
+    }
+  }
+  return oneMatchingHash;
+}
+
 Json::Value Target::toDebugJson() const {
   Json::Value res;
-  for (auto it = ecus_.begin(); it != ecus_.cend(); ++it) {
-    res["custom"]["ecuIdentifiers"][it->first.ToString()]["hardwareId"] = it->second.ToString();
+  for (const auto &ecu : ecus_) {
+    res["custom"]["ecuIdentifiers"][ecu.first.ToString()]["hardwareId"] = ecu.second.ToString();
+  }
+  if (!hwids_.empty()) {
+    Json::Value hwids;
+    for (Json::Value::ArrayIndex i = 0; i < hwids_.size(); ++i) {
+      hwids[i] = hwids_[i].ToString();
+    }
+    res["custom"]["hardwareIds"] = hwids;
   }
   res["custom"]["targetFormat"] = type_;
 
-  for (auto it = hashes_.cbegin(); it != hashes_.cend(); ++it) {
-    res["hashes"][it->TypeString()] = it->HashString();
+  for (const auto &hash : hashes_) {
+    res["hashes"][hash.TypeString()] = hash.HashString();
   }
   res["length"] = Json::Value(static_cast<Json::Value::Int64>(length_));
   return res;
@@ -226,15 +293,19 @@ Json::Value Target::toDebugJson() const {
 std::ostream &Uptane::operator<<(std::ostream &os, const Target &t) {
   os << "Target(" << t.filename_;
   os << " ecu_identifiers: (";
-
-  for (auto it = t.ecus_.begin(); it != t.ecus_.end(); ++it) {
-    os << it->first;
+  for (const auto &ecu : t.ecus_) {
+    os << ecu.first << " (hw_id: " << ecu.second << "), ";
+  }
+  os << ")"
+     << " hw_ids: (";
+  for (const auto &hwid : t.hwids_) {
+    os << hwid << ", ";
   }
   os << ")"
      << " length:" << t.length();
   os << " hashes: (";
-  for (auto it = t.hashes_.begin(); it != t.hashes_.end(); ++it) {
-    os << *it << ", ";
+  for (const auto &hash : t.hashes_) {
+    os << hash << ", ";
   }
   os << "))";
 

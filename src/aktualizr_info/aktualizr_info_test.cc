@@ -32,8 +32,8 @@ class AktualizrInfoTest : public ::testing::Test {
 
   virtual void SetUp() {
     device_id = "aktualizr-info-test-device_ID-fd1fc55c-3abc-4de8-a2ca-32d455ae9c11";
-    primary_ecu_serial = "82697cac-f54c-40ea-a8f2-76c203b7bf2f";
-    primary_ecu_id = "primary-hdwr-e96c08e0-38a0-4903-a021-143cf5427bc9";
+    primary_ecu_serial = Uptane::EcuSerial("82697cac-f54c-40ea-a8f2-76c203b7bf2f");
+    primary_hw_id = Uptane::HardwareIdentifier("primary-hdwr-e96c08e0-38a0-4903-a021-143cf5427bc9");
 
     db_storage_->storeDeviceId(device_id);
   }
@@ -76,8 +76,8 @@ class AktualizrInfoTest : public ::testing::Test {
   AktualizrInfoProcess aktualizr_info_process_{*this, test_conf_file_};
 
   std::string device_id;
-  std::string primary_ecu_serial;
-  std::string primary_ecu_id;
+  Uptane::EcuSerial primary_ecu_serial = Uptane::EcuSerial::Unknown();
+  Uptane::HardwareIdentifier primary_hw_id = Uptane::HardwareIdentifier::Unknown();
 };
 
 /**
@@ -96,17 +96,15 @@ class AktualizrInfoTest : public ::testing::Test {
  *  - [x] Print whether metadata has been fetched from the server, if they were fetched
  */
 TEST_F(AktualizrInfoTest, PrintPrimaryAndSecondaryInfo) {
-  const std::string secondary_ecu_serial = "c6998d3e-2a68-4ac2-817e-4ea6ef87d21f";
-  const std::string secondary_ecu_id = "secondary-hdwr-af250269-bd6f-4148-9426-4101df7f613a";
+  const Uptane::EcuSerial secondary_ecu_serial{"c6998d3e-2a68-4ac2-817e-4ea6ef87d21f"};
+  const Uptane::HardwareIdentifier secondary_hw_id{"secondary-hdwr-af250269-bd6f-4148-9426-4101df7f613a"};
   const std::string provisioning_status = "Provisioned on server: yes";
   const std::string fetched_metadata = "Fetched metadata: yes";
 
   Json::Value meta_root;
   std::string director_root = Utils::jsonToStr(meta_root);
 
-  db_storage_->storeEcuSerials(
-      {{Uptane::EcuSerial(primary_ecu_serial), Uptane::HardwareIdentifier(primary_ecu_id)},
-       {Uptane::EcuSerial(secondary_ecu_serial), Uptane::HardwareIdentifier(secondary_ecu_id)}});
+  db_storage_->storeEcuSerials({{primary_ecu_serial, primary_hw_id}, {secondary_ecu_serial, secondary_hw_id}});
   db_storage_->storeEcuRegistered();
   db_storage_->storeRoot(director_root, Uptane::RepositoryType::Director(), Uptane::Version(1));
 
@@ -114,11 +112,11 @@ TEST_F(AktualizrInfoTest, PrintPrimaryAndSecondaryInfo) {
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
-  EXPECT_NE(aktualizr_info_output.find(primary_ecu_serial), std::string::npos);
-  EXPECT_NE(aktualizr_info_output.find(primary_ecu_id), std::string::npos);
+  EXPECT_NE(aktualizr_info_output.find(primary_ecu_serial.ToString()), std::string::npos);
+  EXPECT_NE(aktualizr_info_output.find(primary_hw_id.ToString()), std::string::npos);
 
-  EXPECT_NE(aktualizr_info_output.find(secondary_ecu_serial), std::string::npos);
-  EXPECT_NE(aktualizr_info_output.find(secondary_ecu_id), std::string::npos);
+  EXPECT_NE(aktualizr_info_output.find(secondary_ecu_serial.ToString()), std::string::npos);
+  EXPECT_NE(aktualizr_info_output.find(secondary_hw_id.ToString()), std::string::npos);
 
   EXPECT_NE(aktualizr_info_output.find(provisioning_status), std::string::npos);
   EXPECT_NE(aktualizr_info_output.find(fetched_metadata), std::string::npos);
@@ -136,7 +134,7 @@ TEST_F(AktualizrInfoTest, PrintProvisioningAndMetadataNegative) {
   const std::string provisioning_status = "Provisioned on server: no";
   const std::string fetched_metadata = "Fetched metadata: no";
 
-  db_storage_->storeEcuSerials({{Uptane::EcuSerial(primary_ecu_serial), Uptane::HardwareIdentifier(primary_ecu_id)}});
+  db_storage_->storeEcuSerials({{primary_ecu_serial, primary_hw_id}});
 
   aktualizr_info_process_.run();
   ASSERT_FALSE(aktualizr_info_output.empty());
@@ -156,24 +154,21 @@ TEST_F(AktualizrInfoTest, PrintProvisioningAndMetadataNegative) {
 TEST_F(AktualizrInfoTest, PrintSecondaryNotRegisteredOrRemoved) {
   const std::string provisioning_status = "Provisioned on server: yes";
 
-  const std::string secondary_ecu_serial = "c6998d3e-2a68-4ac2-817e-4ea6ef87d21f";
-  const std::string secondary_ecu_id = "secondary-hdwr-af250269-bd6f-4148-9426-4101df7f613a";
+  const Uptane::EcuSerial secondary_ecu_serial{"c6998d3e-2a68-4ac2-817e-4ea6ef87d21f"};
+  const Uptane::HardwareIdentifier secondary_hw_id{"secondary-hdwr-af250269-bd6f-4148-9426-4101df7f613a"};
 
-  const std::string secondary_ecu_serial_not_reg = "18b018a1-fdda-4461-a281-42237256cc2f";
-  const std::string secondary_ecu_id_not_reg = "secondary-hdwr-cbce3a7a-7cbb-4da4-9fff-8e10e5c3de98";
+  const Uptane::EcuSerial secondary_ecu_serial_not_reg{"18b018a1-fdda-4461-a281-42237256cc2f"};
+  const Uptane::HardwareIdentifier secondary_hw_id_not_reg{"secondary-hdwr-cbce3a7a-7cbb-4da4-9fff-8e10e5c3de98"};
 
-  const std::string secondary_ecu_serial_old = "c2191c12-7298-4be3-b781-d223dac7f75e";
-  const std::string secondary_ecu_id_old = "secondary-hdwr-0ded1c51-d280-49c3-a92b-7ff2c2e91d8c";
+  const Uptane::EcuSerial secondary_ecu_serial_old{"c2191c12-7298-4be3-b781-d223dac7f75e"};
+  const Uptane::HardwareIdentifier secondary_hw_id_old{"secondary-hdwr-0ded1c51-d280-49c3-a92b-7ff2c2e91d8c"};
 
-  db_storage_->storeEcuSerials(
-      {{Uptane::EcuSerial(primary_ecu_serial), Uptane::HardwareIdentifier(primary_ecu_id)},
-       {Uptane::EcuSerial(secondary_ecu_serial), Uptane::HardwareIdentifier(secondary_ecu_id)}});
+  db_storage_->storeEcuSerials({{primary_ecu_serial, primary_hw_id}, {secondary_ecu_serial, secondary_hw_id}});
   db_storage_->storeEcuRegistered();
 
-  db_storage_->storeMisconfiguredEcus({{Uptane::EcuSerial(secondary_ecu_serial_not_reg),
-                                        Uptane::HardwareIdentifier(secondary_ecu_id_not_reg), EcuState::kNotRegistered},
-                                       {Uptane::EcuSerial(secondary_ecu_serial_old),
-                                        Uptane::HardwareIdentifier(secondary_ecu_id_old), EcuState::kOld}});
+  db_storage_->storeMisconfiguredEcus(
+      {{secondary_ecu_serial_not_reg, secondary_hw_id_not_reg, EcuState::kNotRegistered},
+       {secondary_ecu_serial_old, secondary_hw_id_old, EcuState::kOld}});
 
   aktualizr_info_process_.run();
   ASSERT_FALSE(aktualizr_info_output.empty());
@@ -197,7 +192,7 @@ TEST_F(AktualizrInfoTest, PrintSecondaryNotRegisteredOrRemoved) {
  *  - [x] Print root metadata from images repository
  */
 TEST_F(AktualizrInfoTest, PrintImageRootMetadata) {
-  db_storage_->storeEcuSerials({{Uptane::EcuSerial(primary_ecu_serial), Uptane::HardwareIdentifier(primary_ecu_id)}});
+  db_storage_->storeEcuSerials({{primary_ecu_serial, primary_hw_id}});
   db_storage_->storeEcuRegistered();
 
   Json::Value images_root_json;
@@ -221,7 +216,7 @@ TEST_F(AktualizrInfoTest, PrintImageRootMetadata) {
  *  - [x] Print targets metadata from images repository
  */
 TEST_F(AktualizrInfoTest, PrintImageTargetsMetadata) {
-  db_storage_->storeEcuSerials({{Uptane::EcuSerial(primary_ecu_serial), Uptane::HardwareIdentifier(primary_ecu_id)}});
+  db_storage_->storeEcuSerials({{primary_ecu_serial, primary_hw_id}});
   db_storage_->storeEcuRegistered();
 
   Json::Value images_root_json;
@@ -250,7 +245,7 @@ TEST_F(AktualizrInfoTest, PrintImageTargetsMetadata) {
  *  - [x] Print root metadata from director repository
  */
 TEST_F(AktualizrInfoTest, PrintDirectorRootMetadata) {
-  db_storage_->storeEcuSerials({{Uptane::EcuSerial(primary_ecu_serial), Uptane::HardwareIdentifier(primary_ecu_id)}});
+  db_storage_->storeEcuSerials({{primary_ecu_serial, primary_hw_id}});
   db_storage_->storeEcuRegistered();
 
   Json::Value director_root_json;
@@ -273,7 +268,7 @@ TEST_F(AktualizrInfoTest, PrintDirectorRootMetadata) {
  *  - [x] Print targets metadata from director repository
  */
 TEST_F(AktualizrInfoTest, PrintDirectorTargetsMetadata) {
-  db_storage_->storeEcuSerials({{Uptane::EcuSerial(primary_ecu_serial), Uptane::HardwareIdentifier(primary_ecu_id)}});
+  db_storage_->storeEcuSerials({{primary_ecu_serial, primary_hw_id}});
   db_storage_->storeEcuRegistered();
 
   Json::Value director_root_json;
@@ -303,7 +298,7 @@ TEST_F(AktualizrInfoTest, PrintDirectorTargetsMetadata) {
  *  - [x] Print ECU private key
  */
 TEST_F(AktualizrInfoTest, PrintPrimaryEcuKeys) {
-  db_storage_->storeEcuSerials({{Uptane::EcuSerial(primary_ecu_serial), Uptane::HardwareIdentifier(primary_ecu_id)}});
+  db_storage_->storeEcuSerials({{primary_ecu_serial, primary_hw_id}});
   db_storage_->storeEcuRegistered();
 
   const std::string public_key = "public-key-1dc766fe-136d-4c6c-bdf4-daa79c49b3c8";
@@ -339,7 +334,7 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuKeys) {
  *  - [x] Print TLS client private key
  */
 TEST_F(AktualizrInfoTest, PrintTlsCredentials) {
-  db_storage_->storeEcuSerials({{Uptane::EcuSerial(primary_ecu_serial), Uptane::HardwareIdentifier(primary_ecu_id)}});
+  db_storage_->storeEcuSerials({{primary_ecu_serial, primary_hw_id}});
   db_storage_->storeEcuRegistered();
 
   const std::string ca = "ca-ee532748-8837-44f5-9afb-08ba9f534fec";
@@ -381,17 +376,18 @@ TEST_F(AktualizrInfoTest, PrintTlsCredentials) {
  *  - [x] Print primary ECU current and pending versions
  */
 TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersions) {
-  db_storage_->storeEcuSerials({{Uptane::EcuSerial(primary_ecu_serial), Uptane::HardwareIdentifier(primary_ecu_id)}});
+  db_storage_->storeEcuSerials({{primary_ecu_serial, primary_hw_id}});
   db_storage_->storeEcuRegistered();
 
   const std::string current_ecu_version = "639a4e39-e6ba-4832-ace4-8b12cf20d562";
   const std::string pending_ecu_version = "9636753d-2a09-4c80-8b25-64b2c2d0c4df";
 
+  Uptane::EcuMap ecu_map{{primary_ecu_serial, primary_hw_id}};
   db_storage_->savePrimaryInstalledVersion(
-      {"update.bin", {{Uptane::Hash::Type::kSha256, current_ecu_version}}, 1, "corrid"},
+      {"update.bin", ecu_map, {{Uptane::Hash::Type::kSha256, current_ecu_version}}, 1, "corrid"},
       InstalledVersionUpdateMode::kCurrent);
   db_storage_->savePrimaryInstalledVersion(
-      {"update-01.bin", {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
+      {"update-01.bin", ecu_map, {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
       InstalledVersionUpdateMode::kPending);
 
   aktualizr_info_process_.run();
@@ -410,7 +406,7 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersions) {
  *  - [x] Print primary ECU current and pending versions
  */
 TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
-  db_storage_->storeEcuSerials({{Uptane::EcuSerial(primary_ecu_serial), Uptane::HardwareIdentifier(primary_ecu_id)}});
+  db_storage_->storeEcuSerials({{primary_ecu_serial, primary_hw_id}});
   db_storage_->storeEcuRegistered();
 
   const std::string pending_ecu_version = "9636753d-2a09-4c80-8b25-64b2c2d0c4df";
@@ -419,14 +415,15 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   EXPECT_NE(aktualizr_info_output.find(device_id), std::string::npos);
-  EXPECT_NE(aktualizr_info_output.find(primary_ecu_serial), std::string::npos);
-  EXPECT_NE(aktualizr_info_output.find(primary_ecu_id), std::string::npos);
+  EXPECT_NE(aktualizr_info_output.find(primary_ecu_serial.ToString()), std::string::npos);
+  EXPECT_NE(aktualizr_info_output.find(primary_hw_id.ToString()), std::string::npos);
 
   EXPECT_NE(aktualizr_info_output.find("No currently running version on primary ecu"), std::string::npos);
   EXPECT_EQ(aktualizr_info_output.find("Pending primary ecu version:"), std::string::npos);
 
+  Uptane::EcuMap ecu_map{{primary_ecu_serial, primary_hw_id}};
   db_storage_->savePrimaryInstalledVersion(
-      {"update-01.bin", {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
+      {"update-01.bin", ecu_map, {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
       InstalledVersionUpdateMode::kPending);
 
   aktualizr_info_process_.run();
@@ -436,7 +433,7 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
   EXPECT_NE(aktualizr_info_output.find("Pending primary ecu version: " + pending_ecu_version), std::string::npos);
 
   db_storage_->savePrimaryInstalledVersion(
-      {"update-01.bin", {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
+      {"update-01.bin", ecu_map, {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
       InstalledVersionUpdateMode::kCurrent);
 
   aktualizr_info_process_.run();
@@ -456,24 +453,25 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
  *  - [x] Print secondary ECU current and pending versions
  */
 TEST_F(AktualizrInfoTest, PrintSecondaryEcuCurrentAndPendingVersions) {
-  const std::string secondary_ecu_serial = "c6998d3e-2a68-4ac2-817e-4ea6ef87d21f";
-  const std::string secondary_ecu_id = "secondary-hdwr-af250269-bd6f-4148-9426-4101df7f613a";
+  const Uptane::EcuSerial secondary_ecu_serial{"c6998d3e-2a68-4ac2-817e-4ea6ef87d21f"};
+  const Uptane::HardwareIdentifier secondary_hw_id{"secondary-hdwr-af250269-bd6f-4148-9426-4101df7f613a"};
   const std::string secondary_ecu_filename = "secondary.file";
   const std::string secondary_ecu_filename_update = "secondary.file.update";
   const std::string current_ecu_version = "639a4e39-e6ba-4832-ace4-8b12cf20d562";
   const std::string pending_ecu_version = "9636753d-2a09-4c80-8b25-64b2c2d0c4df";
 
-  db_storage_->storeEcuSerials(
-      {{Uptane::EcuSerial(primary_ecu_serial), Uptane::HardwareIdentifier(primary_ecu_id)},
-       {Uptane::EcuSerial(secondary_ecu_serial), Uptane::HardwareIdentifier(secondary_ecu_id)}});
+  db_storage_->storeEcuSerials({{primary_ecu_serial, primary_hw_id}, {secondary_ecu_serial, secondary_hw_id}});
   db_storage_->storeEcuRegistered();
 
-  db_storage_->saveInstalledVersion(secondary_ecu_serial,
-                                    {secondary_ecu_filename, {{Uptane::Hash::Type::kSha256, current_ecu_version}}, 1},
-                                    InstalledVersionUpdateMode::kCurrent);
+  Uptane::EcuMap ecu_map{{secondary_ecu_serial, secondary_hw_id}};
+  db_storage_->saveInstalledVersion(
+      secondary_ecu_serial.ToString(),
+      {secondary_ecu_filename, ecu_map, {{Uptane::Hash::Type::kSha256, current_ecu_version}}, 1},
+      InstalledVersionUpdateMode::kCurrent);
 
   db_storage_->saveInstalledVersion(
-      secondary_ecu_serial, {secondary_ecu_filename_update, {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1},
+      secondary_ecu_serial.ToString(),
+      {secondary_ecu_filename_update, ecu_map, {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1},
       InstalledVersionUpdateMode::kPending);
 
   aktualizr_info_process_.run();
@@ -487,9 +485,7 @@ TEST_F(AktualizrInfoTest, PrintSecondaryEcuCurrentAndPendingVersions) {
   // negative test, no any installed images
   db_storage_->clearInstalledVersions();
   db_storage_->clearEcuSerials();
-  db_storage_->storeEcuSerials(
-      {{Uptane::EcuSerial(primary_ecu_serial), Uptane::HardwareIdentifier(primary_ecu_id)},
-       {Uptane::EcuSerial(secondary_ecu_serial), Uptane::HardwareIdentifier(secondary_ecu_id)}});
+  db_storage_->storeEcuSerials({{primary_ecu_serial, primary_hw_id}, {secondary_ecu_serial, secondary_hw_id}});
 
   aktualizr_info_process_.run();
   ASSERT_FALSE(aktualizr_info_output.empty());
@@ -503,7 +499,7 @@ TEST_F(AktualizrInfoTest, PrintDeviceNameOnly) {
   Json::Value meta_root;
   std::string director_root = Utils::jsonToStr(meta_root);
 
-  db_storage_->storeEcuSerials({{Uptane::EcuSerial(primary_ecu_serial), Uptane::HardwareIdentifier(primary_ecu_id)}});
+  db_storage_->storeEcuSerials({{primary_ecu_serial, primary_hw_id}});
   db_storage_->storeEcuRegistered();
   db_storage_->storeRoot(director_root, Uptane::RepositoryType::Director(), Uptane::Version(1));
 

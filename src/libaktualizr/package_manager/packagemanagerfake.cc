@@ -63,7 +63,7 @@ data::InstallationResult PackageManagerFake::finalizeInstall(const Uptane::Targe
 
   data::InstallationResult install_res;
 
-  if (target == targets[pending_version]) {
+  if (target.MatchTarget(targets[pending_version])) {
     if (fiu_fail("fake_install_finalization_failure") != 0) {
       std::string failure_cause = fault_injection_last_info();
       if (failure_cause.empty()) {

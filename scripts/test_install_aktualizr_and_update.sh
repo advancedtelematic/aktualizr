@@ -10,6 +10,11 @@ dpkg-deb -I "$TEST_INSTALL_DESTDIR"/aktualizr*.deb && dpkg -i "$TEST_INSTALL_DES
 akt_version=$(aktualizr --version)
 (grep "$(cat "$TEST_INSTALL_DESTDIR"/aktualizr-version)" <<< "$akt_version") || (echo "$akt_version"; false)
 
+aktualizr-repo generate --path "$TEST_INSTALL_DESTDIR/fake_root"
+aktualizr-repo image --path "$TEST_INSTALL_DESTDIR/fake_root" --targetname selfupdate_2.0 --filename "$TEST_INSTALL_DESTDIR/selfupdate_2.0" --hwid selfupdate-device
+aktualizr-repo addtarget --path "$TEST_INSTALL_DESTDIR/fake_root" --targetname selfupdate_2.0 --hwid selfupdate-device --serial 723f79763eda1c753ce565c16862c79acdde32eb922d6662f088083c51ffde66
+aktualizr-repo signtargets --path "$TEST_INSTALL_DESTDIR/fake_root"
+
 TEMP_DIR=$(mktemp -d)
 mkdir -m 700 -p "$TEMP_DIR/import"
 cp "$TEST_INSTALL_DESTDIR"/prov_selfupdate/* "$TEMP_DIR/import"

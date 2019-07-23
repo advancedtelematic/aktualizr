@@ -26,7 +26,8 @@ TEST(PackageManagerFake, FinalizeAfterReboot) {
 
   PackageManagerFake fakepm(config.pacman, storage, bootloader, nullptr);
 
-  Uptane::Target target("pkg", {Uptane::Hash(Uptane::Hash::Type::kSha256, "hash")}, 1, "");
+  Uptane::EcuMap primary_ecu;
+  Uptane::Target target("pkg", primary_ecu, {Uptane::Hash(Uptane::Hash::Type::kSha256, "hash")}, 1, "");
   auto result = fakepm.install(target);
   EXPECT_EQ(result.result_code, data::ResultCode::Numeric::kNeedCompletion);
   storage->savePrimaryInstalledVersion(target, InstalledVersionUpdateMode::kPending);
@@ -51,7 +52,8 @@ TEST(PackageManagerFake, FailureInjection) {
   fiu_init(0);
 
   // no fault
-  Uptane::Target target("pkg", {Uptane::Hash(Uptane::Hash::Type::kSha256, "hash")}, 1, "");
+  Uptane::EcuMap primary_ecu{{Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")}};
+  Uptane::Target target("pkg", primary_ecu, {Uptane::Hash(Uptane::Hash::Type::kSha256, "hash")}, 1, "");
   auto result = fakepm.install(target);
   EXPECT_EQ(result.result_code, data::ResultCode::Numeric::kOk);
 

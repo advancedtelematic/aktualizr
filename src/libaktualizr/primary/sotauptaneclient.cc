@@ -85,7 +85,7 @@ void SotaUptaneClient::addSecondary(const std::shared_ptr<Uptane::SecondaryInter
 
 bool SotaUptaneClient::isInstalledOnPrimary(const Uptane::Target &target) {
   if (target.ecus().find(uptane_manifest.getPrimaryEcuSerial()) != target.ecus().end()) {
-    return target == package_manager_->getCurrent();
+    return target.MatchTarget(package_manager_->getCurrent());
   }
   return false;
 }
@@ -462,7 +462,9 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
 std::unique_ptr<Uptane::Target> SotaUptaneClient::findTargetHelper(const Uptane::Targets &cur_targets,
                                                                    const Uptane::Target &queried_target, int level,
                                                                    bool terminating) {
-  auto it = std::find(cur_targets.targets.cbegin(), cur_targets.targets.cend(), queried_target);
+  auto it =
+      std::find_if(cur_targets.targets.cbegin(), cur_targets.targets.cend(),
+                   [&queried_target](const Uptane::Target &target) { return target.MatchTarget(queried_target); });
   if (it != cur_targets.targets.cend()) {
     return std_::make_unique<Uptane::Target>(*it);
   }
@@ -537,7 +539,7 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
     auto images_target = findTargetInDelegationTree(*it);
     if (images_target == nullptr) {
       // TODO: Could also be a missing target or delegation expiration.
-      last_exception = Uptane::TargetHashMismatch(it->filename());
+      last_exception = Uptane::TargetMismatch(it->filename());
       LOG_ERROR << "No matching target in images targets metadata for " << *it;
       result = result::Download(downloaded_targets, result::DownloadStatus::kError, "Target hash mismatch.");
       sendEvent<event::AllDownloadsComplete>(result);

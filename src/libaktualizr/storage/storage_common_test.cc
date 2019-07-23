@@ -299,7 +299,8 @@ TEST(storage, load_store_installed_versions) {
       Uptane::Hash{Uptane::Hash::Type::kSha256, "2561"},
       Uptane::Hash{Uptane::Hash::Type::kSha512, "5121"},
   };
-  Uptane::Target t1{"update.bin", hashes, 1, "corrid"};
+  Uptane::EcuMap primary_ecu{{Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")}};
+  Uptane::Target t1{"update.bin", primary_ecu, hashes, 1, "corrid"};
   storage->savePrimaryInstalledVersion(t1, InstalledVersionUpdateMode::kCurrent);
 
   EcuSerials serials{{Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")},
@@ -315,12 +316,13 @@ TEST(storage, load_store_installed_versions) {
     EXPECT_EQ(installed_versions.at(current).filename(), "update.bin");
     EXPECT_EQ(installed_versions.at(current).sha256Hash(), "2561");
     EXPECT_EQ(installed_versions.at(current).hashes(), hashes);
+    EXPECT_EQ(installed_versions.at(current).ecus(), primary_ecu);
     EXPECT_EQ(installed_versions.at(current).correlation_id(), "corrid");
     EXPECT_EQ(installed_versions.at(current).length(), 1);
   }
 
   // Set t2 as a pending version
-  Uptane::Target t2{"update2.bin", {Uptane::Hash{Uptane::Hash::Type::kSha256, "2562"}}, 2};
+  Uptane::Target t2{"update2.bin", primary_ecu, {Uptane::Hash{Uptane::Hash::Type::kSha256, "2562"}}, 2};
   storage->savePrimaryInstalledVersion(t2, InstalledVersionUpdateMode::kPending);
 
   {
@@ -332,7 +334,7 @@ TEST(storage, load_store_installed_versions) {
   }
 
   // Set t3 as the new pending
-  Uptane::Target t3{"update3.bin", {Uptane::Hash{Uptane::Hash::Type::kSha256, "2563"}}, 3};
+  Uptane::Target t3{"update3.bin", primary_ecu, {Uptane::Hash{Uptane::Hash::Type::kSha256, "2563"}}, 3};
   storage->savePrimaryInstalledVersion(t3, InstalledVersionUpdateMode::kPending);
 
   {
@@ -373,7 +375,8 @@ TEST(storage, load_store_installed_versions) {
   }
 
   // Add a secondary installed version
-  Uptane::Target tsec{"secondary.bin", {Uptane::Hash{Uptane::Hash::Type::kSha256, "256s"}}, 4};
+  Uptane::EcuMap secondary_ecu{{Uptane::EcuSerial("secondary1"), Uptane::HardwareIdentifier("secondary_hw")}};
+  Uptane::Target tsec{"secondary.bin", secondary_ecu, {Uptane::Hash{Uptane::Hash::Type::kSha256, "256s"}}, 4};
   storage->saveInstalledVersion("secondary_1", tsec, InstalledVersionUpdateMode::kCurrent);
 
   {

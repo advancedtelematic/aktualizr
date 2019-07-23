@@ -20,7 +20,7 @@ LDFLAGS="-s" "$GITREPO_ROOT/scripts/test.sh"
 cp -rf "$GITREPO_ROOT/tests/test_data/prov_selfupdate" "$TEST_INSTALL_DESTDIR"
 cp -rf "$GITREPO_ROOT/tests/config/selfupdate.toml" "$TEST_INSTALL_DESTDIR"
 cp -rf "$GITREPO_ROOT/scripts/selfupdate_server.py" "$TEST_INSTALL_DESTDIR"
-cp -rf "$GITREPO_ROOT/tests/test_data/fake_root" "$TEST_INSTALL_DESTDIR"
+cp -rf "$GITREPO_ROOT/tests/test_data/selfupdate_2.0" "$TEST_INSTALL_DESTDIR"
 cp -rf "$GITREPO_ROOT/src/aktualizr_repo/run/create_repo.sh" "$TEST_INSTALL_DESTDIR"
 cp -rf "$GITREPO_ROOT/src/aktualizr_repo/run/serve_repo.py" "$TEST_INSTALL_DESTDIR"
 
