@@ -2,13 +2,10 @@
 
 #include <string>
 
-#include <boost/process.hpp>
-
 #include "httpfake.h"
 #include "primary/aktualizr.h"
 #include "test_utils.h"
 #include "uptane_test_common.h"
-
 #include "utilities/fault_injection.h"
 
 boost::filesystem::path aktualizr_repo_path;
