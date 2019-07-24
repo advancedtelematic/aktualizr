@@ -57,7 +57,7 @@ bool DockerAppManager::iterate_apps(const Uptane::Target &target, DockerAppCb cb
   if (!apps) {
     LOG_DEBUG << "Detected an update target from Director with no docker-apps data";
     for (const auto t : Uptane::LazyTargetsList(repo, storage_, fake_fetcher_)) {
-      if (t == target) {
+      if (t.MatchTarget(target)) {
         LOG_DEBUG << "Found the match " << t;
         apps = t.custom_data()["docker_apps"];
         break;

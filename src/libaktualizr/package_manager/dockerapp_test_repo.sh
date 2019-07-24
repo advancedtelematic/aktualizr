@@ -23,7 +23,7 @@ DOCKER_APP="$IMAGES/foo.dockerapp"
 echo "fake contents of a docker app" > "$DOCKER_APP"
 
 akrepo --command generate --expires 2021-07-04T16:33:27Z
-akrepo --command image --filename "$DOCKER_APP" --targetname foo.dockerapp
+akrepo --command image --filename "$DOCKER_APP" --targetname foo.dockerapp --hwid primary_hw
 akrepo --command addtarget --hwid primary_hw --serial CA:FE:A6:D2:84:9D --targetname foo.dockerapp
 akrepo --command signtargets
 

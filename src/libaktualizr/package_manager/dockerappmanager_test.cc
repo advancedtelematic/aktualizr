@@ -94,7 +94,7 @@ TEST(DockerAppManager, DockerApp_Fetch) {
       Uptane::Hash(Uptane::Hash::Type::kSha512,
                    "76b183d51f53613a450825afc6f984077b68ae7b321ba041a2b3871f3c25a9a20d964ad0b60352e5fdd09b78fd53879f4e3"
                    "fa3dcc8335b26d3bbf455803d2ecb")};
-  Uptane::Target app_target("foo.dockerapp", hashes, 8);
+  Uptane::Target app_target("foo.dockerapp", Uptane::EcuMap{}, hashes, 8);
   ASSERT_TRUE(storage->checkTargetFile(app_target));
 
   client->package_manager_->install(target);
