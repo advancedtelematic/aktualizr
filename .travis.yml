@@ -19,7 +19,7 @@ cache:
 env:
   matrix:
     - DOCKERFILE=docker/Dockerfile.ubuntu.bionic SCRIPT=scripts/test.sh
-      DARGS="-eTEST_CMAKE_BUILD_TYPE=Valgrind -eTEST_WITH_COVERAGE=1 -eTEST_WITH_P11=1 -eTEST_WITH_FAULT_INJECTION=1 -eTEST_TESTSUITE_EXCLUDE=credentials -eTEST_SOTA_PACKED_CREDENTIALS=dummy-credentials -eCCACHE_DIR=/aktualizr/ccache-bionic"
+      DARGS="-eTEST_CMAKE_BUILD_TYPE=Valgrind -eTEST_WITH_COVERAGE=1 -eTEST_WITH_P11=1 -eTEST_WITH_DOCKERAPP=1 -eTEST_WITH_FAULT_INJECTION=1 -eTEST_TESTSUITE_EXCLUDE=credentials -eTEST_SOTA_PACKED_CREDENTIALS=dummy-credentials -eCCACHE_DIR=/aktualizr/ccache-bionic"
     - DOCKERFILE=docker/Dockerfile.debian.testing SCRIPT=scripts/test.sh
       DARGS="-eTEST_CC=clang -eTEST_WITH_LOAD_TESTS=1 -eTEST_WITH_TESTSUITE=0 -eTEST_WITH_STATICTESTS=1 -eTEST_WITH_DOCS=1 -eCCACHE_DIR=/aktualizr/ccache-debian"
     - DEPLOY_SRC=1 DEPLOY_PKGS=1 RELEASE_NAME=ubuntu_18.04 DOCKERFILE=docker/Dockerfile.ubuntu.bionic
