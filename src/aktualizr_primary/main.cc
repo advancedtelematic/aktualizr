@@ -158,8 +158,10 @@ int main(int argc, char *argv[]) {
       result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
       aktualizr.Install(update_result.updates).get();
     } else if (run_mode == "once") {
+      aktualizr.SendDeviceData().get();
       aktualizr.UptaneCycle();
     } else {
+      aktualizr.SendDeviceData().get();
       aktualizr.RunForever().get();
     }
     r = EXIT_SUCCESS;
