@@ -166,6 +166,8 @@ bionic-pkg-test:
     TEST_INSTALL_DESTDIR: "$CI_PROJECT_DIR/build-bionic/pkg"
 
   image: "$UBUNTU_BIONIC_PR_INSTALLIMAGE"
+  dependencies:
+    - bionic-pkg
   stage: pkg-test
   script:
     - ./scripts/test_install_garage_deploy.sh
@@ -175,6 +177,8 @@ xenial-pkg-test:
     TEST_INSTALL_DESTDIR: "$CI_PROJECT_DIR/build-xenial/pkg"
 
   image: "$UBUNTU_XENIAL_PR_INSTALLIMAGE"
+  dependencies:
+    - xenial-pkg
   stage: pkg-test
   script:
     - ./scripts/test_install_garage_deploy.sh
@@ -223,6 +227,27 @@ Ptest qemux86_64:
     TEST_AKTUALIZR_TAG: $CI_COMMIT_TAG
     TEST_AKTUALIZR_BRANCH: $CI_COMMIT_REF_NAME
     TEST_AKTUALIZR_REV: $CI_COMMIT_SHA
+
+# -- create GitHub releases
+
+github-release:
+  image: "$UBUNTU_BIONIC_PR_IMAGE"
+  stage: deploy
+  dependencies:
+    - bionic-pkg
+    - xenial-pkg
+  script:
+    - ./scripts/make_src_archive.sh ./aktualizr_src-$CI_COMMIT_TAG.tar.gz
+    - >-
+      ./scripts/publish_github_rls.py $CI_COMMIT_TAG
+      build-xenial/pkg/garage_deploy-ubuntu_16.04.deb
+      build-xenial/pkg/aktualizr-ubuntu_16.04.deb
+      build-bionic/pkg/garage_deploy-ubuntu_18.04.deb
+      build-bionic/pkg/aktualizr-ubuntu_18.04.deb
+      aktualizr_src-$CI_COMMIT_TAG.tar.gz
+  only:
+    variables:
+      - $CI_COMMIT_REF_NAME =~ /^\d\d\d\d\.\d+(-\w+)?$/
 
 # -- publish coverage results on gitlab pages
 
