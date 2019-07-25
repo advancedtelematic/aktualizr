@@ -2,6 +2,8 @@ stages:
   - docker
   - test
   - pkg-test
+  - oe-checkout
+  - oe-test
   - deploy
 
 variables:
@@ -19,6 +21,21 @@ variables:
   CCACHE_DIR: $CI_PROJECT_DIR/ccache
 
   GIT_SUBMODULE_STRATEGY: recursive
+
+  # bitbake variables
+  BITBAKE_IMAGE: ${METAUPDATER_REGISTRY_IMAGE}:ci-master-bitbake
+  BITBAKE_CHECKOUT_IMAGE: ${METAUPDATER_REGISTRY_IMAGE}:ci-master-checkout
+
+include:
+  - project: 'olp/edge/ota/connect/client/meta-updater'
+    ref: 'master'
+    file: 'scripts/ci/gitlab/docker.yml'
+  - project: 'olp/edge/ota/connect/client/meta-updater'
+    ref: 'master'
+    file: 'scripts/ci/gitlab/checkout.yml'
+  - project: 'olp/edge/ota/connect/client/meta-updater'
+    ref: 'master'
+    file: 'scripts/ci/gitlab/tests.yml'
 
 Docker Setup:
   image: docker:18
@@ -164,7 +181,50 @@ xenial-pkg-test:
     - ./scripts/test_install_aktualizr_and_update.sh
     - ./scripts/test_aktualizr_repo.sh
 
-# publish coverage results on gitlab pages
+# -- yocto tests
+
+OE Docker setup:
+  extends: .bb_docker_remote
+  stage: docker
+  only:
+    variables:
+      - $OE_PTEST
+      - $CI_COMMIT_REF_NAME == "master"
+      - $CI_COMMIT_REF_NAME =~ /^\d\d\d\d\.\d+(-\w+)?$/
+
+OE Checkout:
+  extends: .bb_checkout
+  stage: oe-checkout
+  only:
+    variables:
+      - $OE_PTEST
+      - $CI_COMMIT_REF_NAME == "master"
+      - $CI_COMMIT_REF_NAME =~ /^\d\d\d\d\.\d+(-\w+)?$/
+
+  variables:
+    MANIFEST: master
+
+Ptest qemux86_64:
+  extends: .oe-selftest
+  stage: oe-test
+  dependencies:
+    - OE Checkout
+  only:
+    variables:
+      - $OE_PTEST
+      - $CI_COMMIT_REF_NAME == "master"
+      - $CI_COMMIT_REF_NAME =~ /^\d\d\d\d\.\d+(-\w+)?$/
+
+  variables:
+    TEST_BUILD_DIR: 'build-ptest'
+    OE_SELFTESTS: 'updater_qemux86_64_ptest'
+    TEST_AKTUALIZR_REMOTE: '1'
+    # note: tag will take precedence if not empty
+    TEST_AKTUALIZR_TAG: $CI_COMMIT_TAG
+    TEST_AKTUALIZR_BRANCH: $CI_COMMIT_REF_NAME
+    TEST_AKTUALIZR_REV: $CI_COMMIT_SHA
+
+# -- publish coverage results on gitlab pages
 
 pages:
   stage: deploy
