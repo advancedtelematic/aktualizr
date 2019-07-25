@@ -34,8 +34,7 @@ if (BUILD_LOAD_TESTS)
             ${LIBOSTREE_LIBRARIES}
             ${LIBP11_LIBRARIES}
             ${SQLITE3_LIBRARIES}
-            ${SYSTEMD_LIBRARY}
-            ${LIBDPKG_LIBRARIES})
+            ${SYSTEMD_LIBRARY})
 
     install(TARGETS ota-load-tests
             COMPONENT aktualizr
