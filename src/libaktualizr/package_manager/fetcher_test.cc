@@ -224,6 +224,54 @@ TEST(Fetcher, DownloadDefaultUri) {
   }
 }
 
+class HttpZeroLength : public HttpFake {
+ public:
+  HttpZeroLength(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in) {}
+  HttpResponse download(const std::string& url, curl_write_callback write_cb, curl_xferinfo_callback progress_cb,
+                        void* userp, curl_off_t from) override {
+    (void)write_cb;
+    (void)progress_cb;
+    (void)userp;
+    (void)from;
+
+    EXPECT_EQ(url, server + "/targets/fake_file");
+    counter++;
+    return HttpResponse("0", 200, CURLE_OK, "");
+  }
+
+  int counter = 0;
+};
+
+/* Don't bother downloading a target with length 0. */
+TEST(Fetcher, DownloadLengthZero) {
+  TemporaryDirectory temp_dir;
+  config.storage.path = temp_dir.Path();
+  config.uptane.repo_server = server;
+
+  std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
+  auto http = std::make_shared<HttpZeroLength>(temp_dir.Path());
+  auto pacman = std::make_shared<PackageManagerFake>(config.pacman, storage, nullptr, http);
+  KeyManager keys(storage, config.keymanagerConfig());
+  Uptane::Fetcher fetcher(config, http);
+
+  // Empty target: download succeeds, but http module is never called.
+  Json::Value empty_target_json;
+  empty_target_json["hashes"]["sha256"] = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+  empty_target_json["length"] = 0;
+  Uptane::Target empty_target("empty_file", empty_target_json);
+  EXPECT_TRUE(pacman->fetchTarget(empty_target, fetcher, keys, progress_cb, nullptr));
+  EXPECT_EQ(http->counter, 0);
+
+  // Non-empty target: download succeeds, and http module is called. This is
+  // done purely to make sure the test is designed correctly.
+  Json::Value nonempty_target_json;
+  nonempty_target_json["hashes"]["sha256"] = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+  nonempty_target_json["length"] = 1;
+  Uptane::Target nonempty_target("fake_file", nonempty_target_json);
+  EXPECT_TRUE(pacman->fetchTarget(nonempty_target, fetcher, keys, progress_cb, nullptr));
+  EXPECT_EQ(http->counter, 1);
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);

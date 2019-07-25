@@ -92,6 +92,10 @@ bool PackageManagerInterface::fetchTarget(const Uptane::Target& target, Uptane::
       LOG_INFO << "Image already downloaded skipping download";
       return true;
     }
+    if (target.length() == 0) {
+      LOG_WARNING << "Skipping download of target with length 0";
+      return true;
+    }
     DownloadMetaStruct ds(target, std::move(progress_cb), token);
     if (target_exists) {
       ds.downloaded_length = target_exists->first;
