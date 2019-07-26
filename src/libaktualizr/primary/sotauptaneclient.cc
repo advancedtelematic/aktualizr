@@ -528,31 +528,35 @@ std::unique_ptr<Uptane::Target> SotaUptaneClient::findTargetInDelegationTree(con
   return findTargetHelper(*toplevel_targets, target, 0, false);
 }
 
-result::Download SotaUptaneClient::downloadImages(std::vector<Uptane::Target> targets,
+result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets,
                                                   const api::FlowControlToken *token) {
   // Uptane step 4 - download all the images and verify them against the metadata (for OSTree - pull without
   // deploying)
   std::lock_guard<std::mutex> guard(download_mutex);
   result::Download result;
+  std::vector<Uptane::Target> checked_targets;
   std::vector<Uptane::Target> downloaded_targets;
-  for (auto &it : targets) {
-    auto images_target = findTargetInDelegationTree(it);
+  // Copy the targets while iterating over them so that we can change the URL if
+  // necessary.
+  for (auto target : targets) {
+    auto images_target = findTargetInDelegationTree(target);
     if (images_target == nullptr) {
       // TODO: Could also be a missing target or delegation expiration.
-      last_exception = Uptane::TargetMismatch(it.filename());
-      LOG_ERROR << "No matching target in images targets metadata for " << it;
+      last_exception = Uptane::TargetMismatch(target.filename());
+      LOG_ERROR << "No matching target in images targets metadata for " << target;
       result = result::Download(downloaded_targets, result::DownloadStatus::kError, "Target hash mismatch.");
       sendEvent<event::AllDownloadsComplete>(result);
       return result;
     }
     // If the URL from the Director is unset, but the URL from the Images repo
     // is set, use that.
-    if (it.uri().empty() && !images_target->uri().empty()) {
-      it.setUri(images_target->uri());
+    if (target.uri().empty() && !images_target->uri().empty()) {
+      target.setUri(images_target->uri());
     }
+    checked_targets.push_back(std::move(target));
   }
-  for (const auto &it : targets) {
-    auto res = downloadImage(it, token);
+  for (const auto &target : checked_targets) {
+    auto res = downloadImage(target, token);
     if (res.first) {
       downloaded_targets.push_back(res.second);
     }

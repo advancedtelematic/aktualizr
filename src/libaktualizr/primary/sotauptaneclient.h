@@ -41,7 +41,8 @@ class SotaUptaneClient {
 
   void initialize();
   void addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
-  result::Download downloadImages(std::vector<Uptane::Target> targets, const api::FlowControlToken *token = nullptr);
+  result::Download downloadImages(const std::vector<Uptane::Target> &targets,
+                                  const api::FlowControlToken *token = nullptr);
   void reportPause();
   void reportResume();
   void sendDeviceData();
