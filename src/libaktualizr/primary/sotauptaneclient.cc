@@ -534,28 +534,9 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
   // deploying)
   std::lock_guard<std::mutex> guard(download_mutex);
   result::Download result;
-  std::vector<Uptane::Target> checked_targets;
   std::vector<Uptane::Target> downloaded_targets;
-  // Copy the targets while iterating over them so that we can change the URL if
-  // necessary.
-  for (auto target : targets) {
-    auto images_target = findTargetInDelegationTree(target);
-    if (images_target == nullptr) {
-      // TODO: Could also be a missing target or delegation expiration.
-      last_exception = Uptane::TargetMismatch(target.filename());
-      LOG_ERROR << "No matching target in images targets metadata for " << target;
-      result = result::Download(downloaded_targets, result::DownloadStatus::kError, "Target hash mismatch.");
-      sendEvent<event::AllDownloadsComplete>(result);
-      return result;
-    }
-    // If the URL from the Director is unset, but the URL from the Images repo
-    // is set, use that.
-    if (target.uri().empty() && !images_target->uri().empty()) {
-      target.setUri(images_target->uri());
-    }
-    checked_targets.push_back(std::move(target));
-  }
-  for (const auto &target : checked_targets) {
+
+  for (const auto &target : targets) {
     auto res = downloadImage(target, token);
     if (res.first) {
       downloaded_targets.push_back(res.second);
@@ -730,29 +711,53 @@ result::UpdateCheck SotaUptaneClient::checkUpdates() {
     return result;
   }
 
+  // TODO: This is unnecessary and should instead be done before downloading
+  // (see OTA-3060) and installing (OTA-2191).
   std::vector<Uptane::Target> updates;
   unsigned int ecus_count = 0;
   if (!uptaneOfflineIteration(&updates, &ecus_count)) {
     LOG_ERROR << "Invalid Uptane metadata in storage.";
     result = result::UpdateCheck({}, 0, result::UpdateStatus::kError, Json::nullValue,
                                  "Invalid Uptane metadata in storage.");
-  } else {
-    std::string director_targets;
-    storage->loadNonRoot(&director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets());
+    return result;
+  }
 
-    if (!updates.empty()) {
-      result = result::UpdateCheck(updates, ecus_count, result::UpdateStatus::kUpdatesAvailable,
-                                   Utils::parseJSON(director_targets), "");
-      if (updates.size() == 1) {
-        LOG_INFO << "1 new update found in Uptane metadata.";
-      } else {
-        LOG_INFO << updates.size() << " new updates found in Uptane metadata.";
-      }
-    } else {
-      result = result::UpdateCheck(updates, ecus_count, result::UpdateStatus::kNoUpdatesAvailable,
-                                   Utils::parseJSON(director_targets), "");
-      LOG_DEBUG << "No new updates found in Uptane metadata.";
+  std::string director_targets;
+  storage->loadNonRoot(&director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets());
+
+  if (updates.empty()) {
+    LOG_DEBUG << "No new updates found in Uptane metadata.";
+    result = result::UpdateCheck(updates, ecus_count, result::UpdateStatus::kNoUpdatesAvailable,
+                                 Utils::parseJSON(director_targets), "");
+    return result;
+  }
+
+  // For every target in the Director Targets metadata, walk the delegation
+  // tree (if necessary) and find a matching target in the Images repo
+  // metadata.
+  for (auto &target : updates) {
+    auto images_target = findTargetInDelegationTree(target);
+    if (images_target == nullptr) {
+      // TODO: Could also be a missing target or delegation expiration.
+      last_exception = Uptane::TargetMismatch(target.filename());
+      LOG_ERROR << "No matching target in images targets metadata for " << target;
+      result = result::UpdateCheck(updates, ecus_count, result::UpdateStatus::kError,
+                                   Utils::parseJSON(director_targets), "Target mismatch.");
+      return result;
     }
+    // If the URL from the Director is unset, but the URL from the Images repo
+    // is set, use that.
+    if (target.uri().empty() && !images_target->uri().empty()) {
+      target.setUri(images_target->uri());
+    }
+  }
+
+  result = result::UpdateCheck(updates, ecus_count, result::UpdateStatus::kUpdatesAvailable,
+                               Utils::parseJSON(director_targets), "");
+  if (updates.size() == 1) {
+    LOG_INFO << "1 new update found in Uptane metadata.";
+  } else {
+    LOG_INFO << updates.size() << " new updates found in Uptane metadata.";
   }
   return result;
 }

@@ -778,18 +778,15 @@ TEST(Uptane, ProvisionOnServer) {
 
   // We need to fetch metadata, but we currently expect a target hash mismatch
   // since our update is bogus.
-  up->fetchMeta();  // TODO check that it failed with return value
+  auto result = up->fetchMeta();
+  EXPECT_EQ(result.status, result::UpdateStatus::kError);
+  EXPECT_EQ(result.message, "Could not update metadata.");
   EXPECT_EQ(http->manifest_count, 2);
 
-  // Testing downloading is not strictly necessary here and will not work due to
-  // the metadata concerns anyway.
+  // Test installation to make sure the metadata put to the server is correct.
+  // Fake the metadata without actually trying to download anything.
   std::vector<Uptane::Target> packages_to_install =
       UptaneTestCommon::makePackage(config.provision.primary_ecu_serial, config.provision.primary_ecu_hardware_id);
-  result::Download result = up->downloadImages(packages_to_install);
-  EXPECT_EQ(result.updates.size(), 0);
-  EXPECT_EQ(result.status, result::DownloadStatus::kError);
-
-  // Test installation to make sure the metadata put to the server is correct.
   up->uptaneInstall(packages_to_install);
   up->putManifest();
 
