@@ -51,7 +51,8 @@ int main(int argc, char **argv) {
     ("dname", po::value<std::string>(), "delegated role name")
     ("dterm", po::bool_switch(), "if the created delegated role is terminating")
     ("dparent", po::value<std::string>()->default_value("targets"), "delegated role parent name")
-    ("dpattern", po::value<std::string>(), "delegated file path pattern");
+    ("dpattern", po::value<std::string>(), "delegated file path pattern")
+    ("url", po::value<std::string>(), "custom download URL");
 
   // clang-format on
 
@@ -115,8 +116,12 @@ int main(int argc, char **argv) {
           }
           std::cout << "Added a target " << targetname << " to a delegated role " << dname << std::endl;
         }
+        std::string url;
+        if (vm.count("url") != 0) {
+          url = vm["url"].as<std::string>();
+        }
         if (vm.count("filename") > 0) {
-          repo.addImage(vm["filename"].as<boost::filesystem::path>(), targetname, hwid, delegation);
+          repo.addImage(vm["filename"].as<boost::filesystem::path>(), targetname, hwid, url, delegation);
           std::cout << "Added a target " << targetname << " to the images metadata" << std::endl;
         } else {
           if ((vm.count("targetsha256") == 0 && vm.count("targetsha512") == 0) || vm.count("targetlength") == 0) {
@@ -142,7 +147,8 @@ int main(int argc, char **argv) {
             custom = Json::Value();
             custom["targetFormat"] = vm["targetformat"].as<std::string>();
           }
-          repo.addCustomImage(targetname.string(), *hash, vm["targetlength"].as<uint64_t>(), hwid, delegation, custom);
+          repo.addCustomImage(targetname.string(), *hash, vm["targetlength"].as<uint64_t>(), hwid, url, delegation,
+                              custom);
           std::cout << "Added a custom image target " << targetname.string() << std::endl;
         }
       } else if (command == "addtarget") {
@@ -153,7 +159,11 @@ int main(int argc, char **argv) {
         const std::string targetname = vm["targetname"].as<std::string>();
         const std::string hwid = vm["hwid"].as<std::string>();
         const std::string serial = vm["serial"].as<std::string>();
-        repo.addTarget(targetname, hwid, serial);
+        std::string url;
+        if (vm.count("url") != 0) {
+          url = vm["url"].as<std::string>();
+        }
+        repo.addTarget(targetname, hwid, serial, url);
         std::cout << "Added target " << targetname << " to director targets metadata for ECU with serial " << serial
                   << " and hardware ID " << hwid << std::endl;
       } else if (command == "adddelegation") {

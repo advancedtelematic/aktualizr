@@ -534,20 +534,29 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
   // deploying)
   std::lock_guard<std::mutex> guard(download_mutex);
   result::Download result;
+  std::vector<Uptane::Target> checked_targets;
   std::vector<Uptane::Target> downloaded_targets;
-  for (auto it = targets.cbegin(); it != targets.cend(); ++it) {
-    auto images_target = findTargetInDelegationTree(*it);
+  // Copy the targets while iterating over them so that we can change the URL if
+  // necessary.
+  for (auto target : targets) {
+    auto images_target = findTargetInDelegationTree(target);
     if (images_target == nullptr) {
       // TODO: Could also be a missing target or delegation expiration.
-      last_exception = Uptane::TargetMismatch(it->filename());
-      LOG_ERROR << "No matching target in images targets metadata for " << *it;
+      last_exception = Uptane::TargetMismatch(target.filename());
+      LOG_ERROR << "No matching target in images targets metadata for " << target;
       result = result::Download(downloaded_targets, result::DownloadStatus::kError, "Target hash mismatch.");
       sendEvent<event::AllDownloadsComplete>(result);
       return result;
     }
+    // If the URL from the Director is unset, but the URL from the Images repo
+    // is set, use that.
+    if (target.uri().empty() && !images_target->uri().empty()) {
+      target.setUri(images_target->uri());
+    }
+    checked_targets.push_back(std::move(target));
   }
-  for (auto it = targets.cbegin(); it != targets.cend(); ++it) {
-    auto res = downloadImage(*it, token);
+  for (const auto &target : checked_targets) {
+    auto res = downloadImage(target, token);
     if (res.first) {
       downloaded_targets.push_back(res.second);
     }
@@ -582,10 +591,9 @@ void SotaUptaneClient::reportResume() {
   report_queue->enqueue(std_::make_unique<DeviceResumedReport>(correlation_id));
 }
 
-std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target target,
+std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(const Uptane::Target &target,
                                                                 const api::FlowControlToken *token) {
   // TODO: support downloading encrypted targets from director
-  // TODO: check if the file is already there before downloading
 
   const std::string &correlation_id = director_repo.getCorrelationId();
   // send an event for all ecus that are touched by this target

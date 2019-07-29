@@ -19,7 +19,7 @@ void ImageRepo::addImage(const std::string &name, Json::Value &target, const std
 }
 
 void ImageRepo::addBinaryImage(const boost::filesystem::path &image_path, const boost::filesystem::path &targetname,
-                               const std::string &hardware_id, const Delegation &delegation) {
+                               const std::string &hardware_id, const std::string &url, const Delegation &delegation) {
   boost::filesystem::path repo_dir(path_ / "repo/image");
 
   boost::filesystem::path targets_path = repo_dir / "targets";
@@ -37,11 +37,14 @@ void ImageRepo::addBinaryImage(const boost::filesystem::path &image_path, const 
   target["hashes"]["sha256"] = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(image)));
   target["hashes"]["sha512"] = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(image)));
   target["custom"]["targetFormat"] = "BINARY";
+  if (!url.empty()) {
+    target["custom"]["uri"] = url;
+  }
   addImage(targetname.string(), target, hardware_id, delegation);
 }
 
 void ImageRepo::addCustomImage(const std::string &name, const Uptane::Hash &hash, const uint64_t length,
-                               const std::string &hardware_id, const Delegation &delegation,
+                               const std::string &hardware_id, const std::string &url, const Delegation &delegation,
                                const Json::Value &custom) {
   Json::Value target;
   target["length"] = Json::UInt(length);
@@ -51,6 +54,9 @@ void ImageRepo::addCustomImage(const std::string &name, const Uptane::Hash &hash
     target["hashes"]["sha512"] = hash.HashString();
   }
   target["custom"] = custom;
+  if (!url.empty()) {
+    target["custom"]["uri"] = url;
+  }
   addImage(name, target, hardware_id, delegation);
 }
 
