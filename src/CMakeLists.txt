@@ -14,5 +14,6 @@ add_subdirectory("aktualizr_repo")
 add_subdirectory("cert_provider")
 add_subdirectory("hmi_stub")
 add_subdirectory("aktualizr_lite")
+add_subdirectory("aktualizr_get")
 
 add_subdirectory("load_tests")
