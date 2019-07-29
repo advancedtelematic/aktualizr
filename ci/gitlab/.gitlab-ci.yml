@@ -213,6 +213,7 @@ Ptest qemux86_64:
   stage: oe-test
   dependencies:
     - OE Checkout
+  allow_failure: true
   only:
     variables:
       - $OE_PTEST
