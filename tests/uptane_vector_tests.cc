@@ -122,18 +122,23 @@ TEST_P(UptaneVector, Test) {
        * Check metadata from the director.
        * Identify targets for known ECUs.
        * Fetch metadata from the images repo.
-       * Check metadata from the images repo. */
+       * Check metadata from the images repo.
+       *
+       * It would be simpler to just call fetchMeta() here, but that calls
+       * putManifestSimple(), which will fail here. */
       if (!uptane_client->uptaneIteration()) {
         ASSERT_TRUE(should_fail) << "uptaneIteration unexpectedly failed.";
         throw uptane_client->getLastException();
       }
-      std::vector<Uptane::Target> updates;
-      ASSERT_TRUE(uptane_client->uptaneOfflineIteration(&updates, nullptr))
-          << "uptaneOfflineIteration unexpectedly failed.";
-      if (updates.size()) {
+      result::UpdateCheck updates = uptane_client->checkUpdates();
+      if (updates.status == result::UpdateStatus::kError) {
+        ASSERT_TRUE(should_fail) << "checkUpdates unexpectedly failed.";
+        throw uptane_client->getLastException();
+      }
+      if (updates.ecus_count > 0) {
         /* Download a binary package.
          * Verify a binary package. */
-        result::Download result = uptane_client->downloadImages(updates);
+        result::Download result = uptane_client->downloadImages(updates.updates);
         if (result.status != result::DownloadStatus::kSuccess) {
           ASSERT_TRUE(should_fail) << "downloadImages unexpectedly failed.";
           throw uptane_client->getLastException();
