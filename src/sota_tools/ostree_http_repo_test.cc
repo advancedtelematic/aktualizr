@@ -89,7 +89,7 @@ TEST(http_repo, bad_connection) {
   TestUtils::waitForServer("https://localhost:" + dp + "/");
 
   boost::filesystem::path filepath = (dst_dir.Path() / "auth.json").string();
-  boost::filesystem::path cert_path = "tests/fake_http_server/client.crt";
+  boost::filesystem::path cert_path = "tests/fake_http_server/server.crt";
 
   auto hash = OSTreeHash::Parse("b9ac1e45f9227df8ee191b6e51e09417bd36c6ebbeff999431e3073ac50f0563");
   UploadToTreehub(src_repo, ServerCredentials(filepath), hash, cert_path.string(), RunMode::kDefault, 1);

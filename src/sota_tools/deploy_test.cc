@@ -17,7 +17,7 @@ TemporaryDirectory temp_dir;
 TEST(deploy, UploadToTreehub) {
   OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>("tests/sota_tools/repo");
   boost::filesystem::path filepath = (temp_dir.Path() / "auth.json").string();
-  boost::filesystem::path cert_path = "tests/fake_http_server/client.crt";
+  boost::filesystem::path cert_path = "tests/fake_http_server/server.crt";
   auto server_creds = ServerCredentials(filepath);
   auto run_mode = RunMode::kDefault;
   auto test_ref = src_repo->GetRef("master");

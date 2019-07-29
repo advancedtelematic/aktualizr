@@ -9,10 +9,8 @@ int authenticate(const string &cacerts, const ServerCredentials &creds, TreehubS
   switch (creds.GetMethod()) {
     case AuthMethod::kBasic: {
       treehub.SetAuthBasic(creds.GetAuthUser(), creds.GetAuthPassword());
-      treehub.ca_certs(cacerts);
       break;
     }
-
     case AuthMethod::kOauth2: {
       OAuth2 oauth2(creds.GetAuthServer(), creds.GetClientId(), creds.GetClientSecret(), cacerts);
 
@@ -27,25 +25,24 @@ int authenticate(const string &cacerts, const ServerCredentials &creds, TreehubS
       } else {
         LOG_INFO << "Skipping Authentication";
       }
-      // Set ca certificate path, because curl embeds the path to ca-certs that it was built with
-      // and this breaks under bitbake when sharing sstate cache between machines
-      treehub.ca_certs(cacerts);
       break;
     }
-    case AuthMethod::kCert: {
-      treehub.SetCerts(creds.GetRootCert(), creds.GetClientCert(), creds.GetClientKey());
+    case AuthMethod::kTls: {
+      treehub.SetCerts(creds.GetClientP12());
       break;
     }
     case AuthMethod::kNone:
-      // Setup ca certificate because curl checks ca certs by default.
-      treehub.ca_certs(cacerts);
       break;
-
     default: {
       LOG_FATAL << "Unexpected authentication method value " << static_cast<int>(creds.GetMethod());
       return EXIT_FAILURE;
     }
   }
+  // Setup ca certificates in all cases. Even with no authentication, curl
+  // checks ca certs by default. Furthermore, curl embeds the path to ca certs
+  // that it was built with and this breaks under bitbake when sharing sstate
+  // cache between machines.
+  treehub.ca_certs(cacerts);
   treehub.root_url(creds.GetOSTreeServer());
   treehub.repo_url(creds.GetRepoUrl());
 

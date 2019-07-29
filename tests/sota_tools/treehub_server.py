@@ -149,9 +149,9 @@ try:
         httpd = HTTPServer(('', args.port), TreehubServerHandler)
         if args.tls:
             httpd.socket = ssl.wrap_socket(httpd.socket,
-                                           certfile='tests/fake_http_server/client.crt',
-                                           ca_certs='tests/fake_http_server/client.crt',
-                                           keyfile='tests/fake_http_server/client.key',
+                                           certfile='tests/fake_http_server/server.crt',
+                                           ca_certs='tests/fake_http_server/server.crt',
+                                           keyfile='tests/fake_http_server/server.key',
                                            server_side=True)
         httpd.serve_forever()
 except (SystemExit, KeyboardInterrupt) as e:

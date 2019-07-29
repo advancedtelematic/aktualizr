@@ -153,7 +153,7 @@ TEST(OstreeObject, UploadSuccess) {
   push_server.root_url("https://localhost:" + dp);
 
   boost::filesystem::path filepath = (temp_dir.Path() / "auth.json").string();
-  boost::filesystem::path cert_path = "tests/fake_http_server/client.crt";
+  boost::filesystem::path cert_path = "tests/fake_http_server/server.crt";
   EXPECT_EQ(authenticate(cert_path.string(), ServerCredentials(filepath), push_server), EXIT_SUCCESS);
 
   OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>(repo_path);

@@ -12,7 +12,7 @@ class TreehubServer {
  public:
   TreehubServer();
   void SetToken(const std::string &token);
-  void SetCerts(const std::string &root_cert, const std::string &client_cert, const std::string &client_key);
+  void SetCerts(const std::string &client_p12);
   void SetAuthBasic(const std::string &username, const std::string &password);
 
   void InjectIntoCurl(const std::string &url_suffix, CURL *curl_handle, bool tufrepo = false) const;
@@ -29,9 +29,7 @@ class TreehubServer {
   std::string username_;
   std::string password_;
   std::string root_cert_;
-  TemporaryFile root_cert_path_;
-  TemporaryFile client_cert_path_;
-  TemporaryFile client_key_path_;
+  TemporaryFile client_p12_path_;
   AuthMethod method_{AuthMethod::kNone};
   struct curl_slist auth_header_ {};
   // Don't modify auth_header_contents_ without updating the pointer in

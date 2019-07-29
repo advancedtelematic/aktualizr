@@ -11,9 +11,12 @@
 #include "treehub_server.h"
 #include "utilities/utils.h"
 
+boost::filesystem::path certs_dir;
+
 /* Authenticate with OAuth2.
  * Parse authentication information from treehub.json. */
 TEST(authenticate, good_zip) {
+  // Authenticates with the ATS portal to the SaaS instance.
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_good.zip";
   ServerCredentials creds(filepath);
   EXPECT_EQ(creds.GetMethod(), AuthMethod::kOauth2);
@@ -23,36 +26,32 @@ TEST(authenticate, good_zip) {
 }
 
 /* Authenticate with TLS credentials.
- * Parse authentication information from treehub.json.
  * Parse images repository URL from a provided archive. */
-/* TODO: This used to work, but then when the zip file was updated because of
- * expired certs, it was changed to not use cert auth, and there was no check to
- * verify the method at that time.
 TEST(authenticate, good_cert_zip) {
-  boost::filesystem::path filepath = "tests/sota_tools/auth_test_cert_good.zip";
+  // Authenticates with tls_server on port 1443.
+  boost::filesystem::path filepath = certs_dir / "good.zip";
   ServerCredentials creds(filepath);
-  EXPECT_EQ(creds.GetMethod(), AuthMethod::kCert);
+  EXPECT_EQ(creds.GetMethod(), AuthMethod::kTls);
   TreehubServer treehub;
-  int r = authenticate("", creds, treehub);
+  int r = authenticate("tests/fake_http_server/server.crt", creds, treehub);
   EXPECT_EQ(0, r);
   CurlEasyWrapper curl_handle;
   curlEasySetoptWrapper(curl_handle.get(), CURLOPT_VERBOSE, 1);
   treehub.InjectIntoCurl("test.txt", curl_handle.get());
   CURLcode rc = curl_easy_perform(curl_handle.get());
-
   EXPECT_EQ(CURLE_OK, rc);
 }
-*/
 
 /* Authenticate with nothing (no auth).
  * Parse authentication information from treehub.json.
  * Parse images repository URL from a provided archive. */
 TEST(authenticate, good_cert_noauth_zip) {
+  // Authenticates with tls_noauth_server on port 2443.
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_noauth_good.zip";
   ServerCredentials creds(filepath);
   EXPECT_EQ(creds.GetMethod(), AuthMethod::kNone);
   TreehubServer treehub;
-  int r = authenticate("tests/fake_http_server/client.crt", creds, treehub);
+  int r = authenticate("tests/fake_http_server/server.crt", creds, treehub);
   EXPECT_EQ(0, r);
   CurlEasyWrapper curl_handle;
   curlEasySetoptWrapper(curl_handle.get(), CURLOPT_VERBOSE, 1);
@@ -63,9 +62,14 @@ TEST(authenticate, good_cert_noauth_zip) {
 }
 
 TEST(authenticate, bad_cert_zip) {
-  boost::filesystem::path filepath = "tests/sota_tools/auth_test_cert_bad.zip";
+  // Tries to authenticates with tls_server on port 1443.
+  // Fails because the intermediate cert that signed the client cert was signed
+  // by a different root cert.
+  boost::filesystem::path filepath = certs_dir / "bad.zip";
+  ServerCredentials creds(filepath);
+  EXPECT_EQ(creds.GetMethod(), AuthMethod::kTls);
   TreehubServer treehub;
-  int r = authenticate("", ServerCredentials(filepath), treehub);
+  int r = authenticate("", creds, treehub);
   EXPECT_EQ(0, r);
   CurlEasyWrapper curl_handle;
   curlEasySetoptWrapper(curl_handle.get(), CURLOPT_VERBOSE, 1);
@@ -91,6 +95,7 @@ TEST(authenticate, no_json_zip) {
 
 /* Extract credentials from a provided JSON file. */
 TEST(authenticate, good_json) {
+  // Authenticates with the ATS portal to the SaaS instance.
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_good.json";
   TreehubServer treehub;
   int r = authenticate("", ServerCredentials(filepath), treehub);
@@ -120,9 +125,10 @@ TEST(authenticate, offline_sign_creds) {
   EXPECT_TRUE(creds_offline.CanSignOffline());
 }
 
-/* Check if credentials support offline signing. */
+/* Check if credentials do not support offline signing. */
 TEST(authenticate, online_sign_creds) {
-  boost::filesystem::path auth_online = "tests/sota_tools/auth_test_cert_good.zip";
+  // Authenticates with tls_server on port 1443.
+  boost::filesystem::path auth_online = certs_dir / "good.zip";
   ServerCredentials creds_online(auth_online);
   EXPECT_FALSE(creds_online.CanSignOffline());
 }
@@ -130,8 +136,14 @@ TEST(authenticate, online_sign_creds) {
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  boost::process::child server_process("tests/fake_http_server/ssl_server.py");
-  boost::process::child server_noauth_process("tests/fake_http_server/ssl_noauth_server.py");
+  if (argc != 2) {
+    std::cerr << "Error: " << argv[0] << " requires the path to the directory with generated certificates.\n";
+    return EXIT_FAILURE;
+  }
+  certs_dir = argv[1];
+
+  boost::process::child server_process("tests/fake_http_server/tls_server.py");
+  boost::process::child server_noauth_process("tests/fake_http_server/tls_noauth_server.py");
   // TODO: this do not work because the server expects auth! Let's sleep for now.
   // (could be replaced by a check with raw tcp)
   // TestUtils::waitForServer("https://localhost:1443/");
