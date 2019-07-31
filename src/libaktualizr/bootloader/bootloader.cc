@@ -12,6 +12,7 @@
 
 Bootloader::Bootloader(const BootloaderConfig& config, INvStorage& storage) : config_(config), storage_(storage) {
   reboot_sentinel_ = config_.reboot_sentinel_dir / config_.reboot_sentinel_name;
+  reboot_command_ = config_.reboot_command;
 
   if (!Utils::createSecureDirectory(config_.reboot_sentinel_dir)) {
     LOG_WARNING << "Could not create " << config_.reboot_sentinel_dir << " securely, reboot detection support disabled";
@@ -116,12 +117,14 @@ void Bootloader::rebootFlagClear() {
 void Bootloader::reboot(bool fake_reboot) {
   if (fake_reboot) {
     boost::filesystem::remove(reboot_sentinel_);
-  } else {
-    sync();
-    if (setuid(0) != 0) {
-      LOG_ERROR << "Failed to set/verify a root user so cannot reboot system programmatically";
-    } else {
-      ::reboot(RB_AUTOBOOT);
-    }
+    return;
+  }
+  if (setuid(0) != 0) {
+    LOG_ERROR << "Failed to set/verify a root user so cannot reboot system programmatically";
+    return;
+  }
+  sync();
+  if (system(reboot_command_.c_str()) != 0) {
+    LOG_ERROR << "Failed to execute the reboot command: " << reboot_command_;
   }
 }
