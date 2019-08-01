@@ -83,9 +83,29 @@ int main(int argc, char **argv) {
       wait_provisioning = true;
     }
 
-    std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage, readonly);
+    std::shared_ptr<INvStorage> storage;
     bool cmd_trigger = false;
     std::string device_id;
+
+    bool registered = false;
+    bool has_metadata = false;
+    std::string director_root;
+    if (wait_provisioning) {
+      while (!registered || !has_metadata) {
+        try {
+          storage = INvStorage::newStorage(config.storage, readonly);
+
+          registered = storage->loadEcuRegistered();
+          has_metadata = storage->loadLatestRoot(&director_root, Uptane::RepositoryType::Director());
+        } catch (std::exception &e) {
+          // ignore storage exceptions here which are common as this is intended
+          // to run while aktualizr sets up the storage
+        }
+        sleep(1);
+      }
+    } else {
+      storage = INvStorage::newStorage(config.storage, readonly);
+    }
 
     if (!storage->loadDeviceId(&device_id)) {
       std::cout << "Couldn't load device ID" << std::endl;
@@ -97,16 +117,8 @@ int main(int argc, char **argv) {
       }
     }
 
-    std::string director_root;
-    auto registered = storage->loadEcuRegistered();
-    bool has_metadata = storage->loadLatestRoot(&director_root, Uptane::RepositoryType::Director());
-
-    while (wait_provisioning && (!registered || !has_metadata)) {
-      registered = storage->loadEcuRegistered();
-      has_metadata = storage->loadLatestRoot(&director_root, Uptane::RepositoryType::Director());
-
-      sleep(1);
-    }
+    registered = registered || storage->loadEcuRegistered();
+    has_metadata = has_metadata || storage->loadLatestRoot(&director_root, Uptane::RepositoryType::Director());
 
     // TLS credentials
     if (vm.count("tls-creds") != 0u) {
