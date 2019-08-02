@@ -1,3 +1,7 @@
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    set(CMAKE_CXX_FLAGS -pthread)
+endif()
+
 set(SOURCES managedsecondary.cc virtualsecondary.cc partialverificationsecondary.cc)
 
 set(HEADERS managedsecondary.h virtualsecondary.h partialverificationsecondary.h)
