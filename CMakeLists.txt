@@ -7,6 +7,8 @@ cmake_policy(SET CMP0009 NEW)
 
 project(aktualizr)
 
+include_directories(/usr/include/ostree-1)
+
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
     message(STATUS "No CMAKE_BUILD_TYPE specified, defaulting to ${CMAKE_BUILD_TYPE}")
@@ -101,6 +103,11 @@ find_package(SQLite3 REQUIRED)
 find_package(Git)
 find_package(Asn1c REQUIRED)
 find_package(ZLIB)
+
+pkg_check_modules(GLIB glib-2.0 REQUIRED)
+include_directories(${GLIB_INCLUDE_DIRS})
+link_directories(${GLIB_LIBRARIES})
+add_definitions(${GLIB_CFLAGS_OTHER})
 
 if(NOT AKTUALIZR_VERSION)
     if(GIT_EXECUTABLE)
