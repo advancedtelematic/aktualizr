@@ -16,7 +16,7 @@
 #include "storage/sqlstorage.h"
 #include "test_utils.h"
 
-boost::filesystem::path aktualizr_repo_path;
+boost::filesystem::path uptane_generator_path;
 static std::string server = "http://127.0.0.1:";
 static std::string treehub_server = "http://127.0.0.1:";
 static boost::filesystem::path sysroot;
@@ -100,11 +100,11 @@ int main(int argc, char **argv) {
   logger_init();
 
   if (argc != 3) {
-    std::cerr << "Error: " << argv[0] << " requires the path to the aktualizr-repo utility "
+    std::cerr << "Error: " << argv[0] << " requires the path to the uptane-generator utility "
               << "and an OStree sysroot\n";
     return EXIT_FAILURE;
   }
-  aktualizr_repo_path = argv[1];
+  uptane_generator_path = argv[1];
 
   Process ostree("ostree");
 
@@ -146,14 +146,14 @@ int main(int argc, char **argv) {
   boost::trim_if(new_rev, boost::is_any_of(" \t\r\n"));
   LOG_INFO << "DEST: " << new_rev;
 
-  Process akt_repo(aktualizr_repo_path.string());
-  akt_repo.run({"generate", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
-  akt_repo.run({"image", "--path", meta_dir.PathString(), "--targetname", "update_1.0", "--targetsha256", new_rev,
-                "--targetlength", "0", "--targetformat", "OSTREE", "--hwid", "primary_hw"});
-  akt_repo.run({"addtarget", "--path", meta_dir.PathString(), "--targetname", "update_1.0", "--hwid", "primary_hw",
-                "--serial", "CA:FE:A6:D2:84:9D"});
-  akt_repo.run({"signtargets", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
-  LOG_INFO << akt_repo.lastStdOut();
+  Process uptane_gen(uptane_generator_path.string());
+  uptane_gen.run({"generate", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
+  uptane_gen.run({"image", "--path", meta_dir.PathString(), "--targetname", "update_1.0", "--targetsha256", new_rev,
+                  "--targetlength", "0", "--targetformat", "OSTREE", "--hwid", "primary_hw"});
+  uptane_gen.run({"addtarget", "--path", meta_dir.PathString(), "--targetname", "update_1.0", "--hwid", "primary_hw",
+                  "--serial", "CA:FE:A6:D2:84:9D"});
+  uptane_gen.run({"signtargets", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
+  LOG_INFO << uptane_gen.lastStdOut();
   // Work around inconsistent directory naming.
   Utils::copyDir(meta_dir.Path() / "repo/image", meta_dir.Path() / "repo/repo");
 

@@ -2,8 +2,8 @@
 set -xeuo pipefail
 
 TEMP_DIR=/tmp/temp_aktualizr_expire_repo/$(mktemp -d)/$1
-"$2/src/aktualizr_repo/aktualizr-repo" generate $TEMP_DIR --expires=$1
-"$2/src/aktualizr_repo/aktualizr-repo" image $TEMP_DIR ./tests/test_data/credentials.zip --hwid test_hwid
+"$2/src/uptane_generator/uptane-generator" generate $TEMP_DIR --expires=$1
+"$2/src/uptane_generator/uptane-generator" image $TEMP_DIR ./tests/test_data/credentials.zip --hwid test_hwid
 
 cp ./tests/test_data/credentials.zip $TEMP_DIR
 

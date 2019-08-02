@@ -184,7 +184,7 @@ xenial-pkg-test:
   script:
     - ./scripts/test_install_garage_deploy.sh
     - ./scripts/test_install_aktualizr_and_update.sh
-    - ./scripts/test_aktualizr_repo.sh
+    - ./scripts/test-uptane-generator.sh
 
 # -- yocto tests
 

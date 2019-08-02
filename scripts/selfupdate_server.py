@@ -9,7 +9,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         local_path = self.path
         print("GET: " + local_path)
-        # Fix annoying issue where aktualizr-repo generates metadata for the
+        # Fix annoying issue where uptane-generator generates metadata for the
         # images repository in /image but aktualizr expects /repo.
         if local_path.startswith("/repo/"):
             local_path = local_path.replace('/repo/', '/image/', 1)
