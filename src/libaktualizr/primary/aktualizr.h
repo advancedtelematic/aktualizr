@@ -158,6 +158,9 @@ class Aktualizr {
    */
   boost::signals2::connection SetSignalHandler(const std::function<void(std::shared_ptr<event::BaseEvent>)>& handler);
 
+ private:
+  Config config_;
+
  protected:
   Aktualizr(Config& config, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<HttpInterface> http_in);
 
@@ -166,7 +169,6 @@ class Aktualizr {
  private:
   static void systemSetup();
 
-  Config& config_;
   std::shared_ptr<INvStorage> storage_;
   std::shared_ptr<event::Channel> sig_;
   api::CommandQueue api_queue_;
