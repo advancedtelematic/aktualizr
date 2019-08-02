@@ -76,6 +76,7 @@ coverage:
     TEST_WITH_P11: '1'
     TEST_WITH_DOCKERAPP: '1'
     TEST_WITH_FAULT_INJECTION: '1'
+    TEST_WITH_OSTREE: '1'
     TEST_SOTA_PACKED_CREDENTIALS: "$CI_PROJECT_DIR/credentials.zip"
   image: "$UBUNTU_BIONIC_PR_IMAGE"
   stage: test
@@ -86,6 +87,28 @@ coverage:
   artifacts:
     paths:
       - build-coverage/coverage/
+  script:
+    - aws s3 cp s3://ota-gitlab-ci/hereotaconnect_prod.zip $CI_PROJECT_DIR/credentials.zip
+    - ./scripts/test.sh
+
+coverage-xenial:
+  variables:
+    TEST_BUILD_DIR: 'build-coverage-xenial'
+    TEST_CMAKE_BUILD_TYPE: 'Valgrind'
+    TEST_WITH_COVERAGE: '1'
+    TEST_WITH_P11: '0'
+    TEST_WITH_FAULT_INJECTION: '0'
+    TEST_WITH_OSTREE: '1'
+    TEST_SOTA_PACKED_CREDENTIALS: "$CI_PROJECT_DIR/credentials.zip"
+  image: "$UBUNTU_XENIAL_PR_IMAGE"
+  stage: test
+  cache:
+    key: "$CI_JOB_NAME"
+    paths:
+      - ccache/
+  artifacts:
+    paths:
+      - build-coverage-xenial/coverage/
   script:
     - aws s3 cp s3://ota-gitlab-ci/hereotaconnect_prod.zip $CI_PROJECT_DIR/credentials.zip
     - ./scripts/test.sh
