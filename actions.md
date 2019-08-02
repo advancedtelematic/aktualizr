@@ -356,9 +356,9 @@ These tools all link with libaktualizr, although they do not necessary use the A
   - [x] Print snapshot (aktualizr_info_test.cc)
   - [x] Print timestamp (aktualizr_info_test.cc)
 
-### aktualizr-repo
+### uptane-generator
 
-`aktualizr-repo` is used in testing to simulate the generation of Uptane repositories.
+`uptane-generator` is used in testing to simulate the generation of Uptane repositories.
 
 - [x] Generate images and director repos (repo_test.cc)
 - [x] Add an image to the images repo (repo_test.cc)

@@ -3,7 +3,7 @@ set -e
 
 build_dir=$(pwd)
 aklite=$1
-akrepo_bin=$2
+uptane_gen_bin=$2
 tests_dir=$3
 #valgrind=$4
 valgrind=""
@@ -20,8 +20,8 @@ cleanup() {
 }
 trap cleanup EXIT
 
-akrepo() {
-    $akrepo_bin --repotype image --path "$dest_dir" "$@"
+uptane_gen() {
+    $uptane_gen_bin --repotype image --path "$dest_dir" "$@"
 }
 
 add_target() {
@@ -39,15 +39,15 @@ add_target() {
   "targetFormat": "OSTREE"
 }
 EOF
-    akrepo --command image \
-        --targetname $name --targetsha256 $sha --targetlength 0 \
-        --hwid hwid-for-test --targetcustom $custom_json
+    uptane_gen --command image \
+               --targetname $name --targetsha256 $sha --targetlength 0 \
+               --hwid hwid-for-test --targetcustom $custom_json
 }
 
-akrepo --command generate --expires 2021-07-04T16:33:27Z
+uptane_gen --command generate --expires 2021-07-04T16:33:27Z
 add_target foo1
 add_target foo2
-akrepo --command signtargets
+uptane_gen --command signtargets
 
 pushd $dest_dir
 python3 -m http.server 0&

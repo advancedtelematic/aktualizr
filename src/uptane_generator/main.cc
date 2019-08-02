@@ -20,7 +20,7 @@ KeyType parseKeyType(const po::variables_map &vm) {
 }
 
 int main(int argc, char **argv) {
-  po::options_description desc("aktualizr-repo command line options");
+  po::options_description desc("uptane-generator command line options");
   // clang-format off
   desc.add_options()
     ("help,h", "print usage")

@@ -33,9 +33,9 @@ per run, for around 4000*log(4000) ~= 50000 runs
 
 
 @contextlib.contextmanager
-def uptane_repo(akt_repo):
+def uptane_repo(uptane_gen):
     with tempfile.TemporaryDirectory() as repo_path:
-        arepo = [akt_repo, '--keytype', 'ed25519']
+        arepo = [uptane_gen, '--keytype', 'ed25519']
         run([*arepo, 'generate', '--path', repo_path])
         fw_path = path.join(repo_path, 'images/firmware.txt')
         os.makedirs(path.join(repo_path, 'images'))
@@ -83,7 +83,7 @@ def main():
     parser.add_argument('-pf', '--probability-failure', type=float, default=0.00025,
                         help='probability of syscall failure')
     parser.add_argument('--akt-srcdir', help='path to the aktualizr source directory')
-    parser.add_argument('--akt-repo', help='path to aktualizr-repo executable')
+    parser.add_argument('--uptane-gen', help='path to uptane-generator executable')
     parser.add_argument('--akt-test', help='path to aktualizr cycle test')
     parser.add_argument('--serve-only', action='store_true',
                         help='only serve metadata, do not run tests')
@@ -91,7 +91,7 @@ def main():
 
     srcdir = path.abspath(args.akt_srcdir) if args.akt_srcdir is not None else os.getcwd()
 
-    with uptane_repo(args.akt_repo) as repo_dir, \
+    with uptane_repo(args.uptane_gen) as repo_dir, \
             FakeTestServerBackground(repo_dir, srcdir=srcdir) as uptane_server, \
             multiprocessing.Pool(args.jobs) as pool:
 
