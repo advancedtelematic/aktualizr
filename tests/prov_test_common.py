@@ -2,7 +2,6 @@ import platform
 import re
 import subprocess
 
-from time import sleep
 
 def verify_provisioned(akt_info, conf):
     # Verify that device HAS provisioned.
@@ -27,7 +26,7 @@ def run_subprocess(command, **kwargs):
     proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
     try:
         stdout, stderr = proc.communicate(timeout=60)
-    except TimeoutExpired:
+    except subprocess.TimeoutExpired:
         proc.kill()
         stdout, stderr = proc.communicate()
     return stdout, stderr, proc.returncode
