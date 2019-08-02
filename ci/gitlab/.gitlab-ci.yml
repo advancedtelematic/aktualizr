@@ -5,6 +5,7 @@ stages:
   - oe-checkout
   - oe-test
   - deploy
+  - trigger
 
 variables:
   UBUNTU_BIONIC_MASTER_IMAGE: ${CI_REGISTRY_IMAGE}:ci-master-UBUNTU_BIONIC
@@ -265,3 +266,24 @@ pages:
   # would be nice to have on a per-PR basis: # https://gitlab.com/gitlab-org/gitlab-ce/issues/35141
   only:
     - master
+
+app-docker-image:
+  image: docker:18
+  services:
+    - docker:18-dind
+  stage: deploy
+  only:
+    - master
+  allow_failure: true
+  before_script:
+    - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
+  script:
+    - sed 's@$BUILDER@'$UBUNTU_BIONIC_MASTER_IMAGE'@' ./ci/gitlab/Dockerfile.aktualizr > ./ci/gitlab/Dockerfile
+    - docker build -t $CI_REGISTRY_IMAGE/app:ci-$CI_COMMIT_REF_SLUG -f ./ci/gitlab/Dockerfile .
+    - docker push $CI_REGISTRY_IMAGE/app:ci-$CI_COMMIT_REF_SLUG
+
+trigger-e2e-pipeline:
+  stage: trigger
+  only:
+    - master
+  trigger: olp/edge/ota/testing/ota-plus-test-driver
