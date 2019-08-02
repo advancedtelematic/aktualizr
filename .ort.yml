@@ -1,0 +1,8 @@
+excludes:
+  paths:
+  - pattern: "tests/**"
+    reason: "TEST_TOOL_OF"
+    comment: "This directory contains tests which are not distributed."
+  - pattern: "third_party/googletest/**"
+    reason: "TEST_TOOL_OF"
+    comment: "This directory contains tests which are not distributed."
