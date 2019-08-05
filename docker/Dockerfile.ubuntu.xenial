@@ -75,17 +75,18 @@ RUN ./configure
 RUN make -j4
 RUN make install
 
-# WORKDIR /boost
-# RUN wget https://sourceforge.net/projects/boost/files/boost/1.64.0/boost_1_64_0.tar.gz -nv
-# RUN tar -xzf boost_1_64_0.tar.gz
-# WORKDIR /boost/boost_1_64_0
-# RUN ./bootstrap.sh --prefix=/usr/
-# RUN ./b2
-# RUN ./b2 install
-RUN apt install -y software-properties-common
-RUN add-apt-repository ppa:mhier/libboost-latest
-RUN apt update
-RUN apt install -y libboost1.67-dev
+WORKDIR /boost
+RUN wget https://sourceforge.net/projects/boost/files/boost/1.67.0/boost_1_67_0.tar.gz -nv
+RUN tar -xzf boost_1_67_0.tar.gz
+WORKDIR /boost/boost_1_67_0
+RUN ./bootstrap.sh --prefix=/usr/
+RUN ./b2
+RUN ./b2 install
+
+# RUN apt install -y software-properties-common
+# RUN add-apt-repository ppa:mhier/libboost-latest
+# RUN apt update
+# RUN apt install -y libboost1.67-dev
 
 WORKDIR /ostree
 RUN git init && git remote add origin https://github.com/ostreedev/ostree
