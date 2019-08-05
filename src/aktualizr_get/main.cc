@@ -13,7 +13,8 @@
 namespace bpo = boost::program_options;
 
 bpo::variables_map parse_options(int argc, char *argv[]) {
-  bpo::options_description description("aktualizr-get command line options");
+  bpo::options_description description(
+      "A tool similar to wget that will do an HTTP get on the given URL using the device's configured credentials.");
   // clang-format off
   // Try to keep these options in the same order as Config::updateFromCommandLine().
   // The first three are commandline only.
@@ -57,10 +58,6 @@ int main(int argc, char *argv[]) {
 
   int r = EXIT_FAILURE;
   try {
-    if (geteuid() != 0) {
-      LOG_WARNING << "\033[31mRunning as non-root and may not work as expected!\033[0m\n";
-    }
-
     Config config(commandline_map);
     if (config.logger.loglevel <= boost::log::trivial::debug) {
       SSL_load_error_strings();

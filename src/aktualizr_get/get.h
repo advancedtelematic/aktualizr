@@ -3,6 +3,6 @@
 
 #include "config/config.h"
 
-std::string aktualizrGet(Config &config, std::string url);
+std::string aktualizrGet(Config &config, const std::string &url);
 
 #endif  // AKTUALIZR_GET_HELPERS

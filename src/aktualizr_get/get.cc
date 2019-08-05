@@ -2,7 +2,7 @@
 #include "crypto/keymanager.h"
 #include "http/httpclient.h"
 
-std::string aktualizrGet(Config &config, const std::string url) {
+std::string aktualizrGet(Config &config, const std::string &url) {
   auto storage = INvStorage::newStorage(config.storage);
   storage->importData(config.import);
 
