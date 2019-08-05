@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-suggests --no-install-reco
   python3 \
   zip
 
+RUN apt install software-properties-common
 RUN add-apt-repository ppa:mhier/libboost-latest
 RUN apt update
 RUN apt install libboost1.67
