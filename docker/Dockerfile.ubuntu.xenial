@@ -82,10 +82,10 @@ RUN make install
 # RUN ./bootstrap.sh --prefix=/usr/
 # RUN ./b2
 # RUN ./b2 install
-RUN apt install software-properties-common
+RUN apt install -y software-properties-common
 RUN add-apt-repository ppa:mhier/libboost-latest
 RUN apt update
-RUN apt install libboost1.67-dev
+RUN apt install -y libboost1.67-dev
 
 WORKDIR /ostree
 RUN git init && git remote add origin https://github.com/ostreedev/ostree
