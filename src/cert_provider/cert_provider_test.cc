@@ -18,6 +18,47 @@ class AktualizrCertProviderTest : public ::testing::Test {
     const std::string fleet_ca_private_key = "tests/test_data/CApkey.pem";
   };
 
+  class Cert {
+   public:
+    Cert(const std::string& cert_file_path) {
+      fp_ = fopen(cert_file_path.c_str(), "r");
+      if (!fp_) {
+        throw std::invalid_argument("Cannot open the specified cert file: " + cert_file_path);
+      }
+
+      cert_ = PEM_read_X509(fp_, NULL, NULL, NULL);
+      if (!cert_) {
+        fclose(fp_);
+        throw std::runtime_error("Failed to read the cert file: " + cert_file_path);
+      }
+    }
+
+    ~Cert() {
+      X509_free(cert_);
+      fclose(fp_);
+    }
+
+    std::string getSubjectItemValue(int itemID) {
+      const uint32_t SUBJECT_ITEM_MAX_LENGTH = 2048;
+      char buffer[SUBJECT_ITEM_MAX_LENGTH + 1] = {0};
+
+      X509_NAME* subj = X509_get_subject_name(cert_);
+      if (subj == nullptr) {
+        throw std::runtime_error("Failed to retrieve a subject from the certificate");
+      }
+
+      if (X509_NAME_get_text_by_NID(subj, itemID, buffer, SUBJECT_ITEM_MAX_LENGTH) == -1) {
+        throw std::runtime_error("Failed to retrieve an item from from the certificate subject");
+      }
+
+      return buffer;
+    }
+
+   private:
+    FILE* fp_;
+    X509* cert_;
+  };
+
  protected:
   TemporaryDirectory tmp_dir_;
   TestArgs test_args_{tmp_dir_};
@@ -211,10 +252,12 @@ TEST_F(AktualizrCertProviderTest, ConfigFilePathUsage) {
 TEST_F(AktualizrCertProviderTest, DeviceCertParams) {
   const std::string validity_days = "100";
   auto expires_after_sec = (std::stoul(validity_days) * 24 * 3600) + 1;
-  const std::string country_code = "UA";
-  const std::string state = "Lviv";
-  const std::string org = "ATS";
-  const std::string common_name = "ats.org";
+  std::unordered_map<int, std::string> subject_items = {
+      {NID_countryName, "UA"},
+      {NID_stateOrProvinceName, "Lviv"},
+      {NID_organizationName, "ATS"},
+      {NID_commonName, "ats.io"},
+  };
   const std::string rsa_bits = "1024";
 
   DeviceCredGenerator::ArgSet args;
@@ -224,10 +267,10 @@ TEST_F(AktualizrCertProviderTest, DeviceCertParams) {
   args.localDir = test_args_.test_dir;
 
   args.validityDays = validity_days;
-  args.countryCode = country_code;
-  args.state = state;
-  args.organization = org;
-  args.commonName = common_name;
+  args.countryCode = subject_items[NID_countryName];
+  args.state = subject_items[NID_stateOrProvinceName];
+  args.organization = subject_items[NID_organizationName];
+  args.commonName = subject_items[NID_commonName];
   args.rsaBits = rsa_bits;
 
   device_cred_gen_.run(args);
@@ -240,29 +283,27 @@ TEST_F(AktualizrCertProviderTest, DeviceCertParams) {
   ASSERT_TRUE(boost::filesystem::exists(device_cred_path.certFileFullPath)) << device_cred_path.certFileFullPath;
 
   // check subject's params
-  const std::string expected_subject_str =
-      str(boost::format("Subject: C = %1%, ST = %2%, O = %3%, CN = %4%") % country_code % state % org % common_name);
+  Cert cert(device_cred_path.certFileFullPath.string());
+  for (auto subject_item : subject_items) {
+    ASSERT_EQ(cert.getSubjectItemValue(subject_item.first), subject_item.second);
+  }
 
   Process openssl("/usr/bin/openssl");
-  openssl.run({"x509", "-in", device_cred_path.certFileFullPath.string(), "-text", "-noout"});
-  ASSERT_EQ(openssl.lastExitCode(), 0) << openssl.lastStdErr();
-  ASSERT_NE(openssl.lastStdOut().find(expected_subject_str), std::string::npos);
-
   // check RSA length
   const std::string expected_key_str = str(boost::format("Private-Key: (%1% bit") % rsa_bits);
-
   openssl.run({"rsa", "-in", device_cred_path.privateKeyFileFullPath.string(), "-text", "-noout"});
   ASSERT_EQ(openssl.lastExitCode(), 0) << openssl.lastStdErr();
   ASSERT_NE(openssl.lastStdOut().find(expected_key_str), std::string::npos);
 
   // check expiration date
-  openssl.run({"x509", "-in", device_cred_path.certFileFullPath.string(), "-noout", "-checkend",
+  openssl.run({"x509", "-in", device_cred_path.certFileFullPath.string(), "-checkend",
                std::to_string(expires_after_sec - 1024)});
+
   ASSERT_EQ(openssl.lastExitCode(), 0) << openssl.lastStdOut();
   ASSERT_NE(openssl.lastStdOut().find("Certificate will not expire"), std::string::npos);
 
-  openssl.run({"x509", "-in", device_cred_path.certFileFullPath.string(), "-noout", "-checkend",
-               std::to_string(expires_after_sec)});
+  openssl.run(
+      {"x509", "-in", device_cred_path.certFileFullPath.string(), "-checkend", std::to_string(expires_after_sec)});
   ASSERT_EQ(openssl.lastExitCode(), 1) << openssl.lastStdOut();
   ASSERT_NE(openssl.lastStdOut().find("Certificate will expire"), std::string::npos);
 
