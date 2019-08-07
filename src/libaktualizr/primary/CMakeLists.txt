@@ -1,7 +1,3 @@
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    set(CMAKE_CXX_FLAGS -pthread)
-endif()
-
 set(SOURCES aktualizr.cc
             initializer.cc
             reportqueue.cc

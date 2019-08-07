@@ -7,7 +7,9 @@ cmake_policy(SET CMP0009 NEW)
 
 project(aktualizr)
 
-include_directories(/usr/include/ostree-1)
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    set(CMAKE_CXX_FLAGS -pthread)
+endif()
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")

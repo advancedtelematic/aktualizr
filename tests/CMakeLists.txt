@@ -1,7 +1,3 @@
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    set(CMAKE_CXX_FLAGS -pthread)
-endif()
-
 option(INSTALL_GTEST "" OFF)
 if(NOT GTEST_ROOT )
     set(GTEST_ROOT ${PROJECT_SOURCE_DIR}/third_party/googletest)
