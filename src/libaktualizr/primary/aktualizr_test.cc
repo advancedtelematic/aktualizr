@@ -1470,9 +1470,9 @@ TEST(Aktualizr, InstallWithUpdates) {
   result::Install result = aktualizr.Install(ev_state.updates).get();
   EXPECT_EQ(result.ecu_reports.size(), 0);
 
-  EXPECT_EQ(aktualizr.OpenStoredTarget(primary_target).get(), nullptr)
+  EXPECT_THROW(aktualizr.OpenStoredTarget(primary_target).get(), std::runtime_error)
       << "Primary firmware is present in storage before the download";
-  EXPECT_EQ(aktualizr.OpenStoredTarget(secondary_target).get(), nullptr)
+  EXPECT_THROW(aktualizr.OpenStoredTarget(secondary_target).get(), std::runtime_error)
       << "Secondary firmware is present in storage before the download";
 
   result::UpdateCheck update_result = aktualizr.CheckUpdates().get();

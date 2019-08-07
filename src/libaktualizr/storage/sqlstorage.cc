@@ -1416,6 +1416,40 @@ std::unique_ptr<StorageTargetRHandle> SQLStorage::openTargetFile(const Uptane::T
   return std_::make_unique<SQLTargetRHandle>(*this, target);
 }
 
+std::vector<Uptane::Target> SQLStorage::getTargetFiles() {
+  SQLite3Guard db = dbConnection();
+
+  auto statement = db.prepareStatement<>("SELECT targetname, real_size, sha256, sha512 FROM target_images;");
+
+  std::vector<Uptane::Target> v;
+
+  int result = statement.step();
+  while (result != SQLITE_DONE) {
+    if (result != SQLITE_ROW) {
+      LOG_ERROR << "Statement step failure: " << db.errmsg();
+      throw std::runtime_error("Error getting target files");
+    }
+
+    auto tname = statement.get_result_col_str(0).value();
+    auto tsize = statement.get_result_col_int(1);
+    auto sha256 = statement.get_result_col_str(2).value();
+    auto sha512 = statement.get_result_col_str(3).value();
+
+    std::vector<Uptane::Hash> hashes;
+    if (!sha256.empty()) {
+      hashes.emplace_back(Uptane::Hash::Type::kSha256, sha256);
+    }
+    if (!sha512.empty()) {
+      hashes.emplace_back(Uptane::Hash::Type::kSha512, sha512);
+    }
+    v.emplace_back(tname, Uptane::EcuMap{}, hashes, static_cast<size_t>(tsize));
+
+    result = statement.step();
+  }
+
+  return v;
+}
+
 void SQLStorage::removeTargetFile(const std::string& target_name) {
   SQLite3Guard db = dbConnection();
 
@@ -1444,6 +1478,7 @@ void SQLStorage::removeTargetFile(const std::string& target_name) {
     boost::filesystem::remove(images_path_ / filename);
   } catch (std::exception& e) {
     LOG_ERROR << "Could not remove target file";
+    throw;
   }
 
   db.commitTransaction();

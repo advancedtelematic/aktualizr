@@ -170,14 +170,14 @@ boost::signals2::connection Aktualizr::SetSignalHandler(
   return sig_->connect(handler);
 }
 
+std::vector<Uptane::Target> Aktualizr::GetStoredTargets() { return storage_->getTargetFiles(); }
+
+void Aktualizr::DeleteStoredTarget(const Uptane::Target &target) { storage_->removeTargetFile(target.filename()); }
+
 std::unique_ptr<StorageTargetRHandle> Aktualizr::OpenStoredTarget(const Uptane::Target &target) {
-  try {
-    auto handle = storage_->openTargetFile(target);
-    if (handle->isPartial()) {
-      return std::unique_ptr<StorageTargetRHandle>();
-    }
-    return storage_->openTargetFile(target);
-  } catch (...) {
-    return std::unique_ptr<StorageTargetRHandle>();
+  auto handle = storage_->openTargetFile(target);
+  if (handle->isPartial()) {
+    throw std::runtime_error("Target was partially downloaded");
   }
+  return handle;
 }

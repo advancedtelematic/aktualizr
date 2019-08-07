@@ -494,6 +494,51 @@ TEST(storage, store_target) {
   }
 }
 
+/*
+ * List targets currently in storage.
+ * Remove a target binary from storage.
+ */
+TEST(storage, list_remove_targets) {
+  TemporaryDirectory temp_dir;
+  std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
+
+  Json::Value target_json;
+  target_json["hashes"]["sha256"] = "HASH";
+  target_json["length"] = 2;
+  Uptane::Target target("some.deb", target_json);
+
+  auto tfs = storage->getTargetFiles();
+  EXPECT_EQ(tfs.size(), 0);
+
+  // write
+  {
+    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target);
+    const uint8_t wb[] = "ab";
+    fhandle->wfeed(wb, 1);
+    fhandle->wfeed(wb + 1, 1);
+    fhandle->wcommit();
+  }
+
+  tfs = storage->getTargetFiles();
+  ASSERT_EQ(tfs.size(), 1);
+
+  auto tf = tfs.at(0);
+
+  EXPECT_EQ(tf.filename(), "some.deb");
+  EXPECT_EQ(tf.length(), 2);
+  EXPECT_EQ(tf.hashes().size(), 1);
+  EXPECT_EQ(tf.hashes().at(0), Uptane::Hash(Uptane::Hash::Type::kSha256, "HASH"));
+
+  // note: implementation specific
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "images" / "HASH"));
+
+  storage->removeTargetFile(tf.filename());
+
+  tfs = storage->getTargetFiles();
+  EXPECT_EQ(tfs.size(), 0);
+  EXPECT_FALSE(boost::filesystem::exists(temp_dir.Path() / "images" / "HASH"));
+}
+
 TEST(storage, checksum) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
