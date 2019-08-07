@@ -161,19 +161,13 @@ void SotaUptaneClient::finalizeAfterReboot() {
 data::InstallationResult SotaUptaneClient::PackageInstallSetResult(const Uptane::Target &target) {
   data::InstallationResult result;
   Uptane::EcuSerial ecu_serial = uptane_manifest.getPrimaryEcuSerial();
-  if (!target.IsOstree() &&
-      (config.pacman.type == PackageManager::kOstree || config.pacman.type == PackageManager::kOstreeDockerApp)) {
-    result = data::InstallationResult(data::ResultCode::Numeric::kValidationFailed,
-                                      "Cannot install a non-OSTree package on an OSTree system");
-  } else {
-    result = PackageInstall(target);
-    if (result.result_code.num_code == data::ResultCode::Numeric::kOk) {
-      // simple case: update already completed
-      storage->saveInstalledVersion(ecu_serial.ToString(), target, InstalledVersionUpdateMode::kCurrent);
-    } else if (result.result_code.num_code == data::ResultCode::Numeric::kNeedCompletion) {
-      // ostree case: need reboot
-      storage->saveInstalledVersion(ecu_serial.ToString(), target, InstalledVersionUpdateMode::kPending);
-    }
+  result = PackageInstall(target);
+  if (result.result_code.num_code == data::ResultCode::Numeric::kOk) {
+    // simple case: update already completed
+    storage->saveInstalledVersion(ecu_serial.ToString(), target, InstalledVersionUpdateMode::kCurrent);
+  } else if (result.result_code.num_code == data::ResultCode::Numeric::kNeedCompletion) {
+    // ostree case: need reboot
+    storage->saveInstalledVersion(ecu_serial.ToString(), target, InstalledVersionUpdateMode::kPending);
   }
   storage->saveEcuInstallationResult(ecu_serial, result);
   return result;
@@ -411,6 +405,7 @@ void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult 
 
 bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, unsigned int *ecus_count) {
   std::vector<Uptane::Target> targets = director_repo.getTargets();
+  Uptane::EcuSerial primary_ecu_serial = uptane_manifest.getPrimaryEcuSerial();
   if (ecus_count != nullptr) {
     *ecus_count = 0;
   }
@@ -445,6 +440,15 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
         is_new = true;
       } else if (installed_versions[current_version].filename() != target.filename()) {
         is_new = true;
+      }
+
+      if (primary_ecu_serial == ecu_serial) {
+        if (!target.IsOstree() &&
+            (config.pacman.type == PackageManager::kOstree || config.pacman.type == PackageManager::kOstreeDockerApp)) {
+          LOG_ERROR << "Cannot install a non-OSTree package on an OSTree system";
+          last_exception = Uptane::InvalidTarget(target.filename());
+          return false;
+        }
       }
 
       if (is_new && ecus_count != nullptr) {

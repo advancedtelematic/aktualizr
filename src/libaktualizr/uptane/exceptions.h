@@ -127,6 +127,13 @@ class DelegationMissing : public Exception {
   ~DelegationMissing() noexcept override = default;
 };
 
+class InvalidTarget : public Exception {
+ public:
+  InvalidTarget(const std::string& reponame)
+      : Exception(reponame, "The target had a non-OSTree package that can not be installed on an OSTree system.") {}
+  ~InvalidTarget() noexcept override = default;
+};
+
 }  // namespace Uptane
 
 #endif

@@ -26,8 +26,14 @@ if (BUILD_OSTREE)
         ENVIRONMENT LD_PRELOAD=$<TARGET_FILE:ostree_mock>
         LABELS "noptest")
     target_link_libraries(t_aktualizr_fullostree virtual_secondary)
+    add_aktualizr_test(NAME download_nonostree SOURCES  download_nonostree_test.cc PROJECT_WORKING_DIRECTORY ARGS $<TARGET_FILE:uptane-generator> ${PROJECT_BINARY_DIR}/ostree_repo)
+    add_dependencies(t_download_nonostree uptane-generator make_ostree_sysroot)
+    set_tests_properties(test_download_nonostree PROPERTIES
+        LABELS "noptest")
+    target_link_libraries(t_download_nonostree virtual_secondary)
 else (BUILD_OSTREE)
     aktualizr_source_file_checks(aktualizr_fullostree_test.cc)
+    aktualizr_source_file_checks(download_nonostree_test.cc)
 endif (BUILD_OSTREE)
 
 add_aktualizr_test(NAME reportqueue SOURCES reportqueue_test.cc PROJECT_WORKING_DIRECTORY LIBRARIES PUBLIC uptane_generator_lib)
