@@ -1460,16 +1460,16 @@ TEST(Aktualizr, InstallWithUpdates) {
   result::Install result = aktualizr.Install(updates_InstallWithUpdates).get();
   EXPECT_EQ(result.ecu_reports.size(), 0);
 
-  EXPECT_EQ(aktualizr.GetStoredTarget(primary_target).get(), nullptr)
+  EXPECT_EQ(aktualizr.OpenStoredTarget(primary_target).get(), nullptr)
       << "Primary firmware is present in storage before the download";
-  EXPECT_EQ(aktualizr.GetStoredTarget(secondary_target).get(), nullptr)
+  EXPECT_EQ(aktualizr.OpenStoredTarget(secondary_target).get(), nullptr)
       << "Secondary firmware is present in storage before the download";
 
   result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
   aktualizr.Download(update_result.updates).get();
-  EXPECT_NE(aktualizr.GetStoredTarget(primary_target).get(), nullptr)
+  EXPECT_NE(aktualizr.OpenStoredTarget(primary_target).get(), nullptr)
       << "Primary firmware is not present in storage after the download";
-  EXPECT_NE(aktualizr.GetStoredTarget(secondary_target).get(), nullptr)
+  EXPECT_NE(aktualizr.OpenStoredTarget(secondary_target).get(), nullptr)
       << "Secondary firmware is not present in storage after the download";
 
   // After updates have been downloaded, try to install them.
