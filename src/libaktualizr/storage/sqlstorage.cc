@@ -1416,7 +1416,7 @@ std::unique_ptr<StorageTargetRHandle> SQLStorage::openTargetFile(const Uptane::T
   return std_::make_unique<SQLTargetRHandle>(*this, target);
 }
 
-void SQLStorage::removeTargetFile(const std::string& filename) {
+void SQLStorage::removeTargetFile(const std::string& target_name) {
   SQLite3Guard db = dbConnection();
 
   if (!db.beginTransaction()) {
@@ -1425,20 +1425,26 @@ void SQLStorage::removeTargetFile(const std::string& filename) {
   }
 
   auto statement =
-      db.prepareStatement<std::string>("SELECT targetname FROM target_images WHERE targetname = ?;", filename);
+      db.prepareStatement<std::string>("SELECT filename FROM target_images WHERE targetname = ?;", target_name);
 
   if (statement.step() != SQLITE_ROW) {
     LOG_ERROR << "Statement step failure: " << db.errmsg();
     throw std::runtime_error("Could not find target file");
   }
 
-  statement = db.prepareStatement<std::string>("DELETE FROM target_images WHERE targetname=?;", filename);
+  std::string filename = statement.get_result_col_str(0).value();
+
+  statement = db.prepareStatement<std::string>("DELETE FROM target_images WHERE targetname=?;", target_name);
 
   if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Statement step failure: " << db.errmsg();
     throw std::runtime_error("Could not remove target file");
   }
-  boost::filesystem::remove(images_path_ / filename);
+  try {
+    boost::filesystem::remove(images_path_ / filename);
+  } catch (std::exception& e) {
+    LOG_ERROR << "Could not remove target file";
+  }
 
   db.commitTransaction();
 }

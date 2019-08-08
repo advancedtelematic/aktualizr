@@ -186,7 +186,7 @@ class INvStorage {
                                                                    const Uptane::Target& target) = 0;
 
   virtual std::unique_ptr<StorageTargetRHandle> openTargetFile(const Uptane::Target& target) = 0;
-  virtual void removeTargetFile(const std::string& filename) = 0;
+  virtual void removeTargetFile(const std::string& target_name) = 0;
 
   virtual void cleanUp() = 0;
 
