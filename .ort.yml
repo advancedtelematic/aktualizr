@@ -1,0 +1,14 @@
+excludes:
+  paths:
+  - pattern: "partial/extern/**"
+    reason: "TEST_TOOL_OF"
+    comment: "This directory contains external dependencies only used by examples which are not distributed."
+  - pattern: "tests/**"
+    reason: "TEST_TOOL_OF"
+    comment: "This directory contains tests which are not distributed."
+  - pattern: "third_party/googletest/**"
+    reason: "TEST_TOOL_OF"
+    comment: "This directory contains tests which are not distributed."
+  - pattern: "thirdparty.spdx"
+    reason: "TEST_TOOL_OF"
+    comment: "This file contains metadata which are not distributed."
