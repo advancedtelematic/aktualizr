@@ -330,4 +330,3 @@ int main(int argc, char** argv) {
   return test_run_res;
 }
 #endif
-
