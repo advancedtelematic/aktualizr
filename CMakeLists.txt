@@ -102,6 +102,11 @@ find_package(Git)
 find_package(Asn1c REQUIRED)
 find_package(ZLIB)
 
+pkg_check_modules(GLIB glib-2.0 REQUIRED)
+include_directories(${GLIB_INCLUDE_DIRS})
+link_directories(${GLIB_LIBRARIES})
+add_definitions(${GLIB_CFLAGS_OTHER})
+
 if(NOT AKTUALIZR_VERSION)
     if(GIT_EXECUTABLE)
         execute_process(COMMAND sh -c "${GIT_EXECUTABLE} -C ${PROJECT_SOURCE_DIR} describe | tr -d '\n'" OUTPUT_VARIABLE AKTUALIZR_VERSION)
