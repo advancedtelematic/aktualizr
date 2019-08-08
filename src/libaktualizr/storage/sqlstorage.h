@@ -88,6 +88,8 @@ class SQLStorage : public SQLStorageBase, public INvStorage {
   StorageType type() override { return StorageType::kSqlite; };
 
  private:
+  boost::filesystem::path images_path_{sqldb_path_.parent_path() / "images"};
+
   void cleanMetaVersion(Uptane::RepositoryType repo, const Uptane::Role& role);
 };
 

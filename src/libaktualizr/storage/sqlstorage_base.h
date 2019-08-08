@@ -45,7 +45,6 @@ class SQLStorageBase {
 
  protected:
   boost::filesystem::path sqldb_path_;
-  boost::filesystem::path images_path_{sqldb_path_.parent_path() / "images"};
   bool readonly_{false};
 
   StorageLock lock;
