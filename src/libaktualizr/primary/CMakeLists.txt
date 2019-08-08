@@ -21,10 +21,8 @@ target_link_libraries(t_aktualizr virtual_secondary)
 if (BUILD_OSTREE)
     add_aktualizr_test(NAME aktualizr_fullostree SOURCES aktualizr_fullostree_test.cc PROJECT_WORKING_DIRECTORY ARGS $<TARGET_FILE:aktualizr-repo> ${PROJECT_BINARY_DIR}/ostree_repo)
     set_target_properties(t_aktualizr_fullostree PROPERTIES LINK_FLAGS -Wl,--export-dynamic)
-    add_dependencies(t_aktualizr_fullostree ostree_mock aktualizr-repo make_ostree_sysroot)
-    set_tests_properties(test_aktualizr_fullostree PROPERTIES
-        ENVIRONMENT LD_PRELOAD=$<TARGET_FILE:ostree_mock>
-        LABELS "noptest")
+    add_dependencies(t_aktualizr_fullostree aktualizr-repo make_ostree_sysroot)
+    set_tests_properties(test_aktualizr_fullostree PROPERTIES LABELS "noptest")
     target_link_libraries(t_aktualizr_fullostree virtual_secondary)
 else (BUILD_OSTREE)
     aktualizr_source_file_checks(aktualizr_fullostree_test.cc)

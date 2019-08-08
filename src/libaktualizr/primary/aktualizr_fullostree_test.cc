@@ -28,7 +28,7 @@ static struct {
 static std::string new_rev;
 
 #include <ostree.h>
-extern "C" OstreeDeployment *ostree_sysroot_get_booted_deployment_mock(OstreeSysroot *self) {
+extern "C" OstreeDeployment *ostree_sysroot_get_booted_deployment(OstreeSysroot *self) {
   (void)self;
   static GObjectUniquePtr<OstreeDeployment> dep;
 
