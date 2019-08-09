@@ -47,7 +47,6 @@ std::unique_ptr<std::stringstream> readArchiveFile(archive *a) {
 ServerCredentials::ServerCredentials(const boost::filesystem::path &credentials_path)
     : method_(AuthMethod::kNone), credentials_path_(credentials_path) {
   bool found_config = false;
-  bool use_api_gateway = false;
 
   std::unique_ptr<std::stringstream> json_stream;
 
@@ -72,12 +71,9 @@ ServerCredentials::ServerCredentials(const boost::filesystem::path &credentials_
         const std::string client_p12 = readArchiveFile(a)->str();
         Bootstrap::readTlsP12(client_p12, "", client_key_, client_cert_, root_cert_);
         method_ = AuthMethod::kTls;
-      } else if (strcmp(filename, "api_gateway.url") == 0) {
-        use_api_gateway = true;
-        ostree_server_ = readArchiveFile(a)->str();
-        boost::trim_if(ostree_server_, boost::is_any_of(" \t\r\n"));
       } else if (strcmp(filename, "tufrepo.url") == 0) {
         repo_url_ = readArchiveFile(a)->str();
+        boost::trim_if(repo_url_, boost::is_any_of(" \t\r\n"));
       } else {
         archive_read_data_skip(a);
       }
@@ -86,7 +82,7 @@ ServerCredentials::ServerCredentials(const boost::filesystem::path &credentials_
     if (r != ARCHIVE_OK) {
       throw BadCredentialsArchive(std::string("Error closing zipped credentials file: ") + credentials_path.string());
     }
-    if (!(use_api_gateway && method_ == AuthMethod::kTls) && !found_config) {
+    if (!found_config) {
       throw BadCredentialsContent(std::string("treehub.json not found in zipped credentials file: ") +
                                   credentials_path.string());
     }
@@ -94,37 +90,30 @@ ServerCredentials::ServerCredentials(const boost::filesystem::path &credentials_
     archive_read_free(a);
   }
 
-  if (use_api_gateway) {
-    repo_url_ = ostree_server_;
-  }
+  try {
+    ptree pt;
 
-  if (!(use_api_gateway && method_ == AuthMethod::kTls)) {
-    try {
-      ptree pt;
-
-      if (found_config) {
-        read_json(*json_stream, pt);
-      } else {
-        read_json(credentials_path.string(), pt);
-      }
-
-      if (method_ == AuthMethod::kTls) {
-        // do nothing
-      } else if (optional<ptree &> ap_pt = pt.get_child_optional("oauth2")) {
-        method_ = AuthMethod::kOauth2;
-        auth_server_ = ap_pt->get<std::string>("server", "");
-        client_id_ = ap_pt->get<std::string>("client_id", "");
-        client_secret_ = ap_pt->get<std::string>("client_secret", "");
-      } else if (optional<ptree &> ba_pt = pt.get_child_optional("basic_auth")) {
-        method_ = AuthMethod::kBasic;
-        auth_user_ = ba_pt->get<std::string>("user", "");
-        auth_password_ = ba_pt->get<std::string>("password", kPassword);
-      }
-      ostree_server_ = pt.get<std::string>("ostree.server", kBaseUrl);
-    } catch (const json_parser_error &e) {
-      throw BadCredentialsJson(std::string("Unable to read ") + credentials_path.string() +
-                               " as archive or json file.");
+    if (found_config) {
+      read_json(*json_stream, pt);
+    } else {
+      read_json(credentials_path.string(), pt);
     }
+
+    if (method_ == AuthMethod::kTls) {
+      // do nothing
+    } else if (optional<ptree &> ap_pt = pt.get_child_optional("oauth2")) {
+      method_ = AuthMethod::kOauth2;
+      auth_server_ = ap_pt->get<std::string>("server", "");
+      client_id_ = ap_pt->get<std::string>("client_id", "");
+      client_secret_ = ap_pt->get<std::string>("client_secret", "");
+    } else if (optional<ptree &> ba_pt = pt.get_child_optional("basic_auth")) {
+      method_ = AuthMethod::kBasic;
+      auth_user_ = ba_pt->get<std::string>("user", "");
+      auth_password_ = ba_pt->get<std::string>("password", "");
+    }
+    ostree_server_ = pt.get<std::string>("ostree.server", "");
+  } catch (const json_parser_error &e) {
+    throw BadCredentialsJson(std::string("Unable to read ") + credentials_path.string() + " as archive or json file.");
   }
 }
 
