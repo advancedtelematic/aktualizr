@@ -52,8 +52,12 @@ struct Utils {
   static void setStorageRootPath(const std::string &storage_root_path);
   static boost::filesystem::path getStorageRootPath();
 
+  static void setUserAgent(std::string user_agent);
+  static const char *getUserAgent();
+
  private:
   static std::string storage_root_path_;
+  static std::string user_agent_;
 };
 
 /**
@@ -144,17 +148,8 @@ class Socket {
 // wrapper for curl handles
 class CurlEasyWrapper {
  public:
-  CurlEasyWrapper() {
-    handle = curl_easy_init();
-    if (handle == nullptr) {
-      throw std::runtime_error("Could not initialize curl handle");
-    }
-  }
-  ~CurlEasyWrapper() {
-    if (handle != nullptr) {
-      curl_easy_cleanup(handle);
-    }
-  }
+  CurlEasyWrapper();
+  ~CurlEasyWrapper();
   CURL *get() { return handle; }
 
  private:

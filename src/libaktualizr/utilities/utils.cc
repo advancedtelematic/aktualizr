@@ -30,6 +30,7 @@
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
+#include "aktualizr_version.h"
 #include "logging/logging.h"
 
 const char *adverbs[] = {
@@ -765,6 +766,17 @@ void Utils::setStorageRootPath(const std::string &storage_root_path) { storage_r
 
 boost::filesystem::path Utils::getStorageRootPath() { return storage_root_path_; }
 
+void Utils::setUserAgent(std::string user_agent) { user_agent_ = std::move(user_agent); }
+
+const char *Utils::getUserAgent() {
+  if (user_agent_.empty()) {
+    user_agent_ = (std::string("Aktualizr/") + aktualizr_version());
+  }
+  return user_agent_.c_str();
+}
+
+std::string Utils::user_agent_;
+
 TemporaryFile::TemporaryFile(const std::string &hint)
     : tmp_name_(SafeTempRoot::Get() / boost::filesystem::unique_path(std::string("%%%%-%%%%-").append(hint))) {}
 
@@ -856,4 +868,18 @@ int Socket::bind(in_port_t port, bool reuse) {
 
 int Socket::connect() {
   return ::connect(socket_fd_, reinterpret_cast<const struct sockaddr *>(&sock_address_), sizeof(sock_address_));
+}
+
+CurlEasyWrapper::CurlEasyWrapper() {
+  handle = curl_easy_init();
+  if (handle == nullptr) {
+    throw std::runtime_error("Could not initialize curl handle");
+  }
+  curlEasySetoptWrapper(handle, CURLOPT_USERAGENT, Utils::getUserAgent());
+}
+
+CurlEasyWrapper::~CurlEasyWrapper() {
+  if (handle != nullptr) {
+    curl_easy_cleanup(handle);
+  }
 }

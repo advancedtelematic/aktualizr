@@ -10,6 +10,7 @@
 #include "logging/logging.h"
 #include "ostree_repo.h"
 #include "request_pool.h"
+#include "utilities/utils.h"
 
 using std::string;
 
@@ -191,6 +192,7 @@ void OSTreeObject::MakeTestRequest(const TreehubServer &push_target, CURLM *curl
   push_target.InjectIntoCurl(Url(), curl_handle_);
   curlEasySetoptWrapper(curl_handle_, CURLOPT_NOBODY, 1L);  // HEAD
 
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_USERAGENT, Utils::getUserAgent());
   curlEasySetoptWrapper(curl_handle_, CURLOPT_WRITEFUNCTION, &OSTreeObject::curl_handle_write);
   curlEasySetoptWrapper(curl_handle_, CURLOPT_WRITEDATA, this);
   curlEasySetoptWrapper(curl_handle_, CURLOPT_PRIVATE, this);  // Used by ostree_object_from_curl
@@ -221,6 +223,7 @@ void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_ha
   curlEasySetoptWrapper(curl_handle_, CURLOPT_VERBOSE, get_curlopt_verbose());
   current_operation_ = CurrentOp::kOstreeObjectUploading;
   push_target.InjectIntoCurl(Url(), curl_handle_);
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_USERAGENT, Utils::getUserAgent());
   curlEasySetoptWrapper(curl_handle_, CURLOPT_WRITEFUNCTION, &OSTreeObject::curl_handle_write);
   curlEasySetoptWrapper(curl_handle_, CURLOPT_WRITEDATA, this);
   http_response_.str("");  // Empty the response buffer

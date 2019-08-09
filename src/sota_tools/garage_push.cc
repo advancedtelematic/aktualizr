@@ -77,6 +77,8 @@ int main(int argc, char **argv) {
     assert(0);
   }
 
+  Utils::setUserAgent(std::string("garage-push/") + garage_tools_version());
+
   if (cacerts != "") {
     if (!boost::filesystem::exists(cacerts)) {
       LOG_FATAL << "--cacert path " << cacerts << " does not exist";

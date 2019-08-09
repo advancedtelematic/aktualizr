@@ -3,17 +3,6 @@
 #include <assert.h>
 #include <sstream>
 
-#include <openssl/crypto.h>
-#include <openssl/err.h>
-#include <openssl/evp.h>
-#include <openssl/opensslv.h>
-#include <openssl/pem.h>
-#include <openssl/pkcs12.h>
-#include <openssl/rand.h>
-#include <openssl/rsa.h>
-#include <openssl/ssl.h>
-
-#include "crypto/openssl_compat.h"
 #include "utilities/aktualizr_version.h"
 #include "utilities/utils.h"
 
@@ -46,8 +35,7 @@ static size_t writeString(void* contents, size_t size, size_t nmemb, void* userp
   return size * nmemb;
 }
 
-HttpClient::HttpClient(const std::vector<std::string>* extra_headers)
-    : user_agent(std::string("Aktualizr/") + aktualizr_version()) {
+HttpClient::HttpClient(const std::vector<std::string>* extra_headers) {
   curl = curl_easy_init();
   if (curl == nullptr) {
     throw std::runtime_error("Could not initialize curl");
@@ -73,7 +61,7 @@ HttpClient::HttpClient(const std::vector<std::string>* extra_headers)
     }
   }
   curlEasySetoptWrapper(curl, CURLOPT_HTTPHEADER, headers);
-  curlEasySetoptWrapper(curl, CURLOPT_USERAGENT, user_agent.c_str());
+  curlEasySetoptWrapper(curl, CURLOPT_USERAGENT, Utils::getUserAgent());
 }
 
 HttpClient::HttpClient(const HttpClient& curl_in) : pkcs11_key(curl_in.pkcs11_key), pkcs11_cert(curl_in.pkcs11_key) {
