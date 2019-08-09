@@ -60,47 +60,10 @@ static Primary::VirtualSecondaryConfig virtual_configuration(const boost::filesy
   return ecu_config;
 }
 
-int num_events_FullNoUpdates = 0;
-std::future<void> future_FullNoUpdates{};
-std::promise<void> promise_FullNoUpdates{};
-void process_events_FullNoUpdates(const std::shared_ptr<event::BaseEvent>& event) {
-  if (event->isTypeOf(event::DownloadProgressReport::TypeName)) {
-    return;
-  }
-  LOG_INFO << "Got " << event->variant;
-  switch (num_events_FullNoUpdates) {
-    case 0: {
-      EXPECT_EQ(event->variant, "UpdateCheckComplete");
-      const auto targets_event = dynamic_cast<event::UpdateCheckComplete*>(event.get());
-      EXPECT_EQ(targets_event->result.ecus_count, 0);
-      EXPECT_EQ(targets_event->result.updates.size(), 0);
-      EXPECT_EQ(targets_event->result.status, result::UpdateStatus::kNoUpdatesAvailable);
-      break;
-    }
-    case 1: {
-      EXPECT_EQ(event->variant, "UpdateCheckComplete");
-      const auto targets_event = dynamic_cast<event::UpdateCheckComplete*>(event.get());
-      EXPECT_EQ(targets_event->result.ecus_count, 0);
-      EXPECT_EQ(targets_event->result.updates.size(), 0);
-      EXPECT_EQ(targets_event->result.status, result::UpdateStatus::kNoUpdatesAvailable);
-      promise_FullNoUpdates.set_value();
-      break;
-    }
-    case 5:
-      // Don't let the test run indefinitely!
-      FAIL() << "Unexpected events!";
-    default:
-      std::cout << "event #" << num_events_FullNoUpdates << " is: " << event->variant << "\n";
-      EXPECT_EQ(event->variant, "");
-  }
-  ++num_events_FullNoUpdates;
-}
-
 /*
  * Initialize -> UptaneCycle -> no updates -> no further action or events.
  */
 TEST(Aktualizr, FullNoUpdates) {
-  future_FullNoUpdates = promise_FullNoUpdates.get_future();
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates", fake_meta_dir);
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
@@ -108,7 +71,45 @@ TEST(Aktualizr, FullNoUpdates) {
   auto storage = INvStorage::newStorage(conf.storage);
   UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
 
-  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_FullNoUpdates;
+  struct {
+    size_t num_events{0};
+    std::future<void> future;
+    std::promise<void> promise;
+  } ev_state;
+  ev_state.future = ev_state.promise.get_future();
+
+  auto f_cb = [&ev_state](const std::shared_ptr<event::BaseEvent>& event) {
+    if (event->isTypeOf(event::DownloadProgressReport::TypeName)) {
+      return;
+    }
+    LOG_INFO << "Got " << event->variant;
+    switch (ev_state.num_events) {
+      case 0: {
+        EXPECT_EQ(event->variant, "UpdateCheckComplete");
+        const auto targets_event = dynamic_cast<event::UpdateCheckComplete*>(event.get());
+        EXPECT_EQ(targets_event->result.ecus_count, 0);
+        EXPECT_EQ(targets_event->result.updates.size(), 0);
+        EXPECT_EQ(targets_event->result.status, result::UpdateStatus::kNoUpdatesAvailable);
+        break;
+      }
+      case 1: {
+        EXPECT_EQ(event->variant, "UpdateCheckComplete");
+        const auto targets_event = dynamic_cast<event::UpdateCheckComplete*>(event.get());
+        EXPECT_EQ(targets_event->result.ecus_count, 0);
+        EXPECT_EQ(targets_event->result.updates.size(), 0);
+        EXPECT_EQ(targets_event->result.status, result::UpdateStatus::kNoUpdatesAvailable);
+        ev_state.promise.set_value();
+        break;
+      }
+      case 5:
+        // Don't let the test run indefinitely!
+        FAIL() << "Unexpected events!";
+      default:
+        std::cout << "event #" << ev_state.num_events << " is: " << event->variant << "\n";
+        EXPECT_EQ(event->variant, "");
+    }
+    ++ev_state.num_events;
+  };
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
   aktualizr.Initialize();
@@ -116,7 +117,7 @@ TEST(Aktualizr, FullNoUpdates) {
   // Run the cycle twice so that we can check for a second UpdateCheckComplete
   // and guarantee that nothing unexpected happened after the first fetch.
   aktualizr.UptaneCycle();
-  std::future_status status = future_FullNoUpdates.wait_for(std::chrono::seconds(20));
+  auto status = ev_state.future.wait_for(std::chrono::seconds(20));
   if (status != std::future_status::ready) {
     FAIL() << "Timed out waiting for metadata to be fetched.";
   }
@@ -235,108 +236,11 @@ class HttpFakeEventCounter : public HttpFake {
   unsigned int events_seen{0};
 };
 
-int num_events_FullWithUpdates = 0;
-std::future<void> future_FullWithUpdates{};
-std::promise<void> promise_FullWithUpdates{};
-void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& event) {
-  if (event->isTypeOf(event::DownloadProgressReport::TypeName)) {
-    return;
-  }
-  LOG_INFO << "Got " << event->variant;
-  switch (num_events_FullWithUpdates) {
-    case 0: {
-      EXPECT_EQ(event->variant, "UpdateCheckComplete");
-      const auto targets_event = dynamic_cast<event::UpdateCheckComplete*>(event.get());
-      EXPECT_EQ(targets_event->result.ecus_count, 2);
-      EXPECT_EQ(targets_event->result.updates.size(), 2u);
-      EXPECT_EQ(targets_event->result.updates[0].filename(), "primary_firmware.txt");
-      EXPECT_EQ(targets_event->result.updates[1].filename(), "secondary_firmware.txt");
-      EXPECT_EQ(targets_event->result.status, result::UpdateStatus::kUpdatesAvailable);
-      break;
-    }
-    case 1:
-    case 2: {
-      EXPECT_EQ(event->variant, "DownloadTargetComplete");
-      const auto download_event = dynamic_cast<event::DownloadTargetComplete*>(event.get());
-      EXPECT_TRUE(download_event->update.filename() == "primary_firmware.txt" ||
-                  download_event->update.filename() == "secondary_firmware.txt");
-      EXPECT_TRUE(download_event->success);
-      break;
-    }
-    case 3: {
-      EXPECT_EQ(event->variant, "AllDownloadsComplete");
-      const auto downloads_complete = dynamic_cast<event::AllDownloadsComplete*>(event.get());
-      EXPECT_EQ(downloads_complete->result.updates.size(), 2);
-      EXPECT_TRUE(downloads_complete->result.updates[0].filename() == "primary_firmware.txt" ||
-                  downloads_complete->result.updates[1].filename() == "primary_firmware.txt");
-      EXPECT_TRUE(downloads_complete->result.updates[0].filename() == "secondary_firmware.txt" ||
-                  downloads_complete->result.updates[1].filename() == "secondary_firmware.txt");
-      EXPECT_EQ(downloads_complete->result.status, result::DownloadStatus::kSuccess);
-      break;
-    }
-    case 4: {
-      // Primary always gets installed first. (Not a requirement, just how it
-      // works at present.)
-      EXPECT_EQ(event->variant, "InstallStarted");
-      const auto install_started = dynamic_cast<event::InstallStarted*>(event.get());
-      EXPECT_EQ(install_started->serial.ToString(), "CA:FE:A6:D2:84:9D");
-      break;
-    }
-    case 5: {
-      // Primary should complete before secondary begins. (Again not a
-      // requirement per se.)
-      EXPECT_EQ(event->variant, "InstallTargetComplete");
-      const auto install_complete = dynamic_cast<event::InstallTargetComplete*>(event.get());
-      EXPECT_EQ(install_complete->serial.ToString(), "CA:FE:A6:D2:84:9D");
-      EXPECT_TRUE(install_complete->success);
-      break;
-    }
-    case 6: {
-      EXPECT_EQ(event->variant, "InstallStarted");
-      const auto install_started = dynamic_cast<event::InstallStarted*>(event.get());
-      EXPECT_EQ(install_started->serial.ToString(), "secondary_ecu_serial");
-      break;
-    }
-    case 7: {
-      EXPECT_EQ(event->variant, "InstallTargetComplete");
-      const auto install_complete = dynamic_cast<event::InstallTargetComplete*>(event.get());
-      EXPECT_EQ(install_complete->serial.ToString(), "secondary_ecu_serial");
-      EXPECT_TRUE(install_complete->success);
-      break;
-    }
-    case 8: {
-      EXPECT_EQ(event->variant, "AllInstallsComplete");
-      const auto installs_complete = dynamic_cast<event::AllInstallsComplete*>(event.get());
-      EXPECT_EQ(installs_complete->result.ecu_reports.size(), 2);
-      EXPECT_EQ(installs_complete->result.ecu_reports[0].install_res.result_code.num_code,
-                data::ResultCode::Numeric::kOk);
-      EXPECT_EQ(installs_complete->result.ecu_reports[1].install_res.result_code.num_code,
-                data::ResultCode::Numeric::kOk);
-      break;
-    }
-    case 9: {
-      EXPECT_EQ(event->variant, "PutManifestComplete");
-      const auto put_complete = dynamic_cast<event::PutManifestComplete*>(event.get());
-      EXPECT_TRUE(put_complete->success);
-      promise_FullWithUpdates.set_value();
-      break;
-    }
-    case 12:
-      // Don't let the test run indefinitely!
-      FAIL() << "Unexpected events!";
-    default:
-      std::cout << "event #" << num_events_FullWithUpdates << " is: " << event->variant << "\n";
-      EXPECT_EQ(event->variant, "");
-  }
-  ++num_events_FullWithUpdates;
-}
-
 /*
  * Initialize -> UptaneCycle -> updates downloaded and installed for primary and
  * secondary.
  */
 TEST(Aktualizr, FullWithUpdates) {
-  future_FullWithUpdates = promise_FullWithUpdates.get_future();
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFakeEventCounter>(temp_dir.Path(), fake_meta_dir);
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
@@ -344,12 +248,110 @@ TEST(Aktualizr, FullWithUpdates) {
   auto storage = INvStorage::newStorage(conf.storage);
   UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
 
-  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_FullWithUpdates;
+  struct {
+    size_t num_events{0};
+    std::future<void> future;
+    std::promise<void> promise;
+  } ev_state;
+  ev_state.future = ev_state.promise.get_future();
+
+  auto f_cb = [&ev_state](const std::shared_ptr<event::BaseEvent>& event) {
+    if (event->isTypeOf(event::DownloadProgressReport::TypeName)) {
+      return;
+    }
+    LOG_INFO << "Got " << event->variant;
+    switch (ev_state.num_events) {
+      case 0: {
+        EXPECT_EQ(event->variant, "UpdateCheckComplete");
+        const auto targets_event = dynamic_cast<event::UpdateCheckComplete*>(event.get());
+        EXPECT_EQ(targets_event->result.ecus_count, 2);
+        EXPECT_EQ(targets_event->result.updates.size(), 2u);
+        EXPECT_EQ(targets_event->result.updates[0].filename(), "primary_firmware.txt");
+        EXPECT_EQ(targets_event->result.updates[1].filename(), "secondary_firmware.txt");
+        EXPECT_EQ(targets_event->result.status, result::UpdateStatus::kUpdatesAvailable);
+        break;
+      }
+      case 1:
+      case 2: {
+        EXPECT_EQ(event->variant, "DownloadTargetComplete");
+        const auto download_event = dynamic_cast<event::DownloadTargetComplete*>(event.get());
+        EXPECT_TRUE(download_event->update.filename() == "primary_firmware.txt" ||
+                    download_event->update.filename() == "secondary_firmware.txt");
+        EXPECT_TRUE(download_event->success);
+        break;
+      }
+      case 3: {
+        EXPECT_EQ(event->variant, "AllDownloadsComplete");
+        const auto downloads_complete = dynamic_cast<event::AllDownloadsComplete*>(event.get());
+        EXPECT_EQ(downloads_complete->result.updates.size(), 2);
+        EXPECT_TRUE(downloads_complete->result.updates[0].filename() == "primary_firmware.txt" ||
+                    downloads_complete->result.updates[1].filename() == "primary_firmware.txt");
+        EXPECT_TRUE(downloads_complete->result.updates[0].filename() == "secondary_firmware.txt" ||
+                    downloads_complete->result.updates[1].filename() == "secondary_firmware.txt");
+        EXPECT_EQ(downloads_complete->result.status, result::DownloadStatus::kSuccess);
+        break;
+      }
+      case 4: {
+        // Primary always gets installed first. (Not a requirement, just how it
+        // works at present.)
+        EXPECT_EQ(event->variant, "InstallStarted");
+        const auto install_started = dynamic_cast<event::InstallStarted*>(event.get());
+        EXPECT_EQ(install_started->serial.ToString(), "CA:FE:A6:D2:84:9D");
+        break;
+      }
+      case 5: {
+        // Primary should complete before secondary begins. (Again not a
+        // requirement per se.)
+        EXPECT_EQ(event->variant, "InstallTargetComplete");
+        const auto install_complete = dynamic_cast<event::InstallTargetComplete*>(event.get());
+        EXPECT_EQ(install_complete->serial.ToString(), "CA:FE:A6:D2:84:9D");
+        EXPECT_TRUE(install_complete->success);
+        break;
+      }
+      case 6: {
+        EXPECT_EQ(event->variant, "InstallStarted");
+        const auto install_started = dynamic_cast<event::InstallStarted*>(event.get());
+        EXPECT_EQ(install_started->serial.ToString(), "secondary_ecu_serial");
+        break;
+      }
+      case 7: {
+        EXPECT_EQ(event->variant, "InstallTargetComplete");
+        const auto install_complete = dynamic_cast<event::InstallTargetComplete*>(event.get());
+        EXPECT_EQ(install_complete->serial.ToString(), "secondary_ecu_serial");
+        EXPECT_TRUE(install_complete->success);
+        break;
+      }
+      case 8: {
+        EXPECT_EQ(event->variant, "AllInstallsComplete");
+        const auto installs_complete = dynamic_cast<event::AllInstallsComplete*>(event.get());
+        EXPECT_EQ(installs_complete->result.ecu_reports.size(), 2);
+        EXPECT_EQ(installs_complete->result.ecu_reports[0].install_res.result_code.num_code,
+                  data::ResultCode::Numeric::kOk);
+        EXPECT_EQ(installs_complete->result.ecu_reports[1].install_res.result_code.num_code,
+                  data::ResultCode::Numeric::kOk);
+        break;
+      }
+      case 9: {
+        EXPECT_EQ(event->variant, "PutManifestComplete");
+        const auto put_complete = dynamic_cast<event::PutManifestComplete*>(event.get());
+        EXPECT_TRUE(put_complete->success);
+        ev_state.promise.set_value();
+        break;
+      }
+      case 12:
+        // Don't let the test run indefinitely!
+        FAIL() << "Unexpected events!";
+      default:
+        std::cout << "event #" << ev_state.num_events << " is: " << event->variant << "\n";
+        EXPECT_EQ(event->variant, "");
+    }
+    ++ev_state.num_events;
+  };
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
   aktualizr.Initialize();
   aktualizr.UptaneCycle();
-  std::future_status status = future_FullWithUpdates.wait_for(std::chrono::seconds(20));
+  auto status = ev_state.future.wait_for(std::chrono::seconds(20));
   if (status != std::future_status::ready) {
     FAIL() << "Timed out waiting for installation to complete.";
   }
@@ -572,8 +574,8 @@ class EventHandler {
       }
 
       if (received_event == "DownloadProgressReport") {
-        while (*(++received_event_it) == "DownloadProgressReport")
-          ;
+        while (*(++received_event_it) == "DownloadProgressReport") {
+        }
       } else {
         ++received_event_it;
       }
@@ -960,30 +962,6 @@ TEST(Aktualizr, AutoRebootAfterUpdate) {
   }
 }
 
-int started_FullMultipleSecondaries = 0;
-int complete_FullMultipleSecondaries = 0;
-bool allcomplete_FullMultipleSecondaries = false;
-bool manifest_FullMultipleSecondaries = false;
-std::future<void> future_FullMultipleSecondaries{};
-std::promise<void> promise_FullMultipleSecondaries{};
-void process_events_FullMultipleSecondaries(const std::shared_ptr<event::BaseEvent>& event) {
-  if (event->variant == "InstallStarted") {
-    ++started_FullMultipleSecondaries;
-  } else if (event->variant == "InstallTargetComplete") {
-    ++complete_FullMultipleSecondaries;
-  } else if (event->variant == "AllInstallsComplete") {
-    allcomplete_FullMultipleSecondaries = true;
-  } else if (event->variant == "PutManifestComplete") {
-    manifest_FullMultipleSecondaries = true;
-  }
-  // It is possible for the PutManifestComplete to come before we get the
-  // InstallTargetComplete depending on the threading, so check for both.
-  if (allcomplete_FullMultipleSecondaries && complete_FullMultipleSecondaries == 2 &&
-      manifest_FullMultipleSecondaries) {
-    promise_FullMultipleSecondaries.set_value();
-  }
-}
-
 /*
  * Initialize -> UptaneCycle -> updates downloaded and installed for secondaries
  * without changing the primary.
@@ -991,7 +969,6 @@ void process_events_FullMultipleSecondaries(const std::shared_ptr<event::BaseEve
  * Store installation result for secondary
  */
 TEST(Aktualizr, FullMultipleSecondaries) {
-  future_FullMultipleSecondaries = promise_FullMultipleSecondaries.get_future();
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "multisec", fake_meta_dir);
   Config conf("tests/config/basic.toml");
@@ -1011,19 +988,44 @@ TEST(Aktualizr, FullMultipleSecondaries) {
   ASSERT_NO_THROW(aktualizr.AddSecondary(std::make_shared<Primary::VirtualSecondary>(
       Primary::VirtualSecondaryConfig::create_from_file(conf.uptane.secondary_config_file))));
 
-  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_FullMultipleSecondaries;
+  struct {
+    int started{0};
+    int complete{0};
+    bool allcomplete{false};
+    bool manifest{false};
+    std::future<void> future;
+    std::promise<void> promise;
+  } ev_state;
+  ev_state.future = ev_state.promise.get_future();
+
+  auto f_cb = [&ev_state](const std::shared_ptr<event::BaseEvent>& event) {
+    if (event->variant == "InstallStarted") {
+      ++ev_state.started;
+    } else if (event->variant == "InstallTargetComplete") {
+      ++ev_state.complete;
+    } else if (event->variant == "AllInstallsComplete") {
+      ev_state.allcomplete = true;
+    } else if (event->variant == "PutManifestComplete") {
+      ev_state.manifest = true;
+    }
+    // It is possible for the PutManifestComplete to come before we get the
+    // InstallTargetComplete depending on the threading, so check for both.
+    if (ev_state.allcomplete && ev_state.complete == 2 && ev_state.manifest) {
+      ev_state.promise.set_value();
+    }
+  };
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
   aktualizr.Initialize();
   aktualizr.UptaneCycle();
 
-  std::future_status status = future_FullMultipleSecondaries.wait_for(std::chrono::seconds(20));
+  auto status = ev_state.future.wait_for(std::chrono::seconds(20));
   if (status != std::future_status::ready) {
     FAIL() << "Timed out waiting for installation to complete.";
   }
 
-  EXPECT_EQ(started_FullMultipleSecondaries, 2);
-  EXPECT_EQ(complete_FullMultipleSecondaries, 2);
+  EXPECT_EQ(ev_state.started, 2);
+  EXPECT_EQ(ev_state.complete, 2);
 
   const Json::Value manifest = http->last_manifest["signed"];
   const Json::Value manifest_versions = manifest["ecu_version_manifests"];
@@ -1044,54 +1046,57 @@ TEST(Aktualizr, FullMultipleSecondaries) {
   EXPECT_TRUE(manifest["installation_report"]["report"]["items"][1]["result"]["success"].asBool());
 }
 
-int num_events_CheckNoUpdates = 0;
-std::future<void> future_CheckNoUpdates{};
-std::promise<void> promise_CheckNoUpdates{};
-void process_events_CheckNoUpdates(const std::shared_ptr<event::BaseEvent>& event) {
-  if (event->isTypeOf(event::DownloadProgressReport::TypeName)) {
-    return;
-  }
-  LOG_INFO << "Got " << event->variant;
-  switch (num_events_CheckNoUpdates) {
-    case 0: {
-      EXPECT_EQ(event->variant, "UpdateCheckComplete");
-      const auto targets_event = dynamic_cast<event::UpdateCheckComplete*>(event.get());
-      EXPECT_EQ(targets_event->result.ecus_count, 0);
-      EXPECT_EQ(targets_event->result.updates.size(), 0);
-      EXPECT_EQ(targets_event->result.status, result::UpdateStatus::kNoUpdatesAvailable);
-      break;
-    }
-    case 1: {
-      EXPECT_EQ(event->variant, "UpdateCheckComplete");
-      const auto targets_event = dynamic_cast<event::UpdateCheckComplete*>(event.get());
-      EXPECT_EQ(targets_event->result.ecus_count, 0);
-      EXPECT_EQ(targets_event->result.updates.size(), 0);
-      EXPECT_EQ(targets_event->result.status, result::UpdateStatus::kNoUpdatesAvailable);
-      promise_CheckNoUpdates.set_value();
-      break;
-    }
-    case 5:
-      // Don't let the test run indefinitely!
-      FAIL() << "Unexpected events!";
-    default:
-      std::cout << "event #" << num_events_CheckNoUpdates << " is: " << event->variant << "\n";
-      EXPECT_EQ(event->variant, "");
-  }
-  ++num_events_CheckNoUpdates;
-}
-
 /*
  * Initialize -> CheckUpdates -> no updates -> no further action or events.
  */
 TEST(Aktualizr, CheckNoUpdates) {
-  future_CheckNoUpdates = promise_CheckNoUpdates.get_future();
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates", fake_meta_dir);
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
   UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
-  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_CheckNoUpdates;
+
+  struct {
+    size_t num_events{0};
+    std::future<void> future;
+    std::promise<void> promise;
+  } ev_state;
+  ev_state.future = ev_state.promise.get_future();
+
+  auto f_cb = [&ev_state](const std::shared_ptr<event::BaseEvent>& event) {
+    if (event->isTypeOf(event::DownloadProgressReport::TypeName)) {
+      return;
+    }
+    LOG_INFO << "Got " << event->variant;
+    switch (ev_state.num_events) {
+      case 0: {
+        EXPECT_EQ(event->variant, "UpdateCheckComplete");
+        const auto targets_event = dynamic_cast<event::UpdateCheckComplete*>(event.get());
+        EXPECT_EQ(targets_event->result.ecus_count, 0);
+        EXPECT_EQ(targets_event->result.updates.size(), 0);
+        EXPECT_EQ(targets_event->result.status, result::UpdateStatus::kNoUpdatesAvailable);
+        break;
+      }
+      case 1: {
+        EXPECT_EQ(event->variant, "UpdateCheckComplete");
+        const auto targets_event = dynamic_cast<event::UpdateCheckComplete*>(event.get());
+        EXPECT_EQ(targets_event->result.ecus_count, 0);
+        EXPECT_EQ(targets_event->result.updates.size(), 0);
+        EXPECT_EQ(targets_event->result.status, result::UpdateStatus::kNoUpdatesAvailable);
+        ev_state.promise.set_value();
+        break;
+      }
+      case 5:
+        // Don't let the test run indefinitely!
+        FAIL() << "Unexpected events!";
+      default:
+        std::cout << "event #" << ev_state.num_events << " is: " << event->variant << "\n";
+        EXPECT_EQ(event->variant, "");
+    }
+    ++ev_state.num_events;
+  };
+
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
   aktualizr.Initialize();
@@ -1106,69 +1111,12 @@ TEST(Aktualizr, CheckNoUpdates) {
   EXPECT_EQ(result.updates.size(), 0);
   EXPECT_EQ(result.status, result::UpdateStatus::kNoUpdatesAvailable);
 
-  std::future_status status = future_CheckNoUpdates.wait_for(std::chrono::seconds(20));
+  auto status = ev_state.future.wait_for(std::chrono::seconds(20));
   if (status != std::future_status::ready) {
     FAIL() << "Timed out waiting for metadata to be fetched.";
   }
 
   verifyNothingInstalled(aktualizr.uptane_client()->AssembleManifest());
-}
-
-int num_events_DownloadWithUpdates = 0;
-std::future<void> future_DownloadWithUpdates{};
-std::promise<void> promise_DownloadWithUpdates{};
-void process_events_DownloadWithUpdates(const std::shared_ptr<event::BaseEvent>& event) {
-  if (event->isTypeOf(event::DownloadProgressReport::TypeName)) {
-    return;
-  }
-  LOG_INFO << "Got " << event->variant;
-  switch (num_events_DownloadWithUpdates) {
-    case 0: {
-      EXPECT_EQ(event->variant, "AllDownloadsComplete");
-      const auto downloads_complete = dynamic_cast<event::AllDownloadsComplete*>(event.get());
-      EXPECT_EQ(downloads_complete->result.updates.size(), 0);
-      EXPECT_EQ(downloads_complete->result.status, result::DownloadStatus::kNothingToDownload);
-      break;
-    }
-    case 1: {
-      EXPECT_EQ(event->variant, "UpdateCheckComplete");
-      const auto targets_event = dynamic_cast<event::UpdateCheckComplete*>(event.get());
-      EXPECT_EQ(targets_event->result.ecus_count, 2);
-      EXPECT_EQ(targets_event->result.updates.size(), 2u);
-      EXPECT_EQ(targets_event->result.updates[0].filename(), "primary_firmware.txt");
-      EXPECT_EQ(targets_event->result.updates[1].filename(), "secondary_firmware.txt");
-      EXPECT_EQ(targets_event->result.status, result::UpdateStatus::kUpdatesAvailable);
-      break;
-    }
-    case 2:
-    case 3: {
-      EXPECT_EQ(event->variant, "DownloadTargetComplete");
-      const auto download_event = dynamic_cast<event::DownloadTargetComplete*>(event.get());
-      EXPECT_TRUE(download_event->update.filename() == "primary_firmware.txt" ||
-                  download_event->update.filename() == "secondary_firmware.txt");
-      EXPECT_TRUE(download_event->success);
-      break;
-    }
-    case 4: {
-      EXPECT_EQ(event->variant, "AllDownloadsComplete");
-      const auto downloads_complete = dynamic_cast<event::AllDownloadsComplete*>(event.get());
-      EXPECT_EQ(downloads_complete->result.updates.size(), 2);
-      EXPECT_TRUE(downloads_complete->result.updates[0].filename() == "primary_firmware.txt" ||
-                  downloads_complete->result.updates[1].filename() == "primary_firmware.txt");
-      EXPECT_TRUE(downloads_complete->result.updates[0].filename() == "secondary_firmware.txt" ||
-                  downloads_complete->result.updates[1].filename() == "secondary_firmware.txt");
-      EXPECT_EQ(downloads_complete->result.status, result::DownloadStatus::kSuccess);
-      promise_DownloadWithUpdates.set_value();
-      break;
-    }
-    case 8:
-      // Don't let the test run indefinitely!
-      FAIL() << "Unexpected events!";
-    default:
-      std::cout << "event #" << num_events_DownloadWithUpdates << " is: " << event->variant << "\n";
-      EXPECT_EQ(event->variant, "");
-  }
-  ++num_events_DownloadWithUpdates;
 }
 
 /*
@@ -1178,14 +1126,73 @@ void process_events_DownloadWithUpdates(const std::shared_ptr<event::BaseEvent>&
  * installed.
  */
 TEST(Aktualizr, DownloadWithUpdates) {
-  future_DownloadWithUpdates = promise_DownloadWithUpdates.get_future();
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates", fake_meta_dir);
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
   UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
-  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_DownloadWithUpdates;
+
+  struct {
+    size_t num_events{0};
+    std::future<void> future;
+    std::promise<void> promise;
+  } ev_state;
+  ev_state.future = ev_state.promise.get_future();
+
+  auto f_cb = [&ev_state](const std::shared_ptr<event::BaseEvent>& event) {
+    if (event->isTypeOf(event::DownloadProgressReport::TypeName)) {
+      return;
+    }
+    LOG_INFO << "Got " << event->variant;
+    switch (ev_state.num_events) {
+      case 0: {
+        EXPECT_EQ(event->variant, "AllDownloadsComplete");
+        const auto downloads_complete = dynamic_cast<event::AllDownloadsComplete*>(event.get());
+        EXPECT_EQ(downloads_complete->result.updates.size(), 0);
+        EXPECT_EQ(downloads_complete->result.status, result::DownloadStatus::kNothingToDownload);
+        break;
+      }
+      case 1: {
+        EXPECT_EQ(event->variant, "UpdateCheckComplete");
+        const auto targets_event = dynamic_cast<event::UpdateCheckComplete*>(event.get());
+        EXPECT_EQ(targets_event->result.ecus_count, 2);
+        EXPECT_EQ(targets_event->result.updates.size(), 2u);
+        EXPECT_EQ(targets_event->result.updates[0].filename(), "primary_firmware.txt");
+        EXPECT_EQ(targets_event->result.updates[1].filename(), "secondary_firmware.txt");
+        EXPECT_EQ(targets_event->result.status, result::UpdateStatus::kUpdatesAvailable);
+        break;
+      }
+      case 2:
+      case 3: {
+        EXPECT_EQ(event->variant, "DownloadTargetComplete");
+        const auto download_event = dynamic_cast<event::DownloadTargetComplete*>(event.get());
+        EXPECT_TRUE(download_event->update.filename() == "primary_firmware.txt" ||
+                    download_event->update.filename() == "secondary_firmware.txt");
+        EXPECT_TRUE(download_event->success);
+        break;
+      }
+      case 4: {
+        EXPECT_EQ(event->variant, "AllDownloadsComplete");
+        const auto downloads_complete = dynamic_cast<event::AllDownloadsComplete*>(event.get());
+        EXPECT_EQ(downloads_complete->result.updates.size(), 2);
+        EXPECT_TRUE(downloads_complete->result.updates[0].filename() == "primary_firmware.txt" ||
+                    downloads_complete->result.updates[1].filename() == "primary_firmware.txt");
+        EXPECT_TRUE(downloads_complete->result.updates[0].filename() == "secondary_firmware.txt" ||
+                    downloads_complete->result.updates[1].filename() == "secondary_firmware.txt");
+        EXPECT_EQ(downloads_complete->result.status, result::DownloadStatus::kSuccess);
+        ev_state.promise.set_value();
+        break;
+      }
+      case 8:
+        // Don't let the test run indefinitely!
+        FAIL() << "Unexpected events!";
+      default:
+        std::cout << "event #" << ev_state.num_events << " is: " << event->variant << "\n";
+        EXPECT_EQ(event->variant, "");
+    }
+    ++ev_state.num_events;
+  };
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
   aktualizr.Initialize();
@@ -1196,7 +1203,7 @@ TEST(Aktualizr, DownloadWithUpdates) {
   result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
   aktualizr.Download(update_result.updates);
 
-  std::future_status status = future_DownloadWithUpdates.wait_for(std::chrono::seconds(20));
+  auto status = ev_state.future.wait_for(std::chrono::seconds(20));
   if (status != std::future_status::ready) {
     FAIL() << "Timed out waiting for downloads to complete.";
   }
@@ -1323,120 +1330,123 @@ TEST(Aktualizr, DownloadFailures) {
   }
 }
 
-int num_events_InstallWithUpdates = 0;
-std::vector<Uptane::Target> updates_InstallWithUpdates;
-std::future<void> future_InstallWithUpdates{};
-std::promise<void> promise_InstallWithUpdates{};
-void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& event) {
-  // Note that we do not expect a PutManifestComplete since we don't call
-  // UptaneCycle() and that's the only function that generates that.
-  if (event->isTypeOf(event::DownloadProgressReport::TypeName)) {
-    return;
-  }
-  LOG_INFO << "Got " << event->variant;
-  switch (num_events_InstallWithUpdates) {
-    case 0: {
-      EXPECT_EQ(event->variant, "AllInstallsComplete");
-      const auto installs_complete = dynamic_cast<event::AllInstallsComplete*>(event.get());
-      EXPECT_EQ(installs_complete->result.ecu_reports.size(), 0);
-      break;
-    }
-    case 1: {
-      EXPECT_EQ(event->variant, "UpdateCheckComplete");
-      const auto targets_event = dynamic_cast<event::UpdateCheckComplete*>(event.get());
-      EXPECT_EQ(targets_event->result.ecus_count, 2);
-      EXPECT_EQ(targets_event->result.updates.size(), 2u);
-      EXPECT_EQ(targets_event->result.updates[0].filename(), "primary_firmware.txt");
-      EXPECT_EQ(targets_event->result.updates[1].filename(), "secondary_firmware.txt");
-      EXPECT_EQ(targets_event->result.status, result::UpdateStatus::kUpdatesAvailable);
-      updates_InstallWithUpdates = targets_event->result.updates;
-      break;
-    }
-    case 2:
-    case 3: {
-      EXPECT_EQ(event->variant, "DownloadTargetComplete");
-      const auto download_event = dynamic_cast<event::DownloadTargetComplete*>(event.get());
-      EXPECT_TRUE(download_event->update.filename() == "primary_firmware.txt" ||
-                  download_event->update.filename() == "secondary_firmware.txt");
-      EXPECT_TRUE(download_event->success);
-      break;
-    }
-    case 4: {
-      EXPECT_EQ(event->variant, "AllDownloadsComplete");
-      const auto downloads_complete = dynamic_cast<event::AllDownloadsComplete*>(event.get());
-      EXPECT_EQ(downloads_complete->result.updates.size(), 2);
-      EXPECT_TRUE(downloads_complete->result.updates[0].filename() == "primary_firmware.txt" ||
-                  downloads_complete->result.updates[1].filename() == "primary_firmware.txt");
-      EXPECT_TRUE(downloads_complete->result.updates[0].filename() == "secondary_firmware.txt" ||
-                  downloads_complete->result.updates[1].filename() == "secondary_firmware.txt");
-      EXPECT_EQ(downloads_complete->result.status, result::DownloadStatus::kSuccess);
-      break;
-    }
-    case 5: {
-      // Primary always gets installed first. (Not a requirement, just how it
-      // works at present.)
-      EXPECT_EQ(event->variant, "InstallStarted");
-      const auto install_started = dynamic_cast<event::InstallStarted*>(event.get());
-      EXPECT_EQ(install_started->serial.ToString(), "CA:FE:A6:D2:84:9D");
-      break;
-    }
-    case 6: {
-      // Primary should complete before secondary begins. (Again not a
-      // requirement per se.)
-      EXPECT_EQ(event->variant, "InstallTargetComplete");
-      const auto install_complete = dynamic_cast<event::InstallTargetComplete*>(event.get());
-      EXPECT_EQ(install_complete->serial.ToString(), "CA:FE:A6:D2:84:9D");
-      EXPECT_TRUE(install_complete->success);
-      break;
-    }
-    case 7: {
-      EXPECT_EQ(event->variant, "InstallStarted");
-      const auto install_started = dynamic_cast<event::InstallStarted*>(event.get());
-      EXPECT_EQ(install_started->serial.ToString(), "secondary_ecu_serial");
-      break;
-    }
-    case 8: {
-      EXPECT_EQ(event->variant, "InstallTargetComplete");
-      const auto install_complete = dynamic_cast<event::InstallTargetComplete*>(event.get());
-      EXPECT_EQ(install_complete->serial.ToString(), "secondary_ecu_serial");
-      EXPECT_TRUE(install_complete->success);
-      break;
-    }
-    case 9: {
-      EXPECT_EQ(event->variant, "AllInstallsComplete");
-      const auto installs_complete = dynamic_cast<event::AllInstallsComplete*>(event.get());
-      EXPECT_EQ(installs_complete->result.ecu_reports.size(), 2);
-      EXPECT_EQ(installs_complete->result.ecu_reports[0].install_res.result_code.num_code,
-                data::ResultCode::Numeric::kOk);
-      EXPECT_EQ(installs_complete->result.ecu_reports[1].install_res.result_code.num_code,
-                data::ResultCode::Numeric::kOk);
-      promise_InstallWithUpdates.set_value();
-      break;
-    }
-    case 12:
-      // Don't let the test run indefinitely!
-      FAIL() << "Unexpected events!";
-    default:
-      std::cout << "event #" << num_events_InstallWithUpdates << " is: " << event->variant << "\n";
-      EXPECT_EQ(event->variant, "");
-  }
-  ++num_events_InstallWithUpdates;
-}
-
 /*
  * Initialize -> Install -> nothing to install.
  *
  * Initialize -> CheckUpdates -> Download -> Install -> updates installed.
  */
 TEST(Aktualizr, InstallWithUpdates) {
-  future_InstallWithUpdates = promise_InstallWithUpdates.get_future();
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates", fake_meta_dir);
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
   UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
-  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_InstallWithUpdates;
+
+  struct {
+    size_t num_events{0};
+    std::vector<Uptane::Target> updates;
+    std::future<void> future;
+    std::promise<void> promise;
+  } ev_state;
+  ev_state.future = ev_state.promise.get_future();
+
+  auto f_cb = [&ev_state](const std::shared_ptr<event::BaseEvent>& event) {
+    // Note that we do not expect a PutManifestComplete since we don't call
+    // UptaneCycle() and that's the only function that generates that.
+    if (event->isTypeOf(event::DownloadProgressReport::TypeName)) {
+      return;
+    }
+    LOG_INFO << "Got " << event->variant;
+    switch (ev_state.num_events) {
+      case 0: {
+        EXPECT_EQ(event->variant, "AllInstallsComplete");
+        const auto installs_complete = dynamic_cast<event::AllInstallsComplete*>(event.get());
+        EXPECT_EQ(installs_complete->result.ecu_reports.size(), 0);
+        break;
+      }
+      case 1: {
+        EXPECT_EQ(event->variant, "UpdateCheckComplete");
+        const auto targets_event = dynamic_cast<event::UpdateCheckComplete*>(event.get());
+        EXPECT_EQ(targets_event->result.ecus_count, 2);
+        EXPECT_EQ(targets_event->result.updates.size(), 2u);
+        EXPECT_EQ(targets_event->result.updates[0].filename(), "primary_firmware.txt");
+        EXPECT_EQ(targets_event->result.updates[1].filename(), "secondary_firmware.txt");
+        EXPECT_EQ(targets_event->result.status, result::UpdateStatus::kUpdatesAvailable);
+        ev_state.updates = targets_event->result.updates;
+        break;
+      }
+      case 2:
+      case 3: {
+        EXPECT_EQ(event->variant, "DownloadTargetComplete");
+        const auto download_event = dynamic_cast<event::DownloadTargetComplete*>(event.get());
+        EXPECT_TRUE(download_event->update.filename() == "primary_firmware.txt" ||
+                    download_event->update.filename() == "secondary_firmware.txt");
+        EXPECT_TRUE(download_event->success);
+        break;
+      }
+      case 4: {
+        EXPECT_EQ(event->variant, "AllDownloadsComplete");
+        const auto downloads_complete = dynamic_cast<event::AllDownloadsComplete*>(event.get());
+        EXPECT_EQ(downloads_complete->result.updates.size(), 2);
+        EXPECT_TRUE(downloads_complete->result.updates[0].filename() == "primary_firmware.txt" ||
+                    downloads_complete->result.updates[1].filename() == "primary_firmware.txt");
+        EXPECT_TRUE(downloads_complete->result.updates[0].filename() == "secondary_firmware.txt" ||
+                    downloads_complete->result.updates[1].filename() == "secondary_firmware.txt");
+        EXPECT_EQ(downloads_complete->result.status, result::DownloadStatus::kSuccess);
+        break;
+      }
+      case 5: {
+        // Primary always gets installed first. (Not a requirement, just how it
+        // works at present.)
+        EXPECT_EQ(event->variant, "InstallStarted");
+        const auto install_started = dynamic_cast<event::InstallStarted*>(event.get());
+        EXPECT_EQ(install_started->serial.ToString(), "CA:FE:A6:D2:84:9D");
+        break;
+      }
+      case 6: {
+        // Primary should complete before secondary begins. (Again not a
+        // requirement per se.)
+        EXPECT_EQ(event->variant, "InstallTargetComplete");
+        const auto install_complete = dynamic_cast<event::InstallTargetComplete*>(event.get());
+        EXPECT_EQ(install_complete->serial.ToString(), "CA:FE:A6:D2:84:9D");
+        EXPECT_TRUE(install_complete->success);
+        break;
+      }
+      case 7: {
+        EXPECT_EQ(event->variant, "InstallStarted");
+        const auto install_started = dynamic_cast<event::InstallStarted*>(event.get());
+        EXPECT_EQ(install_started->serial.ToString(), "secondary_ecu_serial");
+        break;
+      }
+      case 8: {
+        EXPECT_EQ(event->variant, "InstallTargetComplete");
+        const auto install_complete = dynamic_cast<event::InstallTargetComplete*>(event.get());
+        EXPECT_EQ(install_complete->serial.ToString(), "secondary_ecu_serial");
+        EXPECT_TRUE(install_complete->success);
+        break;
+      }
+      case 9: {
+        EXPECT_EQ(event->variant, "AllInstallsComplete");
+        const auto installs_complete = dynamic_cast<event::AllInstallsComplete*>(event.get());
+        EXPECT_EQ(installs_complete->result.ecu_reports.size(), 2);
+        EXPECT_EQ(installs_complete->result.ecu_reports[0].install_res.result_code.num_code,
+                  data::ResultCode::Numeric::kOk);
+        EXPECT_EQ(installs_complete->result.ecu_reports[1].install_res.result_code.num_code,
+                  data::ResultCode::Numeric::kOk);
+        ev_state.promise.set_value();
+        break;
+      }
+      case 12:
+        // Don't let the test run indefinitely!
+        FAIL() << "Unexpected events!";
+      default:
+        std::cout << "event #" << ev_state.num_events << " is: " << event->variant << "\n";
+        EXPECT_EQ(event->variant, "");
+    }
+    ++ev_state.num_events;
+  };
+
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
   aktualizr.Initialize();
@@ -1457,7 +1467,7 @@ TEST(Aktualizr, InstallWithUpdates) {
   Uptane::Target secondary_target("secondary_firmware.txt", secondary_json);
 
   // First try installing nothing. Nothing should happen.
-  result::Install result = aktualizr.Install(updates_InstallWithUpdates).get();
+  result::Install result = aktualizr.Install(ev_state.updates).get();
   EXPECT_EQ(result.ecu_reports.size(), 0);
 
   EXPECT_EQ(aktualizr.OpenStoredTarget(primary_target).get(), nullptr)
@@ -1475,7 +1485,7 @@ TEST(Aktualizr, InstallWithUpdates) {
   // After updates have been downloaded, try to install them.
   aktualizr.Install(update_result.updates);
 
-  std::future_status status = future_InstallWithUpdates.wait_for(std::chrono::seconds(20));
+  auto status = ev_state.future.wait_for(std::chrono::seconds(20));
   if (status != std::future_status::ready) {
     FAIL() << "Timed out waiting for installation to complete.";
   }
@@ -1715,7 +1725,9 @@ class CountUpdateCheckEvents {
   CountUpdateCheckEvents(const CountUpdateCheckEvents&) = delete;
   CountUpdateCheckEvents& operator=(const CountUpdateCheckEvents&) = delete;
 
-  std::function<void(std::shared_ptr<event::BaseEvent>)>& Signal() { return signal_; }
+  std::function<void(std::shared_ptr<event::BaseEvent>)> Signal() {
+    return std::bind(&CountUpdateCheckEvents::count, this, std::placeholders::_1);
+  }
 
   void count(std::shared_ptr<event::BaseEvent> event) {
     std::cout << event->variant << "\n";
@@ -1733,8 +1745,6 @@ class CountUpdateCheckEvents {
  private:
   int total_events_{0};
   int error_events_{0};
-  std::function<void(std::shared_ptr<event::BaseEvent>)> signal_{
-      [this](std::shared_ptr<event::BaseEvent> e) { this->count(e); }};
 };
 
 TEST(Aktualizr, APICheck) {
@@ -1900,7 +1910,7 @@ TEST(Aktualizr, PauseResumeQueue) {
 
   EXPECT_EQ(aktualizr.Resume().status, result::PauseStatus::kAlreadyRunning);
 
-  std::future_status status = end_promise.get_future().wait_for(std::chrono::seconds(20));
+  auto status = end_promise.get_future().wait_for(std::chrono::seconds(20));
   if (status != std::future_status::ready) {
     FAIL() << "Timed out waiting for UpdateCheck event";
   }
