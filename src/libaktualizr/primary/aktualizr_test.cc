@@ -1331,6 +1331,38 @@ TEST(Aktualizr, DownloadFailures) {
 }
 
 /*
+ * List targets in storage via API.
+ * Remove targets in storage via API.
+ */
+TEST(Aktualizr, DownloadListRemove) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates", fake_meta_dir);
+  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
+
+  aktualizr.Initialize();
+  result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
+
+  std::vector<Uptane::Target> targets = aktualizr.GetStoredTargets();
+  EXPECT_EQ(targets.size(), 0);
+
+  aktualizr.Download(update_result.updates).get();
+
+  targets = aktualizr.GetStoredTargets();
+  EXPECT_EQ(targets.size(), 2);
+
+  // check that we can remove from the result of GetStoredTarget and
+  // CheckUpdates
+  aktualizr.DeleteStoredTarget(targets[0]);
+  aktualizr.DeleteStoredTarget(update_result.updates[1]);
+
+  targets = aktualizr.GetStoredTargets();
+  EXPECT_EQ(targets.size(), 0);
+}
+
+/*
  * Initialize -> Install -> nothing to install.
  *
  * Initialize -> CheckUpdates -> Download -> Install -> updates installed.
