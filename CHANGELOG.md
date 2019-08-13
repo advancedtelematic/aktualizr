@@ -11,7 +11,11 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 - aktualizr-info --wait-until-provisioned flag: [PR](https://github.com/advancedtelematic/aktualizr/pull/1253)
 - Target object equality requires that hardware IDs match: [PR](https://github.com/advancedtelematic/aktualizr/pull/1258)
 - aktualizr-repo image command now requires a hardware ID: [PR](https://github.com/advancedtelematic/aktualizr/pull/1258)
+- `GetStoredTargets` and `DeleteStoredTarget` methods: [PR](https://github.com/advancedtelematic/aktualizr/pull/1290)
 
+### Changed
+
+- Renamed `GetStoredTarget` to `OpenStoredTarget` in aktualizr API: [PR](https://github.com/advancedtelematic/aktualizr/pull/1290)
 
 ## [2019.5] - 2019-07-12
 

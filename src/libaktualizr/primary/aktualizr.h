@@ -83,12 +83,29 @@ class Aktualizr {
   std::future<result::Download> Download(const std::vector<Uptane::Target>& updates);
 
   /**
+   * Get list of targets currently in storage. This is intended to be used with
+   * DeleteStoredTarget and targets are not guaranteed to be verified and
+   * up-to-date with current metadata.
+   * @return std::vector of target objects
+   */
+  std::vector<Uptane::Target> GetStoredTargets();
+
+  /**
+   * Delete a stored target from storage. This only affects storage of the
+   * actual binary data and does not preclude a re-download if a target matches
+   * current metadata.
+   * @param target Target object matching the desired target in the storage
+   * @return true if successful
+   */
+  void DeleteStoredTarget(const Uptane::Target& target);
+
+  /**
    * Get target downloaded in Download call. Returned target is guaranteed to be verified and up-to-date
    * according to the Uptane metadata downloaded in CheckUpdates call.
    * @param target Target object matching the desired target in the storage.
    * @return Handle to the stored binary. nullptr if none is found.
    */
-  std::unique_ptr<StorageTargetRHandle> GetStoredTarget(const Uptane::Target& target);
+  std::unique_ptr<StorageTargetRHandle> OpenStoredTarget(const Uptane::Target& target);
 
   /**
    * Install targets.

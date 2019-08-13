@@ -133,6 +133,8 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Send AllDownloadsComplete event if there is nothing to download (aktualizr_test.cc)
   - [x] Send AllDownloadsComplete event if all downloads are unsuccessful (aktualizr_test.cc)
 - [x] Access downloaded binaries via API (aktualizr_test.cc)
+  - [x] List targets in storage via API (aktualizr_test.cc)
+  - [x] Remove targets in storage via API(aktualizr_test.cc)
 - [x] Install updates
   - [x] Send metadata to secondary ECUs (uptane_test.cc)
   - [x] Identify ECU for each target (uptane_test.cc, aktualizr_test.cc)

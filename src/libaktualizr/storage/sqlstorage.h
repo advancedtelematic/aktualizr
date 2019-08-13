@@ -83,11 +83,14 @@ class SQLStorage : public SQLStorageBase, public INvStorage {
   std::unique_ptr<StorageTargetWHandle> allocateTargetFile(bool from_director, const Uptane::Target& target) override;
   std::unique_ptr<StorageTargetRHandle> openTargetFile(const Uptane::Target& target) override;
   boost::optional<std::pair<size_t, std::string>> checkTargetFile(const Uptane::Target& target) const override;
-  void removeTargetFile(const std::string& filename) override;
+  std::vector<Uptane::Target> getTargetFiles() override;
+  void removeTargetFile(const std::string& target_name) override;
   void cleanUp() override;
   StorageType type() override { return StorageType::kSqlite; };
 
  private:
+  boost::filesystem::path images_path_{sqldb_path_.parent_path() / "images"};
+
   void cleanMetaVersion(Uptane::RepositoryType repo, const Uptane::Role& role);
 };
 
