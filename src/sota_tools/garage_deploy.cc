@@ -81,6 +81,8 @@ int main(int argc, char **argv) {
     assert(0);
   }
 
+  Utils::setUserAgent(std::string("garage-deploy/") + garage_tools_version());
+
   if (vm.count("dry-run") != 0u) {
     mode = RunMode::kDryRun;
   }

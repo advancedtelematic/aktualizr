@@ -114,6 +114,11 @@ class Handler(SimpleHTTPRequestHandler):
             for i in range(5):
                 self.wfile.write(b'aa')
                 sleep(1)
+        elif self.path == '/user_agent':
+            user_agent = self.headers.get('user-agent')
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(user_agent.encode())
         else:
             if self.server.fail_injector is not None and self.server.fail_injector.fail(self):
                 return

@@ -80,6 +80,26 @@ TEST(PostTest, put_performed) {
   EXPECT_EQ(json["data"]["key"].asString(), "val");
 }
 
+TEST(HttpClient, user_agent) {
+  {
+    // test the default, when setUserAgent hasn't been called yet
+    HttpClient http;
+
+    const auto resp = http.get(server + "/user_agent", HttpInterface::kNoLimit);
+    const auto app = resp.body.substr(0, resp.body.find('/'));
+    EXPECT_EQ(app, "Aktualizr");
+  }
+
+  Utils::setUserAgent("blah");
+
+  {
+    HttpClient http;
+
+    auto resp = http.get(server + "/user_agent", HttpInterface::kNoLimit);
+    EXPECT_EQ(resp.body, "blah");
+  }
+}
+
 // TODO: add tests for HttpClient::download
 
 #ifndef __NO_MAIN__

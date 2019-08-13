@@ -55,19 +55,17 @@ void TestUtils::writePathToConfig(const boost::filesystem::path &toml_in, const 
 }
 
 void TestUtils::waitForServer(const std::string &address) {
-  CURL *handle = curl_easy_init();
-  if (handle == nullptr) {
-    throw std::runtime_error("Could not initialize curl handle");
-  }
-  curlEasySetoptWrapper(handle, CURLOPT_URL, address.c_str());
-  curlEasySetoptWrapper(handle, CURLOPT_CONNECTTIMEOUT, 3L);
-  curlEasySetoptWrapper(handle, CURLOPT_NOBODY, 1L);
-  curlEasySetoptWrapper(handle, CURLOPT_VERBOSE, 1L);
-  curlEasySetoptWrapper(handle, CURLOPT_SSL_VERIFYPEER, 0L);
+  CurlEasyWrapper curl;
+
+  curlEasySetoptWrapper(curl.get(), CURLOPT_URL, address.c_str());
+  curlEasySetoptWrapper(curl.get(), CURLOPT_CONNECTTIMEOUT, 3L);
+  curlEasySetoptWrapper(curl.get(), CURLOPT_NOBODY, 1L);
+  curlEasySetoptWrapper(curl.get(), CURLOPT_VERBOSE, 1L);
+  curlEasySetoptWrapper(curl.get(), CURLOPT_SSL_VERIFYPEER, 0L);
 
   CURLcode result;
   for (size_t counter = 1; counter <= 100; counter++) {
-    result = curl_easy_perform(handle);
+    result = curl_easy_perform(curl.get());
     if (result == 0) {
       // connection successful
       break;
@@ -77,8 +75,6 @@ void TestUtils::waitForServer(const std::string &address) {
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
   }
-
-  curl_easy_cleanup(handle);
 
   if (result != 0) {
     throw std::runtime_error("Wait for server timed out");
