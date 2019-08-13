@@ -7,6 +7,7 @@ akrepo_bin=$2
 tests_dir=$3
 #valgrind=$4
 valgrind=""
+mock_ostree=$(dirname $aklite)/libt_lite-mock.so
 
 dest_dir=$(mktemp -d)
 
@@ -85,7 +86,7 @@ EOF
 $valgrind $aklite -h | grep "Command to execute: status, list, update"
 
 ## Check that we can do the list command
-out=$($valgrind $aklite --loglevel 1 -c $sota_dir/sota.toml list)
+out=$(OSTREE_HASH="foobar" LD_PRELOAD=$mock_ostree $valgrind $aklite --loglevel 1 -c $sota_dir/sota.toml list)
 if [[ ! "$out" =~ "foo1" ]] ; then
     echo "ERROR: foo1 update missing"
     exit 1
@@ -102,7 +103,14 @@ sha=$(echo $update | cut -d\  -f2 | sed 's/\.0$//')
 echo "Adding new target: $name / $sha"
 add_target $name $sha
 
-$valgrind $aklite --loglevel 1 -c $sota_dir/sota.toml update --update-name $name
+OSTREE_HASH=$sha LD_PRELOAD=$mock_ostree $valgrind $aklite --loglevel 1 -c $sota_dir/sota.toml update --update-name $name
 ostree admin status
 
-$valgrind $aklite --loglevel 1 -c $sota_dir/sota.toml update | grep "Updating to: Target(zlast"
+OSTREE_HASH=$sha LD_PRELOAD=$mock_ostree $valgrind $aklite --loglevel 1 -c $sota_dir/sota.toml update | grep "Updating to: Target(zlast"
+
+out=$(OSTREE_HASH="$sha" LD_PRELOAD=$mock_ostree $valgrind $aklite --loglevel 1 -c $sota_dir/sota.toml status)
+if [[ ! "$out" =~ "Active image is: zlast	sha256:$sha" ]] ; then
+    echo "ERROR: status incorrect:"
+    echo $out
+    exit 1
+fi

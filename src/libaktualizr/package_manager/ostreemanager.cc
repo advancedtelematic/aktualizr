@@ -271,9 +271,12 @@ Uptane::Target OstreeManager::getCurrent() const {
   std::vector<Uptane::Target> installed_versions;
   storage_->loadPrimaryInstalledVersions(&installed_versions, nullptr, nullptr);
 
-  // Version should be in installed versions
-  std::vector<Uptane::Target>::iterator it;
-  for (it = installed_versions.begin(); it != installed_versions.end(); it++) {
+  // Version should be in installed versions. Its possible that multiple
+  // targets could have the same sha256Hash. In this case the safest assumption
+  // is that the most recent (the reverse of the vector) target is what we
+  // should return.
+  std::vector<Uptane::Target>::reverse_iterator it;
+  for (it = installed_versions.rbegin(); it != installed_versions.rend(); it++) {
     if (it->sha256Hash() == current_hash) {
       return *it;
     }

@@ -15,10 +15,11 @@ add_test(test_aktualizr-lite
         ${PROJECT_SOURCE_DIR}/tests
         ${RUN_VALGRIND}
 )
+add_library(t_lite-mock SHARED ostree_mock.cc)
 
 endif(BUILD_OSTREE)
 
 add_aktualizr_test(NAME lite-version SOURCES version_test.cc)
 
-aktualizr_source_file_checks(main.cc version.h version_test.cc)
+aktualizr_source_file_checks(main.cc version.h version_test.cc ostree_mock.cc)
 # vim: set tabstop=4 shiftwidth=4 expandtab:

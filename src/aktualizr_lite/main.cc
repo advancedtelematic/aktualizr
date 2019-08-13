@@ -16,9 +16,32 @@
 
 namespace bpo = boost::program_options;
 
-static std::shared_ptr<SotaUptaneClient> liteClient(Config &config) {
+static void finalizeIfNeeded(INvStorage &storage, PackageConfig &config) {
+  std::vector<Uptane::Target> installed_versions;
+  size_t pending_index = SIZE_MAX;
+  storage.loadInstalledVersions("", &installed_versions, nullptr, &pending_index);
+
+  if (pending_index < installed_versions.size()) {
+    GObjectUniquePtr<OstreeSysroot> sysroot_smart = OstreeManager::LoadSysroot(config.sysroot);
+    OstreeDeployment *booted_deployment = ostree_sysroot_get_booted_deployment(sysroot_smart.get());
+    if (booted_deployment == nullptr) {
+      throw std::runtime_error("Could not get booted deployment in " + config.sysroot.string());
+    }
+    std::string current_hash = ostree_deployment_get_csum(booted_deployment);
+
+    const Uptane::Target &target = installed_versions[pending_index];
+    if (current_hash == target.sha256Hash()) {
+      LOG_INFO << "Marking target install complete for: " << target;
+      storage.saveInstalledVersion("", target, InstalledVersionUpdateMode::kCurrent);
+    }
+  }
+}
+
+static std::shared_ptr<SotaUptaneClient> liteClient(Config &config, std::shared_ptr<INvStorage> storage) {
   std::string pkey;
-  auto storage = INvStorage::newStorage(config.storage);
+  if (storage == nullptr) {
+    storage = INvStorage::newStorage(config.storage);
+  }
   storage->importData(config.import);
 
   EcuSerials ecu_serials;
@@ -44,24 +67,53 @@ static std::shared_ptr<SotaUptaneClient> liteClient(Config &config) {
   KeyManager keys(storage, config.keymanagerConfig());
   keys.copyCertsToCurl(*http_client);
 
-  return std::make_shared<SotaUptaneClient>(config, storage, http_client, bootloader, report_queue);
+  auto client = std::make_shared<SotaUptaneClient>(config, storage, http_client, bootloader, report_queue);
+  finalizeIfNeeded(*storage, config.pacman);
+  return client;
+}
+
+static void log_info_target(const std::string &prefix, const Config &config, const Uptane::Target &t) {
+  auto name = t.filename();
+  if (t.custom_version().length() > 0) {
+    name = t.custom_version();
+  }
+  LOG_INFO << prefix + name << "\tsha256:" << t.sha256Hash();
+  if (config.pacman.type == PackageManager::kOstreeDockerApp) {
+    bool shown = false;
+    auto apps = t.custom_data()["docker_apps"];
+    for (Json::ValueIterator i = apps.begin(); i != apps.end(); ++i) {
+      if (!shown) {
+        shown = true;
+        LOG_INFO << "\tDocker Apps:";
+      }
+      if ((*i).isObject() && (*i).isMember("filename")) {
+        LOG_INFO << "\t\t" << i.key().asString() << " -> " << (*i)["filename"].asString();
+      } else {
+        LOG_ERROR << "\t\tInvalid custom data for docker-app: " << i.key().asString();
+      }
+    }
+  }
 }
 
 static int status_main(Config &config, const bpo::variables_map &unused) {
   (void)unused;
-  GObjectUniquePtr<OstreeSysroot> sysroot_smart = OstreeManager::LoadSysroot(config.pacman.sysroot);
-  OstreeDeployment *deployment = ostree_sysroot_get_booted_deployment(sysroot_smart.get());
-  if (deployment == nullptr) {
+  auto target = liteClient(config, nullptr)->getCurrent();
+
+  if (target.MatchTarget(Uptane::Target::Unknown())) {
     LOG_INFO << "No active deployment found";
   } else {
-    LOG_INFO << "Active image is: " << ostree_deployment_get_csum(deployment);
+    auto name = target.filename();
+    if (target.custom_version().length() > 0) {
+      name = target.custom_version();
+    }
+    log_info_target("Active image is: ", config, target);
   }
   return 0;
 }
 
 static int list_main(Config &config, const bpo::variables_map &unused) {
   (void)unused;
-  auto client = liteClient(config);
+  auto client = liteClient(config, nullptr);
   Uptane::HardwareIdentifier hwid(config.provision.primary_ecu_hardware_id);
 
   LOG_INFO << "Refreshing target metadata";
@@ -77,26 +129,7 @@ static int list_main(Config &config, const bpo::variables_map &unused) {
   for (auto &t : client->allTargets()) {
     for (auto const &it : t.hardwareIds()) {
       if (it == hwid) {
-        auto name = t.filename();
-        if (t.custom_version().length() > 0) {
-          name = t.custom_version();
-        }
-        LOG_INFO << name << "\tsha256:" << t.sha256Hash();
-        if (config.pacman.type == PackageManager::kOstreeDockerApp) {
-          bool shown = false;
-          auto apps = t.custom_data()["docker_apps"];
-          for (Json::ValueIterator i = apps.begin(); i != apps.end(); ++i) {
-            if (!shown) {
-              shown = true;
-              LOG_INFO << "\tDocker Apps:";
-            }
-            if ((*i).isObject() && (*i).isMember("filename")) {
-              LOG_INFO << "\t\t" << i.key().asString() << " -> " << (*i)["filename"].asString();
-            } else {
-              LOG_ERROR << "\t\tInvalid custom data for docker-app: " << i.key().asString();
-            }
-          }
-        }
+        log_info_target("", config, t);
         break;
       }
     }
@@ -136,8 +169,32 @@ static std::unique_ptr<Uptane::Target> find_target(const std::shared_ptr<SotaUpt
   throw std::runtime_error("Unable to find update");
 }
 
+static int do_update(SotaUptaneClient &client, INvStorage &storage, Uptane::Target &target) {
+  std::vector<Uptane::Target> targets{target};
+  auto result = client.downloadImages(targets);
+  if (result.status != result::DownloadStatus::kSuccess &&
+      result.status != result::DownloadStatus::kNothingToDownload) {
+    LOG_ERROR << "Unable to download update: " + result.message;
+    return 1;
+  }
+
+  auto iresult = client.PackageInstall(target);
+  if (iresult.result_code.num_code == data::ResultCode::Numeric::kNeedCompletion) {
+    LOG_INFO << "Update complete. Please reboot the device to activate";
+    storage.saveInstalledVersion("", target, InstalledVersionUpdateMode::kPending);
+  } else if (iresult.result_code.num_code == data::ResultCode::Numeric::kOk) {
+    storage.saveInstalledVersion("", target, InstalledVersionUpdateMode::kCurrent);
+  } else {
+    LOG_ERROR << "Unable to install update: " << iresult.description;
+    return 1;
+  }
+  LOG_INFO << iresult.description;
+  return 0;
+}
+
 static int update_main(Config &config, const bpo::variables_map &variables_map) {
-  auto client = liteClient(config);
+  auto storage = INvStorage::newStorage(config.storage);
+  auto client = liteClient(config, storage);
   Uptane::HardwareIdentifier hwid(config.provision.primary_ecu_hardware_id);
 
   std::string version("latest");
@@ -147,24 +204,7 @@ static int update_main(Config &config, const bpo::variables_map &variables_map) 
   LOG_INFO << "Finding " << version << " to update to...";
   auto target = find_target(client, hwid, version);
   LOG_INFO << "Updating to: " << *target;
-
-  std::vector<Uptane::Target> targets{*target};
-  auto result = client->downloadImages(targets);
-  if (result.status != result::DownloadStatus::kSuccess &&
-      result.status != result::DownloadStatus::kNothingToDownload) {
-    LOG_ERROR << "Unable to download update: " + result.message;
-    return 1;
-  }
-  auto iresult = client->PackageInstall(*target);
-  if (iresult.result_code.num_code == data::ResultCode::Numeric::kNeedCompletion) {
-    LOG_INFO << "Update complete. Please reboot the device to activate";
-  } else if (iresult.result_code.num_code != data::ResultCode::Numeric::kOk &&
-             iresult.result_code.num_code != data::ResultCode::Numeric::kNeedCompletion) {
-    LOG_ERROR << "Unable to install update: " << iresult.description;
-    return 1;
-  }
-  LOG_INFO << iresult.description;
-  return 0;
+  return do_update(*client, *storage, *target);
 }
 
 struct SubCommand {
