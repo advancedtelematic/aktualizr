@@ -97,9 +97,9 @@ class SotaUptaneClient {
   friend class CheckForUpdate;       // for load tests
   friend class ProvisionDeviceTask;  // for load tests
 
-  bool updateMeta();
-  bool uptaneIteration();
+  bool uptaneIteration(std::vector<Uptane::Target> *targets, unsigned int *ecus_count);
   bool uptaneOfflineIteration(std::vector<Uptane::Target> *targets, unsigned int *ecus_count);
+  result::UpdateStatus checkUpdatesOffline(const std::vector<Uptane::Target> &targets);
   Json::Value AssembleManifest();
   std::string secondaryTreehubCredentials() const;
   Uptane::Exception getLastException() const { return last_exception; }
@@ -156,6 +156,15 @@ class SotaUptaneClient {
   // ecu_serial => secondary*
   std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>> secondaries;
   std::mutex download_mutex;
+};
+
+class TargetCompare {
+ public:
+  explicit TargetCompare(const Uptane::Target &target_in) : target(target_in) {}
+  bool operator()(const Uptane::Target &in) const { return (in.MatchTarget(target)); }
+
+ private:
+  const Uptane::Target &target;
 };
 
 class SerialCompare {

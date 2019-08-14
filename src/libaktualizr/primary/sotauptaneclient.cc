@@ -291,14 +291,6 @@ void SotaUptaneClient::initialize() {
   finalizeAfterReboot();
 }
 
-bool SotaUptaneClient::updateMeta() {
-  // Uptane step 1 (build the vehicle version manifest):
-  if (!putManifestSimple()) {
-    LOG_ERROR << "Error sending manifest!";
-  }
-  return uptaneIteration();
-}
-
 bool SotaUptaneClient::updateDirectorMeta() {
   if (!director_repo.updateMeta(*storage, *uptane_fetcher)) {
     last_exception = director_repo.getLastException();
@@ -466,9 +458,8 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
 std::unique_ptr<Uptane::Target> SotaUptaneClient::findTargetHelper(const Uptane::Targets &cur_targets,
                                                                    const Uptane::Target &queried_target, int level,
                                                                    bool terminating) {
-  auto it =
-      std::find_if(cur_targets.targets.cbegin(), cur_targets.targets.cend(),
-                   [&queried_target](const Uptane::Target &target) { return target.MatchTarget(queried_target); });
+  TargetCompare target_comp(queried_target);
+  const auto it = std::find_if(cur_targets.targets.cbegin(), cur_targets.targets.cend(), target_comp);
   if (it != cur_targets.targets.cend()) {
     return std_::make_unique<Uptane::Target>(*it);
   }
@@ -540,6 +531,18 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
   result::Download result;
   std::vector<Uptane::Target> downloaded_targets;
 
+  result::UpdateStatus update_status = checkUpdatesOffline(targets);
+  if (update_status != result::UpdateStatus::kUpdatesAvailable) {
+    if (update_status == result::UpdateStatus::kNoUpdatesAvailable) {
+      result = result::Download({}, result::DownloadStatus::kNothingToDownload, "");
+    } else {
+      result =
+          result::Download(downloaded_targets, result::DownloadStatus::kError, "Error rechecking stored metadata.");
+    }
+    sendEvent<event::AllDownloadsComplete>(result);
+    return result;
+  }
+
   for (const auto &target : targets) {
     auto res = downloadImage(target, token);
     if (res.first) {
@@ -547,32 +550,25 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
     }
   }
 
-  if (!targets.empty()) {
-    if (targets.size() == downloaded_targets.size()) {
-      result = result::Download(downloaded_targets, result::DownloadStatus::kSuccess, "");
-    } else {
-      if (downloaded_targets.size() == 0) {
-        LOG_ERROR << "None of " << targets.size() << " targets were successfully downloaded.";
-        result =
-            result::Download(downloaded_targets, result::DownloadStatus::kError, "Each target download has failed");
-      } else {
-        LOG_ERROR << "Only " << downloaded_targets.size() << " of " << targets.size()
-                  << " were successfully downloaded.";
-        result = result::Download(downloaded_targets, result::DownloadStatus::kPartialSuccess, "");
-      }
-      // Store installation report to inform Director of the download failure.
-      const std::string &correlation_id = director_repo.getCorrelationId();
-      data::InstallationResult device_installation_result =
-          data::InstallationResult(data::ResultCode::Numeric::kDownloadFailed, "Target download failed");
-      storage->storeDeviceInstallationResult(device_installation_result, "", correlation_id);
-      // Fix for OTA-2587, listen to backend again after end of install.
-      director_repo.dropTargets(*storage);
-    }
-
+  if (targets.size() == downloaded_targets.size()) {
+    result = result::Download(downloaded_targets, result::DownloadStatus::kSuccess, "");
   } else {
-    LOG_INFO << "No new updates to download.";
-    result = result::Download({}, result::DownloadStatus::kNothingToDownload, "");
+    if (downloaded_targets.size() == 0) {
+      LOG_ERROR << "None of " << targets.size() << " targets were successfully downloaded.";
+      result = result::Download(downloaded_targets, result::DownloadStatus::kError, "Each target download has failed");
+    } else {
+      LOG_ERROR << "Only " << downloaded_targets.size() << " of " << targets.size() << " were successfully downloaded.";
+      result = result::Download(downloaded_targets, result::DownloadStatus::kPartialSuccess, "");
+    }
+    // Store installation report to inform Director of the download failure.
+    const std::string &correlation_id = director_repo.getCorrelationId();
+    data::InstallationResult device_installation_result =
+        data::InstallationResult(data::ResultCode::Numeric::kDownloadFailed, "Target download failed");
+    storage->storeDeviceInstallationResult(device_installation_result, "", correlation_id);
+    // Fix for OTA-2587, listen to backend again after end of install.
+    director_repo.dropTargets(*storage);
   }
+
   sendEvent<event::AllDownloadsComplete>(result);
   return result;
 }
@@ -631,18 +627,25 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(const Uptane::Ta
   return {success, target};
 }
 
-bool SotaUptaneClient::uptaneIteration() {
+bool SotaUptaneClient::uptaneIteration(std::vector<Uptane::Target> *targets, unsigned int *ecus_count) {
   if (!updateDirectorMeta()) {
     LOG_ERROR << "Failed to update director metadata: " << last_exception.what();
     return false;
   }
-  std::vector<Uptane::Target> targets;
-  if (!getNewTargets(&targets)) {
+  std::vector<Uptane::Target> tmp_targets;
+  unsigned int ecus;
+  if (!getNewTargets(&tmp_targets, &ecus)) {
     LOG_ERROR << "Inconsistency between director metadata and existent ECUs";
     return false;
   }
 
-  if (targets.empty()) {
+  if (tmp_targets.empty()) {
+    if (targets != nullptr) {
+      *targets = std::move(tmp_targets);
+    }
+    if (ecus_count != nullptr) {
+      *ecus_count = ecus;
+    }
     return true;
   }
 
@@ -653,6 +656,12 @@ bool SotaUptaneClient::uptaneIteration() {
     return false;
   }
 
+  if (targets != nullptr) {
+    *targets = std::move(tmp_targets);
+  }
+  if (ecus_count != nullptr) {
+    *ecus_count = ecus;
+  }
   return true;
 }
 
@@ -670,10 +679,11 @@ bool SotaUptaneClient::uptaneOfflineIteration(std::vector<Uptane::Target> *targe
 
   if (tmp_targets.empty()) {
     *targets = std::move(tmp_targets);
+    if (ecus_count != nullptr) {
+      *ecus_count = ecus;
+    }
     return true;
   }
-
-  LOG_INFO << "got new updates";
 
   if (!checkImagesMetaOffline()) {
     LOG_ERROR << "Failed to check images metadata: " << last_exception.what();
@@ -702,16 +712,16 @@ result::UpdateCheck SotaUptaneClient::fetchMeta() {
 
   if (hasPendingUpdates()) {
     // no need in update checking if there are some pending updates
-    LOG_DEBUG << "An update is pending. Skipping check for update until installation is complete";
+    LOG_INFO << "An update is pending. Skipping check for update until installation is complete.";
     return result::UpdateCheck({}, 0, result::UpdateStatus::kError, Json::nullValue,
                                "There are pending updates, no new updates are checked");
   }
 
-  if (updateMeta()) {
-    result = checkUpdates();
-  } else {
-    result = result::UpdateCheck({}, 0, result::UpdateStatus::kError, Json::nullValue, "Could not update metadata.");
+  // Uptane step 1 (build the vehicle version manifest):
+  if (!putManifestSimple()) {
+    LOG_ERROR << "Error sending manifest!";
   }
+  result = checkUpdates();
   sendEvent<event::UpdateCheckComplete>(result);
 
   return result;
@@ -720,20 +730,10 @@ result::UpdateCheck SotaUptaneClient::fetchMeta() {
 result::UpdateCheck SotaUptaneClient::checkUpdates() {
   result::UpdateCheck result;
 
-  if (hasPendingUpdates()) {
-    // mask updates when an install is pending
-    LOG_DEBUG << "An update is pending. Skipping check for update until installation is complete";
-    return result;
-  }
-
-  // TODO: This is unnecessary and should instead be done before downloading
-  // (see OTA-3060) and installing (OTA-2191).
   std::vector<Uptane::Target> updates;
   unsigned int ecus_count = 0;
-  if (!uptaneOfflineIteration(&updates, &ecus_count)) {
-    LOG_ERROR << "Invalid Uptane metadata in storage.";
-    result = result::UpdateCheck({}, 0, result::UpdateStatus::kError, Json::nullValue,
-                                 "Invalid Uptane metadata in storage.");
+  if (!uptaneIteration(&updates, &ecus_count)) {
+    result = result::UpdateCheck({}, 0, result::UpdateStatus::kError, Json::nullValue, "Could not update metadata.");
     return result;
   }
 
@@ -777,14 +777,71 @@ result::UpdateCheck SotaUptaneClient::checkUpdates() {
   return result;
 }
 
+result::UpdateStatus SotaUptaneClient::checkUpdatesOffline(const std::vector<Uptane::Target> &targets) {
+  if (hasPendingUpdates()) {
+    // no need in update checking if there are some pending updates
+    LOG_INFO << "An update is pending. Skipping stored metadata check until installation is complete.";
+    return result::UpdateStatus::kError;
+  }
+
+  if (targets.empty()) {
+    LOG_WARNING << "Requested targets vector is empty. Nothing to do.";
+    return result::UpdateStatus::kError;
+  }
+
+  std::vector<Uptane::Target> director_targets;
+  unsigned int ecus_count = 0;
+  if (!uptaneOfflineIteration(&director_targets, &ecus_count)) {
+    LOG_ERROR << "Invalid Uptane metadata in storage.";
+    return result::UpdateStatus::kError;
+  }
+
+  if (director_targets.empty()) {
+    LOG_ERROR << "No new updates found in Uptane metadata, but expected " << targets.size() << ".";
+    return result::UpdateStatus::kNoUpdatesAvailable;
+  }
+
+  // For every target in the Director Targets metadata, walk the delegation
+  // tree (if necessary) and find a matching target in the Images repo
+  // metadata.
+  for (const auto &target : targets) {
+    TargetCompare target_comp(target);
+    const auto it = std::find_if(director_targets.cbegin(), director_targets.cend(), target_comp);
+    if (it == director_targets.cend()) {
+      LOG_ERROR << "No matching target in director targets metadata for " << target;
+      return result::UpdateStatus::kError;
+    }
+
+    // TODO: offline support
+    const auto images_target = findTargetInDelegationTree(target);
+    if (images_target == nullptr) {
+      LOG_ERROR << "No matching target in images targets metadata for " << target;
+      return result::UpdateStatus::kError;
+    }
+  }
+
+  return result::UpdateStatus::kUpdatesAvailable;
+}
+
 result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> &updates) {
   result::Install result;
-  Uptane::EcuSerial primary_ecu_serial = uptane_manifest.getPrimaryEcuSerial();
 
   // clear all old results first
   storage->clearInstallationResults();
 
+  result::UpdateStatus update_status = checkUpdatesOffline(updates);
+  if (update_status != result::UpdateStatus::kUpdatesAvailable) {
+    if (update_status == result::UpdateStatus::kNoUpdatesAvailable) {
+      result.dev_report = {false, data::ResultCode::Numeric::kAlreadyProcessed, ""};
+    } else {
+      result.dev_report = {false, data::ResultCode::Numeric::kInternalError, ""};
+    }
+    sendEvent<event::AllInstallsComplete>(result);
+    return result;
+  }
+
   // Uptane step 5 (send time to all ECUs) is not implemented yet.
+  Uptane::EcuSerial primary_ecu_serial = uptane_manifest.getPrimaryEcuSerial();
   std::vector<Uptane::Target> primary_updates = findForEcu(updates, primary_ecu_serial);
   //   6 - send metadata to all the ECUs
   sendMetadataToEcus(updates);
@@ -892,7 +949,9 @@ void SotaUptaneClient::completeInstall() {
 bool SotaUptaneClient::putManifestSimple(const Json::Value &custom) {
   // does not send event, so it can be used as a subset of other steps
   if (hasPendingUpdates()) {
-    LOG_DEBUG << "An update is pending. Skipping manifest upload until installation is complete";
+    // Debug level here because info level is annoying if the update check
+    // frequency is low.
+    LOG_DEBUG << "An update is pending. Skipping manifest upload until installation is complete.";
     return false;
   }
 

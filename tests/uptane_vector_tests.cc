@@ -126,7 +126,7 @@ TEST_P(UptaneVector, Test) {
        *
        * It would be simpler to just call fetchMeta() here, but that calls
        * putManifestSimple(), which will fail here. */
-      if (!uptane_client->uptaneIteration()) {
+      if (!uptane_client->uptaneIteration(nullptr, nullptr)) {
         ASSERT_TRUE(should_fail) << "uptaneIteration unexpectedly failed.";
         throw uptane_client->getLastException();
       }
