@@ -142,11 +142,11 @@ void SotaUptaneClient::finalizeAfterReboot() {
         // go forward again
         storage->saveInstalledVersion(ecu_serial.ToString(), target, InstalledVersionUpdateMode::kNone);
         report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(ecu_serial, correlation_id, false));
+        director_repo.dropTargets(*storage);  // fix for OTA-2587, listen to backend again after end of install
       }
 
       computeDeviceInstallationResult(nullptr, correlation_id);
       putManifestSimple();
-      director_repo.dropTargets(*storage);  // fix for OTA-2587, listen to backend again after end of install
     } else {
       // nothing found on primary
       LOG_ERROR << "Expected reboot after update on primary but no update found";
@@ -836,7 +836,7 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
   computeDeviceInstallationResult(&result.dev_report, correlation_id);
   sendEvent<event::AllInstallsComplete>(result);
 
-  if (result.dev_report.result_code != data::ResultCode::Numeric::kNeedCompletion) {
+  if (!(result.dev_report.isSuccess() || result.dev_report.needCompletion())) {
     director_repo.dropTargets(*storage);  // fix for OTA-2587, listen to backend again after end of install
   }
 

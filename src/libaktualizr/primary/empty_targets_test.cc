@@ -96,7 +96,11 @@ TEST(Aktualizr, EmptyTargets) {
 
 #ifdef FIU_ENABLE
 
-/* Check that Aktualizr switches back to empty targets after completing an
+// TODO: also check download failure. However, this depends on what the server
+// actually sends in response to download failure, which currently does not work
+// as expected (OTA-3169).
+
+/* Check that Aktualizr switches back to empty targets after failing an
  * installation attempt (OTA-2587) */
 TEST(Aktualizr, EmptyTargetsAfterInstall) {
   TemporaryDirectory temp_dir;
@@ -127,10 +131,9 @@ TEST(Aktualizr, EmptyTargetsAfterInstall) {
     result::Download download_result = aktualizr.Download(update_result.updates).get();
     EXPECT_EQ(download_result.status, result::DownloadStatus::kSuccess);
 
-    update_result = aktualizr.CheckUpdates().get();
     fiu_init(0);
     fault_injection_enable("fake_package_install", 1, "", 0);
-    result::Install install_result = aktualizr.Install(update_result.updates).get();
+    result::Install install_result = aktualizr.Install(download_result.updates).get();
     EXPECT_EQ(install_result.ecu_reports.size(), 1);
     EXPECT_EQ(install_result.ecu_reports[0].install_res.result_code.num_code,
               data::ResultCode::Numeric::kInstallFailed);
