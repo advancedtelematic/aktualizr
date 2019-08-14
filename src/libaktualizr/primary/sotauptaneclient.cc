@@ -456,8 +456,9 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
 }
 
 std::unique_ptr<Uptane::Target> SotaUptaneClient::findTargetHelper(const Uptane::Targets &cur_targets,
-                                                                   const Uptane::Target &queried_target, int level,
-                                                                   bool terminating) {
+                                                                   const Uptane::Target &queried_target,
+                                                                   const int level, const bool terminating,
+                                                                   const bool offline) {
   TargetCompare target_comp(queried_target);
   const auto it = std::find_if(cur_targets.targets.cbegin(), cur_targets.targets.cend(), target_comp);
   if (it != cur_targets.targets.cend()) {
@@ -471,40 +472,35 @@ std::unique_ptr<Uptane::Target> SotaUptaneClient::findTargetHelper(const Uptane:
   for (const auto &delegate_name : cur_targets.delegated_role_names_) {
     Uptane::Role delegate_role = Uptane::Role::Delegation(delegate_name);
     auto patterns = cur_targets.paths_for_role_.find(delegate_role);
-
     if (patterns == cur_targets.paths_for_role_.end()) {
       continue;
     }
 
     bool match = false;
-
     for (const auto &pattern : patterns->second) {
       if (fnmatch(pattern.c_str(), queried_target.filename().c_str(), 0) == 0) {
         match = true;
         break;
       }
     }
-
     if (!match) {
       continue;
     }
 
     // Target name matches one of the patterns
 
-    auto delegation = Uptane::getTrustedDelegation(delegate_role, cur_targets, images_repo, *storage, *uptane_fetcher);
-
+    auto delegation =
+        Uptane::getTrustedDelegation(delegate_role, cur_targets, images_repo, *storage, *uptane_fetcher, offline);
     if (delegation.isExpired(TimeStamp::Now())) {
       continue;
     }
 
     auto is_terminating = cur_targets.terminating_role_.find(delegate_role);
-
     if (is_terminating == cur_targets.terminating_role_.end()) {
       throw Uptane::Exception("images", "Inconsistent delegations");
     }
 
-    auto found_target = findTargetHelper(delegation, queried_target, level + 1, is_terminating->second);
-
+    auto found_target = findTargetHelper(delegation, queried_target, level + 1, is_terminating->second, offline);
     if (found_target != nullptr) {
       return found_target;
     }
@@ -513,14 +509,14 @@ std::unique_ptr<Uptane::Target> SotaUptaneClient::findTargetHelper(const Uptane:
   return std::unique_ptr<Uptane::Target>(nullptr);
 }
 
-std::unique_ptr<Uptane::Target> SotaUptaneClient::findTargetInDelegationTree(const Uptane::Target &target) {
+std::unique_ptr<Uptane::Target> SotaUptaneClient::findTargetInDelegationTree(const Uptane::Target &target,
+                                                                             const bool offline) {
   auto toplevel_targets = images_repo.getTargets();
-
   if (toplevel_targets == nullptr) {
     return std::unique_ptr<Uptane::Target>(nullptr);
   }
 
-  return findTargetHelper(*toplevel_targets, target, 0, false);
+  return findTargetHelper(*toplevel_targets, target, 0, false, offline);
 }
 
 result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets,
@@ -751,7 +747,7 @@ result::UpdateCheck SotaUptaneClient::checkUpdates() {
   // tree (if necessary) and find a matching target in the Images repo
   // metadata.
   for (auto &target : updates) {
-    auto images_target = findTargetInDelegationTree(target);
+    auto images_target = findTargetInDelegationTree(target, false);
     if (images_target == nullptr) {
       // TODO: Could also be a missing target or delegation expiration.
       last_exception = Uptane::TargetMismatch(target.filename());
@@ -812,8 +808,7 @@ result::UpdateStatus SotaUptaneClient::checkUpdatesOffline(const std::vector<Upt
       return result::UpdateStatus::kError;
     }
 
-    // TODO: offline support
-    const auto images_target = findTargetInDelegationTree(target);
+    const auto images_target = findTargetInDelegationTree(target, true);
     if (images_target == nullptr) {
       LOG_ERROR << "No matching target in images targets metadata for " << target;
       return result::UpdateStatus::kError;

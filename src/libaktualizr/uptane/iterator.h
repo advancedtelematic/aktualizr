@@ -7,7 +7,7 @@
 namespace Uptane {
 
 Targets getTrustedDelegation(const Role &delegate_role, const Targets &parent_targets,
-                             const ImagesRepository &images_repo, INvStorage &storage, Fetcher &fetcher);
+                             const ImagesRepository &images_repo, INvStorage &storage, Fetcher &fetcher, bool offline);
 
 class LazyTargetsList {
  public:

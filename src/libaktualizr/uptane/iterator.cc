@@ -3,9 +3,9 @@
 namespace Uptane {
 
 Targets getTrustedDelegation(const Role &delegate_role, const Targets &parent_targets,
-                             const ImagesRepository &images_repo, INvStorage &storage, Fetcher &fetcher) {
+                             const ImagesRepository &images_repo, INvStorage &storage, Fetcher &fetcher,
+                             const bool offline) {
   std::string delegation_meta;
-
   auto version_in_snapshot = images_repo.getRoleVersion(delegate_role);
 
   if (storage.loadDelegation(&delegation_meta, delegate_role)) {
@@ -21,6 +21,10 @@ Targets getTrustedDelegation(const Role &delegate_role, const Targets &parent_ta
 
   bool delegation_remote = delegation_meta.empty();
   if (delegation_remote) {
+    // Don't fetch anything remote if we are supposed to already have it.
+    if (offline) {
+      throw Uptane::DelegationMissing(delegate_role.ToString());
+    }
     if (!fetcher.fetchLatestRole(&delegation_meta, Uptane::kMaxImagesTargetsSize, RepositoryType::Image(),
                                  delegate_role)) {
       throw Uptane::DelegationMissing(delegate_role.ToString());
@@ -32,7 +36,6 @@ Targets getTrustedDelegation(const Role &delegate_role, const Targets &parent_ta
   }
 
   auto delegation = ImagesRepository::verifyDelegation(delegation_meta, delegate_role, parent_targets);
-
   if (delegation == nullptr) {
     throw SecurityException("images", "Delegation verification failed");
   }
@@ -79,9 +82,10 @@ void LazyTargetsList::DelegationIterator::renewTargetsData() {
 
       auto fetched_role = Role(parent_targets->delegated_role_names_[idx], true);
       parent_targets = std::make_shared<const Targets>(
-          getTrustedDelegation(fetched_role, *parent_targets, repo_, *storage_, *fetcher_));
+          getTrustedDelegation(fetched_role, *parent_targets, repo_, *storage_, *fetcher_, false));
     }
-    cur_targets_ = std::make_shared<Targets>(getTrustedDelegation(role, *parent_targets, repo_, *storage_, *fetcher_));
+    cur_targets_ =
+        std::make_shared<Targets>(getTrustedDelegation(role, *parent_targets, repo_, *storage_, *fetcher_, false));
   }
 }
 
