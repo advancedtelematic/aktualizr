@@ -161,7 +161,6 @@ int main(int argc, char *argv[]) {
       aktualizr.SendDeviceData().get();
       aktualizr.UptaneCycle();
     } else {
-      aktualizr.SendDeviceData().get();
       aktualizr.RunForever().get();
     }
     r = EXIT_SUCCESS;
