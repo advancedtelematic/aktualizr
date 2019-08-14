@@ -64,7 +64,7 @@ void SotaUptaneClient::addNewSecondary(const std::shared_ptr<Uptane::SecondaryIn
     EcuSerials serials;
     storage->loadEcuSerials(&serials);
     SerialCompare secondary_comp(sec->getSerial());
-    if (std::find_if(serials.begin(), serials.end(), secondary_comp) == serials.end()) {
+    if (std::find_if(serials.cbegin(), serials.cend(), secondary_comp) == serials.cend()) {
       throw std::logic_error("Add new secondaries for provisioned device is not implemented yet");
     }
   }
@@ -930,8 +930,8 @@ void SotaUptaneClient::verifySecondaries() {
   std::vector<bool> found(serials.size(), false);
   SerialCompare primary_comp(uptane_manifest.getPrimaryEcuSerial());
   EcuSerials::const_iterator store_it;
-  store_it = std::find_if(serials.begin(), serials.end(), primary_comp);
-  if (store_it == serials.end()) {
+  store_it = std::find_if(serials.cbegin(), serials.cend(), primary_comp);
+  if (store_it == serials.cend()) {
     LOG_ERROR << "Primary ECU serial " << uptane_manifest.getPrimaryEcuSerial() << " not found in storage!";
     misconfigured_ecus.emplace_back(uptane_manifest.getPrimaryEcuSerial(), Uptane::HardwareIdentifier(""),
                                     EcuState::kOld);
@@ -942,8 +942,8 @@ void SotaUptaneClient::verifySecondaries() {
   std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>>::const_iterator it;
   for (it = secondaries.cbegin(); it != secondaries.cend(); ++it) {
     SerialCompare secondary_comp(it->second->getSerial());
-    store_it = std::find_if(serials.begin(), serials.end(), secondary_comp);
-    if (store_it == serials.end()) {
+    store_it = std::find_if(serials.cbegin(), serials.cend(), secondary_comp);
+    if (store_it == serials.cend()) {
       LOG_ERROR << "Secondary ECU serial " << it->second->getSerial() << " (hardware ID " << it->second->getHwId()
                 << ") not found in storage!";
       misconfigured_ecus.emplace_back(it->second->getSerial(), it->second->getHwId(), EcuState::kNotRegistered);

@@ -160,11 +160,13 @@ class SotaUptaneClient {
 
 class SerialCompare {
  public:
-  explicit SerialCompare(Uptane::EcuSerial target_in) : target(std::move(target_in)) {}
-  bool operator()(std::pair<Uptane::EcuSerial, Uptane::HardwareIdentifier> &in) { return (in.first == target); }
+  explicit SerialCompare(Uptane::EcuSerial serial_in) : serial(std::move(serial_in)) {}
+  bool operator()(const std::pair<Uptane::EcuSerial, Uptane::HardwareIdentifier> &in) const {
+    return (in.first == serial);
+  }
 
  private:
-  Uptane::EcuSerial target;
+  const Uptane::EcuSerial serial;
 };
 
 #endif  // SOTA_UPTANE_CLIENT_H_
