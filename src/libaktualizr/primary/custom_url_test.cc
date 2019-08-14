@@ -7,7 +7,7 @@
 #include "test_utils.h"
 #include "uptane_test_common.h"
 
-boost::filesystem::path aktualizr_repo_path;
+boost::filesystem::path uptane_generator_path;
 
 class HttpCheckUrl : public HttpFake {
  public:
@@ -38,13 +38,13 @@ TEST(Aktualizr, ImagesCustomUrl) {
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
   logger_set_threshold(boost::log::trivial::trace);
 
-  Process akt_repo(aktualizr_repo_path.string());
-  akt_repo.run({"generate", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
-  akt_repo.run({"image", "--path", meta_dir.PathString(), "--filename", "tests/test_data/firmware.txt", "--targetname",
-                "firmware.txt", "--hwid", "primary_hw", "--url", "test-url"});
-  akt_repo.run({"addtarget", "--path", meta_dir.PathString(), "--targetname", "firmware.txt", "--hwid", "primary_hw",
-                "--serial", "CA:FE:A6:D2:84:9D"});
-  akt_repo.run({"signtargets", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
+  Process uptane_gen(uptane_generator_path.string());
+  uptane_gen.run({"generate", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
+  uptane_gen.run({"image", "--path", meta_dir.PathString(), "--filename", "tests/test_data/firmware.txt",
+                  "--targetname", "firmware.txt", "--hwid", "primary_hw", "--url", "test-url"});
+  uptane_gen.run({"addtarget", "--path", meta_dir.PathString(), "--targetname", "firmware.txt", "--hwid", "primary_hw",
+                  "--serial", "CA:FE:A6:D2:84:9D"});
+  uptane_gen.run({"signtargets", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
   // Work around inconsistent directory naming.
   Utils::copyDir(meta_dir.Path() / "repo/image", meta_dir.Path() / "repo/repo");
 
@@ -71,13 +71,13 @@ TEST(Aktualizr, BothCustomUrl) {
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
   logger_set_threshold(boost::log::trivial::trace);
 
-  Process akt_repo(aktualizr_repo_path.string());
-  akt_repo.run({"generate", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
-  akt_repo.run({"image", "--path", meta_dir.PathString(), "--filename", "tests/test_data/firmware.txt", "--targetname",
-                "firmware.txt", "--hwid", "primary_hw", "--url", "test-url2"});
-  akt_repo.run({"addtarget", "--path", meta_dir.PathString(), "--targetname", "firmware.txt", "--hwid", "primary_hw",
-                "--serial", "CA:FE:A6:D2:84:9D", "--url", "test-url3"});
-  akt_repo.run({"signtargets", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
+  Process uptane_gen(uptane_generator_path.string());
+  uptane_gen.run({"generate", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
+  uptane_gen.run({"image", "--path", meta_dir.PathString(), "--filename", "tests/test_data/firmware.txt",
+                  "--targetname", "firmware.txt", "--hwid", "primary_hw", "--url", "test-url2"});
+  uptane_gen.run({"addtarget", "--path", meta_dir.PathString(), "--targetname", "firmware.txt", "--hwid", "primary_hw",
+                  "--serial", "CA:FE:A6:D2:84:9D", "--url", "test-url3"});
+  uptane_gen.run({"signtargets", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
   // Work around inconsistent directory naming.
   Utils::copyDir(meta_dir.Path() / "repo/image", meta_dir.Path() / "repo/repo");
 
@@ -97,10 +97,10 @@ TEST(Aktualizr, BothCustomUrl) {
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   if (argc != 2) {
-    std::cerr << "Error: " << argv[0] << " requires the path to the aktualizr-repo utility\n";
+    std::cerr << "Error: " << argv[0] << " requires the path to the uptane-generator utility\n";
     return EXIT_FAILURE;
   }
-  aktualizr_repo_path = argv[1];
+  uptane_generator_path = argv[1];
 
   logger_init();
   logger_set_threshold(boost::log::trivial::trace);

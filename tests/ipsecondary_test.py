@@ -277,7 +277,7 @@ class Aktualizr:
 
 # The following decorators can be eliminated if pytest framework (or similar) is used
 # by using fixtures instead
-def with_uptane_backend(repo_manager_exe='src/aktualizr_repo/aktualizr-repo'):
+def with_uptane_backend(repo_manager_exe='src/uptane_generator/uptane-generator'):
     def decorator(test):
         @wraps(test)
         def wrapper(*args, **kwargs):

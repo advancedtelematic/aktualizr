@@ -37,7 +37,7 @@ void check_repo(const TemporaryDirectory &temp_dir) {
 /*
  * Generate images and director repos.
  */
-TEST(aktualizr_repo, generate_repo) {
+TEST(uptane_generator, generate_repo) {
   TemporaryDirectory temp_dir;
   UptaneRepo repo(temp_dir.Path(), "", "correlation");
   repo.generateRepo(key_type);
@@ -101,7 +101,7 @@ TEST(aktualizr_repo, generate_repo) {
 /*
  * Add an image to the images repo.
  */
-TEST(aktualizr_repo, add_image) {
+TEST(uptane_generator, add_image) {
   TemporaryDirectory temp_dir;
   UptaneRepo repo(temp_dir.Path(), "", "");
   repo.generateRepo(key_type);
@@ -117,7 +117,7 @@ TEST(aktualizr_repo, add_image) {
 /*
  * Copy an image to the director repo.
  */
-TEST(aktualizr_repo, copy_image) {
+TEST(uptane_generator, copy_image) {
   TemporaryDirectory temp_dir;
   UptaneRepo repo(temp_dir.Path(), "", "");
   repo.generateRepo(key_type);
@@ -136,7 +136,7 @@ TEST(aktualizr_repo, copy_image) {
 /*
  * Add an image to the images repo with a custom URL.
  */
-TEST(aktualizr_repo, image_custom_url) {
+TEST(uptane_generator, image_custom_url) {
   TemporaryDirectory temp_dir;
   UptaneRepo repo(temp_dir.Path(), "", "");
   repo.generateRepo(key_type);
@@ -156,7 +156,7 @@ TEST(aktualizr_repo, image_custom_url) {
  * Add an image to the images repo with a custom URL.
  * Copy an image to the director repo with a custom URL.
  */
-TEST(aktualizr_repo, both_custom_url) {
+TEST(uptane_generator, both_custom_url) {
   TemporaryDirectory temp_dir;
   UptaneRepo repo(temp_dir.Path(), "", "");
   repo.generateRepo(key_type);
@@ -176,7 +176,7 @@ TEST(aktualizr_repo, both_custom_url) {
  * Add simple delegation.
  * Add image with delegation.
  */
-TEST(aktualizr_repo, delegation) {
+TEST(uptane_generator, delegation) {
   TemporaryDirectory temp_dir;
   std::ostringstream keytype_stream;
   keytype_stream << key_type;
@@ -232,7 +232,7 @@ TEST(aktualizr_repo, delegation) {
   check_repo(temp_dir);
 }
 
-TEST(aktualizr_repo, delegation_revoke) {
+TEST(uptane_generator, delegation_revoke) {
   TemporaryDirectory temp_dir;
   std::ostringstream keytype_stream;
   keytype_stream << key_type;
@@ -328,7 +328,7 @@ TEST(aktualizr_repo, delegation_revoke) {
 /*
  * Sign arbitrary metadata.
  */
-TEST(aktualizr_repo, sign) {
+TEST(uptane_generator, sign) {
   TemporaryDirectory temp_dir;
   std::ostringstream keytype_stream;
   keytype_stream << key_type;
@@ -358,7 +358,7 @@ TEST(aktualizr_repo, sign) {
 /*
  * Add custom image metadata without an actual file.
  */
-TEST(aktualizr_repo, image_custom) {
+TEST(uptane_generator, image_custom) {
   TemporaryDirectory temp_dir;
   std::ostringstream keytype_stream;
   keytype_stream << key_type;
@@ -386,7 +386,7 @@ TEST(aktualizr_repo, image_custom) {
 /*
  * Clear the staged director targets metadata.
  */
-TEST(aktualizr_repo, emptytargets) {
+TEST(uptane_generator, emptytargets) {
   TemporaryDirectory temp_dir;
   std::ostringstream keytype_stream;
   keytype_stream << key_type;
@@ -432,7 +432,7 @@ TEST(aktualizr_repo, emptytargets) {
 /*
  * Populate the director targets metadata with the currently signed metadata.
  */
-TEST(aktualizr_repo, oldtargets) {
+TEST(uptane_generator, oldtargets) {
   TemporaryDirectory temp_dir;
   UptaneRepo repo(temp_dir.Path(), "", "");
   repo.generateRepo(key_type);
