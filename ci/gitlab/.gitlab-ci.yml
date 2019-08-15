@@ -200,6 +200,7 @@ OE Docker setup:
 OE Checkout:
   extends: .bb_checkout
   stage: oe-checkout
+  dependencies: []
   only:
     variables:
       - $OE_PTEST
@@ -267,6 +268,53 @@ pages:
   only:
     - master
 
+# -- veracode
+
+veracode-pkg:
+  # prepare build to be submitted for static code analysis
+  stage: test
+  only:
+    variables:
+      - $VERACODE_API_ID
+  variables:
+    TEST_BUILD_DIR: 'scan-build'
+    TEST_CMAKE_BUILD_TYPE: 'Debug'
+    TEST_INSTALL_DESTDIR: "$CI_PROJECT_DIR/scan-build/bin"
+    TEST_WITH_TESTSUITE: '0'
+    TEST_WITH_SOTA_TOOLS: '0'
+    TEST_WITH_OSTREE: '0'
+    TEST_WITH_DEB: '0'
+    TEST_WITH_ISOTP: '0'
+    TEST_WITH_PARTIAL: '0'
+  image: "$UBUNTU_BIONIC_PR_IMAGE"
+  script:
+    - mkdir -p $TEST_INSTALL_DESTDIR
+    - ./scripts/test.sh
+    - git archive -o scan.tar HEAD
+  artifacts:
+    paths:
+      - scan-build/bin
+      - scan.tar
+
+trigger-veracode-scan:
+  stage: trigger
+  only:
+    variables:
+      - $VERACODE_API_ID
+  dependencies:
+    - veracode-pkg
+  image: openjdk:8
+  before_script:
+    # The latest wrapper version can be found in https://repo1.maven.org/maven2/com/veracode/vosp/api/wrappers/vosp-api-wrappers-java/
+    - wget -q -O veracode-wrapper.jar https://repo1.maven.org/maven2/com/veracode/vosp/api/wrappers/vosp-api-wrappers-java/${VERACODE_WRAPPER_VERSION}/vosp-api-wrappers-java-${VERACODE_WRAPPER_VERSION}.jar
+  script:
+    - tar -f scan.tar --append scan-build/bin
+    - java -jar veracode-wrapper.jar -vid ${VERACODE_API_ID} -vkey ${VERACODE_API_KEY}
+      -action UploadAndScan -appname "OTA Client" -createprofile true -autoscan true
+      -filepath scan.tar -version "job ${CI_JOB_ID} in pipeline ${CI_PIPELINE_ID} for ${CI_PROJECT_NAME} repo"
+
+# -- e2e
+
 app-docker-image:
   image: docker:18
   services:
@@ -274,6 +322,7 @@ app-docker-image:
   stage: deploy
   only:
     - master
+  dependencies: []
   allow_failure: true
   before_script:
     - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
