@@ -56,7 +56,7 @@ static std::shared_ptr<SotaUptaneClient> liteClient(Config &config, std::shared_
       boost::uuids::uuid tmp = boost::uuids::random_generator()();
       serial = boost::uuids::to_string(tmp);
     }
-    ecu_serials.emplace_back(Uptane::EcuSerial(serial), Uptane::HardwareIdentifier(serial));
+    ecu_serials.emplace_back(Uptane::EcuSerial(serial), Uptane::HardwareIdentifier(hwid));
     storage->storeEcuSerials(ecu_serials);
   }
 
