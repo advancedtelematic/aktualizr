@@ -44,10 +44,10 @@ This method is fine for provisioning devices quickly but if a malicious actor st
 
 If you’re using OTA Connect in production, you should provision with device credentials.
 In this scenario, the OTA Connect server doesn’t issue any credentials to devices. You need to preinstall the device certificates yourself.
-How you get the certificates on to your devices is your decision. Your chosen method can depend on many variables such as the storage method on the device, whether you have connectivity at your factory, and whether you choose an internal or 3rd party root of trust for your certificates.
+How you get the certificates on to your devices is your decision. Your chosen method can depend on many variables such as the storage method on the device, whether you have connectivity at your factory, and whether you choose an internal or third party root of trust for your certificates.
 For example, you might have a deployment process where your build system requests a certificate from your CA while a software image is being built. The device certificate is then installed on the image just before it is flashed to the target device.
 Once a device boots up, it connects to the OTA Connect server and provides the pre-installed device certificate to verify the device identity. The OTA Connect server then verifies that the certificate came from your CA.
-With method, it is extremely difficult for an unauthorized device to join your fleet.
+With this method, it is extremely difficult for an unauthorized device to join your fleet.
 
 
 The following diagram summarizes the differences in how devices are provisioned between the two methods.
