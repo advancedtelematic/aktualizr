@@ -1,0 +1,3 @@
+include::dev@ota-web:ROOT:page$create-provisioning-key.adoc[]
+
+// MC: Images don't render from included files, added local copies of 's1-prov.png' and 'screenshot_provisioning_key_2.png' (from "ota-web") until I can find a better solution.

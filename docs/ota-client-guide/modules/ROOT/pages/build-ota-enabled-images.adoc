@@ -1,0 +1,3 @@
+= Build OTA-enabled disk images
+
+Aside from our demo recipes, you can also create your own Yocto project from scratch.

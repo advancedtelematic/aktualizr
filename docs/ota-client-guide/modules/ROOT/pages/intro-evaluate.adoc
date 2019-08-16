@@ -1,0 +1,5 @@
+= Evaluate OTA Connect
+
+Here are our recommendations for xref:intro-evaluate.adoc[evaluating OTA connect]:
+
+include::partial$recommended-steps.adoc[tags=evaluate-steps]

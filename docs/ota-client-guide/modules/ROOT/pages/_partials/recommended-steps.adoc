@@ -1,0 +1,101 @@
+//  tag::evaluate-steps[] 
+* *Use shared credential provisioning for your devices*
++
+With shared-credential provisioning, you don't have to worry about installing certificates on your devices. 
+The OTA Connect server automatically does this for you. All you need to do is provide a provisioning key that all your devices can share.
+
+* *Build disk images using our demo recipes*
++
+We support a couple of demo boards "out of the box". You don't need to worry about complex build configurations at this stage. Just follow our recipes to learn how to build an OTA-enabled disk image. 
++
+If you don't want to wait several hours for a build to finish, you can also simulate an OTA-enabled device without building a disk image.
+* *Use the standalone aktualizr client to test the OTA functionality*
++
+You don't need to do anything extra to use the standalone aktualizr client. It's actually part of our demo build configurations, so the aktualizr client is included in the disk image that you'll build.
++
+If you prefer to simulate an OTA-enabled device without building a disk image, you'll install the aktualizr client on your development computer.
+
+//  end::evaluate-steps[]
+
+//  tag::integrate-steps[]
+
+* *Set up different user logins*
++
+In OTA Connect, all devices and software belong to one *user* login. However, you don't want to mix up test software and production software by creating them all under the same user.
++
+In a proper production workflow, you'll need separate user logins to manage the different stages:
++
+. A developer user such as "dev@acme.com".
+. A QA user such as ""qa@acme.com"".
+. A production user such as "prod@acme.com"".
++
+These logins provide you with a convenient way of clearly separating your development, QA and production resources.
+
+////
+COMMENTING OUT UNTIL ORGANIZATIONS STOPS BEING "ALPHA"
+* *Set up different organizations*
++
+In OTA Connect, all devices, software, and user accounts belong to an *organization*. Users can see all devices and software for their organization. However, you don't want to mix up test software and production software.
++
+In a proper production workflow, you'll need separate organizations to manage the different stages:
++
+. A developer organization such as "acme-dev".
+. A QA organization such as "acme-qa".
+. A production organization such as "acme-prod".
++
+A user can belong to multiple organizations, and it's easy to switch between them. This provides you with a convenient way of separating your development, QA and production resources.
+////
+
+* *Simulate device-credential provisioning for your devices*
++
+The term *device-credential provisioning* refers to the process of installing device certificates yourself rather than having the OTA Connect server install them automatically.
++
+Although it's convenient to have the OTA Connect server manage this process, the consequences of a security breach are much more severe. If an attacker compromises the OTA Connect server, they can provision their own devices and block your devices.
++
+To install your own device certificates, you need a fleet root certificate and private key to sign them. Installation can be tricky, so we've provided some instructions on how to generate your own self-sign certificate and simulate device-credential provisioning for testing.
+
+* *Use offline keys to sign software metadata*
++
+In the evaluation stage, the OTA Connect server also takes care of signing the metadata for your software updates. Devices verify the signatures on this metadata before they install any updates. 
++
+However, if an attacker infiltrates the OTA Connect server, they'll be able to sign metadata for malicious software and have it installed on your devices. Such a breach could have potentially dire consequences.
++
+This is why you want to remove the most important private keys from the server and take them offline. For the integration phase, it's fine if you keep these keys on your development computer and sign the metadata locally before uploading the metadata to the OTA Connect server. Later, you'll want to keep these keys somewhere more secure.
+
+* *Try the libaktualizr demo app and build recipe*
++
+When you move to production, you'll want to integrate OTA functionality into your board's native software. This is more efficient than sending commands to our standalone aktualizr client.
++
+You can use our libaktualizr C++ library to integration all same functionality that standalone aktualizr provides. To prove you with some inspiration, we've created a demo app that integrates libaktualizr. We've also included a build recipe. You can use it to build a disk image that contains the demo app.
+
+//  end::integrate-steps[]
+
+//  tag::deploy-steps[]
+
+* *Set up full device-credential provisioning for your devices*
++
+At this point you should have your own fleet root certificate which you register with the OTA COnnect server under your production login.
++
+You should ideally have an automated process to sign your device certificates and install them on your disk images before they flashed to the target boards.
++
+You should also have an automated build process to build OTA-enabled images that also have device-credential provisioning enabled.
+
+
+* *Create offline keys for production to sign software metadata*
++
+This step is not that different from the equivalent step during the integration phase:
++
+** During the integration phase, you generated a set of private keys with your *development* credentials.
+** This time, you should generate another set with your *production* credentials.
++
+You should keep these keys on a secure storage medium such as a link:https://www.yubico.com/[YubiKey]. You would only plugin your YubiKey when you need to sign metadata on your local computer.
+
+* *Integrate libaktualizr with the client software on your board*
++
+Once you understand how to the libaktualizr demo application works, you'll want to build a fully-functional integration with your board's software.
+
+* *Build and cross-deploy your disk images to your production account*
++
+After you've finished integration and development, you'll need to move disk images from one account to another. For example, you might want to send a development build that you’re happy with to the QA team, or send that build to the deployment team once it’s passed QA.
+
+//  end::deploy-steps[]

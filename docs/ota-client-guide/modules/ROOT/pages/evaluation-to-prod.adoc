@@ -1,0 +1,40 @@
+= Moving from evaluation to production
+
+The procedures to deploy OTA Connect in production are a little more complex than the basic xref:dev@getstarted::start-intro.adoc[Get Started]  procedures.
+
+That's why it's better work in phases when setting up your OTA Connect in your organization. We recommend that you work in three main phases:
+
+. __Evaluate__
+. __Integrate__
+. __Deploy__
+
+This guide contains chapters to guide you through each phase and the following sections give you an introduction the phased approach:
+
+== Evaluate
+
+During evaluation, you should focus on testing the basic update functionality to make sure that you understand how it works. At this stage you don't need to think about customization or production-level security.
+
+=== Recommendations
+
+Here are our recommendations for xref:intro-evaluate.adoc[evaluating OTA connect]:
+
+include::partial$recommended-steps.adoc[tags=evaluate-steps]
+
+== Integrate
+
+=== Recommendations
+
+Here are our recommendations for xref:intro-prep.adoc[integrating OTA Connect into your production environment]:
+
+include::partial$recommended-steps.adoc[tags=integrate-steps]
+
+== Deploy
+
+You've done your testing and now you're ready to xref:intro-prod.adoc[use OTA Connect in production]. You need to make sure that your device provisioning process is production-ready and that your software is available in your production account.
+
+
+=== Recommendations
+
+Here are our recommendations for deploying OTA Connect to production:
+
+include::partial$recommended-steps.adoc[tags=deploy-steps]

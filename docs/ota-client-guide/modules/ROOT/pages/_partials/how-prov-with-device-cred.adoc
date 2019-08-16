@@ -1,0 +1,5 @@
+When you provision with device credentials, you install permanent credentials each device *before* the device connects to the OTA Connect server. 
+
+You would use the xref:pki.adoc[private key for your fleet] to sign the device certificates *and* your fleet root certificate. You then register your fleet root certificate on the OTA Connect server.
+
+Every time a device connects to the OTA Connect server, the server verifies that the device credentials are signed by a trusted source. It does this by comparing public key in the device certificate with the public key in your fleet root certificate. If they are both signed by the same private key, they should match and the device can be trusted. For a more detailed description of how device-credential provisioning works, see the xref:client-provisioning-methods.adoc[provisioning methods overview].

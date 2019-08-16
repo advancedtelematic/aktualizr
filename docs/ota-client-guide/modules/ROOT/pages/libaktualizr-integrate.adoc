@@ -1,0 +1,8 @@
+= Build disc images that contain your libaktualizr integration
+
+Assuming you followed our recommendation to use libaktualizr, you'll need to build disc images that contain your final integration. The build recipes that we provide in the evaluation stage are configured to use standalone aktualizr.
+
+To prepare for deployment, you'll need to use an updated recipe that includes your libaktualizr integration.
+
+* In our libaktualizr demo repository, we've included a https://github.com/advancedtelematic/libaktualizr-demo[demo recipe] called  `meta-libaktualizr-demo` to point you in the right direction (documentation coming soon).
+* For general information about customizing build recipes, also see the documentation in our https://github.com/advancedtelematic/meta-updater[`meta-updater` repository].

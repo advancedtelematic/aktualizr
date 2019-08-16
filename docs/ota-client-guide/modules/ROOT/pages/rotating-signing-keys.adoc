@@ -1,0 +1,93 @@
+= Manage keys for software metadata
+
+OTA Connect has a security concept that includes signing metadata files with secure, offline keys. For more information about these files, see the xref:uptane.adoc#_uptane_metadata[Uptane metadata overview].
+
+== How metadata is signed by default
+
+As part of the quickstart, the OTA Connect server automatically creates two initial keys as part of the account setup process. These keys are stored on the OTA Connect server and are used to automatically sign the two software metadata files. You don't have to think about this metadata at all.
+
+== How metadata should be signed in production
+
+Before using OTA Connect in production, however, you should create offline keys that you manage yourself, then rotate out the default keys that were automatically created for your account on the OTA Connect server. If you don't do this, you expose yourself to risks that we describe the in the xref:pki.adoc[key management] topic.
+
+Instead of being signed on the server, these metadata files will now be signed locally or on your build machine. The signing happens automatically whenever you push a new disk image to OTA Connect. However, you need to update your build cofiguration first. The following procedures show you how to do this.
+
+Before you start, make sure that you've installed the xref:install-garage-sign-deploy.adoc[`garage-deploy`] tool first. This tool includes the `garage-sign` utility, which you'll need for this procedure.
+
+== Rotate the keys for `root` and `targets` metadata
+
+=== Create a local image repository
+
+A image repository is just a directory structure containing signed metadata in JSON format. Create a new one called _myimagerepo_ with `garage-sign`:
+
+----
+garage-sign init --repo myimagerepo --credentials /path/to/credentials.zip
+----
+
+This command creates a `./tuf/myimagerepo/` directory tree in the current directory.
+This directory should be secured on an encrypted filesystem.
+
+=== Generate new keys
+
+There are two metadata files in the repo and each file needs a new key to sign it.
+
+----
+garage-sign key generate --repo myimagerepo --name myroot --type rsa
+garage-sign key generate --repo myimagerepo --name mytargets --type rsa
+----
+
+****
+IMPORTANT: It is critical to keep these keys offline on secure hardware. *Do not lose these keys.*
+****
+
+=== Rotate the online keys with your new offline keys
+
+This is a four-step process:
+
+. Pull the current `targets.json` from OTA Connect:
++
+----
+garage-sign targets pull --repo myimagerepo
+----
+. Perform a complete root key rotation:
++
+----
+garage-sign move-offline --repo myimagerepo --old-root-alias origroot \
+    --new-root myroot --new-targets mytargets
+----
++
+This command
++
+* removes the original `root` key from OTA Connect,
+* generates a new `root.json` with the keys generated in the previous step (`myroot` and `mytargets`),
+* signs the new `root.json` with both the old and new `root` keys, and
+* uploads the newly signed `root.json` to OTA Connect
++
+. Sign the current `targets.json` with the new `targets` key:
++
+----
+garage-sign targets sign --repo myimagerepo --key-name mytargets
+----
++
+. Upload the newly signed `targets.json` to OTA Connect:
++
+----
+garage-sign targets push --repo myimagerepo
+----
+
+You have now successfully taken the keys for software metadata offline.
+
+NOTE: After rotating keys, you will no longer be able to upload packages through the OTA Connect web UI--only the usual way, through bitbake.
+
+== Push new images with bitbake
+
+Export the new offline `targets` into a new credentials file that you can use with `bitbake`:
+
+----
+garage-sign export-credentials --repo myimagerepo --target-key-name mytargets --to offline-credentials.zip
+----
+
+Update your `local.conf` to use the new `offline-credentials.zip` file and run `bitbake` as before.
+
+As part of the `bitbake` process, the image's metadata inside `targets.json` is signed with your offline TUF keys. The signed `targets.json` is then uploaded to your OTA Connect account.
+

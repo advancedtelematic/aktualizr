@@ -1,0 +1,108 @@
+= Upload a sample software version
+:page-partial:
+:page-layout: page
+:page-categories: [quickstarts]
+:page-date: 2017-05-23 16:31:35
+:page-order: 6
+:icons: font
+
+Every time you bitbake a new image, it is automatically pushed to {product-name}. You can then send the updated image out to any of your devices. In this guide, you learn a few ways to push updated system images from your build machine or workstation to {product-name-short}.
+
+== Add a new package from an existing recipe
+
+The simplest update you can do is just adding an extra package to your image, choosing from packages that there are already recipes for. You can see a list of all the packages available with the `bitbake-layers show-recipes` command.
+
+=== Example task: Install vim
+
+// video::229856096[vimeo,854,480]
+
+Because you probably noticed it was missing the first time you went to edit a config file on your device, let's install vim. Add this line to your local.conf:
+
+----
+IMAGE_INSTALL_append = " vim " <1> <2>
+----
+<1> Note the spaces before and after the package name. The `IMAGE_INSTALL_append` option naively appends a string to the list of packages to install, so we wrap it in spaces to make sure we don't alter the list in unexpected ways.
+
+<2> If you already added vim, try adding man or gdb.
+
+Now rebuild your image with `bitbake [image-name]`, where `[image-name]` is the same as the one you built in the quickstart guide, and push it to your device using {product-name-short}. Once you reboot, vim will be available.
+
+== Add a new layer someone else created
+
+Since Yocto layers are just recipes for how to build software from source, it's often quite easy to find a layer for the thing you're looking for. To add a layer to a Yocto build, you just need to download it, normally by cloning its git repo, and then add it to your `bblayers.conf`. This will make all of the recipes in the layer available to bitbake.
+
+To demonstrate this, we're going to try a two-step task. First, we're going to install https://6xq.net/pianobar/[pianobar], a command-line client for http://www.pandora.com/[Pandora]. Then, once we've got that working, we're going to add https://github.com/kylejohnson/Patiobar[Patiobar], a Node.js-based web front end for pianobar to turn your device into a web-controlled jukebox.
+
+=== Example task part 1: Install pianobar
+
+NOTE: Pandora doesn't work with IP addresses outside of the United States, so if your IP address is not US-American, it won't work by default. There is a `control-proxy` configuration option in pianobar though; see the manpage for details.
+
+We've created a simple layer called https://github.com/advancedtelematic/meta-jukebox[`meta-jukebox`] to use in this guide. It has one layer dependency: link:https://github.com/imyller/meta-nodejs[`meta-nodejs`]. First, clone those two layers into your project directory:
+
+----
+git clone https://github.com/advancedtelematic/meta-jukebox
+git clone https://github.com/imyller/meta-nodejs
+----
+
+Then, add them to your `bblayers.conf`. Add these lines to `build/conf/bblayers.conf`:
+
+----
+BBLAYERS += "${METADIR}/meta-jukebox"
+BBLAYERS += "${METADIR}/meta-nodejs"
+----
+
+Next, add the following two lines to your `local.conf`:
+
+----
+IMAGE_INSTALL_append = " pianobar " <1>
+LICENSE_FLAGS_WHITELIST += " commercial " <2>
+----
+<1> This tells bitbake to include the `pianobar` package in the built image. Note the spaces before and after the package name. The `IMAGE_INSTALL_append` option naively appends a string to the list of packages to install, so we wrap it in spaces to make sure we don't alter the list in unexpected ways.
+<2> Pianobar has a dependency that doesn't have a fully open source license: it uses ffmpeg for mp3 decoding. By default, Yocto won't allow that. You need to explicitly permit it by whitelisting commercial licenses.
+
+Now rebuild your image with `bitbake [image-name]`, where `[image-name]` is the same as the one you built in the quickstart guide. Once you push the updated image to your device with {product-name-short} and reboot, you can type `pianobar` to start playing Pandora radio.
+
+=== Example task part 2: Install Patiobar (web front end)
+
+Okay, so you got pianobar running. But maybe you don't want to have to ssh into your device when you want to change channels or songs. Let's install https://github.com/kylejohnson/Patiobar[Patiobar] so we can control it using a web interface.
+
+Patiobar is also included in `meta-jukebox`. To build, just add `patiobar` to `IMAGE_INSTALL_append` in your local.conf.
+
+[WARNING]
+====
+If you are building for 32-bit ARM (i.e. Raspberry Pi), you'll need some supporting packages. On Ubuntu/Debian:
+
+----
+sudo dpkg --add-architecture i386
+sudo apt-get update
+sudo apt-get install g++-multilib libssl-dev:i386 libcrypto++-dev:i386 zlib1g-dev:i386
+----
+
+For more details, see the https://github.com/imyller/meta-nodejs#cross-compiling-for-32-bit-target-on-64-bit-host[meta-nodejs README].
+====
+
+The Patiobar recipe also includes a systemd service that will create a pianobar config based on options you set in your local.conf, and then starts both Patiobar and Pianobar in screen sessions. You can add these three lines if you wish:
+
+----
+PANDORA_USER=email@example.com <1>
+PANDORA_PASSWORD=password <2>
+PANDORA_PROXY=myproxy.example.com:3128 <3>
+----
+<1> Your existing Pandora account name
+<2> Pandora password
+<3> An HTTP proxy server to use for Pandora API calls. You can leave it blank to use no proxy, or set it to 'auto' to automatically search for and select a US proxy on startup.
+
+Now, rebuild your image and push it to your device.
+
+After a reboot, Patiobar should launch automatically. Point your web browser to port 3000 on the device, and start listening!
+
+The screen sessions will be named `pianobar` and `patiobar` respectively; use `screen -r` to attach and see what's going on. You can restart the service with `systemctl restart patiobar`.
+
+== Make your own recipe or layer
+
+A complete guide to writing Yocto recipes is out of scope here, but http://www.yoctoproject.org/docs/current/dev-manual/dev-manual.html#new-recipe-writing-a-new-recipe[the Yocto Reference Manual] is a great resource. You can also take a look at the recipes in https://github.com/advancedtelematic/meta-jukebox[`meta-jukebox`] to use as examples: they're all fairly simple, and there are examples of four different types of recipe:
+
+* https://github.com/advancedtelematic/meta-jukebox/tree/master/recipes-multimedia/pianobar[Pianobar] itself is a fully manual recipe, though it's a pretty simple one; it has specific instructions for the compile and install steps, though they're essentially just `make` and `make install` with a couple of config options.
+* https://github.com/advancedtelematic/meta-jukebox/tree/master/recipes-multimedia/libao[libao] and https://github.com/advancedtelematic/meta-jukebox/tree/master/recipes-multimedia/faad2[faad2] make use of https://en.wikipedia.org/wiki/GNU_Build_System[Autotools] to build. They include the line `inherit autotools` in the recipe, which automatically generates configure, compile, and install instructions based on Autotools.
+* https://github.com/advancedtelematic/meta-jukebox/blob/master/recipes-support/python-beautifulsoup4/python-beautifulsoup4_4.6.0.bb[BeautifulSoup] is a Python project, with support for https://setuptools.readthedocs.io/en/latest/[setuptools]. Yocto supports setuptools out of the box, so python recipes are often just a few lines long: a source URI, license information, and `inherit setuptools`.
+* https://github.com/advancedtelematic/meta-jukebox/tree/master/recipes-multimedia/patiobar[Patiobar] is a Node.js project, and includes a systemd service, so it inherits two recipe helpers: `npm-install` and `systemd`. (`npm-install` is provided by the https://github.com/imyller/meta-nodejs[`meta-nodejs`] layer.) It also has files that it installs directly from the recipe directory (i.e., not from the source repo), and uses a custom install script.
