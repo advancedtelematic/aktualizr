@@ -3,12 +3,12 @@
 #include <sstream>
 
 struct DockerApp {
-  DockerApp(const std::string app_name, const PackageConfig &config)
+  DockerApp(std::string app_name, const PackageConfig &config)
       : name(std::move(app_name)),
-        app_root(std::move(config.docker_apps_root / app_name)),
-        app_params(std::move(config.docker_app_params)),
-        app_bin(std::move(config.docker_app_bin)),
-        compose_bin(std::move(config.docker_compose_bin)) {}
+        app_root(config.docker_apps_root / name),
+        app_params(config.docker_app_params),
+        app_bin(config.docker_app_bin),
+        compose_bin(config.docker_compose_bin) {}
 
   bool render(const std::string &app_content) {
     auto bin = boost::filesystem::canonical(app_bin).string();
@@ -33,10 +33,7 @@ struct DockerApp {
     // stdout/stderr is streamed while docker sets things up.
     auto bin = boost::filesystem::canonical(compose_bin).string();
     std::string cmd("cd " + app_root.string() + " && " + bin + " up --remove-orphans -d");
-    if (std::system(cmd.c_str()) != 0) {
-      return false;
-    }
-    return true;
+    return std::system(cmd.c_str()) == 0;
   }
 
   std::string name;
@@ -46,7 +43,7 @@ struct DockerApp {
   boost::filesystem::path compose_bin;
 };
 
-bool DockerAppManager::iterate_apps(const Uptane::Target &target, DockerAppCb cb) const {
+bool DockerAppManager::iterate_apps(const Uptane::Target &target, const DockerAppCb &cb) const {
   auto apps = target.custom_data()["docker_apps"];
   bool res = true;
   Uptane::ImagesRepository repo;
@@ -56,7 +53,7 @@ bool DockerAppManager::iterate_apps(const Uptane::Target &target, DockerAppCb cb
 
   if (!apps) {
     LOG_DEBUG << "Detected an update target from Director with no docker-apps data";
-    for (const auto t : Uptane::LazyTargetsList(repo, storage_, fake_fetcher_)) {
+    for (const auto &t : Uptane::LazyTargetsList(repo, storage_, fake_fetcher_)) {
       if (t.MatchTarget(target)) {
         LOG_DEBUG << "Found the match " << t;
         apps = t.custom_data()["docker_apps"];
@@ -65,10 +62,10 @@ bool DockerAppManager::iterate_apps(const Uptane::Target &target, DockerAppCb cb
     }
   }
 
-  for (const auto t : Uptane::LazyTargetsList(repo, storage_, fake_fetcher_)) {
+  for (const auto &t : Uptane::LazyTargetsList(repo, storage_, fake_fetcher_)) {
     for (Json::ValueIterator i = apps.begin(); i != apps.end(); ++i) {
       if ((*i).isObject() && (*i).isMember("filename")) {
-        for (auto app : config.docker_apps) {
+        for (const auto &app : config.docker_apps) {
           if (i.key().asString() == app && (*i)["filename"].asString() == t.filename()) {
             if (!cb(app, t)) {
               res = false;
@@ -104,10 +101,7 @@ data::InstallationResult DockerAppManager::install(const Uptane::Target &target)
     std::stringstream ss;
     ss << *storage_->openTargetFile(app_target);
     DockerApp dapp(app, config);
-    if (!dapp.render(ss.str()) || !dapp.start()) {
-      return false;
-    }
-    return true;
+    return dapp.render(ss.str()) && dapp.start();
   };
   if (!iterate_apps(target, cb)) {
     return data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, "Could not render docker app");
