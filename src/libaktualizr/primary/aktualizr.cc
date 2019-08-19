@@ -170,6 +170,28 @@ boost::signals2::connection Aktualizr::SetSignalHandler(
   return sig_->connect(handler);
 }
 
+Aktualizr::InstallationLog Aktualizr::GetInstallationLog() {
+  std::vector<Aktualizr::InstallationLogEntry> ilog;
+
+  EcuSerials serials;
+  if (!storage_->loadEcuSerials(&serials)) {
+    throw std::runtime_error("Could not load ecu serials");
+  }
+
+  ilog.reserve(serials.size());
+  for (const auto &s : serials) {
+    Uptane::EcuSerial serial = s.first;
+    std::vector<Uptane::Target> installs;
+
+    std::vector<Uptane::Target> log;
+    storage_->loadInstallationLog(serial.ToString(), &log, true);
+
+    ilog.emplace_back(Aktualizr::InstallationLogEntry{serial, std::move(log)});
+  }
+
+  return ilog;
+}
+
 std::vector<Uptane::Target> Aktualizr::GetStoredTargets() { return storage_->getTargetFiles(); }
 
 void Aktualizr::DeleteStoredTarget(const Uptane::Target &target) { storage_->removeTargetFile(target.filename()); }

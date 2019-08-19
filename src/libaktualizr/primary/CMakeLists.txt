@@ -1,10 +1,12 @@
 set(SOURCES aktualizr.cc
+            aktualizr_helpers.cc
             initializer.cc
             reportqueue.cc
             sotauptaneclient.cc)
 
 set(HEADERS secondary_config.h
             aktualizr.h
+            aktualizr_helpers.h
             events.h
             initializer.h
             reportqueue.h
@@ -32,8 +34,7 @@ if (BUILD_OSTREE)
         LABELS "noptest")
     target_link_libraries(t_download_nonostree virtual_secondary)
 else (BUILD_OSTREE)
-    aktualizr_source_file_checks(aktualizr_fullostree_test.cc)
-    aktualizr_source_file_checks(download_nonostree_test.cc)
+    aktualizr_source_file_checks(aktualizr_fullostree_test.cc download_nonostree_test.cc)
 endif (BUILD_OSTREE)
 
 add_aktualizr_test(NAME reportqueue SOURCES reportqueue_test.cc PROJECT_WORKING_DIRECTORY LIBRARIES PUBLIC uptane_generator_lib)

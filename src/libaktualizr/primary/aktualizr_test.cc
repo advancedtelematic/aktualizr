@@ -12,6 +12,7 @@
 #include "config/config.h"
 #include "httpfake.h"
 #include "primary/aktualizr.h"
+#include "primary/aktualizr_helpers.h"
 #include "primary/events.h"
 #include "primary/sotauptaneclient.h"
 #include "uptane_test_common.h"
@@ -1329,6 +1330,116 @@ TEST(Aktualizr, DownloadListRemove) {
 
   targets = aktualizr.GetStoredTargets();
   EXPECT_EQ(targets.size(), 0);
+}
+
+TEST(Aktualizr, TargetAutoremove) {
+  TemporaryDirectory temp_dir;
+  const boost::filesystem::path local_metadir = temp_dir / "metadir";
+  Utils::createDirectories(local_metadir, S_IRWXU);
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "", local_metadir / "repo");
+
+  UptaneRepo repo{local_metadir, "2021-07-04T16:33:27Z", "id0"};
+  repo.generateRepo(KeyType::kED25519);
+  const std::string hwid = "primary_hw";
+  repo.addImage(fake_meta_dir / "fake_meta/primary_firmware.txt", "primary_firmware.txt", hwid, "", {});
+  repo.addTarget("primary_firmware.txt", hwid, "CA:FE:A6:D2:84:9D", "");
+  repo.signTargets();
+
+  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+  auto storage = INvStorage::newStorage(conf.storage);
+  UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
+
+  // attach the autoclean handler
+  boost::signals2::connection ac_conn =
+      aktualizr.SetSignalHandler(std::bind(targets_autoclean_cb, std::ref(aktualizr), std::placeholders::_1));
+  aktualizr.Initialize();
+
+  {
+    result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
+    aktualizr.Download(update_result.updates).get();
+
+    EXPECT_EQ(aktualizr.GetStoredTargets().size(), 1);
+
+    result::Install install_result = aktualizr.Install(update_result.updates).get();
+    EXPECT_TRUE(install_result.dev_report.success);
+
+    std::vector<Uptane::Target> targets = aktualizr.GetStoredTargets();
+    ASSERT_EQ(targets.size(), 1);
+    EXPECT_EQ(targets[0].filename(), "primary_firmware.txt");
+  }
+
+  // second install
+  repo.emptyTargets();
+  repo.addImage(fake_meta_dir / "fake_meta/dummy_firmware.txt", "dummy_firmware.txt", hwid, "", {});
+  repo.addTarget("dummy_firmware.txt", hwid, "CA:FE:A6:D2:84:9D", "");
+  repo.signTargets();
+
+  {
+    result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
+    aktualizr.Download(update_result.updates).get();
+
+    EXPECT_EQ(aktualizr.GetStoredTargets().size(), 2);
+
+    result::Install install_result = aktualizr.Install(update_result.updates).get();
+    EXPECT_TRUE(install_result.dev_report.success);
+
+    // all targets are kept (current and previous)
+    std::vector<Uptane::Target> targets = aktualizr.GetStoredTargets();
+    ASSERT_EQ(targets.size(), 2);
+  }
+
+  // third install (first firmware again)
+  repo.emptyTargets();
+  repo.addImage(fake_meta_dir / "fake_meta/primary_firmware.txt", "primary_firmware.txt", hwid, "", {});
+  repo.addTarget("primary_firmware.txt", hwid, "CA:FE:A6:D2:84:9D", "");
+  repo.signTargets();
+
+  {
+    result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
+    aktualizr.Download(update_result.updates).get();
+
+    EXPECT_EQ(aktualizr.GetStoredTargets().size(), 2);
+
+    result::Install install_result = aktualizr.Install(update_result.updates).get();
+    EXPECT_TRUE(install_result.dev_report.success);
+
+    // all targets are kept again (current and previous)
+    std::vector<Uptane::Target> targets = aktualizr.GetStoredTargets();
+    ASSERT_EQ(targets.size(), 2);
+  }
+
+  // fourth install (some new third firmware)
+  repo.emptyTargets();
+  repo.addImage(fake_meta_dir / "fake_meta/secondary_firmware.txt", "secondary_firmware.txt", hwid, "", {});
+  repo.addTarget("secondary_firmware.txt", hwid, "CA:FE:A6:D2:84:9D", "");
+  repo.signTargets();
+
+  {
+    result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
+    aktualizr.Download(update_result.updates).get();
+
+    EXPECT_EQ(aktualizr.GetStoredTargets().size(), 3);
+
+    result::Install install_result = aktualizr.Install(update_result.updates).get();
+    EXPECT_TRUE(install_result.dev_report.success);
+
+    // only two targets are left: dummy_firmware has been cleaned up
+    std::vector<Uptane::Target> targets = aktualizr.GetStoredTargets();
+    ASSERT_EQ(targets.size(), 2);
+  }
+
+  Aktualizr::InstallationLog log = aktualizr.GetInstallationLog();
+  ASSERT_EQ(log.size(), 2);
+
+  EXPECT_EQ(log[0].installs.size(), 4);
+  EXPECT_EQ(log[1].installs.size(), 0);
+
+  std::vector<std::string> fws{"primary_firmware.txt", "dummy_firmware.txt", "primary_firmware.txt",
+                               "secondary_firmware.txt"};
+  for (auto it = log[0].installs.begin(); it < log[0].installs.end(); it++) {
+    auto idx = static_cast<size_t>(it - log[0].installs.begin());
+    EXPECT_EQ(it->filename(), fws[idx]);
+  }
 }
 
 /*
