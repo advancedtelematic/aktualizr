@@ -113,6 +113,17 @@ static inline int fault_injection_enable(const char *name, int failnum, const st
   return fiu_enable(name, failnum, reinterpret_cast<void *>(failinfo_id), flags);
 }
 
+// proxy for fiu_init, but also explicitly clears the persisted failinfo, in
+// case it is lingering from a previous test case.
+static inline void fault_injection_init() {
+  fiu_init(0);
+  std::ofstream f;
+  try {
+    f.open(fault_injection_info_fn(), std::ios::binary);
+  } catch (std::ofstream::failure &e) {
+  }
+}
+
 #define fault_injection_disable fiu_disable
 
 #endif /* FIU_ENABLE */

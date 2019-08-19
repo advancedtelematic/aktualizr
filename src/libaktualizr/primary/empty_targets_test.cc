@@ -96,9 +96,54 @@ TEST(Aktualizr, EmptyTargets) {
 
 #ifdef FIU_ENABLE
 
-// TODO: also check download failure. However, this depends on what the server
-// actually sends in response to download failure, which currently does not work
-// as expected (OTA-3169).
+/* Check that Aktualizr switches back to empty targets after failing a
+ * download attempt (OTA-3169) */
+TEST(Aktualizr, EmptyTargetsAfterDownload) {
+  TemporaryDirectory temp_dir;
+  TemporaryDirectory meta_dir;
+  auto http = std::make_shared<HttpRejectEmptyCorrId>(temp_dir.Path(), meta_dir.Path() / "repo");
+  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+  logger_set_threshold(boost::log::trivial::trace);
+
+  Process uptane_gen(uptane_generator_path.string());
+  uptane_gen.run({"generate", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
+  uptane_gen.run({"image", "--path", meta_dir.PathString(), "--filename", "tests/test_data/firmware.txt",
+                  "--targetname", "firmware.txt", "--hwid", "primary_hw"});
+  uptane_gen.run({"addtarget", "--path", meta_dir.PathString(), "--targetname", "firmware.txt", "--hwid", "primary_hw",
+                  "--serial", "CA:FE:A6:D2:84:9D"});
+  uptane_gen.run({"signtargets", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
+  // Work around inconsistent directory naming.
+  Utils::copyDir(meta_dir.Path() / "repo/image", meta_dir.Path() / "repo/repo");
+
+  // failing download
+  fault_injection_init();
+  auto storage = INvStorage::newStorage(conf.storage);
+  {
+    UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
+    aktualizr.Initialize();
+
+    result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
+    EXPECT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
+
+    fault_injection_enable("fake_package_download", 1, "", 0);
+    result::Download download_result = aktualizr.Download(update_result.updates).get();
+    EXPECT_EQ(download_result.status, result::DownloadStatus::kError);
+    fault_injection_disable("fake_package_download");
+  }
+
+  // Backend reacts to failure: no need to install the target anymore
+  uptane_gen.run({"emptytargets", "--path", meta_dir.PathString()});
+  uptane_gen.run({"signtargets", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
+
+  // check that no update is available
+  {
+    UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
+    aktualizr.Initialize();
+
+    result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
+    EXPECT_EQ(update_result.status, result::UpdateStatus::kNoUpdatesAvailable);
+  }
+}
 
 /* Check that Aktualizr switches back to empty targets after failing an
  * installation attempt (OTA-2587) */
@@ -120,6 +165,7 @@ TEST(Aktualizr, EmptyTargetsAfterInstall) {
   Utils::copyDir(meta_dir.Path() / "repo/image", meta_dir.Path() / "repo/repo");
 
   // failing install
+  fault_injection_init();
   auto storage = INvStorage::newStorage(conf.storage);
   {
     UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
@@ -131,7 +177,6 @@ TEST(Aktualizr, EmptyTargetsAfterInstall) {
     result::Download download_result = aktualizr.Download(update_result.updates).get();
     EXPECT_EQ(download_result.status, result::DownloadStatus::kSuccess);
 
-    fiu_init(0);
     fault_injection_enable("fake_package_install", 1, "", 0);
     result::Install install_result = aktualizr.Install(download_result.updates).get();
     EXPECT_EQ(install_result.ecu_reports.size(), 1);

@@ -12,7 +12,7 @@ aktualizr_source_file_checks(${SOURCES} packagemanagerconfig.cc ${HEADERS})
 
 target_sources(config PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/packagemanagerconfig.cc)
 
-add_aktualizr_test(NAME packagemanagerfake SOURCES packagemanagerfake_test.cc)
+add_aktualizr_test(NAME packagemanagerfake SOURCES packagemanagerfake_test.cc LIBRARIES PUBLIC uptane_generator_lib)
 
 # Debian backend
 if(BUILD_DEB)

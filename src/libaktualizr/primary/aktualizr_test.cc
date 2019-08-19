@@ -704,7 +704,7 @@ TEST(Aktualizr, FinalizationFailure) {
 
   {
     // now try to finalize the previously installed updates with enabled failure injection
-    fiu_init(0);
+    fault_injection_init();
     fiu_enable("fake_install_finalization_failure", 1, nullptr, 0);
     http_server_mock->clearReportEvents();
 
@@ -785,7 +785,7 @@ TEST(Aktualizr, InstallationFailure) {
     Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http_server_mock->tls_server);
     auto storage = INvStorage::newStorage(conf.storage);
 
-    fiu_init(0);
+    fault_injection_init();
     fiu_enable("fake_package_install", 1, nullptr, 0);
 
     UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http_server_mock);
@@ -845,7 +845,7 @@ TEST(Aktualizr, InstallationFailure) {
     auto storage = INvStorage::newStorage(conf.storage);
     const std::string sec_fault_name = std::string("secondary_install_") + secondary_ecu_id;
 
-    fiu_init(0);
+    fault_injection_init();
     fault_injection_enable("fake_package_install", 1, "PRIMFAIL", 0);
     fault_injection_enable(sec_fault_name.c_str(), 1, "SECFAIL", 0);
 
