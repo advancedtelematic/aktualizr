@@ -130,6 +130,8 @@ struct ResultCode {
     kValidationFailed = 3,
     /// Package installation failed
     kInstallFailed = 4,
+    /// Package download failed
+    kDownloadFailed = 5,
     /// SWM Internal integrity error
     kInternalError = 18,
     /// Other error

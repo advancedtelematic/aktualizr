@@ -546,12 +546,21 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
   if (!targets.empty()) {
     if (targets.size() == downloaded_targets.size()) {
       result = result::Download(downloaded_targets, result::DownloadStatus::kSuccess, "");
-    } else if (downloaded_targets.size() == 0) {
-      LOG_ERROR << "None of " << targets.size() << " targets were successfully downloaded.";
-      result = result::Download(downloaded_targets, result::DownloadStatus::kError, "Each target download has failed");
     } else {
-      LOG_ERROR << "Only " << downloaded_targets.size() << " of " << targets.size() << " were successfully downloaded.";
-      result = result::Download(downloaded_targets, result::DownloadStatus::kPartialSuccess, "");
+      if (downloaded_targets.size() == 0) {
+        LOG_ERROR << "None of " << targets.size() << " targets were successfully downloaded.";
+        result =
+            result::Download(downloaded_targets, result::DownloadStatus::kError, "Each target download has failed");
+      } else {
+        LOG_ERROR << "Only " << downloaded_targets.size() << " of " << targets.size()
+                  << " were successfully downloaded.";
+        result = result::Download(downloaded_targets, result::DownloadStatus::kPartialSuccess, "");
+      }
+      // Store installation report to inform Director of the download failure.
+      const std::string &correlation_id = director_repo.getCorrelationId();
+      data::InstallationResult device_installation_result =
+          data::InstallationResult(data::ResultCode::Numeric::kDownloadFailed, "Target download failed");
+      storage->storeDeviceInstallationResult(device_installation_result, "", correlation_id);
     }
 
   } else {
