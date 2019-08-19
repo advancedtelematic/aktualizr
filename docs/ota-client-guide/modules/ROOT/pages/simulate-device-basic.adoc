@@ -1,1 +1,3 @@
+// MC: Included from repo in Gitlab: https://main.gitlab.in.here.com/olp/edge/ota/documentation/ota-connect-docs/tree/master/docs/getstarted/modules/ROOT/pages/simulate-device-workstation.adoc
+
 include::dev@getstarted:ROOT:page$simulate-device-workstation.adoc[]
