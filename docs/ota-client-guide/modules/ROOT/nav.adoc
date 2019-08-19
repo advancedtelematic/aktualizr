@@ -56,7 +56,7 @@ ifndef::env-github[:pageroot:]
 * xref:{pageroot}device-cred-prov-steps.adoc[Provision devices]
 ** xref:{pageroot}generate-selfsigned-root.adoc[Generate a self-signed root certificate]
 ** xref:{pageroot}provide-root-cert.adoc[Register your root certificate]
-** xref:{pageroot}generate-devicecert.[Generate device certificates]
+** xref:{pageroot}generate-devicecert.adoc[Generate device certificates]
 ** xref:{pageroot}enable-device-cred-provisioning.adoc[Enable and install device certificates]
 
 * xref:{pageroot}secure-software-updates.adoc[Secure your software repository]
@@ -77,13 +77,12 @@ ifndef::env-github[:pageroot:]
 * xref:{pageroot}build-only-ostree.adoc[Build only the OSTree part]
 
 // Dev-authored topics
-* xref:{pageroot}fault-injection.adoc[Simulate installation failures for testing]
 * xref:{pageroot}posix-secondaries-bitbaking.adoc[Simulate a Primary and Secondary ECU]
 ** xref:{pageroot}posix-secondaries.adoc[Configuration and emulation on a local host]
 * xref:{pageroot}fault-injection.adoc[Simulate installation failures for testing]
-* xref:{pageroot}rollback.adoc[Set up rollback  behavior]
+* xref:{pageroot}rollback.adoc[Set up rollback behavior]
 * xref:{pageroot}deb-package-install.adoc[Install the client from a deb package]
-* xref:{pageroot}aktualizr-repo.adoc[Simulate Uptane metadata transactions]
+* xref:{pageroot}uptane-generator.adoc[Simulate Uptane metadata transactions]
 //----
 
 .Reference
