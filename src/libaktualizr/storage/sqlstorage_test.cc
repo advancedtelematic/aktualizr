@@ -16,7 +16,7 @@ typedef boost::tokenizer<boost::char_separator<char> > sql_tokenizer;
 static std::map<std::string, std::string> parseSchema() {
   std::map<std::string, std::string> result;
   std::vector<std::string> tokens;
-  enum { STATE_INIT, STATE_CREATE, STATE_INSERT, STATE_TABLE, STATE_NAME };
+  enum { STATE_INIT, STATE_CREATE, STATE_INSERT, STATE_TABLE, STATE_NAME, STATE_TRIGGER, STATE_TRIGGER_END };
   boost::char_separator<char> sep(" \"\t\r\n", "(),;");
   std::string schema(libaktualizr_current_schema);
   sql_tokenizer tok(schema, sep);
@@ -42,12 +42,29 @@ static std::map<std::string, std::string> parseSchema() {
         }
         break;
       case STATE_CREATE:
-        if (token != "TABLE") {
+        if (token == "TABLE") {
+          parsing_state = STATE_TABLE;
+        } else if (token == "TRIGGER") {
+          parsing_state = STATE_TRIGGER;
+        } else {
           return {};
         }
-        parsing_state = STATE_TABLE;
         break;
       case STATE_INSERT:
+        // do not take these into account
+        if (token == ";") {
+          key.clear();
+          value.clear();
+          parsing_state = STATE_INIT;
+        }
+        break;
+      case STATE_TRIGGER:
+        // skip these
+        if (token == "END") {
+          parsing_state = STATE_TRIGGER_END;
+        }
+        break;
+      case STATE_TRIGGER_END:
         // do not take these into account
         if (token == ";") {
           key.clear();
@@ -346,6 +363,70 @@ TEST(sqlstorage, DbMigration18to19) {
     FAIL() << "Too many rows";
   }
 }
+
+TEST(sqlstorage, DbMigration19to20) {
+  // it must use raw sql primitives because the SQLStorage object does automatic
+  // migration + the api changes with time
+  auto tdb = makeDbWithVersion(DbVersion(19));
+  SQLite3Guard db(tdb.db_path.c_str());
+
+  if (db.exec("INSERT INTO ecu_serials(serial,hardware_id,is_primary) VALUES ('primary_ecu', 'primary_hw', 1);",
+              nullptr, nullptr) != SQLITE_OK) {
+    FAIL();
+  }
+
+  if (db.exec("INSERT INTO installed_versions VALUES ('primary_ecu', 'shav1', 'v1', 'sha256:shav1', 2, 'cor1', 0, 0);",
+              nullptr, nullptr) != SQLITE_OK) {
+    FAIL();
+  }
+  if (db.exec("INSERT INTO installed_versions VALUES ('primary_ecu', 'shav2', 'v2', 'sha256:shav2', 3, 'cor2', 1, 0);",
+              nullptr, nullptr) != SQLITE_OK) {
+    FAIL();
+  }
+
+  // run migration
+  if (db.exec(libaktualizr_schema_migrations.at(20), nullptr, nullptr) != SQLITE_OK) {
+    std::cout << db.errmsg() << "\n";
+    FAIL() << "Migration 19 to 20 failed";
+  }
+
+  // check values
+  auto statement = db.prepareStatement(
+      "SELECT ecu_serial, sha256, name, hashes, length, correlation_id, is_current, is_pending, "
+      "was_installed FROM installed_versions ORDER BY id;");
+  if (statement.step() != SQLITE_ROW) {
+    FAIL() << "installed_versions is empty";
+  }
+
+  EXPECT_EQ(statement.get_result_col_str(0).value(), "primary_ecu");
+  EXPECT_EQ(statement.get_result_col_str(1).value(), "shav1");
+  EXPECT_EQ(statement.get_result_col_str(2).value(), "v1");
+  EXPECT_EQ(statement.get_result_col_str(3).value(), "sha256:shav1");
+  EXPECT_EQ(statement.get_result_col_int(4), 2);
+  EXPECT_EQ(statement.get_result_col_str(5).value(), "cor1");
+  EXPECT_EQ(statement.get_result_col_int(6), 0);
+  EXPECT_EQ(statement.get_result_col_int(7), 0);
+  EXPECT_EQ(statement.get_result_col_int(8), 1);
+
+  if (statement.step() != SQLITE_ROW) {
+    FAIL() << "installed_versions contains only one element";
+  }
+
+  EXPECT_EQ(statement.get_result_col_str(0).value(), "primary_ecu");
+  EXPECT_EQ(statement.get_result_col_str(1).value(), "shav2");
+  EXPECT_EQ(statement.get_result_col_str(2).value(), "v2");
+  EXPECT_EQ(statement.get_result_col_str(3).value(), "sha256:shav2");
+  EXPECT_EQ(statement.get_result_col_int(4), 3);
+  EXPECT_EQ(statement.get_result_col_str(5).value(), "cor2");
+  EXPECT_EQ(statement.get_result_col_int(6), 1);
+  EXPECT_EQ(statement.get_result_col_int(7), 0);
+  EXPECT_EQ(statement.get_result_col_int(8), 1);
+
+  if (statement.step() != SQLITE_DONE) {
+    FAIL() << "Too many rows";
+  }
+}
+
 /**
  * Check that old metadata is still valid
  */
