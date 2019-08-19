@@ -672,49 +672,60 @@ class HttpFakeProv : public HttpFake {
     if (data[0]["eventType"]["id"] == "DownloadProgressReport") {
       return HttpResponse("", 200, CURLE_OK, "");
     }
+    const std::string event_type = data[0]["eventType"]["id"].asString();
+    const std::string serial = data[0]["event"]["ecu"].asString();
+    std::cout << "Got " << event_type << " event\n";
     ++events_seen;
     switch (events_seen) {
       case 0:
-        EXPECT_EQ(data[0]["eventType"]["id"], "SendDeviceDataComplete");
+        EXPECT_EQ(event_type, "SendDeviceDataComplete");
         break;
       case 1:
-        EXPECT_EQ(data[0]["eventType"]["id"], "EcuDownloadStarted");
-        EXPECT_EQ(data[0]["event"]["ecu"], "CA:FE:A6:D2:84:9D");
-        break;
       case 2:
-        EXPECT_EQ(data[0]["eventType"]["id"], "EcuDownloadCompleted");
-        EXPECT_EQ(data[0]["event"]["ecu"], "CA:FE:A6:D2:84:9D");
-        break;
       case 3:
-        EXPECT_EQ(data[0]["eventType"]["id"], "EcuDownloadStarted");
-        EXPECT_EQ(data[0]["event"]["ecu"], "secondary_ecu_serial");
-        break;
       case 4:
-        EXPECT_EQ(data[0]["eventType"]["id"], "EcuDownloadCompleted");
-        EXPECT_EQ(data[0]["event"]["ecu"], "secondary_ecu_serial");
+        if (event_type == "EcuDownloadStarted") {
+          if (serial == "CA:FE:A6:D2:84:9D") {
+            ++primary_download_start;
+          } else if (serial == "secondary_ecu_serial") {
+            ++secondary_download_start;
+          }
+        } else if (event_type == "EcuDownloadCompleted") {
+          if (serial == "CA:FE:A6:D2:84:9D") {
+            ++primary_download_complete;
+          } else if (serial == "secondary_ecu_serial") {
+            ++secondary_download_complete;
+          }
+        }
+        if (events_seen == 4) {
+          EXPECT_EQ(primary_download_start, 1);
+          EXPECT_EQ(primary_download_complete, 1);
+          EXPECT_EQ(secondary_download_start, 1);
+          EXPECT_EQ(secondary_download_complete, 1);
+        }
         break;
       case 5:
         /* Send EcuInstallationStartedReport to server for primary. */
-        EXPECT_EQ(data[0]["eventType"]["id"], "EcuInstallationStarted");
-        EXPECT_EQ(data[0]["event"]["ecu"], "CA:FE:A6:D2:84:9D");
+        EXPECT_EQ(event_type, "EcuInstallationStarted");
+        EXPECT_EQ(serial, "CA:FE:A6:D2:84:9D");
         break;
       case 6:
         /* Send EcuInstallationCompletedReport to server for primary. */
-        EXPECT_EQ(data[0]["eventType"]["id"], "EcuInstallationCompleted");
-        EXPECT_EQ(data[0]["event"]["ecu"], "CA:FE:A6:D2:84:9D");
+        EXPECT_EQ(event_type, "EcuInstallationCompleted");
+        EXPECT_EQ(serial, "CA:FE:A6:D2:84:9D");
         break;
       case 7:
         /* Send EcuInstallationStartedReport to server for secondaries. */
-        EXPECT_EQ(data[0]["eventType"]["id"], "EcuInstallationStarted");
-        EXPECT_EQ(data[0]["event"]["ecu"], "secondary_ecu_serial");
+        EXPECT_EQ(event_type, "EcuInstallationStarted");
+        EXPECT_EQ(serial, "secondary_ecu_serial");
         break;
       case 8:
         /* Send EcuInstallationCompletedReport to server for secondaries. */
-        EXPECT_EQ(data[0]["eventType"]["id"], "EcuInstallationCompleted");
-        EXPECT_EQ(data[0]["event"]["ecu"], "secondary_ecu_serial");
+        EXPECT_EQ(event_type, "EcuInstallationCompleted");
+        EXPECT_EQ(serial, "secondary_ecu_serial");
         break;
       default:
-        std::cout << "Unexpected event: " << data[0]["eventType"]["id"];
+        std::cout << "Unexpected event: " << event_type;
         EXPECT_EQ(0, 1);
     }
     return HttpResponse("", 200, CURLE_OK, "");
@@ -787,6 +798,12 @@ class HttpFakeProv : public HttpFake {
   int installed_count{0};
   int system_info_count{0};
   int network_count{0};
+
+ private:
+  int primary_download_start{0};
+  int primary_download_complete{0};
+  int secondary_download_start{0};
+  int secondary_download_complete{0};
 };
 
 /* Provision with a fake server and check for the exact number of expected
