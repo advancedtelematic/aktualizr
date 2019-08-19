@@ -79,7 +79,7 @@ TEST(Aktualizr, FullNoUpdates) {
   ev_state.future = ev_state.promise.get_future();
 
   auto f_cb = [&ev_state](const std::shared_ptr<event::BaseEvent>& event) {
-    if (event->isTypeOf(event::DownloadProgressReport::TypeName)) {
+    if (event->isTypeOf<event::DownloadProgressReport>()) {
       return;
     }
     LOG_INFO << "Got " << event->variant;
@@ -256,7 +256,7 @@ TEST(Aktualizr, FullWithUpdates) {
   ev_state.future = ev_state.promise.get_future();
 
   auto f_cb = [&ev_state](const std::shared_ptr<event::BaseEvent>& event) {
-    if (event->isTypeOf(event::DownloadProgressReport::TypeName)) {
+    if (event->isTypeOf<event::DownloadProgressReport>()) {
       return;
     }
     LOG_INFO << "Got " << event->variant;
@@ -1065,7 +1065,7 @@ TEST(Aktualizr, CheckNoUpdates) {
   ev_state.future = ev_state.promise.get_future();
 
   auto f_cb = [&ev_state](const std::shared_ptr<event::BaseEvent>& event) {
-    if (event->isTypeOf(event::DownloadProgressReport::TypeName)) {
+    if (event->isTypeOf<event::DownloadProgressReport>()) {
       return;
     }
     LOG_INFO << "Got " << event->variant;
@@ -1141,7 +1141,7 @@ TEST(Aktualizr, DownloadWithUpdates) {
   ev_state.future = ev_state.promise.get_future();
 
   auto f_cb = [&ev_state](const std::shared_ptr<event::BaseEvent>& event) {
-    if (event->isTypeOf(event::DownloadProgressReport::TypeName)) {
+    if (event->isTypeOf<event::DownloadProgressReport>()) {
       return;
     }
     LOG_INFO << "Got " << event->variant;
@@ -1263,12 +1263,12 @@ TEST(Aktualizr, DownloadFailures) {
     void operator()(const std::shared_ptr<event::BaseEvent>& event) {
       ASSERT_NE(event, nullptr);
 
-      if (event->isTypeOf(event::DownloadTargetComplete::TypeName)) {
+      if (event->isTypeOf<event::DownloadTargetComplete>()) {
         auto download_target_complete_event = dynamic_cast<event::DownloadTargetComplete*>(event.get());
         auto target_filename = download_target_complete_event->update.filename();
         download_status[target_filename] = download_target_complete_event->success;
 
-      } else if (event->isTypeOf(event::AllDownloadsComplete::TypeName)) {
+      } else if (event->isTypeOf<event::AllDownloadsComplete>()) {
         auto all_download_complete_event = dynamic_cast<event::AllDownloadsComplete*>(event.get());
         all_download_completed_status = all_download_complete_event->result;
       }
@@ -1386,7 +1386,7 @@ TEST(Aktualizr, InstallWithUpdates) {
   auto f_cb = [&ev_state](const std::shared_ptr<event::BaseEvent>& event) {
     // Note that we do not expect a PutManifestComplete since we don't call
     // UptaneCycle() and that's the only function that generates that.
-    if (event->isTypeOf(event::DownloadProgressReport::TypeName)) {
+    if (event->isTypeOf<event::DownloadProgressReport>()) {
       return;
     }
     LOG_INFO << "Got " << event->variant;
@@ -1545,7 +1545,7 @@ TEST(Aktualizr, ReportDownloadProgress) {
   std::function<void(std::shared_ptr<event::BaseEvent> event)> report_event_hdlr =
       [&](const std::shared_ptr<event::BaseEvent>& event) {
         ASSERT_NE(event, nullptr);
-        if (!event->isTypeOf(event::DownloadProgressReport::TypeName)) {
+        if (!event->isTypeOf<event::DownloadProgressReport>()) {
           return;
         }
 

@@ -87,7 +87,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
 }
 
 void process_event(const std::shared_ptr<event::BaseEvent> &event) {
-  if (event->isTypeOf(event::DownloadProgressReport::TypeName)) {
+  if (event->isTypeOf<event::DownloadProgressReport>()) {
     // Do nothing; libaktualizr already logs it.
   } else if (event->variant == "UpdateCheckComplete") {
     // Do nothing; libaktualizr already logs it.
