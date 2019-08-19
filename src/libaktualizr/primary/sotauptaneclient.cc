@@ -561,6 +561,8 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
       data::InstallationResult device_installation_result =
           data::InstallationResult(data::ResultCode::Numeric::kDownloadFailed, "Target download failed");
       storage->storeDeviceInstallationResult(device_installation_result, "", correlation_id);
+      // Fix for OTA-2587, listen to backend again after end of install.
+      director_repo.dropTargets(*storage);
     }
 
   } else {
