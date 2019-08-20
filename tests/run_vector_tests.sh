@@ -2,20 +2,34 @@
 
 set -e
 
+echo "$@"
+VALGRIND=""
+UPTANE_VECTOR_TEST=./aktualizr_uptane_vector_tests
+while getopts "t:s:v:-" opt; do
+    case "$opt" in
+        t)
+            UPTANE_VECTOR_TEST=$OPTARG
+            ;;
+        s)
+            TESTS_SRC_DIR=$OPTARG
+            ;;
+        v)
+            VALGRIND=$OPTARG
+            ;;
+        -)
+            # left-overs arguments
+            break
+            ;;
+        *)
+            ;;
+    esac
+done
+
 if [ ! -f venv/bin/activate ]; then
   python3 -m venv venv
 fi
 
 . venv/bin/activate
-
-TESTS_SRC_DIR=${1:-}
-shift 1
-if [[ $1 = "valgrind" ]]; then
-    WITH_VALGRIND=1
-    shift 1
-else
-    WITH_VALGRIND=0
-fi
 
 TTV_DIR="$TESTS_SRC_DIR/tuf-test-vectors"
 
@@ -44,15 +58,10 @@ while ! curl -I -s -f "http://localhost:$PORT"; do
     tries=$((tries+1))
 done
 
-if [[ $WITH_VALGRIND = 1 ]]; then
-    valgrind --track-origins=yes \
-             --show-possibly-lost=no \
-             --error-exitcode=1 \
-             --suppressions="$TESTS_SRC_DIR/aktualizr.supp" \
-             --suppressions="$TESTS_SRC_DIR/glib.supp" \
-             ./aktualizr_uptane_vector_tests "$PORT" "$@"
+if [[ -n $VALGRIND ]]; then
+    "$VALGRIND" "$UPTANE_VECTOR_TEST" "$PORT" "$@"
 else
-    ./aktualizr_uptane_vector_tests "$PORT" "$@"
+    "$UPTANE_VECTOR_TEST" "$PORT" "$@"
 fi
 
 RES=$?
