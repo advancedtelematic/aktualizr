@@ -15,6 +15,43 @@
 #include "utilities/types.h"
 #include "utilities/utils.h"
 
+/*
+ * Verify a stored target.
+ */
+TEST(PackageManagerFake, Verify) {
+  TemporaryDirectory temp_dir;
+  Config config;
+  config.pacman.type = PackageManager::kNone;
+  config.storage.path = temp_dir.Path();
+  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
+
+  Uptane::EcuMap primary_ecu{{Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")}};
+  Uptane::Target target_good("some-pkg", primary_ecu, {Uptane::Hash(Uptane::Hash::Type::kSha256, "hash-good")}, 4, "");
+  Uptane::Target target_bad("some-pkg", primary_ecu, {Uptane::Hash(Uptane::Hash::Type::kSha256, "hash-bad")}, 4, "");
+
+  PackageManagerFake fakepm(config.pacman, storage, nullptr, nullptr);
+  EXPECT_FALSE(fakepm.verifyTarget(target_good));
+
+  // Write the target with a different hash.
+  {
+    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target_bad);
+    const uint8_t wb[] = "bad ";
+    fhandle->wfeed(wb, 4);
+    fhandle->wcommit();
+  }
+  EXPECT_FALSE(fakepm.verifyTarget(target_good));
+
+  // Write the target with the expected hash.
+  storage->removeTargetFile(target_good.filename());
+  {
+    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target_good);
+    const uint8_t wb[] = "good";
+    fhandle->wfeed(wb, 4);
+    fhandle->wcommit();
+  }
+  EXPECT_TRUE(fakepm.verifyTarget(target_good));
+}
+
 TEST(PackageManagerFake, FinalizeAfterReboot) {
   TemporaryDirectory temp_dir;
   Config config;

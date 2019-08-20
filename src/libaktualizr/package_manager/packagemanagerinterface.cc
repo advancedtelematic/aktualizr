@@ -89,7 +89,7 @@ bool PackageManagerInterface::fetchTarget(const Uptane::Target& target, Uptane::
     }
     auto target_exists = storage_->checkTargetFile(target);
     if (target_exists && (*target_exists).first == target.length()) {
-      LOG_INFO << "Image already downloaded skipping download";
+      LOG_INFO << "Image already downloaded; skipping download";
       return true;
     }
     if (target.length() == 0) {
@@ -143,4 +143,9 @@ bool PackageManagerInterface::fetchTarget(const Uptane::Target& target, Uptane::
     LOG_WARNING << "Error while downloading a target: " << e.what();
   }
   return result;
+}
+
+bool PackageManagerInterface::verifyTarget(const Uptane::Target& target) const {
+  auto target_exists = storage_->checkTargetFile(target);
+  return !!target_exists;
 }

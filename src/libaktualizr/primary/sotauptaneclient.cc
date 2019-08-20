@@ -820,10 +820,13 @@ result::UpdateStatus SotaUptaneClient::checkUpdatesOffline(const std::vector<Upt
 
 result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> &updates) {
   result::Install result;
+  const std::string &correlation_id = director_repo.getCorrelationId();
 
   // clear all old results first
   storage->clearInstallationResults();
 
+  // Recheck the Uptane metadata and make sure the requested updates are
+  // consistent with the stored metadata.
   result::UpdateStatus update_status = checkUpdatesOffline(updates);
   if (update_status != result::UpdateStatus::kUpdatesAvailable) {
     if (update_status == result::UpdateStatus::kNoUpdatesAvailable) {
@@ -831,8 +834,19 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
     } else {
       result.dev_report = {false, data::ResultCode::Numeric::kInternalError, ""};
     }
+    storage->storeDeviceInstallationResult(result.dev_report, "Stored Uptane metadata is invalid", correlation_id);
     sendEvent<event::AllInstallsComplete>(result);
     return result;
+  }
+
+  // Recheck the downloaded update hashes.
+  for (const auto &update : updates) {
+    if (!package_manager_->verifyTarget(update)) {
+      result.dev_report = {false, data::ResultCode::Numeric::kInternalError, ""};
+      storage->storeDeviceInstallationResult(result.dev_report, "Downloaded target's hash is invalid", correlation_id);
+      sendEvent<event::AllInstallsComplete>(result);
+      return result;
+    }
   }
 
   // Uptane step 5 (send time to all ECUs) is not implemented yet.
@@ -841,7 +855,6 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
   //   6 - send metadata to all the ECUs
   sendMetadataToEcus(updates);
 
-  const std::string &correlation_id = director_repo.getCorrelationId();
   //   7 - send images to ECUs (deploy for OSTree)
   if (primary_updates.size() != 0u) {
     // assuming one OSTree OS per primary => there can be only one OSTree update

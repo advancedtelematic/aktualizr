@@ -65,7 +65,7 @@ data::InstallationResult OstreeManager::pull(const boost::filesystem::path &sysr
                                              const std::string &ostree_server, const KeyManager &keys,
                                              const Uptane::Target &target, const api::FlowControlToken *token,
                                              OstreeProgressCb progress_cb) {
-  std::string refhash = target.sha256Hash();
+  const std::string refhash = target.sha256Hash();
   const char *const commit_ids[] = {refhash.c_str()};
   GError *error = nullptr;
   GVariantBuilder builder;
@@ -210,7 +210,7 @@ void OstreeManager::completeInstall() const {
 }
 
 data::InstallationResult OstreeManager::finalizeInstall(const Uptane::Target &target) const {
-  LOG_INFO << "Checking installation of new OStree sysroot";
+  LOG_INFO << "Checking installation of new OSTree sysroot";
   Uptane::Target current = getCurrent();
 
   if (current.sha256Hash() != target.sha256Hash()) {
@@ -237,6 +237,36 @@ bool OstreeManager::fetchTarget(const Uptane::Target &target, Uptane::Fetcher &f
     return PackageManagerInterface::fetchTarget(target, fetcher, keys, progress_cb, token);
   }
   return OstreeManager::pull(config.sysroot, config.ostree_server, keys, target, token, progress_cb).success;
+}
+
+bool OstreeManager::verifyTarget(const Uptane::Target &target) const {
+  const std::string refhash = target.sha256Hash();
+  GError *error = nullptr;
+
+  GObjectUniquePtr<OstreeSysroot> sysroot = OstreeManager::LoadSysroot(config.sysroot);
+  GObjectUniquePtr<OstreeRepo> repo = LoadRepo(sysroot.get(), &error);
+  if (error != nullptr) {
+    LOG_ERROR << "Could not get OSTree repo";
+    g_error_free(error);
+    return false;
+  }
+
+  GHashTable *ref_list = nullptr;
+  if (ostree_repo_list_commit_objects_starting_with(repo.get(), refhash.c_str(), &ref_list, nullptr, &error) != 0) {
+    guint length = g_hash_table_size(ref_list);
+    g_hash_table_destroy(ref_list);  // OSTree creates the table with destroy notifiers, so no memory leaks expected
+    // should never be greater than 1, but use >= for robustness
+    if (length >= 1) {
+      return true;
+    }
+  }
+  if (error != nullptr) {
+    g_error_free(error);
+    error = nullptr;
+  }
+
+  LOG_ERROR << "Could not find OSTree commit";
+  return false;
 }
 
 Json::Value OstreeManager::getInstalledPackages() const {

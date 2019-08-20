@@ -38,7 +38,7 @@ if(BUILD_OSTREE)
                       ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
     add_dependencies(build_tests make_ostree_sysroot)
 
-    add_aktualizr_test(NAME ostree SOURCES ostreemanager_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND
+    add_aktualizr_test(NAME ostreemanager SOURCES ostreemanager_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
 
     if(BUILD_DOCKERAPP)
