@@ -336,3 +336,17 @@ trigger-e2e-pipeline:
   only:
     - master
   trigger: olp/edge/ota/testing/ota-plus-test-driver
+
+# -- otf
+
+trigger-otf-pipeline:
+  stage: trigger
+  when: on_success
+  dependencies:
+    - github-release
+  script:
+    - curl -X POST -F "token=$CI_JOB_TOKEN" -F "ref=master" -F "variables[TEST_JOB_ONLY]=true" https://main.gitlab.in.here.com/api/v4/projects/163/trigger/pipeline
+  only:
+    variables:
+      - $CI_COMMIT_REF_NAME =~ /^\d\d\d\d\.\d+(-\w+)?$/
+  allow_failure: true
