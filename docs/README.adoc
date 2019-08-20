@@ -26,6 +26,7 @@ The link above is for the doxygen docs on master. Doxygen docs for the following
 * https://advancedtelematic.github.io/aktualizr/2019.3/index.html[2019.3]
 * https://advancedtelematic.github.io/aktualizr/2019.4/index.html[2019.4]
 * https://advancedtelematic.github.io/aktualizr/2019.5/index.html[2019.5]
+* https://advancedtelematic.github.io/aktualizr/2019.6/index.html[2019.6]
 ====
 
 === Updating doxygen on github

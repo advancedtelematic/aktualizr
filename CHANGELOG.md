@@ -6,16 +6,29 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ## [??? (unreleased)]
 
+## [2019.6] - 2019-08-21
+
 ### Added
 
+- garage-sign metadata expiration parameters: [PR](https://github.com/advancedtelematic/ota-tuf/pull/237)
 - aktualizr-info --wait-until-provisioned flag: [PR](https://github.com/advancedtelematic/aktualizr/pull/1253)
 - Target object equality requires that hardware IDs match: [PR](https://github.com/advancedtelematic/aktualizr/pull/1258)
 - aktualizr-repo image command now requires a hardware ID: [PR](https://github.com/advancedtelematic/aktualizr/pull/1258)
-- `GetStoredTargets` and `DeleteStoredTarget` methods: [PR](https://github.com/advancedtelematic/aktualizr/pull/1290)
+- `GetStoredTargets` and `DeleteStoredTarget` aktualizr API methods: [PR](https://github.com/advancedtelematic/aktualizr/pull/1290)
+- [aktualizr-get](https://github.com/advancedtelematic/aktualizr/blob/master/src/aktualizr_get/main.cc) debugging tool: [PR](https://github.com/advancedtelematic/aktualizr/pull/1276)
+- Automatic reboot command is now customizable: [PR](https://github.com/advancedtelematic/aktualizr/pull/1274)
+- Basic [C API](https://github.com/advancedtelematic/aktualizr/blob/master/include/libaktualizr-c.h): [PR](https://github.com/advancedtelematic/aktualizr/pull/1263)
+- Ability to pass custom headers in HTTP requests: [PR](https://github.com/advancedtelematic/aktualizr/pull/1251)
+- Mutual TLS support in garage tools: [PR #1243](https://github.com/advancedtelematic/aktualizr/pull/1243) and [PR #1288](https://github.com/advancedtelematic/aktualizr/pull/1288)
 
 ### Changed
 
 - Renamed `GetStoredTarget` to `OpenStoredTarget` in aktualizr API: [PR](https://github.com/advancedtelematic/aktualizr/pull/1290)
+- Renamed aktualizr-repo to uptane-generator: [PR](https://github.com/advancedtelematic/aktualizr/pull/1279)
+- [Documentation](https://github.com/advancedtelematic/aktualizr/blob/master/docs/README.adoc) substantially restructed: [PR](https://github.com/advancedtelematic/aktualizr/pull/1293)
+- Target matching between the Director and Image repositories is now done as early as possible during the check for updates: [PR](https://github.com/advancedtelematic/aktualizr/pull/1271)
+- Target matching requires the hardware IDs to match: [PR](https://github.com/advancedtelematic/aktualizr/pull/1258)
+- Custom URL logic now prefers the Director and if it is empty, only then checks the Image repository value: [PR](https://github.com/advancedtelematic/aktualizr/pull/1267)
 
 ## [2019.5] - 2019-07-12
 
