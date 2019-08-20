@@ -12,6 +12,7 @@ class TreehubServer {
  public:
   TreehubServer();
   void SetToken(const std::string &token);
+  void SetContentType(const std::string &content_type);
   void SetCerts(const std::string &client_p12);
   void SetAuthBasic(const std::string &username, const std::string &password);
 
@@ -39,6 +40,10 @@ class TreehubServer {
   // Don't modify force_header_contents_ without updating the pointer in
   // force_header_
   std::string force_header_contents_;
+  struct curl_slist content_type_header_ {};
+  // Don't modify content_type_header_contents_ without updating the pointer in
+  // content_type_header_
+  std::string content_type_header_contents_;
 };
 
 // vim: set tabstop=2 shiftwidth=2 expandtab:

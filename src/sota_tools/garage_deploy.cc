@@ -115,17 +115,19 @@ int main(int argc, char **argv) {
     if (mode == RunMode::kDefault) {
       if (push_credentials.CanSignOffline()) {
         bool ok = OfflineSignRepo(ServerCredentials(push_credentials.GetPathOnDisk()), name, commit, hardwareids);
-        return static_cast<int>(!ok);
+        if (ok) {
+          if (CheckRefValid(fetch_server, ostree_commit, mode, max_curl_requests) != EXIT_SUCCESS) {
+            LOG_FATAL << "Check if the ref is present on the server or in targets.json failed";
+            return EXIT_FAILURE;
+          }
+        } else {
+          return EXIT_FAILURE;
+        }
       }
       LOG_FATAL << "Online signing with garage-deploy is currently unsupported";
       return EXIT_FAILURE;
     } else {
       LOG_INFO << "Dry run. Not attempting offline signing.";
-    }
-
-    if (CheckRefValid(fetch_server, ostree_commit, mode, max_curl_requests) != EXIT_SUCCESS) {
-      LOG_FATAL << "Check if the ref is present on the server or in targets.json failed";
-      return EXIT_FAILURE;
     }
   } catch (OSTreeCommitParseError &e) {
     LOG_FATAL << e.what();

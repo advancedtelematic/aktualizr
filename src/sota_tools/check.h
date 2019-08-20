@@ -11,6 +11,6 @@
 /**
  *Check if the ref is present on the server and in targets.json
  */
-int CheckRefValid(const TreehubServer& treehub, const std::string& ref, RunMode mode, int max_curl_requests);
+int CheckRefValid(TreehubServer& treehub, const std::string& ref, RunMode mode, int max_curl_requests);
 
 #endif

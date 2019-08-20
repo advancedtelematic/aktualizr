@@ -19,7 +19,7 @@ class OstreeRepo(object):
         self.upload_count += 1
         if self.upload_count % 10 == 0:
             return status_code
-        return 200
+        return 204
 
     def query(self, name):
         return 404

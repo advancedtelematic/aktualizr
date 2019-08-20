@@ -13,16 +13,28 @@ TreehubServer::TreehubServer() {
   auth_header_.next = &force_header_;
   force_header_contents_ = "x-ats-ostree-force: true";
   force_header_.data = const_cast<char*>(force_header_contents_.c_str());
-  force_header_.next = nullptr;
+  force_header_.next = &content_type_header_;
+  content_type_header_.data = const_cast<char*>(content_type_header_contents_.c_str());
+  content_type_header_.next = nullptr;
 }
 
 void TreehubServer::SetToken(const string& token) {
   assert(auth_header_.next == &force_header_);
-  assert(force_header_.next == nullptr);
+  assert(force_header_.next == &content_type_header_);
+  assert(content_type_header_.next == nullptr);
 
   auth_header_contents_ = "Authorization: Bearer " + token;
   auth_header_.data = const_cast<char*>(auth_header_contents_.c_str());
   method_ = AuthMethod::kOauth2;
+}
+
+void TreehubServer::SetContentType(const string& content_type) {
+  assert(auth_header_.next == &force_header_);
+  assert(force_header_.next == &content_type_header_);
+  assert(content_type_header_.next == nullptr);
+
+  content_type_header_contents_ = content_type;
+  content_type_header_.data = const_cast<char*>(content_type_header_contents_.c_str());
 }
 
 void TreehubServer::SetCerts(const std::string& client_p12) {

@@ -7,7 +7,7 @@
 
 #include "logging/logging.h"
 
-RequestPool::RequestPool(const TreehubServer& server, const int max_curl_requests, const RunMode mode)
+RequestPool::RequestPool(TreehubServer& server, const int max_curl_requests, const RunMode mode)
     : rate_controller_(max_curl_requests), running_requests_(0), server_(server), mode_(mode), stopped_(false) {
   curl_global_init(CURL_GLOBAL_DEFAULT);
   multi_ = curl_multi_init();
