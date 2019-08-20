@@ -28,7 +28,7 @@ Here are our recommendations for xref:intro-prep.adoc[integrating OTA Connect in
 
 include::partial$recommended-steps.adoc[tags=integrate-steps]
 
-== Deploy your own OTA-enabled solution
+== Deploy your OTA-enabled solution
 
 You've done your testing and now you're ready to xref:intro-prod.adoc[use OTA Connect in production]. You need to make sure that your device provisioning process is production-ready and that your software is available in your production account.
 
