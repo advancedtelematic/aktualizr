@@ -1,19 +1,17 @@
-//  tag::evaluate-steps[] 
+//  tag::evaluate-steps[]
 * *Use shared credential provisioning for your devices*
 +
-With shared-credential provisioning, you don't have to worry about installing certificates on your devices. 
-The OTA Connect server automatically does this for you. All you need to do is provide a provisioning key that all your devices can share.
+With shared-credential provisioning, you don't have to worry about installing certificates on your devices.
+The OTA Connect server automatically does this for you. All you need to do is download a provisioning key, unique to your account, and all your devices can share it.
 
 * *Build disk images using our demo recipes*
 +
-We support a couple of demo boards "out of the box". You don't need to worry about complex build configurations at this stage. Just follow our recipes to learn how to build an OTA-enabled disk image. 
-+
-If you don't want to wait several hours for a build to finish, you can also simulate an OTA-enabled device without building a disk image.
+We support a couple of demo boards "out of the box". You don't need to worry about complex build configurations at this stage. Just follow one of our xref:getstarted::start-intro.adoc[Get Started guides] to learn how to build an OTA-enabled disk image.
 * *Use the standalone aktualizr client to test the OTA functionality*
 +
 You don't need to do anything extra to use the standalone aktualizr client. It's actually part of our demo build configurations, so the aktualizr client is included in the disk image that you'll build.
 +
-If you prefer to simulate an OTA-enabled device without building a disk image, you'll install the aktualizr client on your development computer.
+If you prefer to simulate an OTA-enabled device without building a disk image, you can install the aktualizr client on your development computer. In this case, however, you won't be able to try out OSTree functionality--the client will simply download and verify binaries, dropping them into a configurable location on your filesystem.
 
 //  end::evaluate-steps[]
 
