@@ -128,7 +128,7 @@ When using the API, consider the following points:
 * Asynchronous commands are posted to the command queue and executed in sequential order in a separate thread.
 * If the execution is paused, newly issued commands accumulate in the command queue and it's up to the caller to ensure that the queue doesn't get overloaded with unnecessary duplicate commands.
 
-For an example of how to use the libaktualizr API as a primary ECU, there are two applications in the aktualizr tree that you can use as references. Aktualizr itself is in `src/aktualizr_primary`, and there is a very simple demo of using libaktualizr to interact with an HMI (for example, to get user consent) in `src/hmi_stub`.
+For an example of how to use the libaktualizr API as a primary ECU, there are two applications that you can use as references. Aktualizr itself is in `src/aktualizr_primary`, and there is a very simple demo of using libaktualizr to interact with an HMI (for example, to get user consent) named https://github.com/advancedtelematic/libaktualizr-demo-app[libaktualizr-demo-app].
 
 
 === API Description

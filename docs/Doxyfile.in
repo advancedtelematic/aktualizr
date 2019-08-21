@@ -797,12 +797,15 @@ WARN_LOGFILE           =
 
 INPUT                  = @CMAKE_SOURCE_DIR@/docs \
                          @CMAKE_SOURCE_DIR@/tests \
+                         @CMAKE_SOURCE_DIR@/src/aktualizr_get \
                          @CMAKE_SOURCE_DIR@/src/aktualizr_info \
+                         @CMAKE_SOURCE_DIR@/src/aktualizr_lite \
                          @CMAKE_SOURCE_DIR@/src/aktualizr_primary \
                          @CMAKE_SOURCE_DIR@/src/aktualizr_secondary \
                          @CMAKE_SOURCE_DIR@/src/cert_provider \
-                         @CMAKE_SOURCE_DIR@/src/hmi_stub \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr \
+                         @CMAKE_SOURCE_DIR@/src/libaktualizr-c \
+                         @CMAKE_SOURCE_DIR@/src/libaktualizr-posix \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr-posix/asn1 \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr-posix/asn1/messages \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/bootloader \
@@ -810,6 +813,7 @@ INPUT                  = @CMAKE_SOURCE_DIR@/docs \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/config \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/crypto \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/http \
+                         @CMAKE_SOURCE_DIR@/src/libaktualizr/isotp_conn \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/logging \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/package_manager \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/primary \
@@ -821,6 +825,7 @@ INPUT                  = @CMAKE_SOURCE_DIR@/docs \
                          @CMAKE_SOURCE_DIR@/src/load_tests \
                          @CMAKE_SOURCE_DIR@/src/sota_tools \
                          @CMAKE_SOURCE_DIR@/src/uptane_generator \
+                         @CMAKE_SOURCE_DIR@/src/virtual_secondary \
                          @CMAKE_SOURCE_DIR@/CONTRIBUTING.md \
                          @CMAKE_SOURCE_DIR@/CHANGELOG.md
 
