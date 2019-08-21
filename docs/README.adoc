@@ -29,33 +29,6 @@ The link above is for the doxygen docs on master. Doxygen docs for the following
 * https://advancedtelematic.github.io/aktualizr/2019.6/index.html[2019.6]
 ====
 
-=== Updating doxygen on github
+== Release process
 
-To update the doxygen documentation for master on github, you will need to do something like the following:
-
-1. In an aktualizr repo, run `make doxygen` (or `make docs`) in the build directory.
-1. Clone a second aktualizr repo and run `git checkout gh-pages`.
-1. In the second repo, run `git rm search/* *.css *.html *.js *.png *.map *.md5 *.png *.svg`.
-1. Copy the contents of `<build_dir>/docs/doxygen/html` into the root of the second repo. (Something like `cp -a <build_dir>/docs/doxygen/html/* <second_repo>`.)
-1. In the second repo, run `git add .`, `git commit -as`, and `git push`.
-1. Wait a minute or two for github to refresh and render the files.
-
-==== Adding docs for a new tag
-
-To add doxygen docs for a new tag, you will need to do something like the following:
-
-1. Check out the tag or commit you wish to add (`git checkout 2018.63`, for example).
-1. Clean out the build directory (to remove stale objects), then run CMake and doxygen again:
-+
-----
-rm -rf build/*
-cd build
-cmake ..
-make doxygen
-----
-+
-1. Clone a second aktualizr repo and run `git checkout gh-pages`.
-1. In the second repo, make a directory for the tag or commit you wish to add, i.e. `mkdir 2018.63`.
-1. Copy the contents of `<build_dir>/docs/doxygen/html` into the directory you just created. (Something like `cp -a <build_dir>/docs/doxygen/html/* <second_repo>/2018.63`.)
-1. In the second repo, run `git add 2018.63`, `git commit -as`, and `git push`.
-1. Wait a minute or two for github to refresh and render the files.
+The process for releasing a new version of aktualizr and updating the documentation is described link:ota-client-guide/modules/ROOT/pages/release-process.adoc[here].
