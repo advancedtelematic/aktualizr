@@ -14,9 +14,11 @@ Although it's easy to get started with our quickstart guides and Yocto layers, t
 
 == Provisioning a new device
 
-OTA Connect uses mutual TLS authentication with X.509 certificates to secure communication with devices. This, of course, requires the devices to be provisioned with their unique certificates, and registered with the server. We make this process easy and automatic with *provisioning keys*.
+OTA Connect uses mutual TLS authentication with X.509 certificates to secure communication with devices. This, of course, requires each device to have its own certificate, and for that certificate to be trusted by OTA Connect. We make this process easy and automatic with *provisioning keys*.
 
-When you build a filesystem image, you include a provisioning key. When a device boots, it checks whether it has credentials already. If not, it attempts to auto-provision. It presents its provisioning key and a unique identifierfootnote:[This could be something like a VIN, serial number, or device MAC address. It needs to be something that is unique to a particular device, doesn't change, and is programmatically available. We use the MAC address by default.] to the OTA Connect provisioning servicefootnote:[Each user has a uniquely generated provisioning URL; it's included in the provisioning key bundle.]. If the provisioning key is valid and the identifier is unique, new credentials are issued to the device. It then appears in the user's OTA Connect account, with its unique identifier as the name.
+When you build a filesystem image, you include a provisioning key. When a device boots, it checks whether it is already registered with OTA Connect. If not, it attempts to provision. It presents a provisioning key (which is associated with a particular account, and baked into the image when it is built) and a unique identifierfootnote:[This could be something like a VIN, serial number, or device MAC address. The only requirement is that it needs to be unique to a particular device. By default, we generate a random ID.] to the OTA Connect provisioning servicefootnote:[Each user has a uniquely generated provisioning URL; it's included in the provisioning key bundle.]. If the provisioning key is valid and the identifier is unique, we generate and issue a new X.509 certificate for the device. It then appears in the user's OTA Connect account, with its unique identifier as the name.
+
+NOTE: If you don't want OTA Connect to issue your device certificates, you can also do it yourself. See the xref:device-cred-prov-steps.adoc[device provisioning guide] for more details on advanced provisioning options.
 
 == Building the image
 
