@@ -142,11 +142,11 @@ void SotaUptaneClient::finalizeAfterReboot() {
         // go forward again
         storage->saveInstalledVersion(ecu_serial.ToString(), target, InstalledVersionUpdateMode::kNone);
         report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(ecu_serial, correlation_id, false));
+        director_repo.dropTargets(*storage);  // fix for OTA-2587, listen to backend again after end of install
       }
 
       computeDeviceInstallationResult(nullptr, correlation_id);
       putManifestSimple();
-      director_repo.dropTargets(*storage);  // fix for OTA-2587, listen to backend again after end of install
     } else {
       // nothing found on primary
       LOG_ERROR << "Expected reboot after update on primary but no update found";
@@ -550,12 +550,23 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
   if (!targets.empty()) {
     if (targets.size() == downloaded_targets.size()) {
       result = result::Download(downloaded_targets, result::DownloadStatus::kSuccess, "");
-    } else if (downloaded_targets.size() == 0) {
-      LOG_ERROR << "None of " << targets.size() << " targets were successfully downloaded.";
-      result = result::Download(downloaded_targets, result::DownloadStatus::kError, "Each target download has failed");
     } else {
-      LOG_ERROR << "Only " << downloaded_targets.size() << " of " << targets.size() << " were successfully downloaded.";
-      result = result::Download(downloaded_targets, result::DownloadStatus::kPartialSuccess, "");
+      if (downloaded_targets.size() == 0) {
+        LOG_ERROR << "None of " << targets.size() << " targets were successfully downloaded.";
+        result =
+            result::Download(downloaded_targets, result::DownloadStatus::kError, "Each target download has failed");
+      } else {
+        LOG_ERROR << "Only " << downloaded_targets.size() << " of " << targets.size()
+                  << " were successfully downloaded.";
+        result = result::Download(downloaded_targets, result::DownloadStatus::kPartialSuccess, "");
+      }
+      // Store installation report to inform Director of the download failure.
+      const std::string &correlation_id = director_repo.getCorrelationId();
+      data::InstallationResult device_installation_result =
+          data::InstallationResult(data::ResultCode::Numeric::kDownloadFailed, "Target download failed");
+      storage->storeDeviceInstallationResult(device_installation_result, "", correlation_id);
+      // Fix for OTA-2587, listen to backend again after end of install.
+      director_repo.dropTargets(*storage);
     }
 
   } else {
@@ -831,7 +842,7 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
   computeDeviceInstallationResult(&result.dev_report, correlation_id);
   sendEvent<event::AllInstallsComplete>(result);
 
-  if (result.dev_report.result_code != data::ResultCode::Numeric::kNeedCompletion) {
+  if (!(result.dev_report.isSuccess() || result.dev_report.needCompletion())) {
     director_repo.dropTargets(*storage);  // fix for OTA-2587, listen to backend again after end of install
   }
 
