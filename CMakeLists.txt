@@ -424,7 +424,7 @@ if(BUILD_PARTIAL)
 endif()
 add_subdirectory("tests" EXCLUDE_FROM_ALL)
 
-add_subdirectory("docs")
+add_subdirectory("docs/doxygen")
 
 # Check if some source files were not added sent to `aktualizr_source_file_checks`
 #
