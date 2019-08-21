@@ -31,7 +31,7 @@ You'll be using the common Yocto command `bitbake` to build disk images. You can
 ====
 __Related Tool__: *meta-updater*
 
-The "meta-updater" layer defines some of the important "ingredients" that go into our Yocto recipes. Yocto uses the concept of *layers* to bundle different types of "ingredients". In the case of OTA Connect, our "meta-updater" layer adds the aktualizr client and the OSTree tool to your Yocto builds.
+The meta-updater Yocto layer contains "recipes" related to software updating. Yocto uses the concept of *layers* to bundle together recipes that are tightly coupled, or organized around a theme. Adding the meta-updater layer to a Yocto build makes aktualizr and OSTree available, and adds amendments to a number of other recipes to make sure they work well with aktualizr.
 
 ====
 
