@@ -796,6 +796,7 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT                  = @CMAKE_SOURCE_DIR@/docs \
+                         @CMAKE_SOURCE_DIR@/docs/doxygen \
                          @CMAKE_SOURCE_DIR@/tests \
                          @CMAKE_SOURCE_DIR@/src/aktualizr_get \
                          @CMAKE_SOURCE_DIR@/src/aktualizr_info \
@@ -1004,7 +1005,7 @@ FILTER_SOURCE_PATTERNS =
 # (index.html). This can be useful if you have a project on for instance GitHub
 # and want to reuse the introduction page also for the doxygen output.
 
-USE_MDFILE_AS_MAINPAGE = @CMAKE_SOURCE_DIR@/docs/INDEX.md
+USE_MDFILE_AS_MAINPAGE = @CMAKE_SOURCE_DIR@/docs/doxygen/INDEX.md
 
 #---------------------------------------------------------------------------
 # Configuration options related to source browsing
