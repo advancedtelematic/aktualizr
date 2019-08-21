@@ -4,7 +4,7 @@
 :page-date: 2018-09-13 11:50:24
 :page-order: 2
 :icons: font
-:garage-deploy-version: 2018.13
+:garage-deploy-version: 2019.5
 
 For our recommended production workflow, we recommend some extra security procedures. Before you can follow these procedures, you need to install our `garage-deploy` tool first.
 
