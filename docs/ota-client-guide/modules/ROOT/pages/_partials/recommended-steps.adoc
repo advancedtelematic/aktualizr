@@ -54,7 +54,7 @@ In the initial integration phase you might not have the TPM/HSM ready to use, bu
 
 * *Use offline keys to sign software metadata*
 +
-Strong, automotive-grade security using Uptane is one of the most important parts of OTA Connect. Uptane achieves its security benefits by using multiple different, interdependent roles and repositories to sign software, establish trust, and ensure other important security properties. For a truly secure Uptane deployment, the keys that are used to sign metadata should be kept offline--for example, on a hardware security module like a Yubikey. To save you from the difficulties and complications of managing offline keys, new OTA Connect accounts start off by using online signing keys kept in secure storagefootnote::[Using HashiCorp's https://www.vaultproject.io/[Vault], an industry-standard best practice.]. When you upload software and disk images to OTA Connect, the server generates and signs the associated metadata for you.
+Strong, automotive-grade security using Uptane is one of the most important parts of OTA Connect. Uptane achieves its security benefits by using multiple different, interdependent roles and repositories to sign software, establish trust, and ensure other important security properties. For a truly secure Uptane deployment, the keys that are used to sign metadata should be kept offline--for example, on an external hardware security module like a https://www.yubico.com/[YubiKey]. To save you from the difficulties and complications of managing offline keys, new OTA Connect accounts start off by using online signing keys kept in secure storagefootnote::[Using HashiCorp's https://www.vaultproject.io/[Vault], an industry-standard best practice.]. When you upload software and disk images to OTA Connect, the server generates and signs the associated metadata for you.
 +
 During the integration phase, you should take the signing keys offline and rotate them. This puts you in complete control over your fleet's security--even if an attacker somehow compromised the entire OTA Connect infrastructure, they still wouldn't be able to install their software on your vehicles.
 +
@@ -62,13 +62,9 @@ For the integration phase, it's fine if you keep these keys on your development 
 
 * *Start customizing the update client*
 +
-Most production use cases will have unique requirements that aren't met by the stock aktualizr app. With libaktualizr, the C++ library used to build aktualizr, you can customize every step of the installation process. Some examples of what you can do:
-* Hook into an HMI system to ask for user confirmation before installing an update
-* Check for safety conditions in the vehicle before starting an update
-* Only download large updates when the vehicle is connected to WiFi, or at off-peak times
-* Pass an update for a secondary ECU off to a custom UDS flashing tool
+Most production use cases will have unique requirements that aren't met by the stock aktualizr app. With libaktualizr, the C++ library used to build aktualizr, you can customize every step of the installation process.
 +
-To prove you with some inspiration, we've created a demo app that integrates libaktualizr, along with a Yocto layer to integrate it.
+To prove you with some inspiration, we've created a very simple demo app that integrates libaktualizr, along with a Yocto layer to build it into your test board.
 
 //  end::integrate-steps[]
 
@@ -76,12 +72,9 @@ To prove you with some inspiration, we've created a demo app that integrates lib
 
 * *Set up full device-credential provisioning for your devices*
 +
-At this point you should have your own fleet root certificate which you register with the OTA Connect server under your production login.
+At this point you should have a solid understanding of the provisioning process. For production, you should generate your own root of trust for your vehicle fleet, and set up an infrastructure for signing vehicle certificates.
 +
-You should ideally have an automated process to sign your device certificates and install them on your disk images before they flashed to the target boards.
-+
-You should also have an automated build process to build OTA-enabled images that also have device-credential provisioning enabled.
-
+Ideally, you should also be using a TPM or other hardware security module for generation and storage of private keys on the vehicle, and have the HSM integrated with libaktualizr for vehicle registration/provisioning.
 
 * *Create offline keys for production to sign software metadata*
 +
@@ -90,11 +83,20 @@ This step is not that different from the equivalent step during the integration 
 ** During the integration phase, you generated a set of private keys with your *development* credentials.
 ** This time, you should generate another set with your *production* credentials.
 +
-You should keep these keys on a secure storage medium such as a link:https://www.yubico.com/[YubiKey]. You would only plugin your YubiKey when you need to sign metadata on your local computer.
+You should keep each of these keys on a secure storage medium such as a link:https://www.yubico.com/[YubiKey]. There are three different types of key, each used for a different role, and each role can be configured to require a certain threshold of keys.
+* One role is for signing software metadata, marking it as valid for distribution.
+* One role acts as the root of trust for the main software repository.
+* One role acts as the root of trust for telling vehicles exactly what software they should install, and when.
++
+For each role, you only need to get the key out of storage when the role has to act. That means the first key is only used when new software is released to production, and the two root-of-trust keys are only used in case of a breach, or to revoke a signing key that may have been lost or stolen.
 
 * *Integrate libaktualizr with the client software on your board*
 +
-Once you understand how to the libaktualizr demo application works, you'll want to build a fully-functional integration with your board's software.
+Once you understand how to the libaktualizr demo application works, you'll want to build a fully-functional integration with your board's software and the other ECUs in the vehicle, if desired. Some examples of things you can do:
+* Hook into an HMI system to ask for user confirmation before installing an update
+* Check for safety conditions in the vehicle before starting an update
+* Only download large updates when the vehicle is connected to WiFi, or at off-peak times
+* Pass an update for a secondary ECU off to a custom UDS flashing tool
 
 * *Build and cross-deploy your disk images to your production account*
 +
