@@ -70,7 +70,22 @@ Uptane has a fork of aktualizr in link:https://github.com/uptane/aktualizr[their
 
 == Update the homebrew recipe for aktualizr
 
-Homebrew should be updated with the same version of aktualizr used to make the new release.
+The https://github.com/advancedtelematic/homebrew-otaconnect/blob/master/aktualizr.rb[homebrew aktualizr recipe] should be updated with the new release. You'll need a mac, with homebrew installed, to do this.
+
+. Edit the recipe on your local system with `brew edit aktualizr`, and replace the old version tag with the new one.
+. Build it with `brew reinstall --build-from-source --build-bottle aktualizr`. This will create a bottle file named `+aktualizr--VERSION.mojave.bottle.tar.gz+`, and output a block of Ruby code that looks something like this:
++
+----
+  bottle do
+    cellar :any
+    sha256 "391bc242685d86fd4fc69d90d98e10a464e6feebca943d3f48f848615c898085" => :mojave
+  end
+----
+. Rename the file, removing one of the dashes (i.e. `+mv aktualizr--2019.6.mojave.bottle.tar.gz aktualizr-2019.6.mojave.bottle.tar.gz+`). I don't know why the generated filename is always wrong, but it is.
+. Add the renamed bottle file as an artifact to the release on the https://github.com/advancedtelematic/aktualizr/releases[aktualizr releases page].
+. Replace the `bottle do` block in your local recipe with the generated block from step 2, and add the appropriate `root_url` directive.
+. Test the recipe locally, including installing from the bottle: `brew reinstall --force-bottle aktualizr`.
+. Open a PR on the https://github.com/advancedtelematic/homebrew-otaconnect[homebrew-otaconnect] repo to update the recipe with all your changes.
 
 == Test the released Debian packages
 
