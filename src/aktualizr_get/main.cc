@@ -1,7 +1,6 @@
 #include <unistd.h>
 #include <iostream>
 
-#include <openssl/ssl.h>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
@@ -59,10 +58,6 @@ int main(int argc, char *argv[]) {
   int r = EXIT_FAILURE;
   try {
     Config config(commandline_map);
-    if (config.logger.loglevel <= boost::log::trivial::debug) {
-      SSL_load_error_strings();
-    }
-
     std::string body = aktualizrGet(config, commandline_map["url"].as<std::string>());
     std::cout << body;
 

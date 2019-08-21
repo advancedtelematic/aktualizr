@@ -1,6 +1,5 @@
 #include <iostream>
 
-#include <openssl/ssl.h>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ini_parser.hpp>
@@ -113,9 +112,6 @@ int main(int argc, char *argv[]) {
                      "should be run as root for proper functionality.\033[0m\n";
     }
     Config config(commandline_map);
-    if (config.logger.loglevel <= boost::log::trivial::debug) {
-      SSL_load_error_strings();
-    }
     LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
 
     Aktualizr aktualizr(config);

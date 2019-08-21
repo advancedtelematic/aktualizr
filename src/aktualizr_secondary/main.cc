@@ -4,8 +4,6 @@
 #include <memory>
 #include <thread>
 
-#include <openssl/ssl.h>
-
 #include "aktualizr_secondary.h"
 #include "aktualizr_secondary_config.h"
 #include "utilities/aktualizr_version.h"
@@ -85,9 +83,6 @@ int main(int argc, char *argv[]) {
   int ret = EXIT_SUCCESS;
   try {
     AktualizrSecondaryConfig config(commandline_map);
-    if (config.logger.loglevel <= boost::log::trivial::debug) {
-      SSL_load_error_strings();
-    }
     LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
 
     // storage (share class with primary)
