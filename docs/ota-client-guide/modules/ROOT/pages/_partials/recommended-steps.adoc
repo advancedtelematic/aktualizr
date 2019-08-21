@@ -50,7 +50,7 @@ The term *device-credential provisioning* refers to the process of installing or
 +
 Although it's convenient to use shared-credential provisioning so that the OTA Connect server manages the whole process, using shared-credential provisioning means that a private key gets transmitted from the OTA Connect server to each vehicle. For automotive-grade security, most large fleet owners will want to use a TPM or other type of hardware security module, so that the vehicle's private key material never has to exist outside of the vehicle.
 +
-In the initial integration phase you might not have the TPM/HSM ready to use, but you can still start using device-credential provisioning, using a self-signed certificate and loading signed device certificates onto your test devices using our tooling and instructions.
+In the initial integration phase, if you do not have the TPM/HSM ready to use, you can still start using device-credential provisioning by using a self-signed certificate and loading signed device certificates onto your test devices using our tooling and instructions.
 
 * *Use offline keys to sign software metadata*
 +
@@ -64,7 +64,7 @@ For the integration phase, it's fine if you keep these keys on your development 
 +
 Most production use cases will have unique requirements that aren't met by the stock aktualizr app. With libaktualizr, the C++ library used to build aktualizr, you can customize every step of the installation process.
 +
-To prove you with some inspiration, we've created a very simple demo app that integrates libaktualizr, along with a Yocto layer to build it into your test board.
+To provide you with some inspiration, we've created a very simple demo app that integrates libaktualizr, along with a Yocto layer to build it into your test board.
 
 //  end::integrate-steps[]
 
@@ -92,7 +92,7 @@ For each role, you only need to get the key out of storage when the role has to 
 
 * *Integrate libaktualizr with the client software on your board*
 +
-Once you understand how to the libaktualizr demo application works, you'll want to build a fully-functional integration with your board's software and the other ECUs in the vehicle, if desired. Some examples of things you can do:
+Once you understand how the libaktualizr demo application works, you'll want to build a fully-functional integration with your board's software and the other ECUs in the vehicle, if desired. Some examples of things you can do:
 * Hook into an HMI system to ask for user confirmation before installing an update
 * Check for safety conditions in the vehicle before starting an update
 * Only download large updates when the vehicle is connected to WiFi, or at off-peak times
