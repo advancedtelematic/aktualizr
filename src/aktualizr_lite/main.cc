@@ -1,7 +1,6 @@
 #include <unistd.h>
 #include <iostream>
 
-#include <openssl/ssl.h>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -305,9 +304,6 @@ int main(int argc, char *argv[]) {
 
     Config config(commandline_map);
     config.storage.uptane_metadata_path = BasedPath(config.storage.path / "metadata");
-    if (config.logger.loglevel <= boost::log::trivial::debug) {
-      SSL_load_error_strings();
-    }
     LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
 
     std::string cmd = commandline_map["command"].as<std::string>();

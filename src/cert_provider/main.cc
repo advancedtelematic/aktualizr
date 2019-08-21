@@ -8,7 +8,6 @@
 #include <boost/program_options.hpp>
 #include <utility>
 
-#include <openssl/ssl.h>
 #include "json/json.h"
 
 #include "bootstrap/bootstrap.h"
@@ -340,7 +339,6 @@ int main(int argc, char* argv[]) {
   int exit_code = EXIT_FAILURE;
 
   logger_init();
-  SSL_load_error_strings();
   logger_set_threshold(static_cast<boost::log::trivial::severity_level>(2));
 
   try {
@@ -575,6 +573,5 @@ int main(int argc, char* argv[]) {
     exit_code = EXIT_FAILURE;
   }
 
-  ERR_free_strings();
   return exit_code;
 }
