@@ -19,15 +19,15 @@ If you prefer to simulate an OTA-enabled device without building a disk image, y
 
 * *Set up different user logins*
 +
-In OTA Connect, all devices and software belong to one *user* login. However, you don't want to mix up test software and production software by creating them all under the same user.
+In OTA Connect, each user account gets its own personal software repositories and device inventory. However, you don't want to mix up test software and production software by putting all of your builds and devices on the same account.
 +
-In a proper production workflow, you'll need separate user logins to manage the different stages:
+A better strategy for production is to create separate user logins to manage the different stages. For example, you might want a three-step process:
 +
 . A developer user such as "dev@acme.com".
-. A QA user such as ""qa@acme.com"".
-. A production user such as "prod@acme.com"".
+. A QA user such as "qa@acme.com".
+. A production user such as "prod@acme.com".
 +
-These logins provide you with a convenient way of clearly separating your development, QA and production resources.
+These logins provide you with a way of clearly separating your development, QA and production resources.
 
 ////
 COMMENTING OUT UNTIL ORGANIZATIONS STOPS BEING "ALPHA"
@@ -44,27 +44,31 @@ In a proper production workflow, you'll need separate organizations to manage th
 A user can belong to multiple organizations, and it's easy to switch between them. This provides you with a convenient way of separating your development, QA and production resources.
 ////
 
-* *Simulate device-credential provisioning for your devices*
+* *Start using device-credential provisioning for your devices*
 +
-The term *device-credential provisioning* refers to the process of installing device certificates yourself rather than having the OTA Connect server install them automatically.
+The term *device-credential provisioning* refers to the process of installing or generating a unique X.509 certificate on each device _before_ adding it to your OTA Connect account, instead of having OTA Connect generate the certificate for each device after it registers.
 +
-Although it's convenient to have the OTA Connect server manage this process, the consequences of a security breach are much more severe. If an attacker compromises the OTA Connect server, they can provision their own devices and block your devices.
+Although it's convenient to use shared-credential provisioning so that the OTA Connect server manages the whole process, using shared-credential provisioning means that a private key gets transmitted from the OTA Connect server to each vehicle. For automotive-grade security, most large fleet owners will want to use a TPM or other type of hardware security module, so that the vehicle's private key material never has to exist outside of the vehicle.
 +
-To install your own device certificates, you need a fleet root certificate and private key to sign them. Installation can be tricky, so we've provided some instructions on how to generate your own self-sign certificate and simulate device-credential provisioning for testing.
+In the initial integration phase you might not have the TPM/HSM ready to use, but you can still start using device-credential provisioning, using a self-signed certificate and loading signed device certificates onto your test devices using our tooling and instructions.
 
 * *Use offline keys to sign software metadata*
 +
-In the evaluation stage, the OTA Connect server also takes care of signing the metadata for your software updates. Devices verify the signatures on this metadata before they install any updates. 
+Strong, automotive-grade security using Uptane is one of the most important parts of OTA Connect. Uptane achieves its security benefits by using multiple different, interdependent roles and repositories to sign software, establish trust, and ensure other important security properties. For a truly secure Uptane deployment, the keys that are used to sign metadata should be kept offline--for example, on a hardware security module like a Yubikey. To save you from the difficulties and complications of managing offline keys, new OTA Connect accounts start off by using online signing keys kept in secure storagefootnote::[Using HashiCorp's https://www.vaultproject.io/[Vault], an industry-standard best practice.]. When you upload software and disk images to OTA Connect, the server generates and signs the associated metadata for you.
 +
-However, if an attacker infiltrates the OTA Connect server, they'll be able to sign metadata for malicious software and have it installed on your devices. Such a breach could have potentially dire consequences.
+During the integration phase, you should take the signing keys offline and rotate them. This puts you in complete control over your fleet's security--even if an attacker somehow compromised the entire OTA Connect infrastructure, they still wouldn't be able to install their software on your vehicles.
 +
-This is why you want to remove the most important private keys from the server and take them offline. For the integration phase, it's fine if you keep these keys on your development computer and sign the metadata locally before uploading the metadata to the OTA Connect server. Later, you'll want to keep these keys somewhere more secure.
+For the integration phase, it's fine if you keep these keys on your development computer. Later, you'll want to keep these keys somewhere more secure.
 
-* *Try the libaktualizr demo app and build recipe*
+* *Start customizing the update client*
 +
-When you move to production, you'll want to integrate OTA functionality into your board's native software. This is more efficient than sending commands to our standalone aktualizr client.
+Most production use cases will have unique requirements that aren't met by the stock aktualizr app. With libaktualizr, the C++ library used to build aktualizr, you can customize every step of the installation process. Some examples of what you can do:
+* Hook into an HMI system to ask for user confirmation before installing an update
+* Check for safety conditions in the vehicle before starting an update
+* Only download large updates when the vehicle is connected to WiFi, or at off-peak times
+* Pass an update for a secondary ECU off to a custom UDS flashing tool
 +
-You can use our libaktualizr C++ library to integration all same functionality that standalone aktualizr provides. To prove you with some inspiration, we've created a demo app that integrates libaktualizr. We've also included a build recipe. You can use it to build a disk image that contains the demo app.
+To prove you with some inspiration, we've created a demo app that integrates libaktualizr, along with a Yocto layer to integrate it.
 
 //  end::integrate-steps[]
 
@@ -72,7 +76,7 @@ You can use our libaktualizr C++ library to integration all same functionality t
 
 * *Set up full device-credential provisioning for your devices*
 +
-At this point you should have your own fleet root certificate which you register with the OTA COnnect server under your production login.
+At this point you should have your own fleet root certificate which you register with the OTA Connect server under your production login.
 +
 You should ideally have an automated process to sign your device certificates and install them on your disk images before they flashed to the target boards.
 +
