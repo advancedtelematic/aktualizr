@@ -67,23 +67,14 @@ ifndef::env-github[:pageroot:]
 .Deploy your OTA-enabled solution
 * xref:{pageroot}deploy-checklist.adoc[Deploying to Production]
 
-
 .How to
 * xref:{pageroot}cross-deploy-images.adoc[Transfer software to another repository]
-* xref:{pageroot}simulate-device-cred-provtest.adoc[Simulate device credentials]
 * xref:{pageroot}enable-shared-cred-provisioning.adoc[Configure devices to use shared-credential provisioning]
 * xref:{pageroot}how-can-i-check-which-ostree-version-is-installed.adoc[Check which OSTree commit is deployed]
 * xref:{pageroot}use-your-own-deviceid.adoc[Configure your own device IDs]
 * xref:{pageroot}build-only-ostree.adoc[Build only the OSTree part]
-
-// Dev-authored topics
-* xref:{pageroot}posix-secondaries-bitbaking.adoc[Simulate a Primary and Secondary ECU]
-** xref:{pageroot}posix-secondaries.adoc[Configuration and emulation on a local host]
-* xref:{pageroot}fault-injection.adoc[Simulate installation failures for testing]
 * xref:{pageroot}rollback.adoc[Set up rollback behavior]
 * xref:{pageroot}deb-package-install.adoc[Install the client from a deb package]
-* xref:{pageroot}uptane-generator.adoc[Simulate Uptane metadata transactions]
-//----
 
 .Reference
 // MC: Do in second iteration: * xref:{pageroot}otaconnect-identifiers.adoc[Identifiers]
@@ -92,6 +83,13 @@ ifndef::env-github[:pageroot:]
 * xref:{pageroot}provisioning-methods-and-credentialszip.adoc[Contents of the credentials file]
 * xref:{pageroot}useful-bitbake-commands.adoc[Bitbake commands]
 * xref:{pageroot}ostree-usage.adoc[OSTree commands]
+
+.Test and simulate OTA functions
+* xref:{pageroot}simulate-device-cred-provtest.adoc[Simulate device credentials]
+* xref:{pageroot}posix-secondaries-bitbaking.adoc[Simulate a Primary and Secondary ECU]
+** xref:{pageroot}posix-secondaries.adoc[Configuration and emulation on a local host]
+* xref:{pageroot}fault-injection.adoc[Simulate installation failures for testing]
+* xref:{pageroot}uptane-generator.adoc[Simulate Uptane metadata transactions]
 
 .Troubleshooting
 * xref:{pageroot}troubleshooting.adoc[Troubleshooting]
