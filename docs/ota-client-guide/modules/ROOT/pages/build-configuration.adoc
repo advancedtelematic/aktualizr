@@ -1,0 +1,4 @@
+include::dev@ota-build:ROOT:page$sota-variables.adoc[]
+
+// MC: Included from: meta-updater/docs/modules/ROOT/pages/sota-variables.adoc
+

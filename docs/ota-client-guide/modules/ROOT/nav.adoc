@@ -80,7 +80,8 @@ ifndef::env-github[:pageroot:]
 
 .Reference
 // MC: Do in second iteration: * xref:{pageroot}otaconnect-identifiers.adoc[Identifiers]
-* xref:{pageroot}aktualizr-config-options.adoc[Configuration Options]
+* xref:{pageroot}aktualizr-config-options.adoc[Client Configuration Options]
+* xref:{pageroot}build-configuration.adoc[Build Configuration Options]
 * xref:{pageroot}aktualizr-runningmodes-finegrained-commandline-control.adoc[Client Commands]
 * xref:{pageroot}provisioning-methods-and-credentialszip.adoc[Contents of the credentials file]
 * xref:{pageroot}useful-bitbake-commands.adoc[Bitbake commands]
