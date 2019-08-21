@@ -78,6 +78,7 @@ class SotaUptaneClient {
   FRIEND_TEST(Aktualizr, AutoRebootAfterUpdate);
   FRIEND_TEST(Aktualizr, EmptyTargets);
   FRIEND_TEST(Aktualizr, FullOstreeUpdate);
+  FRIEND_TEST(Aktualizr, DownloadNonOstreeBin);
   FRIEND_TEST(DockerAppManager, DockerApp_Fetch);
   FRIEND_TEST(Uptane, AssembleManifestGood);
   FRIEND_TEST(Uptane, AssembleManifestBad);
