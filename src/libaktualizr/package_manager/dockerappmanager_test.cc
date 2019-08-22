@@ -73,7 +73,7 @@ TEST(DockerAppManager, DockerApp_Fetch) {
   config.pacman.docker_apps.push_back("app1");
   config.pacman.docker_app_bin = config.pacman.docker_compose_bin = "src/libaktualizr/package_manager/docker_fake.sh";
   config.pacman.ostree_server = treehub_server;
-  config.uptane.repo_server = repo_server + "/repo/image";
+  config.uptane.repo_server = repo_server + "/repo/repo";
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
 
@@ -83,7 +83,7 @@ TEST(DockerAppManager, DockerApp_Fetch) {
   auto client = newTestClient(config, storage, http, nullptr);
   ASSERT_TRUE(client->updateImagesMeta());
 
-  std::string targets = Utils::readFile(repo / "repo/image/targets.json");
+  std::string targets = Utils::readFile(repo / "repo/repo/targets.json");
   LOG_INFO << "Repo targets " << targets;
 
   bool result = client->package_manager_->fetchTarget(target, *(client->uptane_fetcher), keys, progress_cb, nullptr);

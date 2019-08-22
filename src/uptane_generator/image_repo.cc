@@ -2,7 +2,7 @@
 
 void ImageRepo::addImage(const std::string &name, Json::Value &target, const std::string &hardware_id,
                          const Delegation &delegation) {
-  boost::filesystem::path repo_dir(path_ / "repo/image");
+  boost::filesystem::path repo_dir(path_ / ImageRepo::dir);
 
   boost::filesystem::path targets_path =
       delegation ? ((repo_dir / "delegations") / delegation.name).string() + ".json" : repo_dir / "targets.json";
@@ -20,7 +20,7 @@ void ImageRepo::addImage(const std::string &name, Json::Value &target, const std
 
 void ImageRepo::addBinaryImage(const boost::filesystem::path &image_path, const boost::filesystem::path &targetname,
                                const std::string &hardware_id, const std::string &url, const Delegation &delegation) {
-  boost::filesystem::path repo_dir(path_ / "repo/image");
+  boost::filesystem::path repo_dir(path_ / ImageRepo::dir);
   boost::filesystem::path targets_path = repo_dir / "targets";
 
   auto targetname_dir = targetname.parent_path();
@@ -67,7 +67,7 @@ void ImageRepo::addDelegation(const Uptane::Role &name, const Uptane::Role &pare
     throw std::runtime_error("Delegation name " + name.ToString() + " is reserved.");
   }
 
-  boost::filesystem::path repo_dir(path_ / "repo/image");
+  boost::filesystem::path repo_dir(path_ / ImageRepo::dir);
 
   boost::filesystem::path parent_path(repo_dir);
   if (parent_role.IsDelegation()) {
@@ -108,7 +108,7 @@ void ImageRepo::addDelegation(const Uptane::Role &name, const Uptane::Role &pare
 }
 
 void ImageRepo::removeDelegationRecursive(const Uptane::Role &name, const Uptane::Role &parent_name) {
-  boost::filesystem::path repo_dir(path_ / "repo/image");
+  boost::filesystem::path repo_dir(path_ / ImageRepo::dir);
   if (parent_name.IsDelegation()) {
     repo_dir = repo_dir / "delegations";
   }
@@ -142,7 +142,7 @@ void ImageRepo::revokeDelegation(const Uptane::Role &name) {
   boost::filesystem::path keys_dir = path_ / ("keys/image/" + name.ToString());
   boost::filesystem::remove_all(keys_dir);
 
-  boost::filesystem::path repo_dir(path_ / "repo/image");
+  boost::filesystem::path repo_dir(path_ / ImageRepo::dir);
 
   boost::filesystem::remove(repo_dir / "delegations" / (name.ToString() + ".json"));
 
@@ -152,7 +152,7 @@ void ImageRepo::revokeDelegation(const Uptane::Role &name) {
 
 std::vector<std::string> ImageRepo::getDelegationTargets(const Uptane::Role &name) {
   std::vector<std::string> result;
-  boost::filesystem::path repo_dir(path_ / "repo/image");
+  boost::filesystem::path repo_dir(path_ / ImageRepo::dir);
   auto targets = Utils::parseJSONFile((repo_dir / "delegations") / (name.ToString() + ".json"))["signed"]["targets"];
   for (Json::ValueIterator it = targets.begin(); it != targets.end(); ++it) {
     result.push_back(it.key().asString());

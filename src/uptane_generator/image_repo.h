@@ -17,6 +17,8 @@ class ImageRepo : public Repo {
   void revokeDelegation(const Uptane::Role &name);
   std::vector<std::string> getDelegationTargets(const Uptane::Role &name);
 
+  static constexpr const char *dir{"repo/image"};
+
  private:
   void addImage(const std::string &name, Json::Value &target, const std::string &hardware_id,
                 const Delegation &delegation = {});

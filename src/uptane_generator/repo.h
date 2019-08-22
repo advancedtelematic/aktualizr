@@ -18,22 +18,7 @@ struct KeyPair {
 
 struct Delegation {
   Delegation() = default;
-  Delegation(const boost::filesystem::path &repo_path, std::string delegation_name) : name(std::move(delegation_name)) {
-    if (Uptane::Role::IsReserved(name)) {
-      throw std::runtime_error("Delegation name " + name + " is reserved.");
-    }
-    boost::filesystem::path delegation_path(((repo_path / "repo/image/delegations") / name).string() + ".json");
-    boost::filesystem::path targets_path(repo_path / "repo/image/targets.json");
-    if (!boost::filesystem::exists(delegation_path) || !boost::filesystem::exists(targets_path)) {
-      throw std::runtime_error(std::string("delegation ") + delegation_path.string() + " does not exist");
-    }
-
-    pattern = findPatternInTree(repo_path, name, Utils::parseJSONFile(targets_path)["signed"]);
-
-    if (pattern.empty()) {
-      throw std::runtime_error("Could not find delegation role in the delegation tree");
-    }
-  }
+  Delegation(const boost::filesystem::path &repo_path, std::string delegation_name);
   bool isMatched(const boost::filesystem::path &image_path) {
     return (fnmatch(pattern.c_str(), image_path.c_str(), 0) == 0);
   }
@@ -62,6 +47,7 @@ class Repo {
   void updateRepo();
   Uptane::RepositoryType repo_type_;
   boost::filesystem::path path_;
+  boost::filesystem::path repo_dir_;
   std::string correlation_id_;
   std::string expiration_time_;
   std::map<Uptane::Role, KeyPair> keys_;

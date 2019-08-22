@@ -3,6 +3,8 @@
 #include "crypto/crypto.h"
 #include "logging/logging.h"
 
+#include "director_repo.h"
+#include "image_repo.h"
 #include "repo.h"
 
 Repo::Repo(Uptane::RepositoryType repo_type, boost::filesystem::path path, const std::string &expires,
@@ -14,10 +16,16 @@ Repo::Repo(Uptane::RepositoryType repo_type, boost::filesystem::path path, const
       readKeys();
     }
   }
+
+  if (repo_type == Uptane::RepositoryType("director")) {
+    repo_dir_ = path_ / DirectorRepo::dir;
+  } else if (repo_type == Uptane::RepositoryType("image")) {
+    repo_dir_ = path_ / ImageRepo::dir;
+  }
 }
 
 void Repo::addDelegationToSnapshot(Json::Value *snapshot, const Uptane::Role &role) {
-  boost::filesystem::path repo_dir(path_ / "repo" / repo_type_.toString());
+  boost::filesystem::path repo_dir = repo_dir_;
   if (role.IsDelegation()) {
     repo_dir = repo_dir / "delegations";
   }
@@ -38,7 +46,7 @@ void Repo::addDelegationToSnapshot(Json::Value *snapshot, const Uptane::Role &ro
 }
 
 void Repo::updateRepo() {
-  boost::filesystem::path repo_dir(path_ / "repo" / repo_type_.toString());
+  boost::filesystem::path repo_dir = repo_dir_;
   Json::Value old_snapshot = Utils::parseJSONFile(repo_dir / "snapshot.json")["signed"];
 
   Json::Value snapshot;
@@ -142,8 +150,7 @@ void Repo::generateRepoKeys(KeyType key_type) {
 void Repo::generateRepo(KeyType key_type) {
   generateRepoKeys(key_type);
 
-  boost::filesystem::path repo_dir(path_ / ("repo/" + repo_type_.toString()));
-  boost::filesystem::create_directories(repo_dir);
+  boost::filesystem::create_directories(repo_dir_);
   Json::Value root;
   root["_type"] = "Root";
   root["expires"] = expiration_time_;
@@ -171,8 +178,8 @@ void Repo::generateRepo(KeyType key_type) {
   root["roles"]["timestamp"] = role;
 
   std::string signed_root = Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Root(), root));
-  Utils::writeFile(repo_dir / "root.json", signed_root);
-  Utils::writeFile(repo_dir / "1.root.json", signed_root);
+  Utils::writeFile(repo_dir_ / "root.json", signed_root);
+  Utils::writeFile(repo_dir_ / "1.root.json", signed_root);
 
   Json::Value targets;
   targets["_type"] = "Targets";
@@ -183,7 +190,7 @@ void Repo::generateRepo(KeyType key_type) {
     targets["custom"]["correlationId"] = correlation_id_;
   }
   std::string signed_targets = Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Targets(), targets));
-  Utils::writeFile(repo_dir / "targets.json", signed_targets);
+  Utils::writeFile(repo_dir_ / "targets.json", signed_targets);
 
   Json::Value snapshot;
   snapshot["_type"] = "Snapshot";
@@ -197,7 +204,7 @@ void Repo::generateRepo(KeyType key_type) {
   snapshot["meta"]["root.json"]["version"] = 1;
   snapshot["meta"]["targets.json"]["version"] = 1;
   std::string signed_snapshot = Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Snapshot(), snapshot));
-  Utils::writeFile(repo_dir / "snapshot.json", signed_snapshot);
+  Utils::writeFile(repo_dir_ / "snapshot.json", signed_snapshot);
 
   Json::Value timestamp;
   timestamp["_type"] = "Timestamp";
@@ -209,20 +216,19 @@ void Repo::generateRepo(KeyType key_type) {
       boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(signed_snapshot)));
   timestamp["meta"]["snapshot.json"]["length"] = static_cast<Json::UInt>(signed_snapshot.length());
   timestamp["meta"]["snapshot.json"]["version"] = 1;
-  Utils::writeFile(repo_dir / "timestamp.json",
+  Utils::writeFile(repo_dir_ / "timestamp.json",
                    Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Timestamp(), timestamp)));
   if (repo_type_ == Uptane::RepositoryType::Director()) {
-    Utils::writeFile(path_ / "repo/director/manifest", std::string());  // just empty file to work with put method
+    Utils::writeFile(path_ / DirectorRepo::dir / "manifest", std::string());  // just empty file to work with put method
   }
 }
 
 Json::Value Repo::getTarget(const std::string &target_name) {
-  const Json::Value image_targets =
-      Utils::parseJSONFile(path_ / "repo" / repo_type_.toString() / "targets.json")["signed"];
+  const Json::Value image_targets = Utils::parseJSONFile(repo_dir_ / "targets.json")["signed"];
   if (image_targets["targets"].isMember(target_name)) {
     return image_targets["targets"][target_name];
   } else if (repo_type_ == Uptane::RepositoryType::Image()) {
-    for (auto &p : boost::filesystem::directory_iterator(path_ / "repo" / repo_type_.toString() / "delegations")) {
+    for (auto &p : boost::filesystem::directory_iterator(repo_dir_ / "delegations")) {
       if (Uptane::Role::IsReserved(p.path().stem().string())) {
         continue;
       }
@@ -250,6 +256,24 @@ void Repo::readKeys() {
   }
 }
 
+Delegation::Delegation(const boost::filesystem::path &repo_path, std::string delegation_name)
+    : name(std::move(delegation_name)) {
+  if (Uptane::Role::IsReserved(name)) {
+    throw std::runtime_error("Delegation name " + name + " is reserved.");
+  }
+  boost::filesystem::path delegation_path(((repo_path / ImageRepo::dir / "delegations") / name).string() + ".json");
+  boost::filesystem::path targets_path(repo_path / ImageRepo::dir / "targets.json");
+  if (!boost::filesystem::exists(delegation_path) || !boost::filesystem::exists(targets_path)) {
+    throw std::runtime_error(std::string("delegation ") + delegation_path.string() + " does not exist");
+  }
+
+  pattern = findPatternInTree(repo_path, name, Utils::parseJSONFile(targets_path)["signed"]);
+
+  if (pattern.empty()) {
+    throw std::runtime_error("Could not find delegation role in the delegation tree");
+  }
+}
+
 std::string Delegation::findPatternInTree(const boost::filesystem::path &repo_path, const std::string &name,
                                           const Json::Value &targets_json) {
   Json::Value delegations = targets_json["delegations"];
@@ -264,7 +288,7 @@ std::string Delegation::findPatternInTree(const boost::filesystem::path &repo_pa
     } else {
       auto pattern = findPatternInTree(
           repo_path, name,
-          Utils::parseJSONFile((repo_path / "repo/image/delegations") / (role_name + ".json"))["signed"]);
+          Utils::parseJSONFile((repo_path / ImageRepo::dir / "delegations") / (role_name + ".json"))["signed"]);
       if (!pattern.empty()) {
         return pattern;
       }

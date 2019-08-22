@@ -31,8 +31,8 @@ void check_repo(boost::filesystem::path repo_dir) {
 }
 
 void check_repo(const TemporaryDirectory &temp_dir) {
-  check_repo(temp_dir.Path() / "repo/image");
-  check_repo(temp_dir.Path() / "repo/director");
+  check_repo(temp_dir.Path() / ImageRepo::dir);
+  check_repo(temp_dir.Path() / DirectorRepo::dir);
 }
 /*
  * Generate images and director repos.
@@ -41,15 +41,15 @@ TEST(uptane_generator, generate_repo) {
   TemporaryDirectory temp_dir;
   UptaneRepo repo(temp_dir.Path(), "", "correlation");
   repo.generateRepo(key_type);
-  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/director/root.json"));
-  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/director/1.root.json"));
-  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/director/targets.json"));
-  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/director/timestamp.json"));
-  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/image/root.json"));
-  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/image/1.root.json"));
-  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/image/targets.json"));
-  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/image/timestamp.json"));
-  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/director/manifest"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / DirectorRepo::dir / "root.json"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / DirectorRepo::dir / "1.root.json"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / DirectorRepo::dir / "targets.json"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / DirectorRepo::dir / "timestamp.json"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / ImageRepo::dir / "root.json"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / ImageRepo::dir / "1.root.json"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / ImageRepo::dir / "targets.json"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / ImageRepo::dir / "timestamp.json"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / DirectorRepo::dir / "manifest"));
 
   EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "keys/image/root/private.key"));
   EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "keys/image/root/public.key"));
@@ -90,9 +90,9 @@ TEST(uptane_generator, generate_repo) {
   };
   recursive_check(temp_dir.Path() / "keys");
 
-  Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
+  Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "targets.json");
   EXPECT_EQ(image_targets["signed"]["targets"].size(), 0);
-  Json::Value director_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/targets.json");
+  Json::Value director_targets = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "targets.json");
   EXPECT_EQ(director_targets["signed"]["targets"].size(), 0);
   EXPECT_EQ(director_targets["signed"]["custom"]["correlationId"], "correlation");
   check_repo(temp_dir);
@@ -105,11 +105,13 @@ TEST(uptane_generator, add_image) {
   TemporaryDirectory temp_dir;
   UptaneRepo repo(temp_dir.Path(), "", "");
   repo.generateRepo(key_type);
-  repo.addImage(temp_dir.Path() / "repo/director/manifest", "repo/director/manifest", "test-hw", "", {});
-  Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
+  repo.addImage(temp_dir.Path() / DirectorRepo::dir / "manifest", std::string(DirectorRepo::dir) + "/manifest",
+                "test-hw", "", {});
+  Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "targets.json");
   EXPECT_EQ(image_targets["signed"]["targets"].size(), 1);
-  EXPECT_FALSE(image_targets["signed"]["targets"]["repo/director/manifest"]["custom"].isMember("uri"));
-  Json::Value director_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/targets.json");
+  EXPECT_FALSE(
+      image_targets["signed"]["targets"][std::string(DirectorRepo::dir) + "/manifest"]["custom"].isMember("uri"));
+  Json::Value director_targets = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "targets.json");
   EXPECT_EQ(director_targets["signed"]["targets"].size(), 0);
   check_repo(temp_dir);
 }
@@ -121,13 +123,13 @@ TEST(uptane_generator, copy_image) {
   TemporaryDirectory temp_dir;
   UptaneRepo repo(temp_dir.Path(), "", "");
   repo.generateRepo(key_type);
-  repo.addImage(temp_dir.Path() / "repo/director/manifest", "manifest", "test-hw", "", {});
+  repo.addImage(temp_dir.Path() / DirectorRepo::dir / "manifest", "manifest", "test-hw", "", {});
   repo.addTarget("manifest", "test-hw", "test-serial", "");
   repo.signTargets();
-  Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
+  Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "targets.json");
   EXPECT_EQ(image_targets["signed"]["targets"].size(), 1);
   EXPECT_FALSE(image_targets["signed"]["targets"]["manifest"]["custom"].isMember("uri"));
-  Json::Value director_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/targets.json");
+  Json::Value director_targets = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "targets.json");
   EXPECT_EQ(director_targets["signed"]["targets"].size(), 1);
   EXPECT_FALSE(director_targets["signed"]["targets"]["manifest"]["custom"].isMember("uri"));
   check_repo(temp_dir);
@@ -140,13 +142,13 @@ TEST(uptane_generator, image_custom_url) {
   TemporaryDirectory temp_dir;
   UptaneRepo repo(temp_dir.Path(), "", "");
   repo.generateRepo(key_type);
-  repo.addImage(temp_dir.Path() / "repo/director/manifest", "manifest", "test-hw", "test-url", {});
+  repo.addImage(temp_dir.Path() / DirectorRepo::dir / "manifest", "manifest", "test-hw", "test-url", {});
   repo.addTarget("manifest", "test-hw", "test-serial", "");
   repo.signTargets();
-  Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
+  Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "targets.json");
   EXPECT_EQ(image_targets["signed"]["targets"].size(), 1);
   EXPECT_EQ(image_targets["signed"]["targets"]["manifest"]["custom"]["uri"], "test-url");
-  Json::Value director_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/targets.json");
+  Json::Value director_targets = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "targets.json");
   EXPECT_EQ(director_targets["signed"]["targets"].size(), 1);
   EXPECT_FALSE(director_targets["signed"]["targets"]["manifest"]["custom"].isMember("uri"));
   check_repo(temp_dir);
@@ -160,13 +162,13 @@ TEST(uptane_generator, both_custom_url) {
   TemporaryDirectory temp_dir;
   UptaneRepo repo(temp_dir.Path(), "", "");
   repo.generateRepo(key_type);
-  repo.addImage(temp_dir.Path() / "repo/director/manifest", "manifest", "test-hw", "test-url", {});
+  repo.addImage(temp_dir.Path() / DirectorRepo::dir / "manifest", "manifest", "test-hw", "test-url", {});
   repo.addTarget("manifest", "test-hw", "test-serial", "test-url2");
   repo.signTargets();
-  Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
+  Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "targets.json");
   EXPECT_EQ(image_targets["signed"]["targets"].size(), 1);
   EXPECT_EQ(image_targets["signed"]["targets"]["manifest"]["custom"]["uri"], "test-url");
-  Json::Value director_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/targets.json");
+  Json::Value director_targets = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "targets.json");
   EXPECT_EQ(director_targets["signed"]["targets"].size(), 1);
   EXPECT_EQ(director_targets["signed"]["targets"]["manifest"]["custom"]["uri"], "test-url2");
   check_repo(temp_dir);
@@ -193,8 +195,8 @@ TEST(uptane_generator, delegation) {
     FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
 
-  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/image/delegations/test_delegate.json"));
-  auto targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / ImageRepo::dir / "delegations/test_delegate.json"));
+  auto targets = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "targets.json");
   EXPECT_EQ(targets["signed"]["delegations"]["roles"][0]["name"].asString(), "test_delegate");
   EXPECT_EQ(targets["signed"]["delegations"]["roles"][0]["paths"][0].asString(), "tests/test_data/*.txt");
 
@@ -205,7 +207,7 @@ TEST(uptane_generator, delegation) {
     FAIL() << "'" << output << "' exited with error code " << retval << "\n";
   }
   {
-    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/delegations/test_delegate.json");
+    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "delegations/test_delegate.json");
     Uptane::Targets delegate_targets(test_delegate);
     EXPECT_EQ(delegate_targets.targets.size(), 1);
     EXPECT_EQ(delegate_targets.targets[0].filename(), "tests/test_data/firmware.txt");
@@ -221,7 +223,7 @@ TEST(uptane_generator, delegation) {
     FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
   {
-    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/delegations/test_delegate.json");
+    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "delegations/test_delegate.json");
     Uptane::Targets delegate_targets(test_delegate);
     EXPECT_EQ(delegate_targets.targets.size(), 2);
     EXPECT_EQ(delegate_targets.targets[1].filename(), "tests/test_data/firmware2.txt");
@@ -249,8 +251,8 @@ TEST(uptane_generator, delegation_revoke) {
     FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
 
-  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/image/delegations/test_delegate.json"));
-  auto targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / ImageRepo::dir / "delegations/test_delegate.json"));
+  auto targets = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "targets.json");
   EXPECT_EQ(targets["signed"]["delegations"]["roles"][0]["name"].asString(), "test_delegate");
   EXPECT_EQ(targets["signed"]["delegations"]["roles"][0]["paths"][0].asString(), "tests/test_data/*.txt");
 
@@ -261,7 +263,7 @@ TEST(uptane_generator, delegation_revoke) {
     FAIL() << "'" << output << "' exited with error code " << retval << "\n";
   }
   {
-    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/delegations/test_delegate.json");
+    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "delegations/test_delegate.json");
     Uptane::Targets delegate_targets(test_delegate);
     EXPECT_EQ(delegate_targets.targets.size(), 1);
     EXPECT_EQ(delegate_targets.targets[0].filename(), "tests/test_data/firmware.txt");
@@ -290,7 +292,7 @@ TEST(uptane_generator, delegation_revoke) {
     FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
   {
-    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / "repo/image/delegations/test_delegate.json");
+    auto test_delegate = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "delegations/test_delegate.json");
     Uptane::Targets delegate_targets(test_delegate);
     EXPECT_EQ(delegate_targets.targets.size(), 2);
     EXPECT_EQ(delegate_targets.targets[1].filename(), "tests/test_data/firmware2.txt");
@@ -299,7 +301,7 @@ TEST(uptane_generator, delegation_revoke) {
               "d8e9caba8c1697fcbade1057f9c2488044192ff76bb64d4aba2c20e53dc33033");
   }
   {
-    auto signed_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/targets.json");
+    auto signed_targets = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "targets.json");
     Uptane::Targets director_targets(signed_targets);
     EXPECT_EQ(director_targets.targets.size(), 1);
     EXPECT_EQ(director_targets.targets[0].filename(), "tests/test_data/firmware.txt");
@@ -315,12 +317,12 @@ TEST(uptane_generator, delegation_revoke) {
   if (retval) {
     FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
-  EXPECT_FALSE(boost::filesystem::exists(temp_dir.Path() / "repo/image/delegations/test_delegate.json"));
-  auto new_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
+  EXPECT_FALSE(boost::filesystem::exists(temp_dir.Path() / ImageRepo::dir / "delegations/test_delegate.json"));
+  auto new_targets = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "targets.json");
   EXPECT_EQ(new_targets["signed"]["delegations"]["keys"].size(), 0);
   EXPECT_EQ(new_targets["signed"]["delegations"]["roles"].size(), 0);
   EXPECT_EQ(new_targets["signed"]["version"].asUInt(), 3);
-  auto signed_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/targets.json");
+  auto signed_targets = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "targets.json");
   Uptane::Targets director_targets(signed_targets);
   EXPECT_EQ(director_targets.targets.size(), 0);
 }
@@ -349,7 +351,7 @@ TEST(uptane_generator, sign) {
   }
   auto json = Utils::parseJSON(output);
   Uptane::Root root(Uptane::RepositoryType::Director(),
-                    Utils::parseJSONFile(temp_dir.Path() / "repo/director/root.json"));
+                    Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "root.json"));
   root.UnpackSignedObject(Uptane::RepositoryType::Director(), Uptane::Role::Snapshot(), json);
   EXPECT_NO_THROW(root.UnpackSignedObject(Uptane::RepositoryType::Director(), Uptane::Role::Snapshot(), json));
   check_repo(temp_dir);
@@ -376,7 +378,7 @@ TEST(uptane_generator, image_custom) {
     FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
 
-  Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
+  Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "targets.json");
   EXPECT_EQ(image_targets["signed"]["targets"].size(), 1);
   EXPECT_EQ(image_targets["signed"]["targets"]["target1"]["length"].asUInt(), 123);
   EXPECT_FALSE(image_targets["signed"]["targets"]["target1"]["custom"].isMember("uri"));
@@ -411,7 +413,7 @@ TEST(uptane_generator, emptytargets) {
     FAIL() << "'" << cmd << "' exited with error code " << retval << "\n";
   }
 
-  Json::Value targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/staging/targets.json");
+  Json::Value targets = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "staging/targets.json");
   EXPECT_EQ(targets["targets"].size(), 1);
   EXPECT_EQ(targets["targets"]["target1"]["length"].asUInt(), 123);
   EXPECT_EQ(targets["targets"]["target1"]["hashes"]["sha256"].asString(),
@@ -424,7 +426,7 @@ TEST(uptane_generator, emptytargets) {
            << "output: " << output;
   }
 
-  Json::Value empty_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/staging/targets.json");
+  Json::Value empty_targets = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "staging/targets.json");
   EXPECT_EQ(empty_targets["targets"].size(), 0);
   check_repo(temp_dir);
 }
@@ -443,7 +445,7 @@ TEST(uptane_generator, oldtargets) {
   repo.signTargets();
   repo.addTarget("target2", "test-hw", "test-serial", "");
 
-  Json::Value targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/staging/targets.json");
+  Json::Value targets = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "staging/targets.json");
   EXPECT_EQ(targets["targets"].size(), 2);
   EXPECT_EQ(targets["targets"]["target1"]["length"].asUInt(), 123);
   EXPECT_EQ(targets["targets"]["target1"]["hashes"]["sha256"].asString(),
@@ -452,7 +454,7 @@ TEST(uptane_generator, oldtargets) {
   EXPECT_EQ(targets["targets"]["target2"]["hashes"]["sha256"].asString(),
             "8AB755C16DE6EE9B6224169B36CBF0F2A545F859BE385501AD82CDCCC240D0A6");
 
-  Json::Value targets_current = Utils::parseJSONFile(temp_dir.Path() / "repo/director/targets.json");
+  Json::Value targets_current = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "targets.json");
   EXPECT_EQ(targets_current["signed"]["targets"].size(), 1);
   EXPECT_EQ(targets_current["signed"]["targets"]["target1"]["length"].asUInt(), 123);
   EXPECT_EQ(targets_current["signed"]["targets"]["target1"]["hashes"]["sha256"].asString(),
@@ -465,7 +467,7 @@ TEST(uptane_generator, oldtargets) {
     FAIL() << "'" << cmd << "' exited with error code " << retval << "\n"
            << "output: " << output;
   }
-  targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/staging/targets.json");
+  targets = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "staging/targets.json");
   EXPECT_EQ(targets["targets"].size(), 1);
   EXPECT_EQ(targets["targets"]["target1"]["length"].asUInt(), 123);
   EXPECT_EQ(targets["targets"]["target1"]["hashes"]["sha256"].asString(),
