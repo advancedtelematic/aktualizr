@@ -1,4 +1,5 @@
 = Software management
+:page-partial:
 
 When you develop software updates for OTA deployment, it's important to understand the two different ways in which you can get software into OTA Connect.
 
@@ -9,16 +10,18 @@ In general, in a vehicle, we have dozens of individual ECUs, with varying capabi
 Broadly speaking, there are two types of software image that you can upload to your personal software repository on OTA Connect:
 
 * For Linux-based ECUs, we provide a way to build and deploy full filesystem images. That's what you get if you follow any of our quick start guides--you build a complete Linux system with Yocto, and the disk image you build gets uploaded automatically as part of the build process.
-* For all other ECUs, you can upload any other type of image. OTA Connect will secure and deliver it, regardless of the file format.
+* For all other ECUs, you can upload a file in whatever format the ECU expects. OTA Connect will secure and deliver it, regardless of the file format. You can use libaktualizr to interface with a library that does the actual work of flashing the image to the device.
 
 Here's a summary of how each type of image is added:
 
-== Uploading Linux images with Yocto and meta-updater
+== Uploading Linux images
 
 When you build a disk image for your embedded device, you normally get a file, like a WIC or ISO file, that you can flash onto the device's memory. When you add our tooling (via the meta-updater Yocto layer) to your build process, you will also automatically create an OSTree repository, add the full filesystem to the repository, and upload it automatically to your OTA Connect account.
 
-== Uploading other types of image
+== Uploading other image files
 
 OTA Connect is also designed to enable secure updates to secondary ECUs. This can, of course, include non-Linux systems, and even tiny microcontrollers with no operating system. For these devices, obviously, a filesystem image doesn't make sense. That's why you can xref:dev@ota-web::upload-software-ui.adoc[upload software packages for this type of ECU directly in the OTA Connect portal]. When you do, you'll specify exactly which type of ECU the software is for, to make sure you don't send the wrong type of image.
 
-Even though this functionality was developed for delivering firmware to secondary ECUs, you can use it to send other kinds of updates as well, even for a single device. For example, you might have a data partition, software packages, or apps that you want to send updates to independently from the base system.
+=== Using the file upload for things that aren't ECUs
+
+Even though this functionality was developed for delivering firmware to secondary ECUs, you can use it to send other kinds of updates as well, even for a single device. For example, you might have a data partition, software packages, or apps that you want to send updates to independently from the base system. Or, you might want to create a virtual secondary for testing, and have it just drop the file you uploaded somewhere on the filesystem.
