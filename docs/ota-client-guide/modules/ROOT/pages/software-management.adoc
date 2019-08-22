@@ -1,48 +1,27 @@
 = Software management
+:page-partial:
 
-When you develop software updates for OTA deployment, it's important to understand the different ways in which you can get software into OTA Connect.
+When you develop software updates for OTA deployment, it's important to understand the two different ways in which you can get software into OTA Connect.
 
-You can upload any file format you want to OTA Connect, but generally OTA Connect is designed to work with *disk images*. 
+OTA Connect is designed for delivering firmware and/or disk images to automotive electronic control units (ECUs). But because we designed it with auto-industry robustness and security requirements in mind, it's also a great way to deliver updates to any embedded Linux system. To really understand how and why OTA Connect works the way it does, though, it's a good idea to keep automotive use cases in mind.
 
-However, you might instead be accustomed to managing *software packages* with package managers. We don't recommend this method, but there's nothing to stop you delivering software packages with OTA Connect as well.
+In general, in a vehicle, we have dozens of individual ECUs, with varying capabilities. In a modern vehicle, that will usually include a small number of high-capability ECUs, including one with a connection to the internet. We call that one the *primary* ECU, and all the others *secondary* ECUs. For OTA software updates, it's the job of the primary to download and check updates for itself, and for all the other ECUs in the vehicle. The secondaries get their updates from the primary, along with metadata that allows them to check for themselves whether the update is valid.
 
-Here's a summary of how each method works:
+Broadly speaking, there are two types of software image that you can upload to your personal software repository on OTA Connect:
 
-== Uploading software within disk images
+* For Linux-based ECUs, we provide a way to build and deploy full filesystem images. That's what you get if you follow any of our quick start guides--you build a complete Linux system with Yocto, and the disk image you build gets uploaded automatically as part of the build process.
+* For all other ECUs, you can upload a file in whatever format the ECU expects. OTA Connect will secure and deliver it, regardless of the file format. You can use libaktualizr to interface with a library that does the actual work of flashing the image to the device.
 
-A disk image is a snapshot of the entire filesystem on an ECU or other microcontroller that you can flash to another controller of the same type.
+Here's a summary of how each type of image is added:
 
-In a typical development process, you might first simulate a microcontroller on you computer, set up the entire filesystem, create a disk image and flashe the image to a real microcontroller.
+== Uploading Linux images
 
-For example, in our "Get Started" guide, we explain how to build a disk image for Raspberry Pi on a development computer then flash the image to an actual Raspberry Pi.
+When you build a disk image for your embedded device, you normally get a file, like a WIC or ISO file, that you can flash onto the device's memory. When you add our tooling (via the meta-updater Yocto layer) to your build process, you will also automatically create an OSTree repository, add the full filesystem to the repository, and upload it automatically to your OTA Connect account.
 
-*So how do you update individual pieces of software?*
+== Uploading other image files
 
-Well, suppose that you wanted to update the Bluetooth driver on your IVI from version 1 to 2. In this scenario, we'll assume that your IVI is already running a disk image that includes aktualizr -- the OTA Connect Client. 
+OTA Connect is also designed to enable secure updates to secondary ECUs. This can, of course, include non-Linux systems, and even tiny microcontrollers with no operating system. For these devices, obviously, a filesystem image doesn't make sense. That's why you can xref:dev@ota-web::upload-software-ui.adoc[upload software packages for this type of ECU directly in the OTA Connect portal]. When you do, you'll specify exactly which type of ECU the software is for, to make sure you don't send the wrong type of image.
 
-* First, you would prepare an updated disk image of the filesystem that runs on your IVI.
+=== Using the file upload for things that aren't ECUs
 
-** This disk image is configured to include version 2 of your Bluetooth driver package as well as all the other software that hasn't changed.
-** This "other" software includes aktualizr or another client that uses libaktualizr to regularly checks for updates.
-
-* You would use the OTA Connect build tools to build the final disk image.
-
-** The OTA Connect build process includes a step where the new disk image is automatically uploaded to the OTA Connect server.
-** When you log into the OTA Connect Portal, you'll see the new disk image in your software repository.
-** The disk image should ideally have some notes to explain that it contains the new version 2 Bluetooth driver. You can add more descriptive information in the OTA Connect Portal and select the disk image during the campaign creation process.
-
-In summary, software is added to disk images which get uploaded during the build process.
-
-== Uploading software packages
-
-If you've worked with Linux-based operating systems, you might expect software updates to come in the format of installable packages that have extensions like `.deb`, `.rpm` or in the case of Android, `.apk`. You can also upload these kinds of packages to OTA Connect. 
-
-By default, the OTA Connect Client is designed to install disk images rather than packages. Your developers have to configure the OTA Connect Client to process and install packages instead.
-
-// ask dev how this works.
-
-Another problem with this approach is that it's quite easy to corrupt the filesystem if the installation process is interrupted in any way. For example if the microcontroller loses power or is rebooted, a human being must intervene to fix the filesystem.
-
-This kind of problem might be fine on the desktop or on a server where there's a reasonable expectation that a person could intervene, but there's no easy way to intervene for embedded devices.
-
-If you don't mind the risks and extra work, you can xref:dev@ota-web::upload-software-ui.adoc[upload software packages in the OTA Connect portal].
+Even though this functionality was developed for delivering firmware to secondary ECUs, you can use it to send other kinds of updates as well, even for a single device. For example, you might have a data partition, software packages, or apps that you want to send updates to independently from the base system. Or, you might want to create a virtual secondary for testing, and have it just drop the file you uploaded somewhere on the filesystem.
