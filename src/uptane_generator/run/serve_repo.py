@@ -16,7 +16,7 @@ class Handler(BaseHTTPRequestHandler):
         if self.path.startswith('/director/'):
             self.do_get_static(top_path + "/uptane/repo/director/", self.path[10:])
         elif self.path.startswith('/repo/'):
-            self.do_get_static(top_path + "/uptane/repo/image/", self.path[6:])
+            self.do_get_static(top_path + "/uptane/repo/repo/", self.path[6:])
         elif self.path.startswith('/treehub/'):
             self.do_get_static(top_path + "/uptane/repo/ostree/", self.path[9:])
         else:

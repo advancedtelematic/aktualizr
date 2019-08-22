@@ -23,8 +23,8 @@ logger = logging.getLogger("IPSecondaryTest")
 class UptaneTestRepo:
 
     def __init__(self, repo_manager_exe):
-        self.image_rel_dir = 'repo/image'
-        self.target_rel_dir = 'repo/image/targets'
+        self.image_rel_dir = 'repo/repo'
+        self.target_rel_dir = 'repo/repo/targets'
 
         self._repo_manager_exe = repo_manager_exe
         self._repo_root_dir = tempfile.TemporaryDirectory()
