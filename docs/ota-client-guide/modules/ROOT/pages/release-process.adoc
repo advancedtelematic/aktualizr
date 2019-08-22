@@ -9,12 +9,12 @@ toc::[]
 
 == Update the changelog and other docs
 
-This is normally a good time to update the link:../../../../../CHANGELOG.md[changelog]. Ideally, the changelog should be updated with the new release number before creating the release so that the packaged source code includes the correct information about the release. The easiest way to check the changelog is to review all PRs merged to master since the last release was made and to verify that any important changes that impact the user experience are reflected in the changelog.
+This is normally a good time to update the link:https://github.com/advancedtelematic/aktualizr/blob/master/CHANGELOG.md[changelog]. Ideally, the changelog should be updated with the new release number before creating the release so that the packaged source code includes the correct information about the release. The easiest way to check the changelog is to review all PRs merged to master since the last release was made and to verify that any important changes that impact the user experience are reflected in the changelog.
 
 There are a few additional documents that should be updated to refer to the new release:
 
-* The link:../../../../README.adoc#reference-documentation[docs README] contains a table with links to the doxygen docs for each release.
-* The link:install-garage-sign-deploy.adoc[garage-deploy] installation guide contains a reference to the latest release of the garage-deploy Debian package.
+* The link:https://github.com/advancedtelematic/aktualizr/blob/master/docs/README.adoc#reference-documentation[docs README] contains a table with links to the doxygen docs for each release.
+* The xref:install-garage-sign-deploy.adoc[garage-deploy] installation guide contains a reference to the latest release of the garage-deploy Debian package.
 
 == Create a new tag
 

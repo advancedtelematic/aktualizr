@@ -33,4 +33,4 @@ make package
 
 === Making a Release on github
 
-The process for releasing a new version of aktualizr and updating the documentation is described link:release-process.adoc[here].
+The process for releasing a new version of aktualizr and updating the documentation is described xref:release-process.adoc[here].
