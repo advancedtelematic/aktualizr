@@ -97,7 +97,7 @@ ifndef::env-github[:pageroot:]
 
 .For Contributors
 // Dev-authored topics
-* xref:{pageroot}deb-package-install.adoc[Packaging an aktualizr Release on github]
+* xref:{pageroot}release-process.adoc[Packaging an aktualizr Release on github]
 * xref:{pageroot}schema-migrations.adoc[Add a schema migration]
 * xref:{pageroot}debugging-tips.adoc[Debugging the Client]
 

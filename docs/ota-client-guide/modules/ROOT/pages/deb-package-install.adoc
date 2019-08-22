@@ -33,17 +33,4 @@ make package
 
 === Making a Release on github
 
-Releases are built automatically by Travis from annotated tags of the form `major.minor`, where `major` and `minor` are numbers. We normally set `major` to the current year and `minor` to an incrementing number beginning at 1.
-
-To create a release, checkout the revision you want to bless, then:
-
-----
-git tag -as <tag>   # e.g. git tag -a 2018.4
-git push github <tag>
-----
-
-Travis will build this tag and automatically create a release for it on github. This is normally a good time to update the link:../CHANGELOG.md[changelog] and the doxygen documentation. Ideally, the changelog should be updated with the new release number before creating the release so that the packaged source code includes the correct information about the release. The process for updating the doxygen is specified in the link:README.adoc#developer-documentation[docs README].
-
-Once the release is ready on github, it should be edited to include a link to the changelog and doxygen documentation for that particular release. You can use a previous release as a model of how to format these links.
-
-Don't forget to test the resulting Debian packages manually!
+The process for releasing a new version of aktualizr and updating the documentation is described xref:release-process.adoc[here].
