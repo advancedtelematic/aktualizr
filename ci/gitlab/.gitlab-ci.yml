@@ -300,6 +300,7 @@ trigger-veracode-scan:
       - $VERACODE_API_ID
   dependencies:
     - veracode-pkg
+  allow_failure: true
   image: openjdk:8
   before_script:
     # The latest wrapper version can be found in https://repo1.maven.org/maven2/com/veracode/vosp/api/wrappers/vosp-api-wrappers-java/
