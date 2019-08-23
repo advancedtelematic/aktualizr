@@ -6,7 +6,7 @@ The OTA Connect server automatically does this for you. All you need to do is do
 
 * *Build disk images using our demo recipes*
 +
-We support a couple of demo boards "out of the box". You don't need to worry about complex build configurations at this stage. Just follow one of our xref:getstarted::start-intro.adoc[Get Started guides] to learn how to build an OTA-enabled disk image.
+We support a couple of demo boards "out of the box". You don't need to worry about complex build configurations at this stage. Just follow one of our xref:getstarted::index.adoc[Get Started guides] to learn how to build an OTA-enabled disk image.
 * *Use the standalone aktualizr client to test the OTA functionality*
 +
 You don't need to do anything extra to use the standalone aktualizr client. It's actually part of our demo build configurations, so the aktualizr client is included in the disk image that you'll build.
