@@ -82,7 +82,7 @@ class SotaUptaneClient {
   FRIEND_TEST(DockerAppManager, DockerApp_Fetch);
   FRIEND_TEST(Uptane, AssembleManifestGood);
   FRIEND_TEST(Uptane, AssembleManifestBad);
-  FRIEND_TEST(Uptane, InstallFake);
+  FRIEND_TEST(Uptane, InstallFakeGood);
   FRIEND_TEST(Uptane, restoreVerify);
   FRIEND_TEST(Uptane, PutManifest);
   FRIEND_TEST(Uptane, offlineIteration);

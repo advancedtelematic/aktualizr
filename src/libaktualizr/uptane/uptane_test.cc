@@ -334,7 +334,7 @@ void process_events_Install(const std::shared_ptr<event::BaseEvent> &event) {
  * Store installation result for device.
  * Check if an update is already installed.
  */
-TEST(Uptane, InstallFake) {
+TEST(Uptane, InstallFakeGood) {
   Config conf("tests/config/basic.toml");
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
@@ -392,6 +392,93 @@ TEST(Uptane, InstallFake) {
   manifest = up->AssembleManifest();
   installation_report = manifest["installation_report"]["report"];
   EXPECT_EQ(installation_report["result"]["success"].asBool(), false);
+}
+
+/*
+ * Verify that installation will fail if the underlying data does not match the
+ * target.
+ */
+TEST(Uptane, InstallFakeBad) {
+  Config conf("tests/config/basic.toml");
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
+  conf.uptane.director_server = http->tls_server + "director";
+  conf.uptane.repo_server = http->tls_server + "repo";
+  conf.pacman.type = PackageManager::kNone;
+  conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
+  conf.provision.primary_ecu_hardware_id = "primary_hw";
+  conf.storage.path = temp_dir.Path();
+  conf.tls.server = http->tls_server;
+  UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "secondary_ecu_serial", "secondary_hw");
+  conf.postUpdateValues();
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_Install;
+  auto up = UptaneTestCommon::newTestClient(conf, storage, http, nullptr);
+  EXPECT_NO_THROW(up->initialize());
+
+  result::UpdateCheck update_result = up->fetchMeta();
+  EXPECT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
+  result::Download download_result = up->downloadImages(update_result.updates);
+  EXPECT_EQ(download_result.status, result::DownloadStatus::kSuccess);
+
+  std::string hash = download_result.updates[0].sha256Hash();
+  std::transform(hash.begin(), hash.end(), hash.begin(), ::toupper);
+  boost::filesystem::path image = temp_dir / "images" / hash;
+
+  // Overwrite the file on disk with garbage so that the target verification
+  // fails. First read the existing data so we can re-write it later.
+  auto rhandle = storage->openTargetFile(download_result.updates[0]);
+  const uint64_t length = download_result.updates[0].length();
+  uint8_t content[length];
+  EXPECT_EQ(rhandle->rread(content, length), length);
+  rhandle->rclose();
+  auto whandle = storage->allocateTargetFile(false, download_result.updates[0]);
+  uint8_t content_bad[length + 1];
+  memset(content_bad, 0, length + 1);
+  EXPECT_EQ(whandle->wfeed(content_bad, 3), 3);
+  whandle->wcommit();
+
+  result::Install install_result = up->uptaneInstall(download_result.updates);
+  EXPECT_FALSE(install_result.dev_report.isSuccess());
+  EXPECT_EQ(install_result.dev_report.result_code, data::ResultCode::Numeric::kInternalError);
+
+  // Try again with oversized data.
+  whandle = storage->allocateTargetFile(false, download_result.updates[0]);
+  EXPECT_EQ(whandle->wfeed(content_bad, length + 1), length + 1);
+  whandle->wcommit();
+
+  install_result = up->uptaneInstall(download_result.updates);
+  EXPECT_FALSE(install_result.dev_report.isSuccess());
+  EXPECT_EQ(install_result.dev_report.result_code, data::ResultCode::Numeric::kInternalError);
+
+  // Try again with equally long data to make sure the hash check actually gets
+  // triggered.
+  whandle = storage->allocateTargetFile(false, download_result.updates[0]);
+  EXPECT_EQ(whandle->wfeed(content_bad, length), length);
+  whandle->wcommit();
+
+  install_result = up->uptaneInstall(download_result.updates);
+  EXPECT_FALSE(install_result.dev_report.isSuccess());
+  EXPECT_EQ(install_result.dev_report.result_code, data::ResultCode::Numeric::kInternalError);
+
+  // Try with the real data, but incomplete.
+  whandle = storage->allocateTargetFile(false, download_result.updates[0]);
+  EXPECT_EQ(whandle->wfeed(reinterpret_cast<uint8_t *>(content), length - 1), length - 1);
+  whandle->wcommit();
+
+  install_result = up->uptaneInstall(download_result.updates);
+  EXPECT_FALSE(install_result.dev_report.isSuccess());
+  EXPECT_EQ(install_result.dev_report.result_code, data::ResultCode::Numeric::kInternalError);
+
+  // Restore the original data to the file so that verification succeeds.
+  whandle = storage->allocateTargetFile(false, download_result.updates[0]);
+  EXPECT_EQ(whandle->wfeed(reinterpret_cast<uint8_t *>(content), length), length);
+  whandle->wcommit();
+
+  install_result = up->uptaneInstall(download_result.updates);
+  EXPECT_TRUE(install_result.dev_report.isSuccess());
+  EXPECT_EQ(install_result.dev_report.result_code, data::ResultCode::Numeric::kOk);
 }
 
 bool EcuInstallationStartedReportGot = false;

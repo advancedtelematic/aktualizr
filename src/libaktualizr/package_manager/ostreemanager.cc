@@ -239,7 +239,7 @@ bool OstreeManager::fetchTarget(const Uptane::Target &target, Uptane::Fetcher &f
   return OstreeManager::pull(config.sysroot, config.ostree_server, keys, target, token, progress_cb).success;
 }
 
-bool OstreeManager::verifyTarget(const Uptane::Target &target) const {
+TargetStatus OstreeManager::verifyTarget(const Uptane::Target &target) const {
   const std::string refhash = target.sha256Hash();
   GError *error = nullptr;
 
@@ -248,7 +248,7 @@ bool OstreeManager::verifyTarget(const Uptane::Target &target) const {
   if (error != nullptr) {
     LOG_ERROR << "Could not get OSTree repo";
     g_error_free(error);
-    return false;
+    return TargetStatus::kNotFound;
   }
 
   GHashTable *ref_list = nullptr;
@@ -257,7 +257,7 @@ bool OstreeManager::verifyTarget(const Uptane::Target &target) const {
     g_hash_table_destroy(ref_list);  // OSTree creates the table with destroy notifiers, so no memory leaks expected
     // should never be greater than 1, but use >= for robustness
     if (length >= 1) {
-      return true;
+      return TargetStatus::kGood;
     }
   }
   if (error != nullptr) {
@@ -266,7 +266,7 @@ bool OstreeManager::verifyTarget(const Uptane::Target &target) const {
   }
 
   LOG_ERROR << "Could not find OSTree commit";
-  return false;
+  return TargetStatus::kNotFound;
 }
 
 Json::Value OstreeManager::getInstalledPackages() const {

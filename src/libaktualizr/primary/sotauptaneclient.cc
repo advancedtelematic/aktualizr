@@ -841,9 +841,9 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
 
   // Recheck the downloaded update hashes.
   for (const auto &update : updates) {
-    if (!package_manager_->verifyTarget(update)) {
+    if (package_manager_->verifyTarget(update) != TargetStatus::kGood) {
       result.dev_report = {false, data::ResultCode::Numeric::kInternalError, ""};
-      storage->storeDeviceInstallationResult(result.dev_report, "Downloaded target's hash is invalid", correlation_id);
+      storage->storeDeviceInstallationResult(result.dev_report, "Downloaded target is invalid", correlation_id);
       sendEvent<event::AllInstallsComplete>(result);
       return result;
     }

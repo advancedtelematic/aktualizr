@@ -15,6 +15,22 @@
 
 using FetcherProgressCb = std::function<void(const Uptane::Target&, const std::string&, unsigned int)>;
 
+/**
+ * Status of downloaded target.
+ */
+enum class TargetStatus {
+  /* Target has been downloaded and verified. */
+  kGood = 0,
+  /* Target was not found. */
+  kNotFound,
+  /* Target was found, but is incomplete. */
+  kIncomplete,
+  /* Target was found, but is larger than expected. */
+  kOversized,
+  /* Target was found, but hash did not match the metadata. */
+  kHashMismatch,
+};
+
 class PackageManagerInterface {
  public:
   PackageManagerInterface(PackageConfig pconfig, std::shared_ptr<INvStorage> storage,
@@ -33,7 +49,7 @@ class PackageManagerInterface {
   virtual bool imageUpdated() = 0;
   virtual bool fetchTarget(const Uptane::Target& target, Uptane::Fetcher& fetcher, const KeyManager& keys,
                            FetcherProgressCb progress_cb, const api::FlowControlToken* token);
-  virtual bool verifyTarget(const Uptane::Target& target) const;
+  virtual TargetStatus verifyTarget(const Uptane::Target& target) const;
 
   // only returns the version
   Json::Value getManifest(const Uptane::EcuSerial& ecu_serial) const {
