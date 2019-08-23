@@ -1,4 +1,7 @@
 = Running aktualizr with fault injection
+ifdef::env-github[:simulatelink: link:https://docs.ota.here.com/ota-client/dev/simulate-device-basic.html[Simulate a device without building a disk image]]
+ifndef::env-github[:simulatelink: xref:dev@getstarted::simulate-device-basic.adoc[Simulate a device without building a disk image]]
+
 
 To test the system in adverse conditions, it can be useful to make aktualizr fail in a controlled fashion.
 
@@ -47,7 +50,7 @@ First build the image:
 
 It will tag an image `advancedtelematic/aktualizr-app:latest` which includes the common aktualizr tools, as well as the fiu tools (`fiu-run`, `fiu-ctrl`...)
 
-Then, prepare an environment for a simulated device, following the guide at link:https://docs.ota.here.com/quickstarts/install-a-client-locally-with-fake-secondaries.html[].
+Then, prepare an environment for a simulated device, following the article {simulatelink}.
 
 `aktualizr` will be run through docker instead of the local system, so all commands will start with:
 

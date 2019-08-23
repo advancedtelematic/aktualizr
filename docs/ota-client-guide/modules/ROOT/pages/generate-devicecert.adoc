@@ -1,6 +1,6 @@
 = Device Certificate Generation
 
-// MC: This is a slightly altered copy of "generatetest-devicecerta.doc" with wording that explains you should only use the examples as a reference, since we can't know the customers "real" certificate generation process.
+// MC: This is a slightly altered copy of "generatetest-devicecert.adoc" with wording that explains you should only use the examples as a reference, since we can't know the customers "real" certificate generation process.
 
 Once you have your final fleet root certificate, you can use it to generate and sign device certificates. You can then automate the process of installing device certificates on your devices. 
 

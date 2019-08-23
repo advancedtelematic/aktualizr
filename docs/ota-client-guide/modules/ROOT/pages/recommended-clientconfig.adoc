@@ -2,35 +2,78 @@
 
 Before you start developing or deploying to production, you should check that your configuration file has appropriate settings for your use case. 
 
-For more details about the full client configuration settings, see the xref:aktualizr-config-options.adoc[client configuration reference].
+* If you are running standalone aktualizr, your configuration file will be a **.toml** file.
++
+You configure aktualizr by creating and updating a `*.toml` file in one of the following directories:
+
+** `/usr/lib/sota/conf.d`
+** `/etc/sota/conf.d/`
++
+For more information and links to sample configuration files, see the xref:aktualizr-config-options.adoc[client configuration reference].
+
+* If you are building a disk image that contains aktualizr, your configuration will be the **local.conf** file.
+
+** You'll find this file in the `conf` subdirectory of the your project directory.
++
+For more information, see the xref:build-configuration.adoc[build configuration reference] and the xref:build-images.adoc[sample build procedures]. 
 
 == Recommended settings for development
 
-[cols="1,1,1a",options="header,footer"]
+[cols="2a,3a",options="header"]
 |====================
-|Name  | Setting | Description
-|`polling_sec`  | `10` | 
+|Configuration  | Description
+|
+* **.toml file:** 
++
+`polling_sec = "10"`  
+* **local.conf file:**
++
+`SOTA_POLLING_SEC = "10"` 
+| 
 Interval between polls (in seconds).
 
-The default polling interval is 10 seconds which is designed to make it convenient for you to test and develop OTA update functions.
-|`force_install_completion`  | `true` | 
+The default polling internal designed to make it convenient for you test and develop OTA update functions.
+|
+* **.toml file:** 
++
+`force_install_completion=true`
+* **local.conf file:** 
++
+`IMAGE_INSTALL_append = " aktualizr-auto-reboot "`
+| 
 Forces installation completion. Causes a system reboot in case of an ostree package manager. Emulates a reboot in case of a fake package manager.
 
-You'll want to set this to `true` when developing because it's more convenient.
+You'll want to enable this option when developing because it's more convenient.
 
 |====================
 
 == Recommended settings for production
 
-[cols="1,1,1a",options="header,footer"]
+[cols="2a,3a",options="header,footer"]
 |====================
-|Name  | Setting | Description
-|`polling_sec`  | `86400` | When moving to production you'll want to have a much longer interval. 
+|Configuration   | Description
+|   
+* **.toml file:** 
++
+`polling_sec = "84600"`  
+* **local.conf file:**
++
+`SOTA_POLLING_SEC = "84600"`
+
+| When moving to production you'll want to have a much longer interval. 
 In fact, for production, we don't support intervals less the 1 hour (3,600 seconds). Longer internals help you to reduce the internet bandwidth and power consumption for your devices.
 
 We recommend an internal between 1 and 7 days (86,400 to 604,800 seconds).
-|`force_install_completion`  | `false`  |
-If you followed our recommendation to enable automatic rebooting for development, you should turn it off again for production.
+|
+* **.toml file:** 
++
+`force_install_completion=true`
+* **local.conf file:** 
++
+Remove `aktualizr-auto-reboot` from the `IMAGE_INSTALL_append` parameter.
+
+| 
+If you followed our recommendation to enable automatic rebooting for development, you should disable again for production.
 |====================
 
 

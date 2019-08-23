@@ -11,15 +11,34 @@ endif::[]
 
 Here, we provide reference documentation on aktualizr's usage and configuration. However, if you need to go further than what's possible with the command-line interface, you can also use xref:libaktualizr-why-use.adoc[libaktualizr to make your own client]. In fact, aktualizr is a fairly thin wrapper around libaktualizr itself, and we provide also an https://github.com/advancedtelematic/aktualizr/tree/master/src/hmi_stub[even simpler reference client] along with https://advancedtelematic.github.io/aktualizr/class_aktualizr.html[doxygen docs] of the libaktualizr API.
 
-Aktualizr is configured via `.toml` config files. One or more files or directories can be passed to the application via the `--config` flag (one per file or directory). If `--config` is not specified on the command line, aktualizr searches `/usr/lib/sota/conf.d` and `/etc/sota/conf.d/` for files with a `.toml` extension. Aktualizr searches for and processes these config files in systemd style, meaning that if multiple files are found with the same name, the last one found overrules and hides the others. Files are then processed in alphabetical order, so if a config option is specified in multiple files, the last entry found overrules the others. If an option is left unspecified in a file processed after another file in which it was specified, it is not overruled.
+== How .toml files are processed
 
-Example config files used by unit tests, continuous integration tests, and https://github.com/advancedtelematic/meta-updater[meta-updater] recipes can be found in link:{aktualizr-github-url}/config/[], link:{aktualizr-github-url}/tests/config/[], and link:https://github.com/advancedtelematic/meta-updater/tree/rocko/recipes-sota/config/files[].
+Aktualizr is configured via `.toml` config files. One or more files or directories can be passed to the application via the `--config` flag (one per file or directory). 
+
+* If `--config` is not specified on the command line, aktualizr searches the following directories for files with a `.toml` extension: 
+** `/usr/lib/sota/conf.d`
+** `/etc/sota/conf.d/`
+
+Aktualizr searches for and processes these config files in systemd style using the following rules:
+
+* If multiple files are found with the same name, the last detected file overrules and hides the others.
+* Files are then processed in alphabetical order with the following conditions:
+** If a config option is specified in multiple files, the last entry **overrules** the previous entries. 
+** But if a config option is specified in the first file but *unspecified* in the last file, the last entry **does not** overrule the previous entry.
+
+For examples of configuration files, see the following resources:
+
+* link:{aktualizr-github-url}/config/[Config files used by unit tests]
+* link:{aktualizr-github-url}/tests/config/[Config files used by continuous integration tests]
+* link:https://github.com/advancedtelematic/meta-updater/tree/rocko/recipes-sota/config/files[Configuration fragments used in meta-updater recipes].
 
 All fields are optional, and most have reasonable defaults that should be used unless you have a particular need to do otherwise.
 
-Some options can also be set on the command line. The command line input always takes precedence over the config files. See link:{aktualizr-github-url}/src/aktualizr_primary/main.cc[] (or run `aktualizr --help`) for the available command line options.
+Some options can also be set on the command line. The command line input always takes precedence over the config files. See link:{aktualizr-github-url}/src/aktualizr_primary/main.cc[the aktualizr source] (or run `aktualizr --help`) for the available command line options.
 
-== `logger`
+== Configuration options
+
+=== `logger`
 
 Configuration for the logger.
 
@@ -30,7 +49,7 @@ Configuration for the logger.
 | `loglevel` | `2`      | Log level, 0-5 (trace, debug, info, warning, error, fatal).
 |==========================================================================================
 
-== `p11`
+=== `p11`
 
 Options for using a PKCS#11 compliant device for storing cryptographic keys.
 
@@ -47,7 +66,7 @@ NOTE: The key ID options require the corresponding options in the `tls` or `upta
 | `tls_clientcert_id`  |         | Key ID of the client's TLS certificate.
 |==========================================================================================
 
-== `tls`
+=== `tls`
 
 Configuration for client-server TLS connections.
 
@@ -63,7 +82,7 @@ Configuration for client-server TLS connections.
 
 Note that `server_url_path` is only used if `server` is empty. If both are empty, the server URL will be read from `provision.provisioning_path` if it is set and contains a file named `autoprov.url`.
 
-== `provision`
+=== `provision`
 
 Options for how the device is provisioned with the backend.
 
@@ -73,7 +92,7 @@ Options for how the device is provisioned with the backend.
 | `server`                    |           | Server provisioning URL. If empty, set to `tls.server`.
 | `p12_password`              |           | Password for PKCS#12 encryption.
 | `expiry_days`               | `"36000"` | Provided in the `ttl` field of the device provisioning request sent to the server.
-| `provision_path`            |           | Path to an archive containing provisioning data. See link:{aktualizr-github-url}/docs/credentials.adoc[] for the specification of the contents of this file.
+| `provision_path`            |           | Path to an archive containing provisioning data. See the xref:provisioning-methods-and-credentialszip.adoc[reference documentation] for the specification of the contents of this file.
 | `device_id`                 |           | Device ID of the primary ECU. If left empty, a random name will be generated.
 | `primary_ecu_serial`        |           | Serial number of the primary ECU. If left empty, a random serial will be generated.
 | `primary_ecu_hardware_id`   |           | The hardware ID of the primary ECU (e.g., `"raspberry-pi"`). If left empty, the hostname of the device will be used.
@@ -82,7 +101,7 @@ Options for how the device is provisioned with the backend.
 
 If you intend to provision with a server by using https://github.com/advancedtelematic/meta-updater[meta-updater], you will probably want to set `provision.provision_path = "/var/sota/sota_provisioning_credentials.zip"`.
 
-== `uptane`
+=== `uptane`
 
 Options for Uptane.
 
@@ -99,7 +118,7 @@ Options for Uptane.
 | `force_install_completion`| false        | Forces installation completion. Causes a system reboot in case of an ostree package manager. Emulates a reboot in case of a fake package manager.
 |==========================================================================================
 
-== `pacman`
+=== `pacman`
 
 Options for package management and update installation. Note that this only coincidentally shares the name with the ArchLinux `pacman` tool.
 
@@ -114,7 +133,7 @@ Options for package management and update installation. Note that this only coin
 | `fake_need_reboot` | false                     | Simulate a wait-for-reboot with the `"none"` package manager. Used for testing.
 |==========================================================================================
 
-== `storage`
+=== `storage`
 
 Options for how Aktualizr stores data locally.
 
@@ -137,7 +156,7 @@ The only supported storage option is now `sqlite`.
 Old systems configured with `filesystem` can be migrated by changing the `type` field to `sqlite` and keeping all the other fields as-is.
 At the next Aktualizr run, the migration procedure will then run automatically and move existing data inside the database.
 
-== `import`
+=== `import`
 
 Options for importing data from the filesystem into the storage.
 
@@ -152,7 +171,7 @@ Options for importing data from the filesystem into the storage.
 | `tls_clientcert_path`     |                          | Path to the TLS client certificate.
 |==========================================================================================
 
-== `telemetry`
+=== `telemetry`
 
 Options for configuring how aktualizr communicates with the server.
 
@@ -162,7 +181,7 @@ Options for configuring how aktualizr communicates with the server.
 | `report_network` | `true`  | Enable reporting of device networking information to the server.
 |==========================================================================================
 
-== `bootloader`
+=== `bootloader`
 
 Options for configuring boot-specific behavior
 
