@@ -44,7 +44,7 @@ GnuTLS currently requires a kernel >= 3.17 to build. If you're using an older ke
  #  define getrandom(dst,s,flags) syscall(SYS_getrandom, (void*)dst, (size_t)s, (unsigned int)flags)
 ----
 
-This is an upstream problem; until it's fixed in upstream poky, you can link:../files/gnutls-fix.patch[download this patch] to your `poky` directory and apply it to fix the issue.
+This is an upstream problem; until it's fixed in upstream poky, you can link:../../files/gnutls-fix.patch[download this patch] to your `poky` directory and apply it to fix the issue.
 
 === Build didn't work after switching architectures
 

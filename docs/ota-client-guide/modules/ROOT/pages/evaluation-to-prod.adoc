@@ -1,6 +1,6 @@
 = Moving from evaluation to production
 
-The procedures to deploy OTA Connect in production are a little more complex than the basic xref:dev@getstarted::start-intro.adoc[Get Started]  procedures.
+The procedures to deploy OTA Connect in production are a little more complex than the basic xref:dev@getstarted::index.adoc[Get Started]  procedures.
 
 That's why it's better work in phases when setting up your OTA Connect in your organization. We recommend that you work in three main phases:
 
