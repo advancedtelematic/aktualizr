@@ -1704,7 +1704,7 @@ class HttpFakeNoCorrelationId : public HttpFake {
 TEST(Aktualizr, FullNoCorrelationId) {
   TemporaryDirectory temp_dir;
   TemporaryDirectory meta_dir;
-  Utils::copyDir(uptane_repos_dir / "full_no_correlation_id/repo/image", meta_dir.Path() / "repo");
+  Utils::copyDir(uptane_repos_dir / "full_no_correlation_id/repo/repo", meta_dir.Path() / "repo");
   Utils::copyDir(uptane_repos_dir / "full_no_correlation_id/repo/director", meta_dir.Path() / "director");
   auto http = std::make_shared<HttpFakeNoCorrelationId>(temp_dir.Path(), meta_dir.Path());
 

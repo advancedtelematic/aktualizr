@@ -29,6 +29,6 @@ uptane_gen --command signtargets
 
 cd $DEST_DIR
 echo "Target.json is: "
-cat repo/image/targets.json
+cat repo/repo/targets.json
 echo "Running repo server port on $PORT"
 exec python3 -m http.server $PORT

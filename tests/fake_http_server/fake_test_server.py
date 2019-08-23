@@ -62,7 +62,7 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_response(200)
             self.end_headers()
             role = self.path[len("/repo/"):]
-            self.serve_meta('/repo/image/' + role)
+            self.serve_meta('/repo/repo/' + role)
         elif self.path.startswith("/repo/targets"):
             self.send_response(200)
             self.end_headers()
@@ -181,7 +181,7 @@ class FakeTestServer(socketserver.ThreadingMixIn, HTTPServer):
         if target_path is not None:
             self.target_path = target_path
         elif meta_path is not None:
-            self.target_path = path.join(meta_path, 'repo/image/targets')
+            self.target_path = path.join(meta_path, 'repo/repo/targets')
         else:
             self.target_path = None
         self.fail_injector = fail_injector

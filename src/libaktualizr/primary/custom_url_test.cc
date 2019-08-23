@@ -45,8 +45,6 @@ TEST(Aktualizr, ImagesCustomUrl) {
   uptane_gen.run({"addtarget", "--path", meta_dir.PathString(), "--targetname", "firmware.txt", "--hwid", "primary_hw",
                   "--serial", "CA:FE:A6:D2:84:9D"});
   uptane_gen.run({"signtargets", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
-  // Work around inconsistent directory naming.
-  Utils::copyDir(meta_dir.Path() / "repo/image", meta_dir.Path() / "repo/repo");
 
   auto storage = INvStorage::newStorage(conf.storage);
   UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
@@ -78,8 +76,6 @@ TEST(Aktualizr, BothCustomUrl) {
   uptane_gen.run({"addtarget", "--path", meta_dir.PathString(), "--targetname", "firmware.txt", "--hwid", "primary_hw",
                   "--serial", "CA:FE:A6:D2:84:9D", "--url", "test-url3"});
   uptane_gen.run({"signtargets", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
-  // Work around inconsistent directory naming.
-  Utils::copyDir(meta_dir.Path() / "repo/image", meta_dir.Path() / "repo/repo");
 
   auto storage = INvStorage::newStorage(conf.storage);
   UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);

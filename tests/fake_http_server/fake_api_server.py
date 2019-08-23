@@ -11,7 +11,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.end_headers()
         if self.path == "/api/v1/user_repo/targets.json":
-            with open(os.path.join(sys.argv[2], "repo/image/targets.json")) as f:
+            with open(os.path.join(sys.argv[2], "repo/repo/targets.json")) as f:
                 self.wfile.write(bytes(f.read(), "utf8"))
 
     def do_POST(self):

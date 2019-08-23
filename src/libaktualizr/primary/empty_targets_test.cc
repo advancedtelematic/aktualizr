@@ -47,8 +47,6 @@ TEST(Aktualizr, EmptyTargets) {
   uptane_gen.run({"addtarget", "--path", meta_dir.PathString(), "--targetname", "firmware.txt", "--hwid", "primary_hw",
                   "--serial", "CA:FE:A6:D2:84:9D"});
   uptane_gen.run({"signtargets", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
-  // Work around inconsistent directory naming.
-  Utils::copyDir(meta_dir.Path() / "repo/image", meta_dir.Path() / "repo/repo");
 
   auto storage = INvStorage::newStorage(conf.storage);
   {
@@ -112,8 +110,6 @@ TEST(Aktualizr, EmptyTargetsAfterDownload) {
   uptane_gen.run({"addtarget", "--path", meta_dir.PathString(), "--targetname", "firmware.txt", "--hwid", "primary_hw",
                   "--serial", "CA:FE:A6:D2:84:9D"});
   uptane_gen.run({"signtargets", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
-  // Work around inconsistent directory naming.
-  Utils::copyDir(meta_dir.Path() / "repo/image", meta_dir.Path() / "repo/repo");
 
   // failing download
   fault_injection_init();
@@ -161,8 +157,6 @@ TEST(Aktualizr, EmptyTargetsAfterInstall) {
   uptane_gen.run({"addtarget", "--path", meta_dir.PathString(), "--targetname", "firmware.txt", "--hwid", "primary_hw",
                   "--serial", "CA:FE:A6:D2:84:9D"});
   uptane_gen.run({"signtargets", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
-  // Work around inconsistent directory naming.
-  Utils::copyDir(meta_dir.Path() / "repo/image", meta_dir.Path() / "repo/repo");
 
   // failing install
   fault_injection_init();

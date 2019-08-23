@@ -87,8 +87,6 @@ int main(int argc, char **argv) {
   uptane_gen.run({"addtarget", "--path", meta_dir.PathString(), "--targetname", "update_1.0", "--hwid", "primary_hw",
                   "--serial", "CA:FE:A6:D2:84:9D"});
   uptane_gen.run({"signtargets", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
-  // Work around inconsistent directory naming.
-  Utils::copyDir(meta_dir.Path() / "repo/image", meta_dir.Path() / "repo/repo");
 
   return RUN_ALL_TESTS();
 }

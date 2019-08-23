@@ -154,8 +154,6 @@ int main(int argc, char **argv) {
                   "--serial", "CA:FE:A6:D2:84:9D"});
   uptane_gen.run({"signtargets", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
   LOG_INFO << uptane_gen.lastStdOut();
-  // Work around inconsistent directory naming.
-  Utils::copyDir(meta_dir.Path() / "repo/image", meta_dir.Path() / "repo/repo");
 
   return RUN_ALL_TESTS();
 }

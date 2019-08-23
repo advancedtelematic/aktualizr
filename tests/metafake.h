@@ -75,8 +75,8 @@ class MetaFake {
       rename("_multisec");
 
       // copy meta to work_dir
-      Utils::copyDir(work_dir / "repo/image", meta_dir / "repo");
-      Utils::copyDir(work_dir / "repo/director", meta_dir / "director");
+      Utils::copyDir(work_dir / ImageRepo::dir, meta_dir / "repo");
+      Utils::copyDir(work_dir / DirectorRepo::dir, meta_dir / "director");
       if (!boost::filesystem::exists(meta_dir / "campaigner") &&
            boost::filesystem::is_directory("tests/test_data/campaigner")) {
           Utils::copyDir("tests/test_data/campaigner", meta_dir / "campaigner");
@@ -95,16 +95,16 @@ class MetaFake {
   }
 
   void backup(void) {
-      backup_files.push_back(work_dir / "repo/director/targets.json");
+      backup_files.push_back(work_dir / DirectorRepo::dir / "targets.json");
       backup_content.push_back(Utils::readFile(backup_files[0], false));
 
-      backup_files.push_back(work_dir / "repo/image/snapshot.json");
+      backup_files.push_back(work_dir / ImageRepo::dir / "snapshot.json");
       backup_content.push_back(Utils::readFile(backup_files[1], false));
 
-      backup_files.push_back(work_dir / "repo/image/targets.json");
+      backup_files.push_back(work_dir / ImageRepo::dir / "targets.json");
       backup_content.push_back(Utils::readFile(backup_files[2], false));
 
-      backup_files.push_back(work_dir / "repo/image/timestamp.json");
+      backup_files.push_back(work_dir / ImageRepo::dir / "timestamp.json");
       backup_content.push_back(Utils::readFile(backup_files[3], false));
   }
 

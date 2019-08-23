@@ -13,6 +13,8 @@ class DirectorRepo : public Repo {
   void signTargets();
   void emptyTargets();
   void oldTargets();
+
+  static constexpr const char *dir{"repo/director"};
 };
 
 #endif  // DIRECTOR_REPO_H_

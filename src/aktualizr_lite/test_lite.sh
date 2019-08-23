@@ -65,7 +65,7 @@ mkdir $sota_dir
 chmod 700 $sota_dir
 cat >$sota_dir/sota.toml <<EOF
 [uptane]
-repo_server = "http://localhost:$port/repo/image"
+repo_server = "http://localhost:$port/repo/repo"
 
 [provision]
 primary_ecu_hardware_id = "hwid-for-test"
