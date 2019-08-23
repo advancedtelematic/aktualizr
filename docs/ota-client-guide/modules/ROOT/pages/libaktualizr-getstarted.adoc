@@ -141,9 +141,13 @@ For an example of how to use the libaktualizr API as a primary ECU, there are tw
 ----
 Aktualizr::Aktualizr(boost::filesystem::path config)
 ----
-An instance is constructed based on the provided config. A config should at least contain information about provisioning credentials (see
-https://github.com/advancedtelematic/aktualizr/blob/master/docs/automatic-provisioning.adoc[`automatic-provisioning.adoc`], https://github.com/advancedtelematic/aktualizr/blob/master/docs/implicit-provisioning.adoc[`implicit-provisioning.adoc`] or https://github.com/advancedtelematic/aktualizr/blob/master/docs/hsm-provisioning.adoc[`hsm-provisioning.adoc`] depending on the used provisioning type), and about the local storage which will be used to store updates and metadata.
-For description of all configuration options, please, refer to the https://github.com/advancedtelematic/aktualizr/blob/master/docs/configuration.adoc[`configuration.adoc`] document and to the https://github.com/advancedtelematic/aktualizr/tree/master/config[`config`] folder for configuration examples.
+An instance is constructed based on the provided config. A config should at least contain information about provisioning credentials. For more information of provisioning types see the following topics:
+
+* xref:enable-shared-cred-provisioning.adoc[Enable shared-credential provisioning]
+* xref:enable-device-cred-provisioning.adoc[Enable device-credential provisioning]
+
+The configuration options depend on the used provisioning type and the local storage which you use to store updates and metadata.
+For description of all configuration options, refer to the client configuraton xref:aktualizr-config-options.adoc[reference documentation] and to the https://github.com/advancedtelematic/aktualizr/tree/master/config[`config`] folder for configuration examples.
 
 * *Add a new secondary ECU*
 +
@@ -151,7 +155,7 @@ For description of all configuration options, please, refer to the https://githu
 ----
 void Aktualizr::AddSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &secondary)
 ----
-You must call this function before you call `Initialize`. To find out more about primary and secondary ECUs, see our https://docs.ota.here.com/concepts/ats-garage-security-with-uptane.html#primary-and-secondary-ecus[Uptane description].
+You must call this function before you call `Initialize`. To find out more about primary and secondary ECUs, see our xref:uptane.adoc#_primary_and_secondary_ecus[Uptane description].
 
 * *Initialize aktualizr*
 +
