@@ -101,7 +101,7 @@ std::future<result::CampaignCheck> Aktualizr::CampaignCheck() {
 }
 
 std::future<void> Aktualizr::CampaignControl(const std::string &campaign_id, campaign::Cmd cmd) {
-  std::function<void()> task([this, &campaign_id, cmd] {
+  std::function<void()> task([this, campaign_id, cmd] {
     switch (cmd) {
       case campaign::Cmd::Accept:
         uptane_client_->campaignAccept(campaign_id);
@@ -131,12 +131,12 @@ std::future<result::UpdateCheck> Aktualizr::CheckUpdates() {
 
 std::future<result::Download> Aktualizr::Download(const std::vector<Uptane::Target> &updates) {
   std::function<result::Download(const api::FlowControlToken *)> task(
-      [this, &updates](const api::FlowControlToken *token) { return uptane_client_->downloadImages(updates, token); });
+      [this, updates](const api::FlowControlToken *token) { return uptane_client_->downloadImages(updates, token); });
   return api_queue_.enqueue(task);
 }
 
 std::future<result::Install> Aktualizr::Install(const std::vector<Uptane::Target> &updates) {
-  std::function<result::Install()> task([this, &updates] { return uptane_client_->uptaneInstall(updates); });
+  std::function<result::Install()> task([this, updates] { return uptane_client_->uptaneInstall(updates); });
   return api_queue_.enqueue(task);
 }
 
