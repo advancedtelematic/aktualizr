@@ -4,7 +4,7 @@ If you build a disk image with the default configuration, shared-credential prov
 
 To enable shared-credential provisioning, follow these steps: ::
 
-. If you haven't done so already, xref:download-prov-key.adoc[download a provisioning key] and note the path to the downloaded `credentials.zip` file.
+. If you haven't done so already, xref:generating-provisioning-credentials.adoc[download a provisioning key] and note the path to the downloaded `credentials.zip` file.
 . Add the following lines to your `conf/local.conf`:
 +
 ----

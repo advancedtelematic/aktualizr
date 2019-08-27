@@ -30,7 +30,7 @@ ifndef::env-github[:pageroot:]
 
 .Evaluate OTA Connect
 * xref:{pageroot}intro-evaluate.adoc[Evaluating OTA Connect]
-* xref:{pageroot}download-prov-key.adoc[Get a provisioning Key]
+* xref:{pageroot}generating-provisioning-credentials.adoc[Get a provisioning Key]
 * xref:{pageroot}build-images.adoc[Use our sample recipes to build disk images]
 ** xref:{pageroot}build-raspberry.adoc[Build for a Raspberry Pi]
 ** xref:{pageroot}build-quemu.adoc[Build for QEMU]
