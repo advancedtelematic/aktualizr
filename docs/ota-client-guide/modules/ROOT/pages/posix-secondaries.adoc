@@ -1,4 +1,5 @@
 = Posix Secondaries aka IP Secondaries: configuration and emulation of Primary and Secondary on a local host
+:aktualizr-github-url: https://github.com/advancedtelematic/aktualizr/tree/master
 
 The goal of this doc is to guide a reader on configuring and running two executables that can be built out of the given repository source code and act as Primary and Secondary correspondingly.
 
@@ -15,11 +16,11 @@ A key component of this repository is libaktualizr which is a library implementi
 
 *Build*
 
-The Secondary executable is built by default, thus following build instructions outlined in link:../README.adoc[the repo's README] should do the trick. If the build procedure is completed successfully then aktualizr-secondary can be found in ``<build-dir>/src/aktualizr_secondary/aktualizr-secondary``.
+The Secondary executable is built by default, thus following build instructions outlined in link:{aktualizr-github-url}/README.adoc[the repo's README] should do the trick. If the build procedure is completed successfully then aktualizr-secondary can be found in ``<build-dir>/src/aktualizr_secondary/aktualizr-secondary``.
 
 *Configure*
 
-A default configuration of aktualizr-secondary can be found in link:../../../../../config/posix-secondary.toml[<src-root>/config/posix-secondary.toml].
+A default configuration of aktualizr-secondary can be found in link:{aktualizr-github-url}/config/posix-secondary.toml[<src-root>/config/posix-secondary.toml].
 
 Configuration parameters that are worth mentioning are located in [uptane] section:
 
@@ -38,15 +39,15 @@ Once it's started, you should see a message saying that aktualizr-secondary is l
 == *Primary*
 
 *Build*
-The Primary executable is built by default, thus following build instructions outlined in link:../../../../../README.adoc[the repo's README] should do the trick. If the build procedure is completed successfully then aktualizr executable can be found in ``<build-dir>/src/aktualizr_primary/aktualizr``.
+The Primary executable is built by default, thus following build instructions outlined in link:{aktualizr-github-url}/README.adoc[the repo's README] should do the trick. If the build procedure is completed successfully then aktualizr executable can be found in ``<build-dir>/src/aktualizr_primary/aktualizr``.
 
 *Configure*
 
-A default configuration of aktualizr acting as Primary can be found in link:../../../../../config/sota-local-with-secondaries.toml[<src-root>/config/sota-local-with-secondaries.toml].
+A default configuration of aktualizr acting as Primary can be found in link:{aktualizr-github-url}/config/sota-local-with-secondaries.toml[<src-root>/config/sota-local-with-secondaries.toml].
 
 One configuration parameter that is worth mentioning is `[uptane]: secondary_config_file` which specifies a path
 to secondary(ies) configuration file containing input parameters for aktualizr/Primary to communicate with any secondaries.
-This is a link:../../../../../config/posix-secondary-config.json[default secondary configuration for Primary].
+This is a link:{aktualizr-github-url}/config/posix-secondary-config.json[default secondary configuration for Primary].
 In order to use the given default config file, either copy it into your current working directory or update
 `[uptane]: secondary_config_file` value so it defines a full path to the secondary config file (e.g. ``<src-root>/config/posix-secondary-config.json``).
 
@@ -56,7 +57,7 @@ Configuration parameters of secondaries for Primary/aktualizr that are worth men
 * `secondaries_wait_timeout` - timeout (in sec) of waiting for connections from Secondaries. Primary/aktualizr waits for a connection from those secondaries that it failed to connect to at the startup time.
 * `secondaries` -  a list of Secondary TCP/IP addresses
 
-Put your credential.zip file into the current working directory or update `[provision] provision_path` in link:../../../../../config/sota-local-with-secondaries.toml[the config] so it specifies a full path to your credential file.
+Put your credential.zip file into the current working directory or update `[provision] provision_path` in link:{aktualizr-github-url}/config/sota-local-with-secondaries.toml[the config] so it specifies a full path to your credential file.
 
 *Run*
 

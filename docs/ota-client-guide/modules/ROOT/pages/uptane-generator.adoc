@@ -1,10 +1,11 @@
 = Simulate Uptane metadata transactions
+:aktualizr-github-url: https://github.com/advancedtelematic/aktualizr/tree/master
 
 The uptane-generator directory contains a basic tool that generates metadata according to the Uptane spec. It is comprised of three tools:
 
-. link:../../../../../src/uptane_generator/run/create_repo.sh[`create_repo.sh`] is a script to generate a new Uptane metadata repository, an OSTree repository, and all associated credentials and configuration.
-. link:../../../../../src/uptane_generator/run/serve_repo.py[`serve_repo.py`] is a script for running a minimalistic Uptane server.
-. link:../../../../../src/uptane_generator/main.cc[`uptane-generator`] is a low-level tool to generate and control an Uptane repository. It can be used to manipulate the repo created with `create_repo.sh`, or it can be used entirely independently.
+. link:{aktualizr-github-url}/src/uptane_generator/run/create_repo.sh[`create_repo.sh`] is a script to generate a new Uptane metadata repository, an OSTree repository, and all associated credentials and configuration.
+. link:{aktualizr-github-url}/src/uptane_generator/run/serve_repo.py[`serve_repo.py`] is a script for running a minimalistic Uptane server.
+. link:{aktualizr-github-url}/src/uptane_generator/main.cc[`uptane-generator`] is a low-level tool to generate and control an Uptane repository. It can be used to manipulate the repo created with `create_repo.sh`, or it can be used entirely independently.
 
 == create_repo.sh
 
