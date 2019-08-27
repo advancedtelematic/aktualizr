@@ -1,6 +1,6 @@
 = Set Up Device Provisioning
 
-Learn how provisioning in production is different from the provisioning method that you used to get started. You'll also understand the major steps involved in provisioning devices for production.
+In this section, you'll learn how provisioning in production is different from the provisioning method that you used to get started. You'll also understand the major steps involved in provisioning devices for production.
 
 == Why is there a different provisioning method for production?
 

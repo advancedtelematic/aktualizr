@@ -1,3 +1,69 @@
-// MC: Included from repo in Gitlab: https://main.gitlab.in.here.com/olp/edge/ota/documentation/ota-connect-docs/tree/master/docs/getstarted/modules/ROOT/pages/automotive-grade-linux.adoc
+= Build an Automotive Grade Linux image
+:page-partial:
+:page-layout: page
+:page-categories: [quickstarts]
+:page-date: 2017-05-16 15:54:29
+:page-order: 3
+:icons: font
+:device: AGL-supported board
+:machine: <machine-name>
+:image: agl-demo-platform
 
-include::dev@getstarted:ROOT:page$automotive-grade-linux.adoc[]
+{product-name} lets you easily manage OTA updates to embedded devices running custom-built Yocto images. It works great with Automotive Grade Linux, so building an AGL image is one easy way to get started. If your planned project is automotive, AGL is a great choice to start out with. Out of the box, {product-name} works with AGL builds for QEMU and Raspberry Pi Model 3.
+
+// Most of the content here is the same as the Raspberry Pi instructions, so we re-use the chunks we can.
+
+include::build-raspberry.adoc[tags=prereqs]
+
+== Create your AGL Yocto build environment
+
+=== Get AGL master manifest
+
+First, clone a manifest file for AGL Electric Eel:
+
+----
+mkdir myproject
+cd myproject
+repo init -b eel -m default.xml -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo.git
+repo sync
+----
+
+This will download the basic Yocto layers you need. Generally, HERE Technologies recommends using AGL's latest point release.
+
+.What is this actually doing?
+****
+Yocto is a set of tools, templates and methods for building Linux systems from scratch. Automotive Grade Linux is a complete Linux distribution designed for in-car systems. It includes base system layers from Poky and OpenEmbedded, board support layers for popular automotive platforms, and quite a lot more.
+
+All of these layers are assembled into a built Linux system by Bitbake, the build tool of the Yocto Project, based on the instructions in the recipes inside the layers.
+****
+
+=== Run environment setup script
+
+Now you can run the following script to get the environment set up:
+
+----
+source meta-agl/scripts/aglsetup.sh -m <target-architecture> agl-demo agl-appfw-smack agl-sota <1>
+----
+<1> Where `<target-architecture>` is either `raspberrypi3` or `qemux86-64`.
+
+IMPORTANT: Only `raspberrypi3` and `qemux86-64` will work out of the box. If you want to create an {product-name-short}-compatible build for one of the other architectures AGL supports, you'll need to write a BSP layer for that board. You can take the link:https://github.com/advancedtelematic/meta-updater-raspberrypi/tree/morty/recipes-bsp[Raspberry Pi BSP] as an example of what's needed. You can also link:mailto:otaconnect.support@here.com[contact us directly] to inquire about commercial development of BSP layers for specific boards.
+
+include::build-raspberry.adoc[tags=config;bitbake]
+
+== Put the built image on your device's boot media
+
+The build process creates disk images as an artefact. The exact image you'll need will vary depending on the architecture you're building forfootnote:[For example, building the `agl-demo-platform` target for Raspberry Pi 3 creates an image at `build/tmp/deploy/images/raspberrypi3/agl-demo-platform-raspberrypi3.wic`.], but it will be located in the `/tmp/deploy/images` directory under your build directory. We recommend using https://www.balena.io/etcher/[Etcher, window="_blank"] to write the image, or following the normal flashing procedure for your device if applicable.
+
+TIP: You can also write the image using `dd`, but since the wrong kind of typo in a dd command is so dangerous, we don't recommend it.
+
+You'll probably also want to resize the main partition to fill all of the space on the boot media:
+
+----
+sudo parted -s /dev/sdX resizepart 2 '100%' <1>
+sudo resize2fs /dev/sdX2 <1>
+----
+<1> Where /dev/sdX is the device you wrote the image to.
+
+You should now be able to boot your device and have it show up in your {product-name-short} account.
+
+

@@ -4,7 +4,17 @@
 
 Once you're ready to provision devices in production, you need to build disk images that are configured to use device-credential provisioning.
 
-After you have flashed those images to devices, you boot the image and install the device certicate for each device. You can install the certificate to the device's fileystem or use an HSM.
+After you have flashed those images to devices, you boot the image and install the device certicate for each device. 
+
+How you get the certificate on the device is up to you:
+
+* You could have your HSM generate a private key and certificate directly on the device.
++
+You woud then sign the certificate with your fleet root key.
++
+** We don't have documentation on how to do this, since the method is different for each HSM model.
+* You can also generate the device certificates and private keys on your development computer and copy them over to the device. 
+** For these instructions, we'll assume you are using this latter method.
 
 == HSM considerations
 
@@ -39,9 +49,9 @@ IMAGE_INSTALL_append = " softhsm-testtoken dropbear "
 ====
 The line `IMAGE_INSTALL_append` installs optional software to your device. 
 
-* The option `dropbear` installs the link:https://matt.ucc.asn.au/dropbear/dropbear.html[Dropbear] SSH server. 
+* The option `dropbear` installs the link:https://matt.ucc.asn.au/dropbear/dropbear.html[Dropbear] ssh server. 
 +
-You'll need to SSH into the device to copy the certificates to the device's filesystem.
+You'll need to ssh into the device to copy the certificates to the device's filesystem.
 * The option `softhsm-testtoken` installs SoftHSM to so that you can easily test HSM interactions.
 +
 When using a real HSM, you can omit this option.
@@ -73,7 +83,7 @@ scp -P 2222 -pr ${device_dir} root@localhost:/var/sota/import
 Replace `path/to/device-creds/dir` with the local directory where you xref:generate-devicecert.adoc[generated the device certificate].
 ====
 +
-. _(Optional)_ When the copy operation has completed, SSH into your device and check the aktualizr log output with the following `systemd` command:
+. _(Optional)_ When the copy operation has completed, ssh into your device and check the aktualizr log output with the following `systemd` command:
 +
 `journalctl -f -u aktualizr`
 +

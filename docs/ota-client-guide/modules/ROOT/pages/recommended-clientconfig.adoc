@@ -67,7 +67,7 @@ We recommend an internal between 1 and 7 days (86,400 to 604,800 seconds).
 |
 * **.toml file:** 
 +
-`force_install_completion=true`
+`force_install_completion=false`
 * **local.conf file:** 
 +
 Remove `aktualizr-auto-reboot` from the `IMAGE_INSTALL_append` parameter.
