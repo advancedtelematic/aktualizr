@@ -1,4 +1,5 @@
 = Aktualizr Debugging Tips
+:aktualizr-github-url: https://github.com/advancedtelematic/aktualizr/tree/master
 
 == Running Aktualizr in development
 
@@ -12,11 +13,11 @@ For VS code, there is a `launch.json` provided in the `.vscode` directory.  This
 
 == Creating a temporary OSTree environment
 
-Try the scripts available in the link:../tests/ostree-scripts[tests/ostree-scripts] directory.
+Try the scripts available in the link:{aktualizr-github-url}/tests/ostree-scripts[tests/ostree-scripts] directory.
 
 == Inspect stored info with aktualizr-info
 
-The aktualizr-info tool can be used to dump information stored in the libaktualizr database. By default, it displays basic information such as storage type, device ID, primary ECU serial and hardware ID and provisioning status. Additional information can be requested with link:../src/aktualizr_info/main.cc[various command line parameters].
+The aktualizr-info tool can be used to dump information stored in the libaktualizr database. By default, it displays basic information such as storage type, device ID, primary ECU serial and hardware ID and provisioning status. Additional information can be requested with link:{aktualizr-github-url}/src/aktualizr_info/main.cc[various command line parameters].
 
 == Valgrind and gdb
 
@@ -57,15 +58,15 @@ Fetch both of these down. In wireshark preferences set ssl.keylog_file to point 
 
 aktualizr can be tested against a dummy repository containing fake images.
 
-First, generate a repository using link:../src/uptane_generator/main.cc[uptane-generator] tool:
+First, generate a repository using link:{aktualizr-github-url}/src/uptane_generator/main.cc[uptane-generator] tool:
 
 ```
 uptane-generator generate <repo_dir>
 ```
 
-Then, serve the generated directory using a web server such as the link:../tests/fake_http_server/fake_test_server.py[fake test server].
+Then, serve the generated directory using a web server such as the link:{aktualizr-github-url}/tests/fake_http_server/fake_test_server.py[fake test server].
 
-For more information about using uptane-generator, see link:./uptane-generator.adoc[uptane-generator.adoc].
+For more information about using uptane-generator, see xref:uptane-generator.adoc[uptane-generator.adoc].
 
 Here is an example configuration for nginx:
 
@@ -89,7 +90,7 @@ server {
 
 == Inject faults
 
-See link:./fault-injection.adoc[fault-injection.adoc]
+See xref:fault-injection.adoc[fault-injection.adoc]
 
 == Developing and debugging with an OpenEmbedded system
 

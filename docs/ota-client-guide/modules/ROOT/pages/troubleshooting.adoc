@@ -34,18 +34,6 @@ sudo /var/lib/dpkg/info/ca-certificates-java.postinst configure
 
 More detailed info about the cause of the bug, as well as links to the bug in various distros' issue trackers, can be found link:https://github.com/mikaelhg/broken-docker-jdk9-cacerts/blob/master/README.md[on github].
 
-=== GnuTLS build fails with older kernels
-
-GnuTLS currently requires a kernel >= 3.17 to build. If you're using an older kernel, you'll see an error like this:
-
-----
-../../../gnutls-3.5.3/lib/nettle/rnd-linux.c: In function 'have_getrandom':
-../../../gnutls-3.5.3/lib/nettle/rnd-linux.c:59:42: error: 'SYS_getrandom' undeclared (first use in this function)
- #  define getrandom(dst,s,flags) syscall(SYS_getrandom, (void*)dst, (size_t)s, (unsigned int)flags)
-----
-
-This is an upstream problem; until it's fixed in upstream poky, you can link:../files/gnutls-fix.patch[download this patch] to your `poky` directory and apply it to fix the issue.
-
 === Build didn't work after switching architectures
 
 You might have tried something like this:

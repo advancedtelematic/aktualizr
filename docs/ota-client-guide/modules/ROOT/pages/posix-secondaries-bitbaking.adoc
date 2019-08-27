@@ -1,10 +1,11 @@
 = Posix Secondaries: bitbaking and usage of Primary and Secondary images
+:build-qemu-link: xref:build-quemu.adoc[How to build 'core-image-minimal' image for QEMU]]
 
 The goal of this doc is to guide a reader on bitbaking of two type of images `primary` and `secondary` that are targeted for QEMU or RPi
 and running of which on the target makes it act as `Primary` and `Secondary` ECU of a single device.
 
-Please, refer to link:https://uptane.github.io/uptane-standard/uptane-standard.html[the Uptane standard] in order to grok the meaning of the `Primary` and `Secondary` terms in the given context from a theoretical standpoint.
-Please, check out link:posix-secondaries.doc[this doc] to understand these terms from a practical standpoint and
+Refer to link:https://uptane.github.io/uptane-standard/uptane-standard.html[the Uptane standard] in order to grok the meaning of the `Primary` and `Secondary` terms in the given context from a theoretical standpoint.
+Check out xref:posix-secondaries.doc[this doc] to understand these terms from a practical standpoint and
 to learn how `Primary` and `Secondary` can be emulated locally on an user's host.
 It is highly advisable to follow the doc instructions and play with emulated `Primary` and `Secondary` prior to running steps described further in this doc.
 
@@ -14,7 +15,7 @@ It is assumed that a reader is familiar with Yocto and bitbaking in general as w
 details of which are out of scope of this doc and can be found in the following guides:
 
 * link:https://github.com/advancedtelematic/meta-updater/blob/master/README.adoc[meta-updater README].
-* https://docs.ota.here.com/quickstarts/qemuvirtualbox.html[How to build 'core-image-minimal' image for QEMU]
+* 
 
 === Primary
 To bitbake an image for `Primary` run the following:
@@ -45,7 +46,7 @@ bitbake primary-image
 | A space separated list of TCP/IP addresses of the Secondaries to be included into the list of ECUs served by the given Primary
 |===
 
-Please, note that PRIMARY_SECONDARIES can be a list of TCP/IP addresses in order to fulfill multiple secondaries use case.
+Note that PRIMARY_SECONDARIES can be a list of TCP/IP addresses in order to fulfill multiple secondaries use case.
 For example, `PRIMARY_SECONDARIES = "10.0.3.2:9050 10.0.3.3:9050 10.0.3.4:9050"`.
 
 
@@ -86,7 +87,7 @@ For example,
 
 === Specifics of bitbaking for Raspberry Pi
 
-It is assumed that a reader is a familiar with bitbaking for Raspberry Pi in general, see link:https://docs.ota.here.com/quickstarts/raspberry-pi.html[Build a Raspberry Pi image].
+It is assumed that a reader is a familiar with bitbaking for Raspberry Pi in general, see xref:build-raspberry.adoc[Build a Raspberry Pi image].
 
 The aforementioned/above guide is relevant and applicable to building a Raspberry images of Primay and Secondary.
 The following is specifics of building such images targeting RPi.
@@ -157,7 +158,7 @@ Primary connects to Internet via ethernet NIC that should be connected to LAN wi
 It is assumed that a reader is familiar with details on running of bitbaked images targeted for QEMU, such information can be found in the following docs:
 
 * link:https://github.com/advancedtelematic/meta-updater/blob/master/README.adoc[meta-updater README].
-* https://docs.ota.here.com/quickstarts/qemuvirtualbox.html[How to build 'core-image-minimal' image for QEMU]
+* xref:build-quemu.adoc[How to build 'core-image-minimal' image for QEMU]]
 
 === Primary
 
