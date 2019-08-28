@@ -47,7 +47,7 @@ add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND}
 # List of source files to run static analysis on. Automatically appended to by
 # add_aktualizr_test, but anything that doesn't use that must be manually added
 # to this list.
-set(TEST_SOURCES httpfake.h test_utils.cc test_utils.h uptane_vector_tests.cc)
+set(TEST_SOURCES httpfake.h metafake.h test_utils.cc test_utils.h uptane_vector_tests.cc)
 
 
 include(CMakeParseArguments)
