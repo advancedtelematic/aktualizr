@@ -209,7 +209,7 @@ bool P11Engine::readUptanePublicKey(std::string* key_out) {
   PEM_write_bio_PUBKEY(mem.get(), evp_key.get());
 
   char* pem_key = nullptr;
-  long length = BIO_get_mem_data(mem.get(), &pem_key);  // NOLINT
+  long length = BIO_get_mem_data(mem.get(), &pem_key);  // NOLINT(google-runtime-int)
   key_out->assign(pem_key, static_cast<size_t>(length));
 
   return true;
@@ -290,7 +290,7 @@ bool P11Engine::readTlsCert(std::string* cert_out) const {
   PEM_write_bio_X509(mem.get(), cert->x509);
 
   char* pem_key = nullptr;
-  long length = BIO_get_mem_data(mem.get(), &pem_key);  // NOLINT
+  long length = BIO_get_mem_data(mem.get(), &pem_key);  // NOLINT(google-runtime-int)
   cert_out->assign(pem_key, static_cast<size_t>(length));
 
   return true;
