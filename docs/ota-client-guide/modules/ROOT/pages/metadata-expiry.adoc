@@ -1,32 +1,63 @@
 = Manage metadata expiry dates
 
-Once you take the keys for signing metadata offline, you need to be aware of when this metadata expires. You need to refresh the expiry date before it is reached, otherwise you won't be able to push updates.
+Once you xref:rotating-signing-keys.adoc[take the keys for signing metadata offline], you need to be aware of when this metadata expires. You need to refresh the expiry date before it is reached, otherwise you won't be able to push updates. You can also define your own expiry dates when you take your keys offline.
 
 The default expiry dates are as follows:
 
 * For `targets.json`, the expiry date is **31 days** from when the metadata was last updated.
 * For `root.json`, the expiry date is **365 days** from when the metadata was last updated.
 
-You can refresh the expiry date one of the following ways:
+You can specify the expiry date with the following methods:
 
-* With `garage-sign`:
-+
-If you previously followed the procedure to xref:rotating-signing-keys.adoc[take Uptane-related keys offline], you would have created a local image repository called `myimagerepo` and a key called `mytargets`. You use these same repository and key names to refresh the expiry dates.
+* Specify it as an option in the `sign` command when running the standalone `garage-sign` tool.
+* Specify it in your `local.conf` file before you run the `bitbake` command to build and update software in your software repository.
 
-** Resign the current targets.json with your existing key:
+For examples of each method, see the following reference table:
+
+[cols="2a,3a",options="header"]
+|====================
+|Configuration  | Description
+|
+* **garage-sign option:** 
 +
+`--expires` 
+* **local.conf file:**
++
+`GARAGE_TARGET_EXPIRES` 
+| 
+Use this option to have the metadata expire after a fixed date and time.
+
+Specify the time as a UTC instant like in the following examples.
+
+.garage sign
 ----
-garage-sign targets sign --repo myimagerepo --key-name mytargets
+garage-sign targets sign --expires 2018-01-01T00:01:00Z  --repo myimagerepo --key-name mytargets
 ----
 
-** Upload the newly signed targets.json to OTA Connect:
-+
+.local.conf
 ----
-garage-sign targets push --repo myimagerepo
+GARAGE_TARGET_EXPIRES = "2018-01-01T00:01:00Z"
 ----
 
-* With the `bitbake` command:
+|
+* **garage-sign option:**  
 +
-Another option is to xref:build-ota-enabled-images.adoc[bitbake your main disk image] again. Specifically, the disk image that you flashed to your devices. 
+`--expire-after`
+* **local.conf file:** 
 +
-Bitbaking again shouldn't take long as files are usually cached from the previous build. You don't have to do anything with the image, it's just that process of bitbaking also refreshes the expiry date for `targets.json.`
+`GARAGE_TARGET_EXPIRE_AFTER`
+| 
+Use this option to have the metadata expire after an elapsed period of time.
+
+Specify the number of years, months and days like in the following examples.
+
+.garage sign
+----
+garage-sign targets sign ----expire-after 1Y3M5D  --repo myimagerepo --key-name mytargets
+----
+
+.local.conf
+----
+GARAGE_TARGET_EXPIRE_AFTER = "1Y3M5D"
+----
+|====================

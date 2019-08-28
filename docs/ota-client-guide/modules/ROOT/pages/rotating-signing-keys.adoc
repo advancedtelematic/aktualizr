@@ -69,6 +69,11 @@ This command
 garage-sign targets sign --repo myimagerepo --key-name mytargets
 ----
 +
+[TIP]
+====
+This metadata eventually expires after a predefined period. If you'd like to define your own metadata expiry period, you can add the `--expires` or `--expire-after` option. For more information about these options, see our guide to xref:metadata-expiry.adoc[managing metadata expiry dates].
+====
++
 . Upload the newly signed `targets.json` to OTA Connect:
 +
 ----
@@ -77,7 +82,10 @@ garage-sign targets push --repo myimagerepo
 
 You have now successfully taken the keys for software metadata offline.
 
-NOTE: After rotating keys, you will no longer be able to upload packages through the OTA Connect web UI--only the usual way, through bitbake.
+[IMPORTANT]
+====
+After rotating keys, you will no longer be able to upload packages through the OTA Connect web UI--only the usual way, through bitbake.
+====
 
 == Push new images with bitbake
 
