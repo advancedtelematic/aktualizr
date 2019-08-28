@@ -1,9 +1,10 @@
 = Client events reporting
+:aktualizr-github-url: https://github.com/advancedtelematic/aktualizr/tree/master
 
 This is a technical document describing the format of the events reported to the back-end by aktualizr during an ongoing update installation.
 It reflects the current state of aktualizr code. Future enhancements should be clearly marked as such (`TODO`), to avoid confusion.
 
-The corresponding C++ objects and their serialization method are defined in link:../src/libaktualizr/primary/reportqueue.h[reportqueue.h].
+The corresponding C++ objects and their serialization method are defined in link:{aktualizr-github-url}/src/libaktualizr/primary/reportqueue.h[reportqueue.h].
 
 == Common fields
 
