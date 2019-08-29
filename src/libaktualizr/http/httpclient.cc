@@ -45,6 +45,7 @@ HttpClient::HttpClient(const std::vector<std::string>* extra_headers) {
   curlEasySetoptWrapper(curl, CURLOPT_NOSIGNAL, 1L);
   curlEasySetoptWrapper(curl, CURLOPT_TIMEOUT, 60L);
   curlEasySetoptWrapper(curl, CURLOPT_CONNECTTIMEOUT, 60L);
+  curlEasySetoptWrapper(curl, CURLOPT_CAPATH, Utils::getCaPath());
 
   // let curl use our write function
   curlEasySetoptWrapper(curl, CURLOPT_WRITEFUNCTION, writeString);

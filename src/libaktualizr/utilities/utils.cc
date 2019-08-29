@@ -777,6 +777,12 @@ const char *Utils::getUserAgent() {
 
 std::string Utils::user_agent_;
 
+void Utils::setCaPath(boost::filesystem::path path) { ca_path_ = std::move(path); }
+
+const char *Utils::getCaPath() { return ca_path_.c_str(); }
+
+boost::filesystem::path Utils::ca_path_{"/etc/ssl/certs"};
+
 TemporaryFile::TemporaryFile(const std::string &hint)
     : tmp_name_(SafeTempRoot::Get() / boost::filesystem::unique_path(std::string("%%%%-%%%%-").append(hint))) {}
 

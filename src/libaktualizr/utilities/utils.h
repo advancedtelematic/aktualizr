@@ -53,9 +53,13 @@ struct Utils {
   static void setUserAgent(std::string user_agent);
   static const char *getUserAgent();
 
+  static void setCaPath(boost::filesystem::path path);
+  static const char *getCaPath();
+
  private:
   static std::string storage_root_path_;
   static std::string user_agent_;
+  static boost::filesystem::path ca_path_;
 };
 
 /**
