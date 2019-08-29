@@ -108,3 +108,11 @@ data::InstallationResult DockerAppManager::install(const Uptane::Target &target)
   }
   return res;
 }
+
+TargetStatus DockerAppManager::verifyTarget(const Uptane::Target &target) const {
+  if (target.IsOstree()) {
+    return OstreeManager::verifyTarget(target);
+  }
+  // TODO: verify DockerApp targets
+  return TargetStatus::kGood;
+}
