@@ -10,7 +10,7 @@ struct DockerApp {
         app_bin(config.docker_app_bin),
         compose_bin(config.docker_compose_bin) {}
 
-  bool render(const std::string &app_content) {
+  bool render(const std::string &app_content, bool persist) {
     auto bin = boost::filesystem::canonical(app_bin).string();
     Utils::writeFile(app_root / (name + ".dockerapp"), app_content);
     std::string cmd("cd " + app_root.string() + " && " + bin + " app render " + name);
@@ -22,7 +22,9 @@ struct DockerApp {
       LOG_ERROR << "Unable to run " << cmd << " output:\n" << yaml;
       return false;
     }
-    Utils::writeFile(app_root / "docker-compose.yml", yaml);
+    if (persist) {
+      Utils::writeFile(app_root / "docker-compose.yml", yaml);
+    }
     return true;
   }
 
@@ -101,7 +103,7 @@ data::InstallationResult DockerAppManager::install(const Uptane::Target &target)
     std::stringstream ss;
     ss << *storage_->openTargetFile(app_target);
     DockerApp dapp(app, config);
-    return dapp.render(ss.str()) && dapp.start();
+    return dapp.render(ss.str(), true) && dapp.start();
   };
   if (!iterate_apps(target, cb)) {
     return data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, "Could not render docker app");
@@ -113,6 +115,16 @@ TargetStatus DockerAppManager::verifyTarget(const Uptane::Target &target) const 
   if (target.IsOstree()) {
     return OstreeManager::verifyTarget(target);
   }
-  // TODO: verify DockerApp targets
+
+  auto cb = [this](const std::string &app, const Uptane::Target &app_target) {
+    LOG_INFO << "Verifying " << app << " -> " << app_target;
+    std::stringstream ss;
+    ss << *storage_->openTargetFile(app_target);
+    DockerApp dapp(app, config);
+    return dapp.render(ss.str(), false);
+  };
+  if (!iterate_apps(target, cb)) {
+    return TargetStatus::kInvalid;
+  }
   return TargetStatus::kGood;
 }

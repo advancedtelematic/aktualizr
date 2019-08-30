@@ -29,6 +29,8 @@ enum class TargetStatus {
   kOversized,
   /* Target was found, but hash did not match the metadata. */
   kHashMismatch,
+  /* Target was found and has valid metadata but the content is not suitable for the packagemanager */
+  kInvalid,
 };
 
 class PackageManagerInterface {

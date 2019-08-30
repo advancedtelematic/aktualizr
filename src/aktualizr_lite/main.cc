@@ -169,14 +169,11 @@ static std::unique_ptr<Uptane::Target> find_target(const std::shared_ptr<SotaUpt
 }
 
 static int do_update(SotaUptaneClient &client, INvStorage &storage, Uptane::Target &target) {
-  std::vector<Uptane::Target> targets{target};
-  auto result = client.downloadImages(targets);
-  if (result.status != result::DownloadStatus::kSuccess &&
-      result.status != result::DownloadStatus::kNothingToDownload) {
-    LOG_ERROR << "Unable to download update: " + result.message;
+  if (!client.downloadImage(target).first) {
     return 1;
   }
 
+  // TODO make pacman->verifyTarget something we can get to via client->
   auto iresult = client.PackageInstall(target);
   if (iresult.result_code.num_code == data::ResultCode::Numeric::kNeedCompletion) {
     LOG_INFO << "Update complete. Please reboot the device to activate";
