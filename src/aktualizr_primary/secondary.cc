@@ -65,9 +65,9 @@ void initSecondaries(Aktualizr& aktualizr, const boost::filesystem::path& config
 
 class SecondaryWaiter {
  public:
-  SecondaryWaiter(uint16_t wait_port, size_t wait_timeout, Secondaries& secondaries)
+  SecondaryWaiter(uint16_t wait_port, int timeout_s, Secondaries& secondaries)
       : endpoint_{boost::asio::ip::tcp::v4(), wait_port},
-        timeout_{static_cast<boost::posix_time::seconds>(wait_timeout)},
+        timeout_{static_cast<boost::posix_time::seconds>(timeout_s)},
         timer_{io_context_},
         connected_secondaries_(secondaries) {}
 
@@ -80,7 +80,7 @@ class SecondaryWaiter {
 
     timer_.expires_from_now(timeout_);
     timer_.async_wait([&](const boost::system::error_code& error_code) {
-      if (error_code) {
+      if (!!error_code) {
         LOG_ERROR << "Wait for secondaries has failed: " << error_code;
       } else {
         LOG_ERROR << "Timeout while waiting for secondaries: " << error_code;
@@ -142,7 +142,7 @@ class SecondaryWaiter {
 
 static Secondaries createIPSecondaries(const IPSecondariesConfig& config) {
   Secondaries result;
-  SecondaryWaiter sec_waiter{config.secondaries_wait_port, config.secondaries_wait_timeout, result};
+  SecondaryWaiter sec_waiter{config.secondaries_wait_port, config.secondaries_timeout_s, result};
 
   for (auto& ip_sec_cfg : config.secondaries_cfg) {
     auto sec_creation_res = Uptane::IpUptaneSecondary::connectAndCreate(ip_sec_cfg.ip, ip_sec_cfg.port);

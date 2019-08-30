@@ -92,7 +92,7 @@ static std::pair<std::string, uint16_t> getIPAndPort(const std::string& addr) {
 void JsonConfigParser::createIPSecondariesCfg(Configs& configs, const Json::Value& json_ip_sec_cfg) {
   auto resultant_cfg = std::make_shared<IPSecondariesConfig>(
       static_cast<uint16_t>(json_ip_sec_cfg[IPSecondariesConfig::PortField].asUInt()),
-      json_ip_sec_cfg[IPSecondariesConfig::TimeoutField].asUInt());
+      json_ip_sec_cfg[IPSecondariesConfig::TimeoutField].asInt());
   auto secondaries = json_ip_sec_cfg[IPSecondariesConfig::SecondariesField];
 
   LOG_INFO << "Found IP secondaries config: " << *resultant_cfg;
