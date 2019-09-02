@@ -13,7 +13,10 @@ using std::make_shared;
 using std::shared_ptr;
 
 Aktualizr::Aktualizr(Config &config) : config_(config) {
-  systemSetup();
+  if (sodium_init() == -1) {  // Note that sodium_init doesn't require a matching 'sodium_deinit'
+    throw std::runtime_error("Unable to initialize libsodium");
+  }
+
   sig_ = make_shared<boost::signals2::signal<void(shared_ptr<event::BaseEvent>)>>();
   storage_ = INvStorage::newStorage(config_.storage);
   storage_->importData(config_.import);
@@ -22,28 +25,16 @@ Aktualizr::Aktualizr(Config &config) : config_(config) {
 
 Aktualizr::Aktualizr(Config &config, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<HttpInterface> http_in)
     : config_(config) {
-  systemSetup();
+  if (sodium_init() == -1) {  // Note that sodium_init doesn't require a matching 'sodium_deinit'
+    throw std::runtime_error("Unable to initialize libsodium");
+  }
+
   sig_ = make_shared<boost::signals2::signal<void(shared_ptr<event::BaseEvent>)>>();
   storage_ = std::move(storage_in);
   std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_.bootloader, *storage_);
   std::shared_ptr<ReportQueue> report_queue_in = std::make_shared<ReportQueue>(config_, http_in);
 
   uptane_client_ = std::make_shared<SotaUptaneClient>(config_, storage_, http_in, bootloader_in, report_queue_in, sig_);
-}
-
-void Aktualizr::systemSetup() {
-  if (sodium_init() == -1) {  // Note that sodium_init doesn't require a matching 'sodium_deinit'
-    throw std::runtime_error("Unable to initialize libsodium");
-  }
-
-  LOG_TRACE << "Seeding random number generator from /dev/urandom...";
-  Timer timer;
-  unsigned int seed;
-  std::ifstream urandom("/dev/urandom", std::ios::in | std::ios::binary);
-  urandom.read(reinterpret_cast<char *>(&seed), sizeof(seed));
-  urandom.close();
-  std::srand(seed);  // seeds pseudo random generator with random number
-  LOG_TRACE << "... seeding complete in " << timer;
 }
 
 void Aktualizr::Initialize() {

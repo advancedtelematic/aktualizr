@@ -201,8 +201,6 @@ class Aktualizr {
   std::shared_ptr<SotaUptaneClient> uptane_client_;
 
  private:
-  static void systemSetup();
-
   struct {
     std::mutex m;
     std::condition_variable cv;
