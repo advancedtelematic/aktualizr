@@ -87,9 +87,9 @@ bool PackageManagerInterface::fetchTarget(const Uptane::Target& target, Uptane::
     if (target.hashes().empty()) {
       throw Uptane::Exception("image", "No hash defined for the target");
     }
-    auto target_exists = storage_->checkTargetFile(target);
-    if (target_exists && (*target_exists).first == target.length()) {
-      LOG_INFO << "Image already downloaded skipping download";
+    TargetStatus exists = PackageManagerInterface::verifyTarget(target);
+    if (exists == TargetStatus::kGood) {
+      LOG_INFO << "Image already downloaded; skipping download";
       return true;
     }
     if (target.length() == 0) {
@@ -97,13 +97,16 @@ bool PackageManagerInterface::fetchTarget(const Uptane::Target& target, Uptane::
       return true;
     }
     DownloadMetaStruct ds(target, std::move(progress_cb), token);
-    if (target_exists) {
-      ds.downloaded_length = target_exists->first;
+    if (exists == TargetStatus::kIncomplete) {
+      auto target_check = storage_->checkTargetFile(target);
+      ds.downloaded_length = target_check->first;
       auto target_handle = storage_->openTargetFile(target);
       ::restoreHasherState(ds.hasher(), target_handle.get());
       target_handle->rclose();
       ds.fhandle = target_handle->toWriteHandle();
     } else {
+      // If the target was found, but is oversized or the hash doesn't match,
+      // just start over.
       ds.fhandle = storage_->allocateTargetFile(false, target);
     }
 
@@ -143,4 +146,28 @@ bool PackageManagerInterface::fetchTarget(const Uptane::Target& target, Uptane::
     LOG_WARNING << "Error while downloading a target: " << e.what();
   }
   return result;
+}
+
+TargetStatus PackageManagerInterface::verifyTarget(const Uptane::Target& target) const {
+  auto target_exists = storage_->checkTargetFile(target);
+  if (!target_exists) {
+    return TargetStatus::kNotFound;
+  } else if (target_exists->first < target.length()) {
+    return TargetStatus::kIncomplete;
+  } else if (target_exists->first > target.length()) {
+    return TargetStatus::kOversized;
+  }
+
+  // Even if the file exists and the length matches, recheck the hash.
+  DownloadMetaStruct ds(target, nullptr, nullptr);
+  ds.downloaded_length = target_exists->first;
+  auto target_handle = storage_->openTargetFile(target);
+  ::restoreHasherState(ds.hasher(), target_handle.get());
+  target_handle->rclose();
+  if (!target.MatchHash(Uptane::Hash(ds.hash_type, ds.hasher().getHexDigest()))) {
+    LOG_ERROR << "Target exists with expected length, but hash does not match metadata! " << target;
+    return TargetStatus::kHashMismatch;
+  }
+
+  return TargetStatus::kGood;
 }

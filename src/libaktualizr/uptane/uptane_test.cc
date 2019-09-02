@@ -300,39 +300,53 @@ TEST(Uptane, FetchMetaFail) {
   EXPECT_EQ(result.status, result::UpdateStatus::kNoUpdatesAvailable);
 }
 
-unsigned int num_events_Install = 0;
+unsigned int num_events_InstallTarget = 0;
+unsigned int num_events_AllInstalls = 0;
 void process_events_Install(const std::shared_ptr<event::BaseEvent> &event) {
   if (event->variant == "InstallTargetComplete") {
     auto concrete_event = std::static_pointer_cast<event::InstallTargetComplete>(event);
-    if (num_events_Install == 0) {
+    if (num_events_InstallTarget <= 1) {
       EXPECT_TRUE(concrete_event->success);
     } else {
       EXPECT_FALSE(concrete_event->success);
     }
-    num_events_Install++;
+    num_events_InstallTarget++;
+  }
+  if (event->variant == "AllInstallsComplete") {
+    auto concrete_event = std::static_pointer_cast<event::AllInstallsComplete>(event);
+    if (num_events_AllInstalls == 0) {
+      EXPECT_TRUE(concrete_event->result.dev_report.isSuccess());
+    } else {
+      EXPECT_FALSE(concrete_event->result.dev_report.isSuccess());
+      EXPECT_EQ(concrete_event->result.dev_report.result_code, data::ResultCode::Numeric::kAlreadyProcessed);
+    }
+    num_events_AllInstalls++;
   }
 }
 
 /*
- * Verify successful installation of a provided fake package. Skip fetching and
- * downloading.
+ * Verify successful installation of a package.
+ *
  * Identify ECU for each target.
  * Check if there are updates to install for the primary.
  * Install a binary update on the primary.
  * Store installation result for primary.
  * Store installation result for device.
- * Check if an update is already installed
+ * Check if an update is already installed.
  */
-TEST(Uptane, InstallFake) {
+TEST(Uptane, InstallFakeGood) {
   Config conf("tests/config/basic.toml");
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path());
-  conf.provision.primary_ecu_serial = "testecuserial";
-  conf.provision.primary_ecu_hardware_id = "testecuhwid";
-  conf.uptane.director_server = http->tls_server + "/director";
-  conf.uptane.repo_server = http->tls_server + "/repo";
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
+  conf.uptane.director_server = http->tls_server + "director";
+  conf.uptane.repo_server = http->tls_server + "repo";
+  conf.pacman.type = PackageManager::kNone;
+  conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
+  conf.provision.primary_ecu_hardware_id = "primary_hw";
   conf.storage.path = temp_dir.Path();
   conf.tls.server = http->tls_server;
+  UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "secondary_ecu_serial", "secondary_hw");
+  conf.postUpdateValues();
 
   auto storage = INvStorage::newStorage(conf.storage);
   auto events_channel = std::make_shared<event::Channel>();
@@ -340,34 +354,131 @@ TEST(Uptane, InstallFake) {
   events_channel->connect(f_cb);
   auto up = UptaneTestCommon::newTestClient(conf, storage, http, events_channel);
   EXPECT_NO_THROW(up->initialize());
-  std::vector<Uptane::Target> packages_to_install = UptaneTestCommon::makePackage("testecuserial", "testecuhwid");
-  up->uptaneInstall(packages_to_install);
+
+  result::UpdateCheck update_result = up->fetchMeta();
+  EXPECT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
+  result::Download download_result = up->downloadImages(update_result.updates);
+  EXPECT_EQ(download_result.status, result::DownloadStatus::kSuccess);
+  result::Install install_result1 = up->uptaneInstall(download_result.updates);
+  EXPECT_TRUE(install_result1.dev_report.isSuccess());
+  EXPECT_EQ(install_result1.dev_report.result_code, data::ResultCode::Numeric::kOk);
 
   // Make sure operation_result and filepath were correctly written and formatted.
   Json::Value manifest = up->AssembleManifest();
-  EXPECT_EQ(manifest["ecu_version_manifests"]["testecuserial"]["signed"]["installed_image"]["filepath"].asString(),
-            "testecuserial");
-  // Verify nothing has installed for the secondary.
-  EXPECT_FALSE(manifest["ecu_version_manifests"]["secondary_ecu_serial"]["signed"].isMember("installed_image"));
+  EXPECT_EQ(manifest["ecu_version_manifests"]["CA:FE:A6:D2:84:9D"]["signed"]["installed_image"]["filepath"].asString(),
+            "primary_firmware.txt");
+  EXPECT_EQ(
+      manifest["ecu_version_manifests"]["secondary_ecu_serial"]["signed"]["installed_image"]["filepath"].asString(),
+      "secondary_firmware.txt");
 
-  EXPECT_EQ(num_events_Install, 1);
+  EXPECT_EQ(num_events_InstallTarget, 2);
+  EXPECT_EQ(num_events_AllInstalls, 1);
   Json::Value installation_report = manifest["installation_report"]["report"];
   EXPECT_EQ(installation_report["result"]["success"].asBool(), true);
   EXPECT_EQ(installation_report["result"]["code"].asString(), "OK");
-  EXPECT_EQ(installation_report["items"][0]["ecu"].asString(), "testecuserial");
+  EXPECT_EQ(installation_report["items"][0]["ecu"].asString(), "CA:FE:A6:D2:84:9D");
   EXPECT_EQ(installation_report["items"][0]["result"]["success"].asBool(), true);
   EXPECT_EQ(installation_report["items"][0]["result"]["code"].asString(), "OK");
+  EXPECT_EQ(installation_report["items"][1]["ecu"].asString(), "secondary_ecu_serial");
+  EXPECT_EQ(installation_report["items"][1]["result"]["success"].asBool(), true);
+  EXPECT_EQ(installation_report["items"][1]["result"]["code"].asString(), "OK");
 
   // second install
-  up->uptaneInstall(packages_to_install);
-  EXPECT_EQ(num_events_Install, 2);
+  result::Install install_result2 = up->uptaneInstall(download_result.updates);
+  EXPECT_FALSE(install_result2.dev_report.isSuccess());
+  EXPECT_EQ(install_result2.dev_report.result_code, data::ResultCode::Numeric::kAlreadyProcessed);
+  EXPECT_EQ(num_events_InstallTarget, 2);
+  EXPECT_EQ(num_events_AllInstalls, 2);
   manifest = up->AssembleManifest();
   installation_report = manifest["installation_report"]["report"];
   EXPECT_EQ(installation_report["result"]["success"].asBool(), false);
-  EXPECT_EQ(installation_report["result"]["code"].asString(), "testecuhwid:ALREADY_PROCESSED");
-  EXPECT_EQ(installation_report["items"][0]["ecu"].asString(), "testecuserial");
-  EXPECT_EQ(installation_report["items"][0]["result"]["success"].asBool(), false);
-  EXPECT_EQ(installation_report["items"][0]["result"]["code"].asString(), "ALREADY_PROCESSED");
+}
+
+/*
+ * Verify that installation will fail if the underlying data does not match the
+ * target.
+ */
+TEST(Uptane, InstallFakeBad) {
+  Config conf("tests/config/basic.toml");
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
+  conf.uptane.director_server = http->tls_server + "director";
+  conf.uptane.repo_server = http->tls_server + "repo";
+  conf.pacman.type = PackageManager::kNone;
+  conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
+  conf.provision.primary_ecu_hardware_id = "primary_hw";
+  conf.storage.path = temp_dir.Path();
+  conf.tls.server = http->tls_server;
+  UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "secondary_ecu_serial", "secondary_hw");
+  conf.postUpdateValues();
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_Install;
+  auto up = UptaneTestCommon::newTestClient(conf, storage, http, nullptr);
+  EXPECT_NO_THROW(up->initialize());
+
+  result::UpdateCheck update_result = up->fetchMeta();
+  EXPECT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
+  result::Download download_result = up->downloadImages(update_result.updates);
+  EXPECT_EQ(download_result.status, result::DownloadStatus::kSuccess);
+
+  std::string hash = download_result.updates[0].sha256Hash();
+  std::transform(hash.begin(), hash.end(), hash.begin(), ::toupper);
+  boost::filesystem::path image = temp_dir / "images" / hash;
+
+  // Overwrite the file on disk with garbage so that the target verification
+  // fails. First read the existing data so we can re-write it later.
+  auto rhandle = storage->openTargetFile(download_result.updates[0]);
+  const uint64_t length = download_result.updates[0].length();
+  uint8_t content[length];
+  EXPECT_EQ(rhandle->rread(content, length), length);
+  rhandle->rclose();
+  auto whandle = storage->allocateTargetFile(false, download_result.updates[0]);
+  uint8_t content_bad[length + 1];
+  memset(content_bad, 0, length + 1);
+  EXPECT_EQ(whandle->wfeed(content_bad, 3), 3);
+  whandle->wcommit();
+
+  result::Install install_result = up->uptaneInstall(download_result.updates);
+  EXPECT_FALSE(install_result.dev_report.isSuccess());
+  EXPECT_EQ(install_result.dev_report.result_code, data::ResultCode::Numeric::kInternalError);
+
+  // Try again with oversized data.
+  whandle = storage->allocateTargetFile(false, download_result.updates[0]);
+  EXPECT_EQ(whandle->wfeed(content_bad, length + 1), length + 1);
+  whandle->wcommit();
+
+  install_result = up->uptaneInstall(download_result.updates);
+  EXPECT_FALSE(install_result.dev_report.isSuccess());
+  EXPECT_EQ(install_result.dev_report.result_code, data::ResultCode::Numeric::kInternalError);
+
+  // Try again with equally long data to make sure the hash check actually gets
+  // triggered.
+  whandle = storage->allocateTargetFile(false, download_result.updates[0]);
+  EXPECT_EQ(whandle->wfeed(content_bad, length), length);
+  whandle->wcommit();
+
+  install_result = up->uptaneInstall(download_result.updates);
+  EXPECT_FALSE(install_result.dev_report.isSuccess());
+  EXPECT_EQ(install_result.dev_report.result_code, data::ResultCode::Numeric::kInternalError);
+
+  // Try with the real data, but incomplete.
+  whandle = storage->allocateTargetFile(false, download_result.updates[0]);
+  EXPECT_EQ(whandle->wfeed(reinterpret_cast<uint8_t *>(content), length - 1), length - 1);
+  whandle->wcommit();
+
+  install_result = up->uptaneInstall(download_result.updates);
+  EXPECT_FALSE(install_result.dev_report.isSuccess());
+  EXPECT_EQ(install_result.dev_report.result_code, data::ResultCode::Numeric::kInternalError);
+
+  // Restore the original data to the file so that verification succeeds.
+  whandle = storage->allocateTargetFile(false, download_result.updates[0]);
+  EXPECT_EQ(whandle->wfeed(reinterpret_cast<uint8_t *>(content), length), length);
+  whandle->wcommit();
+
+  install_result = up->uptaneInstall(download_result.updates);
+  EXPECT_TRUE(install_result.dev_report.isSuccess());
+  EXPECT_EQ(install_result.dev_report.result_code, data::ResultCode::Numeric::kOk);
 }
 
 bool EcuInstallationStartedReportGot = false;
@@ -467,9 +578,8 @@ TEST(Uptane, SendMetadataToSeconadry) {
   auto up = UptaneTestCommon::newTestClient(conf, storage, http);
   up->addNewSecondary(sec);
   EXPECT_NO_THROW(up->initialize());
-  up->fetchMeta();
-  std::vector<Uptane::Target> packages_to_install =
-      UptaneTestCommon::makePackage("secondary_ecu_serial", "secondary_hw");
+  result::UpdateCheck update_result = up->fetchMeta();
+  EXPECT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
 
   Uptane::RawMetaPack meta;
   storage->loadLatestRoot(&meta.director_root, Uptane::RepositoryType::Director());
@@ -480,7 +590,11 @@ TEST(Uptane, SendMetadataToSeconadry) {
   storage->loadNonRoot(&meta.image_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets());
 
   EXPECT_CALL(*sec, putMetadataMock(matchMeta(meta)));
-  up->uptaneInstall(packages_to_install);
+  result::Download download_result = up->downloadImages(update_result.updates);
+  EXPECT_EQ(download_result.status, result::DownloadStatus::kSuccess);
+  result::Install install_result = up->uptaneInstall(download_result.updates);
+  EXPECT_TRUE(install_result.dev_report.isSuccess());
+  EXPECT_EQ(install_result.dev_report.result_code, data::ResultCode::Numeric::kOk);
   EXPECT_TRUE(EcuInstallationStartedReportGot);
 }
 
@@ -625,9 +739,9 @@ class HttpFakeProv : public HttpFake {
     } else if (url.find("/director/ecus") != std::string::npos) {
       /* Register primary ECU with director. */
       ecus_count++;
-      EXPECT_EQ(data["primary_ecu_serial"].asString(), "tst149_ecu_serial");
-      EXPECT_EQ(data["ecus"][0]["hardware_identifier"].asString(), "tst149_hardware_identifier");
-      EXPECT_EQ(data["ecus"][0]["ecu_serial"].asString(), "tst149_ecu_serial");
+      EXPECT_EQ(data["primary_ecu_serial"].asString(), "CA:FE:A6:D2:84:9D");
+      EXPECT_EQ(data["ecus"][0]["hardware_identifier"].asString(), "primary_hw");
+      EXPECT_EQ(data["ecus"][0]["ecu_serial"].asString(), "CA:FE:A6:D2:84:9D");
       if (ecus_count == 1) {
         return HttpResponse("{}", 200, CURLE_OK, "");
       } else {
@@ -642,18 +756,64 @@ class HttpFakeProv : public HttpFake {
 
   HttpResponse handle_event(const std::string &url, const Json::Value &data) override {
     (void)url;
+    if (data[0]["eventType"]["id"] == "DownloadProgressReport") {
+      return HttpResponse("", 200, CURLE_OK, "");
+    }
+    const std::string event_type = data[0]["eventType"]["id"].asString();
+    const std::string serial = data[0]["event"]["ecu"].asString();
+    std::cout << "Got " << event_type << " event\n";
     ++events_seen;
-    if (events_seen == 1) {
-      /* Send EcuInstallationStartedReport to server for primary. */
-      EXPECT_EQ(data[0]["eventType"]["id"], "EcuInstallationStarted");
-      EXPECT_EQ(data[0]["event"]["ecu"], "tst149_ecu_serial");
-    } else if (events_seen == 2) {
-      /* Send EcuInstallationCompletedReport to server for primary. */
-      EXPECT_EQ(data[0]["eventType"]["id"], "EcuInstallationCompleted");
-      EXPECT_EQ(data[0]["event"]["ecu"], "tst149_ecu_serial");
-    } else {
-      std::cout << "Unexpected event: " << data[0]["eventType"]["id"];
-      EXPECT_EQ(0, 1);
+    switch (events_seen) {
+      case 0:
+        EXPECT_EQ(event_type, "SendDeviceDataComplete");
+        break;
+      case 1:
+      case 2:
+      case 3:
+      case 4:
+        if (event_type == "EcuDownloadStarted") {
+          if (serial == "CA:FE:A6:D2:84:9D") {
+            ++primary_download_start;
+          } else if (serial == "secondary_ecu_serial") {
+            ++secondary_download_start;
+          }
+        } else if (event_type == "EcuDownloadCompleted") {
+          if (serial == "CA:FE:A6:D2:84:9D") {
+            ++primary_download_complete;
+          } else if (serial == "secondary_ecu_serial") {
+            ++secondary_download_complete;
+          }
+        }
+        if (events_seen == 4) {
+          EXPECT_EQ(primary_download_start, 1);
+          EXPECT_EQ(primary_download_complete, 1);
+          EXPECT_EQ(secondary_download_start, 1);
+          EXPECT_EQ(secondary_download_complete, 1);
+        }
+        break;
+      case 5:
+        /* Send EcuInstallationStartedReport to server for primary. */
+        EXPECT_EQ(event_type, "EcuInstallationStarted");
+        EXPECT_EQ(serial, "CA:FE:A6:D2:84:9D");
+        break;
+      case 6:
+        /* Send EcuInstallationCompletedReport to server for primary. */
+        EXPECT_EQ(event_type, "EcuInstallationCompleted");
+        EXPECT_EQ(serial, "CA:FE:A6:D2:84:9D");
+        break;
+      case 7:
+        /* Send EcuInstallationStartedReport to server for secondaries. */
+        EXPECT_EQ(event_type, "EcuInstallationStarted");
+        EXPECT_EQ(serial, "secondary_ecu_serial");
+        break;
+      case 8:
+        /* Send EcuInstallationCompletedReport to server for secondaries. */
+        EXPECT_EQ(event_type, "EcuInstallationCompleted");
+        EXPECT_EQ(serial, "secondary_ecu_serial");
+        break;
+      default:
+        std::cout << "Unexpected event: " << event_type;
+        EXPECT_EQ(0, 1);
     }
     return HttpResponse("", 200, CURLE_OK, "");
   }
@@ -679,20 +839,31 @@ class HttpFakeProv : public HttpFake {
        * Get primary installation result.
        * Send manifest to the server. */
       manifest_count++;
-      std::string hash;
+      std::string file_primary;
+      std::string file_secondary;
+      std::string hash_primary;
+      std::string hash_secondary;
       if (manifest_count <= 2) {
+        file_primary = "unknown";
+        file_secondary = "noimage";
         // Check for default initial value of packagemanagerfake.
-        hash = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("")));
+        hash_primary = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("")));
+        hash_secondary = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("")));
       } else {
-        hash = "tst149_ecu_serial";
+        file_primary = "primary_firmware.txt";
+        file_secondary = "secondary_firmware.txt";
+        const Json::Value json = Utils::parseJSON(Utils::readFile(meta_dir / "director/targets_hasupdates.json"));
+        const Json::Value targets_list = json["signed"]["targets"];
+        hash_primary = targets_list["primary_firmware.txt"]["hashes"]["sha256"].asString();
+        hash_secondary = targets_list["secondary_firmware.txt"]["hashes"]["sha256"].asString();
       }
-      EXPECT_EQ(data["signed"]["ecu_version_manifests"]["tst149_ecu_serial"]["signed"]["installed_image"]["filepath"]
-                    .asString(),
-                (hash == "tst149_ecu_serial") ? hash : "unknown");
-      EXPECT_EQ(data["signed"]["ecu_version_manifests"]["tst149_ecu_serial"]["signed"]["installed_image"]["fileinfo"]
-                    ["hashes"]["sha256"]
-                        .asString(),
-                hash);
+      const Json::Value manifest = data["signed"]["ecu_version_manifests"];
+      const Json::Value manifest_primary = manifest["CA:FE:A6:D2:84:9D"]["signed"]["installed_image"];
+      const Json::Value manifest_secondary = manifest["secondary_ecu_serial"]["signed"]["installed_image"];
+      EXPECT_EQ(file_primary, manifest_primary["filepath"].asString());
+      EXPECT_EQ(file_secondary, manifest_secondary["filepath"].asString());
+      EXPECT_EQ(manifest_primary["fileinfo"]["hashes"]["sha256"].asString(), hash_primary);
+      EXPECT_EQ(manifest_secondary["fileinfo"]["hashes"]["sha256"].asString(), hash_secondary);
     } else if (url.find("/system_info/network") != std::string::npos) {
       /* Send networking info to the server. */
       network_count++;
@@ -714,19 +885,13 @@ class HttpFakeProv : public HttpFake {
   int installed_count{0};
   int system_info_count{0};
   int network_count{0};
-};
 
-unsigned int num_events_ProvisionOnServer = 0;
-void process_events_ProvisionOnServer(const std::shared_ptr<event::BaseEvent> &event) {
-  switch (num_events_ProvisionOnServer) {
-    case 0: {
-      EXPECT_EQ(event->variant, "SendDeviceDataComplete");
-      break;
-    }
-    default: { std::cout << "Got " << event->variant << "event\n"; }
-  }
-  num_events_ProvisionOnServer++;
-}
+ private:
+  int primary_download_start{0};
+  int primary_download_complete{0};
+  int secondary_download_start{0};
+  int secondary_download_complete{0};
+};
 
 /* Provision with a fake server and check for the exact number of expected
  * calls to each endpoint.
@@ -745,14 +910,13 @@ TEST(Uptane, ProvisionOnServer) {
   config.uptane.repo_server = server + "/repo";
   config.provision.ecu_registration_endpoint = server + "/director/ecus";
   config.provision.device_id = "tst149_device_id";
-  config.provision.primary_ecu_hardware_id = "tst149_hardware_identifier";
-  config.provision.primary_ecu_serial = "tst149_ecu_serial";
+  config.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
+  config.provision.primary_ecu_hardware_id = "primary_hw";
   config.storage.path = temp_dir.Path();
+  UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hw");
 
   auto storage = INvStorage::newStorage(config.storage);
   auto events_channel = std::make_shared<event::Channel>();
-  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_ProvisionOnServer;
-  events_channel->connect(f_cb);
   auto up = UptaneTestCommon::newTestClient(config, storage, http, events_channel);
 
   EXPECT_EQ(http->devices_count, 0);
@@ -765,7 +929,7 @@ TEST(Uptane, ProvisionOnServer) {
   EXPECT_NO_THROW(up->initialize());
   EcuSerials serials;
   storage->loadEcuSerials(&serials);
-  EXPECT_EQ(serials[0].second.ToString(), "tst149_hardware_identifier");
+  EXPECT_EQ(serials[0].second.ToString(), "primary_hw");
 
   EXPECT_EQ(http->devices_count, 1);
   EXPECT_EQ(http->ecus_count, 1);
@@ -776,18 +940,16 @@ TEST(Uptane, ProvisionOnServer) {
   EXPECT_EQ(http->system_info_count, 1);
   EXPECT_EQ(http->network_count, 1);
 
-  // We need to fetch metadata, but we currently expect a target hash mismatch
-  // since our update is bogus.
-  auto result = up->fetchMeta();
-  EXPECT_EQ(result.status, result::UpdateStatus::kError);
-  EXPECT_EQ(result.message, "Could not update metadata.");
+  result::UpdateCheck update_result = up->fetchMeta();
+  EXPECT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
   EXPECT_EQ(http->manifest_count, 2);
 
   // Test installation to make sure the metadata put to the server is correct.
-  // Fake the metadata without actually trying to download anything.
-  std::vector<Uptane::Target> packages_to_install =
-      UptaneTestCommon::makePackage(config.provision.primary_ecu_serial, config.provision.primary_ecu_hardware_id);
-  up->uptaneInstall(packages_to_install);
+  result::Download download_result = up->downloadImages(update_result.updates);
+  EXPECT_EQ(download_result.status, result::DownloadStatus::kSuccess);
+  result::Install install_result = up->uptaneInstall(download_result.updates);
+  EXPECT_TRUE(install_result.dev_report.isSuccess());
+  EXPECT_EQ(install_result.dev_report.result_code, data::ResultCode::Numeric::kOk);
   up->putManifest();
 
   EXPECT_EQ(http->devices_count, 1);
@@ -796,7 +958,7 @@ TEST(Uptane, ProvisionOnServer) {
   EXPECT_EQ(http->installed_count, 1);
   EXPECT_EQ(http->system_info_count, 1);
   EXPECT_EQ(http->network_count, 1);
-  EXPECT_EQ(http->events_seen, 2);
+  EXPECT_EQ(http->events_seen, 8);
 }
 
 /* Migrate from the legacy filesystem storage. */
@@ -990,7 +1152,6 @@ TEST(Uptane, SaveAndLoadVersion) {
   config.provision.device_id = "device_id";
   config.postUpdateValues();
   auto storage = INvStorage::newStorage(config.storage);
-  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
 
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d";
@@ -1053,37 +1214,37 @@ TEST(Uptane, restoreVerify) {
   EXPECT_NO_THROW(sota_client->initialize());
   sota_client->AssembleManifest();
   // 1st attempt, don't get anything
-  EXPECT_FALSE(sota_client->uptaneIteration());
+  EXPECT_FALSE(sota_client->uptaneIteration(nullptr, nullptr));
   EXPECT_FALSE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Director()));
 
   // 2nd attempt, get director root.json
-  EXPECT_FALSE(sota_client->uptaneIteration());
+  EXPECT_FALSE(sota_client->uptaneIteration(nullptr, nullptr));
   EXPECT_TRUE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Director()));
   EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Director(), Uptane::Role::Targets()));
 
   // 3rd attempt, get director targets.json
-  EXPECT_FALSE(sota_client->uptaneIteration());
+  EXPECT_FALSE(sota_client->uptaneIteration(nullptr, nullptr));
   EXPECT_TRUE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Director()));
   EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Director(), Uptane::Role::Targets()));
   EXPECT_FALSE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Image()));
 
   // 4th attempt, get images root.json
-  EXPECT_FALSE(sota_client->uptaneIteration());
+  EXPECT_FALSE(sota_client->uptaneIteration(nullptr, nullptr));
   EXPECT_TRUE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Image()));
   EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()));
 
   // 5th attempt, get images timestamp.json
-  EXPECT_FALSE(sota_client->uptaneIteration());
+  EXPECT_FALSE(sota_client->uptaneIteration(nullptr, nullptr));
   EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()));
   EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()));
 
   // 6th attempt, get images snapshot.json
-  EXPECT_FALSE(sota_client->uptaneIteration());
+  EXPECT_FALSE(sota_client->uptaneIteration(nullptr, nullptr));
   EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()));
   EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Targets()));
 
   // 7th attempt, get images targets.json, successful iteration
-  EXPECT_TRUE(sota_client->uptaneIteration());
+  EXPECT_TRUE(sota_client->uptaneIteration(nullptr, nullptr));
   EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Targets()));
 }
 
@@ -1107,22 +1268,20 @@ TEST(Uptane, offlineIteration) {
 
   auto storage = INvStorage::newStorage(config.storage);
   auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
-
   EXPECT_NO_THROW(sota_client->initialize());
-  sota_client->AssembleManifest();
 
   std::vector<Uptane::Target> targets_online;
-  EXPECT_TRUE(sota_client->uptaneIteration());
-  EXPECT_TRUE(sota_client->getNewTargets(&targets_online));
+  EXPECT_TRUE(sota_client->uptaneIteration(&targets_online, nullptr));
 
   std::vector<Uptane::Target> targets_offline;
   EXPECT_TRUE(sota_client->uptaneOfflineIteration(&targets_offline, nullptr));
   EXPECT_TRUE(Uptane::MatchTargetVector(targets_online, targets_offline));
 }
+
 /*
- Ignore updates for unrecognized ECUs.
- Reject targets which do not match a known ECU
-*/
+ * Ignore updates for unrecognized ECUs.
+ * Reject targets which do not match a known ECU.
+ */
 TEST(Uptane, IgnoreUnknownUpdate) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
@@ -1140,8 +1299,6 @@ TEST(Uptane, IgnoreUnknownUpdate) {
   auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
 
   EXPECT_NO_THROW(sota_client->initialize());
-  sota_client->AssembleManifest();
-
   auto result = sota_client->fetchMeta();
   EXPECT_EQ(result.status, result::UpdateStatus::kError);
   EXPECT_STREQ(sota_client->getLastException().what(),

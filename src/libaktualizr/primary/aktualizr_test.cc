@@ -1150,7 +1150,7 @@ TEST(Aktualizr, DownloadWithUpdates) {
         EXPECT_EQ(event->variant, "AllDownloadsComplete");
         const auto downloads_complete = dynamic_cast<event::AllDownloadsComplete*>(event.get());
         EXPECT_EQ(downloads_complete->result.updates.size(), 0);
-        EXPECT_EQ(downloads_complete->result.status, result::DownloadStatus::kNothingToDownload);
+        EXPECT_EQ(downloads_complete->result.status, result::DownloadStatus::kError);
         break;
       }
       case 1: {
@@ -1199,7 +1199,7 @@ TEST(Aktualizr, DownloadWithUpdates) {
   // First try downloading nothing. Nothing should happen.
   result::Download result = aktualizr.Download(std::vector<Uptane::Target>()).get();
   EXPECT_EQ(result.updates.size(), 0);
-  EXPECT_EQ(result.status, result::DownloadStatus::kNothingToDownload);
+  EXPECT_EQ(result.status, result::DownloadStatus::kError);
   result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
   aktualizr.Download(update_result.updates);
 

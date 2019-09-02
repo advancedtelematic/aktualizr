@@ -59,15 +59,19 @@ TEST(Aktualizr, FullOstreeUpdate) {
   LOG_INFO << "conf: " << conf;
 
   {
-    Aktualizr aktualizr(conf);
-
+    UptaneTestCommon::TestAktualizr aktualizr(conf);
     aktualizr.Initialize();
 
     result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
     ASSERT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
+    // Verify the target has not yet been downloaded.
+    EXPECT_EQ(aktualizr.uptane_client()->package_manager_->verifyTarget(update_result.updates[0]),
+              TargetStatus::kNotFound);
 
     result::Download download_result = aktualizr.Download(update_result.updates).get();
     EXPECT_EQ(download_result.status, result::DownloadStatus::kSuccess);
+    // Verify the target has been downloaded.
+    EXPECT_EQ(aktualizr.uptane_client()->package_manager_->verifyTarget(update_result.updates[0]), TargetStatus::kGood);
 
     result::Install install_result = aktualizr.Install(update_result.updates).get();
     EXPECT_EQ(install_result.ecu_reports.size(), 1);
@@ -90,6 +94,16 @@ TEST(Aktualizr, FullOstreeUpdate) {
     // check new version
     const auto target = aktualizr.uptane_client()->package_manager_->getCurrent();
     EXPECT_EQ(target.sha256Hash(), new_rev);
+    // TODO: verify the target. It doesn't work because
+    // ostree_repo_list_commit_objects_starting_with() doesn't find the commit.
+    // The already mocked functions are not enough to do this; it seems the
+    // commit is not written with the correct hash. See OTA-3659.
+
+    // Verify a bogus target is not present.
+    Uptane::EcuMap primary_ecu{{Uptane::EcuSerial(conf.provision.primary_ecu_serial),
+                                Uptane::HardwareIdentifier(conf.provision.primary_ecu_hardware_id)}};
+    Uptane::Target target_bad("some-pkg", primary_ecu, {Uptane::Hash(Uptane::Hash::Type::kSha256, "hash-bad")}, 4, "");
+    EXPECT_EQ(aktualizr.uptane_client()->package_manager_->verifyTarget(target_bad), TargetStatus::kNotFound);
   }
 }
 
@@ -101,7 +115,7 @@ int main(int argc, char **argv) {
 
   if (argc != 3) {
     std::cerr << "Error: " << argv[0] << " requires the path to the uptane-generator utility "
-              << "and an OStree sysroot\n";
+              << "and an OSTree sysroot\n";
     return EXIT_FAILURE;
   }
   uptane_generator_path = argv[1];

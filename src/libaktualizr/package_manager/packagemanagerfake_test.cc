@@ -15,6 +15,60 @@
 #include "utilities/types.h"
 #include "utilities/utils.h"
 
+/*
+ * Verify a stored target.
+ * Verify that a target is unavailable.
+ * Reject a target whose hash does not match the metadata.
+ * Reject an oversized target.
+ * Reject an incomplete target.
+ */
+TEST(PackageManagerFake, Verify) {
+  TemporaryDirectory temp_dir;
+  Config config;
+  config.pacman.type = PackageManager::kNone;
+  config.storage.path = temp_dir.Path();
+  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
+
+  Uptane::EcuMap primary_ecu{{Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")}};
+  const int length = 4;
+  uint8_t content[length];
+  memcpy(content, "good", length);
+  MultiPartSHA256Hasher hasher;
+  hasher.update(content, length);
+  const std::string hash = hasher.getHexDigest();
+  Uptane::Target target("some-pkg", primary_ecu, {Uptane::Hash(Uptane::Hash::Type::kSha256, hash)}, length, "");
+
+  PackageManagerFake fakepm(config.pacman, storage, nullptr, nullptr);
+  // Target is not yet available.
+  EXPECT_EQ(fakepm.verifyTarget(target), TargetStatus::kNotFound);
+
+  // Target has a bad hash.
+  auto whandle = storage->allocateTargetFile(false, target);
+  uint8_t content_bad[length + 1];
+  memset(content_bad, 0, length + 1);
+  EXPECT_EQ(whandle->wfeed(content_bad, length), length);
+  whandle->wcommit();
+  EXPECT_EQ(fakepm.verifyTarget(target), TargetStatus::kHashMismatch);
+
+  // Target is oversized.
+  whandle = storage->allocateTargetFile(false, target);
+  EXPECT_EQ(whandle->wfeed(content_bad, length + 1), length + 1);
+  whandle->wcommit();
+  EXPECT_EQ(fakepm.verifyTarget(target), TargetStatus::kOversized);
+
+  // Target is incomplete.
+  whandle = storage->allocateTargetFile(false, target);
+  EXPECT_EQ(whandle->wfeed(content, length - 1), length - 1);
+  whandle->wcommit();
+  EXPECT_EQ(fakepm.verifyTarget(target), TargetStatus::kIncomplete);
+
+  // Target is good.
+  whandle = storage->allocateTargetFile(false, target);
+  EXPECT_EQ(whandle->wfeed(content, length), length);
+  whandle->wcommit();
+  EXPECT_EQ(fakepm.verifyTarget(target), TargetStatus::kGood);
+}
+
 TEST(PackageManagerFake, FinalizeAfterReboot) {
   TemporaryDirectory temp_dir;
   Config config;

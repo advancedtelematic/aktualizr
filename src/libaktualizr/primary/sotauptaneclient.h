@@ -43,6 +43,8 @@ class SotaUptaneClient {
   void addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
   result::Download downloadImages(const std::vector<Uptane::Target> &targets,
                                   const api::FlowControlToken *token = nullptr);
+  std::pair<bool, Uptane::Target> downloadImage(const Uptane::Target &target,
+                                                const api::FlowControlToken *token = nullptr);
   void reportPause();
   void reportResume();
   void sendDeviceData();
@@ -82,7 +84,7 @@ class SotaUptaneClient {
   FRIEND_TEST(DockerAppManager, DockerApp_Fetch);
   FRIEND_TEST(Uptane, AssembleManifestGood);
   FRIEND_TEST(Uptane, AssembleManifestBad);
-  FRIEND_TEST(Uptane, InstallFake);
+  FRIEND_TEST(Uptane, InstallFakeGood);
   FRIEND_TEST(Uptane, restoreVerify);
   FRIEND_TEST(Uptane, PutManifest);
   FRIEND_TEST(Uptane, offlineIteration);
@@ -97,9 +99,9 @@ class SotaUptaneClient {
   friend class CheckForUpdate;       // for load tests
   friend class ProvisionDeviceTask;  // for load tests
 
-  bool updateMeta();
-  bool uptaneIteration();
+  bool uptaneIteration(std::vector<Uptane::Target> *targets, unsigned int *ecus_count);
   bool uptaneOfflineIteration(std::vector<Uptane::Target> *targets, unsigned int *ecus_count);
+  result::UpdateStatus checkUpdatesOffline(const std::vector<Uptane::Target> &targets);
   Json::Value AssembleManifest();
   std::string secondaryTreehubCredentials() const;
   Uptane::Exception getLastException() const { return last_exception; }
@@ -118,15 +120,14 @@ class SotaUptaneClient {
 
   bool putManifestSimple(const Json::Value &custom = Json::nullValue);
   bool getNewTargets(std::vector<Uptane::Target> *new_targets, unsigned int *ecus_count = nullptr);
-  std::pair<bool, Uptane::Target> downloadImage(const Uptane::Target &target,
-                                                const api::FlowControlToken *token = nullptr);
   void rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::SecondaryInterface &secondary);
   bool updateDirectorMeta();
   bool checkDirectorMetaOffline();
   void computeDeviceInstallationResult(data::InstallationResult *result, const std::string &correlation_id);
-  std::unique_ptr<Uptane::Target> findTargetInDelegationTree(const Uptane::Target &target);
+  std::unique_ptr<Uptane::Target> findTargetInDelegationTree(const Uptane::Target &target, bool offline);
   std::unique_ptr<Uptane::Target> findTargetHelper(const Uptane::Targets &cur_targets,
-                                                   const Uptane::Target &queried_target, int level, bool terminating);
+                                                   const Uptane::Target &queried_target, int level, bool terminating,
+                                                   bool offline);
 
   template <class T, class... Args>
   void sendEvent(Args &&... args) {
@@ -156,6 +157,15 @@ class SotaUptaneClient {
   // ecu_serial => secondary*
   std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>> secondaries;
   std::mutex download_mutex;
+};
+
+class TargetCompare {
+ public:
+  explicit TargetCompare(const Uptane::Target &target_in) : target(target_in) {}
+  bool operator()(const Uptane::Target &in) const { return (in.MatchTarget(target)); }
+
+ private:
+  const Uptane::Target &target;
 };
 
 class SerialCompare {
