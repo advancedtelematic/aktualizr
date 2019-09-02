@@ -7,57 +7,73 @@ The default expiry dates are as follows:
 * For `targets.json`, the expiry date is **31 days** from when the metadata was last updated.
 * For `root.json`, the expiry date is **365 days** from when the metadata was last updated.
 
-You can specify the expiry date with the following methods:
+== Define your own expiry dates
 
-* Specify it as an option in the `sign` command when running the standalone `garage-sign` tool.
-* Specify it in your `local.conf` file before you run the `bitbake` command to build and update software in your software repository.
+How you define the expiry dates depends on how you use OTA Connect:
 
-For examples of each method, see the following reference table:
+* If you're building disk images, you need to update your *build configuration*.
+* If you're using the standalone command-line tools such as xref:install-garage-sign-deploy.adoc[`garage-deploy`], you need to add extra *command-line arguments*.
 
+
+[{tabs}]
+====
+Build configuration::
++
+--
+include::partial$config-descriptions.adoc[tags=buildconfig-hint]
+
+.Build configuration parameters for metadata expiry
 [cols="2a,3a",options="header"]
 |====================
 |Configuration  | Description
 |
-* **garage-sign option:** 
-+
-`--expires` 
-* **local.conf file:**
-+
 `GARAGE_TARGET_EXPIRES` 
 | 
-Use this option to have the metadata expire after a fixed date and time.
-
-Specify the time as a UTC instant like in the following examples.
-
-.garage sign
-----
-garage-sign targets sign --expires 2018-01-01T00:01:00Z  --repo myimagerepo --key-name mytargets
-----
-
-.local.conf
+include::partial$config-descriptions.adoc[tags=metadata-expires]
 ----
 GARAGE_TARGET_EXPIRES = "2018-01-01T00:01:00Z"
 ----
 
 |
-* **garage-sign option:**  
-+
-`--expire-after`
-* **local.conf file:** 
-+
 `GARAGE_TARGET_EXPIRE_AFTER`
 | 
-Use this option to have the metadata expire after an elapsed period of time.
-
-Specify the number of years, months and days like in the following examples.
-
-.garage sign
-----
-garage-sign targets sign ----expire-after 1Y3M5D  --repo myimagerepo --key-name mytargets
-----
-
-.local.conf
+include::partial$config-descriptions.adoc[tags=metadata-expireafter]
 ----
 GARAGE_TARGET_EXPIRE_AFTER = "1Y3M5D"
 ----
+
 |====================
+
+
+
+--
+
+Command-line arguments::
++
+--
+When you're using the `garage-sign` command to take your keys offline, you can also sign your metadata with one of the following expiry arguments.
+
+.Command-line arguments for metadata expiry
+[cols="2a,4a",options="header"]
+|====================
+|Configuration  | Description
+|
+`--expires`
+| 
+include::partial$config-descriptions.adoc[tags=metadata-expires]
+
+----
+garage-sign targets sign --expires 2018-01-01T00:01:00Z  --repo myimagerepo --key-name mytargets
+----
+
+|
+`--expire-after`
+| 
+include::partial$config-descriptions.adoc[tags=metadata-expireafter]
+----
+garage-sign targets sign ----expire-after 1Y3M5D  --repo myimagerepo --key-name mytargets
+----
+|====================
+
+--
+====

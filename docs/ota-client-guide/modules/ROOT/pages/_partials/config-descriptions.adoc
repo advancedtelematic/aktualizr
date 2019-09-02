@@ -1,0 +1,62 @@
+//  tag::buildconfig-hint[]
+If you are building a disk image that contains aktualizr, your configuration will be the **local.conf** file.
+
+* You'll find this file in the `conf` subdirectory of the of your build project.
+
+For more information, see the xref:build-configuration.adoc[build configuration reference] and the xref:build-images.adoc[sample build procedures]
+
+//  end::buildconfig-hint[]
+
+//  tag::clientconfig-hint[]
+If you are running standalone aktualizr, your configuration file will be a *.toml* file.
+
+You configure aktualizr by creating and updating a `*.toml` file in one of the following directories:
+
+* `/usr/lib/sota/conf.d`
+* `/etc/sota/conf.d/`
+
+For more information and links to sample configuration files, see the xref:aktualizr-config-options.adoc[client configuration reference].
+
+//  end::clientconfig-hint[]
+
+//  tag::pollconfig-dev[]
+Interval between polls (in seconds).
+
+The default polling internal designed to make it convenient for you test and develop OTA update functions.
+
+//  end::pollconfig-dev[]
+
+//  tag::autorebootconfig-dev[]
+Forces installation completion. Causes a system reboot in case of an ostree package manager. Emulates a reboot in case of a fake package manager.
+
+You'll want to enable this option when developing because it's more convenient.
+
+//  end::autorebootconfig-dev[]
+
+//  tag::pollconfig-prod[]
+When moving to production you'll want to have a much longer interval. 
+In fact, for production, we don't support intervals less the 1 hour (3,600 seconds). Longer internals help you to reduce the internet bandwidth and power consumption for your devices.
+
+We recommend an internal between 1 and 7 days (86,400 to 604,800 seconds)
+
+//  end::pollconfig-prod[]
+
+//  tag::autorebootconfig-prod[]
+If you followed our recommendation to enable automatic rebooting for development, you should disable again for production.
+
+//  end::autorebootconfig-prod[]
+
+
+//  tag::metadata-expires[]
+Use this option to have the metadata expire after a fixed date and time.
+
+Specify the time as a UTC instant like in the following example:
+
+//  end::metadata-expires[]
+
+//  tag::metadata-expireafter[]
+Use this option to have the metadata expire after an elapsed period of time.
+
+Specify the number of years, months and days like in the following example:
+
+//  end::metadata-expireafter[]
