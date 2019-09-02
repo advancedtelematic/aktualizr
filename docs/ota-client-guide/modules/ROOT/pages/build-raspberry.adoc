@@ -7,6 +7,7 @@
 :icons: font
 :device: Raspberry Pi Model 3
 :machine: raspberrypi3
+:meta-env: raspberrypi
 :image: rpi-basic-image
 
 {product-name} lets you easily manage OTA updates to embedded devices running custom-built Yocto images. This is a guide for building a simple Yocto image for the {device}. You can use it as a base image for another project, or as a template for how to get started. The whole process only takes about 3 minutes of your time.
@@ -53,7 +54,7 @@ First, clone a manifest file for the quickstart project:
 ----
 mkdir myproject
 cd myproject
-repo init -u https://github.com/advancedtelematic/updater-repo.git
+repo init -u https://github.com/advancedtelematic/updater-repo.git -m thud.xml
 repo sync
 ----
 
@@ -61,7 +62,7 @@ This downloads the basic Yocto layers you need.
 
 .What is this actually doing?
 ****
-Yocto is a set of tools, templates and methods for building Linux systems from scratch. Most Yocto-built systems use a common set of base layers. The Yocto project maintains a *reference distribution* called Poky; we include that as a base layer, then add layers containing hardware support for specific boards (in this case the {device}). Finally, we include the *meta-updater* layer, which contains the platform-independent software the device and build system need to work with {product-name-short}, and *meta-updater-{machine}* for the device-specific code--mostly the specialized bootloader code.
+Yocto is a set of tools, templates and methods for building Linux systems from scratch. Most Yocto-built systems use a common set of base layers. The Yocto project maintains a *reference distribution* called Poky; we include that as a base layer, then add layers containing hardware support for specific boards (in this case the {device}). Finally, we include the *meta-updater* layer, which contains the platform-independent software the device and build system need to work with {product-name-short}, and *meta-updater-{meta-env}* for the device-specific code--mostly the specialized bootloader code.
 
 All of these layers are assembled into a built Linux system by Bitbake, the build tool of the Yocto Project, based on the instructions in the recipes inside the layers.
 ****
