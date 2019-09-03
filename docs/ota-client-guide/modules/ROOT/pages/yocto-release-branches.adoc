@@ -1,0 +1,34 @@
+= Yocto release branches
+
+== Supported branches
+
+Yocto has a number of release branches. Their details are documented in the https://wiki.yoctoproject.org/wiki/Releases[Yocto wiki]. HERE OTA Connect currently actively supports the following branches:
+
+* warrior
+* thud
+
+Several older branches were actively supported in the past. These branches should still be stable, but they have not been updated for some time and are no longer regularly maintained:
+
+* sumo
+* rocko
+* pyro
+* morty
+
+The master branch is the primary branch for development, and if you wish to add new functionality, it probably belongs there. However, we do not recommend using master for anything except development, as most layers are not guaranteed to be stable on master.
+
+== Changing branches
+
+Changing the release branch of an existing Yocto build environment or the software running on a device in production is something that should only be done with careful consideration. If you change a release branch in your build environment, you will mostly like need to re-bitbake every package for your image, which can take several hours. If you then try to update a device from a version built with an older branch to a version built with a newer branch, the size of the update will mostly like be quite large, which runs the risk of the device running out of disk space to download the update. There may also be unanticipated changes to other packages or the bootloader that could cause unexpected problems.
+
+That said, in general such changes are possible. However, due to a change in the bootloader configuration (including initramfs in FIT images), upgrading from sumo (or earlier branches) to thud (or later branches) is not supported.
+
+== Using the default manifest
+
+We recommend initializing your repo by specifying a manifest for your preferred release branch. In the past, we suggested using the default manifest of the https://github.com/advancedtelematic/updater-repo/[updater-repo]. However, that has the drawback that if the default manifest is changed to point at a different release branch, a `repo sync` will move your environment to the new branch without making that clear.
+
+That may be desirable, but since we recommend changing branches only when you are well prepared to do so, you may want to avoid this unexpected change. To prevent this from happening, or to restore your build environment to an older release branch after it has been unintentionally changed, you can reinitialize your repo and supply the `-m` flag to specify your preferred release branch. For example, if you are using the default branch and are on rocko now, and you do not want to change to a newer release branch until you are ready, you can run this command:
+
+----
+repo init -u https://github.com/advancedtelematic/updater-repo.git -m rocko.xml
+----
+
