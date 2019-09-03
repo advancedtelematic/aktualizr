@@ -26,7 +26,7 @@ class Aktualizr {
   Aktualizr(const Aktualizr&) = delete;
   Aktualizr& operator=(const Aktualizr&) = delete;
 
-  /*
+  /**
    * Initialize aktualizr. Any secondaries should be added before making this
    * call. This will provision with the server if required. This must be called
    * before using any other aktualizr functions except AddSecondary.
