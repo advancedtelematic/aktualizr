@@ -16,11 +16,10 @@
 namespace bpo = boost::program_options;
 
 static void finalizeIfNeeded(INvStorage &storage, PackageConfig &config) {
-  std::vector<Uptane::Target> installed_versions;
-  size_t pending_index = SIZE_MAX;
-  storage.loadInstalledVersions("", &installed_versions, nullptr, &pending_index);
+  boost::optional<Uptane::Target> pending_version;
+  storage.loadInstalledVersions("", nullptr, &pending_version);
 
-  if (pending_index < installed_versions.size()) {
+  if (!!pending_version) {
     GObjectUniquePtr<OstreeSysroot> sysroot_smart = OstreeManager::LoadSysroot(config.sysroot);
     OstreeDeployment *booted_deployment = ostree_sysroot_get_booted_deployment(sysroot_smart.get());
     if (booted_deployment == nullptr) {
@@ -28,7 +27,7 @@ static void finalizeIfNeeded(INvStorage &storage, PackageConfig &config) {
     }
     std::string current_hash = ostree_deployment_get_csum(booted_deployment);
 
-    const Uptane::Target &target = installed_versions[pending_index];
+    const Uptane::Target &target = *pending_version;
     if (current_hash == target.sha256Hash()) {
       LOG_INFO << "Marking target install complete for: " << target;
       storage.saveInstalledVersion("", target, InstalledVersionUpdateMode::kCurrent);

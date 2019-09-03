@@ -70,7 +70,7 @@ void INvStorage::importPrimaryKeys(const boost::filesystem::path& base_path, con
 void INvStorage::importInstalledVersions(const boost::filesystem::path& base_path) {
   std::vector<Uptane::Target> installed_versions;
   const boost::filesystem::path file_path = BasedPath("installed_versions").get(base_path);
-  loadPrimaryInstalledVersions(&installed_versions, nullptr, nullptr);
+  loadPrimaryInstallationLog(&installed_versions, false);
   if (!installed_versions.empty()) {
     return;
   }

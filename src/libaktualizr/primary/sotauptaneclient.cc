@@ -124,23 +124,22 @@ void SotaUptaneClient::finalizeAfterReboot() {
     const Uptane::EcuSerial &ecu_serial = uptane_manifest.getPrimaryEcuSerial();
 
     std::vector<Uptane::Target> installed_versions;
-    size_t pending_index = SIZE_MAX;
-    storage->loadInstalledVersions(ecu_serial.ToString(), &installed_versions, nullptr, &pending_index);
+    boost::optional<Uptane::Target> pending_target;
+    storage->loadInstalledVersions(ecu_serial.ToString(), nullptr, &pending_target);
 
-    if (pending_index < installed_versions.size()) {
-      const Uptane::Target &target = installed_versions[pending_index];
-      const std::string correlation_id = target.correlation_id();
+    if (!!pending_target) {
+      const std::string correlation_id = pending_target->correlation_id();
 
-      data::InstallationResult install_res = package_manager_->finalizeInstall(target);
+      data::InstallationResult install_res = package_manager_->finalizeInstall(*pending_target);
       storage->saveEcuInstallationResult(ecu_serial, install_res);
       if (install_res.success) {
-        storage->saveInstalledVersion(ecu_serial.ToString(), target, InstalledVersionUpdateMode::kCurrent);
+        storage->saveInstalledVersion(ecu_serial.ToString(), *pending_target, InstalledVersionUpdateMode::kCurrent);
         report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(ecu_serial, correlation_id, true));
       } else {
         // finalize failed
         // unset pending flag so that the rest of the uptane process can
         // go forward again
-        storage->saveInstalledVersion(ecu_serial.ToString(), target, InstalledVersionUpdateMode::kNone);
+        storage->saveInstalledVersion(ecu_serial.ToString(), *pending_target, InstalledVersionUpdateMode::kNone);
         report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(ecu_serial, correlation_id, false));
         director_repo.dropTargets(*storage);  // fix for OTA-2587, listen to backend again after end of install
       }
@@ -420,17 +419,16 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
         return false;
       }
 
-      std::vector<Uptane::Target> installed_versions;
-      size_t current_version = SIZE_MAX;
-      if (!storage->loadInstalledVersions(ecu_serial.ToString(), &installed_versions, &current_version, nullptr)) {
+      boost::optional<Uptane::Target> current_version;
+      if (!storage->loadInstalledVersions(ecu_serial.ToString(), &current_version, nullptr)) {
         LOG_WARNING << "Could not load currently installed version for ECU ID: " << ecu_serial.ToString();
         break;
       }
 
-      if (current_version > installed_versions.size()) {
+      if (!current_version) {
         LOG_WARNING << "Current version for ECU ID: " << ecu_serial.ToString() << " is unknown";
         is_new = true;
-      } else if (installed_versions[current_version].filename() != target.filename()) {
+      } else if (current_version->filename() != target.filename()) {
         is_new = true;
       }
 

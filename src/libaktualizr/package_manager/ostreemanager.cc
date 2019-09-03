@@ -299,7 +299,7 @@ Uptane::Target OstreeManager::getCurrent() const {
   std::string current_hash = ostree_deployment_get_csum(booted_deployment);
 
   std::vector<Uptane::Target> installed_versions;
-  storage_->loadPrimaryInstalledVersions(&installed_versions, nullptr, nullptr);
+  storage_->loadPrimaryInstallationLog(&installed_versions, false);
 
   // Version should be in installed versions. Its possible that multiple
   // targets could have the same sha256Hash. In this case the safest assumption

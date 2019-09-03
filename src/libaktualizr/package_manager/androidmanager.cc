@@ -55,7 +55,7 @@ Uptane::Target AndroidManager::getCurrent() const {
     qi::phrase_parse(getprop_output.crbegin(), getprop_output.crend(),
                      *(xdigit[push_front(boost::phoenix::ref(hash), _1)]), boost::spirit::ascii::cntrl);
     std::vector<Uptane::Target> installed_versions;
-    storage_->loadPrimaryInstalledVersions(&installed_versions, nullptr, nullptr);
+    storage_->loadPrimaryInstallationLog(&installed_versions, false);
     for (const auto& target : installed_versions) {
       if (std::equal(hash.cbegin(), hash.cend(), target.sha256Hash().cbegin())) {
         return target;

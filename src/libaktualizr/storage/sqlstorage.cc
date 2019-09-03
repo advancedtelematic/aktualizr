@@ -1005,49 +1005,59 @@ void SQLStorage::saveInstalledVersion(const std::string& ecu_serial, const Uptan
   db.commitTransaction();
 }
 
-bool SQLStorage::loadInstalledVersions(const std::string& ecu_serial, std::vector<Uptane::Target>* installed_versions,
-                                       size_t* current_version, size_t* pending_version) {
-  SQLite3Guard db = dbConnection();
-
-  // empty serial: use primary
-  std::string ecu_serial_real = ecu_serial;
-  if (ecu_serial_real.empty()) {
+static void loadEcuMap(SQLite3Guard& db, std::string& ecu_serial, Uptane::EcuMap& ecu_map) {
+  if (ecu_serial.empty()) {
     auto statement = db.prepareStatement("SELECT serial FROM ecu_serials WHERE is_primary = 1;");
     if (statement.step() == SQLITE_ROW) {
-      ecu_serial_real = statement.get_result_col_str(0).value();
+      ecu_serial = statement.get_result_col_str(0).value();
     } else {
       LOG_WARNING << "Could not find primary ecu serial, defaulting to empty serial: " << db.errmsg();
     }
   }
 
+  {
+    auto statement =
+        db.prepareStatement<std::string>("SELECT hardware_id FROM ecu_serials WHERE serial = ?;", ecu_serial);
+    if (statement.step() == SQLITE_ROW) {
+      ecu_map.insert(
+          {Uptane::EcuSerial(ecu_serial), Uptane::HardwareIdentifier(statement.get_result_col_str(0).value())});
+    } else {
+      LOG_WARNING << "Could not find hardware_id for serial " << ecu_serial << ": " << db.errmsg();
+    }
+  }
+}
+
+bool SQLStorage::loadInstallationLog(const std::string& ecu_serial, std::vector<Uptane::Target>* log,
+                                     bool only_installed) {
+  SQLite3Guard db = dbConnection();
+
+  std::string ecu_serial_real = ecu_serial;
   Uptane::EcuMap ecu_map;
-  auto statement =
-      db.prepareStatement<std::string>("SELECT hardware_id FROM ecu_serials WHERE serial = ?;", ecu_serial_real);
-  if (statement.step() == SQLITE_ROW) {
-    ecu_map.insert(
-        {Uptane::EcuSerial(ecu_serial_real), Uptane::HardwareIdentifier(statement.get_result_col_str(0).value())});
-  } else {
-    LOG_WARNING << "Could not find hardware_id for serial " << ecu_serial_real << ": " << db.errmsg();
+  loadEcuMap(db, ecu_serial_real, ecu_map);
+
+  std::string query =
+      "SELECT id, sha256, name, hashes, length, correlation_id FROM installed_versions WHERE "
+      "ecu_serial = ? ORDER BY id;";
+  if (only_installed) {
+    query =
+        "SELECT id, sha256, name, hashes, length, correlation_id FROM installed_versions WHERE "
+        "ecu_serial = ? AND was_installed = 1 ORDER BY id;";
   }
 
-  size_t current_index = SIZE_MAX;
-  size_t pending_index = SIZE_MAX;
-  statement = db.prepareStatement<std::string>(
-      "SELECT sha256, name, hashes, length, correlation_id, is_current, is_pending FROM installed_versions WHERE "
-      "ecu_serial = ?;",
-      ecu_serial_real);
+  auto statement = db.prepareStatement<std::string>(query, ecu_serial_real);
   int statement_state;
 
-  std::vector<Uptane::Target> new_installed_versions;
+  std::vector<Uptane::Target> new_log;
+  std::map<int64_t, size_t> ids_map;
+  size_t k = 0;
   while ((statement_state = statement.step()) == SQLITE_ROW) {
     try {
-      auto sha256 = statement.get_result_col_str(0).value();
-      auto filename = statement.get_result_col_str(1).value();
-      auto hashes_str = statement.get_result_col_str(2).value();
-      auto length = statement.get_result_col_int(3);
-      auto correlation_id = statement.get_result_col_str(4).value();
-      auto is_current = statement.get_result_col_int(5) != 0;
-      auto is_pending = statement.get_result_col_int(6) != 0;
+      auto id = statement.get_result_col_int(0);
+      auto sha256 = statement.get_result_col_str(1).value();
+      auto filename = statement.get_result_col_str(2).value();
+      auto hashes_str = statement.get_result_col_str(3).value();
+      auto length = statement.get_result_col_int(4);
+      auto correlation_id = statement.get_result_col_str(5).value();
 
       // note: sha256 should always be present and is used to uniquely identify
       // a version. It should normally be part of the hash list as well.
@@ -1060,13 +1070,10 @@ bool SQLStorage::loadInstalledVersions(const std::string& ecu_serial, std::vecto
         hashes.emplace_back(Uptane::Hash::Type::kSha256, sha256);
       }
 
-      new_installed_versions.emplace_back(filename, ecu_map, hashes, length, correlation_id);
-      if (is_current) {
-        current_index = new_installed_versions.size() - 1;
-      }
-      if (is_pending) {
-        pending_index = new_installed_versions.size() - 1;
-      }
+      new_log.emplace_back(filename, ecu_map, hashes, static_cast<uint64_t>(length), correlation_id);
+
+      ids_map[id] = k;
+      k++;
     } catch (const boost::bad_optional_access&) {
       LOG_ERROR << "Incompleted installed version, keeping old one";
       return false;
@@ -1078,16 +1085,80 @@ bool SQLStorage::loadInstalledVersions(const std::string& ecu_serial, std::vecto
     return false;
   }
 
-  if (current_version != nullptr && current_index != SIZE_MAX) {
-    *current_version = current_index;
+  if (log == nullptr) {
+    return true;
   }
 
-  if (pending_version != nullptr && pending_index != SIZE_MAX) {
-    *pending_version = pending_index;
+  *log = std::move(new_log);
+
+  return true;
+}
+
+bool SQLStorage::loadInstalledVersions(const std::string& ecu_serial, boost::optional<Uptane::Target>* current_version,
+                                       boost::optional<Uptane::Target>* pending_version) {
+  SQLite3Guard db = dbConnection();
+
+  std::string ecu_serial_real = ecu_serial;
+  Uptane::EcuMap ecu_map;
+  loadEcuMap(db, ecu_serial_real, ecu_map);
+
+  auto read_target = [&ecu_map](SQLiteStatement& statement) -> Uptane::Target {
+    auto sha256 = statement.get_result_col_str(0).value();
+    auto filename = statement.get_result_col_str(1).value();
+    auto hashes_str = statement.get_result_col_str(2).value();
+    auto length = statement.get_result_col_int(3);
+    auto correlation_id = statement.get_result_col_str(4).value();
+
+    // note: sha256 should always be present and is used to uniquely identify
+    // a version. It should normally be part of the hash list as well.
+    std::vector<Uptane::Hash> hashes = Uptane::Hash::decodeVector(hashes_str);
+
+    auto find_sha256 = std::find_if(hashes.cbegin(), hashes.cend(),
+                                    [](const Uptane::Hash& h) { return h.type() == Uptane::Hash::Type::kSha256; });
+    if (find_sha256 == hashes.cend()) {
+      LOG_WARNING << "No sha256 in hashes list";
+      hashes.emplace_back(Uptane::Hash::Type::kSha256, sha256);
+    }
+
+    return Uptane::Target(filename, ecu_map, hashes, static_cast<uint64_t>(length), correlation_id);
+  };
+
+  if (current_version != nullptr) {
+    auto statement = db.prepareStatement<std::string>(
+        "SELECT sha256, name, hashes, length, correlation_id FROM installed_versions WHERE "
+        "ecu_serial = ? AND is_current = 1 LIMIT 1;",
+        ecu_serial_real);
+
+    if (statement.step() == SQLITE_ROW) {
+      try {
+        *current_version = read_target(statement);
+      } catch (const boost::bad_optional_access&) {
+        LOG_ERROR << "Could not read current installed version";
+        return false;
+      }
+    } else {
+      LOG_TRACE << "Cannot get current installed version: " << db.errmsg();
+      *current_version = boost::none;
+    }
   }
 
-  if (installed_versions != nullptr) {
-    *installed_versions = std::move(new_installed_versions);
+  if (pending_version != nullptr) {
+    auto statement = db.prepareStatement<std::string>(
+        "SELECT sha256, name, hashes, length, correlation_id FROM installed_versions WHERE "
+        "ecu_serial = ? AND is_pending = 1 LIMIT 1;",
+        ecu_serial_real);
+
+    if (statement.step() == SQLITE_ROW) {
+      try {
+        *pending_version = read_target(statement);
+      } catch (const boost::bad_optional_access&) {
+        LOG_ERROR << "Could not read pending installed version";
+        return false;
+      }
+    } else {
+      LOG_TRACE << "Cannot get pending installed version: " << db.errmsg();
+      *pending_version = boost::none;
+    }
   }
 
   return true;

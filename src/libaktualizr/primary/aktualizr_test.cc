@@ -425,10 +425,9 @@ TEST(Aktualizr, FullWithUpdatesNeedReboot) {
 
     // check that a version is here, set to pending
 
-    size_t pending_target = SIZE_MAX;
-    std::vector<Uptane::Target> targets;
-    storage->loadPrimaryInstalledVersions(&targets, nullptr, &pending_target);
-    EXPECT_NE(pending_target, SIZE_MAX);
+    boost::optional<Uptane::Target> pending_target;
+    storage->loadPrimaryInstalledVersions(nullptr, &pending_target);
+    EXPECT_TRUE(!!pending_target);
   }
 
   // check that no manifest has been sent after the update application
@@ -444,10 +443,9 @@ TEST(Aktualizr, FullWithUpdatesNeedReboot) {
     aktualizr.Initialize();
 
     // check that everything is still pending
-    size_t pending_target = SIZE_MAX;
-    std::vector<Uptane::Target> targets;
-    storage->loadPrimaryInstalledVersions(&targets, nullptr, &pending_target);
-    EXPECT_LT(pending_target, targets.size());
+    boost::optional<Uptane::Target> pending_target;
+    storage->loadPrimaryInstalledVersions(nullptr, &pending_target);
+    EXPECT_TRUE(!!pending_target);
 
     result::UpdateCheck update_res = aktualizr.CheckUpdates().get();
     EXPECT_EQ(update_res.status, result::UpdateStatus::kError);
@@ -470,20 +468,18 @@ TEST(Aktualizr, FullWithUpdatesNeedReboot) {
     EXPECT_EQ(update_res.status, result::UpdateStatus::kNoUpdatesAvailable);
 
     // primary is installed, nothing pending
-    size_t current_target = SIZE_MAX;
-    size_t pending_target = SIZE_MAX;
-    std::vector<Uptane::Target> targets;
-    storage->loadPrimaryInstalledVersions(&targets, &current_target, &pending_target);
-    EXPECT_LT(current_target, targets.size());
-    EXPECT_EQ(pending_target, SIZE_MAX);
+    boost::optional<Uptane::Target> current_target;
+    boost::optional<Uptane::Target> pending_target;
+    storage->loadPrimaryInstalledVersions(&current_target, &pending_target);
+    EXPECT_TRUE(!!current_target);
+    EXPECT_FALSE(!!pending_target);
 
     // secondary is installed, nothing pending
-    size_t sec_current_target = SIZE_MAX;
-    size_t sec_pending_target = SIZE_MAX;
-    std::vector<Uptane::Target> sec_targets;
-    storage->loadInstalledVersions("secondary_ecu_serial", &sec_targets, &sec_current_target, &sec_pending_target);
-    EXPECT_LT(sec_current_target, sec_targets.size());
-    EXPECT_EQ(sec_pending_target, SIZE_MAX);
+    boost::optional<Uptane::Target> sec_current_target;
+    boost::optional<Uptane::Target> sec_pending_target;
+    storage->loadInstalledVersions("secondary_ecu_serial", &sec_current_target, &sec_pending_target);
+    EXPECT_TRUE(!!sec_current_target);
+    EXPECT_FALSE(!!sec_pending_target);
   }
 
   // check that the manifest has been sent
@@ -585,7 +581,7 @@ class EventHandler {
 
  private:
   std::function<void(std::shared_ptr<event::BaseEvent>)> functor_;
-  std::vector<std::string> received_events_ = {};
+  std::vector<std::string> received_events_{};
 };
 
 /*
@@ -626,17 +622,14 @@ TEST(Aktualizr, FinalizationFailure) {
     aktualizr.Initialize();
 
     // verify currently installed version
-    std::vector<Uptane::Target> installed_versions;
-    size_t current_version{SIZE_MAX};
-    size_t pending_version{SIZE_MAX};
-    ASSERT_TRUE(
-        storage->loadInstalledVersions(primary_ecu_id, &installed_versions, &current_version, &pending_version));
+    boost::optional<Uptane::Target> current_version;
+    boost::optional<Uptane::Target> pending_version;
+    ASSERT_TRUE(storage->loadInstalledVersions(primary_ecu_id, &current_version, &pending_version));
 
     // for some reason there is no any installed version at initial Aktualizr boot/run
     // IMHO it should return currently installed version
-    EXPECT_TRUE(installed_versions.empty());
-    EXPECT_EQ(pending_version, SIZE_MAX);
-    EXPECT_EQ(current_version, SIZE_MAX);
+    EXPECT_FALSE(!!pending_version);
+    EXPECT_FALSE(!!current_version);
 
     auto aktualizr_cycle_thread = aktualizr.RunForever();
     auto aktualizr_cycle_thread_status = aktualizr_cycle_thread.wait_for(std::chrono::seconds(20));
@@ -679,27 +672,21 @@ TEST(Aktualizr, FinalizationFailure) {
       }
     }
 
-    pending_version = SIZE_MAX;
-    current_version = SIZE_MAX;
+    pending_version = boost::none;
+    current_version = boost::none;
 
-    ASSERT_TRUE(
-        storage->loadInstalledVersions(primary_ecu_id, &installed_versions, &current_version, &pending_version));
-    ASSERT_EQ(installed_versions.size(), 1);
-    EXPECT_TRUE(installed_versions[0].IsValid());
-    // if pending_version equals 0 then it means that this is a pending version
-    EXPECT_EQ(pending_version, 0);
-    EXPECT_EQ(current_version, SIZE_MAX);
+    ASSERT_TRUE(storage->loadInstalledVersions(primary_ecu_id, &current_version, &pending_version));
+    EXPECT_FALSE(!!current_version);
+    EXPECT_TRUE(!!pending_version);
+    EXPECT_TRUE(pending_version->IsValid());
 
-    pending_version = SIZE_MAX;
-    current_version = SIZE_MAX;
+    pending_version = boost::none;
+    current_version = boost::none;
 
-    ASSERT_TRUE(
-        storage->loadInstalledVersions(secondary_ecu_id, &installed_versions, &current_version, &pending_version));
-    ASSERT_EQ(installed_versions.size(), 1);
-    EXPECT_TRUE(installed_versions[0].IsValid());
-    EXPECT_EQ(pending_version, SIZE_MAX);
-    // if current_version equals 0 then it means that this is a current version
-    EXPECT_EQ(current_version, 0);
+    ASSERT_TRUE(storage->loadInstalledVersions(secondary_ecu_id, &current_version, &pending_version));
+    EXPECT_TRUE(!!current_version);
+    EXPECT_TRUE(current_version->IsValid());
+    EXPECT_FALSE(!!pending_version);
   }
 
   {
@@ -733,26 +720,19 @@ TEST(Aktualizr, FinalizationFailure) {
     EXPECT_FALSE(storage->loadEcuInstallationResults(&ecu_installation_res));
 
     // verify currently installed version
-    std::vector<Uptane::Target> installed_versions;
-    size_t current_version{SIZE_MAX};
-    size_t pending_version{SIZE_MAX};
+    boost::optional<Uptane::Target> current_version;
+    boost::optional<Uptane::Target> pending_version;
 
-    ASSERT_TRUE(
-        storage->loadInstalledVersions(primary_ecu_id, &installed_versions, &current_version, &pending_version));
-    ASSERT_EQ(installed_versions.size(), 1);
-    EXPECT_TRUE(installed_versions[0].IsValid());
-    EXPECT_EQ(pending_version, SIZE_MAX);
-    EXPECT_EQ(current_version, SIZE_MAX);
+    ASSERT_TRUE(storage->loadInstalledVersions(primary_ecu_id, &current_version, &pending_version));
+    EXPECT_FALSE(!!current_version);
+    EXPECT_FALSE(!!pending_version);
 
-    current_version = SIZE_MAX;
-    pending_version = SIZE_MAX;
+    current_version = boost::none;
+    pending_version = boost::none;
 
-    ASSERT_TRUE(
-        storage->loadInstalledVersions(secondary_ecu_id, &installed_versions, &current_version, &pending_version));
-    ASSERT_EQ(installed_versions.size(), 1);
-    EXPECT_TRUE(installed_versions[0].IsValid());
-    EXPECT_EQ(pending_version, SIZE_MAX);
-    EXPECT_EQ(current_version, 0);
+    ASSERT_TRUE(storage->loadInstalledVersions(secondary_ecu_id, &current_version, &pending_version));
+    EXPECT_TRUE(!!current_version);
+    EXPECT_FALSE(!!pending_version);
   }
 }
 
@@ -793,16 +773,13 @@ TEST(Aktualizr, InstallationFailure) {
     aktualizr.Initialize();
 
     // verify currently installed version
-    std::vector<Uptane::Target> installed_versions;
-    size_t current_version{SIZE_MAX};
-    size_t pending_version{SIZE_MAX};
+    boost::optional<Uptane::Target> current_version;
+    boost::optional<Uptane::Target> pending_version;
 
-    ASSERT_TRUE(
-        storage->loadInstalledVersions(primary_ecu_id, &installed_versions, &current_version, &pending_version));
+    ASSERT_TRUE(storage->loadInstalledVersions(primary_ecu_id, &current_version, &pending_version));
 
-    EXPECT_TRUE(installed_versions.empty());
-    EXPECT_EQ(pending_version, SIZE_MAX);
-    EXPECT_EQ(current_version, SIZE_MAX);
+    EXPECT_FALSE(!!pending_version);
+    EXPECT_FALSE(!!current_version);
 
     aktualizr.UptaneCycle();
     aktualizr.uptane_client()->completeInstall();
@@ -825,14 +802,12 @@ TEST(Aktualizr, InstallationFailure) {
     EXPECT_FALSE(storage->loadEcuInstallationResults(&ecu_installation_res));
     EXPECT_EQ(ecu_installation_res.size(), 0);
 
-    ASSERT_TRUE(
-        storage->loadInstalledVersions(primary_ecu_id, &installed_versions, &current_version, &pending_version));
+    ASSERT_TRUE(storage->loadInstalledVersions(primary_ecu_id, &current_version, &pending_version));
     // it says that no any installed version found,
     // which is, on one hand is correct since installation of the found update failed hence nothing was installed,
     // on the other hand some version should have been installed prior to the failed update
-    EXPECT_EQ(installed_versions.size(), 0);
-    EXPECT_EQ(current_version, SIZE_MAX);
-    EXPECT_EQ(pending_version, SIZE_MAX);
+    EXPECT_FALSE(!!current_version);
+    EXPECT_FALSE(!!pending_version);
 
     fiu_disable("fake_package_install");
   }
@@ -854,16 +829,13 @@ TEST(Aktualizr, InstallationFailure) {
     aktualizr.Initialize();
 
     // verify currently installed version
-    std::vector<Uptane::Target> installed_versions;
-    size_t current_version{SIZE_MAX};
-    size_t pending_version{SIZE_MAX};
+    boost::optional<Uptane::Target> current_version;
+    boost::optional<Uptane::Target> pending_version;
 
-    ASSERT_TRUE(
-        storage->loadInstalledVersions(primary_ecu_id, &installed_versions, &current_version, &pending_version));
+    ASSERT_TRUE(storage->loadInstalledVersions(primary_ecu_id, &current_version, &pending_version));
 
-    EXPECT_TRUE(installed_versions.empty());
-    EXPECT_EQ(pending_version, SIZE_MAX);
-    EXPECT_EQ(current_version, SIZE_MAX);
+    EXPECT_FALSE(!!pending_version);
+    EXPECT_FALSE(!!current_version);
 
     aktualizr.UptaneCycle();
     aktualizr.uptane_client()->completeInstall();
@@ -892,14 +864,12 @@ TEST(Aktualizr, InstallationFailure) {
     EXPECT_FALSE(storage->loadEcuInstallationResults(&ecu_installation_res));
     EXPECT_EQ(ecu_installation_res.size(), 0);
 
-    ASSERT_TRUE(
-        storage->loadInstalledVersions(primary_ecu_id, &installed_versions, &current_version, &pending_version));
+    ASSERT_TRUE(storage->loadInstalledVersions(primary_ecu_id, &current_version, &pending_version));
     // it says that no any installed version found,
     // which is, on one hand is correct since installation of the found update failed hence nothing was installed,
     // on the other hand some version should have been installed prior to the failed update
-    EXPECT_EQ(installed_versions.size(), 0);
-    EXPECT_EQ(current_version, SIZE_MAX);
-    EXPECT_EQ(pending_version, SIZE_MAX);
+    EXPECT_FALSE(!!current_version);
+    EXPECT_FALSE(!!pending_version);
 
     fault_injection_disable("fake_package_install");
     fault_injection_disable(sec_fault_name.c_str());
@@ -952,12 +922,11 @@ TEST(Aktualizr, AutoRebootAfterUpdate) {
     EXPECT_EQ(update_res.status, result::UpdateStatus::kNoUpdatesAvailable);
 
     // primary is installed, nothing pending
-    size_t current_target = SIZE_MAX;
-    size_t pending_target = SIZE_MAX;
-    std::vector<Uptane::Target> targets;
-    storage->loadPrimaryInstalledVersions(&targets, &current_target, &pending_target);
-    EXPECT_LT(current_target, targets.size());
-    EXPECT_EQ(pending_target, SIZE_MAX);
+    boost::optional<Uptane::Target> current_target;
+    boost::optional<Uptane::Target> pending_target;
+    storage->loadPrimaryInstalledVersions(&current_target, &pending_target);
+    EXPECT_TRUE(!!current_target);
+    EXPECT_FALSE(!!pending_target);
     EXPECT_EQ(http->manifest_sends, 4);
   }
 }
