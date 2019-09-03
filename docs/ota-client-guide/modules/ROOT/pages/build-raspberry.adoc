@@ -53,7 +53,7 @@ First, clone a manifest file for the quickstart project:
 ----
 mkdir myproject
 cd myproject
-repo init -u https://github.com/advancedtelematic/updater-repo.git
+repo init -u https://github.com/advancedtelematic/updater-repo.git -m thud.xml
 repo sync
 ----
 
