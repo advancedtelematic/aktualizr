@@ -140,7 +140,7 @@ if (BUILD_SOTA_TOOLS)
     add_aktualizr_test(NAME sota_tools_auth_test
                        SOURCES authenticate_test.cc
                        LIBRARIES sota_tools_static_lib aktualizr_static_lib
-                       PROJECT_WORKING_DIRECTORY NO_VALGRIND
+                       PROJECT_WORKING_DIRECTORY
                        ARGS ${PROJECT_BINARY_DIR}/sota_tools/certs)
     add_dependencies(t_sota_tools_auth_test sota_tools_cert_generation)
 

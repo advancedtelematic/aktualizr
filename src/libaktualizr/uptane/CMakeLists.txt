@@ -31,7 +31,7 @@ add_aktualizr_test(NAME tuf SOURCES tuf_test.cc PROJECT_WORKING_DIRECTORY)
 add_aktualizr_test(NAME tuf_hash SOURCES tuf_hash_test.cc PROJECT_WORKING_DIRECTORY)
 
 if(BUILD_OSTREE AND SOTA_PACKED_CREDENTIALS)
-    add_aktualizr_test(NAME uptane_ci SOURCES uptane_ci_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND
+    add_aktualizr_test(NAME uptane_ci SOURCES uptane_ci_test.cc PROJECT_WORKING_DIRECTORY
                         ARGS ${SOTA_PACKED_CREDENTIALS} ${PROJECT_BINARY_DIR}/ostree_repo)
     set_tests_properties(test_uptane_ci PROPERTIES LABELS "credentials")
     target_link_libraries(t_uptane_ci virtual_secondary)

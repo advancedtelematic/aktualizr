@@ -38,17 +38,17 @@ if(BUILD_OSTREE)
                       ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
     add_dependencies(build_tests make_ostree_sysroot)
 
-    add_aktualizr_test(NAME ostreemanager SOURCES ostreemanager_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND
+    add_aktualizr_test(NAME ostreemanager SOURCES ostreemanager_test.cc PROJECT_WORKING_DIRECTORY
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
 
     if(BUILD_DOCKERAPP)
         target_sources(package_manager PRIVATE dockerappmanager.cc)
-        add_aktualizr_test(NAME dockerapp SOURCES dockerappmanager_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND
+        add_aktualizr_test(NAME dockerapp SOURCES dockerappmanager_test.cc PROJECT_WORKING_DIRECTORY
                            ARGS ${PROJECT_BINARY_DIR}/ostree_repo "$<TARGET_FILE:uptane-generator>")
     endif(BUILD_DOCKERAPP)
 endif(BUILD_OSTREE)
 
-add_aktualizr_test(NAME packagemanager_factory SOURCES packagemanagerfactory_test.cc NO_VALGRIND
+add_aktualizr_test(NAME packagemanager_factory SOURCES packagemanagerfactory_test.cc
                    ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
 add_aktualizr_test(NAME fetcher SOURCES fetcher_test.cc ARGS PROJECT_WORKING_DIRECTORY LIBRARIES PUBLIC uptane_generator_lib)
 add_aktualizr_test(NAME fetcher_death SOURCES fetcher_death_test.cc NO_VALGRIND ARGS PROJECT_WORKING_DIRECTORY)
