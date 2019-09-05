@@ -15,5 +15,6 @@ If you already have a Yocto-based project that you want to update using {product
 You can then build your image as usual, with bitbake. After building the root file system, bitbake will then create an https://ostree.readthedocs.io/en/latest/manual/adapting-existing/[OSTree-enabled version] of it, commit it to your local OSTree repo, and push it to OTA Connect. Additionally, a live disk image will be created (normally named `$\{IMAGE_NAME}.-sdimg-ota` e.g. `core-image-raspberrypi3.rpi-sdimg-ota`). You can control this behavior through xref:add-ota-functonality-existing-yocto-project.adoc#_sota_related_variables_in_local_conf[OTA Connect-related variables in your local.conf].
 
 See also:
+
 * xref:supported-boards.adoc[Supported boards]
 * xref:build-configuration.adoc[Build configuration options]
