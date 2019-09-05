@@ -1,6 +1,6 @@
-include::dev@ota-build:ROOT:page$sota-variables.adoc[]
-
-// MC: Included from: meta-updater/docs/modules/ROOT/pages/sota-variables.adoc
+= Build Configuration Options
+:page-partial:
+// MC: Included in aktualizr/docs/ota-client-guide/modules/ROOT/pages/build-configuration.adoc
 
 .OTA-related options for building disk images
 [cols="1,2a",options="header"]
