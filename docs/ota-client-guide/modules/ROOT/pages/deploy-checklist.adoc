@@ -23,14 +23,15 @@ However, regardless of the type of certficate that you use, you'll need to regis
 You can then automate the process of installing device certificates on your devices.
 
 * We can’t tell you exactly how to automate this process, but you can use the commands from our documentation as a guideline.
-|  xref:generate-devicecert.adoc[Generate a device certificate]
-
+| 
+* xref:generate-devicecert.adoc[Generate a device certificate]
+* xref:enable-device-cred-provisioning.adoc[Enable device-credential provisioning and install device certificates]
 |**Rotate production keys**  | 
 * In line with our security concept, We recommend that you sign disk images with secure, offline keys. 
 
 * Even if you've done this already for with a test account, you need to do it again with a `credentials.zip` from your production account.
 
-* You should keep these keys on a secure storage medium such as a link:https://www.yubico.com/[YubiKey]. You would only plugin your YubiKey when you need to sign metadata on your local computer.|  xref:rotating-signing-keys.adoc[Manage keys for software metadata]
+* You should keep these keys on a secure storage medium such as a link:https://www.yubico.com/[YubiKey]. You would only plug in your YubiKey when you need to sign metadata on your local computer.|  xref:rotating-signing-keys.adoc[Manage keys for software metadata]
 
 |**Transfer disk images to your production repository**  | 
 * When you're ready to deploy your software to production, you'll need to move all approved disk images from the software repository in your testing account to the one in your production account.  |  xref:cross-deploy-images.adoc[Transfer software to another repository]
