@@ -114,7 +114,7 @@ Each directory should contain the following:
 
 * credentials.zip
 * sota_local.toml -- a config file for aktualizr
-* (Optional) A `virtualsec.json` file containing the configuration for one or more secondary ECUs.footnote:[The terms "primary" and "secondary" ECU are used in the Uptane specification. For more information about the difference between primary and secondary ECUs, see our overview of the dev@ota-client::uptane.adoc#_primary_and_secondary_ecus[Uptane framework].]
+* (Optional) A `virtualsec.json` file containing the configuration for one or more secondary ECUs.footnote:[The terms "primary" and "secondary" ECU are used in the Uptane specification. For more information about the difference between primary and secondary ECUs, see our overview of the xref:latest@ota-client::uptane.adoc#_primary_and_secondary_ecus[Uptane framework].]
 
 An example directory is below:
 
