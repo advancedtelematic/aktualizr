@@ -1,6 +1,6 @@
 = Usage
 :meta-updater-github-url: https://github.com/advancedtelematic/meta-updater/tree/master
-:metadata-expiry-article: xref:dev@ota-client::metadata-expiry.adoc[OTA Connect documentation]
+:metadata-expiry-article: xref:metadata-expiry.adoc[OTA Connect documentation]
 ifdef::env-github[:metadata-expiry-article: link:https://docs.ota.here.com/ota-client/dev/metadata-expiry.html[OTA Connect documentation]]
 
 //MC: No overlap with any content currently in the developer guide, but probably useful content to clean up and include. eg: use cases.
@@ -51,11 +51,11 @@ The https://github.com/advancedtelematic/aktualizr[aktualizr repo] contains a to
 garage-push --repo=/path/to/ostree-repo --ref=mybranch --credentials=/path/to/credentials.zip
 ....
 
-You can set `SOTA_PACKED_CREDENTIALS` in your `local.conf` to automatically synchronize your build results with a remote server. Credentials are stored in an archive as described in the xref:dev@ota-client::provisioning-methods-and-credentialszip.adoc[aktualizr documentation].
+You can set `SOTA_PACKED_CREDENTIALS` in your `local.conf` to automatically synchronize your build results with a remote server. Credentials are stored in an archive as described in the xref:provisioning-methods-and-credentialszip.adoc[aktualizr documentation].
 
 == aktualizr configuration
 
-https://github.com/advancedtelematic/aktualizr[Aktualizr] supports a variety of xref:dev@ota-client::aktualizr-config-options.adoc[configuration options via a configuration file and the command line]. There are two primary ways to control aktualizr's configuration from meta-updater.
+https://github.com/advancedtelematic/aktualizr[Aktualizr] supports a variety of xref:aktualizr-config-options.adoc[configuration options via a configuration file and the command line]. There are two primary ways to control aktualizr's configuration from meta-updater.
 
 First, you can set `SOTA_CLIENT_PROV` to control which provisioning recipe is used. Each recipe installs an appropriate `sota.toml` file from aktualizr according to the provisioning needs. See the xref:build-configuration.adoc[SOTA-related variables in local.conf] section for more information.
 
