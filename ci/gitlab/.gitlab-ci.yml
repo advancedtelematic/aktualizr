@@ -250,7 +250,7 @@ github-release:
       aktualizr_src-$CI_COMMIT_TAG.tar.gz
   only:
     variables:
-      - $CI_COMMIT_REF_NAME =~ /^\d\d\d\d\.\d+(-\w+)?$/
+      - $CI_COMMIT_TAG =~ /^\d\d\d\d\.\d+(-\w+)?$/
 
 # -- publish coverage results on gitlab pages
 
