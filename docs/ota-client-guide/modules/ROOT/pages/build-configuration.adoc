@@ -15,34 +15,6 @@
 | `OSTREE_DEPLOY_DEVICETREE`|Set this to '1' to include devicetree(s) to boot
 | `GARAGE_SIGN_AUTOVERSION`|Set this to '1' to automatically fetch the last version of the garage tools installed by the aktualizr-native. Otherwise use the fixed version specified in the recipe.
 | `GARAGE_TARGET_URL` | Sets the `--url` parameter of `garage-sign targets add`, which sets a custom URL for the Image repository targets.
-| `GARAGE_TARGET_EXPIRES` | 
-// MC: This block shows reusable content snippets when the content is rendered in the docs portal.
-// We reuse the same descriptions in multiple places with includes - if rendered in Github (where includes aren't allowed), we fall back to the old descriptions.
-ifdef::env-github[Sets the `--expires` parameter of `garage-sign targets sign`. Format is a UTC instant such as '2018-01-01T00:01:00Z'.]
-ifndef::env-github[]
-include::dev@ota-client::partial$config-descriptions.adoc[tags=metadata-expires]
-----
-GARAGE_TARGET_EXPIRES = "2018-01-01T00:01:00Z"
-----
-[NOTE]
-====
-Currently, this only works when using the master branch of meta-updater.
-====
-endif::[]
-| `GARAGE_TARGET_EXPIRE_AFTER` |
-// MC: This block shows reusable content snippets when the content is rendered in the docs portal.
-// We reuse the same descriptions in multiple places with includes - if rendered in Github (where includes aren't allowed), we fall back to the old descriptions.
-ifdef::env-github[Sets the `--expire-after` parameter of `garage-sign targets sign`. Format is in years, months, and days (each optional, but in that order), such as '1Y3M5D'.]
-ifndef::env-github[]
-include::dev@ota-client::partial$config-descriptions.adoc[tags=metadata-expireafter]
-----
-GARAGE_TARGET_EXPIRE_AFTER = "1Y3M5D"
-----
-[NOTE]
-====
-Currently, this only works when using the master branch of meta-updater.
-====
-endif::[]
 | `INITRAMFS_IMAGE`|The initramfs/initrd image that is used as a proxy while booting into OSTree deployment. Do not change this setting unless you are sure that your initramfs can serve as such a proxy.
 | `SOTA_PACKED_CREDENTIALS`|When set, your ostree commit will be pushed to a remote repo as a bitbake step. This should be the path to a zipped credentials file in xref:dev@ota-build::provisioning-methods-and-credentialszip.adoc[the format accepted by garage-push].
 | `SOTA_DEPLOY_CREDENTIALS`|When set to '1' (default value), deploys credentials to the built image. Override it in `local.conf` to built a generic image that can be provisioned manually after the build.
