@@ -83,7 +83,9 @@ class Aktualizr {
   std::future<result::Download> Download(const std::vector<Uptane::Target>& updates);
 
   /**
-   * Get log of installations
+   * Get log of installations. The log is indexed for every ECU and contains
+   * every change of versions ordered by time. It may contain duplicates in
+   * case of rollbacks.
    * @return installation log
    */
   struct InstallationLogEntry {

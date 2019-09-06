@@ -4,8 +4,11 @@
 #include <memory>
 #include "aktualizr.h"
 
-// add as a signal handler to remove old targets just after an installation
-// completes
+/*
+ * Signal handler to remove old targets just after an installation completes
+ *
+ * To be attached with Aktualizr::SetSignalHandler
+ */
 void targets_autoclean_cb(Aktualizr &aktualizr, const std::shared_ptr<event::BaseEvent> &event);
 
 #endif  // AKTUALIZR_HELPERS_H_

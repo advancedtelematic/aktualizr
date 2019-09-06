@@ -6,6 +6,11 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ## [??? (unreleased)]
 
+### Added
+
+- `GetInstallationLog` API method: [PR](https://github.com/advancedtelematic/aktualizr/pull/1318)
+- The aktualizr daemon will now automatically remove old downloaded targets to free up disk space: [PR](https://github.com/advancedtelematic/aktualizr/pull/1318)
+
 ## [2019.6] - 2019-08-21
 
 ### Added

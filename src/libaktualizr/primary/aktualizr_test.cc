@@ -1332,6 +1332,10 @@ TEST(Aktualizr, DownloadListRemove) {
   EXPECT_EQ(targets.size(), 0);
 }
 
+/*
+ * Automatically remove old targets during installation cycles.
+ * Get log of installation.
+ */
 TEST(Aktualizr, TargetAutoremove) {
   TemporaryDirectory temp_dir;
   const boost::filesystem::path local_metadir = temp_dir / "metadir";
