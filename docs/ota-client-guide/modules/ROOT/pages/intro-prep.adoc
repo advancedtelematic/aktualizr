@@ -1,4 +1,12 @@
 = Build your own OTA-enabled solution
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 
 Once you've evaluated the basic functions of OTA Connect, you're ready to build your own OTA-enabled solution. You probably have your client software that runs on your devices. In this phase, you'll start to integrate OTA update functionality into that client. 
 

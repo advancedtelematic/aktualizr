@@ -1,4 +1,12 @@
 = Set up multiple accounts
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 
 In OTA Connect, all devices and software belong to one *user* login. However, you don't want to mix up test software and production software by creating them all under the same user.
 

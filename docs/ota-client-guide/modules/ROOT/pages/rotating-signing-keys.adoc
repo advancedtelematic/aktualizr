@@ -1,4 +1,12 @@
 = Manage keys for software metadata
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 
 OTA Connect has a security concept that includes signing metadata files with secure, offline keys. For more information about these files, see the xref:uptane.adoc#_uptane_metadata[Uptane metadata overview].
 

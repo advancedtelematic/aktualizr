@@ -1,4 +1,12 @@
 = Generate a self-signed root certificate
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 
 When you move to production, you'll need to register your fleet root certificate with OTA Connect server. This certificate needs to be signed by a trusted Certificate Authority (CA).
 

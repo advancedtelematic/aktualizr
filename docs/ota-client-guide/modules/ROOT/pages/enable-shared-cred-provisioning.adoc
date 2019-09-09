@@ -1,4 +1,12 @@
 = Enable shared-credential provisioning
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 
 If you build a disk image with the default configuration, shared-credential provisioning is enabled by default. You can also enable it explicitly in your build configuration.
 

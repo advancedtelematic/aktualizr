@@ -1,4 +1,12 @@
 = Posix Secondaries aka IP Secondaries: configuration and emulation of Primary and Secondary on a local host
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 :aktualizr-github-url: https://github.com/advancedtelematic/aktualizr/tree/master
 
 The goal of this doc is to guide a reader on configuring and running two executables that can be built out of the given repository source code and act as Primary and Secondary correspondingly.

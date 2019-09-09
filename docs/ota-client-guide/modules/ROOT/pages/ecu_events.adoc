@@ -1,4 +1,12 @@
 = Client events reporting
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 :aktualizr-github-url: https://github.com/advancedtelematic/aktualizr/tree/master
 
 This is a technical document describing the format of the events reported to the back-end by aktualizr during an ongoing update installation.

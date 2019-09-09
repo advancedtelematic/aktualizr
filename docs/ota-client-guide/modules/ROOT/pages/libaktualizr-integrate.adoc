@@ -1,4 +1,12 @@
 = Build disc images that contain your libaktualizr integration
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 
 Assuming you followed our recommendation to use libaktualizr, you'll need to build disc images that contain your final integration. The build recipes that we provide in the evaluation stage are configured to use standalone aktualizr.
 

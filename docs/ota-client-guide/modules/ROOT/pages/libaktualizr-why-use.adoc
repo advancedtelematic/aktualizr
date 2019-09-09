@@ -1,4 +1,12 @@
 = Integrate libaktualizr into your solution
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 
 ////
 This topic is supposed to outline the main use cases the product aims to address. The body of the guide must show how to use the product to implement these use cases.
@@ -22,4 +30,4 @@ Typical scenarios for making your own client could be:
 * You want to constrain network traffic and software updates to specific vehicle states
 * You want to provide motorists or service staff with progress indicators for specific software updates.
 
-To get started, have a look at our https://github.com/advancedtelematic/libaktualizr-demo[demo app] in GitHub (documentation coming soon) or read through our guide to xref:libaktualizr-getstarted.adoc[getting started with libaktualizr].
+To get started, have a look at our https://github.com/advancedtelematic/libaktualizr-demo[demo app] in GitHub or read through our guide to xref:libaktualizr-getstarted.adoc[getting started with libaktualizr].

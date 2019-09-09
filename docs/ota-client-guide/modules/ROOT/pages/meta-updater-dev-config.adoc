@@ -1,4 +1,12 @@
 = Development configuration
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 :meta-updater-github-url: https://github.com/advancedtelematic/meta-updater/tree/master
 
 //MC: The dev guide already has a recommended config topic: https://github.com/advancedtelematic/aktualizr/blob/master/docs/ota-client-guide/modules/ROOT/pages/recommended-clientconfig.adoc

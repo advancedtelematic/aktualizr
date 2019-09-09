@@ -1,4 +1,12 @@
 = Generate a test device certificate
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 
 // MC: This is a slightly altered copy of "generate-devicecert.doc" with wording that explains the process from the perspective of testing with a self-signed root cert.
 

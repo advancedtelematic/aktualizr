@@ -1,4 +1,12 @@
 = Usage
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 :meta-updater-github-url: https://github.com/advancedtelematic/meta-updater/tree/master
 :metadata-expiry-article: xref:dev@ota-client::metadata-expiry.adoc[OTA Connect documentation]
 ifdef::env-github[:metadata-expiry-article: link:https://docs.ota.here.com/ota-client/dev/metadata-expiry.html[OTA Connect documentation]]

@@ -1,3 +1,11 @@
 = Build OTA-enabled disk images
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 
 Aside from our demo recipes, you can also create your own Yocto project from scratch.

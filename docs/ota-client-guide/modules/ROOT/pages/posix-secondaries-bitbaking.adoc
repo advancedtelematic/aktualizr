@@ -1,4 +1,12 @@
 = Posix Secondaries: bitbaking and usage of Primary and Secondary images
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 :build-qemu-link: xref:build-qemu.adoc[How to build 'core-image-minimal' image for QEMU]]
 
 The goal of this doc is to guide a reader on bitbaking of two type of images `primary` and `secondary` that are targeted for QEMU or RPi
