@@ -8,7 +8,6 @@
 :device: Raspberry Pi Model 3
 :machine: raspberrypi3
 :meta-env: raspberrypi
-:image: rpi-basic-image
 
 {product-name} lets you easily manage OTA updates to embedded devices running custom-built Yocto images. This is a guide for building a simple Yocto image for the {device}. You can use it as a base image for another project, or as a template for how to get started. The whole process only takes about 3 minutes of your time.
 
@@ -125,7 +124,7 @@ Now you're ready to build an image.
 
 [subs=+attributes]
 ----
-bitbake {image}
+bitbake core-image-minimal
 ----
 
 image::https://imgs.xkcd.com/comics/compiling.png[float="left",align="center"]
@@ -136,7 +135,7 @@ This step will take a while. If you used the build mirror, it might be as little
 
 == Put the built image on an SD card
 
-The build process creates disk images as an artefact. The one you need to write to the disk is located under your build directory at `tmp/deploy/images/raspberrypi3/rpi-basic-image-raspberrypi3.wic`. We provide a script to write the image and resize it to fit your SD card:
+The build process creates disk images as an artefact. The one you need to write to the disk is located under your build directory at `tmp/deploy/images/raspberrypi3/core-image-minimal-raspberrypi3.wic`. We provide a script to write the image and resize it to fit your SD card:
 
 ----
 sudo ../meta-updater-raspberrypi/scripts/flash-image.sh <device> <1>
