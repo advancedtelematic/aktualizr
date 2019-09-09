@@ -2,4 +2,4 @@
 
 As described in the xref:workflow-overview.adoc[workflow overview], you use the Yocto tools to build a disk image that you can flash to your devices. This disk image includes the OTA Connect client, which communicates with the OTA Connect server. You can learn more about the Yocto tools, in the xref:yocto.adoc[Yocto section].
 
-If you don't have a physical microcontroller handy, you can xref:build-quemu.adoc[build an image for QEMU] and simulate a fully OTA-enabled device on your computer.
+If you don't have a physical microcontroller handy, you can xref:build-qemu.adoc[build an image for QEMU] and simulate a fully OTA-enabled device on your computer.
