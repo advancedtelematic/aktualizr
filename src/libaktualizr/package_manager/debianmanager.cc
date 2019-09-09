@@ -31,12 +31,11 @@ data::InstallationResult DebianManager::install(const Uptane::Target &target) co
 }
 
 Uptane::Target DebianManager::getCurrent() const {
-  std::vector<Uptane::Target> installed_versions;
-  size_t current_k = SIZE_MAX;
-  storage_->loadPrimaryInstalledVersions(&installed_versions, &current_k, nullptr);
+  boost::optional<Uptane::Target> current_version;
+  storage_->loadPrimaryInstalledVersions(&current_version, nullptr);
 
-  if (current_k != SIZE_MAX) {
-    return installed_versions.at(current_k);
+  if (!!current_version) {
+    return *current_version;
   }
 
   return Uptane::Target::Unknown();

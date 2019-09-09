@@ -12,12 +12,11 @@ Json::Value PackageManagerFake::getInstalledPackages() const {
 }
 
 Uptane::Target PackageManagerFake::getCurrent() const {
-  std::vector<Uptane::Target> installed_versions;
-  size_t current_k = SIZE_MAX;
-  storage_->loadPrimaryInstalledVersions(&installed_versions, &current_k, nullptr);
+  boost::optional<Uptane::Target> current_version;
+  storage_->loadPrimaryInstalledVersions(&current_version, nullptr);
 
-  if (current_k != SIZE_MAX) {
-    return installed_versions.at(current_k);
+  if (!!current_version) {
+    return *current_version;
   }
 
   return Uptane::Target::Unknown();
@@ -53,17 +52,16 @@ void PackageManagerFake::completeInstall() const {
 }
 
 data::InstallationResult PackageManagerFake::finalizeInstall(const Uptane::Target& target) const {
-  std::vector<Uptane::Target> targets;
-  size_t pending_version = SIZE_MAX;
-  storage_->loadPrimaryInstalledVersions(&targets, nullptr, &pending_version);
+  boost::optional<Uptane::Target> pending_version;
+  storage_->loadPrimaryInstalledVersions(nullptr, &pending_version);
 
-  if (pending_version == SIZE_MAX) {
+  if (!pending_version) {
     throw std::runtime_error("No pending update, nothing to finalize");
   }
 
   data::InstallationResult install_res;
 
-  if (target.MatchTarget(targets[pending_version])) {
+  if (target.MatchTarget(*pending_version)) {
     if (fiu_fail("fake_install_finalization_failure") != 0) {
       const std::string failure_cause = fault_injection_last_info();
       if (failure_cause.empty()) {

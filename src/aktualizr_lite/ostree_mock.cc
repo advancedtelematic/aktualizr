@@ -1,4 +1,5 @@
 #include <ostree.h>
+#include <stdlib.h>
 
 extern "C" OstreeDeployment *ostree_sysroot_get_booted_deployment(OstreeSysroot *self) {
   (void)self;

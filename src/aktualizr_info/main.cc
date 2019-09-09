@@ -278,24 +278,22 @@ int main(int argc, char **argv) {
         std::cout << secondary_number++ << ") serial ID: " << it->first << std::endl;
         std::cout << "   hardware ID: " << it->second << std::endl;
 
-        std::vector<Uptane::Target> installed_targets;
-        size_t current_version = SIZE_MAX;
-        size_t pending_version = SIZE_MAX;
+        boost::optional<Uptane::Target> current_version;
+        boost::optional<Uptane::Target> pending_version;
 
-        auto load_installed_version_res = storage->loadInstalledVersions((it->first).ToString(), &installed_targets,
-                                                                         &current_version, &pending_version);
+        auto load_installed_version_res =
+            storage->loadInstalledVersions((it->first).ToString(), &current_version, &pending_version);
 
-        if (!load_installed_version_res ||
-            (current_version >= installed_targets.size() && pending_version >= installed_targets.size())) {
+        if (!load_installed_version_res || (!current_version && !pending_version)) {
           std::cout << "   no details about installed nor pending images\n";
         } else {
-          if (installed_targets.size() > current_version) {
-            std::cout << "   installed image hash: " << installed_targets[current_version].sha256Hash() << "\n";
-            std::cout << "   installed image filename: " << installed_targets[current_version].filename() << "\n";
+          if (!!current_version) {
+            std::cout << "   installed image hash: " << current_version->sha256Hash() << "\n";
+            std::cout << "   installed image filename: " << current_version->filename() << "\n";
           }
-          if (installed_targets.size() > pending_version) {
-            std::cout << "   pending image hash: " << installed_targets[pending_version].sha256Hash() << "\n";
-            std::cout << "   pending image filename: " << installed_targets[pending_version].filename() << "\n";
+          if (!!pending_version) {
+            std::cout << "   pending image hash: " << pending_version->sha256Hash() << "\n";
+            std::cout << "   pending image filename: " << pending_version->filename() << "\n";
           }
         }
       }
@@ -326,11 +324,11 @@ int main(int argc, char **argv) {
     }
 
     std::vector<Uptane::Target> installed_versions;
-    size_t pending = SIZE_MAX;
-    storage->loadInstalledVersions("", &installed_versions, nullptr, &pending);
+    boost::optional<Uptane::Target> pending;
+    storage->loadPrimaryInstalledVersions(nullptr, &pending);
 
-    if (pending != SIZE_MAX) {
-      std::cout << "Pending primary ecu version: " << installed_versions[pending].sha256Hash() << std::endl;
+    if (!!pending) {
+      std::cout << "Pending primary ecu version: " << pending->sha256Hash() << std::endl;
     }
   } catch (const po::error &o) {
     std::cout << o.what() << std::endl;

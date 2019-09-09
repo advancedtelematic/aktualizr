@@ -8,6 +8,7 @@
 #include "config/config.h"
 #include "logging/logging.h"
 #include "primary/aktualizr.h"
+#include "primary/aktualizr_helpers.h"
 #include "secondary.h"
 #include "utilities/aktualizr_version.h"
 #include "utilities/utils.h"
@@ -87,7 +88,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
 }
 
 void process_event(const std::shared_ptr<event::BaseEvent> &event) {
-  if (event->isTypeOf(event::DownloadProgressReport::TypeName)) {
+  if (event->isTypeOf<event::DownloadProgressReport>()) {
     // Do nothing; libaktualizr already logs it.
   } else if (event->variant == "UpdateCheckComplete") {
     // Do nothing; libaktualizr already logs it.
@@ -157,6 +158,9 @@ int main(int argc, char *argv[]) {
       aktualizr.SendDeviceData().get();
       aktualizr.UptaneCycle();
     } else {
+      boost::signals2::connection ac_conn =
+          aktualizr.SetSignalHandler(std::bind(targets_autoclean_cb, std::ref(aktualizr), std::placeholders::_1));
+
       aktualizr.RunForever().get();
     }
     r = EXIT_SUCCESS;

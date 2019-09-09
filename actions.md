@@ -173,6 +173,7 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Store negative device installation result when an ECU installation failed (aktualizr_test.cc)
   - [x] Update is not in pending state anymore after failed installation (aktualizr_test.cc)
   - [x] Send AllInstallsComplete event after all installations are finished (aktualizr_test.cc)
+  - [x] Automatically remove old targets during installation cycles (aktualizr_test.cc)
 - [x] Send installation report
   - [x] Generate and send manifest (see below)
   - [x] Send PutManifestComplete event if send is successful (aktualizr_test.cc)

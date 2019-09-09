@@ -66,8 +66,10 @@ class SQLStorage : public SQLStorageBase, public INvStorage {
   void clearNeedReboot() override;
   void saveInstalledVersion(const std::string& ecu_serial, const Uptane::Target& target,
                             InstalledVersionUpdateMode update_mode) override;
-  bool loadInstalledVersions(const std::string& ecu_serial, std::vector<Uptane::Target>* installed_versions,
-                             size_t* current_version, size_t* pending_version) override;
+  bool loadInstalledVersions(const std::string& ecu_serial, boost::optional<Uptane::Target>* current_version,
+                             boost::optional<Uptane::Target>* pending_version) override;
+  bool loadInstallationLog(const std::string& ecu_serial, std::vector<Uptane::Target>* log,
+                           bool only_installed) override;
   bool hasPendingInstall() override;
   void clearInstalledVersions() override;
 

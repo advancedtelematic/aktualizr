@@ -1,7 +1,7 @@
 #ifndef AKTUALIZR_H_
 #define AKTUALIZR_H_
 
-#include <atomic>
+#include <future>
 #include <memory>
 
 #include <boost/signals2.hpp>
@@ -81,6 +81,19 @@ class Aktualizr {
    * @return std::future object with information about download results.
    */
   std::future<result::Download> Download(const std::vector<Uptane::Target>& updates);
+
+  /**
+   * Get log of installations. The log is indexed for every ECU and contains
+   * every change of versions ordered by time. It may contain duplicates in
+   * case of rollbacks.
+   * @return installation log
+   */
+  struct InstallationLogEntry {
+    Uptane::EcuSerial ecu;
+    std::vector<Uptane::Target> installs;
+  };
+  using InstallationLog = std::vector<InstallationLogEntry>;
+  InstallationLog GetInstallationLog();
 
   /**
    * Get list of targets currently in storage. This is intended to be used with

@@ -228,6 +228,9 @@ Json::Value Repo::getTarget(const std::string &target_name) {
   if (image_targets["targets"].isMember(target_name)) {
     return image_targets["targets"][target_name];
   } else if (repo_type_ == Uptane::RepositoryType::Image()) {
+    if (!boost::filesystem::is_directory(repo_dir_ / "delegations")) {
+      return {};
+    }
     for (auto &p : boost::filesystem::directory_iterator(repo_dir_ / "delegations")) {
       if (Uptane::Role::IsReserved(p.path().stem().string())) {
         continue;
@@ -237,7 +240,6 @@ Json::Value Repo::getTarget(const std::string &target_name) {
         return targets["targets"][target_name];
       }
     }
-    throw std::runtime_error(std::string("No target with name: ") + target_name);
   }
   return {};
 }

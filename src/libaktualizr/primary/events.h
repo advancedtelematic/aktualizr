@@ -26,7 +26,10 @@ class BaseEvent {
   BaseEvent(std::string variant_in) : variant(std::move(variant_in)) {}
   virtual ~BaseEvent() = default;
 
-  bool isTypeOf(const std::string& type_to_cmp) { return (variant == type_to_cmp); }
+  template <typename T>
+  bool isTypeOf() {
+    return variant == T::TypeName;
+  }
 
   std::string variant;
 };
@@ -36,7 +39,9 @@ class BaseEvent {
  */
 class SendDeviceDataComplete : public BaseEvent {
  public:
-  SendDeviceDataComplete() { variant = "SendDeviceDataComplete"; }
+  static constexpr const char* TypeName{"SendDeviceDataComplete"};
+
+  SendDeviceDataComplete() { variant = TypeName; }
 };
 
 /**
@@ -44,7 +49,8 @@ class SendDeviceDataComplete : public BaseEvent {
  */
 class PutManifestComplete : public BaseEvent {
  public:
-  explicit PutManifestComplete(bool success_in) : success(success_in) { variant = "PutManifestComplete"; }
+  static constexpr const char* TypeName{"PutManifestComplete"};
+  explicit PutManifestComplete(bool success_in) : success(success_in) { variant = TypeName; }
   bool success;
 };
 
@@ -53,9 +59,8 @@ class PutManifestComplete : public BaseEvent {
  */
 class UpdateCheckComplete : public BaseEvent {
  public:
-  explicit UpdateCheckComplete(result::UpdateCheck result_in) : result(std::move(result_in)) {
-    variant = "UpdateCheckComplete";
-  }
+  static constexpr const char* TypeName{"UpdateCheckComplete"};
+  explicit UpdateCheckComplete(result::UpdateCheck result_in) : result(std::move(result_in)) { variant = TypeName; }
 
   result::UpdateCheck result;
 };
@@ -118,7 +123,9 @@ class AllDownloadsComplete : public BaseEvent {
  */
 class InstallStarted : public BaseEvent {
  public:
-  explicit InstallStarted(Uptane::EcuSerial serial_in) : serial(std::move(serial_in)) { variant = "InstallStarted"; }
+  static constexpr const char* TypeName{"InstallStarted"};
+
+  explicit InstallStarted(Uptane::EcuSerial serial_in) : serial(std::move(serial_in)) { variant = TypeName; }
   Uptane::EcuSerial serial;
 };
 
@@ -127,9 +134,11 @@ class InstallStarted : public BaseEvent {
  */
 class InstallTargetComplete : public BaseEvent {
  public:
+  static constexpr const char* TypeName{"InstallTargetComplete"};
+
   InstallTargetComplete(Uptane::EcuSerial serial_in, bool success_in)
       : serial(std::move(serial_in)), success(success_in) {
-    variant = "InstallTargetComplete";
+    variant = TypeName;
   }
 
   Uptane::EcuSerial serial;
@@ -141,9 +150,9 @@ class InstallTargetComplete : public BaseEvent {
  */
 class AllInstallsComplete : public BaseEvent {
  public:
-  explicit AllInstallsComplete(result::Install result_in) : result(std::move(result_in)) {
-    variant = "AllInstallsComplete";
-  }
+  static constexpr const char* TypeName{"AllInstallsComplete"};
+
+  explicit AllInstallsComplete(result::Install result_in) : result(std::move(result_in)) { variant = TypeName; }
 
   result::Install result;
 };
@@ -153,9 +162,9 @@ class AllInstallsComplete : public BaseEvent {
  */
 class CampaignCheckComplete : public BaseEvent {
  public:
-  explicit CampaignCheckComplete(result::CampaignCheck result_in) : result(std::move(result_in)) {
-    variant = "CampaignCheckComplete";
-  }
+  static constexpr const char* TypeName{"CampaignCheckComplete"};
+
+  explicit CampaignCheckComplete(result::CampaignCheck result_in) : result(std::move(result_in)) { variant = TypeName; }
 
   result::CampaignCheck result;
 };
@@ -165,17 +174,23 @@ class CampaignCheckComplete : public BaseEvent {
  */
 class CampaignAcceptComplete : public BaseEvent {
  public:
-  CampaignAcceptComplete() { variant = "CampaignAcceptComplete"; }
+  static constexpr const char* TypeName{"CampaignAcceptComplete"};
+
+  CampaignAcceptComplete() { variant = TypeName; }
 };
 
 class CampaignDeclineComplete : public BaseEvent {
  public:
-  CampaignDeclineComplete() { variant = "CampaignDeclineComplete"; }
+  static constexpr const char* TypeName{"CampaignDeclineComplete"};
+
+  CampaignDeclineComplete() { variant = TypeName; }
 };
 
 class CampaignPostponeComplete : public BaseEvent {
  public:
-  CampaignPostponeComplete() { variant = "CampaignPostponeComplete"; }
+  static constexpr const char* TypeName{"CampaignPostponeComplete"};
+
+  CampaignPostponeComplete() { variant = TypeName; }
 };
 
 using Channel = boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>;

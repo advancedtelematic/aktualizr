@@ -1071,7 +1071,7 @@ TEST(Uptane, FsToSqlFull) {
   bool sql_ecu_registered = sql_storage->loadEcuRegistered();
 
   std::vector<Uptane::Target> sql_installed_versions;
-  sql_storage->loadPrimaryInstalledVersions(&sql_installed_versions, nullptr, nullptr);
+  sql_storage->loadPrimaryInstallationLog(&sql_installed_versions, true);
 
   std::string sql_director_root;
   std::string sql_director_targets;
@@ -1122,10 +1122,10 @@ TEST(Uptane, InstalledVersionImport) {
   auto storage = INvStorage::newStorage(config.storage);
   storage->importData(config.import);
 
-  std::vector<Uptane::Target> installed_versions;
-  storage->loadPrimaryInstalledVersions(&installed_versions, nullptr, nullptr);
-  EXPECT_EQ(installed_versions.at(0).filename(),
-            "master-863de625f305413dc3be306afab7c3f39d8713045cfff812b3af83f9722851f0");
+  boost::optional<Uptane::Target> current_version;
+  storage->loadPrimaryInstalledVersions(&current_version, nullptr);
+  EXPECT_TRUE(!!current_version);
+  EXPECT_EQ(current_version->filename(), "master-863de625f305413dc3be306afab7c3f39d8713045cfff812b3af83f9722851f0");
 
   // check that data is not re-imported later: store new data, reload a new
   // storage with import and see that the new data is still there
@@ -1138,10 +1138,10 @@ TEST(Uptane, InstalledVersionImport) {
   auto new_storage = INvStorage::newStorage(config.storage);
   new_storage->importData(config.import);
 
-  size_t current_index = SIZE_MAX;
-  new_storage->loadPrimaryInstalledVersions(&installed_versions, &current_index, nullptr);
-  EXPECT_LT(current_index, installed_versions.size());
-  EXPECT_EQ(installed_versions.at(current_index).filename(), "filename");
+  current_version = boost::none;
+  new_storage->loadPrimaryInstalledVersions(&current_version, nullptr);
+  EXPECT_TRUE(!!current_version);
+  EXPECT_EQ(current_version->filename(), "filename");
 }
 
 /* Store a list of installed package versions. */
@@ -1160,15 +1160,13 @@ TEST(Uptane, SaveAndLoadVersion) {
   Uptane::Target t("target_name", target_json);
   storage->savePrimaryInstalledVersion(t, InstalledVersionUpdateMode::kCurrent);
 
-  std::vector<Uptane::Target> installed_versions;
-  storage->loadPrimaryInstalledVersions(&installed_versions, nullptr, nullptr);
+  boost::optional<Uptane::Target> current_version;
+  storage->loadPrimaryInstalledVersions(&current_version, nullptr);
 
-  auto f = std::find_if(installed_versions.begin(), installed_versions.end(),
-                        [](const Uptane::Target &t_) { return t_.filename() == "target_name"; });
-  EXPECT_NE(f, installed_versions.end());
-  EXPECT_EQ(f->sha256Hash(), "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d");
-  EXPECT_EQ(f->length(), 123);
-  EXPECT_TRUE(f->MatchTarget(t));
+  EXPECT_TRUE(!!current_version);
+  EXPECT_EQ(current_version->sha256Hash(), "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d");
+  EXPECT_EQ(current_version->length(), 123);
+  EXPECT_TRUE(current_version->MatchTarget(t));
 }
 
 class HttpFakeUnstable : public HttpFake {
