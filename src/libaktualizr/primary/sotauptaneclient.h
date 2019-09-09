@@ -29,13 +29,10 @@
 
 class SotaUptaneClient {
  public:
-  static std::shared_ptr<SotaUptaneClient> newDefaultClient(
-      Config &config_in, std::shared_ptr<INvStorage> storage_in,
-      std::shared_ptr<event::Channel> events_channel_in = nullptr);
-
   SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in,
-                   std::shared_ptr<HttpInterface> http_client, std::shared_ptr<Bootloader> bootloader_in,
-                   std::shared_ptr<ReportQueue> report_queue_in,
+                   std::shared_ptr<HttpInterface> http_in = nullptr,
+                   std::shared_ptr<Bootloader> bootloader_in = nullptr,
+                   std::shared_ptr<ReportQueue> report_queue_in = nullptr,
                    std::shared_ptr<event::Channel> events_channel_in = nullptr);
   ~SotaUptaneClient();
 

@@ -48,10 +48,10 @@ TEST(Uptane, RandomSerial) {
   auto http1 = std::make_shared<HttpFake>(temp_dir1.Path());
   auto http2 = std::make_shared<HttpFake>(temp_dir2.Path());
 
-  auto uptane_client1 = UptaneTestCommon::newTestClient(conf_1, storage_1, http1);
+  auto uptane_client1 = std_::make_unique<UptaneTestCommon::TestUptaneClient>(conf_1, storage_1, http1);
   EXPECT_NO_THROW(uptane_client1->initialize());
 
-  auto uptane_client2 = UptaneTestCommon::newTestClient(conf_2, storage_2, http2);
+  auto uptane_client2 = std_::make_unique<UptaneTestCommon::TestUptaneClient>(conf_2, storage_2, http2);
   EXPECT_NO_THROW(uptane_client2->initialize());
 
   // Verify that none of the serials match.
@@ -92,7 +92,7 @@ TEST(Uptane, ReloadSerial) {
     auto http = std::make_shared<HttpFake>(temp_dir.Path());
 
     UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "", "secondary_hardware", false);
-    auto uptane_client = UptaneTestCommon::newTestClient(conf, storage, http);
+    auto uptane_client = std_::make_unique<UptaneTestCommon::TestUptaneClient>(conf, storage, http);
 
     EXPECT_NO_THROW(uptane_client->initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_1));
@@ -111,7 +111,7 @@ TEST(Uptane, ReloadSerial) {
     auto storage = INvStorage::newStorage(conf.storage);
     auto http = std::make_shared<HttpFake>(temp_dir.Path());
     UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "", "secondary_hardware", false);
-    auto uptane_client = UptaneTestCommon::newTestClient(conf, storage, http);
+    auto uptane_client = std_::make_unique<UptaneTestCommon::TestUptaneClient>(conf, storage, http);
 
     EXPECT_NO_THROW(uptane_client->initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_2));

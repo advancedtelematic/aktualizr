@@ -37,7 +37,7 @@ TEST(UptaneCI, ProvisionAndPutManifest) {
   auto http = std::make_shared<HttpClient>();
   Uptane::Manifest uptane_manifest{config, storage};
 
-  auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
+  auto sota_client = std_::make_unique<UptaneTestCommon::TestUptaneClient>(config, storage, http);
   EXPECT_NO_THROW(sota_client->initialize());
   EXPECT_TRUE(sota_client->putManifestSimple());
 }
@@ -57,7 +57,7 @@ TEST(UptaneCI, CheckKeys) {
   auto http = std::make_shared<HttpClient>();
 
   UptaneTestCommon::addDefaultSecondary(config, temp_dir, "", "secondary_hardware");
-  auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
+  auto sota_client = std_::make_unique<UptaneTestCommon::TestUptaneClient>(config, storage, http);
   EXPECT_NO_THROW(sota_client->initialize());
 
   std::string ca;

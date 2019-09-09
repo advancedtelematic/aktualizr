@@ -25,28 +25,26 @@ static void report_progress_cb(event::Channel *channel, const Uptane::Target &ta
   (*channel)(event);
 }
 
-std::shared_ptr<SotaUptaneClient> SotaUptaneClient::newDefaultClient(
-    Config &config_in, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<event::Channel> events_channel_in) {
-  std::shared_ptr<HttpClient> http_client_in = std::make_shared<HttpClient>();
-  std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_in.bootloader, *storage_in);
-  std::shared_ptr<ReportQueue> report_queue_in = std::make_shared<ReportQueue>(config_in, http_client_in);
-
-  return std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, bootloader_in, report_queue_in,
-                                            events_channel_in);
-}
-
 SotaUptaneClient::SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in,
-                                   std::shared_ptr<HttpInterface> http_client,
-                                   std::shared_ptr<Bootloader> bootloader_in,
+                                   std::shared_ptr<HttpInterface> http_in, std::shared_ptr<Bootloader> bootloader_in,
                                    std::shared_ptr<ReportQueue> report_queue_in,
                                    std::shared_ptr<event::Channel> events_channel_in)
     : config(config_in),
       uptane_manifest(config, storage_in),
       storage(storage_in),
-      http(std::move(http_client)),
+      http(std::move(http_in)),
       bootloader(std::move(bootloader_in)),
       report_queue(std::move(report_queue_in)),
       events_channel(std::move(events_channel_in)) {
+  if (!http) {
+    http = std::make_shared<HttpClient>();
+  }
+  if (!bootloader) {
+    bootloader = std::make_shared<Bootloader>(config.bootloader, *storage);
+  }
+  if (!report_queue) {
+    report_queue = std::make_shared<ReportQueue>(config, http);
+  }
   uptane_fetcher = std::make_shared<Uptane::Fetcher>(config, http);
 
   // consider boot successful as soon as we started, missing internet connection or connection to secondaries are not

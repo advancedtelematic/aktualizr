@@ -55,7 +55,7 @@ void initKeyTests(Config& config, Primary::VirtualSecondaryConfig& ecu_config1,
 // SotaUptaneClient. The name is carefully constructed for this purpose.
 class UptaneKey_Check_Test {
  public:
-  static void checkKeyTests(std::shared_ptr<INvStorage>& storage, std::shared_ptr<SotaUptaneClient> sota_client) {
+  static void checkKeyTests(std::shared_ptr<INvStorage>& storage, const SotaUptaneClient& sota_client) {
     // Verify that TLS credentials are valid.
     std::string ca;
     std::string cert;
@@ -82,8 +82,7 @@ class UptaneKey_Check_Test {
     private_keys.push_back(primary_private);
 
     // Verify that each secondary has valid keys.
-    std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
-    for (it = sota_client->secondaries.begin(); it != sota_client->secondaries.end(); it++) {
+    for (auto it = sota_client.secondaries.begin(); it != sota_client.secondaries.end(); it++) {
       std::shared_ptr<Primary::ManagedSecondary> managed =
           boost::polymorphic_pointer_downcast<Primary::ManagedSecondary>(it->second);
       std::string public_key;
@@ -116,11 +115,11 @@ TEST(UptaneKey, CheckAllKeys) {
   Primary::VirtualSecondaryConfig ecu_config2;
   initKeyTests(config, ecu_config1, ecu_config2, temp_dir, http->tls_server);
   auto storage = INvStorage::newStorage(config.storage);
-  auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
+  auto sota_client = std_::make_unique<UptaneTestCommon::TestUptaneClient>(config, storage, http);
   sota_client->addNewSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config1));
   sota_client->addNewSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config2));
   EXPECT_NO_THROW(sota_client->initialize());
-  UptaneKey_Check_Test::checkKeyTests(storage, sota_client);
+  UptaneKey_Check_Test::checkKeyTests(storage, *sota_client);
 }
 
 /**
@@ -139,11 +138,11 @@ TEST(UptaneKey, RecoverWithoutKeys) {
   // Initialize.
   {
     auto storage = INvStorage::newStorage(config.storage);
-    auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
+    auto sota_client = std_::make_unique<UptaneTestCommon::TestUptaneClient>(config, storage, http);
     sota_client->addNewSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config1));
     sota_client->addNewSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config2));
     EXPECT_NO_THROW(sota_client->initialize());
-    UptaneKey_Check_Test::checkKeyTests(storage, sota_client);
+    UptaneKey_Check_Test::checkKeyTests(storage, *sota_client);
 
     // Remove TLS keys but keep ECU keys and try to initialize again.
     storage->clearTlsCreds();
@@ -151,10 +150,10 @@ TEST(UptaneKey, RecoverWithoutKeys) {
 
   {
     auto storage = INvStorage::newStorage(config.storage);
-    auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
+    auto sota_client = std_::make_unique<UptaneTestCommon::TestUptaneClient>(config, storage, http);
 
     EXPECT_NO_THROW(sota_client->initialize());
-    UptaneKey_Check_Test::checkKeyTests(storage, sota_client);
+    UptaneKey_Check_Test::checkKeyTests(storage, *sota_client);
 
     // Remove ECU keys but keep TLS keys and try to initialize again.
     storage->clearPrimaryKeys();
@@ -167,10 +166,10 @@ TEST(UptaneKey, RecoverWithoutKeys) {
 
   {
     auto storage = INvStorage::newStorage(config.storage);
-    auto sota_client = UptaneTestCommon::newTestClient(config, storage, http);
+    auto sota_client = std_::make_unique<UptaneTestCommon::TestUptaneClient>(config, storage, http);
 
     EXPECT_NO_THROW(sota_client->initialize());
-    UptaneKey_Check_Test::checkKeyTests(storage, sota_client);
+    UptaneKey_Check_Test::checkKeyTests(storage, *sota_client);
   }
 }
 
