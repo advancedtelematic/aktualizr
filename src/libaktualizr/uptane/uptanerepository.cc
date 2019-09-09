@@ -25,7 +25,6 @@ bool RepositoryCommon::initRoot(const std::string& root_raw) {
     root = Root(type, Utils::parseJSON(root_raw), root);  // signature verification against itself
   } catch (const std::exception& e) {
     LOG_ERROR << "Loading initial root failed: " << e.what();
-    throw;
     return false;
   }
   return true;
