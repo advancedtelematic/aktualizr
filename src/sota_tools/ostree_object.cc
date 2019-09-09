@@ -2,6 +2,7 @@
 
 #include <assert.h>
 
+#include <sys/stat.h>
 #include <cstring>
 #include <iostream>
 
@@ -21,7 +22,7 @@ OSTreeObject::OSTreeObject(const OSTreeRepo &repo, const std::string &object_nam
       refcount_(0),
       is_on_server_(PresenceOnServer::kObjectStateUnknown),
       curl_handle_(nullptr),
-      form_post_(nullptr) {
+      fd_(nullptr) {
   if (!boost::filesystem::is_regular_file(file_path_)) {
     throw std::runtime_error(file_path_.native() + " is not a valid OSTree repo.");
   }
@@ -206,7 +207,7 @@ void OSTreeObject::MakeTestRequest(const TreehubServer &push_target, CURLM *curl
   request_start_time_ = std::chrono::steady_clock::now();
 }
 
-void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_handle, const RunMode mode) {
+void OSTreeObject::Upload(TreehubServer &push_target, CURLM *curl_multi_handle, const RunMode mode) {
   if (mode == RunMode::kDefault || mode == RunMode::kPushTree) {
     LOG_INFO << "Uploading " << object_name_;
   } else {
@@ -222,25 +223,27 @@ void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_ha
   }
   curlEasySetoptWrapper(curl_handle_, CURLOPT_VERBOSE, get_curlopt_verbose());
   current_operation_ = CurrentOp::kOstreeObjectUploading;
+  push_target.SetContentType("Content-Type: application/octet-stream");
   push_target.InjectIntoCurl(Url(), curl_handle_);
   curlEasySetoptWrapper(curl_handle_, CURLOPT_USERAGENT, Utils::getUserAgent());
   curlEasySetoptWrapper(curl_handle_, CURLOPT_WRITEFUNCTION, &OSTreeObject::curl_handle_write);
   curlEasySetoptWrapper(curl_handle_, CURLOPT_WRITEDATA, this);
   http_response_.str("");  // Empty the response buffer
 
-  assert(form_post_ == nullptr);
-  struct curl_httppost *last_item = nullptr;
-  const CURLFORMcode form_err =
-      curl_formadd(&form_post_, &last_item, CURLFORM_COPYNAME, "file", CURLFORM_FILE, file_path_.c_str(), CURLFORM_END);
-  if (form_err != 0u) {
-    // Apparently there is not strerror for formadd.
-    LOG_ERROR << "curl_formadd error: " << form_err;
+  struct stat file_info {};
+  fd_ = fopen(file_path_.c_str(), "rb");
+  if (fd_ == nullptr) {
+    throw std::runtime_error("could not open file to be uploaded");
+  } else {
+    if (stat(file_path_.c_str(), &file_info) < 0) {
+      throw std::runtime_error("Could not get file information");
+    }
   }
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_READDATA, fd_);
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_POSTFIELDSIZE, file_info.st_size);
   curlEasySetoptWrapper(curl_handle_, CURLOPT_POST, 1);
-  curlEasySetoptWrapper(curl_handle_, CURLOPT_HTTPPOST, form_post_);
 
   curlEasySetoptWrapper(curl_handle_, CURLOPT_PRIVATE, this);  // Used by ostree_object_from_curl
-
   const CURLMcode err = curl_multi_add_handle(curl_multi_handle, curl_handle_);
   if (err != 0) {
     LOG_ERROR << "curl_multi_add_handle error:" << curl_multi_strerror(err);
@@ -316,13 +319,11 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
     }
 
   } else if (current_operation_ == CurrentOp::kOstreeObjectUploading) {
-    curl_formfree(form_post_);
-    form_post_ = nullptr;
     // Sanity-check the handle's URL to make sure it contains the expected
     // object hash.
     if (url == nullptr || strstr(url, object_name_.c_str()) == nullptr) {
       UploadError(pool, rescode);
-    } else if (rescode == 200) {
+    } else if (rescode == 204) {
       LOG_TRACE << "OSTree upload successful";
       is_on_server_ = PresenceOnServer::kObjectPresent;
       last_operation_result_ = ServerResponse::kOk;
@@ -335,6 +336,7 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
     } else {
       UploadError(pool, rescode);
     }
+    fclose(fd_);
   } else {
     LOG_ERROR << "Unknown operation: " << static_cast<int>(current_operation_);
     assert(0);

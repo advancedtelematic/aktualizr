@@ -32,7 +32,7 @@ class OstreeRepo(object):
         if self.upload_count % 2 == 0:
             self.did_return_500.set()
             return 500
-        return 200
+        return 204
 
     def query(self, name):
         self.query_count += 1

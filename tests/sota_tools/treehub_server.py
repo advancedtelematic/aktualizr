@@ -79,6 +79,16 @@ class TreehubServerHandler(BaseHTTPRequestHandler):
             self.send_response_only(200)
             self.end_headers()
             return
+        elif ctype == 'application/octet-stream':
+            length = int(self.headers['content-length'])
+            body = self.rfile.read(length)
+            full_path = os.path.join(repo_path, self.path[1:])
+            os.system("mkdir -p %s" % os.path.dirname(full_path))
+            with open(full_path, "wb") as f:
+                f.write(body)
+            self.send_response_only(204)
+            self.end_headers()
+            return
 
         self.send_response_only(400)
         self.end_headers()

@@ -45,7 +45,7 @@ class OSTreeObject {
   void MakeTestRequest(const TreehubServer& push_target, CURLM* curl_multi_handle);
 
   /* Upload this object to the destination server. */
-  void Upload(const TreehubServer& push_target, CURLM* curl_multi_handle, RunMode mode);
+  void Upload(TreehubServer& push_target, CURLM* curl_multi_handle, RunMode mode);
 
   /* Process a completed curl transaction (presence check or upload). */
   void CurlDone(CURLM* curl_multi_handle, RequestPool& pool);
@@ -110,7 +110,7 @@ class OSTreeObject {
 
   std::stringstream http_response_;
   CURL* curl_handle_;
-  struct curl_httppost* form_post_;
+  FILE* fd_;
   std::list<parentref> parents_;
   std::list<OSTreeObject::ptr> children_;
 

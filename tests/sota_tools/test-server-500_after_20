@@ -19,7 +19,7 @@ class OstreeRepo(object):
         self.upload_count += 1
         if self.upload_count >= 20:
             return 500
-        return 200
+        return 204
 
     def query(self, name):
         return 404

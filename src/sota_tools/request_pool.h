@@ -11,7 +11,7 @@
 
 class RequestPool {
  public:
-  RequestPool(const TreehubServer& server, int max_curl_requests, RunMode mode);
+  RequestPool(TreehubServer& server, int max_curl_requests, RunMode mode);
   ~RequestPool();
   void AddQuery(const OSTreeObject::ptr& request);
   void AddUpload(const OSTreeObject::ptr& request);
@@ -42,7 +42,7 @@ class RequestPool {
   RateController rate_controller_;
   int running_requests_;
   int total_requests_made_{0};
-  const TreehubServer& server_;
+  TreehubServer& server_;
   CURLM* multi_;
   std::list<OSTreeObject::ptr> query_queue_;
   std::list<OSTreeObject::ptr> upload_queue_;

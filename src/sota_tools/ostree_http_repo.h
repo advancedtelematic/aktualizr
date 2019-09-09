@@ -9,7 +9,7 @@
 
 class OSTreeHttpRepo : public OSTreeRepo {
  public:
-  explicit OSTreeHttpRepo(const TreehubServer* server) : server_(server) {}
+  explicit OSTreeHttpRepo(TreehubServer* server) : server_(server) {}
   ~OSTreeHttpRepo() override = default;
 
   bool LooksValid() const override;
@@ -20,7 +20,7 @@ class OSTreeHttpRepo : public OSTreeRepo {
   bool FetchObject(const boost::filesystem::path& path) const override;
   static size_t curl_handle_write(void* buffer, size_t size, size_t nmemb, void* userp);
 
-  const TreehubServer* server_;
+  TreehubServer* server_;
   const TemporaryDirectory root_;
 };
 

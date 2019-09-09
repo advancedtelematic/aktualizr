@@ -23,7 +23,7 @@ static size_t writeString(void *contents, size_t size, size_t nmemb, void *userp
   return size * nmemb;
 }
 
-int CheckRefValid(const TreehubServer &treehub, const std::string &ref, RunMode mode, int max_curl_requests) {
+int CheckRefValid(TreehubServer &treehub, const std::string &ref, RunMode mode, int max_curl_requests) {
   // Check if the ref is present on treehub. The traditional use case is that it
   // should be a commit object, but we allow walking the tree given any OSTree
   // ref.
