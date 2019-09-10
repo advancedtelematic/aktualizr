@@ -49,18 +49,18 @@ TEST(Uptane, RandomSerial) {
   auto http2 = std::make_shared<HttpFake>(temp_dir2.Path());
 
   auto uptane_client1 = std_::make_unique<UptaneTestCommon::TestUptaneClient>(conf_1, storage_1, http1);
-  EXPECT_NO_THROW(uptane_client1->initialize());
+  ASSERT_NO_THROW(uptane_client1->initialize());
 
   auto uptane_client2 = std_::make_unique<UptaneTestCommon::TestUptaneClient>(conf_2, storage_2, http2);
-  EXPECT_NO_THROW(uptane_client2->initialize());
+  ASSERT_NO_THROW(uptane_client2->initialize());
 
   // Verify that none of the serials match.
   EcuSerials ecu_serials_1;
   EcuSerials ecu_serials_2;
-  EXPECT_TRUE(storage_1->loadEcuSerials(&ecu_serials_1));
-  EXPECT_TRUE(storage_2->loadEcuSerials(&ecu_serials_2));
-  EXPECT_EQ(ecu_serials_1.size(), 2);
-  EXPECT_EQ(ecu_serials_2.size(), 2);
+  ASSERT_TRUE(storage_1->loadEcuSerials(&ecu_serials_1));
+  ASSERT_TRUE(storage_2->loadEcuSerials(&ecu_serials_2));
+  ASSERT_EQ(ecu_serials_1.size(), 2);
+  ASSERT_EQ(ecu_serials_2.size(), 2);
   EXPECT_FALSE(ecu_serials_1[0].first.ToString().empty());
   EXPECT_FALSE(ecu_serials_1[1].first.ToString().empty());
   EXPECT_FALSE(ecu_serials_2[0].first.ToString().empty());
@@ -94,9 +94,9 @@ TEST(Uptane, ReloadSerial) {
     UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "", "secondary_hardware", false);
     auto uptane_client = std_::make_unique<UptaneTestCommon::TestUptaneClient>(conf, storage, http);
 
-    EXPECT_NO_THROW(uptane_client->initialize());
-    EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_1));
-    EXPECT_EQ(ecu_serials_1.size(), 2);
+    ASSERT_NO_THROW(uptane_client->initialize());
+    ASSERT_TRUE(storage->loadEcuSerials(&ecu_serials_1));
+    ASSERT_EQ(ecu_serials_1.size(), 2);
     EXPECT_FALSE(ecu_serials_1[0].first.ToString().empty());
     EXPECT_FALSE(ecu_serials_1[1].first.ToString().empty());
   }
@@ -113,9 +113,9 @@ TEST(Uptane, ReloadSerial) {
     UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "", "secondary_hardware", false);
     auto uptane_client = std_::make_unique<UptaneTestCommon::TestUptaneClient>(conf, storage, http);
 
-    EXPECT_NO_THROW(uptane_client->initialize());
-    EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_2));
-    EXPECT_EQ(ecu_serials_2.size(), 2);
+    ASSERT_NO_THROW(uptane_client->initialize());
+    ASSERT_TRUE(storage->loadEcuSerials(&ecu_serials_2));
+    ASSERT_EQ(ecu_serials_2.size(), 2);
     EXPECT_FALSE(ecu_serials_2[0].first.ToString().empty());
     EXPECT_FALSE(ecu_serials_2[1].first.ToString().empty());
   }
