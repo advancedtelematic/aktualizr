@@ -2,9 +2,6 @@
 provision_path = "credentials.zip"
 primary_ecu_hardware_id = "local-fake"
 
-[uptane]
-secondary_configs_dir = "secondary_configs"
-
 [logger]
 loglevel = 1
 
@@ -13,3 +10,6 @@ path = "storage"
 
 [pacman]
 type = "none"
+
+[uptane]
+secondary_config_file = "virtualsec.json"
