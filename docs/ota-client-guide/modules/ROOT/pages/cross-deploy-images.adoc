@@ -5,7 +5,6 @@
 :page-order: 3
 :icons: font
 :sectnums:
-:garage-deploy-version: 2019.6
 
 For our recommended production workflow, you will need to move disk images from one account to another from time to time. For example, you might want to send a development build that you're happy with to the QA team, or send that build to the deployment team once it's passed QA. You can do this with our `garage-deploy` tool.
 
