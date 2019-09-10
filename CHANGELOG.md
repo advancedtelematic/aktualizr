@@ -6,10 +6,30 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ## [??? (unreleased)]
 
+
+## [2019.7] - 2019-09-10
+
 ### Added
 
 - `GetInstallationLog` API method: [PR](https://github.com/advancedtelematic/aktualizr/pull/1318)
 - The aktualizr daemon will now automatically remove old downloaded targets to free up disk space: [PR](https://github.com/advancedtelematic/aktualizr/pull/1318)
+- CA path is now always supplied to curl and can be overwritten: [PR](https://github.com/advancedtelematic/aktualizr/pull/1294)
+
+### Changed
+
+- garage-push and garage-deploy can now stream OSTree objects to [S3 via Treehub](https://github.com/advancedtelematic/treehub/pull/70) (instead of getting copied): [PR](https://github.com/advancedtelematic/aktualizr/pull/1305)
+
+### Removed
+
+- hmi-stub (replaced by [libaktualizr-demo-app](https://github.com/advancedtelematic/libaktualizr-demo-app)): [PR](https://github.com/advancedtelematic/aktualizr/pull/1310)
+
+### Fixed
+
+- Uptane metadata is now rechecked (offline) before downloading and installing: [PR](https://github.com/advancedtelematic/aktualizr/pull/1296)
+- Downloaded target hashes are rechecked before installation: [PR](https://github.com/advancedtelematic/aktualizr/pull/1296)
+- Failed downloads are now reported to the backend in the installation report: [PR](https://github.com/advancedtelematic/aktualizr/pull/1301)
+- Binary targets for an OSTree-based primary are now rejected immediately: [PR](https://github.com/advancedtelematic/aktualizr/pull/1282)
+
 
 ## [2019.6] - 2019-08-21
 
@@ -34,6 +54,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 - Target matching between the Director and Image repositories is now done as early as possible during the check for updates: [PR](https://github.com/advancedtelematic/aktualizr/pull/1271)
 - Target matching requires the hardware IDs to match: [PR](https://github.com/advancedtelematic/aktualizr/pull/1258)
 - Custom URL logic now prefers the Director and if it is empty, only then checks the Image repository value: [PR](https://github.com/advancedtelematic/aktualizr/pull/1267)
+
 
 ## [2019.5] - 2019-07-12
 
