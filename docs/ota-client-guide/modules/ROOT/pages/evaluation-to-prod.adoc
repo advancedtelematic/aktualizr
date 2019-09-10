@@ -1,4 +1,12 @@
 = Moving from evaluation to production
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 
 The procedures to deploy OTA Connect in production are a little more complex than the basic xref:dev@getstarted::index.adoc[Get Started]  procedures.
 

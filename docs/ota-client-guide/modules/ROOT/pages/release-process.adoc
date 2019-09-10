@@ -1,7 +1,15 @@
+= Release process
 :toc: macro
 :toc-title:
 
-= Release process
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 
 To create a new link:https://github.com/advancedtelematic/aktualizr/releases[release of aktualizr and garage-deploy], there are several discrete steps to follow:
 

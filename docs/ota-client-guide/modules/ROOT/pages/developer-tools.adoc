@@ -1,4 +1,12 @@
 = Developer Tools
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 
 Before we walk you through the basic workflow of an OTA update, it would be helpful to understand the tools that are involved at each stage.
 

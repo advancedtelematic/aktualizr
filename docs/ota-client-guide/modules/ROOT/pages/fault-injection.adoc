@@ -1,4 +1,12 @@
 = Running aktualizr with fault injection
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 ifdef::env-github[:simulatelink: link:https://docs.ota.here.com/ota-client/dev/simulate-device-basic.html[Simulate a device without building a disk image]]
 ifndef::env-github[:simulatelink: xref:dev@getstarted::simulate-device-basic.adoc[Simulate a device without building a disk image]]
 

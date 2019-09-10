@@ -1,4 +1,12 @@
 = Manage metadata expiry dates
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 
 Once you xref:rotating-signing-keys.adoc[take the keys for signing metadata offline], you need to be aware of when this metadata expires. You need to refresh the expiry date before it is reached, otherwise you won't be able to push updates. You can also define your own expiry dates when you take your keys offline.
 

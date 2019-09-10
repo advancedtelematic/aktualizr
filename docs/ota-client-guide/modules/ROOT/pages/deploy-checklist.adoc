@@ -1,4 +1,12 @@
 = Deployment Checklist
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 
 OTA Connect is designed to integrate easily into development workflows: you build your image, push it, set auto-updates for some of your test-bench devices, and so on. But once you're ready to move from testing into production, you will likely want to do a few things differently. 
 

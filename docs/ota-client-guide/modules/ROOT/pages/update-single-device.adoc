@@ -1,4 +1,12 @@
 = Update a device with the sample software
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 
 Once you've uploaded a few different software versions, you can try to push that software to a device that doesn't yet have the version installed. 
 

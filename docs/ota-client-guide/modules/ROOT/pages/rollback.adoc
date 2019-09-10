@@ -1,4 +1,12 @@
 = Rollbacks
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 
 Since Aktualizr is a userspace application and relies on a lot of other software which can be
 affected by an unsuccessful update, rollback functionality should be implemented in the bootloader.

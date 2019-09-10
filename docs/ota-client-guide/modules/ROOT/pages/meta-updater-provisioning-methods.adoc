@@ -1,4 +1,12 @@
 = Manual provisioning
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 
 //MC: TOMERGE: Looks mostly like a duplicate of this topic: https://github.com/advancedtelematic/aktualizr/blob/master/docs/ota-client-guide/modules/ROOT/pages/simulate-device-cred-provtest.adoc
 

@@ -1,4 +1,12 @@
 = Testing
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 
 //MC: No overlap with any content currently in the developer guide, but probably useful content to clean up and include.
 

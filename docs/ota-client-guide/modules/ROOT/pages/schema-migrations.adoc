@@ -1,4 +1,12 @@
 = How to add a schema migration
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 :aktualizr-github-url: https://github.com/advancedtelematic/aktualizr/tree/master
 ifdef::env-github[]
 :aktualizr-github-url: ..

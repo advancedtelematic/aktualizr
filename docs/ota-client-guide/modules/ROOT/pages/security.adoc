@@ -1,4 +1,12 @@
 = Security and Identity
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 
 OTA Connect provides you with two levels of security which have different tradeoffs. You can work with the *default* security measures which are much less work to manage but expose you to certain risks. Or, you can follow our recommended *production-level* security measures which are more work to set up but provide more robust security.
 

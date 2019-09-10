@@ -1,4 +1,12 @@
 = Basic Workflow
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 :page-layout: page
 :page-categories: [concepts]
 :page-date: 2017-01-16 18:12:09

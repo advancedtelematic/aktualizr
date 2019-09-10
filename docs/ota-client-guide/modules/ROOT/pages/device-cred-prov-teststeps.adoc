@@ -1,4 +1,12 @@
 = Text Device-credential Provisioning
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 
 Although shared-credential provisioning is useful for evaluating OTA Connect, we don't recommend that you use it in production.
 

@@ -1,4 +1,12 @@
 = Key Management
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
 
 Once you move to production, we recommend that you manage these keys offline in your own PKI rather than having all keys managed on the OTA Connect server.
 
