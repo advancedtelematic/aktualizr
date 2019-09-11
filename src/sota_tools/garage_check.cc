@@ -88,21 +88,12 @@ int main(int argc, char **argv) {
       mode = RunMode::kWalkTree;
     }
 
-    TreehubServer treehub;
-    if (cacerts != "") {
-      if (boost::filesystem::exists(cacerts)) {
-        treehub.ca_certs(cacerts);
-      } else {
-        LOG_FATAL << "--cacert path " << cacerts << " does not exist";
-        return EXIT_FAILURE;
-      }
-    }
-
     if (max_curl_requests < 1) {
       LOG_FATAL << "--jobs must be greater than 0";
       return EXIT_FAILURE;
     }
 
+    TreehubServer treehub;
     if (authenticate(cacerts, ServerCredentials(credentials_path), treehub) != EXIT_SUCCESS) {
       LOG_FATAL << "Authentication failed";
       return EXIT_FAILURE;
