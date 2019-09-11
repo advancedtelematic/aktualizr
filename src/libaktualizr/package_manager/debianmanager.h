@@ -9,9 +9,9 @@
 
 class DebianManager : public PackageManagerInterface {
  public:
-  DebianManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage, std::shared_ptr<Bootloader> bootloader,
+  DebianManager(PackageConfig pconfig, BootloaderConfig bconfig, std::shared_ptr<INvStorage> storage,
                 std::shared_ptr<HttpInterface> http)
-      : PackageManagerInterface(std::move(pconfig), std::move(storage), std::move(bootloader), std::move(http)) {}
+      : PackageManagerInterface(std::move(pconfig), std::move(bconfig), std::move(storage), std::move(http)) {}
   ~DebianManager() override = default;
   std::string name() const override { return "debian"; }
   Json::Value getInstalledPackages() const override;
@@ -21,7 +21,6 @@ class DebianManager : public PackageManagerInterface {
     (void)target;
     throw std::runtime_error("Unimplemented");
   }
-  bool imageUpdated() override { return true; }
 
  private:
   mutable std::mutex mutex_;

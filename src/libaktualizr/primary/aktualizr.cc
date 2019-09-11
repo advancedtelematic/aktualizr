@@ -20,7 +20,7 @@ Aktualizr::Aktualizr(Config &config) : config_(config) {
   sig_ = make_shared<boost::signals2::signal<void(shared_ptr<event::BaseEvent>)>>();
   storage_ = INvStorage::newStorage(config_.storage);
   storage_->importData(config_.import);
-  uptane_client_ = std::make_shared<SotaUptaneClient>(config_, storage_, nullptr, nullptr, nullptr, sig_);
+  uptane_client_ = std::make_shared<SotaUptaneClient>(config_, storage_, nullptr, nullptr, sig_);
 }
 
 Aktualizr::Aktualizr(Config &config, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<HttpInterface> http_in)
@@ -31,10 +31,9 @@ Aktualizr::Aktualizr(Config &config, std::shared_ptr<INvStorage> storage_in, std
 
   sig_ = make_shared<event::Channel>();
   storage_ = std::move(storage_in);
-  std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_.bootloader, *storage_);
   std::shared_ptr<ReportQueue> report_queue_in = std::make_shared<ReportQueue>(config_, http_in);
 
-  uptane_client_ = std::make_shared<SotaUptaneClient>(config_, storage_, http_in, bootloader_in, report_queue_in, sig_);
+  uptane_client_ = std::make_shared<SotaUptaneClient>(config_, storage_, http_in, report_queue_in, sig_);
 }
 
 void Aktualizr::Initialize() {

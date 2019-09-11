@@ -38,7 +38,7 @@ TEST(PackageManagerFake, Verify) {
   const std::string hash = hasher.getHexDigest();
   Uptane::Target target("some-pkg", primary_ecu, {Uptane::Hash(Uptane::Hash::Type::kSha256, hash)}, length, "");
 
-  PackageManagerFake fakepm(config.pacman, storage, nullptr, nullptr);
+  PackageManagerFake fakepm(config.pacman, config.bootloader, storage, nullptr);
   // Target is not yet available.
   EXPECT_EQ(fakepm.verifyTarget(target), TargetStatus::kNotFound);
 
@@ -79,7 +79,7 @@ TEST(PackageManagerFake, FinalizeAfterReboot) {
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   std::shared_ptr<Bootloader> bootloader = std::make_shared<Bootloader>(config.bootloader, *storage);
 
-  PackageManagerFake fakepm(config.pacman, storage, bootloader, nullptr);
+  PackageManagerFake fakepm(config.pacman, config.bootloader, storage, nullptr);
 
   Uptane::EcuMap primary_ecu;
   Uptane::Target target("pkg", primary_ecu, {Uptane::Hash(Uptane::Hash::Type::kSha256, "hash")}, 1, "");
@@ -105,7 +105,7 @@ TEST(PackageManagerFake, DownloadFailureInjection) {
   Uptane::Fetcher uptane_fetcher(config, http);
   KeyManager keys(storage, config.keymanagerConfig());
 
-  PackageManagerFake fakepm(config.pacman, storage, nullptr, http);
+  PackageManagerFake fakepm(config.pacman, config.bootloader, storage, http);
 
   fault_injection_init();
 
@@ -133,7 +133,7 @@ TEST(PackageManagerFake, InstallFailureInjection) {
   config.storage.path = temp_dir.Path();
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
 
-  PackageManagerFake fakepm(config.pacman, storage, nullptr, nullptr);
+  PackageManagerFake fakepm(config.pacman, config.bootloader, storage, nullptr);
 
   fault_injection_init();
 

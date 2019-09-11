@@ -47,12 +47,11 @@ LiteClient::LiteClient(Config &config_in) : config(std::move(config_in)) {
   }
 
   auto http_client = std::make_shared<HttpClient>();
-  auto bootloader = std::make_shared<Bootloader>(config.bootloader, *storage);
   auto report_queue = std::make_shared<ReportQueue>(config, http_client);
 
   KeyManager keys(storage, config.keymanagerConfig());
   keys.copyCertsToCurl(*http_client);
 
-  primary = std::make_shared<SotaUptaneClient>(config, storage, http_client, bootloader, report_queue);
+  primary = std::make_shared<SotaUptaneClient>(config, storage, http_client, report_queue);
   finalizeIfNeeded(*storage, config.pacman);
 }

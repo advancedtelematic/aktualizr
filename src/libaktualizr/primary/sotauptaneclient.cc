@@ -26,33 +26,23 @@ static void report_progress_cb(event::Channel *channel, const Uptane::Target &ta
 }
 
 SotaUptaneClient::SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in,
-                                   std::shared_ptr<HttpInterface> http_in, std::shared_ptr<Bootloader> bootloader_in,
-                                   std::shared_ptr<ReportQueue> report_queue_in,
+                                   std::shared_ptr<HttpInterface> http_in, std::shared_ptr<ReportQueue> report_queue_in,
                                    std::shared_ptr<event::Channel> events_channel_in)
     : config(config_in),
       uptane_manifest(config, storage_in),
       storage(storage_in),
       http(std::move(http_in)),
-      bootloader(std::move(bootloader_in)),
       report_queue(std::move(report_queue_in)),
       events_channel(std::move(events_channel_in)) {
   if (!http) {
     http = std::make_shared<HttpClient>();
-  }
-  if (!bootloader) {
-    bootloader = std::make_shared<Bootloader>(config.bootloader, *storage);
   }
   if (!report_queue) {
     report_queue = std::make_shared<ReportQueue>(config, http);
   }
   uptane_fetcher = std::make_shared<Uptane::Fetcher>(config, http);
 
-  // consider boot successful as soon as we started, missing internet connection or connection to secondaries are not
-  // proper reasons to roll back
-  package_manager_ = PackageManagerFactory::makePackageManager(config.pacman, storage, bootloader, http);
-  if (package_manager_->imageUpdated()) {
-    bootloader->setBootOK();
-  }
+  package_manager_ = PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, http);
 }
 
 SotaUptaneClient::~SotaUptaneClient() { conn.disconnect(); }
@@ -109,7 +99,7 @@ data::InstallationResult SotaUptaneClient::PackageInstall(const Uptane::Target &
 }
 
 void SotaUptaneClient::finalizeAfterReboot() {
-  if (!bootloader->rebootDetected()) {
+  if (!package_manager_->rebootDetected()) {
     // nothing to do
     return;
   }
@@ -152,7 +142,7 @@ void SotaUptaneClient::finalizeAfterReboot() {
     LOG_ERROR << "Invalid Uptane metadata in storage.";
   }
 
-  bootloader->rebootFlagClear();
+  package_manager_->rebootFlagClear();
 }
 
 data::InstallationResult SotaUptaneClient::PackageInstallSetResult(const Uptane::Target &target) {
@@ -879,7 +869,7 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
     if (!isInstalledOnPrimary(primary_update)) {
       // notify the bootloader before installation happens, because installation is not atomic and
       //   a false notification doesn't hurt when rollbacks are implemented
-      bootloader->updateNotify();
+      package_manager_->updateNotify();
       install_res = PackageInstallSetResult(primary_update);
       if (install_res.result_code.num_code == data::ResultCode::Numeric::kNeedCompletion) {
         // update needs a reboot, send distinct EcuInstallationApplied event

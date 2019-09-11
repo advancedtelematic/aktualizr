@@ -35,12 +35,12 @@ enum class TargetStatus {
 
 class PackageManagerInterface {
  public:
-  PackageManagerInterface(PackageConfig pconfig, std::shared_ptr<INvStorage> storage,
-                          std::shared_ptr<Bootloader> bootloader, std::shared_ptr<HttpInterface> http)
+  PackageManagerInterface(PackageConfig pconfig, BootloaderConfig bconfig, std::shared_ptr<INvStorage> storage,
+                          std::shared_ptr<HttpInterface> http)
       : config(std::move(pconfig)),
         storage_(std::move(storage)),
-        bootloader_(std::move(bootloader)),
-        http_(std::move(http)) {}
+        http_(std::move(http)),
+        bootloader_{new Bootloader(std::move(bconfig), *storage_)} {}
   virtual ~PackageManagerInterface() = default;
   virtual std::string name() const = 0;
   virtual Json::Value getInstalledPackages() const = 0;
@@ -48,7 +48,9 @@ class PackageManagerInterface {
   virtual data::InstallationResult install(const Uptane::Target& target) const = 0;
   virtual void completeInstall() const { throw std::runtime_error("Unimplemented"); };
   virtual data::InstallationResult finalizeInstall(const Uptane::Target& target) const = 0;
-  virtual bool imageUpdated() = 0;
+  virtual bool rebootDetected() { return bootloader_->rebootDetected(); };
+  virtual void rebootFlagClear() { bootloader_->rebootFlagClear(); };
+  virtual void updateNotify() { bootloader_->updateNotify(); };
   virtual bool fetchTarget(const Uptane::Target& target, Uptane::Fetcher& fetcher, const KeyManager& keys,
                            FetcherProgressCb progress_cb, const api::FlowControlToken* token);
   virtual TargetStatus verifyTarget(const Uptane::Target& target) const;
@@ -73,7 +75,7 @@ class PackageManagerInterface {
  protected:
   PackageConfig config;
   std::shared_ptr<INvStorage> storage_;
-  std::shared_ptr<Bootloader> bootloader_;
   std::shared_ptr<HttpInterface> http_;
+  std::unique_ptr<Bootloader> bootloader_;
 };
 #endif  // PACKAGEMANAGERINTERFACE_H_

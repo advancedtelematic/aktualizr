@@ -45,7 +45,7 @@ static void progress_cb(const Uptane::Target& target, const std::string& descrip
 void resume(const Uptane::Target& target) {
   std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
   auto http = std::make_shared<HttpClient>();
-  auto pacman = std::make_shared<PackageManagerFake>(config.pacman, storage, nullptr, http);
+  auto pacman = std::make_shared<PackageManagerFake>(config.pacman, config.bootloader, storage, http);
   api::FlowControlToken token;
   KeyManager keys(storage, config.keymanagerConfig());
   Uptane::Fetcher fetcher(config, http);
@@ -60,7 +60,7 @@ void pause_and_die(const Uptane::Target& target) {
   std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
   auto http = std::make_shared<HttpClient>();
   api::FlowControlToken token;
-  auto pacman = std::make_shared<PackageManagerFake>(config.pacman, storage, nullptr, http);
+  auto pacman = std::make_shared<PackageManagerFake>(config.pacman, config.bootloader, storage, http);
   KeyManager keys(storage, config.keymanagerConfig());
   Uptane::Fetcher fetcher(config, http);
 

@@ -39,7 +39,7 @@ TEST(DockerAppManager, PackageManager_Factory_Good) {
   config.storage.path = dir.Path();
 
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
-  auto pacman = PackageManagerFactory::makePackageManager(config.pacman, storage, nullptr, nullptr);
+  auto pacman = PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr);
   EXPECT_TRUE(pacman);
 }
 

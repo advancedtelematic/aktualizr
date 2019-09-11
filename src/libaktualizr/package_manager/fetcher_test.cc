@@ -64,7 +64,7 @@ void test_pause(const Uptane::Target& target, PackageManager type = PackageManag
   std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
   auto http = std::make_shared<HttpClient>();
 
-  auto pacman = PackageManagerFactory::makePackageManager(config.pacman, storage, nullptr, http);
+  auto pacman = PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, http);
   KeyManager keys(storage, config.keymanagerConfig());
   Uptane::Fetcher fetcher(config, http);
 
@@ -153,7 +153,7 @@ TEST(Fetcher, DownloadCustomUri) {
   std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
   auto http = std::make_shared<HttpCustomUri>(temp_dir.Path());
 
-  auto pacman = std::make_shared<PackageManagerFake>(config.pacman, storage, nullptr, http);
+  auto pacman = std::make_shared<PackageManagerFake>(config.pacman, config.bootloader, storage, http);
   KeyManager keys(storage, config.keymanagerConfig());
   Uptane::Fetcher fetcher(config, http);
 
@@ -189,7 +189,7 @@ TEST(Fetcher, DownloadDefaultUri) {
 
   std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
   auto http = std::make_shared<HttpDefaultUri>(temp_dir.Path());
-  auto pacman = std::make_shared<PackageManagerFake>(config.pacman, storage, nullptr, http);
+  auto pacman = std::make_shared<PackageManagerFake>(config.pacman, config.bootloader, storage, http);
   KeyManager keys(storage, config.keymanagerConfig());
   Uptane::Fetcher fetcher(config, http);
 
@@ -250,7 +250,7 @@ TEST(Fetcher, DownloadLengthZero) {
 
   std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
   auto http = std::make_shared<HttpZeroLength>(temp_dir.Path());
-  auto pacman = std::make_shared<PackageManagerFake>(config.pacman, storage, nullptr, http);
+  auto pacman = std::make_shared<PackageManagerFake>(config.pacman, config.bootloader, storage, http);
   KeyManager keys(storage, config.keymanagerConfig());
   Uptane::Fetcher fetcher(config, http);
 

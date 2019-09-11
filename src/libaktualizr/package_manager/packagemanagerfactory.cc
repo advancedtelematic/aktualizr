@@ -19,36 +19,35 @@
 #include "logging/logging.h"
 
 std::shared_ptr<PackageManagerInterface> PackageManagerFactory::makePackageManager(
-    const PackageConfig& pconfig, const std::shared_ptr<INvStorage>& storage,
-    const std::shared_ptr<Bootloader>& bootloader, const std::shared_ptr<HttpInterface>& http) {
-  (void)bootloader;
+    const PackageConfig& pconfig, const BootloaderConfig& bconfig, const std::shared_ptr<INvStorage>& storage,
+    const std::shared_ptr<HttpInterface>& http) {
   switch (pconfig.type) {
     case PackageManager::kOstree:
 #ifdef BUILD_OSTREE
-      return std::make_shared<OstreeManager>(pconfig, storage, bootloader, http);
+      return std::make_shared<OstreeManager>(pconfig, bconfig, storage, http);
 #else
       throw std::runtime_error("aktualizr was compiled without OStree support!");
 #endif
     case PackageManager::kDebian:
 #ifdef BUILD_DEB
-      return std::make_shared<DebianManager>(pconfig, storage, bootloader, http);
+      return std::make_shared<DebianManager>(pconfig, bconfig, storage, http);
 #else
       throw std::runtime_error("aktualizr was compiled without debian packages support!");
 #endif
     case PackageManager::kAndroid:
 #if defined(ANDROID)
-      return std::make_shared<AndroidManager>(pconfig, storage, bootloader, http);
+      return std::make_shared<AndroidManager>(pconfig, bconfig, storage, http);
 #else
       throw std::runtime_error("aktualizr was compiled without android support!");
 #endif
     case PackageManager::kOstreeDockerApp:
 #if defined(BUILD_DOCKERAPP) && defined(BUILD_OSTREE)
-      return std::make_shared<DockerAppManager>(pconfig, storage, bootloader, http);
+      return std::make_shared<DockerAppManager>(pconfig, bconfig, storage, http);
 #else
       throw std::runtime_error("aktualizr was compiled without ostree+docker-app support!");
 #endif
     case PackageManager::kNone:
-      return std::make_shared<PackageManagerFake>(pconfig, storage, bootloader, http);
+      return std::make_shared<PackageManagerFake>(pconfig, bconfig, storage, http);
     default:
       LOG_ERROR << "Unrecognized package manager type: " << static_cast<int>(pconfig.type);
       return std::shared_ptr<PackageManagerInterface>();  // NULL-equivalent

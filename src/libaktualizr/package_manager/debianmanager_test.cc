@@ -17,7 +17,7 @@ TEST(PackageManagerFactory, Debian_Install_Good) {
 
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   std::shared_ptr<PackageManagerInterface> pacman =
-      PackageManagerFactory::makePackageManager(config.pacman, storage, nullptr, nullptr);
+      PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr);
   EXPECT_TRUE(pacman);
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "hash";
@@ -47,7 +47,7 @@ TEST(PackageManagerFactory, Debian_Install_Bad) {
   config.storage.path = dir.Path();
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   std::shared_ptr<PackageManagerInterface> pacman =
-      PackageManagerFactory::makePackageManager(config.pacman, storage, nullptr, nullptr);
+      PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr);
   EXPECT_TRUE(pacman);
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "hash";

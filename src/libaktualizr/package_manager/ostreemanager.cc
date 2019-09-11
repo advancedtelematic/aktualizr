@@ -222,12 +222,18 @@ data::InstallationResult OstreeManager::finalizeInstall(const Uptane::Target &ta
   return data::InstallationResult(data::ResultCode::Numeric::kOk, "Successfully booted on new version");
 }
 
-OstreeManager::OstreeManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage,
-                             std::shared_ptr<Bootloader> bootloader, std::shared_ptr<HttpInterface> http)
-    : PackageManagerInterface(std::move(pconfig), std::move(storage), std::move(bootloader), std::move(http)) {
+OstreeManager::OstreeManager(PackageConfig pconfig, BootloaderConfig bconfig, std::shared_ptr<INvStorage> storage,
+                             std::shared_ptr<HttpInterface> http)
+    : PackageManagerInterface(std::move(pconfig), std::move(bconfig), std::move(storage), std::move(http)) {
   GObjectUniquePtr<OstreeSysroot> sysroot_smart = OstreeManager::LoadSysroot(config.sysroot);
   if (sysroot_smart == nullptr) {
     throw std::runtime_error("Could not find OSTree sysroot at: " + config.sysroot.string());
+  }
+
+  // consider boot successful as soon as we started, missing internet connection or connection to secondaries are not
+  // proper reasons to roll back
+  if (imageUpdated()) {
+    bootloader_->setBootOK();
   }
 }
 

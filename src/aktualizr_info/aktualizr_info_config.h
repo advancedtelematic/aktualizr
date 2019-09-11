@@ -5,6 +5,7 @@
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 
+#include "bootloader/bootloader_config.h"
 #include "logging/logging_config.h"
 #include "package_manager/packagemanagerconfig.h"
 #include "storage/storage_config.h"
@@ -24,6 +25,7 @@ class AktualizrInfoConfig : public BaseConfig {
   void writeToStream(std::ostream& sink) const;
 
   // from primary config
+  BootloaderConfig bootloader;
   LoggerConfig logger;
   PackageConfig pacman;
   StorageConfig storage;

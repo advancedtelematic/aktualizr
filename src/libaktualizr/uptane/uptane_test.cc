@@ -269,7 +269,7 @@ TEST(Uptane, PutManifestError) {
   events_channel->connect(f_cb);
   num_events_PutManifestError = 0;
   auto sota_client =
-      std_::make_unique<UptaneTestCommon::TestUptaneClient>(conf, storage, http, nullptr, nullptr, events_channel);
+      std_::make_unique<UptaneTestCommon::TestUptaneClient>(conf, storage, http, nullptr, events_channel);
   EXPECT_NO_THROW(sota_client->initialize());
   auto result = sota_client->putManifest();
   EXPECT_FALSE(result);
@@ -353,8 +353,7 @@ TEST(Uptane, InstallFakeGood) {
   auto events_channel = std::make_shared<event::Channel>();
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_Install;
   events_channel->connect(f_cb);
-  auto up =
-      std_::make_unique<UptaneTestCommon::TestUptaneClient>(conf, storage, http, nullptr, nullptr, events_channel);
+  auto up = std_::make_unique<UptaneTestCommon::TestUptaneClient>(conf, storage, http, nullptr, events_channel);
   EXPECT_NO_THROW(up->initialize());
 
   result::UpdateCheck update_result = up->fetchMeta();
@@ -919,8 +918,7 @@ TEST(Uptane, ProvisionOnServer) {
 
   auto storage = INvStorage::newStorage(config.storage);
   auto events_channel = std::make_shared<event::Channel>();
-  auto up =
-      std_::make_unique<UptaneTestCommon::TestUptaneClient>(config, storage, http, nullptr, nullptr, events_channel);
+  auto up = std_::make_unique<UptaneTestCommon::TestUptaneClient>(config, storage, http, nullptr, events_channel);
 
   EXPECT_EQ(http->devices_count, 0);
   EXPECT_EQ(http->ecus_count, 0);

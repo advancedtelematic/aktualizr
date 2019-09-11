@@ -9,7 +9,7 @@ AktualizrSecondaryCommon::AktualizrSecondaryCommon(const AktualizrSecondaryConfi
       keys_(storage_, config.keymanagerConfig()),
       ecu_serial_(Uptane::EcuSerial::Unknown()),
       hardware_id_(Uptane::HardwareIdentifier::Unknown()) {
-  pacman = PackageManagerFactory::makePackageManager(config_.pacman, storage_, nullptr, nullptr);
+  pacman = PackageManagerFactory::makePackageManager(config_.pacman, config_.bootloader, storage_, nullptr);
 
   // Load Root keys from storage
   std::string root;
