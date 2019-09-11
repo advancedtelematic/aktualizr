@@ -7,9 +7,6 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
-:page-partial:
-// MC: Included in aktualizr/docs/ota-client-guide/modules/ROOT/pages/build-configuration.adoc
-
 .OTA-related options for building disk images
 [cols="1,2a",options="header"]
 |====================
