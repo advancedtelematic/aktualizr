@@ -337,6 +337,7 @@ trigger-e2e-pipeline:
 # -- otf
 
 trigger-otf-pipeline:
+  image: "$UBUNTU_BIONIC_PR_IMAGE"
   stage: trigger
   when: on_success
   dependencies:
