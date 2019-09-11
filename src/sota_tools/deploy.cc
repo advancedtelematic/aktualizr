@@ -23,15 +23,9 @@ bool CheckPoolState(const OSTreeObject::ptr &root_object, const RequestPool &req
   }
 }
 
-bool UploadToTreehub(const OSTreeRepo::ptr &src_repo, const ServerCredentials &push_credentials,
-                     const OSTreeHash &ostree_commit, const std::string &cacerts, const RunMode mode,
-                     const int max_curl_requests) {
-  TreehubServer push_server;
+bool UploadToTreehub(const OSTreeRepo::ptr &src_repo, TreehubServer &push_server, const OSTreeHash &ostree_commit,
+                     const RunMode mode, const int max_curl_requests) {
   assert(max_curl_requests > 0);
-  if (authenticate(cacerts, push_credentials, push_server) != EXIT_SUCCESS) {
-    LOG_FATAL << "Authentication failed";
-    return false;
-  }
 
   OSTreeObject::ptr root_object;
   try {

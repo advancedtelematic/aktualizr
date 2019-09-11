@@ -4,6 +4,7 @@
 #include <boost/program_options.hpp>
 
 #include "accumulator.h"
+#include "authenticate.h"
 #include "deploy.h"
 #include "garage_common.h"
 #include "garage_tools_version.h"
@@ -112,8 +113,6 @@ int main(int argc, char **argv) {
   try {
     std::unique_ptr<OSTreeHash> commit;
     bool is_ref = true;
-
-    ServerCredentials push_credentials(credentials_path);
     OSTreeRef ostree_ref = src_repo->GetRef(ref);
     if (ostree_ref.IsValid()) {
       commit = std_::make_unique<OSTreeHash>(ostree_ref.GetHash());
@@ -127,7 +126,13 @@ int main(int argc, char **argv) {
       is_ref = false;
     }
 
-    if (!UploadToTreehub(src_repo, push_credentials, *commit, cacerts, mode, max_curl_requests)) {
+    ServerCredentials push_credentials(credentials_path);
+    TreehubServer push_server;
+    if (authenticate(cacerts, push_credentials, push_server) != EXIT_SUCCESS) {
+      LOG_FATAL << "Authentication with push server failed";
+      return EXIT_FAILURE;
+    }
+    if (!UploadToTreehub(src_repo, push_server, *commit, mode, max_curl_requests)) {
       LOG_FATAL << "Upload to treehub failed";
       return EXIT_FAILURE;
     }
