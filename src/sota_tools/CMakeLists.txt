@@ -317,7 +317,7 @@ if (BUILD_SOTA_TOOLS)
     add_test(NAME garage-deploy-online-signing
     COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-garage-deploy-online-signing $<TARGET_FILE:garage-deploy>
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-    set_tests_properties(garage-deploy-online-signing PROPERTIES PASS_REGULAR_EXPRESSION "Online signing with garage-deploy is currently unsupported")
+    set_tests_properties(garage-deploy-online-signing PROPERTIES PASS_REGULAR_EXPRESSION "Provided push credentials are missing required components to sign Targets metadata")
 
     # Abort if destination server is unavailable.
     add_test(NAME garage-deploy-upload-failed
