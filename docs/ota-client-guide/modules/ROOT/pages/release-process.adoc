@@ -81,7 +81,15 @@ Uptane has a fork of aktualizr in link:https://github.com/uptane/aktualizr[their
 The https://github.com/advancedtelematic/homebrew-otaconnect/blob/master/aktualizr.rb[homebrew aktualizr recipe] should be updated with the new release. You'll need a mac, with homebrew installed, to do this.
 
 . Edit the recipe on your local system with `brew edit aktualizr`, and replace the old version tag with the new one.
-. Build it with `brew reinstall --build-from-source --build-bottle aktualizr`. This will create a bottle file named `+aktualizr--VERSION.mojave.bottle.tar.gz+`, and output a block of Ruby code that looks something like this:
+. Build it, and then bottle it:
++
+----
+brew rm aktualizr && \
+brew install --build-bottle aktualizr && \
+brew bottle aktualizr
+----
++
+This will create a bottle file named `+aktualizr--VERSION.mojave.bottle.tar.gz+`, and output a block of Ruby code that looks something like this:
 +
 ----
   bottle do
