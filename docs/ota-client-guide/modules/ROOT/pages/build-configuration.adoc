@@ -14,7 +14,7 @@ endif::[]
 [cols="1,2a",options="header"]
 |====================
 | Option | Description
-| `OSTREE_BRANCHNAME`|OSTree branch name. Defaults to `${SOTA_HARDWARE_ID}`. Particularly useful for grouping similar images.
+| `OSTREE_BRANCHNAME`|OSTree branch name. Defaults to `${SOTA_HARDWARE_ID}`. Particularly useful for grouping similar images. Should only contain characters from the character set `[a-zA-Z0-9_-]`.
 | `OSTREE_REPO`|Path to your OSTree repository. Defaults to `$\{DEPLOY_DIR_IMAGE}/ostree_repo`
 | `OSTREE_OSNAME`|OS deployment name on your target device. For more information about deployments and osnames see the https://ostree.readthedocs.io/en/latest/manual/deployment/[OSTree documentation]. Defaults to "poky".
 | `OSTREE_COMMIT_BODY`|Message attached to OSTree commit. Empty by default.
