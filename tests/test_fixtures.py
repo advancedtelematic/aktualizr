@@ -111,7 +111,7 @@ class Aktualizr:
     def get_info(self):
 
         info_exe_res = None
-        for ii in range(0, 3):
+        for ii in range(0, 6):
             info_exe_res = subprocess.run([self._aktualizr_info_exe, '-c', self._config_file],
                                           timeout=60, stdout=subprocess.PIPE)
             if info_exe_res.returncode == 0:
@@ -332,10 +332,9 @@ class DirectorRepo(UptaneRepo):
         super(DirectorRepo, self).__init__(os.path.join(uptane_repo_root, self.director_subdir), ifc=ifc, port=port,
                                            client_handler_map=client_handler_map)
 
-        self._install_event = threading.Event()
-        self._install_event.clear()
         self._last_install_res = False
         self._last_install_res_lock = threading.RLock()
+        self._installed_condition = threading.Condition()
 
     class Handler(UptaneRepo.Handler):
         def handle_manifest(self):
@@ -357,15 +356,17 @@ class DirectorRepo(UptaneRepo):
         handler_map = {'PUT': {'/manifest': handle_manifest}}
 
     def set_install_event(self, result):
-        with self._last_install_res_lock:
+        with self._installed_condition:
             self._last_install_res = result
-        self._install_event.set()
+            self._installed_condition.notifyAll()
 
-    def wait_for_install(self, timeout=120):
-        self._install_event.wait(timeout=timeout)
+    def wait_for_install(self, timeout=180):
+        with self._installed_condition:
+            self._installed_condition.wait(timeout=timeout)
+            return self._last_install_res
 
-    def is_install_successful(self):
-        with self._last_install_res_lock:
+    def get_install_result(self):
+        with self._installed_condition:
             return self._last_install_res
 
 
