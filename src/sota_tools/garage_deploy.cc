@@ -92,40 +92,44 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  ServerCredentials push_credentials(push_cred);
   ServerCredentials fetch_credentials(fetch_cred);
-
   TreehubServer fetch_server;
   if (authenticate(cacerts, fetch_credentials, fetch_server) != EXIT_SUCCESS) {
-    LOG_FATAL << "Authentication failed";
+    LOG_FATAL << "Authentication with fetch server failed";
     return EXIT_FAILURE;
   }
-  OSTreeRepo::ptr src_repo = std::make_shared<OSTreeHttpRepo>(&fetch_server);
 
+  ServerCredentials push_credentials(push_cred);
+  TreehubServer push_server;
+  if (authenticate(cacerts, push_credentials, push_server) != EXIT_SUCCESS) {
+    LOG_FATAL << "Authentication with push server failed";
+    return EXIT_FAILURE;
+  }
+
+  OSTreeRepo::ptr src_repo = std::make_shared<OSTreeHttpRepo>(&fetch_server);
   try {
     OSTreeHash commit(OSTreeHash::Parse(ostree_commit));
     // Since the fetches happen on a single thread in OSTreeHttpRepo, there
     // isn't much reason to upload in parallel, but why hold the system back if
     // the fetching is faster than the uploading?
-    if (!UploadToTreehub(src_repo, push_credentials, commit, cacerts, mode, max_curl_requests)) {
+    if (!UploadToTreehub(src_repo, push_server, commit, mode, max_curl_requests)) {
       LOG_FATAL << "Upload to treehub failed";
       return EXIT_FAILURE;
     }
 
-    if (mode == RunMode::kDefault) {
-      if (push_credentials.CanSignOffline()) {
-        bool ok = OfflineSignRepo(ServerCredentials(push_credentials.GetPathOnDisk()), name, commit, hardwareids);
-        if (ok) {
-          if (CheckRefValid(fetch_server, ostree_commit, mode, max_curl_requests) != EXIT_SUCCESS) {
-            LOG_FATAL << "Check if the ref is present on the server or in targets.json failed";
-            return EXIT_FAILURE;
-          }
-        } else {
-          return EXIT_FAILURE;
-        }
+    if (mode == RunMode::kDefault || mode == RunMode::kPushTree) {
+      if (!push_credentials.CanSignOffline()) {
+        LOG_FATAL << "Provided push credentials are missing required components to sign Targets metadata.";
+        return EXIT_FAILURE;
       }
-      LOG_FATAL << "Online signing with garage-deploy is currently unsupported";
-      return EXIT_FAILURE;
+      if (!OfflineSignRepo(ServerCredentials(push_credentials.GetPathOnDisk()), name, commit, hardwareids)) {
+        return EXIT_FAILURE;
+      }
+
+      if (CheckRefValid(push_server, ostree_commit, mode, max_curl_requests) != EXIT_SUCCESS) {
+        LOG_FATAL << "Check if the ref is present on the server or in targets.json failed";
+        return EXIT_FAILURE;
+      }
     } else {
       LOG_INFO << "Dry run. Not attempting offline signing.";
     }

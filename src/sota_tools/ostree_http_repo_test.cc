@@ -2,6 +2,7 @@
 
 #include <boost/process.hpp>
 
+#include "authenticate.h"
 #include "deploy.h"
 #include "garage_common.h"
 #include "ostree_http_repo.h"
@@ -92,7 +93,9 @@ TEST(http_repo, bad_connection) {
   boost::filesystem::path cert_path = "tests/fake_http_server/server.crt";
 
   auto hash = OSTreeHash::Parse("b9ac1e45f9227df8ee191b6e51e09417bd36c6ebbeff999431e3073ac50f0563");
-  UploadToTreehub(src_repo, ServerCredentials(filepath), hash, cert_path.string(), RunMode::kDefault, 1);
+  TreehubServer push_server;
+  EXPECT_EQ(authenticate(cert_path.string(), ServerCredentials(filepath), push_server), EXIT_SUCCESS);
+  UploadToTreehub(src_repo, push_server, hash, RunMode::kDefault, 1);
 
   std::string diff("diff -r ");
   std::string src_path((src_dir.Path() / "objects").string() + " ");
