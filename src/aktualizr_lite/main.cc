@@ -172,7 +172,11 @@ static int do_update(SotaUptaneClient &client, INvStorage &storage, Uptane::Targ
     return 1;
   }
 
-  // TODO make pacman->verifyTarget something we can get to via client->
+  if (client.VerifyTarget(target) != TargetStatus::kGood) {
+    LOG_ERROR << "Downloaded target is invalid";
+    return 1;
+  }
+
   auto iresult = client.PackageInstall(target);
   if (iresult.result_code.num_code == data::ResultCode::Numeric::kNeedCompletion) {
     LOG_INFO << "Update complete. Please reboot the device to activate";
