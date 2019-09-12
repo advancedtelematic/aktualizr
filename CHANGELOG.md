@@ -7,6 +7,13 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 ## [??? (unreleased)]
 
 
+## [2019.8] - 2019-09-12
+
+### Fixed
+
+- garage-deploy logic with checking for keys and verifying successful push: [PR](https://github.com/advancedtelematic/aktualizr/pull/1347)
+
+
 ## [2019.7] - 2019-09-10
 
 ### Added
