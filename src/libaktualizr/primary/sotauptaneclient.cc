@@ -10,7 +10,6 @@
 #include "crypto/keymanager.h"
 #include "initializer.h"
 #include "logging/logging.h"
-#include "package_manager/packagemanagerfactory.h"
 #include "uptane/exceptions.h"
 
 #include "utilities/fault_injection.h"
@@ -24,25 +23,6 @@ static void report_progress_cb(event::Channel *channel, const Uptane::Target &ta
   auto event = std::make_shared<event::DownloadProgressReport>(target, description, progress);
   (*channel)(event);
 }
-
-SotaUptaneClient::SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in,
-                                   std::shared_ptr<HttpInterface> http_in,
-                                   std::shared_ptr<event::Channel> events_channel_in)
-    : config(config_in),
-      uptane_manifest(config, storage_in),
-      storage(storage_in),
-      http(std::move(http_in)),
-      uptane_fetcher(new Uptane::Fetcher(config, http)),
-      report_queue(new ReportQueue(config, http)),
-      events_channel(std::move(events_channel_in)) {
-  if (!http) {
-    http = std::make_shared<HttpClient>();
-  }
-
-  package_manager_ = PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, http);
-}
-
-SotaUptaneClient::~SotaUptaneClient() { conn.disconnect(); }
 
 void SotaUptaneClient::addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec) {
   if (storage->loadEcuRegistered()) {

@@ -73,8 +73,7 @@ TEST(DockerAppManager, DockerApp_Fetch) {
 
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   KeyManager keys(storage, config.keymanagerConfig());
-  auto http = std::make_shared<HttpClient>();
-  auto client = std_::make_unique<SotaUptaneClient>(config, storage, http);
+  auto client = std_::make_unique<SotaUptaneClient>(config, storage);
   ASSERT_TRUE(client->updateImagesMeta());
 
   std::string targets = Utils::readFile(repo / "repo/repo/targets.json");

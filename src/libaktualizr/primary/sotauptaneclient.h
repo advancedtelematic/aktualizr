@@ -15,6 +15,7 @@
 #include "campaign/campaign.h"
 #include "config/config.h"
 #include "http/httpclient.h"
+#include "package_manager/packagemanagerfactory.h"
 #include "package_manager/packagemanagerinterface.h"
 #include "primary/events.h"
 #include "primary/results.h"
@@ -30,9 +31,26 @@
 class SotaUptaneClient {
  public:
   SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in,
-                   std::shared_ptr<HttpInterface> http_in = nullptr,
-                   std::shared_ptr<event::Channel> events_channel_in = nullptr);
-  ~SotaUptaneClient();
+                   std::shared_ptr<HttpInterface> http_in, std::shared_ptr<event::Channel> events_channel_in)
+      : config(config_in),
+        uptane_manifest(config, storage_in),
+        storage(storage_in),
+        http(std::move(http_in)),
+        package_manager_(PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, http)),
+        uptane_fetcher(new Uptane::Fetcher(config, http)),
+        report_queue(new ReportQueue(config, http)),
+        events_channel(std::move(events_channel_in)) {}
+
+  SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in,
+                   std::shared_ptr<event::Channel> events_channel_in)
+      : SotaUptaneClient(config_in, storage_in, std::make_shared<HttpClient>(), std::move(events_channel_in)) {}
+
+  SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in,
+                   std::shared_ptr<HttpInterface> http_in)
+      : SotaUptaneClient(config_in, storage_in, std::move(http_in), nullptr) {}
+
+  SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in)
+      : SotaUptaneClient(config_in, storage_in, std::make_shared<HttpClient>(), nullptr) {}
 
   void initialize();
   void addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
@@ -140,15 +158,15 @@ class SotaUptaneClient {
   Uptane::ImagesRepository images_repo;
   Uptane::Manifest uptane_manifest;
   std::shared_ptr<INvStorage> storage;
-  std::shared_ptr<PackageManagerInterface> package_manager_;
   std::shared_ptr<HttpInterface> http;
+  std::shared_ptr<PackageManagerInterface> package_manager_;
   std::shared_ptr<Uptane::Fetcher> uptane_fetcher;
   std::unique_ptr<ReportQueue> report_queue;
   Json::Value last_network_info_reported;
   Json::Value last_hw_info_reported;
   Uptane::EcuMap hw_ids;
   std::shared_ptr<event::Channel> events_channel;
-  boost::signals2::connection conn;
+  boost::signals2::scoped_connection conn;
   Uptane::Exception last_exception{"", ""};
   // ecu_serial => secondary*
   std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>> secondaries;

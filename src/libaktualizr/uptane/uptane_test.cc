@@ -268,8 +268,7 @@ TEST(Uptane, PutManifestError) {
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_PutManifestError;
   events_channel->connect(f_cb);
   num_events_PutManifestError = 0;
-  auto sota_client =
-      std_::make_unique<UptaneTestCommon::TestUptaneClient>(conf, storage, http, events_channel);
+  auto sota_client = std_::make_unique<UptaneTestCommon::TestUptaneClient>(conf, storage, http, events_channel);
   EXPECT_NO_THROW(sota_client->initialize());
   auto result = sota_client->putManifest();
   EXPECT_FALSE(result);

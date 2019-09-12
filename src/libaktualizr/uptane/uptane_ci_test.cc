@@ -34,10 +34,9 @@ TEST(UptaneCI, ProvisionAndPutManifest) {
   config.postUpdateValues();  // re-run copy of urls
 
   auto storage = INvStorage::newStorage(config.storage);
-  auto http = std::make_shared<HttpClient>();
   Uptane::Manifest uptane_manifest{config, storage};
 
-  auto sota_client = std_::make_unique<UptaneTestCommon::TestUptaneClient>(config, storage, http);
+  auto sota_client = std_::make_unique<UptaneTestCommon::TestUptaneClient>(config, storage);
   EXPECT_NO_THROW(sota_client->initialize());
   EXPECT_TRUE(sota_client->putManifestSimple());
 }
@@ -54,10 +53,9 @@ TEST(UptaneCI, CheckKeys) {
   boost::filesystem::remove_all(config.storage.path);
 
   auto storage = INvStorage::newStorage(config.storage);
-  auto http = std::make_shared<HttpClient>();
 
   UptaneTestCommon::addDefaultSecondary(config, temp_dir, "", "secondary_hardware");
-  auto sota_client = std_::make_unique<UptaneTestCommon::TestUptaneClient>(config, storage, http);
+  auto sota_client = std_::make_unique<UptaneTestCommon::TestUptaneClient>(config, storage);
   EXPECT_NO_THROW(sota_client->initialize());
 
   std::string ca;
