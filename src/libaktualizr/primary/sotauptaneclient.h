@@ -31,7 +31,6 @@ class SotaUptaneClient {
  public:
   SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in,
                    std::shared_ptr<HttpInterface> http_in = nullptr,
-                   std::shared_ptr<ReportQueue> report_queue_in = nullptr,
                    std::shared_ptr<event::Channel> events_channel_in = nullptr);
   ~SotaUptaneClient();
 
@@ -144,7 +143,7 @@ class SotaUptaneClient {
   std::shared_ptr<PackageManagerInterface> package_manager_;
   std::shared_ptr<HttpInterface> http;
   std::shared_ptr<Uptane::Fetcher> uptane_fetcher;
-  std::shared_ptr<ReportQueue> report_queue;
+  std::unique_ptr<ReportQueue> report_queue;
   Json::Value last_network_info_reported;
   Json::Value last_hw_info_reported;
   Uptane::EcuMap hw_ids;

@@ -26,21 +26,18 @@ static void report_progress_cb(event::Channel *channel, const Uptane::Target &ta
 }
 
 SotaUptaneClient::SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in,
-                                   std::shared_ptr<HttpInterface> http_in, std::shared_ptr<ReportQueue> report_queue_in,
+                                   std::shared_ptr<HttpInterface> http_in,
                                    std::shared_ptr<event::Channel> events_channel_in)
     : config(config_in),
       uptane_manifest(config, storage_in),
       storage(storage_in),
       http(std::move(http_in)),
-      report_queue(std::move(report_queue_in)),
+      uptane_fetcher(new Uptane::Fetcher(config, http)),
+      report_queue(new ReportQueue(config, http)),
       events_channel(std::move(events_channel_in)) {
   if (!http) {
     http = std::make_shared<HttpClient>();
   }
-  if (!report_queue) {
-    report_queue = std::make_shared<ReportQueue>(config, http);
-  }
-  uptane_fetcher = std::make_shared<Uptane::Fetcher>(config, http);
 
   package_manager_ = PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, http);
 }

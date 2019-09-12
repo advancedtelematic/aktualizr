@@ -43,9 +43,8 @@ struct UptaneTestCommon {
     TestUptaneClient(Config &config_in,
                      std::shared_ptr<INvStorage> storage_in,
                      std::shared_ptr<HttpInterface> http_client = nullptr,
-                     std::shared_ptr<ReportQueue> report_queue_in = nullptr,
                      std::shared_ptr<event::Channel> events_channel_in = nullptr):
-      SotaUptaneClient(config_in, storage_in, http_client, report_queue_in, events_channel_in) {
+      SotaUptaneClient(config_in, storage_in, http_client, events_channel_in) {
 
       if (boost::filesystem::exists(config_in.uptane.secondary_config_file)) {
           for (const auto& item : Primary::VirtualSecondaryConfig::create_from_file(config_in.uptane.secondary_config_file)) {
