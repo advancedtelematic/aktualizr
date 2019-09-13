@@ -6,7 +6,7 @@ if [ -n "$DOCKER_APP_FAIL" ] ; then
   exit 1
 fi
 
-if [ "$1" = "app" ] ; then
+if [ "$1" = "render" ] ; then
   echo "DOCKER-APP RENDER OUTPUT"
   if [ ! -f app1.dockerapp ] ; then
     echo "Missing docker app file!"
