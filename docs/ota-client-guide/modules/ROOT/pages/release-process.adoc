@@ -42,7 +42,11 @@ git push github <tag>
 
 Gitlab will build this tag and automatically create a release for it on github.
 
-=== Create a new docs branch
+=== Updating an already-released tag
+
+Generally, you should not update a tag after it has already been pushed to github. This is asking for confusion and problems down the line. However, if something goes wrong in creating the release from the tag, you may need to do this anyway. Note that you will need to manually delete the release on github if it has been created already. (Otherwise, the release's files will not get updated.) You will then need to either retry the specific github-release step or re-trigger the entire pipeline (which can be done by re-pushing the tag to github).
+
+== Create a new docs branch
 
 Create (and push to github) a new branch with the commit you just tagged as the parent:
 
@@ -53,21 +57,14 @@ git push github <tag>-docs
 
 == Update doxygen on github
 
-To update the doxygen documentation for master on github, you will need to do something like the following:
+You will need to update the link:https://advancedtelematic.github.io/aktualizr/index.html[doxygen documentation] both for the new release and master.
 
-1. In an aktualizr repo, run `make doxygen` (or `make docs`) in the build directory.
-1. Clone a second aktualizr repo and run `git checkout gh-pages`.
-1. In the second repo, run `git rm search/* *.css *.html *.js *.png *.map *.md5 *.png *.svg`.
-1. Copy the contents of `<build_dir>/docs/doxygen/html` into the root of the second repo. (Something like `cp -a <build_dir>/docs/doxygen/html/* <second_repo>`.)
-1. In the second repo, run `git add .`, `git commit -as`, and `git push`.
-1. Wait a minute or two for github to refresh and render the files.
-
-== Add doxygen pages for the new release on github
+=== Add doxygen pages for the new release on github
 
 To add doxygen docs for a new tag, you will need to do something like the following:
 
-1. Check out the tag or commit you wish to add (`git checkout 2018.63`, for example).
-1. Clean out the build directory (to remove stale objects), then run CMake and doxygen again:
+1. If you haven't already, check out the <<3-create-a-new-tag,newly created tag>> (`git checkout 2018.63`, for example).
+1. Create a clean build directory (to prevent using stale objects), then run CMake and doxygen again:
 +
 ----
 rm -rf build/*
@@ -80,6 +77,16 @@ make doxygen
 1. In the second repo, make a directory for the tag or commit you wish to add, i.e. `mkdir 2018.63`.
 1. Copy the contents of `<build_dir>/docs/doxygen/html` into the directory you just created. (Something like `cp -a <build_dir>/docs/doxygen/html/* <second_repo>/2018.63`.)
 1. In the second repo, run `git add 2018.63`, `git commit -as`, and `git push`.
+1. Wait a minute or two for github to refresh and render the files.
+
+=== Update doxygen master
+
+This is also a good time to update the doxygen documentation for master on github (although it can also be done more often if desired). You will need to do something like the following:
+
+1. Repeat steps 1 through 3 of the <<51-add-doxygen-pages-for-the-new-release-on-github,preceding section>> (as necessary).
+1. In the second repo, clear out all the files in the root of the directory as well as the `search` subdirectory. Make sure to leave the release-specific subdirectories (such as `2018.12`) intact. (Run something like `git rm search/* *.css *.html *.js *.png *.map *.md5 *.png *.svg`).
+1. Copy the contents of `<build_dir>/docs/doxygen/html` into the root of the second repo. (Something like `cp -a <build_dir>/docs/doxygen/html/* <second_repo>`.)
+1. In the second repo, run `git add .`, `git commit -as`, and `git push`.
 1. Wait a minute or two for github to refresh and render the files.
 
 == Update the description of the github release
@@ -117,6 +124,12 @@ This will create a bottle file named `+aktualizr--VERSION.mojave.bottle.tar.gz+`
 . Test the recipe locally, including installing from the bottle: `brew reinstall --force-bottle aktualizr`.
 . Open a PR on the https://github.com/advancedtelematic/homebrew-otaconnect[homebrew-otaconnect] repo to update the recipe with all your changes.
 
-== Test the released Debian packages
+== Verify the released Debian packages
 
-Don't forget to test the resulting Debian packages manually!
+Newly created releases automatically trigger an OTF pipeline in gitlab. Currently, you still need to manually verify that the pipeline actually succeeded.
+
+== Update meta-updater
+
+The version of aktualizr used by link:https://github.com/advancedtelematic/meta-updater/[meta-updater] should be updated to match the new release. First, open a PR against master that updates aktualizr to the same commit used in the newly released tag. This is also a good time to update the aktualizr recipe to pull the latest version of link:https://ats-tuf-cli-releases.s3-eu-central-1.amazonaws.com/index.html[garage-sign].
+
+Once that PR has passed oe-selftest, successfully passed review, and gotten merged, you should then backport that change, along with anything else relevant since the last backport was done, to the xref:yocto-release-branches.adoc[currently supported release branches]. Note that while master is allowed to use arbitrary recent version of aktualizr, the release branches should only use released versions of aktualizr.
