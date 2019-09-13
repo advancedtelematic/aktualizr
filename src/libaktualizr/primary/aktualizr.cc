@@ -12,25 +12,17 @@
 using std::make_shared;
 using std::shared_ptr;
 
-Aktualizr::Aktualizr(Config &config) : config_(config) {
+Aktualizr::Aktualizr(Config config)
+    : Aktualizr(std::move(config), INvStorage::newStorage(config.storage), std::make_shared<HttpClient>()) {}
+
+Aktualizr::Aktualizr(Config config, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<HttpInterface> http_in)
+    : config_{std::move(config)}, sig_{new event::Channel()} {
   if (sodium_init() == -1) {  // Note that sodium_init doesn't require a matching 'sodium_deinit'
     throw std::runtime_error("Unable to initialize libsodium");
   }
 
-  sig_ = make_shared<boost::signals2::signal<void(shared_ptr<event::BaseEvent>)>>();
-  storage_ = INvStorage::newStorage(config_.storage);
-  storage_->importData(config_.import);
-  uptane_client_ = std::make_shared<SotaUptaneClient>(config_, storage_, sig_);
-}
-
-Aktualizr::Aktualizr(Config &config, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<HttpInterface> http_in)
-    : config_(config) {
-  if (sodium_init() == -1) {  // Note that sodium_init doesn't require a matching 'sodium_deinit'
-    throw std::runtime_error("Unable to initialize libsodium");
-  }
-
-  sig_ = make_shared<event::Channel>();
   storage_ = std::move(storage_in);
+  storage_->importData(config_.import);
 
   uptane_client_ = std::make_shared<SotaUptaneClient>(config_, storage_, http_in, sig_);
 }

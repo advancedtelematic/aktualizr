@@ -21,7 +21,7 @@ class Aktualizr {
  public:
   /** Aktualizr requires a configuration object. Examples can be found in the
    *  config directory. */
-  explicit Aktualizr(Config& config);
+  explicit Aktualizr(Config config);
   Aktualizr(const Aktualizr&) = delete;
   Aktualizr& operator=(const Aktualizr&) = delete;
 
@@ -196,7 +196,7 @@ class Aktualizr {
   Config config_;
 
  protected:
-  Aktualizr(Config& config, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<HttpInterface> http_in);
+  Aktualizr(Config config, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<HttpInterface> http_in);
 
   std::shared_ptr<SotaUptaneClient> uptane_client_;
 

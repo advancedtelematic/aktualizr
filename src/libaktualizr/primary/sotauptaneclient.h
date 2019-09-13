@@ -42,15 +42,11 @@ class SotaUptaneClient {
         events_channel(std::move(events_channel_in)) {}
 
   SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in,
-                   std::shared_ptr<event::Channel> events_channel_in)
-      : SotaUptaneClient(config_in, storage_in, std::make_shared<HttpClient>(), std::move(events_channel_in)) {}
-
-  SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in,
                    std::shared_ptr<HttpInterface> http_in)
       : SotaUptaneClient(config_in, storage_in, std::move(http_in), nullptr) {}
 
   SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in)
-      : SotaUptaneClient(config_in, storage_in, std::make_shared<HttpClient>(), nullptr) {}
+      : SotaUptaneClient(config_in, storage_in, std::make_shared<HttpClient>()) {}
 
   void initialize();
   void addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
