@@ -23,14 +23,22 @@ VirtualSecondaryConfig::VirtualSecondaryConfig(const Json::Value& json_config) :
   metadata_path = json_config["metadata_path"].asString();
 }
 
-VirtualSecondaryConfig VirtualSecondaryConfig::create_from_file(const boost::filesystem::path& file_full_path) {
+std::vector<VirtualSecondaryConfig> VirtualSecondaryConfig::create_from_file(
+    const boost::filesystem::path& file_full_path) {
   Json::Value json_config;
   Json::Reader reader;
   std::ifstream json_file(file_full_path.string());
 
   reader.parse(json_file, json_config);
   json_file.close();
-  return VirtualSecondaryConfig(json_config[Type][0]);
+
+  std::vector<VirtualSecondaryConfig> sec_configs;
+  sec_configs.reserve(json_config[Type].size());
+
+  for (const auto& item : json_config[Type]) {
+    sec_configs.emplace_back(VirtualSecondaryConfig(item));
+  }
+  return sec_configs;
 }
 
 void VirtualSecondaryConfig::dump(const boost::filesystem::path& file_full_path) const {
