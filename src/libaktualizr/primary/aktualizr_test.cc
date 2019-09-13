@@ -956,7 +956,7 @@ TEST(Aktualizr, FullMultipleSecondaries) {
   UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
   UptaneTestCommon::addDefaultSecondary(conf, temp_dir2, "sec_serial2", "sec_hw2");
   ASSERT_NO_THROW(aktualizr.AddSecondary(std::make_shared<Primary::VirtualSecondary>(
-      Primary::VirtualSecondaryConfig::create_from_file(conf.uptane.secondary_config_file))));
+      Primary::VirtualSecondaryConfig::create_from_file(conf.uptane.secondary_config_file)[0])));
 
   struct {
     int started{0};

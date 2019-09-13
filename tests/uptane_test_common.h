@@ -37,9 +37,10 @@ struct UptaneTestCommon {
                   std::shared_ptr<HttpInterface> http)
       : Aktualizr(config, storage, http) {
 
-      // add secondary(ies) if its/their configuration is specified in the config file
       if (boost::filesystem::exists(config.uptane.secondary_config_file)) {
-        AddSecondary(std::make_shared<Primary::VirtualSecondary>(Primary::VirtualSecondaryConfig::create_from_file(config.uptane.secondary_config_file)));
+        for (const auto& item : Primary::VirtualSecondaryConfig::create_from_file(config.uptane.secondary_config_file)) {
+          AddSecondary(std::make_shared<Primary::VirtualSecondary>(item));
+        }
       }
     }
 
@@ -57,9 +58,10 @@ struct UptaneTestCommon {
                      std::shared_ptr<event::Channel> events_channel_in = nullptr):
       SotaUptaneClient(config_in, storage_in, http_client, bootloader_in, report_queue_in, events_channel_in) {
 
-      // add secondary(ies) if its/their configuration is specified in the config file
       if (boost::filesystem::exists(config_in.uptane.secondary_config_file)) {
-        addSecondary(std::make_shared<Primary::VirtualSecondary>(Primary::VirtualSecondaryConfig::create_from_file(config_in.uptane.secondary_config_file)));
+          for (const auto& item : Primary::VirtualSecondaryConfig::create_from_file(config_in.uptane.secondary_config_file)) {
+            addSecondary(std::make_shared<Primary::VirtualSecondary>(item));
+          }
       }
     }
   };

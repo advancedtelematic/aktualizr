@@ -13,7 +13,7 @@ class VirtualSecondaryConfig : public ManagedSecondaryConfig {
   VirtualSecondaryConfig() : ManagedSecondaryConfig(Type) {}
   VirtualSecondaryConfig(const Json::Value& json_config);
 
-  static VirtualSecondaryConfig create_from_file(const boost::filesystem::path& file_full_path);
+  static std::vector<VirtualSecondaryConfig> create_from_file(const boost::filesystem::path& file_full_path);
   void dump(const boost::filesystem::path& file_full_path) const;
 
  public:
