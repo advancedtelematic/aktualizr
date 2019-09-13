@@ -112,10 +112,13 @@ data::InstallationResult DockerAppManager::install(const Uptane::Target &target)
 }
 
 TargetStatus DockerAppManager::verifyTarget(const Uptane::Target &target) const {
+  TargetStatus status;
   if (target.IsOstree()) {
-    return OstreeManager::verifyTarget(target);
+    status = OstreeManager::verifyTarget(target);
+    if (status != TargetStatus::kGood) {
+      return status;
+    }
   }
-
   auto cb = [this](const std::string &app, const Uptane::Target &app_target) {
     LOG_INFO << "Verifying " << app << " -> " << app_target;
     std::stringstream ss;

@@ -1,5 +1,10 @@
 #! /bin/bash
-set -eEuo pipefail
+set -eEo pipefail
+
+if [ -n "$DOCKER_APP_FAIL" ] ; then
+  echo "FAILING the fake docker app command"
+  exit 1
+fi
 
 if [ "$1" = "app" ] ; then
   echo "DOCKER-APP RENDER OUTPUT"
