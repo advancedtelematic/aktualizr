@@ -31,18 +31,19 @@ https://saeljira.it.here.com/browse/OTA-3730
                             DownloadInterruptionHandler(number_of_failures=1),
                             MalformedJsonHandler(number_of_failures=1),
                             DownloadInterruptionHandler(number_of_failures=3),
-                        ])
+                        ], start=False)
 @with_aktualizr(start=False, run_mode='full')
 @with_install_manager()
 def test_backend_failure_sanity_director_update_after_metadata_download_failure(install_mngr, director,
                                                                                 aktualizr, **kwargs):
     with aktualizr:
-        director.wait_for_install()
-        # we have to stop director before terminating aktualizr since the later doesn't support graceful shutdown
-        # (doesn't handle any signal (SIGTERM, SIGKILL, etc) what leads to receiving broken requests at director
-        # https://saeljira.it.here.com/browse/OTA-3744
-        director.stop()
-    return director.is_install_successful() and install_mngr.are_images_installed()
+        with director:
+            # we have to stop director before terminating aktualizr since the later doesn't support graceful shutdown
+            # (doesn't handle any signal (SIGTERM, SIGKILL, etc) what leads to receiving broken requests at director
+            # https://saeljira.it.here.com/browse/OTA-3744
+            install_result = director.wait_for_install()
+            install_result = install_result and install_mngr.are_images_installed()
+    return install_result
 
 
 """
@@ -63,15 +64,18 @@ Note: Aktualizr doesn't send any installation report in manifest in case of meta
                             MalformedJsonHandler(number_of_failures=1),
                             DownloadInterruptionHandler(number_of_failures=3),
                         ])
-@with_director()
+@with_director(start=False)
 @with_aktualizr(run_mode='full')
 @with_install_manager()
 def test_backend_failure_sanity_imagerepo_update_after_metadata_download_failure(install_mngr, director,
                                                                                  aktualizr, **kwargs):
     with aktualizr:
-        director.wait_for_install()
-        director.stop()
-    return director.is_install_successful() and install_mngr.are_images_installed()
+        with director:
+            install_result = director.wait_for_install()
+            logger.info('Director install result: {}'.format(install_result))
+            install_result = install_result and install_mngr.are_images_installed()
+            logger.info('Are images installed: {}'.format(install_result))
+    return install_result
 
 
 """
@@ -91,15 +95,16 @@ Currently, it's tested against two types of image download failure:
                             #DownloadInterruptionHandler(number_of_failures=1, url='/targets/primary-image.img'),
                             MalformedImageHandler(number_of_failures=1, url='/targets/primary-image.img'),
                         ])
-@with_director()
+@with_director(start=False)
 @with_aktualizr(run_mode='full', id=('primary-hw-ID-001', 'primary-ecu-id'))
 @with_install_manager()
 def test_backend_failure_sanity_imagerepo_update_after_image_download_failure(install_mngr, director,
                                                                               aktualizr, **kwargs):
     with aktualizr:
-        director.wait_for_install()
-        director.stop()
-    return director.is_install_successful() and install_mngr.are_images_installed()
+        with director:
+            install_result = director.wait_for_install()
+            install_result = install_result and install_mngr.are_images_installed()
+    return install_result
 
 
 """
@@ -121,15 +126,16 @@ def test_backend_failure_sanity_imagerepo_update_after_image_download_failure(in
                             #SlowRetrievalHandler(url='/primary-image.img')
                         ])
 @with_imagerepo()
-@with_director()
+@with_director(start=False)
 @with_aktualizr(run_mode='full', id=('primary-hw-ID-001', 'primary-ecu-id'))
 @with_install_manager()
 def test_backend_failure_sanity_customrepo_update_after_image_download_failure(install_mngr, director,
                                                                                aktualizr, **kwargs):
     with aktualizr:
-        director.wait_for_install()
-        director.stop()
-    return director.is_install_successful() and install_mngr.are_images_installed()
+        with director:
+            install_result = director.wait_for_install()
+            install_result = install_result and install_mngr.are_images_installed()
+    return install_result
 
 
 """
@@ -150,8 +156,8 @@ def test_backend_failure_sanity_customrepo_update_after_image_download_failure(i
 @with_aktualizr(run_mode='once', id=('primary-hw-ID-001', 'primary-ecu-id'))
 @with_install_manager()
 def test_backend_failure_sanity_customrepo_update_redirect(install_mngr, director, **kwargs):
-    director.wait_for_install()
-    return director.is_install_successful() and install_mngr.are_images_installed()
+    install_result = director.wait_for_install()
+    return install_result and install_mngr.are_images_installed()
 
 
 """
@@ -178,7 +184,7 @@ def test_backend_failure_sanity_customrepo_update_redirect(install_mngr, directo
 def test_backend_failure_sanity_director_unsuccessful_download(install_mngr, aktualizr,
                                                                director, **kwargs):
     aktualizr.wait_for_completion()
-    return not (director.is_install_successful() or install_mngr.are_images_installed())
+    return not (director.get_install_result() or install_mngr.are_images_installed())
 
 
 """
@@ -199,7 +205,7 @@ def test_backend_failure_sanity_director_unsuccessful_download(install_mngr, akt
 def test_backend_failure_sanity_imagerepo_unsuccessful_download(install_mngr, aktualizr,
                                                                 director, **kwargs):
     aktualizr.wait_for_completion()
-    return not (director.is_install_successful() or install_mngr.are_images_installed())
+    return not (director.get_install_result() or install_mngr.are_images_installed())
 
 
 if __name__ == "__main__":
