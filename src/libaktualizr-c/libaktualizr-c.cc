@@ -34,7 +34,7 @@ int Aktualizr_uptane_cycle(Aktualizr *a) {
 
 void Aktualizr_destroy(Aktualizr *a) { delete a; }
 
-Campaign *Aktualizr_campaign_check(Aktualizr *a) {
+Campaign *Aktualizr_campaigns_check(Aktualizr *a) {
   try {
     auto r = a->CampaignCheck().get();
     if (!r.campaigns.empty()) {
@@ -74,4 +74,64 @@ int Aktualizr_campaign_decline(Aktualizr *a, Campaign *c) {
   }
   return 0;
 }
+
 void Aktualizr_campaign_free(Campaign *c) { delete c; }
+
+Updates *Aktualizr_updates_check(Aktualizr *a) {
+  try {
+    auto r = a->CheckUpdates().get();
+    return (r.updates.size() > 0) ? new Updates(std::move(r.updates)) : nullptr;
+  } catch (const std::exception &e) {
+    std::cerr << "Campaign decline exception: " << e.what() << std::endl;
+    return nullptr;
+  }
+}
+
+void Aktualizr_updates_free(Updates *u) { delete u; }
+
+size_t Aktualizr_get_targets_num(Updates *u) { return u ? u->size() : 0; }
+
+Target *Aktualizr_get_nth_target(Updates *u, size_t n) {
+  try {
+    if (u) {
+      return &u->at(n);
+    } else {
+      return nullptr;
+    }
+  } catch (const std::exception &e) {
+    std::cerr << "Exception: " << e.what() << std::endl;
+    return nullptr;
+  }
+}
+
+// TODO: leaks memory. Would it be nicer if t->filename returned const ref?
+const char *Aktualizr_get_target_name(Target *t) { 
+  if (t) {
+    auto name = new std::string(std::move(t->filename()));
+    return name->c_str();
+  } else {
+    return nullptr;
+  }
+}
+
+
+int Aktualizr_download_target(Aktualizr *a, Target *t) {
+  try {
+    a->Download(std::vector<Uptane::Target>({*t})).get();
+  } catch (const std::exception &e) {
+    std::cerr << "Campaign decline exception: " << e.what() << std::endl;
+    return -1;
+  }
+  return 0;
+}
+
+int Aktualizr_install_target(Aktualizr *a, Target *t) {
+  try {
+    a->Install(std::vector<Uptane::Target>({*t})).get();
+  } catch (const std::exception &e) {
+    std::cerr << "Campaign decline exception: " << e.what() << std::endl;
+    return -1;
+  }
+  return 0;
+}
+
