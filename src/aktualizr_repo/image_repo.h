@@ -8,9 +8,8 @@ class ImageRepo : public Repo {
   ImageRepo(boost::filesystem::path path, const std::string &expires, std::string correlation_id)
       : Repo(Uptane::RepositoryType::Image(), std::move(path), expires, std::move(correlation_id)) {}
   void addBinaryImage(const boost::filesystem::path &image_path, const boost::filesystem::path &targetname,
-                      const std::string &hardware_id, const std::string &url, const Delegation &delegation = {});
-  void addCustomImage(const std::string &name, const Uptane::Hash &hash, uint64_t length,
-                      const std::string &hardware_id, const std::string &url, const Delegation &delegation,
+                      const Delegation &delegation = {});
+  void addCustomImage(const std::string &name, const Uptane::Hash &hash, uint64_t length, const Delegation &delegation,
                       const Json::Value &custom = {});
   void addDelegation(const Uptane::Role &name, const Uptane::Role &parent_role, const std::string &path,
                      bool terminating, KeyType key_type);
@@ -18,8 +17,7 @@ class ImageRepo : public Repo {
   std::vector<std::string> getDelegationTargets(const Uptane::Role &name);
 
  private:
-  void addImage(const std::string &name, Json::Value &target, const std::string &hardware_id,
-                const Delegation &delegation = {});
+  void addImage(const std::string &name, const Json::Value &target, const Delegation &delegation = {});
   void removeDelegationRecursive(const Uptane::Role &name, const Uptane::Role &parent_name);
 };
 

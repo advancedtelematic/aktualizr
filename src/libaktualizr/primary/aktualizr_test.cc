@@ -1003,11 +1003,11 @@ TEST(Aktualizr, FullMultipleSecondaries) {
   conf.uptane.repo_server = http->tls_server + "/repo";
 
   TemporaryDirectory temp_dir2;
-  UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "sec_serial1", "sec_hw1");
+  UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "sec_serial1", "sec_hwid1");
 
   auto storage = INvStorage::newStorage(conf.storage);
   UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
-  UptaneTestCommon::addDefaultSecondary(conf, temp_dir2, "sec_serial2", "sec_hw2");
+  UptaneTestCommon::addDefaultSecondary(conf, temp_dir2, "sec_serial2", "sec_hwid2");
   ASSERT_NO_THROW(aktualizr.AddSecondary(std::make_shared<Primary::VirtualSecondary>(
       Primary::VirtualSecondaryConfig::create_from_file(conf.uptane.secondary_config_file))));
 

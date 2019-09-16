@@ -12,7 +12,6 @@ struct BootloaderConfig {
   RollbackMode rollback_mode{RollbackMode::kBootloaderNone};
   boost::filesystem::path reboot_sentinel_dir{"/var/run/aktualizr-session"};
   boost::filesystem::path reboot_sentinel_name{"need_reboot"};
-  std::string reboot_command{"/sbin/reboot"};
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;

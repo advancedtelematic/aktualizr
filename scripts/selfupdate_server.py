@@ -7,16 +7,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
-<<<<<<< HEAD
         print("GET: " + self.path)
-=======
-        local_path = self.path
-        print("GET: " + local_path)
-        # Fix annoying issue where uptane-generator generates metadata for the
-        # images repository in /image but aktualizr expects /repo.
-        if local_path.startswith("/repo/"):
-            local_path = local_path.replace('/repo/', '/image/', 1)
->>>>>>> 32c73eff... Rename aktualizr-repo to uptane-generator.
         self.send_response(200)
         self.end_headers()
         with open(self.server.base_dir + "/fake_root/repo/" + self.path, "rb") as fl:

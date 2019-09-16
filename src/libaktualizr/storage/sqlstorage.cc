@@ -2,7 +2,6 @@
 
 #include <sys/stat.h>
 #include <iostream>
-#include <map>
 #include <memory>
 #include <string>
 #include <utility>
@@ -979,19 +978,9 @@ bool SQLStorage::loadInstalledVersions(const std::string& ecu_serial, std::vecto
     }
   }
 
-  std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> ecu_map;
-  auto statement =
-      db.prepareStatement<std::string>("SELECT hardware_id FROM ecu_serials WHERE serial = ?;", ecu_serial_real);
-  if (statement.step() == SQLITE_ROW) {
-    ecu_map.insert(
-        {Uptane::EcuSerial(ecu_serial_real), Uptane::HardwareIdentifier(statement.get_result_col_str(0).value())});
-  } else {
-    LOG_WARNING << "Could not find hardware_id for serial " << ecu_serial_real << ": " << db.errmsg();
-  }
-
   size_t current_index = SIZE_MAX;
   size_t pending_index = SIZE_MAX;
-  statement = db.prepareStatement<std::string>(
+  auto statement = db.prepareStatement<std::string>(
       "SELECT sha256, name, hashes, length, correlation_id, is_current, is_pending FROM installed_versions WHERE "
       "ecu_serial = ?;",
       ecu_serial_real);
@@ -1019,7 +1008,7 @@ bool SQLStorage::loadInstalledVersions(const std::string& ecu_serial, std::vecto
         hashes.emplace_back(Uptane::Hash::Type::kSha256, sha256);
       }
 
-      new_installed_versions.emplace_back(filename, ecu_map, hashes, length, correlation_id);
+      new_installed_versions.emplace_back(filename, hashes, length, correlation_id);
       if (is_current) {
         current_index = new_installed_versions.size() - 1;
       }

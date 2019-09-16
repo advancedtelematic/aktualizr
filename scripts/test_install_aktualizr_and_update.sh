@@ -10,14 +10,6 @@ dpkg-deb -I "$TEST_INSTALL_DESTDIR"/aktualizr*.deb && dpkg -i "$TEST_INSTALL_DES
 akt_version=$(aktualizr --version)
 (grep "$(cat "$TEST_INSTALL_DESTDIR"/aktualizr-version)" <<< "$akt_version") || (echo "$akt_version"; false)
 
-<<<<<<< HEAD
-=======
-uptane-generator generate --path "$TEST_INSTALL_DESTDIR/fake_root"
-uptane-generator image --path "$TEST_INSTALL_DESTDIR/fake_root" --targetname selfupdate_2.0 --filename "$TEST_INSTALL_DESTDIR/selfupdate_2.0" --hwid selfupdate-device
-uptane-generator addtarget --path "$TEST_INSTALL_DESTDIR/fake_root" --targetname selfupdate_2.0 --hwid selfupdate-device --serial 723f79763eda1c753ce565c16862c79acdde32eb922d6662f088083c51ffde66
-uptane-generator signtargets --path "$TEST_INSTALL_DESTDIR/fake_root"
-
->>>>>>> 32c73eff... Rename aktualizr-repo to uptane-generator.
 TEMP_DIR=$(mktemp -d)
 mkdir -m 700 -p "$TEMP_DIR/import"
 cp "$TEST_INSTALL_DESTDIR"/prov_selfupdate/* "$TEMP_DIR/import"

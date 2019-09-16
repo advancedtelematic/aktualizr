@@ -22,7 +22,6 @@ TEST(PackageManagerFactory, Debian_Install_Good) {
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "hash";
   target_json["length"] = 2;
-  target_json["custom"]["ecuIdentifiers"]["primary_serial"]["hardwareId"] = "primary_hwid";
   Uptane::Target target("good.deb", target_json);
 
   storage->storeEcuSerials({{Uptane::EcuSerial("primary_serial"), Uptane::HardwareIdentifier("primary_hwid")}});
@@ -52,7 +51,6 @@ TEST(PackageManagerFactory, Debian_Install_Bad) {
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "hash";
   target_json["length"] = 2;
-  target_json["custom"]["ecuIdentifiers"]["primary_serial"]["hardwareId"] = "primary_hwid";
   Uptane::Target target("bad.deb", target_json);
 
   std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target);

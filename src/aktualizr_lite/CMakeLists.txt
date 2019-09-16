@@ -11,7 +11,7 @@ add_dependencies(build_tests aktualizr-lite)
 add_test(test_aktualizr-lite
     ${CMAKE_CURRENT_SOURCE_DIR}/test_lite.sh
         ${CMAKE_BINARY_DIR}/src/aktualizr_lite/aktualizr-lite
-        ${CMAKE_BINARY_DIR}/src/uptane_generator/uptane-generator
+        ${CMAKE_BINARY_DIR}/src/aktualizr_repo/aktualizr-repo
         ${PROJECT_SOURCE_DIR}/tests
         ${RUN_VALGRIND}
 )

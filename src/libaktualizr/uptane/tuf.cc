@@ -156,10 +156,8 @@ Target::Target(std::string filename, const Json::Value &content) : filename_(std
   std::sort(hashes_.begin(), hashes_.end(), [](const Hash &l, const Hash &r) { return l.type() < r.type(); });
 }
 
-Target::Target(std::string filename, std::map<EcuSerial, HardwareIdentifier> ecus, std::vector<Hash> hashes,
-               uint64_t length, std::string correlation_id)
+Target::Target(std::string filename, std::vector<Hash> hashes, uint64_t length, std::string correlation_id)
     : filename_(std::move(filename)),
-      ecus_(std::move(ecus)),
       hashes_(std::move(hashes)),
       length_(length),
       correlation_id_(std::move(correlation_id)) {
@@ -213,20 +211,13 @@ bool Target::IsOstree() const {
 
 Json::Value Target::toDebugJson() const {
   Json::Value res;
-  for (const auto &ecu : ecus_) {
-    res["custom"]["ecuIdentifiers"][ecu.first.ToString()]["hardwareId"] = ecu.second.ToString();
-  }
-  if (!hwids_.empty()) {
-    Json::Value hwids;
-    for (Json::Value::ArrayIndex i = 0; i < hwids_.size(); ++i) {
-      hwids[i] = hwids_[i].ToString();
-    }
-    res["custom"]["hardwareIds"] = hwids;
+  for (auto it = ecus_.begin(); it != ecus_.cend(); ++it) {
+    res["custom"]["ecuIdentifiers"][it->first.ToString()]["hardwareId"] = it->second.ToString();
   }
   res["custom"]["targetFormat"] = type_;
 
-  for (const auto &hash : hashes_) {
-    res["hashes"][hash.TypeString()] = hash.HashString();
+  for (auto it = hashes_.cbegin(); it != hashes_.cend(); ++it) {
+    res["hashes"][it->TypeString()] = it->HashString();
   }
   res["length"] = Json::Value(static_cast<Json::Value::Int64>(length_));
   return res;

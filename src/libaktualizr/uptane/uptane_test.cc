@@ -830,16 +830,8 @@ TEST(Uptane, FsToSqlFull) {
 
   bool ecu_registered = fs_storage.loadEcuRegistered();
 
-  std::vector<Uptane::Target> fs_installed_versions;
-  std::vector<Uptane::Target> fixed_installed_versions;
-  fs_storage.loadInstalledVersions(&fs_installed_versions, nullptr);
-  // Add the serial/hwid mapping to match what the SQL storage will do when
-  // reading it back after it has been copied from FS storage.
-  for (auto &target : fs_installed_versions) {
-    Json::Value dump = target.toDebugJson();
-    dump["custom"]["ecuIdentifiers"][serials[0].first.ToString()]["hardwareId"] = serials[0].second.ToString();
-    fixed_installed_versions.emplace_back(Uptane::Target(target.filename(), dump));
-  }
+  std::vector<Uptane::Target> installed_versions;
+  fs_storage.loadInstalledVersions(&installed_versions, nullptr);
 
   std::string director_root;
   std::string director_targets;
@@ -936,7 +928,7 @@ TEST(Uptane, FsToSqlFull) {
   EXPECT_EQ(sql_device_id, device_id);
   EXPECT_EQ(sql_serials, serials);
   EXPECT_EQ(sql_ecu_registered, ecu_registered);
-  EXPECT_EQ(sql_installed_versions, fixed_installed_versions);
+  EXPECT_EQ(sql_installed_versions, installed_versions);
 
   EXPECT_EQ(sql_director_root, director_root);
   EXPECT_EQ(sql_director_targets, director_targets);

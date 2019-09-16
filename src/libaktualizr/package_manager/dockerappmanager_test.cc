@@ -15,7 +15,7 @@
 static std::string repo_server = "http://127.0.0.1:";
 static std::string treehub_server = "http://127.0.0.1:";
 static boost::filesystem::path test_sysroot;
-static boost::filesystem::path uptane_gen;
+static boost::filesystem::path akrepo;
 
 static std::shared_ptr<SotaUptaneClient> newTestClient(Config& config_in, std::shared_ptr<INvStorage> storage_in,
                                                        std::shared_ptr<HttpInterface> http_client_in,
@@ -35,8 +35,8 @@ static void progress_cb(const Uptane::Target& target, const std::string& descrip
 static std::unique_ptr<boost::process::child> create_repo(const boost::filesystem::path& repo_path) {
   std::string port = TestUtils::getFreePort();
   repo_server += port;
-  auto p = std_::make_unique<boost::process::child>("src/libaktualizr/package_manager/dockerapp_test_repo.sh",
-                                                    uptane_gen, repo_path, port);
+  auto p = std_::make_unique<boost::process::child>("src/libaktualizr/package_manager/dockerapp_test_repo.sh", akrepo,
+                                                    repo_path, port);
   TestUtils::waitForServer(repo_server + "/");
   return p;
 }
@@ -108,10 +108,10 @@ int main(int argc, char** argv) {
 
   if (argc != 3) {
     std::cerr << "Error: " << argv[0]
-              << " requires the path to an OSTree sysroot and uptane-generator as an input argument.\n";
+              << " requires the path to an OSTree sysroot and aktualizr-repo as an input argument.\n";
     return EXIT_FAILURE;
   }
-  uptane_gen = argv[2];
+  akrepo = argv[2];
 
   std::string port = TestUtils::getFreePort();
   treehub_server += port;

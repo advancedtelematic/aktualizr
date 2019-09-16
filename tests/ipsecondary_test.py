@@ -53,7 +53,7 @@ class UptaneTestRepo:
             image_file.write(urandom(image_size))
 
         subprocess.run([self._repo_manager_exe, '--path', self.root_dir,
-                        '--command', 'image', '--filename', image_filename, '--targetname', targetname, '--hwid', id[0]],
+                        '--command', 'image', '--filename', image_filename, '--targetname', targetname],
                        cwd=self.image_dir, check=True)
 
         # update the director metadata
@@ -168,7 +168,7 @@ class Aktualizr:
     tls_pkey_path = "{pkey_path}"
     tls_clientcert_path = "{cert_path}"
 
-    [provision]
+    [provision]    
     primary_ecu_serial = "{serial}"
     primary_ecu_hardware_id = "{hw_ID}"
 
@@ -182,7 +182,7 @@ class Aktualizr:
 
     [uptane]
     secondary_config_file = "{secondary_cfg_file}"
-
+    
     [logger]
     loglevel = 1
 
@@ -193,7 +193,7 @@ class Aktualizr:
       "IP": {{
         "secondaries_wait_port": {port},
         "secondaries_wait_timeout": {timeout},
-        "secondaries": []
+        "secondaries": [] 
       }}
     }}
     '''
@@ -277,7 +277,7 @@ class Aktualizr:
 
 # The following decorators can be eliminated if pytest framework (or similar) is used
 # by using fixtures instead
-def with_uptane_backend(repo_manager_exe='src/uptane_generator/uptane-generator'):
+def with_uptane_backend(repo_manager_exe='src/aktualizr_repo/aktualizr-repo'):
     def decorator(test):
         @wraps(test)
         def wrapper(*args, **kwargs):

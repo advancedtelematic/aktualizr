@@ -5,9 +5,9 @@ endif()
 
 if(CMAKE_CROSSCOMPILING)
     # we cannot call the tool we build in this context, it has to come from somewhere else
-    find_program(UPTANE_GENERATOR NAMES uptane-generator)
+    find_program(AKTUALIZR_REPO NAMES aktualizr-repo)
 else()
-    set(UPTANE_GENERATOR $<TARGET_FILE:uptane-generator>)
+    set(AKTUALIZR_REPO $<TARGET_FILE:aktualizr-repo>)
 endif()
 
 # Temporarily remove flags not supported by gtest.
@@ -25,7 +25,7 @@ if(BUILD_SOTA_TOOLS)
 endif(BUILD_SOTA_TOOLS)
 add_dependencies(build_tests aktualizr-secondary)
 add_dependencies(build_tests aktualizr-info)
-add_dependencies(build_tests uptane-generator)
+add_dependencies(build_tests aktualizr-repo)
 
 set(CTEST_EXTRA_ARGS -T Test --no-compress-output)
 
@@ -197,7 +197,7 @@ if(FAULT_INJECTION)
     # run with a very small amount of tests on CI, should be more useful when
     # run for several hours
     add_test(NAME test_io_failure COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/test_io_failure.py
-        --uptane-gen $<TARGET_FILE:uptane-generator> --akt-test $<TARGET_FILE:aktualizr-cycle-simple> -n 50 -j 10
+        --akt-repo $<TARGET_FILE:aktualizr-repo> --akt-test $<TARGET_FILE:aktualizr-cycle-simple> -n 50 -j 10
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 endif(FAULT_INJECTION)
 

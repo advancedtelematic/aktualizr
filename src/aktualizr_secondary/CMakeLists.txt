@@ -60,7 +60,7 @@ add_aktualizr_test(NAME aktualizr_secondary_update
 if(BUILD_OSTREE)
     add_aktualizr_test(NAME aktualizr_secondary_uptane
                        SOURCES uptane_test.cc
-                       LIBRARIES uptane_generator_lib
+                       LIBRARIES aktualizr_repo_lib
                        LIBRARIES aktualizr-posix
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
     target_link_libraries(t_aktualizr_secondary_uptane virtual_secondary)
@@ -134,7 +134,7 @@ set_tests_properties(aktualizr_secondary_help_with_other_options
 
 aktualizr_source_file_checks(${AKTUALIZR_SECONDARY_SRC}
                              ${AKTUALIZR_SECONDARY_LIB_SRC}
-                             ${ALL_AKTUALIZR_SECONDARY_HEADERS}
+                             ${ALL_AKTUALIZR_SECONDARY_HEADERS}                             
                              ${TEST_SOURCES})
 
 # vim: set tabstop=4 shiftwidth=4 expandtab:

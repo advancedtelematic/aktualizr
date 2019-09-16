@@ -2,8 +2,8 @@
 set -xeuo pipefail
 
 TEMP_DIR=/tmp/temp_aktualizr_expire_repo/$(mktemp -d)/$1
-"$2/src/uptane_generator/uptane-generator" generate $TEMP_DIR --expires=$1
-"$2/src/uptane_generator/uptane-generator" image $TEMP_DIR ./tests/test_data/credentials.zip --hwid test_hwid
+$2/src/aktualizr_repo/aktualizr-repo generate $TEMP_DIR --expires=$1
+$2/src/aktualizr_repo/aktualizr-repo image $TEMP_DIR ./tests/test_data/credentials.zip
 
 cp ./tests/test_data/credentials.zip $TEMP_DIR
 
@@ -35,4 +35,4 @@ function finish {
 trap finish EXIT
 sleep 2
 
-"$2/src/sota_tools/garage-check" -j $TEMP_DIR/credentials.zip -r 714581b2ffbbf7a750cb0a210fa7d74fd9128bd627cd4913e365d5bf2f66eba9
+$2/src/sota_tools/garage-check -j $TEMP_DIR/credentials.zip -r 714581b2ffbbf7a750cb0a210fa7d74fd9128bd627cd4913e365d5bf2f66eba9

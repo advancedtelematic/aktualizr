@@ -21,14 +21,14 @@ keyUsage = keyCertSign
 EOF
         # CA certificate for client devices
         openssl genrsa -out ${certs_dir}/client/ca.private.pem 4096
-        openssl req -key ${certs_dir}/client/ca.private.pem -new -x509 -days 7300 -out ${certs_dir}/client/cacert.pem -subj "/C=DE/ST=Berlin/O=Reis und Kichererbsen e.V/commonName=uptane-generator-client-ca" -batch -config ${certs_dir}/ca.cnf -extensions cacert
+        openssl req -key ${certs_dir}/client/ca.private.pem -new -x509 -days 7300 -out ${certs_dir}/client/cacert.pem -subj "/C=DE/ST=Berlin/O=Reis und Kichererbsen e.V/commonName=aktualizr-repo-client-ca" -batch -config ${certs_dir}/ca.cnf -extensions cacert
         # certificate for stand-alone device
         openssl req -out ${certs_dir}/client/standalone_device_cert.csr -subj "/C=DE/ST=Berlin/O=Reis und Kichererbsen e.V/commonName=sota_device" -batch -new -newkey rsa:2048 -nodes -keyout ${certs_dir}/client/standalone_device_key.pem
         openssl x509 -req -in ${certs_dir}/client/standalone_device_cert.csr -CA ${certs_dir}/client/cacert.pem -CAkey ${certs_dir}/client/ca.private.pem -CAcreateserial -out ${certs_dir}/client/standalone_device_cert.pem
 
         # CA certificate for server
         openssl genrsa -out ${certs_dir}/server/ca.private.pem 4096
-        openssl req -key ${certs_dir}/server/ca.private.pem -new -x509 -days 7300 -out ${certs_dir}/server/cacert.pem -subj "/C=DE/ST=Berlin/O=Reis und Kichererbsen e.V/commonName=uptane-generator-server-ca" -batch -config ${certs_dir}/ca.cnf -extensions cacert
+        openssl req -key ${certs_dir}/server/ca.private.pem -new -x509 -days 7300 -out ${certs_dir}/server/cacert.pem -subj "/C=DE/ST=Berlin/O=Reis und Kichererbsen e.V/commonName=aktualizr-repo-server-ca" -batch -config ${certs_dir}/ca.cnf -extensions cacert
         # server's certificate
         openssl req -out ${certs_dir}/server/cert.csr -subj "/C=DE/ST=Berlin/O=Reis und Kichererbsen e.V/commonName=${host_addr}" -batch -new -newkey rsa:2048 -nodes -keyout ${certs_dir}/server/private.pem
         openssl x509 -req -in ${certs_dir}/server/cert.csr -CA ${certs_dir}/server/cacert.pem -CAkey ${certs_dir}/server/ca.private.pem -CAcreateserial -out ${certs_dir}/server/cert.pem
@@ -39,7 +39,7 @@ EOF
 }
 
 gen_repo () {
-        uptane-generator --command generate --path ${repo_dir}/uptane --keytype ED25519 --expires "3021-07-04T00:00:00Z"
+        aktualizr-repo --command generate --path ${repo_dir}/uptane --keytype ED25519 --expires "3021-07-04T00:00:00Z"
 }
 
 gen_ostree () {

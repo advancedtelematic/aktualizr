@@ -9,9 +9,10 @@ add_subdirectory("aktualizr_primary")
 add_subdirectory("libaktualizr-posix")
 add_subdirectory("aktualizr_secondary")
 add_subdirectory("aktualizr_info")
-add_subdirectory("uptane_generator")
+add_subdirectory("aktualizr_repo")
 
 add_subdirectory("cert_provider")
+add_subdirectory("hmi_stub")
 add_subdirectory("aktualizr_lite")
 
 add_subdirectory("load_tests")

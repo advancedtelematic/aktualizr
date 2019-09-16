@@ -7,12 +7,10 @@
 
 #include <archive.h>
 #include <archive_entry.h>
-#include <boost/algorithm/string.hpp>  // trim_if
 #include <boost/optional.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 
-#include "bootstrap/bootstrap.h"
 #include "utilities/utils.h"
 
 using boost::optional;
@@ -67,13 +65,14 @@ ServerCredentials::ServerCredentials(const boost::filesystem::path &credentials_
       if (strcmp(filename, "treehub.json") == 0) {
         json_stream = readArchiveFile(a);
         found_config = true;
-      } else if (strcmp(filename, "client_auth.p12") == 0) {
-        const std::string client_p12 = readArchiveFile(a)->str();
-        Bootstrap::readTlsP12(client_p12, "", client_key_, client_cert_, root_cert_);
-        method_ = AuthMethod::kTls;
+      } else if (strcmp(filename, "client.crt") == 0) {
+        client_cert_ = readArchiveFile(a)->str();
+      } else if (strcmp(filename, "client.key") == 0) {
+        client_key_ = readArchiveFile(a)->str();
+      } else if (strcmp(filename, "root.crt") == 0) {
+        root_cert_ = readArchiveFile(a)->str();
       } else if (strcmp(filename, "tufrepo.url") == 0) {
         repo_url_ = readArchiveFile(a)->str();
-        boost::trim_if(repo_url_, boost::is_any_of(" \t\r\n"));
       } else {
         archive_read_data_skip(a);
       }
@@ -99,9 +98,7 @@ ServerCredentials::ServerCredentials(const boost::filesystem::path &credentials_
       read_json(credentials_path.string(), pt);
     }
 
-    if (method_ == AuthMethod::kTls) {
-      // do nothing
-    } else if (optional<ptree &> ap_pt = pt.get_child_optional("oauth2")) {
+    if (optional<ptree &> ap_pt = pt.get_child_optional("oauth2")) {
       method_ = AuthMethod::kOauth2;
       auth_server_ = ap_pt->get<std::string>("server", "");
       client_id_ = ap_pt->get<std::string>("client_id", "");
@@ -109,9 +106,18 @@ ServerCredentials::ServerCredentials(const boost::filesystem::path &credentials_
     } else if (optional<ptree &> ba_pt = pt.get_child_optional("basic_auth")) {
       method_ = AuthMethod::kBasic;
       auth_user_ = ba_pt->get<std::string>("user", "");
-      auth_password_ = ba_pt->get<std::string>("password", "");
+      auth_password_ = ba_pt->get<std::string>("password", kPassword);
+    } else if (pt.get<bool>("certificate_auth", false)) {
+      if ((client_cert_.size() != 0u) && (client_key_.size() != 0u) && (root_cert_.size() != 0u)) {
+        method_ = AuthMethod::kCert;
+      } else {
+        throw BadCredentialsContent(
+            "treehub.json requires certificate authentication, "
+            "but credentials archive doesn't include the necessary certificate files");
+      }
     }
-    ostree_server_ = pt.get<std::string>("ostree.server", "");
+    ostree_server_ = pt.get<std::string>("ostree.server", kBaseUrl);
+
   } catch (const json_parser_error &e) {
     throw BadCredentialsJson(std::string("Unable to read ") + credentials_path.string() + " as archive or json file.");
   }

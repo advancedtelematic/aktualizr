@@ -10,12 +10,12 @@ void UptaneRepo::generateRepo(KeyType key_type) {
   image_repo_.generateRepo(key_type);
 }
 void UptaneRepo::addTarget(const std::string &target_name, const std::string &hardware_id,
-                           const std::string &ecu_serial, const std::string &url) {
+                           const std::string &ecu_serial) {
   auto target = image_repo_.getTarget(target_name);
   if (target == Json::nullValue) {
     throw std::runtime_error("No such " + target_name + " target in the image repository");
   }
-  director_repo_.addTarget(target_name, target, hardware_id, ecu_serial, url);
+  director_repo_.addTarget(target_name, target, hardware_id, ecu_serial);
 }
 
 void UptaneRepo::addDelegation(const Uptane::Role &name, const Uptane::Role &parent_role, const std::string &path,
@@ -29,13 +29,12 @@ void UptaneRepo::revokeDelegation(const Uptane::Role &name) {
 }
 
 void UptaneRepo::addImage(const boost::filesystem::path &image_path, const boost::filesystem::path &targetname,
-                          const std::string &hardware_id, const std::string &url, const Delegation &delegation) {
-  image_repo_.addBinaryImage(image_path, targetname, hardware_id, url, delegation);
+                          const Delegation &delegation) {
+  image_repo_.addBinaryImage(image_path, targetname, delegation);
 }
 void UptaneRepo::addCustomImage(const std::string &name, const Uptane::Hash &hash, uint64_t length,
-                                const std::string &hardware_id, const std::string &url, const Delegation &delegation,
-                                const Json::Value &custom) {
-  image_repo_.addCustomImage(name, hash, length, hardware_id, url, delegation, custom);
+                                const Delegation &delegation, const Json::Value &custom) {
+  image_repo_.addCustomImage(name, hash, length, delegation, custom);
 }
 
 void UptaneRepo::signTargets() { director_repo_.signTargets(); }

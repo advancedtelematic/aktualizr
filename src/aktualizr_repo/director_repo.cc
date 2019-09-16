@@ -1,7 +1,7 @@
 #include "director_repo.h"
 
 void DirectorRepo::addTarget(const std::string &target_name, const Json::Value &target, const std::string &hardware_id,
-                             const std::string &ecu_serial, const std::string &url) {
+                             const std::string &ecu_serial) {
   const boost::filesystem::path current = path_ / "repo/director/targets.json";
   const boost::filesystem::path staging = path_ / "repo/director/staging/targets.json";
 
@@ -15,13 +15,7 @@ void DirectorRepo::addTarget(const std::string &target_name, const Json::Value &
                              "!");
   }
   director_targets["targets"][target_name] = target;
-  director_targets["targets"][target_name]["custom"].removeMember("hardwareIds");
   director_targets["targets"][target_name]["custom"]["ecuIdentifiers"][ecu_serial]["hardwareId"] = hardware_id;
-  if (!url.empty()) {
-    director_targets["targets"][target_name]["custom"]["uri"] = url;
-  } else {
-    director_targets["targets"][target_name]["custom"].removeMember("uri");
-  }
   director_targets["version"] = (Utils::parseJSONFile(current)["signed"]["version"].asUInt()) + 1;
   Utils::writeFile(staging, Utils::jsonToCanonicalStr(director_targets));
   updateRepo();

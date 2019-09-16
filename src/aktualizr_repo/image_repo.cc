@@ -1,14 +1,11 @@
 #include "image_repo.h"
 
-void ImageRepo::addImage(const std::string &name, Json::Value &target, const std::string &hardware_id,
-                         const Delegation &delegation) {
+void ImageRepo::addImage(const std::string &name, const Json::Value &target, const Delegation &delegation) {
   boost::filesystem::path repo_dir(path_ / "repo/image");
 
   boost::filesystem::path targets_path =
       delegation ? ((repo_dir / "delegations") / delegation.name).string() + ".json" : repo_dir / "targets.json";
   Json::Value targets = Utils::parseJSONFile(targets_path)["signed"];
-  // TODO: support multiple hardware IDs.
-  target["custom"]["hardwareIds"][0] = hardware_id;
   targets["targets"][name] = target;
   targets["version"] = (targets["version"].asUInt()) + 1;
 
@@ -19,7 +16,7 @@ void ImageRepo::addImage(const std::string &name, Json::Value &target, const std
 }
 
 void ImageRepo::addBinaryImage(const boost::filesystem::path &image_path, const boost::filesystem::path &targetname,
-                               const std::string &hardware_id, const std::string &url, const Delegation &delegation) {
+                               const Delegation &delegation) {
   boost::filesystem::path repo_dir(path_ / "repo/image");
 
   boost::filesystem::path targets_path = repo_dir / "targets";
@@ -37,15 +34,11 @@ void ImageRepo::addBinaryImage(const boost::filesystem::path &image_path, const 
   target["hashes"]["sha256"] = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(image)));
   target["hashes"]["sha512"] = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(image)));
   target["custom"]["targetFormat"] = "BINARY";
-  if (!url.empty()) {
-    target["custom"]["uri"] = url;
-  }
-  addImage(targetname.string(), target, hardware_id, delegation);
+  addImage(targetname.string(), target, delegation);
 }
 
 void ImageRepo::addCustomImage(const std::string &name, const Uptane::Hash &hash, const uint64_t length,
-                               const std::string &hardware_id, const std::string &url, const Delegation &delegation,
-                               const Json::Value &custom) {
+                               const Delegation &delegation, const Json::Value &custom) {
   Json::Value target;
   target["length"] = Json::UInt(length);
   if (hash.type() == Uptane::Hash::Type::kSha256) {
@@ -54,10 +47,7 @@ void ImageRepo::addCustomImage(const std::string &name, const Uptane::Hash &hash
     target["hashes"]["sha512"] = hash.HashString();
   }
   target["custom"] = custom;
-  if (!url.empty()) {
-    target["custom"]["uri"] = url;
-  }
-  addImage(name, target, hardware_id, delegation);
+  addImage(name, target, delegation);
 }
 
 void ImageRepo::addDelegation(const Uptane::Role &name, const Uptane::Role &parent_role, const std::string &path,

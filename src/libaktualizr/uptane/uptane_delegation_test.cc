@@ -11,11 +11,11 @@
 #include "primary/events.h"
 #include "uptane_test_common.h"
 
-boost::filesystem::path uptane_generator_path;
+boost::filesystem::path aktualizr_repo_path;
 
 void delegation_basic(const boost::filesystem::path& delegation_path, bool revoke) {
   std::string output;
-  std::string cmd = "tests/uptane_repo_generation/delegation_basic.sh " + uptane_generator_path.string() + " " +
+  std::string cmd = "tests/uptane_repo_generation/delegation_basic.sh " + aktualizr_repo_path.string() + " " +
                     delegation_path.string();
   if (revoke) {
     cmd += " revoke";
@@ -26,7 +26,7 @@ void delegation_basic(const boost::filesystem::path& delegation_path, bool revok
 
 void delegation_nested(const boost::filesystem::path& delegation_path, bool revoke) {
   std::string output;
-  std::string cmd = "tests/uptane_repo_generation/delegation_nested.sh " + uptane_generator_path.string() + " " +
+  std::string cmd = "tests/uptane_repo_generation/delegation_nested.sh " + aktualizr_repo_path.string() + " " +
                     delegation_path.string();
   if (revoke) {
     cmd += " revoke";
@@ -243,10 +243,10 @@ TEST(Delegation, IterateAll) {
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   if (argc != 2) {
-    std::cerr << "Error: " << argv[0] << " requires the path to the uptane-generator utility\n";
+    std::cerr << "Error: " << argv[0] << " requires the path to the aktualizr-repo utility\n";
     return EXIT_FAILURE;
   }
-  uptane_generator_path = argv[1];
+  aktualizr_repo_path = argv[1];
 
   logger_init();
   logger_set_threshold(boost::log::trivial::trace);

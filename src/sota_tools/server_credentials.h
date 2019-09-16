@@ -5,7 +5,7 @@
 
 #include <boost/filesystem.hpp>
 
-enum class AuthMethod { kNone = 0, kBasic, kOauth2, kTls };
+enum class AuthMethod { kNone = 0, kBasic, kOauth2, kCert };
 
 class BadCredentialsContent : public std::runtime_error {
  public:

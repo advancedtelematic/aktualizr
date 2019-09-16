@@ -2,15 +2,15 @@
 set -eEuo pipefail
 
 if [ "$#" -ne 2 ]; then
-  echo "Usage: $0 <uptane-generator> <output directory>"
+  echo "Usage: $0 <aktualizr-repo> <output directory>"
   exit 1
 fi
 
-UPTANE_GENERATOR="$1"
+AKTUALIZR_REPO="$1"
 DEST_DIR="$2"
 
-uptane_gen() {
-    "$UPTANE_GENERATOR" --path "$DEST_DIR" "$@"
+akrepo() {
+    "$AKTUALIZR_REPO" --path "$DEST_DIR" "$@"
 }
 
 if [ -d "$DEST_DIR" ]; then
@@ -28,9 +28,9 @@ echo "primary" > "$PRIMARY_FIRMWARE"
 SECONDARY_FIRMWARE="$IMAGES/secondary.txt"
 echo "secondary" > "$SECONDARY_FIRMWARE"
 
-uptane_gen --command generate --expires 2021-07-04T16:33:27Z
-uptane_gen --command image --filename "$PRIMARY_FIRMWARE" --targetname primary.txt --hwid primary_hw
-uptane_gen --command image --filename "$SECONDARY_FIRMWARE" --targetname secondary.txt --hwid secondary_hw
-uptane_gen --command addtarget --hwid primary_hw --serial CA:FE:A6:D2:84:9D --targetname primary.txt
-uptane_gen --command addtarget --hwid secondary_hw --serial secondary_ecu_serial --targetname secondary.txt
-uptane_gen --command signtargets
+akrepo --command generate --expires 2021-07-04T16:33:27Z
+akrepo --command image --filename "$PRIMARY_FIRMWARE" --targetname primary.txt
+akrepo --command image --filename "$SECONDARY_FIRMWARE" --targetname secondary.txt
+akrepo --command addtarget --hwid primary_hw --serial CA:FE:A6:D2:84:9D --targetname primary.txt
+akrepo --command addtarget --hwid secondary_hw --serial secondary_ecu_serial --targetname secondary.txt
+akrepo --command signtargets

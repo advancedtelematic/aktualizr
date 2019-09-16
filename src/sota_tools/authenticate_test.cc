@@ -14,7 +14,6 @@
 /* Authenticate with OAuth2.
  * Parse authentication information from treehub.json. */
 TEST(authenticate, good_zip) {
-  // Authenticates with the ATS portal to the SaaS instance.
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_good.zip";
   ServerCredentials creds(filepath);
   EXPECT_EQ(creds.GetMethod(), AuthMethod::kOauth2);
@@ -28,12 +27,11 @@ TEST(authenticate, good_zip) {
  * Parse images repository URL from a provided archive. */
 /* TODO: This used to work, but then when the zip file was updated because of
  * expired certs, it was changed to not use cert auth, and there was no check to
- * verify the method at that time. */
+ * verify the method at that time.
 TEST(authenticate, good_cert_zip) {
-  // Authenticates with ssl_server on port 1443.
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_cert_good.zip";
   ServerCredentials creds(filepath);
-  EXPECT_EQ(creds.GetMethod(), AuthMethod::kTls);
+  EXPECT_EQ(creds.GetMethod(), AuthMethod::kCert);
   TreehubServer treehub;
   int r = authenticate("", creds, treehub);
   EXPECT_EQ(0, r);
@@ -44,12 +42,12 @@ TEST(authenticate, good_cert_zip) {
 
   EXPECT_EQ(CURLE_OK, rc);
 }
+*/
 
 /* Authenticate with nothing (no auth).
  * Parse authentication information from treehub.json.
  * Parse images repository URL from a provided archive. */
 TEST(authenticate, good_cert_noauth_zip) {
-  // Authenticates with ssl_noauth_server on port 2443.
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_noauth_good.zip";
   ServerCredentials creds(filepath);
   EXPECT_EQ(creds.GetMethod(), AuthMethod::kNone);
@@ -65,8 +63,6 @@ TEST(authenticate, good_cert_noauth_zip) {
 }
 
 TEST(authenticate, bad_cert_zip) {
-  // TODO: fix, still uses cert/ca/key not p12
-  // Tries to authenticates with ssl_server on port 1443.
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_cert_bad.zip";
   TreehubServer treehub;
   int r = authenticate("", ServerCredentials(filepath), treehub);
@@ -95,7 +91,6 @@ TEST(authenticate, no_json_zip) {
 
 /* Extract credentials from a provided JSON file. */
 TEST(authenticate, good_json) {
-  // Authenticates with the ATS portal to the SaaS instance.
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_good.json";
   TreehubServer treehub;
   int r = authenticate("", ServerCredentials(filepath), treehub);
@@ -125,9 +120,8 @@ TEST(authenticate, offline_sign_creds) {
   EXPECT_TRUE(creds_offline.CanSignOffline());
 }
 
-/* Check if credentials do not support offline signing. */
+/* Check if credentials support offline signing. */
 TEST(authenticate, online_sign_creds) {
-  // Authenticates with ssl_server on port 1443.
   boost::filesystem::path auth_online = "tests/sota_tools/auth_test_cert_good.zip";
   ServerCredentials creds_online(auth_online);
   EXPECT_FALSE(creds_online.CanSignOffline());
