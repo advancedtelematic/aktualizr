@@ -1,10 +1,10 @@
-= Enable device-credential provisioning and install device certificates 
+= Enable device-credential provisioning and install device certificates
 
 //MC: This is a copy of the topic "enable-device-cred-provtest.adoc" but intended for the "deploy/production" use case. Need to use more includes to reduce redundancy.
 
 Once you're ready to provision devices in production, you need to build disk images that are configured to use device-credential provisioning.
 
-After you have flashed those images to devices, you boot the image and install the device certicate for each device. 
+After you have flashed those images to devices, you boot the image and install the device certicate for each device.
 
 How you get the certificate on the device is up to you:
 
@@ -13,7 +13,7 @@ How you get the certificate on the device is up to you:
 You woud then sign the certificate with your fleet root key.
 +
 ** We don't have documentation on how to do this, since the method is different for each HSM model.
-* You can also generate the device certificates and private keys on your development computer and copy them over to the device. 
+* You can also generate the device certificates and private keys on your development computer and copy them over to the device.
 ** For these instructions, we'll assume you are using this latter method.
 
 == HSM considerations
@@ -47,9 +47,9 @@ IMAGE_INSTALL_append = " softhsm-testtoken dropbear "
 +
 [NOTE]
 ====
-The line `IMAGE_INSTALL_append` installs optional software to your device. 
+The line `IMAGE_INSTALL_append` installs optional software to your device.
 
-* The option `dropbear` installs the link:https://matt.ucc.asn.au/dropbear/dropbear.html[Dropbear] ssh server. 
+* The option `dropbear` installs the link:https://matt.ucc.asn.au/dropbear/dropbear.html[Dropbear] ssh server.
 +
 You'll need to ssh into the device to copy the certificates to the device's filesystem.
 * The option `softhsm-testtoken` installs SoftHSM to so that you can easily test HSM interactions.
@@ -70,9 +70,9 @@ scp -P 2222 autoprov.url root@localhost:/var/sota/import/gateway.url
 ====
 You might remember that `credentials.zip` contains a provisioning key shared-credential provisioning. In this case we just need the `autoprov.url` file inside `credentials.zip`. This file contains the URL of your device gateway which is specific to your account.
 ====
-. Copy the device credentials and device gateway root CA certificate to the device. 
+. Copy the device credentials and device gateway root CA certificate to the device.
 +
-[source,sh,subs="attributes"]
+[source,sh]
 ----
 export device_dir=path/to/device-creds/dir
 scp -P 2222 -pr ${device_dir} root@localhost:/var/sota/import
