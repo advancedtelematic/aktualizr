@@ -10,11 +10,11 @@ endif::[]
 
 OTA Connect provides you with two levels of security which have different tradeoffs. You can work with the *default* security measures which are much less work to manage but expose you to certain risks. Or, you can follow our recommended *production-level* security measures which are more work to set up but provide more robust security.
 
-In both cases, communication between the devices and the OTA Connect is always secured via mutual TLS (X.509 certificates) for authorization, authentication, and encryption. 
+In both cases, communication between the devices and the OTA Connect is always secured via mutual TLS (X.509 certificates) for authorization, authentication, and encryption.
 
 The following sections describe the different security levels for device provisioning and software updates:
 
-= Device provisioning
+== Device provisioning
 
 When provisioning devices, you need to consider how to prevent unauthorized devices from provisioning. You also need to prevent your devices from being redirected to a malicious server.
 
@@ -24,14 +24,14 @@ This is usually done with a PKI (Public Key Infrastructure). Devices are automat
 +
 By default, **the OTA Connect server acts as its own PKI** and manages device keys and certificates for you.
 +
-All you have to do is download an initial provisioning key and bake it into the disk image that you'll flash to your devices. OTA Connect then takes care of issuing and validating device certificates. We call this type of provisioning xref:client-provisioning-methods.adoc[*shared-credential provisioning*] because you're using one provisioning key for your whole device fleet. 
+All you have to do is download an initial provisioning key and bake it into the disk image that you'll flash to your devices. OTA Connect then takes care of issuing and validating device certificates. We call this type of provisioning xref:client-provisioning-methods.adoc[*shared-credential provisioning*] because you're using one provisioning key for your whole device fleet.
 +
 {zwsp}
 * **Production-level security measure**
 +
 In short, you need to use your own PKI to allocate device certificates. You shouldn't leave this responsibility to the OTA Connect server. What makes things easy also makes things risky. If a malicious actor compromised your OTA Connect account, you would be in trouble because they could get your **private key** for signing device certificates. They could then provision whatever devices they wanted.
 
-= Software updates
+== Software updates
 
 Software updates are protected according to the xref:uptane.adoc[Uptane Framework] specifications. Uptane is one of the first comprehensive automotive OTA updating security frameworks available. This framework requires several metadata files to be signed by two separate keys. This metadata is also validated on the server.
 
@@ -42,6 +42,6 @@ By default, the OTA Connect server acts as a PKI for these keys too. When you cr
 {zwsp}
 * **Production-level security measure**
 +
-As with device provisioning, you should use your own PKI to sign metadata for your software files and updates. Take the two xref:pki.adoc[signing keys] offline and sign the metadata locally. 
+As with device provisioning, you should use your own PKI to sign metadata for your software files and updates. Take the two xref:pki.adoc[signing keys] offline and sign the metadata locally.
 +
 Again, if a malicious actor compromised your OTA Connect account, they could get your **private keys** for signing software metadata. They could then upload infected software and push them out to your devices. This type of attack is infinitely more difficult if you keep your keys offline in a safe place.
