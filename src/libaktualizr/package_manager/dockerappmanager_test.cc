@@ -100,6 +100,9 @@ TEST(DockerAppManager, DockerApp_Fetch) {
   client->package_manager_->install(target);
   std::string content = Utils::readFile(config.pacman.docker_apps_root / "app1/docker-compose.yml");
   ASSERT_EQ("DOCKER-APP RENDER OUTPUT\nfake contents of a docker app\n", content);
+
+  setenv("DOCKER_APP_FAIL", "1", 1);
+  ASSERT_EQ(TargetStatus::kInvalid, client->VerifyTarget(target));
 }
 
 #ifndef __NO_MAIN__

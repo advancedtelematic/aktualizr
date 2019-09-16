@@ -65,6 +65,7 @@ class SotaUptaneClient {
   bool updateImagesMeta();  // TODO: make private once aktualizr has a proper TUF API
   bool checkImagesMetaOffline();
   data::InstallationResult PackageInstall(const Uptane::Target &target);
+  TargetStatus VerifyTarget(const Uptane::Target &target) { return package_manager_->verifyTarget(target); }
 
  protected:
   void addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
