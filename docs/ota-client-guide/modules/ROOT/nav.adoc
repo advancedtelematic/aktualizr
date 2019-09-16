@@ -57,7 +57,7 @@ ifndef::env-github[:pageroot:]
 * xref:{pageroot}device-cred-prov-steps.adoc[Provision devices]
 ** xref:{pageroot}generate-selfsigned-root.adoc[Generate a self-signed root certificate]
 ** xref:{pageroot}provide-root-cert.adoc[Register your root certificate]
-** xref:{pageroot}generate-devicecert.[Generate device certificates]
+** xref:{pageroot}generate-devicecert.adoc[Generate device certificates]
 ** xref:{pageroot}enable-device-cred-provisioning.adoc[Enable and install device certificates]
 
 * xref:{pageroot}secure-software-updates.adoc[Secure your software repository]
