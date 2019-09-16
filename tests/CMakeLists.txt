@@ -55,8 +55,12 @@ include(CMakeParseArguments)
 add_library(testutilities test_utils.cc)
 list(APPEND TEST_LIBS testutilities)
 
+if(BUILD_OSTREE)
 add_library(ostree_mock SHARED ostree_mock.c)
 aktualizr_source_file_checks(ostree_mock.c)
+target_include_directories(ostree_mock PUBLIC ${LIBOSTREE_INCLUDE_DIRS})
+add_dependencies(build_tests ostree_mock)
+endif(BUILD_OSTREE)
 
 # Setup coverage
 if(BUILD_WITH_CODE_COVERAGE)
