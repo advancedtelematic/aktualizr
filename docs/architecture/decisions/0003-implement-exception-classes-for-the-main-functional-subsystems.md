@@ -12,7 +12,7 @@ We need a consistent exceptions class structure, to allow users of libaktualizr 
 
 ## Decision
 
-Concider the following diagram:
+Consider the following diagram:
 ![libaktualizr structure](https://github.com/advancedtelematic/aktualizr/blob/feat/adr-0001/docs/architecture/decisions/libaktualizr.png)
 
 This is NOT a class diagram of the current implementation, but rather logical blocks representing the main libaktualizr subsystems. The proposal is to implement the exception classes accordingly.
