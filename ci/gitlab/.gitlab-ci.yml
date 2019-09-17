@@ -3,6 +3,7 @@ stages:
   - test
   - pkg-test
   - deploy
+  - trigger
 
 variables:
   UBUNTU_BIONIC_MASTER_IMAGE: ${CI_REGISTRY_IMAGE}:ci-master-UBUNTU_BIONIC
@@ -178,3 +179,11 @@ pages:
   # would be nice to have on a per-PR basis: # https://gitlab.com/gitlab-org/gitlab-ce/issues/35141
   only:
     - master
+
+trigger-docsite-build:
+  stage: trigger
+  only:
+    - /^20\d\d\.\d\d?-docs$/
+  trigger:
+    project: olp/edge/ota/documentation/ota-connect-docs
+    branch: master
