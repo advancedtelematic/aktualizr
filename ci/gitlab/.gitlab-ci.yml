@@ -348,3 +348,11 @@ trigger-otf-pipeline:
     variables:
       - $CI_COMMIT_REF_NAME =~ /^\d\d\d\d\.\d+(-\w+)?$/
   allow_failure: true
+
+trigger-docsite-build:
+  stage: trigger
+  only:
+    - /^20\d\d\.\d\d?-docs$/
+  trigger:
+    project: olp/edge/ota/documentation/ota-connect-docs
+    branch: master
