@@ -11,16 +11,16 @@ endif::[]
 [cols="1,2a",options="header"]
 |====================
 | Option | Description
-| `OSTREE_BRANCHNAME`|OSTree branch name. Defaults to `${SOTA_HARDWARE_ID}`. Particularly useful for grouping similar images. Should only contain characters from the character set `[a-zA-Z0-9_-]`.
+| `OSTREE_BRANCHNAME`|OSTree branch name. Defaults to `$\{SOTA_HARDWARE_ID}`. Particularly useful for grouping similar images. Should only contain characters from the character set `[a-zA-Z0-9_-]`.
 | `OSTREE_REPO`|Path to your OSTree repository. Defaults to `$\{DEPLOY_DIR_IMAGE}/ostree_repo`
 | `OSTREE_OSNAME`|OS deployment name on your target device. For more information about deployments and osnames see the https://ostree.readthedocs.io/en/latest/manual/deployment/[OSTree documentation]. Defaults to "poky".
 | `OSTREE_COMMIT_BODY`|Message attached to OSTree commit. Empty by default.
-| `OSTREE_COMMIT_SUBJECT`|Commit subject used by OSTree. Defaults to `Commit-id: ${IMAGE_NAME}`
+| `OSTREE_COMMIT_SUBJECT`|Commit subject used by OSTree. Defaults to `Commit-id: $\{IMAGE_NAME}`
 | `OSTREE_UPDATE_SUMMARY`|Set this to '1' to update summary of OSTree repository on each commit. '0' by default.
 | `OSTREE_DEPLOY_DEVICETREE`|Set this to '1' to include devicetree(s) to boot
 | `GARAGE_SIGN_AUTOVERSION`|Set this to '1' to automatically fetch the last version of the garage tools installed by the aktualizr-native. Otherwise use the fixed version specified in the recipe.
 | `GARAGE_TARGET_URL` | Sets the `--url` parameter of `garage-sign targets add`, which sets a custom URL for the Image repository targets.
-| `GARAGE_TARGET_EXPIRES` | 
+| `GARAGE_TARGET_EXPIRES` |
 // MC: This block shows reusable content snippets when the content is rendered in the docs portal.
 // We reuse the same descriptions in multiple places with includes - if rendered in Github (where includes aren't allowed), we fall back to the old descriptions.
 ifdef::env-github[Sets the `--expires` parameter of `garage-sign targets sign`. Format is a UTC instant such as '2018-01-01T00:01:00Z'.]
