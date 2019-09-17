@@ -14,14 +14,13 @@ endif::[]
 
 1. Modify link:{aktualizr-github-url}/config/sql/schema.sql[] as you see fit
 2. Write a config/sql/migration/migrate.n+1.sql that will convert an existing data to format in schema.sql. Note that old migrations must not be modified.
-
++
 Make sure that the migrate.n+1.sql file updates the 'version' table:
-
++
     DELETE FROM version;
     INSERT INTO version VALUES(...);
-
++
 3. Write a config/sql/rollback/rollback.n+1.sql that will revert the new data format to the previous one. It should contain the opposite steps of migrate.n+1.sql if possible. If the reverse operation is lossy, it should at the minimum bring the device to a state where it can be updated.
-
++
 The 'version' table has to be updated as well, to contain n.
-
 4. If the migration manipulates existing data in a non-trivial way (anything that's not simply a new table creation, deletion, renaming), it is strongly advised to write an explicit migration test with realistic data in link:{aktualizr-github-url}/src/libaktualizr/storage/sqlstorage_test.cc[], similar to `DbMigration18to19`.
