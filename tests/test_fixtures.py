@@ -13,6 +13,7 @@ from functools import wraps
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 
 from fake_http_server.fake_test_server import FakeTestServerBackground
+from sota_tools.treehub_server import create_repo
 
 
 logger = logging.getLogger(__name__)
@@ -22,12 +23,15 @@ class Aktualizr:
 
     def __init__(self, aktualizr_primary_exe, aktualizr_info_exe, id,
                  uptane_server, ca, pkey, cert, wait_port=9040, wait_timeout=60, secondary=None, output_logs=True,
-                 run_mode='once', director=None, image_repo=None, **kwargs):
+                 run_mode='once', director=None, image_repo=None,
+                 sysroot=None, treehub=None, ostree_mock_path=None, **kwargs):
         self.id = id
 
         self._aktualizr_primary_exe = aktualizr_primary_exe
         self._aktualizr_info_exe = aktualizr_info_exe
         self._storage_dir = tempfile.TemporaryDirectory()
+        self._sentinel_file = 'need_reboot'
+        self.reboot_sentinel_file = os.path.join(self._storage_dir.name, self._sentinel_file)
 
         with open(path.join(self._storage_dir.name, 'secondary_config.json'), 'w+') as secondary_config_file:
             secondary_cfg = json.loads(Aktualizr.SECONDARY_CONFIG_TEMPLATE.format(port=wait_port, timeout=wait_timeout))
@@ -42,15 +46,24 @@ class Aktualizr:
                                                                db_path=path.join(self._storage_dir.name, 'sql.db'),
                                                                secondary_cfg_file=self._secondary_config_file,
                                                                director=director.base_url if director else '',
-                                                               image_repo=image_repo.base_url if image_repo else ''))
+                                                               image_repo=image_repo.base_url if image_repo else '',
+                                                               pacmam_type='ostree' if treehub and sysroot else 'fake',
+                                                               ostree_sysroot=sysroot.path if sysroot else '',
+                                                               treehub_server=treehub.base_url if treehub else '',
+                                                               sentinel_dir=self._storage_dir.name,
+                                                               sentinel_name=self._sentinel_file))
             self._config_file = config_file.name
 
         self.add_secondary(secondary) if secondary else None
         self._output_logs = output_logs
         self._run_mode = run_mode
+        self._run_env = {}
+        if sysroot and ostree_mock_path:
+            self._run_env['LD_PRELOAD'] = os.path.abspath(ostree_mock_path)
+            self._run_env['OSTREE_DEPLOYMENT_VERSION_FILE'] = sysroot.version_file
 
     CONFIG_TEMPLATE = '''
-    [tls]     
+    [tls]
     server = "{server_url}"
 
     [import]
@@ -68,13 +81,21 @@ class Aktualizr:
     sqldb_path = "{db_path}"
 
     [pacman]
-    type = "fake"
+    type = "{pacmam_type}"
+    sysroot = "{ostree_sysroot}"
+    ostree_server = "{treehub_server}"
+    os = "dummy-os"
 
     [uptane]
     polling_sec = 0
     secondary_config_file = "{secondary_cfg_file}"
     director_server = "{director}"
     repo_server = "{image_repo}"
+
+    [bootloader]
+    reboot_sentinel_dir = "{sentinel_dir}"
+    reboot_sentinel_name = "{sentinel_name}"
+    reboot_command = ""
 
     [logger]
     loglevel = 1
@@ -106,14 +127,15 @@ class Aktualizr:
             json.dump(sec_cfg, config_file)
 
     def run(self, run_mode):
-        subprocess.run([self._aktualizr_primary_exe, '-c', self._config_file, '--run-mode', run_mode], check=True)
+        subprocess.run([self._aktualizr_primary_exe, '-c', self._config_file, '--run-mode', run_mode],
+                       check=True, env=self._run_env)
 
     def get_info(self):
 
         info_exe_res = None
         for ii in range(0, 6):
             info_exe_res = subprocess.run([self._aktualizr_info_exe, '-c', self._config_file],
-                                          timeout=60, stdout=subprocess.PIPE)
+                                          timeout=60, stdout=subprocess.PIPE, env=self._run_env)
             if info_exe_res.returncode == 0:
                 break
 
@@ -170,9 +192,19 @@ class Aktualizr:
         end = aktualizr_status.find('\\n', start)
         return aktualizr_status[start + len(primary_hash_field):end]
 
+    # ugly stuff that could be removed if Aktualizr had exposed API to check status
+    # or aktializr-info had output status/info in a structured way (e.g. json)
+    def get_primary_pending_version(self):
+        primary_hash_field = 'Pending primary ecu version: '
+        aktualizr_status = self.get_info()
+        start = aktualizr_status.find(primary_hash_field)
+        end = aktualizr_status.find('\\n', start)
+        return aktualizr_status[start + len(primary_hash_field):end]
+
     def __enter__(self):
         self._process = subprocess.Popen([self._aktualizr_primary_exe, '-c', self._config_file, '--run-mode', self._run_mode],
-                                         stdout=None if self._output_logs else open(devnull, 'w'), close_fds=True)
+                                         stdout=None if self._output_logs else open(devnull, 'w'), close_fds=True,
+                                         env=self._run_env)
         logger.debug("Aktualizr has been started")
         return self
 
@@ -183,6 +215,9 @@ class Aktualizr:
 
     def wait_for_completion(self, timeout=60):
         self._process.wait(timeout)
+
+    def emulate_reboot(self):
+        os.remove(self.reboot_sentinel_file)
 
 
 class KeyStore:
@@ -394,6 +429,33 @@ class CustomRepo(UptaneRepo):
                                          ifc=ifc, port=port, client_handler_map=client_handler_map)
 
 
+class Treehub(UptaneRepo):
+    """
+    This server serves requests from an ostree client, i.e. emulates/mocks the treehub server
+    """
+    def __init__(self, ifc, port, client_handler_map={}):
+        self._root = tempfile.TemporaryDirectory()
+        self.root = self._root.name
+        super(Treehub, self).__init__(self.root, ifc=ifc, port=port, client_handler_map=client_handler_map)
+
+    def __enter__(self):
+        self.revision = create_repo(self.root)
+        return super(Treehub, self).__enter__()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        super(Treehub, self).__exit__(exc_type, exc_val, exc_tb)
+        self._root.cleanup()
+
+    class Handler(UptaneRepo.Handler):
+        def default_get(self):
+            if not os.path.exists(self.file_path):
+                self.send_response(404)
+                self.end_headers()
+                return
+
+            super(Treehub.Handler, self).default_get()
+
+
 class DownloadInterruptionHandler:
     def __init__(self, number_of_failures=1, bytes_to_send_before_interruption=10, url=''):
         self._bytes_to_send_before_interruption = bytes_to_send_before_interruption
@@ -584,6 +646,27 @@ class UptaneTestRepo:
 
         return target_hash
 
+    def add_ostree_target(self, id, rev_hash):
+        image_creation_cmdline = [self._repo_manager_exe,
+                                  '--command', 'image',
+                                  '--path', self.root_dir,
+                                  '--targetname', rev_hash,
+                                  '--targetsha256', rev_hash,
+                                  '--targetlength', '0',
+                                  '--targetformat', 'OSTREE',
+                                  '--hwid', id[0]]
+        subprocess.run(image_creation_cmdline, check=True)
+
+        subprocess.run([self._repo_manager_exe,
+                        '--command', 'addtarget',
+                        '--path', self.root_dir,
+                        '--targetname', rev_hash,
+                        '--hwid', id[0],
+                        '--serial', id[1]],
+                       check=True)
+
+        subprocess.run([self._repo_manager_exe, '--path', self.root_dir, '--command', 'signtargets'], check=True)
+
     def __enter__(self):
         self._generate_repo()
         return self
@@ -601,12 +684,12 @@ def with_aktualizr(start=True, output_logs=False, id=('primary-hw-ID-001', str(u
                    run_mode='once'):
     def decorator(test):
         @wraps(test)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args, ostree_mock_path=None, **kwargs):
             aktualizr = Aktualizr(aktualizr_primary_exe=aktualizr_primary_exe,
                            aktualizr_info_exe=aktualizr_info_exe,
                            id=id, ca=KeyStore.ca(), pkey=KeyStore.pkey(), cert=KeyStore.cert(),
-                                  wait_timeout=wait_timeout, output_logs=output_logs,
-                           run_mode=run_mode, **kwargs)
+                           wait_timeout=wait_timeout, output_logs=output_logs, run_mode=run_mode,
+                                  ostree_mock_path=ostree_mock_path, **kwargs)
             if start:
                 with aktualizr:
                     result = test(*args, **kwargs, aktualizr=aktualizr)
@@ -784,3 +867,71 @@ def with_customrepo(start=True, handlers=[]):
             return result
         return wrapper
     return decorator
+
+
+class Sysroot:
+    repo_path = 'ostree_repo'
+
+    def __init__(self):
+        self._root = tempfile.TemporaryDirectory()
+        self.path = os.path.join(self._root.name, self.repo_path)
+        self.version_file = os.path.join(self.path, 'version')
+
+    def __enter__(self):
+        subprocess.run(['cp', '-r', self.repo_path, self._root.name], check=True)
+
+        initial_revision = self.get_revision()
+        with open(self.version_file, 'wt') as version_file:
+            version_file.writelines(['{}\n'.format(initial_revision),
+                                     '{}\n'.format('0'),
+                                     '{}\n'.format(initial_revision),
+                                     '{}\n'.format('0')])
+
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._root.cleanup()
+
+    def get_revision(self):
+        rev_cmd_res = subprocess.run(['ostree', 'rev-parse', '--repo', self.path + '/ostree/repo', 'generate-remote:generated'],
+                                     timeout=60, check=True, stdout=subprocess.PIPE)
+
+        return rev_cmd_res.stdout.decode('ascii').rstrip('\n')
+
+    def update_revision(self, rev):
+        with open(self.version_file, 'wt') as version_file:
+            version_file.writelines(['{}\n'.format(rev),
+                                     '{}\n'.format('1'),
+                                     '{}\n'.format(rev),
+                                     '{}\n'.format('1')])
+
+
+def with_sysroot(ostree_mock_path='tests/libostree_mock.so'):
+    def decorator(test):
+        @wraps(test)
+        def wrapper(*args, **kwargs):
+            with Sysroot() as sysroot:
+                return test(*args, **kwargs, sysroot=sysroot, ostree_mock_path=ostree_mock_path)
+        return wrapper
+    return decorator
+
+
+def with_treehub(port=7777, handlers=[]):
+    def decorator(test):
+        @wraps(test)
+        def wrapper(*args, **kwargs):
+            def func(handler_map={}):
+                with Treehub('localhost', port=port, client_handler_map=handler_map) as treehub:
+                    return test(*args, **kwargs, treehub=treehub)
+
+            if handlers and len(handlers) > 0:
+                for handler in handlers:
+                    result = func(handler.map(kwargs.get('test_path', '')))
+                    if not result:
+                        break
+            else:
+                result = func()
+            return result
+        return wrapper
+    return decorator
+

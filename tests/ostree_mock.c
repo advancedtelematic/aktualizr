@@ -40,7 +40,6 @@ OstreeDeployment* ostree_sysroot_get_booted_deployment(OstreeSysroot* self) {
 
   if (deployment_version_file != NULL &&
       (deployment_from_file = ostree_sysroot_get_booted_deployment_from_file(deployment_version_file)) != NULL) {
-    printf("%s: Reading ostree deployment info from %s", __FILE__, deployment_version_file);
     return deployment_from_file;
   }
 
@@ -56,7 +55,7 @@ static int read_deployment_info(FILE* file, struct OstreeDeployment* deployment)
   struct OstreeDeployment deployment_res;
 
   // TODO: make it more robust and reliable as a file might contain a value exceeding 255
-  if (fscanf(file, "%s\n", deployment_res.rev) != 1) {
+  if (fscanf(file, "%254s\n", deployment_res.rev) != 1) {
     return -1;
   }
 
@@ -72,7 +71,6 @@ static int read_deployment_info(FILE* file, struct OstreeDeployment* deployment)
 
 static int get_ostree_deployment_info(const char* filename, struct OstreeDeployment* deployed,
                                       struct OstreeDeployment* booted) {
-  printf("\n>>>>>>>>>> Reading the file: %s\n\n", filename);
   FILE* file = fopen(filename, "r");
   if (file == NULL) {
     printf("\n>>>>>>>>>> Failed to open the file: %s\n\n", filename);
@@ -81,7 +79,7 @@ static int get_ostree_deployment_info(const char* filename, struct OstreeDeploym
 
   int return_code = -1;
 
-  while (1) {
+  do {
     struct OstreeDeployment deployed_res;
     if (read_deployment_info(file, &deployed_res) != 0) {
       break;
@@ -97,8 +95,7 @@ static int get_ostree_deployment_info(const char* filename, struct OstreeDeploym
 
     *deployed = deployed_res;
     return_code = 0;
-    break;
-  }
+  } while (0);
 
   fclose(file);
   if (return_code != 0) {

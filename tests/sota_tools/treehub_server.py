@@ -52,7 +52,6 @@ class TreehubServerHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
     def do_POST(self):
-        print("POST: %s\n" % self.path)
         ctype, pdict = cgi.parse_header(self.headers['Content-Type'])
         print("Upload type: {}".format(ctype))
         if ctype == 'multipart/form-data':
@@ -125,44 +124,46 @@ def create_repo(path):
 
         subprocess.run(['ostree', 'init', '--mode=archive-z2',
                         '--repo={}'.format(path)], check=True)
-        subprocess.run(['ostree', '--repo={}'.format(path), 'commit',
+        ostree_gen_res = subprocess.run(['ostree', '--repo={}'.format(path), 'commit',
                         '--consume', '--branch=master',
                         '--owner-uid=0', '--owner-gid=0', '--no-xattrs',
                         '--timestamp=1970-01-01 00:00:00 +0000', str(tree)],
-                       check=True)
+                       check=True, stdout=subprocess.PIPE)
+        return ostree_gen_res.stdout.decode('ascii').rstrip('\n')
     except PermissionError:
         time.sleep(100)
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument('-p', '--port', type=int, required=True,
-                    help='listening port')
-parser.add_argument('-c', '--create', action='store_true',
-                    help='create new ostree repo')
-parser.add_argument('-d', '--dir', help='ostree repo directory')
-parser.add_argument('-f', '--fail', type=int, help='fail every nth request')
-parser.add_argument('-s', '--sleep', type=float,
-                    help='sleep for n.n seconds for every GET request')
-parser.add_argument('-t', '--tls', action='store_true',
-                    help='require TLS from clients')
-args = parser.parse_args()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p', '--port', type=int, required=True,
+                        help='listening port')
+    parser.add_argument('-c', '--create', action='store_true',
+                        help='create new ostree repo')
+    parser.add_argument('-d', '--dir', help='ostree repo directory')
+    parser.add_argument('-f', '--fail', type=int, help='fail every nth request')
+    parser.add_argument('-s', '--sleep', type=float,
+                        help='sleep for n.n seconds for every GET request')
+    parser.add_argument('-t', '--tls', action='store_true',
+                        help='require TLS from clients')
+    args = parser.parse_args()
 
-signal.signal(signal.SIGTERM, sig_handler)
-try:
-    with ExitStack() as stack:
-        if args.dir:
-            repo_path = args.dir
-        else:
-            repo_path = stack.enter_context(TemporaryDirectory(prefix='treehub-'))
-        if args.create:
-            create_repo(repo_path)
-        httpd = HTTPServer(('', args.port), TreehubServerHandler)
-        if args.tls:
-            httpd.socket = ssl.wrap_socket(httpd.socket,
-                                           certfile='tests/fake_http_server/server.crt',
-                                           ca_certs='tests/fake_http_server/server.crt',
-                                           keyfile='tests/fake_http_server/server.key',
-                                           server_side=True)
-        httpd.serve_forever()
-except (SystemExit, KeyboardInterrupt) as e:
-    print("%s exiting..." % sys.argv[0])
+    signal.signal(signal.SIGTERM, sig_handler)
+    try:
+        with ExitStack() as stack:
+            if args.dir:
+                repo_path = args.dir
+            else:
+                repo_path = stack.enter_context(TemporaryDirectory(prefix='treehub-'))
+            if args.create:
+                create_repo(repo_path)
+            httpd = HTTPServer(('', args.port), TreehubServerHandler)
+            if args.tls:
+                httpd.socket = ssl.wrap_socket(httpd.socket,
+                                               certfile='tests/fake_http_server/server.crt',
+                                               ca_certs='tests/fake_http_server/server.crt',
+                                               keyfile='tests/fake_http_server/server.key',
+                                               server_side=True)
+            httpd.serve_forever()
+    except (SystemExit, KeyboardInterrupt) as e:
+        print("%s exiting..." % sys.argv[0])
