@@ -41,6 +41,8 @@ include:
 Docker Setup:
   image: docker:18
   stage: docker
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   services:
     - docker:18-dind
   before_script:
@@ -97,6 +99,8 @@ nop11:
     TEST_WITH_TESTSUITE: '0'
   image: "$UBUNTU_BIONIC_PR_IMAGE"
   stage: test
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   cache:
     key: "$CI_JOB_NAME"
     paths:
@@ -117,6 +121,8 @@ debian-build+static:
     TEST_WITH_DOCS: '1'
   image: "$DEBIAN_TESTING_PR_IMAGE"
   stage: test
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   cache:
     key: "$CI_JOB_NAME"
     paths:
@@ -132,6 +138,8 @@ bionic-pkg:
 
   image: "$UBUNTU_BIONIC_PR_IMAGE"
   stage: test
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   cache:
     key: "$CI_JOB_NAME"
     paths:
@@ -151,6 +159,8 @@ xenial-pkg:
 
   image: "$UBUNTU_XENIAL_PR_IMAGE"
   stage: test
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   cache:
     key: "$CI_JOB_NAME"
     paths:
@@ -170,6 +180,8 @@ bionic-pkg-test:
   dependencies:
     - bionic-pkg
   stage: pkg-test
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   script:
     - ./scripts/test_install_garage_deploy.sh
 
@@ -181,6 +193,8 @@ xenial-pkg-test:
   dependencies:
     - xenial-pkg
   stage: pkg-test
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   script:
     - ./scripts/test_install_garage_deploy.sh
     - ./scripts/test_install_aktualizr_and_update.sh
