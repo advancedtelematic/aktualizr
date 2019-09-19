@@ -41,6 +41,8 @@ include:
 Docker Setup:
   image: docker:18
   stage: docker
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   services:
     - docker:18-dind
   before_script:
@@ -79,6 +81,8 @@ coverage:
     TEST_SOTA_PACKED_CREDENTIALS: "$CI_PROJECT_DIR/credentials.zip"
   image: "$UBUNTU_BIONIC_PR_IMAGE"
   stage: test
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   cache:
     key: "$CI_JOB_NAME"
     paths:
@@ -97,6 +101,8 @@ nop11:
     TEST_WITH_TESTSUITE: '0'
   image: "$UBUNTU_BIONIC_PR_IMAGE"
   stage: test
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   cache:
     key: "$CI_JOB_NAME"
     paths:
@@ -117,6 +123,8 @@ debian-build+static:
     TEST_WITH_DOCS: '1'
   image: "$DEBIAN_TESTING_PR_IMAGE"
   stage: test
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   cache:
     key: "$CI_JOB_NAME"
     paths:
@@ -132,6 +140,8 @@ bionic-pkg:
 
   image: "$UBUNTU_BIONIC_PR_IMAGE"
   stage: test
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   cache:
     key: "$CI_JOB_NAME"
     paths:
@@ -151,6 +161,8 @@ xenial-pkg:
 
   image: "$UBUNTU_XENIAL_PR_IMAGE"
   stage: test
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   cache:
     key: "$CI_JOB_NAME"
     paths:
@@ -170,6 +182,8 @@ bionic-pkg-test:
   dependencies:
     - bionic-pkg
   stage: pkg-test
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   script:
     - ./scripts/test_install_garage_deploy.sh
 
@@ -181,6 +195,8 @@ xenial-pkg-test:
   dependencies:
     - xenial-pkg
   stage: pkg-test
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   script:
     - ./scripts/test_install_garage_deploy.sh
     - ./scripts/test_install_aktualizr_and_update.sh
@@ -196,6 +212,9 @@ OE Docker setup:
       - $OE_PTEST
       - $CI_COMMIT_REF_NAME == "master"
       - $CI_COMMIT_REF_NAME =~ /^\d\d\d\d\.\d+(-\w+)?$/
+  except:
+    - /^20\d\d\.\d\d?-docs$/
+
 
 OE Checkout:
   extends: .bb_checkout
@@ -206,7 +225,8 @@ OE Checkout:
       - $OE_PTEST
       - $CI_COMMIT_REF_NAME == "master"
       - $CI_COMMIT_REF_NAME =~ /^\d\d\d\d\.\d+(-\w+)?$/
-
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   variables:
     MANIFEST: master
 
@@ -221,7 +241,8 @@ Ptest qemux86_64:
       - $OE_PTEST
       - $CI_COMMIT_REF_NAME == "master"
       - $CI_COMMIT_REF_NAME =~ /^\d\d\d\d\.\d+(-\w+)?$/
-
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   variables:
     TEST_BUILD_DIR: 'build-ptest'
     OE_SELFTESTS: 'updater_qemux86_64_ptest'
@@ -346,4 +367,14 @@ trigger-otf-pipeline:
   only:
     variables:
       - $CI_COMMIT_REF_NAME =~ /^\d\d\d\d\.\d+(-\w+)?$/
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   allow_failure: true
+
+trigger-docsite-build:
+  stage: trigger
+  only:
+    - /^20\d\d\.\d\d?-docs$/
+  trigger:
+    project: olp/edge/ota/documentation/ota-connect-docs
+    branch: master
