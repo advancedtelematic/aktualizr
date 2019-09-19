@@ -3,6 +3,7 @@ stages:
   - test
   - pkg-test
   - deploy
+  - trigger
 
 variables:
   UBUNTU_BIONIC_MASTER_IMAGE: ${CI_REGISTRY_IMAGE}:ci-master-UBUNTU_BIONIC
@@ -23,6 +24,8 @@ variables:
 Docker Setup:
   image: docker:latest
   stage: docker
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   services:
     - docker:dind
   before_script:
@@ -60,6 +63,8 @@ coverage:
     TEST_SOTA_PACKED_CREDENTIALS: "$CI_PROJECT_DIR/credentials.zip"
   image: "$UBUNTU_BIONIC_PR_IMAGE"
   stage: test
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   cache:
     key: "$CI_JOB_NAME"
     paths:
@@ -78,6 +83,8 @@ nop11:
     TEST_WITH_TESTSUITE: '0'
   image: "$UBUNTU_BIONIC_PR_IMAGE"
   stage: test
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   cache:
     key: "$CI_JOB_NAME"
     paths:
@@ -98,6 +105,8 @@ debian-build+static:
     TEST_WITH_DOCS: '1'
   image: "$DEBIAN_TESTING_PR_IMAGE"
   stage: test
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   cache:
     key: "$CI_JOB_NAME"
     paths:
@@ -113,6 +122,8 @@ bionic-pkg:
 
   image: "$UBUNTU_BIONIC_PR_IMAGE"
   stage: test
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   cache:
     key: "$CI_JOB_NAME"
     paths:
@@ -132,6 +143,8 @@ xenial-pkg:
 
   image: "$UBUNTU_XENIAL_PR_IMAGE"
   stage: test
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   cache:
     key: "$CI_JOB_NAME"
     paths:
@@ -149,6 +162,8 @@ bionic-pkg-test:
 
   image: "$UBUNTU_BIONIC_PR_INSTALLIMAGE"
   stage: pkg-test
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   script:
     - ./scripts/test_install_garage_deploy.sh
 
@@ -158,6 +173,8 @@ xenial-pkg-test:
 
   image: "$UBUNTU_XENIAL_PR_INSTALLIMAGE"
   stage: pkg-test
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   script:
     - ./scripts/test_install_garage_deploy.sh
     - ./scripts/test_install_aktualizr_and_update.sh
@@ -178,3 +195,11 @@ pages:
   # would be nice to have on a per-PR basis: # https://gitlab.com/gitlab-org/gitlab-ce/issues/35141
   only:
     - master
+
+trigger-docsite-build:
+  stage: trigger
+  only:
+    - /^20\d\d\.\d\d?-docs$/
+  trigger:
+    project: olp/edge/ota/documentation/ota-connect-docs
+    branch: master
