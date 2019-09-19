@@ -26,5 +26,5 @@ Provisioning procedure depends on your provisioning recipe, i.e. the value of `S
 For more extensive information on provisioning methods, see the following topics from the OTA Connect Developer guide:
 
 //MC: Web links because this topic is only viewable in Github
-* link:https://docs.ota.here.com/ota-client/dev/client-provisioning-methods.html[Device provisioning methods]
-* link:https://docs.ota.here.com/ota-client/dev/enable-device-cred-provisioning.html[Enable device-credential provisioning and install device certificates]
+* link:https://docs.ota.here.com/ota-client/latest/client-provisioning-methods.html[Device provisioning methods]
+* link:https://docs.ota.here.com/ota-client/latest/enable-device-cred-provisioning.html[Enable device-credential provisioning and install device certificates]
