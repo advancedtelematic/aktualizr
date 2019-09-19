@@ -81,6 +81,8 @@ coverage:
     TEST_SOTA_PACKED_CREDENTIALS: "$CI_PROJECT_DIR/credentials.zip"
   image: "$UBUNTU_BIONIC_PR_IMAGE"
   stage: test
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   cache:
     key: "$CI_JOB_NAME"
     paths:
@@ -210,6 +212,9 @@ OE Docker setup:
       - $OE_PTEST
       - $CI_COMMIT_REF_NAME == "master"
       - $CI_COMMIT_REF_NAME =~ /^\d\d\d\d\.\d+(-\w+)?$/
+  except:
+    - /^20\d\d\.\d\d?-docs$/
+
 
 OE Checkout:
   extends: .bb_checkout
@@ -220,7 +225,8 @@ OE Checkout:
       - $OE_PTEST
       - $CI_COMMIT_REF_NAME == "master"
       - $CI_COMMIT_REF_NAME =~ /^\d\d\d\d\.\d+(-\w+)?$/
-
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   variables:
     MANIFEST: master
 
@@ -235,7 +241,8 @@ Ptest qemux86_64:
       - $OE_PTEST
       - $CI_COMMIT_REF_NAME == "master"
       - $CI_COMMIT_REF_NAME =~ /^\d\d\d\d\.\d+(-\w+)?$/
-
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   variables:
     TEST_BUILD_DIR: 'build-ptest'
     OE_SELFTESTS: 'updater_qemux86_64_ptest'
@@ -361,6 +368,8 @@ trigger-otf-pipeline:
   only:
     variables:
       - $CI_COMMIT_REF_NAME =~ /^\d\d\d\d\.\d+(-\w+)?$/
+  except:
+    - /^20\d\d\.\d\d?-docs$/
   allow_failure: true
 
 trigger-docsite-build:
