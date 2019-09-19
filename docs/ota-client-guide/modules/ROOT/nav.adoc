@@ -36,7 +36,7 @@ ifndef::env-github[:pageroot:]
 ** xref:{pageroot}build-qemu.adoc[Build for QEMU]
 // OTA-3629: Uncomment when AGL ready:** xref:{pageroot}build-agl.adoc[Build for Automotive Grade Linux]
 * xref:{pageroot}simulate-device-basic.adoc[Simulate a device without building a disk image]
-* xref:{pageroot}pushing-updates.adoc[Upload a sample software version]
+* xref:{pageroot}pushing-updates.adoc[Add software to your Yocto image]
 * xref:{pageroot}update-single-device.adoc[Update a second device with the sample software]
 
 .Build your own OTA-enabled solution
