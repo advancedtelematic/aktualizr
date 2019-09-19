@@ -1,4 +1,4 @@
-= Build a QEMU/VirtualBox 
+= Build a QEMU/VirtualBox image
 ifdef::env-github[]
 
 [NOTE]

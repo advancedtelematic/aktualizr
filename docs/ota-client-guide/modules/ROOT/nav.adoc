@@ -50,9 +50,10 @@ ifndef::env-github[:pageroot:]
 
 * xref:{pageroot}build-ota-enabled-images.adoc[Build and deploy OTA-enabled disk images]
 ** xref:{pageroot}supported-boards.adoc[Supported boards]
+** xref:{pageroot}yocto-release-branches.adoc[Yocto release branches]
 ** xref:{pageroot}add-ota-functonality-existing-yocto-project.adoc[Add OTA functionality to a Yocto project]
 ** xref:{pageroot}libaktualizr-integrate.adoc[Add libaktualizr integration to a Yocto project]
-** xref:{pageroot}yocto-release-branches.adoc[Yocto release branches]
+
 
 * xref:{pageroot}device-cred-prov-steps.adoc[Provision devices]
 ** xref:{pageroot}generate-selfsigned-root.adoc[Generate a self-signed root certificate]
