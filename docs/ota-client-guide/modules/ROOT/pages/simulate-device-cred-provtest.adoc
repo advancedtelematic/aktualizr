@@ -16,26 +16,25 @@ To use the `aktualizr-cert-provider` command, you must still generate a xref:get
 In production, you would use the root CA to sign the device certificate, but this method is useful for testing.
 
 To simulate provisioning with a device certificate, follow these steps: ::
-1. Add the following lines to your local.conf:
+. Add the following lines to your local.conf:
 +
 ----
 SOTA_CLIENT_PROV = "aktualizr-ca-device-prov"
 SOTA_DEPLOY_CREDENTIALS = "0"
 ----
-
-1. Build a standard image using the bitbake command.
-1. Boot the image.
+. Build a standard image using the bitbake command.
+. Boot the image.
 +
 The device should not be able to provision with a provisioning key. To verify this, log in to the {product-name} server and make sure that the device does not appear in the list of devices.
-1. Load the device credentials on to the device with `aktualizr-cert-provider` command:
+. Load the device credentials on to the device with `aktualizr-cert-provider` command:
 +
 ----
 aktualizr-cert-provider -c credentials.zip -t <device> -d /var/sota/import -r -u
 ----
 +
-You can find the link:https://github.com/advancedtelematic/aktualizr/tree/master/src/cert_provider[`aktualizr-cert-provider` source] in the aktualizr repo. You can also find a compiled binary in the host work directory of bitbake. 
+You can find the link:https://github.com/advancedtelematic/aktualizr/tree/master/src/cert_provider[`aktualizr-cert-provider` source] in the aktualizr repo. You can also find a compiled binary in the host work directory of bitbake.
 +
 The path should resemble the following example:
 +
-`tmp/work/x86_64-linux/aktualizr-native/1.0+gitAUTOINC+<version>/build/src/cert_provider/aktualizr-cert-provider`. 
+`tmp/work/x86_64-linux/aktualizr-native/1.0+gitAUTOINC+<version>/build/src/cert_provider/aktualizr-cert-provider`.
 

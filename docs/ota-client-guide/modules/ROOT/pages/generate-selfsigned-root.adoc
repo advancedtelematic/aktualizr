@@ -35,5 +35,5 @@ Then, generate the key and cert using openssl on the command line:
 include::example$start.sh[tags="genserverkeys"]
 ----
 +
-This will create a `./${SERVER_DIR}/devices/` directory with the `ca.crt` certificate and a `ca.key` private key. Keep the private key safe and secure.
-. Next, xref:provide-testroot-cert.adoc[register the test root certificate with your OTA Connect account]. 
+This will create a `./$\{SERVER_DIR}/devices/` directory with the `ca.crt` certificate and a `ca.key` private key. Keep the private key safe and secure.
+. Next, xref:provide-testroot-cert.adoc[register the test root certificate with your OTA Connect account].

@@ -15,12 +15,12 @@ This topic is supposed to outline the main use cases the product aims to address
 For libaktualizr We already have this topic: https://docs.atsgarage.com/client-config/advanced-update-control-with-libaktualizr.html
 The following text was taken from the linked topic and is a proposal for the introcdution to the integration guide.
 
-Feel free to adapt it or leave as-is. 
+Feel free to adapt it or leave as-is.
 ////
 
 The OTA Connect client (aktualizr) is designed to be run as a standalone component on an embedded system and can manage the entire software update process. However, most automotive production use cases will have requirements that go beyond what the standalone client can provide. For example, some in-vehicle interfaces are proprietary and under NDA, so their implementation must be kept separate from aktualizr.
 
-= Why use libaktualizr?
+== Why use libaktualizr?
 
 You can integrate the OTA update functionality yourself and minimize the involvement of external consultants. For this purpose, you can use libaktualizr to build your own OTA update solution.
 

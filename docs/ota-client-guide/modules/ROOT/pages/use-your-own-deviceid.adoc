@@ -24,7 +24,7 @@ However you can try our test procedures to specify your own Device IDs. Earlier 
 
 ** Replace the existing sample command:
 +
-`export device_id=${DEVICE_ID:-${DEVICE_UUID}}`
+`export device_id=${DEVICE_ID:-$\{DEVICE_UUID}}`
 +
 Update the command with your device ID instead:
 +
