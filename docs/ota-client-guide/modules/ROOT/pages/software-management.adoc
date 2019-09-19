@@ -1,4 +1,5 @@
 = Software management
+:page-partial:
 ifdef::env-github[]
 
 [NOTE]
@@ -7,7 +8,7 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
-:page-partial:
+
 
 When you develop software updates for OTA deployment, it's important to understand the two different ways in which you can get software into OTA Connect.
 
