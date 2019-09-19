@@ -1,4 +1,5 @@
 = Running aktualizr with fault injection
+:page-lastupdated: {docdate}
 ifdef::env-github[]
 
 [NOTE]

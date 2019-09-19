@@ -1,4 +1,6 @@
 = Simulate a device without building a disk image
+:page-partial:
+:page-lastupdated: {docdate}
 ifdef::env-github[]
 
 [NOTE]
@@ -7,7 +9,7 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
-:page-partial:
+
 :page-layout: page
 :page-categories: [quickstarts]
 :page-date: 2018-11-19 11:28:47

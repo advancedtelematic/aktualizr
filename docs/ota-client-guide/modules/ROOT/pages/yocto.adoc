@@ -1,4 +1,5 @@
 == Yocto
+:page-lastupdated: {docdate}
 ifdef::env-github[]
 
 [NOTE]

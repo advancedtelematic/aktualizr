@@ -1,4 +1,5 @@
 = Release process
+:page-lastupdated: {docdate}
 :toc: macro
 :toc-title:
 :sectnums:

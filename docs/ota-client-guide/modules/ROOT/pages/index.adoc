@@ -1,4 +1,5 @@
 = Introduction
+:page-lastupdated: {docdate}
 ifdef::env-github[]
 
 [NOTE]

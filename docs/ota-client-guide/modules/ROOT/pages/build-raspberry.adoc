@@ -1,4 +1,6 @@
 = Build a Raspberry Pi image
+:page-partial:
+:page-lastupdated: {docdate}
 ifdef::env-github[]
 
 [NOTE]
@@ -7,7 +9,7 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
-:page-partial:
+
 :page-layout: page
 :page-categories: [quickstarts]
 :page-date: 2017-05-16 15:48:37

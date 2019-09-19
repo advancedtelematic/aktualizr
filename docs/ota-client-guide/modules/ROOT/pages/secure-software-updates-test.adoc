@@ -1,4 +1,5 @@
 = Test software update security
+:page-lastupdated: {docdate}
 ifdef::env-github[]
 
 [NOTE]

@@ -1,4 +1,5 @@
 = Generate a self-signed root certificate
+:page-lastupdated: {docdate}
 ifdef::env-github[]
 
 [NOTE]

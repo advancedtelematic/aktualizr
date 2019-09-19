@@ -1,4 +1,5 @@
 = Install the "garage deploy" tool
+:page-lastupdated: {docdate}
 ifdef::env-github[]
 
 [NOTE]

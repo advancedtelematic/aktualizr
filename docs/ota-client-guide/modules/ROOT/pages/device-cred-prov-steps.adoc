@@ -1,4 +1,5 @@
 = Set Up Device Provisioning
+:page-lastupdated: {docdate}
 ifdef::env-github[]
 
 [NOTE]

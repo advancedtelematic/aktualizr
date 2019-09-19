@@ -1,4 +1,5 @@
 = Integrate libaktualizr into your solution
+:page-lastupdated: {docdate}
 ifdef::env-github[]
 
 [NOTE]

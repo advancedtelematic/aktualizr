@@ -1,4 +1,5 @@
 = Supporting Technologies
+:page-lastupdated: {docdate}
 ifdef::env-github[]
 
 [NOTE]

@@ -1,4 +1,5 @@
 = Posix Secondaries aka IP Secondaries: configuration and emulation of Primary and Secondary on a local host
+:page-lastupdated: {docdate}
 ifdef::env-github[]
 
 [NOTE]
