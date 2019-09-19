@@ -75,4 +75,4 @@ sudo resize2fs /dev/sdX2 <1>
 
 You should now be able to boot your device and have it show up in your {product-name-short} account.
 
-
+include::partial$recommended-steps.adoc[tags=firstbuild-nextstep]
