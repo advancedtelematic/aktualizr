@@ -83,7 +83,7 @@ Once you've installed `garage-deploy` tool, you're ready to perform the followin
 
 * Move device images from one account to another--for example, to send a development build to the QA team, or to send a release candidate to the deployment team.
 +
-For more information, see "xref:crossdeploying-device-images-to-a-different-account.adoc[Cross-deploy device images to a different account]".
+For more information, see "xref:cross-deploy-images.adoc[Cross-deploy device images to a different account]".
 
 * Create offline signing keys that you manage yourself and rotate out the installed online keys.
 +
