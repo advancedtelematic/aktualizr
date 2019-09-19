@@ -154,3 +154,5 @@ sudo ../meta-updater-raspberrypi/scripts/flash-image.sh <device> <1>
 TIP: You can also write the image using `dd`, but since the wrong kind of typo in a dd command is so dangerous, we don't recommend it. If you really want to do it that way, though, inspect the shell script to find the required commands.
 
 Now, put the card into your Pi, plug it into a *wired* internet connection, and power it on. You should see it come online in a minute or two. It will generate a random name for itself during autoprovisioning; you can change the name later.
+
+include::partial$recommended-steps.adoc[tags=firstbuild-nextstep]

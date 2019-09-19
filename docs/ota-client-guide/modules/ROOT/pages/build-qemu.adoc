@@ -45,3 +45,5 @@ If the specified overlay image doesn't yet exist, it will be created first, or l
 ****
 
 You should see your new device appear in {product-name-short} shortly after it boots. It will generate a random name for itself during autoprovisioning; you can change the name later.
+
+include::partial$recommended-steps.adoc[tags=firstbuild-nextstep]

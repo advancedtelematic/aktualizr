@@ -1,4 +1,4 @@
-= Upload a sample software version
+= Upload an updated software version
 :page-partial:
 ifdef::env-github[]
 

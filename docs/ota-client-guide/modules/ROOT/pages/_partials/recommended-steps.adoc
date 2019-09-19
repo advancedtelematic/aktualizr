@@ -115,3 +115,12 @@ Once you understand how the libaktualizr demo application works, you'll want to 
 After you've finished integration and development, you'll need to move disk images from one account to another. For example, you might want to send a development build that you’re happy with to the QA team, or send that build to the deployment team once it’s passed QA.
 
 //  end::deploy-steps[]
+
+//  tag::firstbuild-nextstep[]
+[TIP]
+====
+Once you've build your first image, try adding some new software and xref:ota-client::pushing-updates.adoc[push your update to the OTA Connect server].
+====
+//MC: full versioned xref because snippet is displayed in two components.
+
+//  end::firstbuild-nextstep[]
