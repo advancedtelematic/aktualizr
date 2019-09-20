@@ -8,7 +8,7 @@ from os import getcwd, chdir
 from test_fixtures import with_aktualizr, with_uptane_backend, KeyStore, with_secondary, with_path,\
     DownloadInterruptionHandler, MalformedJsonHandler, with_director, with_imagerepo, InstallManager,\
     with_install_manager, with_images, MalformedImageHandler, with_customrepo, SlowRetrievalHandler, \
-    RedirectHandler
+    RedirectHandler, with_sysroot, with_treehub
 
 
 logger = logging.getLogger(__file__)
@@ -139,6 +139,55 @@ def test_backend_failure_sanity_customrepo_update_after_image_download_failure(i
 
 
 """
+    Verifies whether aktualizr is updatable after failure of object(s) download from Treehub/ostree repo
+    with follow-up successful download.
+
+    Currently, it's tested against two types of object download failure:
+    - download interruption - object download is interrupted once, after that it's successful
+    - malformed object - object download is successful but it's malformed. It happens once after that it's successful
+"""
+@with_uptane_backend(start_generic_server=True, port=8888)
+@with_director()
+@with_treehub(handlers=[
+                        DownloadInterruptionHandler(url='/objects/41/5ce9717fc7a5f4d743a4f911e11bd3ed83930e46756303fd13a3eb7ed35892.filez'),
+                        MalformedImageHandler(url='/objects/41/5ce9717fc7a5f4d743a4f911e11bd3ed83930e46756303fd13a3eb7ed35892.filez'),
+
+                        # TODO: ostree objects download is not resilient to `Slow Retrieval Attack`
+                        # https://saeljira.it.here.com/browse/OTA-3737
+                        #SlowRetrievalHandler(url='/objects/6b/1604b586fcbe052bbc0bd9e1c8040f62e085ca2e228f37df957ac939dff361.filez'),
+
+                        # TODO: Limit a number of HTTP redirects within a single request processing
+                        # https://saeljira.it.here.com/browse/OTA-3729
+                        #RedirectHandler(number_of_redirects=1000, url='/objects/41/5ce9717fc7a5f4d743a4f911e11bd3ed83930e46756303fd13a3eb7ed35892.filez')
+])
+@with_sysroot()
+@with_aktualizr(start=False, run_mode='once')
+def test_backend_failure_sanity_treehub_update_after_image_download_failure(uptane_repo,
+                                                                            aktualizr,
+                                                                            director,
+                                                                            uptane_server,
+                                                                            sysroot, treehub):
+    target_rev = treehub.revision
+    uptane_repo.add_ostree_target(aktualizr.id, target_rev)
+    with aktualizr:
+        aktualizr.wait_for_completion()
+
+    pending_rev = aktualizr.get_primary_pending_version()
+    if pending_rev != target_rev:
+        logger.error("Pending version {} != the target one {}".format(pending_rev, target_rev))
+        return False
+
+    sysroot.update_revision(pending_rev)
+    aktualizr.emulate_reboot()
+
+    with aktualizr:
+        aktualizr.wait_for_completion()
+
+    result = director.get_install_result() and (target_rev == aktualizr.get_current_primary_image_info())
+    return result
+
+
+"""
     Verifies if aktualizr supports redirects - update is successful after redirect
     Note: should aktualizr support unlimited number of redirects
 """
@@ -214,6 +263,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Test backend failure')
     parser.add_argument('-b', '--build-dir', help='build directory', default='build')
     parser.add_argument('-s', '--src-dir', help='source directory', default='.')
+    parser.add_argument('-o', '--ostree', help='ostree support', default='OFF')
     input_params = parser.parse_args()
 
     KeyStore.base_dir = input_params.src_dir
@@ -221,6 +271,7 @@ if __name__ == "__main__":
     chdir(input_params.build_dir)
 
     test_suite = [
+                    test_backend_failure_sanity_treehub_update_after_image_download_failure,
                     test_backend_failure_sanity_director_update_after_metadata_download_failure,
                     test_backend_failure_sanity_imagerepo_update_after_metadata_download_failure,
                     test_backend_failure_sanity_imagerepo_update_after_image_download_failure,
@@ -229,6 +280,9 @@ if __name__ == "__main__":
                     test_backend_failure_sanity_imagerepo_unsuccessful_download,
                     test_backend_failure_sanity_customrepo_update_redirect,
     ]
+
+    if input_params.ostree == 'ON':
+        test_suite.append(test_backend_failure_sanity_treehub_update_after_image_download_failure)
 
     test_suite_run_result = True
     for test in test_suite:

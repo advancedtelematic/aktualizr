@@ -23,10 +23,7 @@ target_link_libraries(t_aktualizr virtual_secondary)
 if (BUILD_OSTREE)
     add_aktualizr_test(NAME aktualizr_fullostree SOURCES aktualizr_fullostree_test.cc PROJECT_WORKING_DIRECTORY ARGS $<TARGET_FILE:uptane-generator> ${PROJECT_BINARY_DIR}/ostree_repo)
     set_target_properties(t_aktualizr_fullostree PROPERTIES LINK_FLAGS -Wl,--export-dynamic)
-    add_dependencies(t_aktualizr_fullostree ostree_mock uptane-generator make_ostree_sysroot)
-    set_tests_properties(test_aktualizr_fullostree PROPERTIES
-        ENVIRONMENT LD_PRELOAD=$<TARGET_FILE:ostree_mock>
-        LABELS "noptest")
+    add_dependencies(t_aktualizr_fullostree uptane-generator make_ostree_sysroot)
     target_link_libraries(t_aktualizr_fullostree virtual_secondary)
     add_aktualizr_test(NAME download_nonostree SOURCES  download_nonostree_test.cc PROJECT_WORKING_DIRECTORY ARGS $<TARGET_FILE:uptane-generator> ${PROJECT_BINARY_DIR}/ostree_repo)
     add_dependencies(t_download_nonostree uptane-generator make_ostree_sysroot)
