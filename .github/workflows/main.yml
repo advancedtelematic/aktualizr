@@ -1,0 +1,52 @@
+name: Build macOS homebrew bottle for aktualizr release page
+on: 
+  release:
+    types: [created]
+jobs:
+  macOS:
+    name: Build macOS homebrew bottle for aktualizr release page
+    runs-on: macOS-10.14
+    steps:
+    # This first step is here to work around the fact that aktualizr doesn't build on macOS
+    # with boost 1.71. It checks out a known good revision of the boost recipe and
+    # reinstalls it. However, right now the macOS base image GitHub's agents are using has
+    # an older version of boost that builds without modification, so the commit we're
+    # trying to check out doesn't exist (hence the `|| true`). So, this is more-or-less for
+    # future-proofing; we don't know when GitHub will update their agents to the latest
+    # versions.
+    - name: Check out known-working version of boost
+      run: |
+        BREW_GIT_DIR=$(brew --prefix)/Homebrew/Library/Taps/homebrew/homebrew-core
+        git -C "$BREW_GIT_DIR" checkout 5da5895add Formula/boost.rb && brew reinstall boost || true
+    - name: Attempt to auto-update recipe and build bottle
+      run: |
+        curl -O https://raw.githubusercontent.com/advancedtelematic/homebrew-otaconnect/master/aktualizr.rb
+        VERSION=$(basename $GITHUB_REF)
+        RELEASE_URL="https://github.com/advancedtelematic/aktualizr/releases/download/${VERSION}/"
+        sed -i '' -E "s/  version \"20[1-2][0-9].[0-9]+\"/  version \"${VERSION}\"/" aktualizr.rb
+        brew install --build-bottle ./aktualizr.rb
+        brew bottle --json --no-rebuild --force-core-tap --root-url=${RELEASE_URL} aktualizr
+        brew bottle --merge --write --no-commit ./aktualizr--${VERSION}.mojave.bottle.json
+        rm aktualizr.rb
+        echo "Bottle and recipe creation succeeded!"
+        echo "You should now open a PR at https://github.com/advancedtelematic/homebrew/otaconnect"
+        echo "Here's the new recipe. It's also attached to this job as an artifact."
+        echo "------------------------------------------------------------------------------------"
+        brew cat aktualizr | tee aktualizr.rb
+        echo "------------------------------------------------------------------------------------"
+        mv aktualizr--${VERSION}.mojave.bottle.tar.gz aktualizr-${VERSION}.mojave.bottle.tar.gz
+    - name: Upload bottle to github release page
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        VERSION=$(basename $GITHUB_REF)
+        RELEASE_ID=$(jq --raw-output '.release.id' $GITHUB_EVENT_PATH)
+        AUTH_HEADER="Authorization: token ${GITHUB_TOKEN}"
+        FILENAME=aktualizr-${VERSION}.mojave.bottle.tar.gz
+        UPLOAD_URL="https://uploads.github.com/repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}/assets?name=${FILENAME}"
+        curl -sSL -H "${AUTH_HEADER}" -F "data=@${FILENAME}" "$UPLOAD_URL"
+    - name: Save recipe as build artifact
+      uses: actions/upload-artifact@master
+      with:
+        name: aktualizr.rb
+        path: aktualizr.rb
