@@ -10,7 +10,7 @@ endif::[]
 
 //MC: TOMERGE: Looks mostly like a duplicate of this topic: https://github.com/advancedtelematic/aktualizr/blob/master/docs/ota-client-guide/modules/ROOT/pages/simulate-device-cred-provtest.adoc
 
-As described in the xref:xref:dev@ota-build::sota-variables.adoc[configuration reference], you can set `SOTA_DEPLOY_CREDENTIALS` to `0` to prevent deploying credentials to the built `wic` image. In this case you get a generic image that you can use e.g. on a production line to flash a series of devices. The cost of this approach is that this image is half-baked and should be provisioned before it can connect to the backend.
+As described in the xref:ota-build::build-configuration.adoc[configuration reference], you can set `SOTA_DEPLOY_CREDENTIALS` to `0` to prevent deploying credentials to the built `wic` image. In this case you get a generic image that you can use e.g. on a production line to flash a series of devices. The cost of this approach is that this image is half-baked and should be provisioned before it can connect to the backend.
 
 Provisioning procedure depends on your provisioning recipe, i.e. the value of `SOTA_CLIENT_PROV` (equal to `aktualizr-shared-prov` by default):
 
