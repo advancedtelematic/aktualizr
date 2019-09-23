@@ -43,6 +43,7 @@ Docker Setup:
   stage: docker
   except:
     - /^20\d\d\.\d\d?-docs$/
+    - /^docs\//
   services:
     - docker:18-dind
   before_script:
@@ -83,6 +84,7 @@ coverage:
   stage: test
   except:
     - /^20\d\d\.\d\d?-docs$/
+    - /^docs\//
   cache:
     key: "$CI_JOB_NAME"
     paths:
@@ -103,6 +105,7 @@ nop11:
   stage: test
   except:
     - /^20\d\d\.\d\d?-docs$/
+    - /^docs\//
   cache:
     key: "$CI_JOB_NAME"
     paths:
@@ -125,6 +128,7 @@ debian-build+static:
   stage: test
   except:
     - /^20\d\d\.\d\d?-docs$/
+    - /^docs\//
   cache:
     key: "$CI_JOB_NAME"
     paths:
@@ -142,6 +146,7 @@ bionic-pkg:
   stage: test
   except:
     - /^20\d\d\.\d\d?-docs$/
+    - /^docs\//
   cache:
     key: "$CI_JOB_NAME"
     paths:
@@ -163,6 +168,7 @@ xenial-pkg:
   stage: test
   except:
     - /^20\d\d\.\d\d?-docs$/
+    - /^docs\//
   cache:
     key: "$CI_JOB_NAME"
     paths:
@@ -184,6 +190,7 @@ bionic-pkg-test:
   stage: pkg-test
   except:
     - /^20\d\d\.\d\d?-docs$/
+    - /^docs\//
   script:
     - ./scripts/test_install_garage_deploy.sh
 
@@ -197,6 +204,7 @@ xenial-pkg-test:
   stage: pkg-test
   except:
     - /^20\d\d\.\d\d?-docs$/
+    - /^docs\//
   script:
     - ./scripts/test_install_garage_deploy.sh
     - ./scripts/test_install_aktualizr_and_update.sh
@@ -214,6 +222,7 @@ OE Docker setup:
       - $CI_COMMIT_REF_NAME =~ /^\d\d\d\d\.\d+(-\w+)?$/
   except:
     - /^20\d\d\.\d\d?-docs$/
+    - /^docs\//
 
 
 OE Checkout:
@@ -227,6 +236,7 @@ OE Checkout:
       - $CI_COMMIT_REF_NAME =~ /^\d\d\d\d\.\d+(-\w+)?$/
   except:
     - /^20\d\d\.\d\d?-docs$/
+    - /^docs\//
   variables:
     MANIFEST: master
 
@@ -243,6 +253,7 @@ Ptest qemux86_64:
       - $CI_COMMIT_REF_NAME =~ /^\d\d\d\d\.\d+(-\w+)?$/
   except:
     - /^20\d\d\.\d\d?-docs$/
+    - /^docs\//
   variables:
     TEST_BUILD_DIR: 'build-ptest'
     OE_SELFTESTS: 'updater_qemux86_64_ptest'
@@ -370,6 +381,7 @@ trigger-otf-pipeline:
       - $CI_COMMIT_REF_NAME =~ /^\d\d\d\d\.\d+(-\w+)?$/
   except:
     - /^20\d\d\.\d\d?-docs$/
+    - /^docs\//
   allow_failure: true
 
 trigger-docsite-build:
