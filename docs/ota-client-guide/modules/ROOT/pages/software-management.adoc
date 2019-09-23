@@ -29,7 +29,7 @@ When you build a disk image for your embedded device, you normally get a file, l
 
 == Uploading other image files
 
-OTA Connect is also designed to enable secure updates to secondary ECUs. This can, of course, include non-Linux systems, and even tiny microcontrollers with no operating system. For these devices, obviously, a filesystem image doesn't make sense. That's why you can xref:dev@ota-web::upload-software-ui.adoc[upload software packages for this type of ECU directly in the OTA Connect portal]. When you do, you'll specify exactly which type of ECU the software is for, to make sure you don't send the wrong type of image.
+OTA Connect is also designed to enable secure updates to secondary ECUs. This can, of course, include non-Linux systems, and even tiny microcontrollers with no operating system. For these devices, obviously, a filesystem image doesn't make sense. That's why you can xref:ota-web::upload-software-ui.adoc[upload software packages for this type of ECU directly in the OTA Connect portal]. When you do, you'll specify exactly which type of ECU the software is for, to make sure you don't send the wrong type of image.
 
 === Using the file upload for things that aren't ECUs
 

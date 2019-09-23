@@ -21,7 +21,7 @@ endif::[]
 
 {product-name} lets you easily manage OTA updates to embedded devices running custom-built Yocto images. This is a guide for building a simple Yocto image that you can run in Virtualbox or QEMU. This is a good way to get started if you don't know yet what hardware your project will use, or if you just want to try out the features of {product-name} without worrying about physical devices.
 
-include::build-raspberry.adoc[tags=prereqs;env-setup;config;bitbake]
+include::ota-client::build-raspberry.adoc[tags=prereqs;env-setup;config;bitbake]
 
 == Run the built image with QEMU
 

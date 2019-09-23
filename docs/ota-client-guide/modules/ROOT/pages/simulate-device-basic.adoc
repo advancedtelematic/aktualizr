@@ -22,7 +22,7 @@ You can try out OTA Connect without having to build a whole device image. This c
 == Prerequisites
 
 * A Linux or MacOS machine to run aktualizr on
-* link:generating-provisioning-credentials.html[Provisioning credentials] (`credentials.zip` file)
+* xref:generating-provisioning-credentials.adoc[Provisioning credentials] (`credentials.zip` file)
 
 == Install aktualizr locally
 

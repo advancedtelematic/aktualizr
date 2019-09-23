@@ -4,7 +4,7 @@
 With shared-credential provisioning, you don't have to worry about installing certificates on your devices.
 The OTA Connect server automatically does this for you. All you need to do is download a provisioning key that is unique to your account, and all your devices can share it.
 
-** xref:generating-provisioning-credentials.adoc[Get a provisioning key]
+** xref:ota-client::generating-provisioning-credentials.adoc[Get a provisioning key]
 +
 {nbsp}
 
@@ -14,7 +14,7 @@ You don't need to do anything extra to use the standalone aktualizr client. It's
 +
 If you prefer to simulate an OTA-enabled device without building a disk image, you can install the aktualizr client on your development computer. In this case, however, you won't be able to try out OSTree functionality--the client will simply download and verify binaries, dropping them into a configurable location on your filesystem.
 
-** xref:simulate-device-basic.adoc[Simulate a device without building a disk image]
+** xref:ota-client::simulate-device-basic.adoc[Simulate a device without building a disk image]
 +
 {nbsp}
 
@@ -22,8 +22,8 @@ If you prefer to simulate an OTA-enabled device without building a disk image, y
 +
 We support a couple of demo boards "out of the box". You don't need to worry about complex build configurations at this stage. Just follow one of our quick start guides to learn how to build an OTA-enabled disk image.
 
-** xref:build-raspberry.adoc[Build a Raspberry Pi image]
-** xref:build-qemu.adoc[Build a QEMU/VirtualBox image]
+** xref:ota-client::build-raspberry.adoc[Build a Raspberry Pi image]
+** xref:ota-client::build-qemu.adoc[Build a QEMU/VirtualBox image]
 
 //  end::evaluate-steps[]
 
