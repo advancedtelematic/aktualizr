@@ -7,7 +7,7 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
-ifdef::env-github[:simulatelink: link:https://docs.ota.here.com/ota-client/dev/simulate-device-basic.html[Simulate a device without building a disk image]]
+ifdef::env-github[:simulatelink: link:https://docs.ota.here.com/ota-client/latest/simulate-device-basic.html[Simulate a device without building a disk image]]
 ifndef::env-github[:simulatelink: xref:dev@getstarted::simulate-device-basic.adoc[Simulate a device without building a disk image]]
 
 
