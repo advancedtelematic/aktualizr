@@ -119,7 +119,7 @@ After you've finished integration and development, you'll need to move disk imag
 //  tag::firstbuild-nextstep[]
 [TIP]
 ====
-Once you've build your first image, try adding some new software and xref:ota-client::pushing-updates.adoc[push your update to the OTA Connect server].
+Once you've built your first image, try adding some new software and xref:ota-client::pushing-updates.adoc[push your update to the OTA Connect server].
 ====
 //MC: full versioned xref because snippet is displayed in two components.
 
