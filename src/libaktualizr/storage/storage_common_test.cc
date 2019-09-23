@@ -301,6 +301,10 @@ TEST(storage, load_store_installed_versions) {
   };
   Uptane::EcuMap primary_ecu{{Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")}};
   Uptane::Target t1{"update.bin", primary_ecu, hashes, 1, "corrid"};
+  Json::Value custom;
+  custom["version"] = 42;
+  custom["foo"] = "bar";
+  t1.updateCustom(custom);
   storage->savePrimaryInstalledVersion(t1, InstalledVersionUpdateMode::kCurrent);
   {
     std::vector<Uptane::Target> log;
@@ -324,6 +328,8 @@ TEST(storage, load_store_installed_versions) {
     EXPECT_EQ(current->ecus(), primary_ecu);
     EXPECT_EQ(current->correlation_id(), "corrid");
     EXPECT_EQ(current->length(), 1);
+    EXPECT_EQ(current->custom_data()["foo"], "bar");
+    EXPECT_EQ(current->custom_data()["version"], 42);
   }
 
   // Set t2 as a pending version
@@ -391,6 +397,7 @@ TEST(storage, load_store_installed_versions) {
     storage->loadInstallationLog("primary", &log, true);
     EXPECT_EQ(log.size(), 4);
     EXPECT_EQ(log.back().filename(), "update3.bin");
+    EXPECT_EQ(log[0].custom_data()["foo"], "bar");
   }
 
   // Add a secondary installed version

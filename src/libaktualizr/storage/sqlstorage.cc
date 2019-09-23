@@ -986,15 +986,15 @@ void SQLStorage::saveInstalledVersion(const std::string& ecu_serial, const Uptan
       return;
     }
   } else {
-    auto statement =
-        db.prepareStatement<std::string, std::string, std::string, std::string, int64_t, std::string, int, int>(
-            "INSERT INTO installed_versions(ecu_serial, sha256, name, hashes, length, correlation_id, "
-            "is_current, is_pending, was_installed) VALUES (?,?,?,?,?,?,?,?,?);",
-            ecu_serial_real, target.sha256Hash(), target.filename(), hashes_encoded,
-            static_cast<int64_t>(target.length()), target.correlation_id(),
-            static_cast<int>(update_mode == InstalledVersionUpdateMode::kCurrent),
-            static_cast<int>(update_mode == InstalledVersionUpdateMode::kPending),
-            static_cast<int>(update_mode == InstalledVersionUpdateMode::kCurrent));
+    std::string custom = Json::FastWriter().write(target.custom_data());
+    auto statement = db.prepareStatement<std::string, std::string, std::string, std::string, int64_t, std::string,
+                                         std::string, int, int>(
+        "INSERT INTO installed_versions(ecu_serial, sha256, name, hashes, length, custom_meta, correlation_id, "
+        "is_current, is_pending, was_installed) VALUES (?,?,?,?,?,?,?,?,?,?);",
+        ecu_serial_real, target.sha256Hash(), target.filename(), hashes_encoded, static_cast<int64_t>(target.length()),
+        custom, target.correlation_id(), static_cast<int>(update_mode == InstalledVersionUpdateMode::kCurrent),
+        static_cast<int>(update_mode == InstalledVersionUpdateMode::kPending),
+        static_cast<int>(update_mode == InstalledVersionUpdateMode::kCurrent));
 
     if (statement.step() != SQLITE_DONE) {
       LOG_ERROR << "Can't set installed_versions: " << db.errmsg();
@@ -1036,11 +1036,11 @@ bool SQLStorage::loadInstallationLog(const std::string& ecu_serial, std::vector<
   loadEcuMap(db, ecu_serial_real, ecu_map);
 
   std::string query =
-      "SELECT id, sha256, name, hashes, length, correlation_id FROM installed_versions WHERE "
+      "SELECT id, sha256, name, hashes, length, correlation_id, custom_meta FROM installed_versions WHERE "
       "ecu_serial = ? ORDER BY id;";
   if (only_installed) {
     query =
-        "SELECT id, sha256, name, hashes, length, correlation_id FROM installed_versions WHERE "
+        "SELECT id, sha256, name, hashes, length, correlation_id, custom_meta FROM installed_versions WHERE "
         "ecu_serial = ? AND was_installed = 1 ORDER BY id;";
   }
 
@@ -1058,6 +1058,7 @@ bool SQLStorage::loadInstallationLog(const std::string& ecu_serial, std::vector<
       auto hashes_str = statement.get_result_col_str(3).value();
       auto length = statement.get_result_col_int(4);
       auto correlation_id = statement.get_result_col_str(5).value();
+      auto custom_str = statement.get_result_col_str(6).value();
 
       // note: sha256 should always be present and is used to uniquely identify
       // a version. It should normally be part of the hash list as well.
@@ -1070,7 +1071,17 @@ bool SQLStorage::loadInstallationLog(const std::string& ecu_serial, std::vector<
         hashes.emplace_back(Uptane::Hash::Type::kSha256, sha256);
       }
 
-      new_log.emplace_back(filename, ecu_map, hashes, static_cast<uint64_t>(length), correlation_id);
+      Uptane::Target t(filename, ecu_map, hashes, static_cast<uint64_t>(length), correlation_id);
+      if (!custom_str.empty()) {
+        Json::Reader reader;
+        Json::Value custom;
+        if (reader.parse(custom_str, custom)) {
+          t.updateCustom(custom);
+        } else {
+          LOG_ERROR << "Unable to parse custom data: " << reader.getFormatedErrorMessages();
+        }
+      }
+      new_log.emplace_back(t);
 
       ids_map[id] = k;
       k++;
@@ -1108,6 +1119,7 @@ bool SQLStorage::loadInstalledVersions(const std::string& ecu_serial, boost::opt
     auto hashes_str = statement.get_result_col_str(2).value();
     auto length = statement.get_result_col_int(3);
     auto correlation_id = statement.get_result_col_str(4).value();
+    auto custom_str = statement.get_result_col_str(5).value();
 
     // note: sha256 should always be present and is used to uniquely identify
     // a version. It should normally be part of the hash list as well.
@@ -1119,13 +1131,23 @@ bool SQLStorage::loadInstalledVersions(const std::string& ecu_serial, boost::opt
       LOG_WARNING << "No sha256 in hashes list";
       hashes.emplace_back(Uptane::Hash::Type::kSha256, sha256);
     }
+    Uptane::Target t(filename, ecu_map, hashes, static_cast<uint64_t>(length), correlation_id);
+    if (!custom_str.empty()) {
+      Json::Reader reader;
+      Json::Value custom;
+      if (reader.parse(custom_str, custom)) {
+        t.updateCustom(custom);
+      } else {
+        LOG_ERROR << "Unable to parse custom data: " << reader.getFormatedErrorMessages();
+      }
+    }
 
-    return Uptane::Target(filename, ecu_map, hashes, static_cast<uint64_t>(length), correlation_id);
+    return t;
   };
 
   if (current_version != nullptr) {
     auto statement = db.prepareStatement<std::string>(
-        "SELECT sha256, name, hashes, length, correlation_id FROM installed_versions WHERE "
+        "SELECT sha256, name, hashes, length, correlation_id, custom_meta FROM installed_versions WHERE "
         "ecu_serial = ? AND is_current = 1 LIMIT 1;",
         ecu_serial_real);
 
@@ -1144,7 +1166,7 @@ bool SQLStorage::loadInstalledVersions(const std::string& ecu_serial, boost::opt
 
   if (pending_version != nullptr) {
     auto statement = db.prepareStatement<std::string>(
-        "SELECT sha256, name, hashes, length, correlation_id FROM installed_versions WHERE "
+        "SELECT sha256, name, hashes, length, correlation_id, custom_meta FROM installed_versions WHERE "
         "ecu_serial = ? AND is_pending = 1 LIMIT 1;",
         ecu_serial_real);
 
