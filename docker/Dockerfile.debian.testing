@@ -48,6 +48,7 @@ RUN apt-get update && apt-get -y install --no-install-suggests --no-install-reco
   libtool \
   lshw \
   make \
+  ninja-build \
   net-tools \
   opensc \
   pkg-config \
