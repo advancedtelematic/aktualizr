@@ -44,7 +44,7 @@ You can get this address from the `credentials.zip` that you download from the O
 +
 You need this address to get the internal root CA certificate of the device gateway. This certificate is also necessary to provision devices.
 
-.. If you haven't done so already, xref:dev@ota-web::create-provisioning-key.adoc[download a provisioning key].
+.. If you haven't done so already, xref:generating-provisioning-credentials.adoc[download a provisioning key].
 .. Extract the contents of the `credentials.zip` file to a local folder.
 .. In that folder, look for the file `autoprov` and open it with a text editor.
 +
