@@ -40,6 +40,11 @@ class Aktualizr {
   std::future<void> RunForever();
 
   /**
+   * Shuts down currently running `RunForever()` method
+   */
+  void Shutdown();
+
+  /**
    * Check for campaigns.
    * Campaigns are a concept outside of Uptane, and allow for user approval of
    * updates before the contents of the update are known.
@@ -198,6 +203,12 @@ class Aktualizr {
 
  private:
   static void systemSetup();
+
+  struct {
+    std::mutex m;
+    std::condition_variable cv;
+    bool flag = false;
+  } exit_cond_;
 
   std::shared_ptr<INvStorage> storage_;
   std::shared_ptr<event::Channel> sig_;

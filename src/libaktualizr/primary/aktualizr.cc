@@ -83,12 +83,27 @@ bool Aktualizr::UptaneCycle() {
 std::future<void> Aktualizr::RunForever() {
   std::future<void> future = std::async(std::launch::async, [&]() {
     SendDeviceData().get();
-    while (UptaneCycle()) {
-      std::this_thread::sleep_for(std::chrono::seconds(config_.uptane.polling_sec));
+
+    std::unique_lock<std::mutex> l(exit_cond_.m);
+    while (true) {
+      UptaneCycle();
+      if (exit_cond_.cv.wait_for(l, std::chrono::seconds(config_.uptane.polling_sec),
+                                 [this] { return exit_cond_.flag; })) {
+        break;
+      }
     }
     uptane_client_->completeInstall();
   });
   return future;
+}
+
+void Aktualizr::Shutdown() {
+  Abort();
+  {
+    std::lock_guard<std::mutex> g(exit_cond_.m);
+    exit_cond_.flag = true;
+  }
+  exit_cond_.cv.notify_all();
 }
 
 void Aktualizr::AddSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &secondary) {

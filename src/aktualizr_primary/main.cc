@@ -11,6 +11,7 @@
 #include "primary/aktualizr_helpers.h"
 #include "secondary.h"
 #include "utilities/aktualizr_version.h"
+#include "utilities/sig_handler.h"
 #include "utilities/utils.h"
 
 namespace bpo = boost::program_options;
@@ -131,6 +132,8 @@ int main(int argc, char *argv[]) {
     }
 
     aktualizr.Initialize();
+
+    SigHandler::get().start([&aktualizr]() { aktualizr.Shutdown(); });
 
     std::string run_mode;
     if (commandline_map.count("run-mode") != 0) {
