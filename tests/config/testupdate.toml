@@ -1,6 +1,3 @@
-[tls]
-server = "http://localhost:8000"
-
 [import]
 tls_cacert_path = "ca.pem"
 tls_pkey_path = "pkey.pem"
@@ -13,7 +10,8 @@ key_source = "file"
 
 [provision]
 primary_ecu_serial = "723f79763eda1c753ce565c16862c79acdde32eb922d6662f088083c51ffde66"
-primary_ecu_hardware_id = "selfupdate-device"
+primary_ecu_hardware_id = "testupdate-device"
 
 [pacman]
-type = "debian"
+type = "none"
+

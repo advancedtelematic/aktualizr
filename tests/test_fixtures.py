@@ -225,15 +225,15 @@ class KeyStore:
 
     @staticmethod
     def ca():
-        return path.join(KeyStore.base_dir, 'tests/test_data/prov_selfupdate/ca.pem')
+        return path.join(KeyStore.base_dir, 'tests/test_data/prov_testupdate/ca.pem')
 
     @staticmethod
     def pkey():
-        return path.join(KeyStore.base_dir, 'tests/test_data/prov_selfupdate/pkey.pem')
+        return path.join(KeyStore.base_dir, 'tests/test_data/prov_testupdate/pkey.pem')
 
     @staticmethod
     def cert():
-        return path.join(KeyStore.base_dir, 'tests/test_data/prov_selfupdate/client.pem')
+        return path.join(KeyStore.base_dir, 'tests/test_data/prov_testupdate/client.pem')
 
 
 class IPSecondary:

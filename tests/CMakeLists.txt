@@ -196,6 +196,8 @@ add_test(NAME test_backend_failure
          COMMAND ${PROJECT_SOURCE_DIR}/tests/test_backend_failure.py
          --build-dir ${PROJECT_BINARY_DIR} --src-dir ${PROJECT_SOURCE_DIR} --ostree ${BUILD_OSTREE})
 
+add_test(NAME test_install_aktualizr_and_update COMMAND ${PROJECT_SOURCE_DIR}/tests/test_install_aktualizr_and_update.sh ${PROJECT_BINARY_DIR} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
 add_executable(aktualizr-cycle-simple aktualizr_cycle_simple.cc)
 target_link_libraries(aktualizr-cycle-simple aktualizr_static_lib ${AKTUALIZR_EXTERNAL_LIBS})
 aktualizr_source_file_checks(aktualizr_cycle_simple.cc)

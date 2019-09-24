@@ -193,6 +193,7 @@ bionic-pkg-test:
     - /^docs\//
   script:
     - ./scripts/test_install_garage_deploy.sh
+    - ./scripts/test_install_aktualizr.sh
 
 xenial-pkg-test:
   variables:
@@ -207,7 +208,7 @@ xenial-pkg-test:
     - /^docs\//
   script:
     - ./scripts/test_install_garage_deploy.sh
-    - ./scripts/test_install_aktualizr_and_update.sh
+    - ./scripts/test_install_aktualizr.sh
     - ./scripts/test-uptane-generator.sh
 
 # -- yocto tests
