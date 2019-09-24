@@ -10,7 +10,7 @@ endif::[]
 
 // MC: This is a slightly altered copy of "generate-devicecert.doc" with wording that explains the process from the perspective of testing with a self-signed root cert.
 
-Once you have created a self-signed root certificate, you can use it to generate and sign device certificates. You then install these certificates on your test devices. 
+Once you have created a self-signed root certificate, you can use it to generate and sign device certificates. You then install these certificates on your test devices.
 
 *Generate a test device certificate, follow these steps*
 
@@ -42,7 +42,7 @@ You can get this address from the `credentials.zip` that you download from the O
 +
 You need this address to get the internal root CA certificate of the device gateway. This certificate is also necessary to provision devices.
 
-.. If you haven't done so already, xref:dev@ota-web::create-provisioning-key.adoc[download a provisioning key].
+.. If you haven't done so already, xref:generating-provisioning-credentials.adoc[download a provisioning key].
 .. Extract the contents of the `credentials.zip` file to a local folder.
 .. In that folder, look for the file `autoprov` and open it with a text editor.
 +
@@ -54,7 +54,7 @@ You should see a URL that resembles the following example:
 . Get the device gateway's root certificate with the following openssl command:
 +
 ----
-export device_gateway=<your-gateway-url> 
+export device_gateway=<your-gateway-url>
 openssl s_client -connect ${device_gateway}:8000 -servername $device_gateway -showcerts | \
   sed -n '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > ${device_dir}/root.crt
 ----

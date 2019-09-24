@@ -15,7 +15,7 @@ You configure aktualizr by creating and updating a `*.toml` file in one of the f
 * `/usr/lib/sota/conf.d`
 * `/etc/sota/conf.d/`
 
-For more information and links to sample configuration files, see the xref:aktualizr-config-options.adoc[client configuration reference].
+For more information and links to sample configuration files, see the xref:ota-client::aktualizr-config-options.adoc[client configuration reference].
 
 //  end::clientconfig-hint[]
 
@@ -34,7 +34,7 @@ You'll want to enable this option when developing because it's more convenient.
 //  end::autorebootconfig-dev[]
 
 //  tag::pollconfig-prod[]
-When moving to production you'll want to have a much longer interval. 
+When moving to production you'll want to have a much longer interval.
 In fact, for production, we don't support intervals less the 1 hour (3,600 seconds). Longer internals help you to reduce the internet bandwidth and power consumption for your devices.
 
 We recommend an internal between 1 and 7 days (86,400 to 604,800 seconds)
