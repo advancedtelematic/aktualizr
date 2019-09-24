@@ -14,7 +14,7 @@ endif::[]
 :page-date: 2018-11-19 11:28:47
 :page-order: 5
 :icons: font
-:aktualizr-version: 2019.5
+include::partial$aktualizr-version.adoc[]
 :sectnums:
 
 You can try out OTA Connect without having to build a whole device image. This can be useful for testing the system outside of actual device updates. In this guide, you will install aktualizr (the OTA client software) on your local machine, create a directory with configuration files and credentials for aktualizr to use, and run aktualizr from there.
