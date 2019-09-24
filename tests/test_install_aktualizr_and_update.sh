@@ -24,19 +24,28 @@ cp ./tests/test_data/prov_selfupdate/* "$TEMP_DIR/import"
 echo -e "[storage]\\npath = \"$TEMP_DIR\"\\n[import]\\nbase_path = \"$TEMP_DIR/import\"" > "$TEMP_DIR/conf.toml"
 echo -e "[tls]\\nserver = \"http://localhost:$PORT\"" >> "$TEMP_DIR/conf.toml"
 $1/src/aktualizr_primary/aktualizr -c ./tests/config/selfupdate.toml -c "$TEMP_DIR/conf.toml" once
+TEST_INSTALL_IMAGE_DIR=$TEMP_DIR/images
+filename=$(echo $($1/src/aktualizr_info/aktualizr-info -c ./tests/config/selfupdate.toml -c "$TEMP_DIR/conf.toml" --director-target | jq '(.signed.targets["selfupdate_2.0"].hashes.sha256)') | tr [a-f] [A-F] | tr -d '"')
+
+ls $TEST_INSTALL_IMAGE_DIR/$filename
+
+if [ $? -ne 0 ];then
+    echo "ERROR: $filename does not exist or sha256sum does not match."
+    exit 1
+fi
 
 # check the updated file appeared in the installation directory and sha256sum matches expectation
-TEST_INSTALL_IMAGE_DIR=$TEMP_DIR/images
-if [ ! -d $TEST_INSTALL_IMAGE_DIR ]; then
-    echo "$TEST_INSTALL_IMAGE_DIR does not exist"
-    exit 1
-else
-    cd $TEST_INSTALL_IMAGE_DIR
-    for filename in `ls`; do
-        checksum=$(echo $(sha256sum $filename) | cut -f 1 -d " " | tr [a-f] [A-F] )
-        if [ "$checksum" != "$filename" ]; then
-            echo "ERROR: sha256sum does not match."
-            exit 1
-        fi
-    done
-fi
+#TEST_INSTALL_IMAGE_DIR=$TEMP_DIR/images
+# if [ ! -d $TEST_INSTALL_IMAGE_DIR ]; then
+#    echo "$TEST_INSTALL_IMAGE_DIR does not exist"
+#    exit 1
+#else
+#    cd $TEST_INSTALL_IMAGE_DIR
+#    for filename in `ls`; do
+#        checksum=$(echo $(sha256sum $filename) | cut -f 1 -d " " | tr [a-f] [A-F] )
+#        if [ "$checksum" != "$filename" ]; then
+#            echo "ERROR: sha256sum does not match."
+#            exit 1
+#        fi
+#    done
+#fi

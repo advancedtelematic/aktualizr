@@ -172,6 +172,7 @@ bionic-pkg-test:
   stage: pkg-test
   script:
     - ./scripts/test_install_garage_deploy.sh
+    - ./scripts/test_install_aktualizr.sh
 
 xenial-pkg-test:
   variables:
