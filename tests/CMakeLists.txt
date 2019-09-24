@@ -40,6 +40,7 @@ endforeach()
 
 add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND} ${CTEST_EXTRA_ARGS}
                   DEPENDS build_tests
+                  USES_TERMINAL
                   WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
                   )
 
@@ -65,7 +66,7 @@ endif(BUILD_OSTREE)
 # Setup coverage
 if(BUILD_WITH_CODE_COVERAGE)
     add_definitions(${COVERAGE_COMPILER_FLAGS})
-    setup_target_for_coverage_lcov(NAME coverage EXECUTABLE ${CMAKE_CTEST_COMMAND} ${CTEST_EXTRA_ARGS})
+    setup_target_for_coverage_lcov(NAME coverage EXECUTABLE ${CMAKE_CTEST_COMMAND} ${CTEST_EXTRA_ARGS} USES_TERMINAL)
     add_dependencies(coverage build_tests)
 endif(BUILD_WITH_CODE_COVERAGE)
 
