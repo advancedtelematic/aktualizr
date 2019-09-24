@@ -1,6 +1,8 @@
 #ifndef AKTUALIZR_LIBAKTUALIZRC_H
 #define AKTUALIZR_LIBAKTUALIZRC_H
 
+#include <stdint.h> // for uint8_t
+
 #ifdef __cplusplus
 #include "primary/aktualizr.h"
 
@@ -37,6 +39,13 @@ const char *Aktualizr_get_target_name(Target *t);
 int Aktualizr_download_target(Aktualizr *a, Target *t);
 
 int Aktualizr_install_target(Aktualizr *a, Target *t);
+
+int Aktualizr_send_manifest(Aktualizr *a, const char *manifest);
+int Aktualizr_send_device_data(Aktualizr *a);
+
+void *Aktualizr_open_stored_target(Aktualizr *a, const char *filename, const char *content);
+size_t Aktualizr_read_stored_target(void *handle, uint8_t* buf, size_t size);
+int Aktualizr_close_stored_target(void *handle);
 
 #ifdef __cplusplus
 }
