@@ -86,7 +86,10 @@ std::future<void> Aktualizr::RunForever() {
 
     std::unique_lock<std::mutex> l(exit_cond_.m);
     while (true) {
-      UptaneCycle();
+      if (!UptaneCycle()) {
+        break;
+      }
+
       if (exit_cond_.cv.wait_for(l, std::chrono::seconds(config_.uptane.polling_sec),
                                  [this] { return exit_cond_.flag; })) {
         break;
@@ -98,7 +101,6 @@ std::future<void> Aktualizr::RunForever() {
 }
 
 void Aktualizr::Shutdown() {
-  Abort();
   {
     std::lock_guard<std::mutex> g(exit_cond_.m);
     exit_cond_.flag = true;

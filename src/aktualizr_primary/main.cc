@@ -133,7 +133,14 @@ int main(int argc, char *argv[]) {
 
     aktualizr.Initialize();
 
-    SigHandler::get().start([&aktualizr]() { aktualizr.Shutdown(); });
+    // handle unix signals
+    SigHandler::get().start([&aktualizr]() {
+      aktualizr.Abort();
+      aktualizr.Shutdown();
+    });
+    SigHandler::signal(SIGHUP);
+    SigHandler::signal(SIGINT);
+    SigHandler::signal(SIGTERM);
 
     std::string run_mode;
     if (commandline_map.count("run-mode") != 0) {
@@ -164,7 +171,13 @@ int main(int argc, char *argv[]) {
       boost::signals2::connection ac_conn =
           aktualizr.SetSignalHandler(std::bind(targets_autoclean_cb, std::ref(aktualizr), std::placeholders::_1));
 
-      aktualizr.RunForever().get();
+      try {
+        aktualizr.RunForever().get();
+      } catch (const std::exception &ex) {
+        LOG_ERROR << ex.what();
+      }
+
+      LOG_DEBUG << "Aktualizr daemon exiting...";
     }
     r = EXIT_SUCCESS;
   } catch (const std::exception &ex) {

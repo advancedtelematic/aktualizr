@@ -2,34 +2,42 @@
 #define SIG_HANDLER_H
 
 #include <atomic>
+#include <condition_variable>
 #include <csignal>
 #include <functional>
+#include <mutex>
 
 #include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
 
 class SigHandler {
  public:
-  friend void signal_handler(int sig);
   static SigHandler& get();
 
+  SigHandler(const SigHandler&) = delete;
+  SigHandler& operator=(const SigHandler&) = delete;
+
+  // set an handler for signals and start the handling thread
   void start(const std::function<void()>& on_signal);
+  // add hook on signal `sig`
+  static void signal(int sig);
 
   bool masked();
   void mask(int secs);  // send 0 to unmask
 
  private:
-  SigHandler() {}
+  SigHandler() = default;
   ~SigHandler();
-  SigHandler(const SigHandler&) = delete;
-  SigHandler& operator=(const SigHandler&) = delete;
+  static void signal_handler(int sig);
 
   boost::thread polling_thread_;
-  bool signal_pending;
   static std::atomic<bool> signal_marker_;
 
-  boost::mutex m;
-  int masked_secs_;
+  static std::mutex exit_m_;
+  static std::condition_variable exit_cv_;
+  static bool exit_flag_;
 };
+
+void signal_handler(int sig);
 
 #endif /* SIG_HANDLER_H */
