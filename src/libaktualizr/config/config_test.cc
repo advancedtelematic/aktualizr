@@ -46,7 +46,7 @@ TEST(config, TomlInt) {
  */
 TEST(config, TomlPrimarySerial) {
   RecordProperty("zephyr_key", "OTA-988");
-  Config conf("tests/config/selfupdate.toml");
+  Config conf("tests/config/testupdate.toml");
   EXPECT_EQ(conf.provision.primary_ecu_serial, "723f79763eda1c753ce565c16862c79acdde32eb922d6662f088083c51ffde66");
 }
 
