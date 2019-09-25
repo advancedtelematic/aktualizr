@@ -34,19 +34,19 @@ You'll need a build machine with the following:
 ** On a Debian-based system, you should be able to install all the required packages with the following command:
 +
 ----
-sudo apt install gawk wget git-core diffstat unzip texinfo gcc-multilib build-essential chrpath socat cpio python python3 python3-pip python3-pexpect python-dev xz-utils debianutils iputils-ping cpu-checker default-jre parted
+sudo apt install gawk wget git diffstat unzip texinfo gcc-multilib build-essential chrpath socat cpio python python3 python3-pip python3-pexpect python-dev xz-utils debianutils iputils-ping cpu-checker default-jre parted
 ----
 ** Many/most distros that aren't on the officially supported list will still work just fine--feel free to give it a try with whatever you're running.
-** You *can* run this all inside a VM, but a Yocto build is a pretty resource-intensive process, so generally we don't recommend it. Make sure your VM meets the following requirements:
-*** At least 6GB of RAM
-*** At least 150GB of disk space.
-* 100GB of free disk space
+* 100GB+ of free disk space
+* 6GB+ of RAM
 ifeval::["{machine}" == "qemux86-64"]
 * QEMU--we recommend installing it from your distro's package manager, e.g. `sudo apt install qemu`
 endif::[]
 * link:https://android.googlesource.com/tools/repo/[repo]
 ** link:https://source.android.com/source/downloading#installing-repo[Download the latest version] directly from Google, or
 ** install it from your distro's packages if available (`sudo apt install repo`)
+
+TIP: It's possible use a virtual machine running Linux as your build machine. However, we don't recommend it. It will be slower, and you're more likely to run into difficult-to-troubleshoot issues. If you do want to use a VM despite this warning, though, make sure the VM has enough resources allocated to it. Along with the disk space and memory requirements above, we suggest allocating at least 4-6 CPU cores to the VM to speed up building.
 
 Also, make sure that you've generated your xref:generating-provisioning-credentials.adoc[provisioning credentials] first.
 // end::prereqs[]
