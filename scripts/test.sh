@@ -25,6 +25,7 @@ TEST_WITH_FAULT_INJECTION=${TEST_WITH_FAULT_INJECTION:-0}
 TEST_WITH_LOAD_TESTS=${TEST_WITH_LOAD_TESTS:-0}
 
 TEST_CC=${TEST_CC:-gcc}
+TEST_CMAKE_GENERATOR=${TEST_CMAKE_GENERATOR:-Ninja}
 TEST_CMAKE_BUILD_TYPE=${TEST_CMAKE_BUILD_TYPE:-Valgrind}
 TEST_INSTALL_DESTDIR=${TEST_INSTALL_DESTDIR:-/persistent}
 TEST_INSTALL_RELEASE_NAME=${TEST_INSTALL_RELEASE_NAME:-}
@@ -39,6 +40,7 @@ TEST_PKCS11_ENGINE_PATH=${TEST_PKCS11_ENGINE_PATH:-/usr/lib/x86_64-linux-gnu/eng
 
 # Build CMake arguments
 CMAKE_ARGS=()
+CMAKE_ARGS+=("-G$TEST_CMAKE_GENERATOR")
 CMAKE_ARGS+=("-DCMAKE_BUILD_TYPE=${TEST_CMAKE_BUILD_TYPE}")
 if [[ $TEST_WITH_COVERAGE = 1 ]]; then CMAKE_ARGS+=("-DBUILD_WITH_CODE_COVERAGE=ON"); fi
 if [[ $TEST_WITH_SOTA_TOOLS = 1 ]]; then CMAKE_ARGS+=("-DBUILD_SOTA_TOOLS=ON"); fi
@@ -83,9 +85,23 @@ add_fatal_failure() {
     FAILURES+=("$1")
     collect_failures
 }
-run_make() {
-    CTEST_OUTPUT_ON_FAILURE=1 CTEST_PARALLEL_LEVEL="${TEST_PARALLEL_LEVEL}" make "-j${TEST_PARALLEL_LEVEL}" "$@"
-}
+run_make() (
+    set +x
+    local target=${1:-}
+    shift 1
+    if [ -n "$target" ]; then
+        target=(--target "$target")
+    else
+        target=()
+    fi
+    (
+        set +u  # needed for bash < 4.4
+        set -x
+        export CTEST_OUTPUT_ON_FAILURE=1
+        export CTEST_PARALLEL_LEVEL="${TEST_PARALLEL_LEVEL}"
+        cmake --build . "${target[@]}" -- -j"${TEST_PARALLEL_LEVEL}" "$@"
+    )
+)
 
 # Test stages
 mkdir -p "${TEST_BUILD_DIR}"
@@ -125,8 +141,8 @@ if [[ $TEST_WITH_STATICTESTS = 1 ]]; then
     echo ">> Running static checks"
     if [[ $TEST_DRYRUN != 1 ]]; then
         set -x
-        run_make -k check-format || add_failure "formatting"
-        run_make -k clang-tidy || add_failure "static checks"
+        run_make check-format -k 0 || add_failure "formatting"
+        run_make clang-tidy -k 0 || add_failure "static checks"
         set +x
     fi
 fi
