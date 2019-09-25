@@ -1,0 +1,6 @@
+// This file exists only to keep track of the current aktualizr version.
+// In the client docs, we want to reference the version appropriate to
+// the version being viewed, but when we are referencing aktualizr from
+// the other, non-versioned docs, we want to make sure we're using the
+// latest version.
+:aktualizr-version: 2019.8
