@@ -1,4 +1,4 @@
-= Build a QEMU/VirtualBox image
+= Build a QEMU image
 :page-partial:
 ifdef::env-github[]
 
@@ -19,13 +19,13 @@ endif::[]
 :machine: qemux86-64
 :meta-env: qemux86-64
 
-{product-name} lets you easily manage OTA updates to embedded devices running custom-built Yocto images. This is a guide for building a simple Yocto image that you can run in Virtualbox or QEMU. This is a good way to get started if you don't know yet what hardware your project will use, or if you just want to try out the features of {product-name} without worrying about physical devices.
+{product-name} lets you easily manage OTA updates to embedded devices running custom-built Yocto images. This is a guide for building a simple Yocto image that you can run in QEMU. This is a good way to get started if you don't know yet what hardware your project will use, or if you just want to try out the features of {product-name} without worrying about physical devices.
 
 include::ota-client::page$build-raspberry.adoc[tags=prereqs;env-setup;config;bitbake]
 
 == Run the built image with QEMU
 
-The build process creates disk images as an artefact. You can then directly run them with QEMU. (If you don't already have it installed, install it with `apt-get install qemu` or similar.) The meta-updater layer contains a helper script to launch the images:
+The build process creates disk images as an artefact. You can then directly run them with QEMU. (If you don't already have it installed, install it with `apt install qemu` or similar.) The meta-updater layer contains a helper script to launch the images:
 
 ----
 ../meta-updater/scripts/run-qemu-ota [image name] [mac address]
