@@ -37,7 +37,6 @@ You'll need a build machine with the following:
 sudo apt-get install gawk wget git-core diffstat unzip texinfo gcc-multilib build-essential chrpath socat cpio python python3 python3-pip python3-pexpect python-dev xz-utils debianutils iputils-ping cpu-checker default-jre parted
 ----
 ** Many/most distros that aren't on the officially supported list will still work just fine--feel free to give it a try with whatever you're running.
-** Although the Yocto project as a whole does support architectures other than x86-64 for the build machine, one of the layers we'll be using only supports x86-64.
 ** You *can* run this all inside a VM, but a Yocto build is a pretty resource-intensive process, so generally we don't recommend it. Make sure your VM meets the following requirements:
 *** At least 6GB of RAM
 *** At least 150GB of disk space.
