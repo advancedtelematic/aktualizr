@@ -76,8 +76,8 @@ If you are building for 32-bit ARM (i.e. Raspberry Pi), you'll need some support
 
 ----
 sudo dpkg --add-architecture i386
-sudo apt-get update
-sudo apt-get install g++-multilib libssl-dev:i386 libcrypto++-dev:i386 zlib1g-dev:i386
+sudo apt update
+sudo apt install g++-multilib libssl-dev:i386 libcrypto++-dev:i386 zlib1g-dev:i386
 ----
 
 For more details, see the https://github.com/imyller/meta-nodejs#cross-compiling-for-32-bit-target-on-64-bit-host[meta-nodejs README].

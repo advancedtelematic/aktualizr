@@ -25,7 +25,7 @@ include::ota-client::page$build-raspberry.adoc[tags=prereqs;env-setup;config;bit
 
 == Run the built image with QEMU
 
-The build process creates disk images as an artefact. You can then directly run them with QEMU. (If you don't already have it installed, install it with `apt-get install qemu` or similar.) The meta-updater layer contains a helper script to launch the images:
+The build process creates disk images as an artefact. You can then directly run them with QEMU. (If you don't already have it installed, install it with `apt install qemu` or similar.) The meta-updater layer contains a helper script to launch the images:
 
 ----
 ../meta-updater/scripts/run-qemu-ota [image name] [mac address]
