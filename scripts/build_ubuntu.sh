@@ -16,13 +16,5 @@ mkdir -p "$TEST_INSTALL_DESTDIR"
 # note: executables are stripped, following common conventions in .deb packages
 LDFLAGS="-s" "$GITREPO_ROOT/scripts/test.sh"
 
-# copy provisioning data and scripts
-cp -rf "$GITREPO_ROOT/tests/test_data/prov_testupdate" "$TEST_INSTALL_DESTDIR"
-cp -rf "$GITREPO_ROOT/tests/config/testupdate.toml" "$TEST_INSTALL_DESTDIR"
-cp -rf "$GITREPO_ROOT/scripts/testupdate_server.py" "$TEST_INSTALL_DESTDIR"
-cp -rf "$GITREPO_ROOT/tests/test_data/testupdate_2.0" "$TEST_INSTALL_DESTDIR"
-cp -rf "$GITREPO_ROOT/src/uptane_generator/run/create_repo.sh" "$TEST_INSTALL_DESTDIR"
-cp -rf "$GITREPO_ROOT/src/uptane_generator/run/serve_repo.py" "$TEST_INSTALL_DESTDIR"
-
 git -C "$GITREPO_ROOT" fetch --tags --unshallow || true
 git -C "$GITREPO_ROOT" describe > "$TEST_INSTALL_DESTDIR/aktualizr-version"

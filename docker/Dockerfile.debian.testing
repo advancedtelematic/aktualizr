@@ -24,6 +24,7 @@ RUN apt-get update && apt-get -y install --no-install-suggests --no-install-reco
   gcc \
   git \
   graphviz \
+  jq \
   lcov \
   libarchive-dev \
   libboost-dev \
