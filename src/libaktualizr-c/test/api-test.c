@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
 
   c = Aktualizr_campaigns_check(a);
   if (c) {
-    fprintf(stdout, "Accepting running campaign\n");
+    printf("Accepting running campaign\n");
     err = Aktualizr_campaign_accept(a, c);
     Aktualizr_campaign_free(c);
     if (err) {
