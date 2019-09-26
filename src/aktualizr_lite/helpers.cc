@@ -1,1 +1,61 @@
 #include "helpers.h"
+
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+
+#include "package_manager/ostreemanager.h"
+
+static void finalizeIfNeeded(INvStorage &storage, PackageConfig &config) {
+  boost::optional<Uptane::Target> pending_version;
+  storage.loadInstalledVersions("", nullptr, &pending_version);
+
+  if (!!pending_version) {
+    GObjectUniquePtr<OstreeSysroot> sysroot_smart = OstreeManager::LoadSysroot(config.sysroot);
+    OstreeDeployment *booted_deployment = ostree_sysroot_get_booted_deployment(sysroot_smart.get());
+    if (booted_deployment == nullptr) {
+      throw std::runtime_error("Could not get booted deployment in " + config.sysroot.string());
+    }
+    std::string current_hash = ostree_deployment_get_csum(booted_deployment);
+
+    const Uptane::Target &target = *pending_version;
+    if (current_hash == target.sha256Hash()) {
+      LOG_INFO << "Marking target install complete for: " << target;
+      storage.saveInstalledVersion("", target, InstalledVersionUpdateMode::kCurrent);
+    }
+  }
+}
+
+std::shared_ptr<SotaUptaneClient> liteClient(Config &config, std::shared_ptr<INvStorage> storage) {
+  std::string pkey;
+  if (storage == nullptr) {
+    storage = INvStorage::newStorage(config.storage);
+  }
+  storage->importData(config.import);
+
+  EcuSerials ecu_serials;
+  if (!storage->loadEcuSerials(&ecu_serials)) {
+    // Set a "random" serial so we don't get warning messages.
+    std::string serial = config.provision.primary_ecu_serial;
+    std::string hwid = config.provision.primary_ecu_hardware_id;
+    if (hwid.empty()) {
+      hwid = Utils::getHostname();
+    }
+    if (serial.empty()) {
+      boost::uuids::uuid tmp = boost::uuids::random_generator()();
+      serial = boost::uuids::to_string(tmp);
+    }
+    ecu_serials.emplace_back(Uptane::EcuSerial(serial), Uptane::HardwareIdentifier(hwid));
+    storage->storeEcuSerials(ecu_serials);
+  }
+
+  auto http_client = std::make_shared<HttpClient>();
+  auto bootloader = std::make_shared<Bootloader>(config.bootloader, *storage);
+  auto report_queue = std::make_shared<ReportQueue>(config, http_client);
+
+  KeyManager keys(storage, config.keymanagerConfig());
+  keys.copyCertsToCurl(*http_client);
+
+  auto client = std::make_shared<SotaUptaneClient>(config, storage, http_client, bootloader, report_queue);
+  finalizeIfNeeded(*storage, config.pacman);
+  return client;
+}
