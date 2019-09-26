@@ -35,4 +35,3 @@ script:
 - ci_env=`bash <(curl -s https://codecov.io/env)`
 - timeout --foreground 35m docker run -v $TRAVIS_BUILD_DIR:/aktualizr -v /persistent:/persistent -w /aktualizr $ci_env $DARGS -it advancedtelematic/aktualizr ${SCRIPT}
 - if [[ $DEPLOY_PKGS = 1 ]]; then ./scripts/test_garage_deploy_deb.sh /persistent "${INSTALL_DOCKERFILE}"; fi
-- if [[ $RELEASE_NAME = ubuntu_16.04 ]]; then ./scripts/test_aktualizr_deb_ubuntu.sh /persistent "${INSTALL_DOCKERFILE}"; fi
