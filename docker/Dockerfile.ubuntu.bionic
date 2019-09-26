@@ -21,6 +21,7 @@ RUN apt-get update && apt-get -y install --no-install-suggests --no-install-reco
   g++ \
   gcc \
   git \
+  jq \
   lcov \
   libarchive-dev \
   libboost-dev \
