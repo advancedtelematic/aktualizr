@@ -9,6 +9,7 @@
 using Campaign = campaign::Campaign;
 using Updates = std::vector<Uptane::Target>;
 using Target = Uptane::Target;
+using StorageTargetHandle = StorageTargetRHandle;
 
 extern "C" {
 #else
@@ -16,6 +17,7 @@ typedef struct Aktualizr Aktualizr;
 typedef struct Campaign Campaign;
 typedef struct Updates Updates;
 typedef struct Target Target;
+typedef struct StorageTargetHandle StorageTargetHandle;
 #endif
 
 Aktualizr *Aktualizr_create(const char *config_path);
@@ -34,7 +36,7 @@ void Aktualizr_updates_free(Updates *u);
 
 size_t Aktualizr_get_targets_num(Updates *u);
 Target *Aktualizr_get_nth_target(Updates *u, size_t n);
-const char *Aktualizr_get_target_name(Target *t);
+char *Aktualizr_get_target_name(Target *t);
 
 int Aktualizr_download_target(Aktualizr *a, Target *t);
 
@@ -43,9 +45,9 @@ int Aktualizr_install_target(Aktualizr *a, Target *t);
 int Aktualizr_send_manifest(Aktualizr *a, const char *manifest);
 int Aktualizr_send_device_data(Aktualizr *a);
 
-void *Aktualizr_open_stored_target(Aktualizr *a, const char *filename, const char *content);
-size_t Aktualizr_read_stored_target(void *handle, uint8_t* buf, size_t size);
-int Aktualizr_close_stored_target(void *handle);
+StorageTargetHandle *Aktualizr_open_stored_target(Aktualizr *a, const Target *t);
+size_t Aktualizr_read_stored_target(StorageTargetHandle *handle, uint8_t* buf, size_t size);
+int Aktualizr_close_stored_target(StorageTargetHandle *handle);
 
 #ifdef __cplusplus
 }

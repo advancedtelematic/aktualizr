@@ -92,11 +92,11 @@ Updates *Aktualizr_updates_check(Aktualizr *a) {
 
 void Aktualizr_updates_free(Updates *u) { delete u; }
 
-size_t Aktualizr_get_targets_num(Updates *u) { return u ? u->size() : 0; }
+size_t Aktualizr_get_targets_num(Updates *u) { return (u == nullptr) ? 0 : u->size(); }
 
 Target *Aktualizr_get_nth_target(Updates *u, size_t n) {
   try {
-    if (u) {
+    if (u != nullptr) {
       return &u->at(n);
     } else {
       return nullptr;
@@ -107,11 +107,13 @@ Target *Aktualizr_get_nth_target(Updates *u, size_t n) {
   }
 }
 
-// TODO: leaks memory. Would it be nicer if t->filename returned const ref?
-const char *Aktualizr_get_target_name(Target *t) {
-  if (t) {
-    auto name = new std::string(std::move(t->filename()));
-    return name->c_str();
+// TODO: Would it be nicer if t->filename returned const ref?
+char *Aktualizr_get_target_name(Target *t) {
+  if (t != nullptr) {
+    void *name_ptr = malloc(sizeof(char) * (t->filename().size() + 1));
+    auto *name = static_cast<char *>(name_ptr);
+    strncpy(name, t->filename().c_str(), t->filename().size() + 1);
+    return name;
   } else {
     return nullptr;
   }
@@ -158,46 +160,35 @@ int Aktualizr_send_device_data(Aktualizr *a) {
   }
 }
 
-void *Aktualizr_open_stored_target(Aktualizr *a, const char *filename, const char *content) {
-  if (filename == nullptr || content == nullptr) {
-    std::cerr << "Aktualizr_open_stored_target failed: invalid input "
-              << (filename ? "content" : "filename") << std::endl;
+StorageTargetHandle *Aktualizr_open_stored_target(Aktualizr *a, const Target *t) {
+  if (t == nullptr) {
+    std::cerr << "Aktualizr_open_stored_target failed: invalid input" << std::endl;
     return nullptr;
   }
 
-  Json::Value value;
-  Json::Reader reader;
-  if (!reader.parse(content, value)) {
-    std::cerr << "Aktualizr_open_stored_target content parsing failed" << std::endl;
-    return nullptr;
-  }
-
-  Uptane::Target target(filename, value);
   try {
-    auto handle = a->OpenStoredTarget(target);
-    return reinterpret_cast<void *>(handle.release());
+    auto handle = a->OpenStoredTarget(*t);
+    return handle.release();
   } catch (const std::exception &e) {
     std::cerr << "Aktualizr_open_stored_target exception: " << e.what() << std::endl;
     return nullptr;
   }
 }
 
-size_t Aktualizr_read_stored_target(void *handle, uint8_t *buf, size_t size) {
-  if (handle && buf) {
-    StorageTargetRHandle *target_handle = reinterpret_cast<StorageTargetRHandle *>(handle);
-    return target_handle->rread(buf, size);
+size_t Aktualizr_read_stored_target(StorageTargetHandle *handle, uint8_t *buf, size_t size) {
+  if (handle != nullptr && buf != nullptr) {
+    return handle->rread(buf, size);
   } else {
-    std::cerr << "Aktualizr_read_stored_target failed: invalid input "
-              << (handle ? "buffer" : "handle") << std::endl;
+    std::cerr << "Aktualizr_read_stored_target failed: invalid input " << (handle == nullptr ? "handle" : "buffer")
+              << std::endl;
     return 0;
   }
 }
 
-int Aktualizr_close_stored_target(void *handle) {
-  if (handle) {
-    StorageTargetRHandle *target_handle = reinterpret_cast<StorageTargetRHandle *>(handle);
-    target_handle->rclose();
-    delete target_handle;
+int Aktualizr_close_stored_target(StorageTargetHandle *handle) {
+  if (handle != nullptr) {
+    handle->rclose();
+    delete handle;
     return 0;
   } else {
     std::cerr << "Aktualizr_close_stored_target failed: no input handle" << std::endl;
