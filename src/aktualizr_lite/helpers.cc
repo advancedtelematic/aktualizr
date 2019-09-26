@@ -25,11 +25,9 @@ static void finalizeIfNeeded(INvStorage &storage, PackageConfig &config) {
   }
 }
 
-std::shared_ptr<SotaUptaneClient> liteClient(Config &config, std::shared_ptr<INvStorage> storage) {
+LiteClient::LiteClient(Config &config_in) : config(std::move(config_in)) {
   std::string pkey;
-  if (storage == nullptr) {
-    storage = INvStorage::newStorage(config.storage);
-  }
+  storage = INvStorage::newStorage(config.storage);
   storage->importData(config.import);
 
   EcuSerials ecu_serials;
@@ -55,7 +53,6 @@ std::shared_ptr<SotaUptaneClient> liteClient(Config &config, std::shared_ptr<INv
   KeyManager keys(storage, config.keymanagerConfig());
   keys.copyCertsToCurl(*http_client);
 
-  auto client = std::make_shared<SotaUptaneClient>(config, storage, http_client, bootloader, report_queue);
+  primary = std::make_shared<SotaUptaneClient>(config, storage, http_client, bootloader, report_queue);
   finalizeIfNeeded(*storage, config.pacman);
-  return client;
 }

@@ -39,13 +39,16 @@ TEST(helpers, lite_client_finalize) {
 
   setenv("OSTREE_HASH", "deadbeef", 1);
   storage->savePrimaryInstalledVersion(target, InstalledVersionUpdateMode::kPending);
-  auto client = liteClient(config, storage);
-  ASSERT_TRUE(target.MatchHash(client->getCurrent().hashes()[0]));
+  ASSERT_TRUE(target.MatchHash(LiteClient(config).primary->getCurrent().hashes()[0]));
+
+  config = Config();  // Create a new config since LiteClient std::move's it
+  config.storage.path = cfg_dir.Path();
+  config.pacman.type = PackageManager::kOstree;
+  config.pacman.sysroot = test_sysroot;
 
   setenv("OSTREE_HASH", "abcd", 1);
   storage->savePrimaryInstalledVersion(target, InstalledVersionUpdateMode::kPending);
-  client = liteClient(config, storage);
-  ASSERT_FALSE(target.MatchHash(client->getCurrent().hashes()[0]));
+  ASSERT_FALSE(target.MatchHash(LiteClient(config).primary->getCurrent().hashes()[0]));
 }
 
 #ifndef __NO_MAIN__

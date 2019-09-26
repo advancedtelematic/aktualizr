@@ -14,6 +14,12 @@ struct Version {
   bool operator<(const Version& other) { return strverscmp(raw_ver.c_str(), other.raw_ver.c_str()) < 0; }
 };
 
-std::shared_ptr<SotaUptaneClient> liteClient(Config& config, std::shared_ptr<INvStorage> storage);
+struct LiteClient {
+  LiteClient(Config& config_in);
+
+  Config config;
+  std::shared_ptr<INvStorage> storage;
+  std::shared_ptr<SotaUptaneClient> primary;
+};
 
 #endif  // AKTUALIZR_LITE_HELPERS
