@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "api-test-utils/api-test-utils.h"
 #include "libaktualizr-c.h"
+
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
 int main(int argc, char **argv) {
   Aktualizr *a;
@@ -10,10 +13,33 @@ int main(int argc, char **argv) {
   Target *t;
   int err;
 
-  if (argc != 2) {
-    fprintf(stderr, "Missing config file\nUsage:\n\t%s CONFIG_FILE\n", argv[0]);
+  if (argc != 4) {
+    fprintf(stderr, "Incorrect input params\nUsage:\n\t%s CONFIG_FILE FAKE_HTTP_ERVER_PATH UPTANE_GENERATOR_PATH\n",
+            argv[0]);
     return EXIT_FAILURE;
   }
+
+  Run_fake_http_server(argv[2]);
+
+  TemporaryDirectory *temp_dir = Get_temporary_directory();
+  UptaneGenerator *g = Get_uptane_generator(argv[3]);
+
+  const char *meta_dir = Get_temporary_directory_path(temp_dir);
+
+  const char *gen_args[] = {"generate", "--path", meta_dir, "--correlationid", "abc123"};
+  const char *image_args[] = {"image",        "--path",       meta_dir, "--filename", "tests/test_data/firmware.txt",
+                              "--targetname", "firmware.txt", "--hwid", "primary_hw"};
+  const char *add_target_args[] = {"addtarget", "--path",     meta_dir,   "--targetname",     "firmware.txt",
+                                   "--hwid",    "primary_hw", "--serial", "CA:FE:A6:D2:84:9D"};
+  const char *sign_args[] = {"signtargets", "--path", meta_dir, "--correlationid", "abc123"};
+
+  Run_uptane_generator(g, gen_args, ARRAY_SIZE(gen_args));
+  Run_uptane_generator(g, image_args, ARRAY_SIZE(image_args));
+  Run_uptane_generator(g, add_target_args, ARRAY_SIZE(add_target_args));
+  Run_uptane_generator(g, sign_args, ARRAY_SIZE(sign_args));
+
+  Remove_temporary_directory(temp_dir);
+  Remove_uptane_generator(g);
 
   a = Aktualizr_create(argv[1]);
   if (!a) {
