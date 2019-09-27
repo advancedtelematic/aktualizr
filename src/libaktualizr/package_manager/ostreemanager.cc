@@ -234,12 +234,23 @@ OstreeManager::OstreeManager(PackageConfig pconfig, std::shared_ptr<INvStorage> 
 bool OstreeManager::fetchTarget(const Uptane::Target &target, Uptane::Fetcher &fetcher, const KeyManager &keys,
                                 FetcherProgressCb progress_cb, const api::FlowControlToken *token) {
   if (!target.IsOstree()) {
+    // The case when the ostree package manager is set as a package manager for aktualizr
+    // while the target is aimed for a secondary ECU that is configured with another/non-ostree package manager
     return PackageManagerInterface::fetchTarget(target, fetcher, keys, progress_cb, token);
   }
   return OstreeManager::pull(config.sysroot, config.ostree_server, keys, target, token, progress_cb).success;
 }
 
 TargetStatus OstreeManager::verifyTarget(const Uptane::Target &target) const {
+  if (!target.IsOstree()) {
+    // The case when the ostree package manager is set as a package manager for aktualizr
+    // while the target is aimed for a secondary ECU that is configured with another/non-ostree package manager
+    return PackageManagerInterface::verifyTarget(target);
+  }
+  return verifyTargetInternal(target);
+}
+
+TargetStatus OstreeManager::verifyTargetInternal(const Uptane::Target &target) const {
   const std::string refhash = target.sha256Hash();
   GError *error = nullptr;
 
