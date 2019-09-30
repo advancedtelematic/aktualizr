@@ -5,6 +5,7 @@ import tempfile
 import threading
 import os
 import shutil
+import socket
 
 from os import devnull
 from os import path
@@ -35,7 +36,9 @@ class Aktualizr:
         self.reboot_sentinel_file = os.path.join(self._storage_dir.name, self._sentinel_file)
 
         with open(path.join(self._storage_dir.name, 'secondary_config.json'), 'w+') as secondary_config_file:
-            secondary_cfg = json.loads(Aktualizr.SECONDARY_CONFIG_TEMPLATE.format(port=wait_port, timeout=wait_timeout))
+            secondary_cfg = json.loads(Aktualizr.SECONDARY_CONFIG_TEMPLATE.
+                                       format(port=secondary.primary_port if secondary else wait_port,
+                                              timeout=wait_timeout))
             json.dump(secondary_cfg, secondary_config_file)
             self._secondary_config_file = secondary_config_file.name
 
@@ -246,10 +249,12 @@ class IPSecondary:
 
         self._aktualizr_secondary_exe = aktualizr_secondary_exe
         self._storage_dir = tempfile.TemporaryDirectory()
+        self.port = self.get_free_port()
+        self.primary_port = self.get_free_port()
 
         with open(path.join(self._storage_dir.name, 'config.toml'), 'w+') as config_file:
             config_file.write(IPSecondary.CONFIG_TEMPLATE.format(serial=id[1], hw_ID=id[0],
-                                                                 port=port, primary_port=primary_port,
+                                                                 port=self.port, primary_port=self.primary_port,
                                                                  storage_dir=self._storage_dir,
                                                                  db_path=path.join(self._storage_dir.name, 'db.sql')))
             self._config_file = config_file.name
@@ -276,6 +281,14 @@ class IPSecondary:
 
     def is_running(self):
         return True if self._process.poll() is None else False
+
+    @staticmethod
+    def get_free_port():
+        tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        tcp.bind(('', 0))
+        port = tcp.getsockname()[1]
+        tcp.close()
+        return port
 
     def __enter__(self):
         self._process = subprocess.Popen([self._aktualizr_secondary_exe, '-c', self._config_file],
