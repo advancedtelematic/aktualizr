@@ -61,6 +61,9 @@ class OstreeManager : public PackageManagerInterface {
                                        const KeyManager &keys, const Uptane::Target &target,
                                        const api::FlowControlToken *token = nullptr,
                                        OstreeProgressCb progress_cb = nullptr);
+
+ private:
+  TargetStatus verifyTargetInternal(const Uptane::Target &target) const;
 };
 
 #endif  // OSTREE_H_

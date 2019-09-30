@@ -4,6 +4,8 @@ import json
 import tempfile
 import threading
 import os
+import shutil
+import socket
 
 from os import devnull
 from os import path
@@ -34,7 +36,9 @@ class Aktualizr:
         self.reboot_sentinel_file = os.path.join(self._storage_dir.name, self._sentinel_file)
 
         with open(path.join(self._storage_dir.name, 'secondary_config.json'), 'w+') as secondary_config_file:
-            secondary_cfg = json.loads(Aktualizr.SECONDARY_CONFIG_TEMPLATE.format(port=wait_port, timeout=wait_timeout))
+            secondary_cfg = json.loads(Aktualizr.SECONDARY_CONFIG_TEMPLATE.
+                                       format(port=secondary.primary_port if secondary else wait_port,
+                                              timeout=wait_timeout))
             json.dump(secondary_cfg, secondary_config_file)
             self._secondary_config_file = secondary_config_file.name
 
@@ -133,10 +137,11 @@ class Aktualizr:
     def get_info(self):
 
         info_exe_res = None
-        for ii in range(0, 6):
+        for ii in range(0, 10):
             info_exe_res = subprocess.run([self._aktualizr_info_exe, '-c', self._config_file],
                                           timeout=60, stdout=subprocess.PIPE, env=self._run_env)
-            if info_exe_res.returncode == 0:
+            if info_exe_res.returncode == 0 and \
+                    str(info_exe_res.stdout).find('no details about installed nor pending images') != -1:
                 break
 
         if info_exe_res and info_exe_res.returncode == 0:
@@ -213,7 +218,7 @@ class Aktualizr:
         self._process.wait(timeout=60)
         logger.debug("Aktualizr has been stopped")
 
-    def wait_for_completion(self, timeout=60):
+    def wait_for_completion(self, timeout=120):
         self._process.wait(timeout)
 
     def emulate_reboot(self):
@@ -244,10 +249,12 @@ class IPSecondary:
 
         self._aktualizr_secondary_exe = aktualizr_secondary_exe
         self._storage_dir = tempfile.TemporaryDirectory()
+        self.port = self.get_free_port()
+        self.primary_port = self.get_free_port()
 
         with open(path.join(self._storage_dir.name, 'config.toml'), 'w+') as config_file:
             config_file.write(IPSecondary.CONFIG_TEMPLATE.format(serial=id[1], hw_ID=id[0],
-                                                                 port=port, primary_port=primary_port,
+                                                                 port=self.port, primary_port=self.primary_port,
                                                                  storage_dir=self._storage_dir,
                                                                  db_path=path.join(self._storage_dir.name, 'db.sql')))
             self._config_file = config_file.name
@@ -275,6 +282,14 @@ class IPSecondary:
     def is_running(self):
         return True if self._process.poll() is None else False
 
+    @staticmethod
+    def get_free_port():
+        tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        tcp.bind(('', 0))
+        port = tcp.getsockname()[1]
+        tcp.close()
+        return port
+
     def __enter__(self):
         self._process = subprocess.Popen([self._aktualizr_secondary_exe, '-c', self._config_file],
                                          stdout=open(devnull, 'w'), close_fds=True)
@@ -291,7 +306,7 @@ class UptaneRepo(HTTPServer):
     def __init__(self, doc_root, ifc, port, client_handler_map={}):
         super(UptaneRepo, self).__init__(server_address=(ifc, port), RequestHandlerClass=self.Handler)
 
-        self.base_url = 'http://{}:{}'.format(ifc, port)
+        self.base_url = 'http://{}:{}'.format(self.server_address[0], self.server_address[1])
         self.doc_root = doc_root
         self._server_thread = None
 
@@ -434,8 +449,7 @@ class Treehub(UptaneRepo):
     This server serves requests from an ostree client, i.e. emulates/mocks the treehub server
     """
     def __init__(self, ifc, port, client_handler_map={}):
-        self._root = tempfile.TemporaryDirectory()
-        self.root = self._root.name
+        self.root = tempfile.mkdtemp()
         super(Treehub, self).__init__(self.root, ifc=ifc, port=port, client_handler_map=client_handler_map)
 
     def __enter__(self):
@@ -444,7 +458,7 @@ class Treehub(UptaneRepo):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         super(Treehub, self).__exit__(exc_type, exc_val, exc_tb)
-        self._root.cleanup()
+        shutil.rmtree(self.root, ignore_errors=True)
 
     class Handler(UptaneRepo.Handler):
         def default_get(self):
@@ -572,14 +586,12 @@ class MalformedJsonHandler:
 
 
 class UptaneTestRepo:
-
-    def __init__(self, repo_manager_exe, server_port=8080, director_port=8889, image_repo_port=8890,
-                 custom_repo_port=8891):
+    def __init__(self, repo_manager_exe, server_port=0, director_port=0, image_repo_port=0, custom_repo_port=0):
         self.image_rel_dir = 'repo/repo'
         self.target_rel_dir = 'repo/repo/targets'
 
         self._repo_manager_exe = repo_manager_exe
-        self._repo_root_dir = tempfile.TemporaryDirectory()
+        self.root_dir = tempfile.mkdtemp()
 
         self.server_port = server_port
         self.director_port = director_port
@@ -587,9 +599,7 @@ class UptaneTestRepo:
         self.custom_repo_port = custom_repo_port
 
     def create_generic_server(self, **kwargs):
-        return FakeTestServerBackground(meta_path=self.root_dir,
-                                        target_path=self.target_dir,
-                                        port=self.server_port, **kwargs)
+        return FakeTestServerBackground(meta_path=self.root_dir, target_path=self.target_dir, port=self.server_port)
 
     def create_director_repo(self, handler_map={}):
         return DirectorRepo(self.root_dir, 'localhost', self.director_port, client_handler_map=handler_map)
@@ -599,10 +609,6 @@ class UptaneTestRepo:
 
     def create_custom_repo(self, handler_map={}):
         return CustomRepo(self.root_dir, 'localhost', self.custom_repo_port, client_handler_map=handler_map)
-
-    @property
-    def root_dir(self):
-        return self._repo_root_dir.name
 
     @property
     def image_dir(self):
@@ -672,7 +678,7 @@ class UptaneTestRepo:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self._repo_root_dir.cleanup()
+        shutil.rmtree(self.root_dir, ignore_errors=True)
 
     def _generate_repo(self):
         subprocess.run([self._repo_manager_exe, '--path', self.root_dir, '--command', 'generate'], check=True)
@@ -702,13 +708,12 @@ def with_aktualizr(start=True, output_logs=False, id=('primary-hw-ID-001', str(u
 
 # The following decorators can be eliminated if pytest framework (or similar) is used
 # by using fixtures instead
-def with_uptane_backend(start_generic_server=True, port=8080,
-                        repo_manager_exe='src/uptane_generator/uptane-generator'):
+def with_uptane_backend(start_generic_server=True, repo_manager_exe='src/uptane_generator/uptane-generator'):
     def decorator(test):
         @wraps(test)
         def wrapper(*args, **kwargs):
             repo_manager_exe_abs_path = path.abspath(repo_manager_exe)
-            with UptaneTestRepo(repo_manager_exe_abs_path, server_port=port) as repo:
+            with UptaneTestRepo(repo_manager_exe_abs_path) as repo:
                 if start_generic_server:
                     with repo.create_generic_server() as uptane_server:
                         result = test(*args, **kwargs, uptane_repo=repo, uptane_server=uptane_server)
@@ -872,13 +877,12 @@ def with_customrepo(start=True, handlers=[]):
 class Sysroot:
     repo_path = 'ostree_repo'
 
-    def __init__(self):
-        self._root = tempfile.TemporaryDirectory()
-        self.path = os.path.join(self._root.name, self.repo_path)
+    def __enter__(self):
+        self._root = tempfile.mkdtemp()
+        self.path = os.path.join(self._root, self.repo_path)
         self.version_file = os.path.join(self.path, 'version')
 
-    def __enter__(self):
-        subprocess.run(['cp', '-r', self.repo_path, self._root.name], check=True)
+        subprocess.run(['cp', '-r', self.repo_path, self._root], check=True)
 
         initial_revision = self.get_revision()
         with open(self.version_file, 'wt') as version_file:
@@ -890,7 +894,7 @@ class Sysroot:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self._root.cleanup()
+        shutil.rmtree(self._root, ignore_errors=True)
 
     def get_revision(self):
         rev_cmd_res = subprocess.run(['ostree', 'rev-parse', '--repo', self.path + '/ostree/repo', 'generate-remote:generated'],
@@ -916,7 +920,7 @@ def with_sysroot(ostree_mock_path='tests/libostree_mock.so'):
     return decorator
 
 
-def with_treehub(port=7777, handlers=[]):
+def with_treehub(handlers=[], port=0):
     def decorator(test):
         @wraps(test)
         def wrapper(*args, **kwargs):
