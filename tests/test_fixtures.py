@@ -3,6 +3,7 @@ import logging
 import json
 import tempfile
 import threading
+import time
 import os
 import shutil
 import socket
@@ -24,7 +25,8 @@ logger = logging.getLogger(__name__)
 class Aktualizr:
 
     def __init__(self, aktualizr_primary_exe, aktualizr_info_exe, id,
-                 uptane_server, ca, pkey, cert, wait_port=9040, wait_timeout=60, secondary=None, output_logs=True,
+                 uptane_server, ca, pkey, cert, wait_port=9040, wait_timeout=60, log_level=1,
+                 secondary=None, output_logs=True,
                  run_mode='once', director=None, image_repo=None,
                  sysroot=None, treehub=None, ostree_mock_path=None, **kwargs):
         self.id = id
@@ -32,6 +34,7 @@ class Aktualizr:
         self._aktualizr_primary_exe = aktualizr_primary_exe
         self._aktualizr_info_exe = aktualizr_info_exe
         self._storage_dir = tempfile.TemporaryDirectory()
+        self._log_level = log_level
         self._sentinel_file = 'need_reboot'
         self.reboot_sentinel_file = os.path.join(self._storage_dir.name, self._sentinel_file)
 
@@ -48,6 +51,7 @@ class Aktualizr:
                                                                serial=id[1], hw_ID=id[0],
                                                                storage_dir=self._storage_dir,
                                                                db_path=path.join(self._storage_dir.name, 'sql.db'),
+                                                               log_level=self._log_level,
                                                                secondary_cfg_file=self._secondary_config_file,
                                                                director=director.base_url if director else '',
                                                                image_repo=image_repo.base_url if image_repo else '',
@@ -102,7 +106,7 @@ class Aktualizr:
     reboot_command = ""
 
     [logger]
-    loglevel = 1
+    loglevel = {log_level}
 
     '''
 
@@ -208,7 +212,9 @@ class Aktualizr:
 
     def __enter__(self):
         self._process = subprocess.Popen([self._aktualizr_primary_exe, '-c', self._config_file, '--run-mode', self._run_mode],
-                                         stdout=None if self._output_logs else open(devnull, 'w'), close_fds=True,
+                                         stdout=None if self._output_logs else subprocess.PIPE,
+                                         stderr=None if self._output_logs else subprocess.STDOUT,
+                                         close_fds=True,
                                          env=self._run_env)
         logger.debug("Aktualizr has been started")
         return self
@@ -218,8 +224,21 @@ class Aktualizr:
         self._process.wait(timeout=60)
         logger.debug("Aktualizr has been stopped")
 
+    def terminate(self):
+        self._process.terminate()
+
+    def output(self):
+        return self._process.stdout.read().decode(errors='replace')
+
     def wait_for_completion(self, timeout=120):
         self._process.wait(timeout)
+
+    def wait_for_provision(self, timeout=60):
+        while True:
+            info = self.get_info()
+            if 'Provisioned on server: yes' in info:
+                break
+            time.sleep(0.2)
 
     def emulate_reboot(self):
         os.remove(self.reboot_sentinel_file)
@@ -685,17 +704,17 @@ class UptaneTestRepo:
 
 
 def with_aktualizr(start=True, output_logs=False, id=('primary-hw-ID-001', str(uuid4())), wait_timeout=60,
-                   aktualizr_primary_exe='src/aktualizr_primary/aktualizr',
+                   log_level=1, aktualizr_primary_exe='src/aktualizr_primary/aktualizr',
                    aktualizr_info_exe='src/aktualizr_info/aktualizr-info',
                    run_mode='once'):
     def decorator(test):
         @wraps(test)
         def wrapper(*args, ostree_mock_path=None, **kwargs):
             aktualizr = Aktualizr(aktualizr_primary_exe=aktualizr_primary_exe,
-                           aktualizr_info_exe=aktualizr_info_exe,
-                           id=id, ca=KeyStore.ca(), pkey=KeyStore.pkey(), cert=KeyStore.cert(),
-                           wait_timeout=wait_timeout, output_logs=output_logs, run_mode=run_mode,
-                                  ostree_mock_path=ostree_mock_path, **kwargs)
+                                  aktualizr_info_exe=aktualizr_info_exe,
+                                  id=id, ca=KeyStore.ca(), pkey=KeyStore.pkey(), cert=KeyStore.cert(),
+                                  wait_timeout=wait_timeout, log_level=log_level, output_logs=output_logs,
+                                  run_mode=run_mode, ostree_mock_path=ostree_mock_path, **kwargs)
             if start:
                 with aktualizr:
                     result = test(*args, **kwargs, aktualizr=aktualizr)

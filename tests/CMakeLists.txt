@@ -205,7 +205,13 @@ if(BUILD_OSTREE)
     set_tests_properties(test_update PROPERTIES LABELS "noptest")
 endif(BUILD_OSTREE)
 
+add_test(NAME test_aktualizr_kill
+         COMMAND ${PROJECT_SOURCE_DIR}/tests/test_aktualizr_kill.py
+         --build-dir ${PROJECT_BINARY_DIR} --src-dir ${PROJECT_SOURCE_DIR})
+set_tests_properties(test_aktualizr_kill PROPERTIES LABELS "noptest")
+
 add_test(NAME test_install_aktualizr_and_update COMMAND ${PROJECT_SOURCE_DIR}/tests/test_install_aktualizr_and_update.sh ${PROJECT_BINARY_DIR} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+set_tests_properties(test_install_aktualizr_and_update PROPERTIES LABELS "noptest")
 
 add_executable(aktualizr-cycle-simple aktualizr_cycle_simple.cc)
 target_link_libraries(aktualizr-cycle-simple aktualizr_static_lib ${AKTUALIZR_EXTERNAL_LIBS})
