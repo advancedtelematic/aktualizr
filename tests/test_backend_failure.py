@@ -25,7 +25,7 @@ Currently, it's tested against two types of metadata download/parsing failure:
 Note: Aktualizr doesn't send any installation report in manifest in case of metadata download failure
 https://saeljira.it.here.com/browse/OTA-3730
 """
-@with_uptane_backend(start_generic_server=True, port=8888)
+@with_uptane_backend(start_generic_server=True)
 @with_path(paths=['/1.root.json', '/root.json', '/targets.json'])
 @with_director(handlers=[
                             DownloadInterruptionHandler(number_of_failures=1),
@@ -57,7 +57,7 @@ Currently, it's tested against two types of metadata download/parsing failure:
 
 Note: Aktualizr doesn't send any installation report in manifest in case of metadata download failure
 """
-@with_uptane_backend(start_generic_server=True, port=8888)
+@with_uptane_backend(start_generic_server=True)
 @with_path(paths=['/1.root.json', '/root.json', '/timestamp.json', '/snapshot.json', '/targets.json'])
 @with_imagerepo(handlers=[
                             DownloadInterruptionHandler(number_of_failures=1),
@@ -86,7 +86,7 @@ Currently, it's tested against two types of image download failure:
     - download interruption - file download is interrupted once, after that it's successful
     - malformed image - image download is successful but it's malformed. It happens once after that it's successful
 """
-@with_uptane_backend(start_generic_server=True, port=8888)
+@with_uptane_backend(start_generic_server=True)
 @with_images(images_to_install=[(('primary-hw-ID-001', 'primary-ecu-id'), 'primary-image.img')])
 @with_imagerepo(handlers=[
                             # TODO: test fails because aktualizr issues byte range request
@@ -111,9 +111,7 @@ def test_backend_failure_sanity_imagerepo_update_after_image_download_failure(in
     Verifies whether aktualizr is updatable after malformed image is downloaded
     from a custom image server with follow-up successful download.
 """
-@with_uptane_backend(start_generic_server=True, port=8888)
-@with_images(images_to_install=[(('primary-hw-ID-001', 'primary-ecu-id'), 'primary-image.img',
-                                 'http://localhost:8891/primary-image.img')])
+@with_uptane_backend(start_generic_server=True)
 @with_customrepo(handlers=[
                             # TODO: This test fails because the issue with image download
                             #  from a server that doesn't support byte range requests
@@ -127,15 +125,17 @@ def test_backend_failure_sanity_imagerepo_update_after_image_download_failure(in
                         ])
 @with_imagerepo()
 @with_director(start=False)
-@with_aktualizr(run_mode='full', id=('primary-hw-ID-001', 'primary-ecu-id'))
-@with_install_manager()
-def test_backend_failure_sanity_customrepo_update_after_image_download_failure(install_mngr, director,
+@with_aktualizr(run_mode='full')
+def test_backend_failure_sanity_customrepo_update_after_image_download_failure(uptane_repo, custom_repo, director,
                                                                                aktualizr, **kwargs):
+    update_hash = uptane_repo.add_image(aktualizr.id, 'primary-image.img',
+                                        custom_url=custom_repo.base_url + '/' + 'primary-image.img')
+
     with aktualizr:
         with director:
             install_result = director.wait_for_install()
-            install_result = install_result and install_mngr.are_images_installed()
-    return install_result
+
+    return install_result and update_hash == aktualizr.get_current_image_info(aktualizr.id)
 
 
 """
@@ -146,7 +146,7 @@ def test_backend_failure_sanity_customrepo_update_after_image_download_failure(i
     - download interruption - object download is interrupted once, after that it's successful
     - malformed object - object download is successful but it's malformed. It happens once after that it's successful
 """
-@with_uptane_backend(start_generic_server=True, port=8888)
+@with_uptane_backend(start_generic_server=True)
 @with_director()
 @with_treehub(handlers=[
                         DownloadInterruptionHandler(url='/objects/41/5ce9717fc7a5f4d743a4f911e11bd3ed83930e46756303fd13a3eb7ed35892.filez'),
@@ -191,10 +191,7 @@ def test_backend_failure_sanity_treehub_update_after_image_download_failure(upta
     Verifies if aktualizr supports redirects - update is successful after redirect
     Note: should aktualizr support unlimited number of redirects
 """
-@with_uptane_backend(start_generic_server=True, port=8888)
-@with_images(images_to_install=[(('primary-hw-ID-001', 'primary-ecu-id'), 'primary-image.img',
-                                 'http://localhost:8891/primary-image.img')])
-
+@with_uptane_backend(start_generic_server=True)
 # TODO: Limit a number of HTTP redirects within a single request processing
 # https://saeljira.it.here.com/browse/OTA-3729
 @with_customrepo(handlers=[
@@ -202,19 +199,20 @@ def test_backend_failure_sanity_treehub_update_after_image_download_failure(upta
                         ])
 @with_imagerepo()
 @with_director()
-@with_aktualizr(run_mode='once', id=('primary-hw-ID-001', 'primary-ecu-id'))
-@with_install_manager()
-def test_backend_failure_sanity_customrepo_update_redirect(install_mngr, director, **kwargs):
+@with_aktualizr(run_mode='once', output_logs=True)
+def test_backend_failure_sanity_customrepo_update_redirect(aktualizr, uptane_repo,
+                                                           custom_repo, director, **kwargs):
+    update_hash = uptane_repo.add_image(aktualizr.id, 'primary-image.img',
+                                        custom_url=custom_repo.base_url + '/' + 'primary-image.img')
     install_result = director.wait_for_install()
-    return install_result and install_mngr.are_images_installed()
-
+    return install_result and update_hash == aktualizr.get_current_image_info(aktualizr.id)
 
 """
   Verifies whether an update fails if director metadata download fails or they are malformed
   - download is interrupted three times
   - malformed json is received
 """
-@with_uptane_backend(start_generic_server=True, port=8888)
+@with_uptane_backend(start_generic_server=True)
 # TODO: if root.json is malformed aktualizr ignores it and proceed with an update
 # https://saeljira.it.here.com/browse/OTA-3717
 # @with_path(paths=['/root.json'])
@@ -241,7 +239,7 @@ def test_backend_failure_sanity_director_unsuccessful_download(install_mngr, akt
   - download is interrupted three times
   - malformed json is received
 """
-@with_uptane_backend(start_generic_server=True, port=8888)
+@with_uptane_backend(start_generic_server=True)
 #@with_path(paths=['/root.json']) # TODO: if root.json is malformed aktualizr ignores it and proceed with an update
 @with_path(paths=['/1.root.json', '/timestamp.json', '/snapshot.json', '/targets.json'])
 @with_imagerepo(handlers=[

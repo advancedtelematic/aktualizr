@@ -200,7 +200,7 @@ class FakeTestServerBackground:
         self._httpd = FakeTestServer(addr=('', port), meta_path=meta_path,
                                      target_path=target_path, srcdir=srcdir)
         self._server_process = self.__class__.Process(target=self._httpd.serve_forever)
-        self.base_url = 'http://localhost:{}'.format(port)
+        self.base_url = 'http://localhost:{}'.format(self.port)
 
     class Process(multiprocessing.Process):
         def run(self):

@@ -20,12 +20,12 @@ logger = logging.getLogger(__file__)
  Primary goal is to verify whether aktualizr succeeds with a binary/fake update of secondary
  while aktualizr/primary is configured with ostree package manager   
 """
-@with_uptane_backend(start_generic_server=True, port=8788)
+@with_uptane_backend(start_generic_server=True)
 @with_director()
 @with_treehub()
 @with_sysroot()
 @with_secondary(start=True)
-@with_aktualizr(start=False, run_mode='once', output_logs=False)
+@with_aktualizr(start=False, run_mode='once', output_logs=True)
 def test_primary_ostree_secondary_fake_updates(uptane_repo, secondary, aktualizr, director,
                                                uptane_server, sysroot, treehub):
     target_rev = treehub.revision
