@@ -1,4 +1,5 @@
 #define _GNU_SOURCE
+#include <assert.h>
 #include <dlfcn.h>
 #include <ostree.h>
 #include <stdio.h>
@@ -30,29 +31,76 @@
 static const char OSTREE_DEPLOYMENT_OS_NAME[] = "dummy-os";
 static const char OSTREE_DEPLOYMENT_VERSION_FILE[] = "OSTREE_DEPLOYMENT_VERSION_FILE";
 
-static OstreeDeployment* ostree_sysroot_get_booted_deployment_from_file(const char* filename);
+struct OstreeDeploymentVersion {
+  int serial;
+  char rev[256];
+};
 
-OstreeDeployment* ostree_sysroot_get_booted_deployment(OstreeSysroot* self) {
-  OstreeDeployment* (*orig)(OstreeSysroot*) = (OstreeDeployment * (*)(OstreeSysroot*))(dlsym(RTLD_NEXT, __func__));
+static int get_ostree_deployment_version(const char* filename, struct OstreeDeploymentVersion* deployed,
+                                         struct OstreeDeploymentVersion* booted);
 
-  const char* deployment_version_file = getenv(OSTREE_DEPLOYMENT_VERSION_FILE);
-  OstreeDeployment* deployment_from_file = NULL;
+struct OstreeDeploymentInfo {
+  struct OstreeDeploymentVersion deployed;
+  struct OstreeDeploymentVersion booted;
+  OstreeDeployment* booted_ostree_native_deployment;
+};
 
-  if (deployment_version_file != NULL &&
-      (deployment_from_file = ostree_sysroot_get_booted_deployment_from_file(deployment_version_file)) != NULL) {
-    return deployment_from_file;
+static struct OstreeDeploymentInfo* get_ostree_deployment_info() {
+  // NOTE: Is not tread-safe. This mock is used solely for testing and normally is called from one thread of the
+  // Aktualirz
+  static struct OstreeDeploymentInfo DeploymentInfo;
+  static int isDeploymentInfoLoaded = 0;
+
+  if (isDeploymentInfoLoaded) {
+    return &DeploymentInfo;
+  }
+
+  const char* deployment_version_file = NULL;
+  if ((deployment_version_file = getenv(OSTREE_DEPLOYMENT_VERSION_FILE)) == NULL) {
+    return NULL;
+  }
+
+  if (get_ostree_deployment_version(deployment_version_file, &DeploymentInfo.deployed, &DeploymentInfo.booted) != 0) {
+    return NULL;
+  }
+
+  // Allocation of the singletone object in a heap, one instance per a process, a memory will be released during
+  // the process teardown, no need in explicit deallocation
+  DeploymentInfo.booted_ostree_native_deployment =
+      ostree_deployment_new(0, OSTREE_DEPLOYMENT_OS_NAME, DeploymentInfo.deployed.rev, DeploymentInfo.deployed.serial,
+                            DeploymentInfo.booted.rev, DeploymentInfo.booted.serial);
+
+  assert(DeploymentInfo.booted_ostree_native_deployment != NULL);
+
+  isDeploymentInfoLoaded = 1;
+
+  return &DeploymentInfo;
+}
+
+const char* ostree_deployment_get_csum(OstreeDeployment* self) {
+  const char* (*orig)(OstreeDeployment*) = (const char* (*)(OstreeDeployment*))(dlsym(RTLD_NEXT, __func__));
+  struct OstreeDeploymentInfo* deployment_info = get_ostree_deployment_info();
+
+  if (deployment_info != NULL) {
+    return deployment_info->deployed.rev;
   }
 
   return orig(self);
 }
 
-struct OstreeDeployment {
-  int serial;
-  char rev[255];
-};
+OstreeDeployment* ostree_sysroot_get_booted_deployment(OstreeSysroot* self) {
+  OstreeDeployment* (*orig)(OstreeSysroot*) = (OstreeDeployment * (*)(OstreeSysroot*))(dlsym(RTLD_NEXT, __func__));
+  struct OstreeDeploymentInfo* deployment_info = get_ostree_deployment_info();
 
-static int read_deployment_info(FILE* file, struct OstreeDeployment* deployment) {
-  struct OstreeDeployment deployment_res;
+  if (deployment_info != NULL) {
+    return deployment_info->booted_ostree_native_deployment;
+  }
+
+  return orig(self);
+}
+
+static int read_deployment_info(FILE* file, struct OstreeDeploymentVersion* deployment) {
+  struct OstreeDeploymentVersion deployment_res;
 
   // TODO: make it more robust and reliable as a file might contain a value exceeding 255
   if (fscanf(file, "%254s\n", deployment_res.rev) != 1) {
@@ -69,8 +117,8 @@ static int read_deployment_info(FILE* file, struct OstreeDeployment* deployment)
   return 0;
 }
 
-static int get_ostree_deployment_info(const char* filename, struct OstreeDeployment* deployed,
-                                      struct OstreeDeployment* booted) {
+static int get_ostree_deployment_version(const char* filename, struct OstreeDeploymentVersion* deployed,
+                                         struct OstreeDeploymentVersion* booted) {
   FILE* file = fopen(filename, "r");
   if (file == NULL) {
     printf("\n>>>>>>>>>> Failed to open the file: %s\n\n", filename);
@@ -80,13 +128,13 @@ static int get_ostree_deployment_info(const char* filename, struct OstreeDeploym
   int return_code = -1;
 
   do {
-    struct OstreeDeployment deployed_res;
+    struct OstreeDeploymentVersion deployed_res;
     if (read_deployment_info(file, &deployed_res) != 0) {
       break;
     }
 
     if (booted != NULL) {
-      struct OstreeDeployment booted_res;
+      struct OstreeDeploymentVersion booted_res;
       if (read_deployment_info(file, &booted_res) != 0) {
         break;
       }
@@ -102,35 +150,4 @@ static int get_ostree_deployment_info(const char* filename, struct OstreeDeploym
     printf("%s: Failed to read the deployment info from: %s\n", __FILE__, filename);
   }
   return return_code;
-}
-
-static struct OstreeDeployment g_deployed;
-
-const char* ostree_deployment_get_csum(OstreeDeployment* self) {
-  const char* (*orig)(OstreeDeployment*) = (const char* (*)(OstreeDeployment*))(dlsym(RTLD_NEXT, __func__));
-
-  const char* deployment_version_file = NULL;
-
-  if ((deployment_version_file = getenv(OSTREE_DEPLOYMENT_VERSION_FILE)) != NULL) {
-    if (get_ostree_deployment_info(deployment_version_file, &g_deployed, NULL) != 0) {
-      return NULL;
-    }
-
-    return g_deployed.rev;
-  }
-
-  return orig(self);
-}
-
-OstreeDeployment* ostree_sysroot_get_booted_deployment_from_file(const char* filename) {
-  struct OstreeDeployment deployed;
-  struct OstreeDeployment booted;
-
-  if (get_ostree_deployment_info(filename, &deployed, &booted) != 0) {
-    return NULL;
-  }
-
-  OstreeDeployment* new_depl =
-      ostree_deployment_new(0, OSTREE_DEPLOYMENT_OS_NAME, deployed.rev, deployed.serial, booted.rev, booted.serial);
-  return new_depl;
 }
