@@ -161,7 +161,7 @@ static std::unique_ptr<Uptane::Target> find_target(const std::shared_ptr<SotaUpt
       }
     }
   }
-  if (find_latest) {
+  if (find_latest && latest != nullptr) {
     return latest;
   }
   throw std::runtime_error("Unable to find update");
