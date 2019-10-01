@@ -1,15 +1,24 @@
 #include "libaktualizr-c.h"
 
-Aktualizr *Aktualizr_create(const char *config_path) {
+Aktualizr *Aktualizr_create_from_cfg(Config *cfg) {
   Aktualizr *a;
   try {
-    Config cfg(config_path);
-    a = new Aktualizr(cfg);
+    a = new Aktualizr(*cfg);
   } catch (const std::exception &e) {
     std::cerr << "Aktualizr_create exception: " << e.what() << std::endl;
     return nullptr;
   }
   return a;
+}
+
+Aktualizr *Aktualizr_create_from_path(const char *config_path) {
+  try {
+    Config cfg(config_path);
+    return Aktualizr_create_from_cfg(&cfg);
+  } catch (const std::exception &e) {
+    std::cerr << "Aktualizr_create exception: " << e.what() << std::endl;
+    return nullptr;
+  }
 }
 
 int Aktualizr_initialize(Aktualizr *a) {

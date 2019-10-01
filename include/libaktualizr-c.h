@@ -20,7 +20,8 @@ typedef struct Target Target;
 typedef struct StorageTargetHandle StorageTargetHandle;
 #endif
 
-Aktualizr *Aktualizr_create(const char *config_path);
+Aktualizr *Aktualizr_create_from_cfg(Config *cfg);
+Aktualizr *Aktualizr_create_from_path(const char *config_path);
 int Aktualizr_initialize(Aktualizr *a);
 int Aktualizr_uptane_cycle(Aktualizr *a);
 void Aktualizr_destroy(Aktualizr *a);

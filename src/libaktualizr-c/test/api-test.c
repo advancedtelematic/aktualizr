@@ -11,6 +11,7 @@ int main(int argc, char **argv) {
   Campaign *c;
   Updates *u;
   Target *t;
+  Config *cfg;
   int err;
 
   if (argc != 4) {
@@ -22,6 +23,7 @@ int main(int argc, char **argv) {
   Run_fake_http_server(argv[2]);
 
   TemporaryDirectory *temp_dir = Get_temporary_directory();
+  TemporaryDirectory *fake_meta_dir = Get_temporary_directory();
   UptaneGenerator *g = Get_uptane_generator(argv[3]);
 
   const char *meta_dir = Get_temporary_directory_path(temp_dir);
@@ -38,10 +40,12 @@ int main(int argc, char **argv) {
   Run_uptane_generator(g, add_target_args, ARRAY_SIZE(add_target_args));
   Run_uptane_generator(g, sign_args, ARRAY_SIZE(sign_args));
 
-  Remove_temporary_directory(temp_dir);
   Remove_uptane_generator(g);
 
-  a = Aktualizr_create(argv[1]);
+  cfg = Get_test_config(temp_dir, "noupdates", fake_meta_dir);
+
+  // a = Aktualizr_create_from_cfg(cfg);  // Tls init timeout on Aktualizr_initialize() stage
+  a = Aktualizr_create_from_path(argv[1]);
   if (!a) {
     return EXIT_FAILURE;
   }
@@ -128,6 +132,10 @@ int main(int argc, char **argv) {
   }
 
   Aktualizr_destroy(a);
+
+  Remove_test_config(cfg);
+  Remove_temporary_directory(temp_dir);
+  Remove_temporary_directory(fake_meta_dir);
 
   return EXIT_SUCCESS;
 }

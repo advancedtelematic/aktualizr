@@ -1,6 +1,8 @@
 #include "api-test-utils.h"
 
 #include <boost/process.hpp>
+#include "../tests/httpfake.h"
+#include "../tests/uptane_test_common.h"
 #include "config/config.h"
 
 void Run_fake_http_server(const char *path) {
@@ -36,3 +38,10 @@ char *Get_temporary_directory_path(const TemporaryDirectory *dir) {
 }
 
 void Remove_temporary_directory(TemporaryDirectory *dir) { delete dir; }
+
+Config *Get_test_config(TemporaryDirectory *temp_dir, const char *flavor, TemporaryDirectory *fake_meta_dir) {
+  auto http = std::make_shared<HttpFake>(temp_dir->Path(), flavor, fake_meta_dir->Path());
+  return new Config(UptaneTestCommon::makeTestConfig(*temp_dir, http->tls_server));
+}
+
+void Remove_test_config(Config *config) { delete config; }
