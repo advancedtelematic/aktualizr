@@ -3,72 +3,13 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
 
 #include "config/config.h"
-#include "package_manager/ostreemanager.h"
-#include "primary/sotauptaneclient.h"
-#include "version.h"
+#include "helpers.h"
 
 #include "utilities/aktualizr_version.h"
 
 namespace bpo = boost::program_options;
-
-static void finalizeIfNeeded(INvStorage &storage, PackageConfig &config) {
-  boost::optional<Uptane::Target> pending_version;
-  storage.loadInstalledVersions("", nullptr, &pending_version);
-
-  if (!!pending_version) {
-    GObjectUniquePtr<OstreeSysroot> sysroot_smart = OstreeManager::LoadSysroot(config.sysroot);
-    OstreeDeployment *booted_deployment = ostree_sysroot_get_booted_deployment(sysroot_smart.get());
-    if (booted_deployment == nullptr) {
-      throw std::runtime_error("Could not get booted deployment in " + config.sysroot.string());
-    }
-    std::string current_hash = ostree_deployment_get_csum(booted_deployment);
-
-    const Uptane::Target &target = *pending_version;
-    if (current_hash == target.sha256Hash()) {
-      LOG_INFO << "Marking target install complete for: " << target;
-      storage.saveInstalledVersion("", target, InstalledVersionUpdateMode::kCurrent);
-    }
-  }
-}
-
-static std::shared_ptr<SotaUptaneClient> liteClient(Config &config, std::shared_ptr<INvStorage> storage) {
-  std::string pkey;
-  if (storage == nullptr) {
-    storage = INvStorage::newStorage(config.storage);
-  }
-  storage->importData(config.import);
-
-  EcuSerials ecu_serials;
-  if (!storage->loadEcuSerials(&ecu_serials)) {
-    // Set a "random" serial so we don't get warning messages.
-    std::string serial = config.provision.primary_ecu_serial;
-    std::string hwid = config.provision.primary_ecu_hardware_id;
-    if (hwid.empty()) {
-      hwid = Utils::getHostname();
-    }
-    if (serial.empty()) {
-      boost::uuids::uuid tmp = boost::uuids::random_generator()();
-      serial = boost::uuids::to_string(tmp);
-    }
-    ecu_serials.emplace_back(Uptane::EcuSerial(serial), Uptane::HardwareIdentifier(hwid));
-    storage->storeEcuSerials(ecu_serials);
-  }
-
-  auto http_client = std::make_shared<HttpClient>();
-  auto bootloader = std::make_shared<Bootloader>(config.bootloader, *storage);
-  auto report_queue = std::make_shared<ReportQueue>(config, http_client);
-
-  KeyManager keys(storage, config.keymanagerConfig());
-  keys.copyCertsToCurl(*http_client);
-
-  auto client = std::make_shared<SotaUptaneClient>(config, storage, http_client, bootloader, report_queue);
-  finalizeIfNeeded(*storage, config.pacman);
-  return client;
-}
 
 static void log_info_target(const std::string &prefix, const Config &config, const Uptane::Target &t) {
   auto name = t.filename();
@@ -93,9 +34,9 @@ static void log_info_target(const std::string &prefix, const Config &config, con
   }
 }
 
-static int status_main(Config &config, const bpo::variables_map &unused) {
+static int status_main(LiteClient &client, const bpo::variables_map &unused) {
   (void)unused;
-  auto target = liteClient(config, nullptr)->getCurrent();
+  auto target = client.primary->getCurrent();
 
   if (target.MatchTarget(Uptane::Target::Unknown())) {
     LOG_INFO << "No active deployment found";
@@ -104,30 +45,29 @@ static int status_main(Config &config, const bpo::variables_map &unused) {
     if (target.custom_version().length() > 0) {
       name = target.custom_version();
     }
-    log_info_target("Active image is: ", config, target);
+    log_info_target("Active image is: ", client.config, target);
   }
   return 0;
 }
 
-static int list_main(Config &config, const bpo::variables_map &unused) {
+static int list_main(LiteClient &client, const bpo::variables_map &unused) {
   (void)unused;
-  auto client = liteClient(config, nullptr);
-  Uptane::HardwareIdentifier hwid(config.provision.primary_ecu_hardware_id);
+  Uptane::HardwareIdentifier hwid(client.config.provision.primary_ecu_hardware_id);
 
   LOG_INFO << "Refreshing target metadata";
-  if (!client->updateImagesMeta()) {
+  if (!client.primary->updateImagesMeta()) {
     LOG_WARNING << "Unable to update latest metadata, using local copy";
-    if (!client->checkImagesMetaOffline()) {
+    if (!client.primary->checkImagesMetaOffline()) {
       LOG_ERROR << "Unable to use local copy of TUF data";
       return 1;
     }
   }
 
   LOG_INFO << "Updates available to " << hwid << ":";
-  for (auto &t : client->allTargets()) {
+  for (auto &t : client.primary->allTargets()) {
     for (auto const &it : t.hardwareIds()) {
       if (it == hwid) {
-        log_info_target("", config, t);
+        log_info_target("", client.config, t);
         break;
       }
     }
@@ -167,22 +107,22 @@ static std::unique_ptr<Uptane::Target> find_target(const std::shared_ptr<SotaUpt
   throw std::runtime_error("Unable to find update");
 }
 
-static int do_update(SotaUptaneClient &client, INvStorage &storage, Uptane::Target &target) {
-  if (!client.downloadImage(target).first) {
+static int do_update(LiteClient &client, Uptane::Target &target) {
+  if (!client.primary->downloadImage(target).first) {
     return 1;
   }
 
-  if (client.VerifyTarget(target) != TargetStatus::kGood) {
+  if (client.primary->VerifyTarget(target) != TargetStatus::kGood) {
     LOG_ERROR << "Downloaded target is invalid";
     return 1;
   }
 
-  auto iresult = client.PackageInstall(target);
+  auto iresult = client.primary->PackageInstall(target);
   if (iresult.result_code.num_code == data::ResultCode::Numeric::kNeedCompletion) {
     LOG_INFO << "Update complete. Please reboot the device to activate";
-    storage.saveInstalledVersion("", target, InstalledVersionUpdateMode::kPending);
+    client.storage->savePrimaryInstalledVersion(target, InstalledVersionUpdateMode::kPending);
   } else if (iresult.result_code.num_code == data::ResultCode::Numeric::kOk) {
-    storage.saveInstalledVersion("", target, InstalledVersionUpdateMode::kCurrent);
+    client.storage->savePrimaryInstalledVersion(target, InstalledVersionUpdateMode::kCurrent);
   } else {
     LOG_ERROR << "Unable to install update: " << iresult.description;
     return 1;
@@ -191,24 +131,22 @@ static int do_update(SotaUptaneClient &client, INvStorage &storage, Uptane::Targ
   return 0;
 }
 
-static int update_main(Config &config, const bpo::variables_map &variables_map) {
-  auto storage = INvStorage::newStorage(config.storage);
-  auto client = liteClient(config, storage);
-  Uptane::HardwareIdentifier hwid(config.provision.primary_ecu_hardware_id);
+static int update_main(LiteClient &client, const bpo::variables_map &variables_map) {
+  Uptane::HardwareIdentifier hwid(client.config.provision.primary_ecu_hardware_id);
 
   std::string version("latest");
   if (variables_map.count("update-name") > 0) {
     version = variables_map["update-name"].as<std::string>();
   }
   LOG_INFO << "Finding " << version << " to update to...";
-  auto target = find_target(client, hwid, version);
+  auto target = find_target(client.primary, hwid, version);
   LOG_INFO << "Updating to: " << *target;
-  return do_update(*client, *storage, *target);
+  return do_update(client, *target);
 }
 
 struct SubCommand {
   const char *name;
-  int (*main)(Config &, const bpo::variables_map &);
+  int (*main)(LiteClient &, const bpo::variables_map &);
 };
 static SubCommand commands[] = {
     {"status", status_main},
@@ -309,7 +247,8 @@ int main(int argc, char *argv[]) {
     std::string cmd = commandline_map["command"].as<std::string>();
     for (size_t i = 0; i < sizeof(commands) / sizeof(SubCommand); i++) {
       if (cmd == commands[i].name) {
-        return commands[i].main(config, commandline_map);
+        LiteClient client(config);
+        return commands[i].main(client, commandline_map);
       }
     }
     throw bpo::invalid_option_value(cmd);
