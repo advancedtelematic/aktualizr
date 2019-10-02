@@ -66,54 +66,68 @@ int main(int argc, char **argv) {
   }
 
   u = Aktualizr_updates_check(a);
-  if (u) {
-    size_t n = Aktualizr_get_targets_num(u);
-    printf("Found new updates for %zu target(s)\n", n);
-    for (size_t i = 0; i < n; i++) {
-      t = Aktualizr_get_nth_target(u, i);
-      char *name = Aktualizr_get_target_name(t);
-      printf("Downloading target %s\n", name);
-      free(name);
-      name = NULL;
+  if (u == NULL) {
+    return EXIT_FAILURE;
+  }
 
-      Aktualizr_download_target(a, t);
-      printf("Installing...\n");
+  size_t targets_num = Aktualizr_get_targets_num(u);
+  printf("Found new updates for %zu target(s)\n", targets_num);
+  if (targets_num == 0) {
+    return EXIT_FAILURE;
+  }
 
-      Aktualizr_install_target(a, t);
-      printf("Installation completed\n");
+  for (size_t i = 0; i < targets_num; i++) {
+    t = Aktualizr_get_nth_target(u, i);
+    char *name = Aktualizr_get_target_name(t);
+    if (name == NULL) {
+      return EXIT_FAILURE;
+    }
+    printf("Downloading target %s\n", name);
 
-      void *handle = Aktualizr_open_stored_target(a, t);
-      if (!handle) {
-        return EXIT_FAILURE;
-      }
+    err = Aktualizr_download_target(a, t);
+    printf("Installing...\n");
+    if (err) {
+      return EXIT_FAILURE;
+    }
 
-      const size_t bufSize = 1024;
-      uint8_t *buf = malloc(bufSize);
-      size_t size = Aktualizr_read_stored_target(handle, buf, bufSize);
-      name = Aktualizr_get_target_name(t);
-      printf("Downloading target %s: extracted %li bytes (buffer size = %li), content:\n", name, (long int)size,
-             (long int)bufSize);
-      free(name);
-      name = NULL;
+    err = Aktualizr_install_target(a, t);
+    printf("Installation completed\n");
+    if (err) {
+      return EXIT_FAILURE;
+    }
 
-      for (size_t iBuf = 0; iBuf < size; ++iBuf) {
-        printf("%c", buf[iBuf]);
-      }
-      if (size == bufSize) {
-        printf(" ... (end of content skipped)");
-      }
-      free(buf);
-      buf = NULL;
-      if (size == 0) {
-        return EXIT_FAILURE;
-      }
+    void *handle = Aktualizr_open_stored_target(a, t);
+    if (!handle) {
+      return EXIT_FAILURE;
+    }
 
-      err = Aktualizr_close_stored_target(handle);
-      if (err) {
-        return EXIT_FAILURE;
-      }
+    const size_t bufSize = 1024;
+    uint8_t *buf = malloc(bufSize);
+    size_t size = Aktualizr_read_stored_target(handle, buf, bufSize);
+    printf("Downloading target %s: extracted %li bytes (buffer size = %li), content:\n", name, (long int)size,
+           (long int)bufSize);
+    free(name);
+    name = NULL;
+
+    if (size == 0) {
+      return EXIT_FAILURE;
+    }
+
+    for (size_t iBuf = 0; iBuf < size; ++iBuf) {
+      printf("%c", buf[iBuf]);
+    }
+    if (size == bufSize) {
+      printf(" ... (end of content skipped)");
+    }
+    free(buf);
+    buf = NULL;
+
+    err = Aktualizr_close_stored_target(handle);
+    if (err) {
+      return EXIT_FAILURE;
     }
   }
+
 #if 0
   err = Aktualizr_uptane_cycle(a);
   if (err) {
