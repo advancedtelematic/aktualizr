@@ -2,6 +2,41 @@
 
 #include <sstream>
 
+/**
+ * @brief This package manager compliments the OSTreePackageManager by also including optional Docker Apps.
+ *
+ * A full description of the Docker App project can be found here:
+ *  https://github.com/docker/app/
+ *
+ * Docker Apps are very analogous to docker-compose. In fact, this module
+ * currently "renders" the docker-app file into a docker-compose file. Each
+ * Docker App appears as a Target in the TUF targets list. Each OStree target
+ * can then reference these docker apps in its custom data section. eg:
+ *
+ *   "targets": {
+ *     httpd.dockerapp-1 : {
+ *       "custom" : {"hardwareIds" : ["all"], "name" : "httpd.dockerapp", "version" : "1"},
+ *       "hashes" : {"sha256" : "f0ad4e3ce6a5e9cb70c9d747e977fddfacd08419deec0714622029b12dde8338"},
+ *       "length" : 889
+ *     },
+ *    "raspberrypi3-64-lmp-144" : {
+ *      "custom" : {
+ *         "docker_apps" : {
+ *            "httpd" : {
+ *               "filename" : "httpd.dockerapp-1"
+ *            }
+ *         },
+ *         "hardwareIds" : ["raspberrypi3-64"],
+ *         "name" : "raspberrypi3-64-lmp",
+ *         "targetFormat" : "OSTREE",
+ *         "version" : "144"
+ *      },
+ *      "hashes" : {"sha256" : "20ac4f7cd50cda6bfed0caa1f8231cc9a7e40bec60026c66df5f7e143af96942"},
+ *      "length" : 0
+ *     }
+ *   }
+ */
+
 struct DockerApp {
   DockerApp(std::string app_name, const PackageConfig &config)
       : name(std::move(app_name)),
