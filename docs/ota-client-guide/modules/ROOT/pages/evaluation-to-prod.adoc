@@ -8,12 +8,12 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 endif::[]
 
 
-The procedures to deploy OTA Connect in a realistic production scenario are a little more complex than the basic xref:getstarted::index.adoc[Get Started] procedures. But, you don't need to commit the resources for a full production roll-out right at the beginning of the process.
+The procedures to deploy OTA Connect in a realistic production scenario are a little more complex than the basic xref:getstarted::index.adoc[Get Started] procedures. However, you don't need to commit the resources for a full production roll-out right at the beginning of the process.
 
-That's why it's better work in phases when setting up OTA Connect in your organization. We recommend that you work in three main phases:
+That's why it's better to work in phases when setting up OTA Connect in your organization. We recommend that you work in three main phases:
 
 . __Evaluate OTA Connect__
-. __Build a realistic OTA-enabled PoC__
+. __Build a realistic OTA-enabled pilot project__
 . __Deploy a fully production-ready OTA solution__
 
 No matter which phase you're in, there are 4 basic tasks you'll need to do:
@@ -21,7 +21,7 @@ No matter which phase you're in, there are 4 basic tasks you'll need to do:
 * Build device images with an aktualizr-based client on it
 * Sign and upload the device images
 * Provision devices with authentication credentials for your account
-* Send updated images to the right devices
+* Send updated images to some or all of your devices
 
 This guide contains chapters to guide you through each phase and the following sections give you an introduction the phased approach:
 
@@ -35,7 +35,7 @@ Here are our recommendations for xref:intro-evaluate.adoc[evaluating OTA connect
 
 include::partial$recommended-steps.adoc[tags=evaluate-steps]
 
-== Build your own OTA-enabled solution
+== Build a realistic OTA-enabled pilot project
 
 In this phase, you'll move more towards a realistic production workflow. You'll start generating unique device keys for registering devices, and sign them with your own certificate authority. You also might start thinking about using libaktualizr to customize your update flow--for example, to integrate with a user interface, or to update secondary ECUs. You'll also take your software signing keys offline, and sign software yourself before uploading it.
 
@@ -45,7 +45,7 @@ Here are our recommendations for xref:intro-prep.adoc[integrating OTA Connect in
 
 include::partial$recommended-steps.adoc[tags=integrate-steps]
 
-== Deploy your OTA-enabled solution
+== Deploy a fully production-ready OTA solution
 
 You've done your testing and now you're ready to xref:intro-prod.adoc[use OTA Connect in production]. You need to make sure that your device provisioning process is production-ready and that your software is available in your production account.
 
