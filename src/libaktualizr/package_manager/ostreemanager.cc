@@ -309,6 +309,16 @@ Uptane::Target OstreeManager::getCurrent() const {
   }
   std::string current_hash = ostree_deployment_get_csum(booted_deployment);
 
+  boost::optional<Uptane::Target> current_version;
+  storage_->loadPrimaryInstalledVersions(&current_version, nullptr);
+
+  if (!!current_version && current_version->sha256Hash() == current_hash) {
+    return *current_version;
+  }
+
+  LOG_ERROR << "Current versions in storage and reported by ostree do not match";
+
+  // Look into installation log to find a possible candidate
   std::vector<Uptane::Target> installed_versions;
   storage_->loadPrimaryInstallationLog(&installed_versions, false);
 

@@ -160,6 +160,17 @@ void SotaUptaneClient::finalizeAfterReboot() {
 data::InstallationResult SotaUptaneClient::PackageInstallSetResult(const Uptane::Target &target) {
   data::InstallationResult result;
   Uptane::EcuSerial ecu_serial = uptane_manifest.getPrimaryEcuSerial();
+
+  // This is to recover more gracefully if the install process was interrupted
+  // but ends up booting the new version anyway (e.g: ostree finished
+  // deploying but the device restarted before the final saveInstalledVersion
+  // was called).
+  // By storing the version in the table (as uninstalled), we can still pick
+  // up some metadata
+  // TODO: we do not detect the incomplete install at aktualizr start in that
+  // case, it should ideally report a meaningful error.
+  storage->saveInstalledVersion(ecu_serial.ToString(), target, InstalledVersionUpdateMode::kNone);
+
   result = PackageInstall(target);
   if (result.result_code.num_code == data::ResultCode::Numeric::kOk) {
     // simple case: update already completed
