@@ -45,7 +45,7 @@ The meta-updater Yocto layer contains "recipes" related to software updating. Yo
 
 Later in this guide, we go into xref:yocto.adoc[more detail about how Yocto works].
 
-| *OSTree* |  OSTree is a tool for managing Linux filesystems, and delivers atomic updates with rollback capability and built-in delta support. OSTree has several advantages over traditional dual-bank systems, but the most important one is that it minimizes network bandwidth and data storage footprint by sharing files with the same contents across file system deployments.
+| *OSTree* |  OSTree is a tool for managing Linux filesystems, and delivers atomic updates with rollback capability and built-in delta support. OSTree has several advantages over traditional dual-bank systems, but the most important one is that it minimizes data usage, both in transit and in storage, by sharing files with the same contents across file system deployments.
 
 You probably won't have to use the OSTree CLI often, but it's handy for troubleshooting build issues.
 
