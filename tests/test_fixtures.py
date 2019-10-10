@@ -6,6 +6,7 @@ import threading
 import time
 import os
 import shutil
+import signal
 import socket
 
 from os import devnull
@@ -138,10 +139,9 @@ class Aktualizr:
         subprocess.run([self._aktualizr_primary_exe, '-c', self._config_file, '--run-mode', run_mode],
                        check=True, env=self._run_env)
 
-    def get_info(self):
-
+    def get_info(self, retry=10):
         info_exe_res = None
-        for ii in range(0, 10):
+        for ii in range(0, retry):
             info_exe_res = subprocess.run([self._aktualizr_info_exe, '-c', self._config_file],
                                           timeout=60, stdout=subprocess.PIPE, env=self._run_env)
             if info_exe_res.returncode == 0 and \
@@ -224,8 +224,8 @@ class Aktualizr:
         self._process.wait(timeout=60)
         logger.debug("Aktualizr has been stopped")
 
-    def terminate(self):
-        self._process.terminate()
+    def terminate(self, sig=signal.SIGTERM):
+        self._process.send_signal(sig)
 
     def output(self):
         return self._process.stdout.read().decode(errors='replace')
@@ -234,11 +234,13 @@ class Aktualizr:
         self._process.wait(timeout)
 
     def wait_for_provision(self, timeout=60):
-        while True:
-            info = self.get_info()
-            if 'Provisioned on server: yes' in info:
-                break
+        deadline = time.time() + timeout
+        while timeout == 0 or time.time() < deadline:
+            info = self.get_info(retry=1)
+            if info is not None and 'Provisioned on server: yes' in info:
+                return
             time.sleep(0.2)
+        raise TimeoutError
 
     def emulate_reboot(self):
         os.remove(self.reboot_sentinel_file)

@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
-import logging
 import argparse
+import logging
+import signal
+import time
 
 from os import getcwd, chdir
 
@@ -17,10 +19,17 @@ logger = logging.getLogger(__file__)
 def test_aktualizr_kill(director, aktualizr, **kwargs):
     test_result = False
     with aktualizr:
-        aktualizr.wait_for_provision()
-        aktualizr.terminate()
-        aktualizr.wait_for_completion()
-        test_result = 'Aktualizr daemon exiting...' in aktualizr.output()
+        try:
+            aktualizr.wait_for_provision()
+            aktualizr.terminate()
+            aktualizr.wait_for_completion()
+            test_result = 'Aktualizr daemon exiting...' in aktualizr.output()
+        except Exception:
+            aktualizr.terminate(sig=signal.SIGKILL)
+            aktualizr.wait_for_completion()
+            print(aktualizr.output())
+            raise
+
     return test_result
 
 
