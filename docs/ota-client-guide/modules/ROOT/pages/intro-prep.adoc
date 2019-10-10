@@ -1,4 +1,4 @@
-= Build your own OTA-enabled solution
+= Integrate OTA Connect
 ifdef::env-github[]
 
 [NOTE]
@@ -8,11 +8,11 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 endif::[]
 
 
-Once you've evaluated the basic functions of OTA Connect, you're ready to build your own OTA-enabled solution. You probably have your client software that runs on your devices. In this phase, you'll start to integrate OTA update functionality into that client. 
+Once you've evaluated the basic functions of OTA Connect, you're ready to integrate OTA Connect into your real-world workflows. This might include building your own OTA client based on libaktualizr, separating out different software repositories for different environments, and more.
 
-You also need to make sure that your device provisioning process reflects what you want to use in production. You also want to set up the software repository for your development account.
+You will also start thinking about production-ready security, making sure that your device provisioning and software signing processes reflect what you want to use in production. You also want to set up the software repository for your development account.
 
-Here's our recommended steps for building your own OTA-enabled solution:
+Here are our recommended steps for integration:
 
 * xref:account-setup.adoc[*Set up different user accounts*]
 +
@@ -20,7 +20,7 @@ Avoid mixing up test software and production software by uploading software unde
 
 * xref:libaktualizr-why-use.adoc[*Integrate libaktualizr with the client software on your board*]
 +
-When you move to production, you'll want to integrate OTA functionality into your board's native software.
+When you move to production, you'll probably want to integrate OTA functionality into your board's native software rather than using the default stand-alone client.
 
 * xref:build-ota-enabled-images.adoc[*Build and deploy your integration*]
 +
@@ -38,4 +38,3 @@ Install device certificates yourself rather than having the OTA Connect server i
 +
 To secure your software updates, all files are accompanied by metadata that is signed with several private keys. You need to move the most important private keys from the server and take them offline.
 
- 
