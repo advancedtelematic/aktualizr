@@ -20,7 +20,8 @@ ifndef::env-github[:pageroot:]
 ** xref:{pageroot}supporting-technologies.adoc[Supporting technologies]
 ** xref:{pageroot}yocto.adoc[Yocto]
 // ---
-** xref:{pageroot}ostree-and-treehub.adoc[OSTree, and TreeHub]
+** xref:{pageroot}ostree-and-treehub.adoc[OSTree and TreeHub]
+** xref:{pageroot}comparing-full-filesystem-update-strategies.adoc[Comparing full-filesystem update strategies]
 // ---
 * xref:{pageroot}security.adoc[Security]
 ** xref:{pageroot}pki.adoc[Key Management]
