@@ -1,4 +1,4 @@
-// MC: NOTE ABOUT TOC 
+// MC: NOTE ABOUT TOC
 // Adding "pageroot" attr so that TOC that will also work directly in GitHub. Because...
 // In Antora the "pages" subdir is implcit added to the xref path at build time.
 // if you add "/pages" Antora will intepret it as "pages/pages".
@@ -39,7 +39,7 @@ ifndef::env-github[:pageroot:]
 * xref:{pageroot}pushing-updates.adoc[Add software to your Yocto image]
 * xref:{pageroot}update-single-device.adoc[Update a second device with the sample software]
 
-.Build your own OTA-enabled solution
+.Integrate OTA Connect
 * xref:{pageroot}intro-prep.adoc[Recommended Steps]
 * xref:{pageroot}recommended-clientconfig.adoc[Recommended configurations]
 * xref:{pageroot}account-setup.adoc[Set up multiple accounts]
