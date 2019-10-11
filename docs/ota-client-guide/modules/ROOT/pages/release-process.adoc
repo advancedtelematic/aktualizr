@@ -24,6 +24,8 @@ There are a few additional documents that should be updated to refer to the new 
 * The link:https://github.com/advancedtelematic/aktualizr/blob/master/docs/README.adoc#reference-documentation[docs README] contains a table with links to the doxygen docs for each release.
 * The xref:install-garage-sign-deploy.adoc[garage-deploy] installation guide contains a reference to the latest release of the garage-deploy Debian package.
 
+This is also a good time to review the docs in general and to consider whether any changes in this release might have affected the docs.
+
 == Create a new tag
 
 Releases are built automatically by gitlab from annotated tags of the form `major.minor`, where `major` and `minor` are numbers. We normally set `major` to the current year and `minor` to an incrementing number beginning at 1.
