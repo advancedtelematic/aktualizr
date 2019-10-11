@@ -5,7 +5,6 @@
 #include <memory>
 
 #include <boost/signals2.hpp>
-#include "gtest/gtest_prod.h"
 
 #include "config/config.h"
 #include "primary/events.h"
