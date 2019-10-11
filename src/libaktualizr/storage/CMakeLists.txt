@@ -1,4 +1,7 @@
-add_custom_command(OUTPUT sql_schemas.cc
+# note: the dummy `sql_schemas_target` is here on purpose, to cause the command
+# to always be run. It's smart enough not to rewrite `sql_schemas.cc` and cause
+# a global rebuild if nothing was changed.
+add_custom_command(OUTPUT sql_schemas.cc sql_schemas_target
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/embed_schemas.py ${PROJECT_SOURCE_DIR}/config/sql/ ${CMAKE_CURRENT_BINARY_DIR}/sql_schemas.cc libaktualizr
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
