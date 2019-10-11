@@ -1,0 +1,37 @@
+= Comparing full-filesystem update strategies
+
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
+OSTree provides a number of very significant technological advantages over other full-filesystem updating schemes. For embedded systems that need a solution for safe, atomic, full-filesystem updates, the usual approach is to have some kind of *dual-bank* scheme. Here, we're going to take a look at the difference between OSTree and dual-bank systems, and the advantages OSTree can provide.
+
+== Dual-bank
+
+In a dual-bank system, the read-only root filesystem is kept on a different partition from the writable user space, so that when an update is needed the whole partition can be overwritten. For atomicity and safety, this read-only partition is duplicated: there are two complete copies of the filesystem, kept on different partitions, and the active partition can be selected at boot time.
+
+When the system needs to be updated, the new filesystem image is written to the inactive partition, and the next time the system reboots, that partition becomes the active one.
+
+.Dual-bank update process (click to enlarge)
+[caption="Figure 1: ",link={attachmentsdir}/dual-bank-system-update-flow.svg]
+image::dual-bank-system-update-flow.svg[]
+
+The main advantage of this update model is its safety. Updates are always strictly atomic, and there is always a known good image that can be rolled back to. However, there are significant trade-offs in flexibility and materials costs that must be made: the size of the root partition must be chosen when the system is flashed for the very first time, and the duplication of the root partition doubles the space required. When choosing how big to make the root partition, a device manufacturer has to consider not just how big their filesystem image currently is, but also must estimate and plan for the size of all future updates. If the size chosen is too small, it may restrict the ability to add new features. Making it larger, of course, adds to the bill of goods for the product--and since it's duplicated, every extra megabyte of future capacity actually costs two megabytes to accommodate.
+
+== OSTree
+
+OSTree checksums individual files and stores them as content-addressed objects, much like git. The read-only filesystem is built by "checking out" a particular revision, and hardlinking the content-addressed objects into the actual Linux directory structure. Multiple filesystem versions can be stored, and any content that is duplicated across versions is only stored once. A complete history of all versions is stored in TreeHub, but it is not required to store that complete revision history on the device. Only one partition is needed--writable user space can be on the same partition as the OSTree content store.
+
+When the system needs to be updated, {product-name} sends a small metadata file with a particular commit identifier. The client pulls that commit from TreeHub, only downloading the new files, and only downloading binary diffs of changed files. Once the pull is complete and verified, the system is instructed to boot into the new version the next time it starts up.
+
+.OSTree update process (click to enlarge)
+[caption="Figure 2: ",link={attachmentsdir}/ostree-update-flow.svg]
+image::ostree-update-flow.svg[]
+
+With OSTree, you no longer need to guess how much room you might need in the future to expand your system; the OSTree content store expands and contracts as needed. You also save a significant amount of space, since only diffs between versions need to be stored. OSTree also allows you to garbage-collect old images: if you upgrade 1.0 -> 1.1 -> 1.2, for example, by default the {product-name-short} client will garbage-collect all local objects unique to 1.0. If you decided later on that you in fact did want to go back to v1.0, you still could: if you pushed v1.0 from {product-name-short}, the client would download only the diff from TreeHub, repopulate the local object store, and then reboot into that version. Of course, it's also possible to configure OSTree to keep more than two revisions on the local disk; this can be particularly useful in QA workflows, allowing for rapid testing of a feature or an external integration against multiple different firmware versions.
+
+Best yet, you get all of these benefits *without having to give up the safety of a dual-bank setup*. Updates are still strictly atomic; if power is lost during the download of an update, the client will still boot into the old system when it starts up next, and will simply resume the download it had begun. You still always have a known good image on the system to roll back to; in fact, as stated above, you can keep an arbitrarily large number of revisions--an impossibility in a dual-bank system.
