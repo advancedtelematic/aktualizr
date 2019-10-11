@@ -1,0 +1,138 @@
+= System Requirements 
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
+:page-partial:
+:page-layout: page
+:page-categories: [quickstarts]
+:page-date: 2019-10-11 12:45:22
+:page-order: 3
+:icons: font
+:toc: macro
+
+The following paragraphs give you an overview about the HW and SW system requirements to deploy OTA Connect client SW on your devices. 
+
+== OTA Client Properties
+
+==== Primary ECUs / TCUs
+
+The {product-name} client SW application for the primary TCU *aktualizr* can be deployed via Yocto meta-updater layer and is a lightweight C++ application with minimal resource usage when idle.
+
+Alternatively the {product-name} client can be integrated into Customer applications as library, which is called *libaktualizr*.
+libaktualizr enables the user to fully control download and installation including user-consent and condition management. It is slightly smaller but requires usually a customer-specific wrapper.
+
+==== Secondary ECUs
+
+For powerful secondary ECUs, that shall support full Uptane verification, the *aktualizr_secondary* application based on libAktualizr can be integrated in a manner similar to the primary.
+
+For partial Uptane verification on smaller ECUs additionally a c library called *libuptiny* is available.  
+
+
+== Aktualizr HW Requirements
+
+[width="50%",cols="1,1,1",options="header"]
+|====================
+|Category|Minimum|Recommended 
+|Binary Size|5 MB|n.a.
+|Memory RAM|16 MB|128 MB
+|Storage|128 MB|512 MB
+|====================
+
+
+== Aktualizr SW Requirements
+
+[cols="1,5", options="header"]
+|====================
+|Category|Dependencies 
+|Libraries|boost, curl, openssl, libarchive, libsodium, sqlite3
+|Compiler|C++11-compatible compiler, preferably gcc >= 4.8 or clang
+|Linux Buildsystem|Yocto, see https://docs.ota.here.com/ota-client/2019.7/yocto-release-branches.html[supported versions]
+
+* Currently thud or warrior are the most actively supported, but rocko or sumo can be supported if necessary.
+
+* Note that each Yocto version ships with specific version of gcc, so the two requirements usually go together.
+|====================
+
+== libuptiny System Requirements
+[width="50%",cols="1,1", options="header"]
+|====================
+|Category|Requirement
+|Binary Size|10 kB
+|====================
+
+
+== Integration of Customer specific HW and SW Environment
+In case the Customer has already dedicated HW and SW environment, HERE can give recommendations how to do the OTA client integration for primary and secondary ECUs. Additionally, HERE offers Professional Services to do the integration for the Customer. 
+
+Answers to the following Question Catalog will give HERE a first indication about the implication of different HW and SW environments for the integration scope.
+
+[cols="2,4a", options="header"]
+|====================
+|Question|Details
+
+|Which *OS is used ?|
+A) Linux
+
+B) Other
+
+|Which Linux Buildsystem is used?|
+A) Yocto/OpenEmbedded (__highly recommended__)
+
+B)  Other (Buildroot,..)
+
+|How do you plan to update the ECU image|
+A)  Full-filesystem updates via OSTree (__recommended__ HERE implementation with meta-updater)
+
+B) Other (Please specify, e.g. Dual Bank, Package Manager etc.)
+
+|What type of persistent storage is used ?|
+A) eMMC, UFS or other -managed flash (__preferred__)
+
+B) "raw" os SW-managed flash, e.g. ONFI EZ-NAND (__high efforts__)
+
+|Which Bootloader is used ?|
+A) GRUB
+
+B) u-boot
+
+C) others (__higher implementation effort__)
+
+|Does exist a dedicated flashing/installation manager for secondary ECUs?|
+A) Dedicated hardware, like a gateway ECU for flashing or an in-vehicle diagnostics ECU
+
+B) Secondary ECU flashing implementation in software; i.e. an executable or library running on the telematics unit
+
+C) No existing plans for secondary ECU flashing
+
+|Which HW architecture is used ?|
+1) CPU architecture
+
+2) Amount of persistent storage ? How much is used for the base system, and how much is free (approx.) ?
+
+3) Amount of RAM
+|Which physical/logical network protocols are used between the relevant ECUs ?|
+A) Ethernet
+
+B) CAN/LIN/FlexRay
+
+C) UDS/DOIP
+
+D) Other
+|Could you provide a test-rig to HERE for relevant ECUs ?|
+|Linux Details ?|
+1) kernal version
+
+2) libc version
+
+3) gcc compiler version
+|====================
+
+
+
+
+
