@@ -9,14 +9,14 @@ ifndef::env-github[:pageroot:]
 
 .Introduction to the Developer Tools
 * xref:{pageroot}index.adoc[Introduction]
-* xref:{pageroot}developer-tools.adoc[Developer Tools]
+* xref:{pageroot}developer-tools.adoc[Developer tools]
 * xref:{pageroot}workflow-overview.adoc[Basic OTA update workflow]
-* xref:{pageroot}evaluation-to-prod.adoc[Moving from Evaluation to Production]
+* xref:{pageroot}evaluation-to-prod.adoc[Moving from evaluation to production]
 // NEW topics
 
 .Key Concepts
 // NEW/updated topics
-* xref:{pageroot}software-management.adoc[Software Management]
+* xref:{pageroot}software-management.adoc[Software management]
 ** xref:{pageroot}supporting-technologies.adoc[Supporting technologies]
 ** xref:{pageroot}yocto.adoc[Yocto]
 // ---
@@ -24,7 +24,7 @@ ifndef::env-github[:pageroot:]
 ** xref:{pageroot}comparing-full-filesystem-update-strategies.adoc[Comparing full-filesystem update strategies]
 // ---
 * xref:{pageroot}security.adoc[Security]
-** xref:{pageroot}pki.adoc[Key Management]
+** xref:{pageroot}pki.adoc[Key management]
 ** xref:{pageroot}uptane.adoc[The Uptane security specification]
 // future iteration: * xref:{pageroot}prod-intro[Testing and production environments]
 * xref:{pageroot}client-provisioning-methods.adoc[Device provisioning]
@@ -41,12 +41,12 @@ ifndef::env-github[:pageroot:]
 * xref:{pageroot}update-single-device.adoc[Update a second device with the sample software]
 
 .Integrate OTA Connect
-* xref:{pageroot}intro-prep.adoc[Recommended Steps]
+* xref:{pageroot}intro-prep.adoc[Recommended steps]
 * xref:{pageroot}recommended-clientconfig.adoc[Recommended configurations]
 * xref:{pageroot}account-setup.adoc[Set up multiple accounts]
 
 * xref:{pageroot}libaktualizr-why-use.adoc[Integrate libaktualizr into your solution]
-** xref:{pageroot}libaktualizr-getstarted.adoc[Get Started with libaktualizr]
+** xref:{pageroot}libaktualizr-getstarted.adoc[Get started with libaktualizr]
 ** xref:{pageroot}libaktualizr-update-secondary.adoc[Updating a Secondary ECU with libaktualizr]
 
 * xref:{pageroot}build-ota-enabled-images.adoc[Build and deploy OTA-enabled disk images]
@@ -55,7 +55,6 @@ ifndef::env-github[:pageroot:]
 ** xref:{pageroot}add-ota-functonality-existing-yocto-project.adoc[Add OTA functionality to a Yocto project]
 ** xref:{pageroot}libaktualizr-integrate.adoc[Add libaktualizr integration to a Yocto project]
 
-
 * xref:{pageroot}device-cred-prov-steps.adoc[Provision devices]
 ** xref:{pageroot}generate-selfsigned-root.adoc[Generate a self-signed root certificate]
 ** xref:{pageroot}provide-root-cert.adoc[Register your root certificate]
@@ -63,12 +62,12 @@ ifndef::env-github[:pageroot:]
 ** xref:{pageroot}enable-device-cred-provisioning.adoc[Enable and install device certificates]
 
 * xref:{pageroot}secure-software-updates.adoc[Secure your software repository]
-** xref:{pageroot}install-garage-sign-deploy.adoc[Install the Garage Deploy tool]
+** xref:{pageroot}install-garage-sign-deploy.adoc[Install the garage-deploy tool]
 ** xref:{pageroot}rotating-signing-keys.adoc[Manage keys for software metadata]
 ** xref:{pageroot}metadata-expiry.adoc[Manage metadata expiry dates]
 
 .Deploy your OTA-enabled solution
-* xref:{pageroot}deploy-checklist.adoc[Deploying to Production]
+* xref:{pageroot}deploy-checklist.adoc[Deploying to production]
 
 .How to
 * xref:{pageroot}cross-deploy-images.adoc[Transfer software to another repository]
@@ -81,9 +80,9 @@ ifndef::env-github[:pageroot:]
 
 .Reference
 // MC: Do in second iteration: * xref:{pageroot}otaconnect-identifiers.adoc[Identifiers]
-* xref:{pageroot}aktualizr-config-options.adoc[Client Configuration Options]
-* xref:{pageroot}build-configuration.adoc[Build Configuration Options]
-* xref:{pageroot}aktualizr-runningmodes-finegrained-commandline-control.adoc[Client Commands]
+* xref:{pageroot}aktualizr-config-options.adoc[Client configuration options]
+* xref:{pageroot}build-configuration.adoc[Build configuration options]
+* xref:{pageroot}aktualizr-runningmodes-finegrained-commandline-control.adoc[Client commands]
 * xref:{pageroot}provisioning-methods-and-credentialszip.adoc[Contents of the credentials file]
 * xref:{pageroot}useful-bitbake-commands.adoc[Bitbake commands]
 * xref:{pageroot}ostree-usage.adoc[OSTree commands]
@@ -102,8 +101,8 @@ ifndef::env-github[:pageroot:]
 
 .For Contributors
 // Dev-authored topics
-* xref:{pageroot}release-process.adoc[Packaging an aktualizr Release on github]
+* xref:{pageroot}release-process.adoc[Packaging an aktualizr release on github]
 * xref:{pageroot}schema-migrations.adoc[Add a schema migration]
-* xref:{pageroot}debugging-tips.adoc[Debugging the Client]
+* xref:{pageroot}debugging-tips.adoc[Debugging the client]
 * xref:{pageroot}meta-updater-testing.adoc[Testing meta-updater]
 
