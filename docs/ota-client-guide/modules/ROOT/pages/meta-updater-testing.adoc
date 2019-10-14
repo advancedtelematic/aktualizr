@@ -28,7 +28,7 @@ IMAGE_INSTALL_append = " dropbear "
 
 3. Some tests require that `SOTA_PACKED_CREDENTIALS` is set in your `conf/local.conf`. See the xref:build-configuration.adoc[SOTA-related variables in local.conf].
 
-4. To be able to build an image for the GRUB tests, you will need to install the `ovmf` package as described in the xref:meta-updater-build.adoc#_dependencies[dependencies section].
+4. To be able to build an image for the GRUB tests, you will need to install the `ovmf` package. This is described in the link:https://github.com/advancedtelematic/meta-updater[meta-updater README].
 
 5. Run oe-selftest:
 +
