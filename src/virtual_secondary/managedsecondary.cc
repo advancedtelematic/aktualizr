@@ -199,7 +199,7 @@ Json::Value ManagedSecondary::getManifest() {
 
   Json::Value signed_ecu_version;
 
-  std::string b64sig = Utils::toBase64(Crypto::RSAPSSSign(nullptr, private_key, Json::FastWriter().write(manifest)));
+  std::string b64sig = Utils::toBase64(Crypto::RSAPSSSign(nullptr, private_key, Utils::jsonToCanonicalStr(manifest)));
   Json::Value signature;
   signature["method"] = "rsassa-pss";
   signature["sig"] = b64sig;

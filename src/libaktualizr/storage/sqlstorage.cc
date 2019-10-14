@@ -986,7 +986,7 @@ void SQLStorage::saveInstalledVersion(const std::string& ecu_serial, const Uptan
       return;
     }
   } else {
-    std::string custom = Json::FastWriter().write(target.custom_data());
+    std::string custom = Utils::jsonToCanonicalStr(target.custom_data());
     auto statement = db.prepareStatement<std::string, std::string, std::string, std::string, int64_t, std::string,
                                          std::string, int, int>(
         "INSERT INTO installed_versions(ecu_serial, sha256, name, hashes, length, custom_meta, correlation_id, "

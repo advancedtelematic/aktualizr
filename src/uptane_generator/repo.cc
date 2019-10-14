@@ -80,7 +80,7 @@ void Repo::updateRepo() {
 Json::Value Repo::signTuf(const Uptane::Role &role, const Json::Value &json) {
   auto key = keys_[role];
   std::string b64sig =
-      Utils::toBase64(Crypto::Sign(key.public_key.Type(), nullptr, key.private_key, Json::FastWriter().write(json)));
+      Utils::toBase64(Crypto::Sign(key.public_key.Type(), nullptr, key.private_key, Utils::jsonToCanonicalStr(json)));
   Json::Value signature;
   switch (key.public_key.Type()) {
     case KeyType::kRSA2048:

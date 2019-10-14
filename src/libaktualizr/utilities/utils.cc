@@ -349,7 +349,14 @@ std::string Utils::jsonToStr(const Json::Value &json) {
   return ss.str();
 }
 
-std::string Utils::jsonToCanonicalStr(const Json::Value &json) { return Json::FastWriter().write(json); }
+std::string Utils::jsonToCanonicalStr(const Json::Value &json) {
+  static Json::FastWriter writer = []() {
+    auto w = Json::FastWriter();
+    w.omitEndingLineFeed();
+    return w;
+  }();
+  return writer.write(json);
+}
 
 Json::Value Utils::getHardwareInfo() {
   std::string result;

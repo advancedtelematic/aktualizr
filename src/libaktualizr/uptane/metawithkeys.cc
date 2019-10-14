@@ -71,7 +71,7 @@ void Uptane::MetaWithKeys::UnpackSignedObject(const RepositoryType repo, const R
                             "Metadata type " + type.ToString() + " does not match expected role " + role.ToString());
   }
 
-  const std::string canonical = Json::FastWriter().write(signed_object["signed"]);
+  const std::string canonical = Utils::jsonToCanonicalStr(signed_object["signed"]);
   const Json::Value signatures = signed_object["signatures"];
   int valid_signatures = 0;
 
