@@ -88,6 +88,7 @@ ifndef::env-github[:pageroot:]
 * xref:{pageroot}useful-bitbake-commands.adoc[Bitbake commands]
 * xref:{pageroot}ostree-usage.adoc[OSTree commands]
 * xref:{pageroot}ecu_events.adoc[ECU events]
+* xref:{pageroot}meta-updater-usage.adoc[Advanced usage of meta-updater]
 
 .Test and simulate OTA functions
 * xref:{pageroot}simulate-device-cred-provtest.adoc[Simulate device credentials]
@@ -104,4 +105,5 @@ ifndef::env-github[:pageroot:]
 * xref:{pageroot}release-process.adoc[Packaging an aktualizr Release on github]
 * xref:{pageroot}schema-migrations.adoc[Add a schema migration]
 * xref:{pageroot}debugging-tips.adoc[Debugging the Client]
+* xref:{pageroot}meta-updater-testing.adoc[Testing meta-updater]
 

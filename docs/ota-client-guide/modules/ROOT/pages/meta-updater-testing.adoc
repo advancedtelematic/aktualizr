@@ -1,4 +1,4 @@
-= Testing
+= Testing meta-updater
 ifdef::env-github[]
 
 [NOTE]
@@ -7,12 +7,11 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
-
-//MC: No overlap with any content currently in the developer guide, but probably useful content to clean up and include.
+This page describes the tools available to test link:https://github.com/advancedtelematic/meta-updater[meta-updater] in an automated fashion.
 
 == QA with oe-selftest
 
-This layer relies on the test framework oe-selftest for quality assurance. Currently, you will need to run this in a build directory with `MACHINE` set to `qemux86-64`. Follow the steps below to run the tests:
+meta-updater uses the oe-selftest framework for quality assurance. Currently, you will need to run this in a build directory with `MACHINE` set to `qemux86-64`. Follow the steps below to run the tests:
 
 1. Append the line below to `conf/local.conf` to disable the warning about supported operating systems:
 +
@@ -26,7 +25,7 @@ SANITY_TESTED_DISTROS = ""
 IMAGE_INSTALL_append = " dropbear "
 ```
 
-3. Some tests require that `SOTA_PACKED_CREDENTIALS` is set in your `conf/local.conf`. See the xref:build-configuration.adoc[SOTA-related variables in local.conf].
+3. Some tests require that `SOTA_PACKED_CREDENTIALS` is set in your `conf/local.conf`. See the xref:build-configuration.adoc[build configuration] page for more details.
 
 4. To be able to build an image for the GRUB tests, you will need to install the `ovmf` package. This is described in the link:https://github.com/advancedtelematic/meta-updater[meta-updater README].
 
