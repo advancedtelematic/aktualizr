@@ -7,6 +7,8 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
+Here, we provide reference documentation on how to configure link:https://github.com/advancedtelematic/meta-updater[meta-updater]. Below are the variables that you can set in your `local.conf` to control the finer points of your build process.
+
 .OTA-related options for building disk images
 [cols="1,2a",options="header"]
 |====================
@@ -29,10 +31,6 @@ include::partial$config-descriptions.adoc[tags=metadata-expires]
 ----
 GARAGE_TARGET_EXPIRES = "2018-01-01T00:01:00Z"
 ----
-[NOTE]
-====
-Currently, this only works when using the master branch of meta-updater.
-====
 endif::[]
 | `GARAGE_TARGET_EXPIRE_AFTER` |
 // MC: This block shows reusable content snippets when the content is rendered in the docs portal.
@@ -43,10 +41,6 @@ include::partial$config-descriptions.adoc[tags=metadata-expireafter]
 ----
 GARAGE_TARGET_EXPIRE_AFTER = "1Y3M5D"
 ----
-[NOTE]
-====
-Currently, this only works when using the master branch of meta-updater.
-====
 endif::[]
 | `INITRAMFS_IMAGE`|The initramfs/initrd image that is used as a proxy while booting into OSTree deployment. Do not change this setting unless you are sure that your initramfs can serve as such a proxy.
 | `SOTA_PACKED_CREDENTIALS`|When set, your ostree commit will be pushed to a remote repo as a bitbake step. This should be the path to a zipped credentials file in xref:provisioning-methods-and-credentialszip.adoc[the format accepted by garage-push].
