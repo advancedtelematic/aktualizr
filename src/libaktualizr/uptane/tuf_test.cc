@@ -39,7 +39,6 @@ TEST(Root, RootJsonNoRoles) {
 
 /**
  * Check that a root.json that uses "method": "rsassa-pss-sha256" validates correctly
- * See PRO-2999
  */
 TEST(Root, RootJsonRsassaPssSha256) {
   Uptane::Root root1(Uptane::Root::Policy::kAcceptAll);

@@ -1,9 +1,7 @@
 #! /usr/bin/env python3
 
 """
-Regression test for PRO-2902
-
-The bug was caused by the logic that cleanly shuts down the request pool when
+Regression test for a bug caused by the logic that shuts down the request pool when
 the server returns an error. This test causes 3 'query' requests to hang until
 an upload fails.  Once the upload has failed and the server is trying to
 shutdown, the queries are released. In the broken case this caused RequestPool
