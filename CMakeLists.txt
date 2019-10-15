@@ -103,7 +103,7 @@ find_package(ZLIB)
 
 if(NOT AKTUALIZR_VERSION)
     if(GIT_EXECUTABLE)
-        execute_process(COMMAND sh -c "${GIT_EXECUTABLE} -C ${PROJECT_SOURCE_DIR} describe | tr -d '\n'" OUTPUT_VARIABLE AKTUALIZR_VERSION)
+        execute_process(COMMAND sh -c "${GIT_EXECUTABLE} -C ${PROJECT_SOURCE_DIR} describe --long | tr -d '\n'" OUTPUT_VARIABLE AKTUALIZR_VERSION)
         message(STATUS "Setting version to ${AKTUALIZR_VERSION}")
     else(GIT_EXECUTABLE)
         message(WARNING "Version is not set and git is not available, set version to an arbitrary string")
