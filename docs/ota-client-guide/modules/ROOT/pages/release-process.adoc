@@ -26,6 +26,8 @@ There are a few additional documents that should be updated to refer to the new 
 * The link:https://github.com/advancedtelematic/aktualizr/blob/master/docs/README.adoc#reference-documentation[docs README] contains a table with links to the doxygen docs for each release.
 * The xref:install-garage-sign-deploy.adoc[garage-deploy] installation guide contains a reference to the latest release of the garage-deploy Debian package.
 
+This is also a good time to review the docs in general and to consider whether any changes in this release might have affected the docs.
+
 == Pull in any new changes from the current docs branch
 
 The docs published as https://docs.ota.here.com/ota-client/latest/index.html[latest] in the OTA Connect Developer Guide are built from the most recent release's docs branch (`\{version}-docs`). There will very likely be changes from there that have not been pulled into master yet. Open up a PR to merge the previous release's docs into master, resolving any merge conflicts as needed. Once that PR is merged, you can move on to the next step.
