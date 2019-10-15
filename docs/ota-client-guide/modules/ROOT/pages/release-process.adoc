@@ -24,7 +24,7 @@ This is normally a good time to update the link:https://github.com/advancedtelem
 There are a few additional documents that should be updated to refer to the new release:
 
 * The link:https://github.com/advancedtelematic/aktualizr/blob/master/docs/README.adoc#reference-documentation[docs README] contains a table with links to the doxygen docs for each release.
-* The xref:install-garage-sign-deploy.adoc[garage-deploy] installation guide contains a reference to the latest release of the garage-deploy Debian package.
+* Several pages contains references to the latest release of aktualizr and/or garage-deploy via a variable set in a https://github.com/advancedtelematic/aktualizr/blob/master/docs/ota-client-guide/modules/ROOT/pages/_partials/aktualizr-version.adoc[doc snippet] created for this purpose.
 
 This is also a good time to review the docs in general and to consider whether any changes in this release might have affected the docs.
 
