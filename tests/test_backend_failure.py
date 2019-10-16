@@ -89,10 +89,7 @@ Currently, it's tested against two types of image download failure:
 @with_uptane_backend(start_generic_server=True)
 @with_images(images_to_install=[(('primary-hw-ID-001', 'primary-ecu-id'), 'primary-image.img')])
 @with_imagerepo(handlers=[
-                            # TODO: test fails because aktualizr issues byte range request
-                            # that are not supported by server
-                            # https://saeljira.it.here.com/browse/OTA-3716
-                            #DownloadInterruptionHandler(number_of_failures=1, url='/targets/primary-image.img'),
+                            DownloadInterruptionHandler(number_of_failures=1, url='/targets/primary-image.img'),
                             MalformedImageHandler(number_of_failures=1, url='/targets/primary-image.img'),
                         ])
 @with_director(start=False)
@@ -113,10 +110,7 @@ def test_backend_failure_sanity_imagerepo_update_after_image_download_failure(in
 """
 @with_uptane_backend(start_generic_server=True)
 @with_customrepo(handlers=[
-                            # TODO: This test fails because the issue with image download
-                            #  from a server that doesn't support byte range requests
-                            # DownloadInterruptionHandler(number_of_failures=1, url='/primary-image.img'),
-                            # https://saeljira.it.here.com/browse/OTA-3716
+                            DownloadInterruptionHandler(number_of_failures=1, url='/primary-image.img'),
                             MalformedImageHandler(number_of_failures=1, url='/primary-image.img')
                             # TODO: this test fails too, although httpclient.cc sets
                             # CURLOPT_LOW_SPEED_TIME and CURLOPT_LOW_SPEED_TIME

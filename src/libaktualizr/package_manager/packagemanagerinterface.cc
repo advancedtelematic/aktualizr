@@ -96,18 +96,18 @@ bool PackageManagerInterface::fetchTarget(const Uptane::Target& target, Uptane::
       LOG_WARNING << "Skipping download of target with length 0";
       return true;
     }
-    DownloadMetaStruct ds(target, std::move(progress_cb), token);
+    std::unique_ptr<DownloadMetaStruct> ds = std_::make_unique<DownloadMetaStruct>(target, progress_cb, token);
     if (exists == TargetStatus::kIncomplete) {
       auto target_check = storage_->checkTargetFile(target);
-      ds.downloaded_length = target_check->first;
+      ds->downloaded_length = target_check->first;
       auto target_handle = storage_->openTargetFile(target);
-      ::restoreHasherState(ds.hasher(), target_handle.get());
+      ::restoreHasherState(ds->hasher(), target_handle.get());
       target_handle->rclose();
-      ds.fhandle = target_handle->toWriteHandle();
+      ds->fhandle = target_handle->toWriteHandle();
     } else {
       // If the target was found, but is oversized or the hash doesn't match,
       // just start over.
-      ds.fhandle = storage_->allocateTargetFile(false, target);
+      ds->fhandle = storage_->allocateTargetFile(false, target);
     }
 
     std::string target_url = target.uri();
@@ -117,17 +117,27 @@ bool PackageManagerInterface::fetchTarget(const Uptane::Target& target, Uptane::
 
     HttpResponse response;
     for (;;) {
-      response = http_->download(target_url, DownloadHandler, ProgressHandler, &ds,
-                                 static_cast<curl_off_t>(ds.downloaded_length));
+      response = http_->download(target_url, DownloadHandler, ProgressHandler, ds.get(),
+                                 static_cast<curl_off_t>(ds->downloaded_length));
+
+      if (response.curl_code == CURLE_RANGE_ERROR) {
+        LOG_WARNING << "The image server doesn't support byte range requests,"
+                       " try to download the image from the beginning: "
+                    << target_url;
+        ds = std_::make_unique<DownloadMetaStruct>(target, progress_cb, token);
+        ds->fhandle = storage_->allocateTargetFile(false, target);
+        continue;
+      }
+
       if (!response.wasInterrupted()) {
         break;
       }
-      ds.fhandle.reset();
+      ds->fhandle.reset();
       // sleep if paused or abort the download
       if (!token->canContinue()) {
         throw Uptane::Exception("image", "Download of a target was aborted");
       }
-      ds.fhandle = storage_->openTargetFile(target)->toWriteHandle();
+      ds->fhandle = storage_->openTargetFile(target)->toWriteHandle();
     }
     LOG_TRACE << "Download status: " << response.getStatusStr() << std::endl;
     if (!response.isOk()) {
@@ -136,11 +146,11 @@ bool PackageManagerInterface::fetchTarget(const Uptane::Target& target, Uptane::
       }
       throw Uptane::Exception("image", "Could not download file, error: " + response.error_message);
     }
-    if (!target.MatchHash(Uptane::Hash(ds.hash_type, ds.hasher().getHexDigest()))) {
-      ds.fhandle->wabort();
+    if (!target.MatchHash(Uptane::Hash(ds->hash_type, ds->hasher().getHexDigest()))) {
+      ds->fhandle->wabort();
       throw Uptane::TargetHashMismatch(target.filename());
     }
-    ds.fhandle->wcommit();
+    ds->fhandle->wcommit();
     result = true;
   } catch (const Uptane::Exception& e) {
     LOG_WARNING << "Error while downloading a target: " << e.what();
