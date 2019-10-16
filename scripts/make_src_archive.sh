@@ -2,6 +2,8 @@
 
 set -eu
 
+SCRIPTS_DIR=$(readlink -f "$(dirname "$0")")
+
 OUTPUT=$1
 REPO=${2:-.}
 
@@ -19,6 +21,6 @@ cp -r "$REPO" "$TMPDIR/aktualizr"
 
 cd "$TMPDIR/aktualizr"
 # include version in tarball
-git describe --long | tr -d '\n' > VERSION
+"$SCRIPTS_DIR/get_version.sh" > VERSION
 
 git-archive-all "$ABS_OUT" --extra=VERSION
