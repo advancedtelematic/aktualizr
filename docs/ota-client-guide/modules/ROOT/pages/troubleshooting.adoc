@@ -60,6 +60,10 @@ source meta-updater/scripts/envsetup.sh qemux86-64
 
 Depending on your use case, however, it often makes more sense to just keep separate project directories for your separate architectures, and share the state cache and downloads directories between them.
 
+=== Build fails with Python errors
+
+Ubuntu users that encounter an error due to missing `Python.h` should install `libpython2.7-dev` on their host machine.
+
 == Runtime problems
 
 === File ownership incorrect after an update (static UID to name mapping)
