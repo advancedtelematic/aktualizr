@@ -7,6 +7,10 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
+== Configuration variables in meta-updater
+
+Here, we provide reference documentation on how to configure link:https://github.com/advancedtelematic/meta-updater[meta-updater]. Below are the variables that you can set in your `local.conf` to control the finer points of your build process.
+
 .OTA-related options for building disk images
 [cols="1,2a",options="header"]
 |====================
@@ -29,11 +33,8 @@ include::partial$config-descriptions.adoc[tags=metadata-expires]
 ----
 GARAGE_TARGET_EXPIRES = "2018-01-01T00:01:00Z"
 ----
-[NOTE]
-====
-Currently, this only works when using the master branch of meta-updater.
-====
 endif::[]
+More detail is available in the xref:metadata-expiry.adoc[metadata expiry] page.
 | `GARAGE_TARGET_EXPIRE_AFTER` |
 // MC: This block shows reusable content snippets when the content is rendered in the docs portal.
 // We reuse the same descriptions in multiple places with includes - if rendered in Github (where includes aren't allowed), we fall back to the old descriptions.
@@ -43,17 +44,14 @@ include::partial$config-descriptions.adoc[tags=metadata-expireafter]
 ----
 GARAGE_TARGET_EXPIRE_AFTER = "1Y3M5D"
 ----
-[NOTE]
-====
-Currently, this only works when using the master branch of meta-updater.
-====
 endif::[]
+More detail is available in the xref:metadata-expiry.adoc[metadata expiry] page.
 | `INITRAMFS_IMAGE`|The initramfs/initrd image that is used as a proxy while booting into OSTree deployment. Do not change this setting unless you are sure that your initramfs can serve as such a proxy.
 | `SOTA_PACKED_CREDENTIALS`|When set, your ostree commit will be pushed to a remote repo as a bitbake step. This should be the path to a zipped credentials file in xref:provisioning-methods-and-credentialszip.adoc[the format accepted by garage-push].
 | `SOTA_DEPLOY_CREDENTIALS`|When set to '1' (default value), deploys credentials to the built image. Override it in `local.conf` to built a generic image that can be provisioned manually after the build.
-| `SOTA_CLIENT_PROV`|Which provisioning method to use. Valid options are `aktualizr-shared-prov`, `aktualizr-device-prov`, and `aktualizr-device-prov-hsm`. For more information on these provisioning methods, see the xref:client-provisioning-methods.adoc[OTA Connect documentation]. The default is `aktualizr-shared-prov`. This can also be set to an empty string to avoid using a provisioning recipe.
+| `SOTA_CLIENT_PROV`|Which provisioning method to use. Valid options are `aktualizr-shared-prov`, `aktualizr-device-prov`, and `aktualizr-device-prov-hsm`. See the xref:client-provisioning-methods.adoc[client provisioning methods] page for more information on these provisioning methods. The default is `aktualizr-shared-prov`. This can also be set to an empty string to avoid using a provisioning recipe.
 | `SOTA_CLIENT_FEATURES`|Extensions to aktualizr. The only valid options are `hsm` (to build with HSM support) and `secondary-network` (to set up a simulated 'in-vehicle' network with support for a primary node with a DHCP server and a secondary node with a DHCP client).
-| `SOTA_SECONDARY_CONFIG`|A file containing JSON configuration for secondaries. It will be installed into `/etc/sota/ecus` on the device and automatically provided to aktualizr. See xref:posix-secondaries-bitbaking.adoc[here] for more details.
+| `SOTA_SECONDARY_CONFIG`|A file containing JSON configuration for secondaries. It will be installed into `/etc/sota/ecus` on the device and automatically provided to aktualizr. See the guide on xref:posix-secondaries-bitbaking.adoc[bitbaking POSIX Secondaries] for more details.
 | `SOTA_HARDWARE_ID`|A custom hardware ID that will be written to the aktualizr config. Defaults to MACHINE if not set.
 | `SOTA_MAIN_DTB`|The base device tree to use with the kernel. Used together with FIT images. You can change it, and the device tree will also be changed after the update.
 | `SOTA_DT_OVERLAYS`|A whitespace-separated list of used device tree overlays for FIT image. This list is OSTree-updateable as well.
@@ -61,3 +59,30 @@ endif::[]
 | `RESOURCE_xxx_pn-aktualizr`|Controls maximum resource usage of the aktualizr service, when `aktualizr-resource-control` is installed on the image. See xref:meta-updater-usage.adoc#_aktualizr_service_resource_control[aktualizr service resource control] for details.
 | `SOTA_POLLING_SEC`|Sets polling interval for aktualizr to check for updates if aktualizr-polling-interval is included in the image.
 |====================
+
+== Custom aktualizr versions
+
+You can override the version of aktualizr included in your image. This requires that the version you wish to run is pushed to the https://github.com/advancedtelematic/aktualizr[aktualizr github repo]. You can then use these settings in your `local.conf` to simplify the development process:
+
+[options="header"]
+|======================
+| Option                              | Effect
+| `require classes/sota_bleeding.inc` | Build the latest head (by default, using the master branch) of Aktualizr
+| `BRANCH_pn-aktualizr = "mybranch"`
+
+`BRANCH_pn-aktualizr-native = "mybranch"` | Build `mybranch` of Aktualizr. Note that both of these need to be set. This is normally used in conjunction with `require classes/sota_bleeding.inc`
+| `SRCREV_pn-aktualizr = "1004efa3f86cef90c012b34620992b5762b741e3"`
+
+`SRCREV_pn-aktualizr-native = "1004efa3f86cef90c012b34620992b5762b741e3"` | Build the specified revision of Aktualizr. Note that both of these need to be set. This can be used in conjunction with `BRANCH_pn-aktualizr` and `BRANCH_pn-aktualizr-native` but will conflict with `require classes/sota_bleeding.inc`
+| `TOOLCHAIN_HOST_TASK_append = " nativesdk-cmake "` | Use with `bitbake -c populate_sdk core-image-minimal` to build an SDK. See the https://github.com/advancedtelematic/aktualizr#developing-against-an-openembedded-system[aktualizr repo] for more information.
+|======================
+
+== Overriding target version
+*Warning: overriding target version is a dangerous operation, make sure you understand this section completely before doing it.*
+
+Every time you build an image with `SOTA_PACKED_CREDENTIALS` set, a new entry in your Uptane metadata is created and you can see it in the OTA Garage UI if you're using one. Normally this version will be equal to OSTree hash of your root file system. If you want it to be different though you can override is using one of two methods:
+
+1. Set `GARAGE_TARGET_VERSION` variable in your `local.conf`.
+2. Write a recipe or a bbclass to write the desired version to `$\{STAGING_DATADIR_NATIVE}/target_version`. An example of such bbclass can be found in `classes/target_version_example.bbclass`.
+
+Please note that [target name, target version] pairs are expected to be unique in the system. If you build a new target with the same target version as a previously built one, the old package will be overwritten on the update server. It can have unpredictable effect on devices that have this version installed, and it is not guaranteed that information will be reported correctly for such devices or that you will be able to update them (we're doing our best though). The easiest way to avoid problems is to make sure that your overriding version is as unique as an OSTree commit hash.

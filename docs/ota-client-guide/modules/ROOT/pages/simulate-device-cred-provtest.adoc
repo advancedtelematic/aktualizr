@@ -7,25 +7,24 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
+To provision with device credentials in production, you need to have a root CA. If you want to test this provisioning method without generating a root CA, you can simulate it with the `aktualizr-cert-provider` tool.
 
-To provision with device credentials in production, you need to have a root CA. If you want to test this provisioning method without generating a root CA, you can simulate it with the `aktualizr-cert-provider` command.
+To use `aktualizr-cert-provider`, you must still generate a xref:getstarted::generating-provisioning-credentials.adoc[provisioning key] that your devices can share. But with this method, you use the provisioning key to sign the device certificate.
 
-To use the `aktualizr-cert-provider` command, you must still generate a xref:getstarted::generating-provisioning-credentials.adoc[provisioning key] that your devices can share. But with this method, you use the provisioning key to sign the device certificate.
-
-In production, you would use the root CA to sign the device certificate, but this method is useful for testing.
+In production, you should use the root CA to sign the device certificate, but this method is useful for testing.
 
 To simulate provisioning with a device certificate, follow these steps: ::
 . Add the following lines to your local.conf:
 +
 ----
-SOTA_CLIENT_PROV = "aktualizr-ca-device-prov"
+SOTA_CLIENT_PROV = "aktualizr-device-prov"
 SOTA_DEPLOY_CREDENTIALS = "0"
 ----
-. Build a standard image using the bitbake command.
+. Build a standard image with bitbake.
 . Boot the image.
 +
-The device should not be able to provision with a provisioning key. To verify this, log in to the {product-name} server and make sure that the device does not appear in the list of devices.
-. Load the device credentials on to the device with `aktualizr-cert-provider` command:
+The device should not be able to provision itself automatically. To verify this, log in to the {product-name} server and make sure that the device does not appear in the list of devices.
+. Load the device credentials on to the device with `aktualizr-cert-provider`:
 +
 ----
 aktualizr-cert-provider -c credentials.zip -t <device> -d /var/sota/import -r -u
@@ -37,3 +36,9 @@ The path should resemble the following example:
 +
 `tmp/work/x86_64-linux/aktualizr-native/1.0+gitAUTOINC+<version>/build/src/cert_provider/aktualizr-cert-provider`.
 
+For more extensive information on provisioning methods and configuration, see the following topics:
+
+* xref:client-provisioning-methods.adoc[Device provisioning methods]
+* xref:provisioning-methods-and-credentialszip.adoc[Provisioning methods and credentials.zip]
+* xref:enable-device-cred-provisioning.adoc[Enable device-credential provisioning and install device certificates]
+* xref:build-configuration.adoc[Build configuration for meta-updater]
