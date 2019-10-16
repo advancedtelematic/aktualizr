@@ -11,7 +11,7 @@ endif::[]
 
 == Quickstart
 
-If you don't already have a Yocto project that you want to add OTA to, you can use the xref:dev@getstarted::raspberry-pi.adoc[HERE OTA Connect Quickstart] project to rapidly get up and running on a Raspberry Pi. It takes a standard https://www.yoctoproject.org/tools-resources/projects/poky[poky] distribution, and adds OTA and OSTree capabilities.
+If you don't already have a Yocto project that you want to add OTA to, you can use the xref:getstarted::raspberry-pi.adoc[HERE OTA Connect Quickstart] project to rapidly get up and running on a Raspberry Pi. It takes a standard https://www.yoctoproject.org/tools-resources/projects/poky[poky] distribution, and adds OTA and OSTree capabilities.
 
 == Dependencies
 

@@ -1,4 +1,5 @@
 = Simulate a device without building a disk image
+:page-partial:
 ifdef::env-github[]
 
 [NOTE]
@@ -7,13 +8,13 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
-:page-partial:
+
 :page-layout: page
 :page-categories: [quickstarts]
 :page-date: 2018-11-19 11:28:47
 :page-order: 5
 :icons: font
-:aktualizr-version: 2019.5
+include::partial$aktualizr-version.adoc[]
 :sectnums:
 
 You can try out OTA Connect without having to build a whole device image. This can be useful for testing the system outside of actual device updates. In this guide, you will install aktualizr (the OTA client software) on your local machine, create a directory with configuration files and credentials for aktualizr to use, and run aktualizr from there.
@@ -21,7 +22,7 @@ You can try out OTA Connect without having to build a whole device image. This c
 == Prerequisites
 
 * A Linux or MacOS machine to run aktualizr on
-* link:generating-provisioning-credentials.html[Provisioning credentials] (`credentials.zip` file)
+* xref:generating-provisioning-credentials.adoc[Provisioning credentials] (`credentials.zip` file)
 
 == Install aktualizr locally
 
@@ -122,7 +123,7 @@ Each directory should contain the following:
 
 * credentials.zip
 * sota_local.toml -- a config file for aktualizr
-* (Optional) A `virtualsec.json` file containing the configuration for one or more secondary ECUs.footnote:[The terms "primary" and "secondary" ECU are used in the Uptane specification. For more information about the difference between primary and secondary ECUs, see our overview of the dev@ota-client::uptane.adoc#_primary_and_secondary_ecus[Uptane framework].]
+* (Optional) A `virtualsec.json` file containing the configuration for one or more secondary ECUs.footnote:[The terms "primary" and "secondary" ECU are used in the Uptane specification. For more information about the difference between primary and secondary ECUs, see our overview of the xref:uptane.adoc#_primary_and_secondary_ecus[Uptane framework\].]
 
 An example directory is below:
 

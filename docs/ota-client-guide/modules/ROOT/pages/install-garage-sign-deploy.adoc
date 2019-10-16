@@ -12,11 +12,11 @@ endif::[]
 :page-date: 2018-09-13 11:50:24
 :page-order: 2
 :icons: font
-:garage-deploy-version: 2019.8
+include::partial$aktualizr-version.adoc[]
 
 For our recommended production workflow, we recommend some extra security procedures. Before you can follow these procedures, you need to install our `garage-deploy` tool first.
 
-We currently provide released versions of `garage-deploy` for Ubuntu 18.04 (Bionic) and Ubuntu 16.04 (Xenial) which are available on https://github.com/advancedtelematic/aktualizr/releases/tag/{garage-deploy-version}.
+We currently provide released versions of `garage-deploy` for Ubuntu 18.04 (Bionic) and Ubuntu 16.04 (Xenial) which are available on https://github.com/advancedtelematic/aktualizr/releases/tag/{aktualizr-version}.
 
 == Installation instructions
 
@@ -26,7 +26,7 @@ To install `garage-deploy` on an Ubuntu 18.04 machine, download the `garage-depl
 
 [subs="attributes"]
 ----
-wget https://github.com/advancedtelematic/aktualizr/releases/download/{garage-deploy-version}/garage_deploy-ubuntu_18.04.deb
+wget https://github.com/advancedtelematic/aktualizr/releases/download/{aktualizr-version}/garage_deploy-ubuntu_18.04.deb
 sudo apt install ./garage_deploy-ubuntu_18.04.deb
 ----
 
@@ -34,17 +34,17 @@ For Ubuntu 16.04:
 
 [subs="attributes"]
 ----
-wget https://github.com/advancedtelematic/aktualizr/releases/download/{garage-deploy-version}/garage_deploy-ubuntu_16.04.deb
+wget https://github.com/advancedtelematic/aktualizr/releases/download/{aktualizr-version}/garage_deploy-ubuntu_16.04.deb
 sudo apt install ./garage_deploy-ubuntu_16.04.deb
 ----
 
 === Other debian-based distros or versions
 
-If you're using another version of Ubuntu, or another Debian-based distribution that we don't provide packages for, you can build a .deb yourself. Check out https://github.com/advancedtelematic/aktualizr/tree/{garage-deploy-version}[aktualizr], install the required dependencies link:https://github.com/advancedtelematic/aktualizr/tree/{garage-deploy-version}#dependencies[listed here] (exact package names may vary) and build the deb package yourself:
+If you're using another version of Ubuntu, or another Debian-based distribution that we don't provide packages for, you can build a .deb yourself. Check out https://github.com/advancedtelematic/aktualizr/tree/{aktualizr-version}[aktualizr], install the required dependencies link:https://github.com/advancedtelematic/aktualizr/tree/{aktualizr-version}#dependencies[listed here] (exact package names may vary) and build the deb package yourself:
 
 [subs="attributes"]
 ----
-git clone --branch {garage-deploy-version} --recursive https://github.com/advancedtelematic/aktualizr
+git clone --branch {aktualizr-version} --recursive https://github.com/advancedtelematic/aktualizr
 sudo apt install asn1c build-essential clang clang-check-3.8 clang-format-3.8 clang-tidy-3.8 cmake curl \
   doxygen graphviz lcov libarchive-dev libboost-dev libboost-filesystem-dev libboost-log-dev \
   libboost-program-options-dev libboost-serialization-dev libboost-iostreams-dev libcurl4-openssl-dev \
@@ -62,11 +62,11 @@ sudo apt install ./garage_deploy.deb
 
 If you're using a non-debian-based distro, you will need to build and install the binary directly.
 
-First, install the required dependencies link:https://github.com/advancedtelematic/aktualizr/tree/{garage-deploy-version}#dependencies[listed here]. (These are the Ubuntu package names; the packages may be named differently in your distro's repositories.) Then, you can build as above, but with `garage-deploy` as the make target:
+First, install the required dependencies link:https://github.com/advancedtelematic/aktualizr/tree/{aktualizr-version}#dependencies[listed here]. (These are the Ubuntu package names; the packages may be named differently in your distro's repositories.) Then, you can build as above, but with `garage-deploy` as the make target:
 
 [subs="attributes"]
 ----
-git clone --branch {garage-deploy-version} --recursive https://github.com/advancedtelematic/aktualizr
+git clone --branch {aktualizr-version} --recursive https://github.com/advancedtelematic/aktualizr
 cd aktualizr
 mkdir build
 cd build
@@ -83,7 +83,7 @@ Once you've installed `garage-deploy` tool, you're ready to perform the followin
 
 * Move device images from one account to another--for example, to send a development build to the QA team, or to send a release candidate to the deployment team.
 +
-For more information, see "xref:crossdeploying-device-images-to-a-different-account.adoc[Cross-deploy device images to a different account]".
+For more information, see "xref:cross-deploy-images.adoc[Cross-deploy device images to a different account]".
 
 * Create offline signing keys that you manage yourself and rotate out the installed online keys.
 +

@@ -49,14 +49,14 @@ This is all done with the meta-updater Yocto layer, as an integrated part of the
 
 == Installing updates on devices
 
-In OTA Connect, we generally assume that updates will be OSTree images, but in fact OTA Connect can be used to send all kinds of other updates.footnote:[For more information on using OTA Connect for other types of update, please contact us at link:mailto:otaconnect.support@here.com[otaconnect.support@here.com].] But for now, let's look at the default OSTree update process.
+In OTA Connect, we generally assume that updates will be OSTree images or complete firmware images to flash onto secondary ECUs, but in fact OTA Connect can be used to send all kinds of other updates.footnote:[For more information on using OTA Connect for other types of update, please contact us at link:mailto:otaconnect.support@here.com[otaconnect.support@here.com].] For now, let's look at the default OSTree update process.
 
 .OTA Connect device update flow
 ****
 . The client polls OTA Connect servers periodically to check if there are any new updates.
-. If there are, the client requests to download the update, which consists of a metadata file pointing to a particular OSTree commit. (For other types of update, the download might be something else, like application binaries, installation packages containing binaries and install scripts, or data packs.)
-. The update is cryptographically checked for validity following the https://uptane.github.io[Uptane] https://uptane.github.io/uptane-standard/uptane-standard.html[specification].
-. The client checks if the reference is available locally; if it's not, the commit is downloaded from TreeHub, only actually downloading objects not already present in the repo.
+. If there are, the client receives a metadata file directing it to install a particular image.
+. The metadata is cryptographically checked for validity following the https://uptane.github.io[Uptane] https://uptane.github.io/uptane-standard/uptane-standard.html[specification].
+. If all the checks pass, the client downloads the image. In the case of an OSTree update, the commit representing the image is downloaded from TreeHub, which only actually requires downloading any objects missing on the client.
 . Each object's SHA256 is checked for correctness.
 . Once all objects are downloaded and verified, a flag is set telling OSTree to boot into the new filesystem the next time the device restarts.
 ****

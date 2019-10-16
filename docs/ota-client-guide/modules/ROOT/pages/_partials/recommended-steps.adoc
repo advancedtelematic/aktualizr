@@ -2,16 +2,28 @@
 * *Use shared credential provisioning for your devices*
 +
 With shared-credential provisioning, you don't have to worry about installing certificates on your devices.
-The OTA Connect server automatically does this for you. All you need to do is download a provisioning key, unique to your account, and all your devices can share it.
+The OTA Connect server automatically does this for you. All you need to do is download a provisioning key that is unique to your account, and all your devices can share it.
 
-* *Build disk images using our demo recipes*
+** xref:ota-client::generating-provisioning-credentials.adoc[Get a provisioning key]
 +
-We support a couple of demo boards "out of the box". You don't need to worry about complex build configurations at this stage. Just follow one of our xref:getstarted::index.adoc[Get Started guides] to learn how to build an OTA-enabled disk image.
+{nbsp}
+
 * *Use the standalone aktualizr client to test the OTA functionality*
 +
 You don't need to do anything extra to use the standalone aktualizr client. It's actually part of our demo build configurations, so the aktualizr client is included in the disk image that you'll build.
 +
 If you prefer to simulate an OTA-enabled device without building a disk image, you can install the aktualizr client on your development computer. In this case, however, you won't be able to try out OSTree functionality--the client will simply download and verify binaries, dropping them into a configurable location on your filesystem.
+
+** xref:ota-client::simulate-device-basic.adoc[Simulate a device without building a disk image]
++
+{nbsp}
+
+* *Build disk images using our demo recipes*
++
+We support a couple of demo boards "out of the box". You don't need to worry about complex build configurations at this stage. Just follow one of our quick start guides to learn how to build an OTA-enabled disk image.
+
+** xref:ota-client::build-raspberry.adoc[Build a Raspberry Pi image]
+** xref:ota-client::build-qemu.adoc[Build a QEMU/VirtualBox image]
 
 //  end::evaluate-steps[]
 
@@ -54,7 +66,7 @@ In the initial integration phase, if you do not have the TPM/HSM ready to use, y
 
 * *Use offline keys to sign software metadata*
 +
-Strong, automotive-grade security using Uptane is one of the most important parts of OTA Connect. Uptane achieves its security benefits by using multiple different, interdependent roles and repositories to sign software, establish trust, and ensure other important security properties. For a truly secure Uptane deployment, the keys that are used to sign metadata should be kept offline--for example, on an external hardware security module like a https://www.yubico.com/[YubiKey]. To save you from the difficulties and complications of managing offline keys, new OTA Connect accounts start off by using online signing keys kept in secure storagefootnote::[Using HashiCorp's https://www.vaultproject.io/[Vault], an industry-standard best practice.]. When you upload software and disk images to OTA Connect, the server generates and signs the associated metadata for you.
+Strong, automotive-grade security using Uptane is one of the most important parts of OTA Connect. Uptane achieves its security benefits by using multiple different, interdependent roles and repositories to sign software, establish trust, and ensure other important security properties. For a truly secure Uptane deployment, the keys that are used to sign metadata should be kept offline--for example, on an external hardware security module like a https://www.yubico.com/[YubiKey]. To save you from the difficulties and complications of managing offline keys, new OTA Connect accounts start off by using online signing keys kept in secure storage using HashiCorp's https://www.vaultproject.io/[Vault], an industry-standard best practice. When you upload software and disk images to OTA Connect, the server generates and signs the associated metadata for you.
 +
 During the integration phase, you should take the signing keys offline and rotate them. This puts you in complete control over your fleet's security--even if an attacker somehow compromised the entire OTA Connect infrastructure, they still wouldn't be able to install their software on your vehicles.
 +
@@ -103,3 +115,12 @@ Once you understand how the libaktualizr demo application works, you'll want to 
 After you've finished integration and development, you'll need to move disk images from one account to another. For example, you might want to send a development build that you’re happy with to the QA team, or send that build to the deployment team once it’s passed QA.
 
 //  end::deploy-steps[]
+
+//  tag::firstbuild-nextstep[]
+[TIP]
+====
+Once you've built your first image, try adding some new software and xref:ota-client::pushing-updates.adoc[push your update to the OTA Connect server].
+====
+//MC: full versioned xref because snippet is displayed in two components.
+
+//  end::firstbuild-nextstep[]

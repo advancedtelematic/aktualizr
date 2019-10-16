@@ -1,4 +1,4 @@
-// MC: NOTE ABOUT TOC 
+// MC: NOTE ABOUT TOC
 // Adding "pageroot" attr so that TOC that will also work directly in GitHub. Because...
 // In Antora the "pages" subdir is implcit added to the xref path at build time.
 // if you add "/pages" Antora will intepret it as "pages/pages".
@@ -20,7 +20,8 @@ ifndef::env-github[:pageroot:]
 ** xref:{pageroot}supporting-technologies.adoc[Supporting technologies]
 ** xref:{pageroot}yocto.adoc[Yocto]
 // ---
-** xref:{pageroot}ostree-and-treehub.adoc[OSTree, and TreeHub]
+** xref:{pageroot}ostree-and-treehub.adoc[OSTree and TreeHub]
+** xref:{pageroot}comparing-full-filesystem-update-strategies.adoc[Comparing full-filesystem update strategies]
 // ---
 * xref:{pageroot}security.adoc[Security]
 ** xref:{pageroot}pki.adoc[Key Management]
@@ -36,10 +37,10 @@ ifndef::env-github[:pageroot:]
 ** xref:{pageroot}build-qemu.adoc[Build for QEMU]
 // OTA-3629: Uncomment when AGL ready:** xref:{pageroot}build-agl.adoc[Build for Automotive Grade Linux]
 * xref:{pageroot}simulate-device-basic.adoc[Simulate a device without building a disk image]
-* xref:{pageroot}pushing-updates.adoc[Upload a sample software version]
+* xref:{pageroot}pushing-updates.adoc[Add software to your Yocto image]
 * xref:{pageroot}update-single-device.adoc[Update a second device with the sample software]
 
-.Build your own OTA-enabled solution
+.Integrate OTA Connect
 * xref:{pageroot}intro-prep.adoc[Recommended Steps]
 * xref:{pageroot}recommended-clientconfig.adoc[Recommended configurations]
 * xref:{pageroot}account-setup.adoc[Set up multiple accounts]
@@ -50,9 +51,10 @@ ifndef::env-github[:pageroot:]
 
 * xref:{pageroot}build-ota-enabled-images.adoc[Build and deploy OTA-enabled disk images]
 ** xref:{pageroot}supported-boards.adoc[Supported boards]
+** xref:{pageroot}yocto-release-branches.adoc[Yocto release branches]
 ** xref:{pageroot}add-ota-functonality-existing-yocto-project.adoc[Add OTA functionality to a Yocto project]
 ** xref:{pageroot}libaktualizr-integrate.adoc[Add libaktualizr integration to a Yocto project]
-** xref:{pageroot}yocto-release-branches.adoc[Yocto release branches]
+
 
 * xref:{pageroot}device-cred-prov-steps.adoc[Provision devices]
 ** xref:{pageroot}generate-selfsigned-root.adoc[Generate a self-signed root certificate]

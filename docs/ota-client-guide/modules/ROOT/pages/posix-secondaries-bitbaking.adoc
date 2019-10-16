@@ -13,8 +13,7 @@ The goal of this doc is to guide a reader on bitbaking of two type of images `pr
 and running of which on the target makes it act as `Primary` and `Secondary` ECU of a single device.
 
 Refer to link:https://uptane.github.io/uptane-standard/uptane-standard.html[the Uptane standard] in order to grok the meaning of the `Primary` and `Secondary` terms in the given context from a theoretical standpoint.
-Check out xref:posix-secondaries.doc[this doc] to understand these terms from a practical standpoint and
-to learn how `Primary` and `Secondary` can be emulated locally on an user's host.
+Check out xref:posix-secondaries.adoc[this doc] to understand these terms from a practical standpoint and to learn how `Primary` and `Secondary` can be emulated locally on an user's host.
 It is highly advisable to follow the doc instructions and play with emulated `Primary` and `Secondary` prior to running steps described further in this doc.
 
 == Bitbaking
@@ -22,15 +21,14 @@ It is highly advisable to follow the doc instructions and play with emulated `Pr
 It is assumed that a reader is familiar with Yocto and bitbaking in general as well as bitbaking of Aktualizr images in particular,
 details of which are out of scope of this doc and can be found in the following guides:
 
-* link:https://github.com/advancedtelematic/meta-updater/blob/master/README.adoc[meta-updater README].
-* 
+* link:https://github.com/advancedtelematic/meta-updater/blob/master/README.adoc[meta-updater README]
+* xref:build-qemu.adoc[How to build 'core-image-minimal' image for QEMU]
 
 === Primary
 To bitbake an image for `Primary` run the following:
 ....
 bitbake primary-image
 ....
-
 
 .Primary configuration variables
 [cols="1,1,10"]
@@ -43,7 +41,7 @@ bitbake primary-image
 
 |`PRIMARY_PORT`
 |`"9040"`
-| A TCP port that Primary aktualizr listen on for connections from Secondaries
+| A TCP port that Primary aktualizr listens on for connections from Secondaries
 
 |`PRIMARY_WAIT_TIMEOUT`
 |`"120"`
@@ -59,7 +57,7 @@ For example, `PRIMARY_SECONDARIES = "10.0.3.2:9050 10.0.3.3:9050 10.0.3.4:9050"`
 
 
 === Secondary
-To bitbake an image for `Secondary` run the following
+To bitbake an image for `Secondary` run the following:
 ....
 bitbake secondary-image
 ....
@@ -79,7 +77,7 @@ bitbake secondary-image
 |===
 
 ==== Multiple secondaries use case
-In order to support multiple secondaries use case an user should
+In order to support multiple secondaries use case an user should:
 
 * repeat the secondary bitbaking procedure corresponding number of times, each time
 ** specifying unique TCP/IP address by means of `SECONDARY_IP` and `SECONDARY_PORT` configuration variables
@@ -158,32 +156,32 @@ ethernet interface corresponding IP addresses (10.0.3.x, 10.0.3.2 for the defaul
 ===== Primary and Secondary uses wifi, only Primary uses ethernet NIC
 In this case, both Primary and Secondary(ies) uses wifi NIC to connect to the internal network (wifi router should not have an Internet access). Secondary doesn't use ethernet NIC.
 Primary connects to Internet via ethernet NIC that should be connected to LAN with an access to Internet.
-`(The given approach is not supported by the meta-updater but can be applied by an advanced user)`
+(This approach is not supported by meta-updater but can be applied by an advanced user.)
 
 
 == Running
 
 It is assumed that a reader is familiar with details on running of bitbaked images targeted for QEMU, such information can be found in the following docs:
 
-* link:https://github.com/advancedtelematic/meta-updater/blob/master/README.adoc[meta-updater README].
-* xref:build-qemu.adoc[How to build 'core-image-minimal' image for QEMU]]
+* link:https://github.com/advancedtelematic/meta-updater/blob/master/README.adoc[meta-updater README]
+* xref:build-qemu.adoc[How to build 'core-image-minimal' image for QEMU]
 
 === Primary
 
-To launch QEMU VM acting as Primary run the following from your build directory
+To launch QEMU VM acting as Primary run the following from your build directory:
 ....
 ../meta-updater/scripts/run-qemu-ota --no-gui --secondary-network primary-image
 ....
-`--secondary-network` option instructs QEMU to add NIC to the VM in order to communicate with Secondary VM(s) via it.
+The `--secondary-network` option instructs QEMU to add NIC to the VM in order to communicate with Secondary VM(s) via it.
 
 
 === Secondary
 
-To launch QEMU VM acting as Secondary run the following from your build directory
+To launch QEMU VM acting as Secondary run the following from your build directory:
 ....
 ../meta-updater/scripts/run-qemu-ota --no-gui --secondary-network secondary-image
 ....
-`--secondary-network` option instructs QEMU to add NIC to the VM aimed for communication with Primary
+The `--secondary-network` option instructs QEMU to add NIC to the VM aimed for communication with Primary.
 
 == Usage
 

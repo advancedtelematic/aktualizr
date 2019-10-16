@@ -1,4 +1,4 @@
-= Enable device-credential provisioning and install device certificates 
+= Enable device-credential provisioning and install device certificates
 ifdef::env-github[]
 
 [NOTE]
@@ -47,9 +47,9 @@ scp -P 2222 autoprov.url root@localhost:/var/sota/import/gateway.url
 ====
 You might remember that `credentials.zip` contains a provisioning key shared-credential provisioning. In this case we just need the `autoprov.url` file inside `credentials.zip`. This file contains the URL of your device gateway which is specific to your account.
 ====
-. Copy the device credentials and device gateway root CA certificate to the device. 
+. Copy the device credentials and device gateway root CA certificate to the device.
 +
-[source,sh,subs="attributes"]
+[source,sh]
 ----
 export device_dir=path/to/device/dir
 scp -P 2222 -pr ${device_dir} root@localhost:/var/sota/import
@@ -75,7 +75,7 @@ Once the certificates have copied, the following chain of events should occur:
 
 As described in the xref:index.adoc[introduction], it's a good idea to use a Hardware Security Model (HSM) to hold potentially sensitive device credentials.
 
-The following procedure describes how to use QEMU and link:https://www.opendnssec.org/softhsm/[SoftHSM] to simulate a device with an HSM. 
+The following procedure describes how to use QEMU and link:https://www.opendnssec.org/softhsm/[SoftHSM] to simulate a device with an HSM.
 
 However, the procedure for your HSM will probably be different. We've provided these instructions as a basic guide to how this provisioning method works but you'll need to make further changes on your own. For example, you'll probably need to adapt your BSP so that aktualizr can access the keys from your HSM.
 
@@ -92,7 +92,7 @@ IMAGE_INSTALL_append = " softhsm-testtoken dropbear "
 +
 [NOTE]
 ====
-The line `IMAGE_INSTALL_append = " softhsm-testtoken dropbear "` ensures that softhsm and an ssh server are installed on the image. You'll need to ssh into the device to copy the certificates to the hsm. 
+The line `IMAGE_INSTALL_append = " softhsm-testtoken dropbear "` ensures that softhsm and an ssh server are installed on the image. You'll need to ssh into the device to copy the certificates to the hsm.
 ====
 . Build a standard image using bitbake.
 . Boot the image.
@@ -108,9 +108,9 @@ scp -P 2222 autoprov.url root@localhost:/var/sota/import/gateway.url
 ====
 You might remember that `credentials.zip` contains a provisioning key shared-credential provisioning. In this case we just need the `autoprov.url` file inside `credentials.zip`. This file contains the URL of your device gateway which is specific to your account.
 ====
-. Copy the device credentials and device gateway root CA certificate to the device's HSM. 
+. Copy the device credentials and device gateway root CA certificate to the device's HSM.
 +
-[source,sh,subs="attributes"]
+[source,sh]
 ----
 export device_dir=path/to/device/dir
 scp -P 2222 -pr ${device_dir} root@localhost:/var/sota/import

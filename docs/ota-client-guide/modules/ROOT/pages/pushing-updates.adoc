@@ -1,4 +1,5 @@
-= Upload a sample software version
+= Add software to your Yocto image
+:page-partial:
 ifdef::env-github[]
 
 [NOTE]
@@ -6,13 +7,6 @@ ifdef::env-github[]
 We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
 ====
 endif::[]
-
-:page-partial:
-:page-layout: page
-:page-categories: [quickstarts]
-:page-date: 2017-05-23 16:31:35
-:page-order: 6
-:icons: font
 
 Every time you bitbake a new image, it is automatically pushed to {product-name}. You can then send the updated image out to any of your devices. In this guide, you learn a few ways to push updated system images from your build machine or workstation to {product-name-short}.
 
@@ -82,8 +76,8 @@ If you are building for 32-bit ARM (i.e. Raspberry Pi), you'll need some support
 
 ----
 sudo dpkg --add-architecture i386
-sudo apt-get update
-sudo apt-get install g++-multilib libssl-dev:i386 libcrypto++-dev:i386 zlib1g-dev:i386
+sudo apt update
+sudo apt install g++-multilib libssl-dev:i386 libcrypto++-dev:i386 zlib1g-dev:i386
 ----
 
 For more details, see the https://github.com/imyller/meta-nodejs#cross-compiling-for-32-bit-target-on-64-bit-host[meta-nodejs README].

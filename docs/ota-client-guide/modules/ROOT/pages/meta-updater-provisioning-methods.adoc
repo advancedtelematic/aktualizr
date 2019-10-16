@@ -10,7 +10,7 @@ endif::[]
 
 //MC: TOMERGE: Looks mostly like a duplicate of this topic: https://github.com/advancedtelematic/aktualizr/blob/master/docs/ota-client-guide/modules/ROOT/pages/simulate-device-cred-provtest.adoc
 
-As described in the xref:xref:dev@ota-build::sota-variables.adoc[configuration reference], you can set `SOTA_DEPLOY_CREDENTIALS` to `0` to prevent deploying credentials to the built `wic` image. In this case you get a generic image that you can use e.g. on a production line to flash a series of devices. The cost of this approach is that this image is half-baked and should be provisioned before it can connect to the backend.
+As described in the xref:ota-build::build-configuration.adoc[configuration reference], you can set `SOTA_DEPLOY_CREDENTIALS` to `0` to prevent deploying credentials to the built `wic` image. In this case you get a generic image that you can use e.g. on a production line to flash a series of devices. The cost of this approach is that this image is half-baked and should be provisioned before it can connect to the backend.
 
 Provisioning procedure depends on your provisioning recipe, i.e. the value of `SOTA_CLIENT_PROV` (equal to `aktualizr-shared-prov` by default):
 
@@ -26,5 +26,5 @@ Provisioning procedure depends on your provisioning recipe, i.e. the value of `S
 For more extensive information on provisioning methods, see the following topics from the OTA Connect Developer guide:
 
 //MC: Web links because this topic is only viewable in Github
-* link:https://docs.ota.here.com/ota-client/dev/client-provisioning-methods.html[Device provisioning methods]
-* link:https://docs.ota.here.com/ota-client/dev/enable-device-cred-provisioning.html[Enable device-credential provisioning and install device certificates]
+* link:https://docs.ota.here.com/ota-client/latest/client-provisioning-methods.html[Device provisioning methods]
+* link:https://docs.ota.here.com/ota-client/latest/enable-device-cred-provisioning.html[Enable device-credential provisioning and install device certificates]

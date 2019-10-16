@@ -23,7 +23,7 @@ Chances are, your developer team isn't responsible for making the decision to pu
 
 '''
 
-To make this workflow possible, create an account for each environment you find useful (e.g. dev, QA, beta, production, etc.), and then read about xref:crossdeploying-device-images-to-a-different-account.adoc[using garage-deploy to cross-deploy images from one account to another].
+To make this workflow possible, create an account for each environment you find useful (e.g. dev, QA, beta, production, etc.), and then read about xref:cross-deploy-images.adoc[using garage-deploy to cross-deploy images from one account to another].
 
 == Manage your own chain(s) of trust
 
@@ -35,7 +35,7 @@ Once you've done that, we won't have any of your private key material at all.
 
 == Consider using a Hardware Security Module
 
-In the quickstart guides, we automatically provision your devices when they come online for the first time. To make this happen, the devices need to present a provisioning key. If the provisioning key is valid, then {product-name-short} bootstraps the provisioning process by negotiating unique, device-specific credentials in the form of X.509 certificates for mutual TLS authentication. It's these generated credentials that are used when the device connects to the server for updates. 
+In the quickstart guides, we automatically provision your devices when they come online for the first time. To make this happen, the devices need to present a provisioning key. If the provisioning key is valid, then {product-name-short} bootstraps the provisioning process by negotiating unique, device-specific credentials in the form of X.509 certificates for mutual TLS authentication. It's these generated credentials that are used when the device connects to the server for updates.
 
 We refer to this method as provisioning with "shared" credentials. Although each device eventually receives device-specific credentials, the process begins with a shared credential: the provisioning key.
 
