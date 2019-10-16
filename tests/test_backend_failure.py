@@ -36,11 +36,8 @@ https://saeljira.it.here.com/browse/OTA-3730
 @with_install_manager()
 def test_backend_failure_sanity_director_update_after_metadata_download_failure(install_mngr, director,
                                                                                 aktualizr, **kwargs):
-    with aktualizr:
-        with director:
-            # we have to stop director before terminating aktualizr since the later doesn't support graceful shutdown
-            # (doesn't handle any signal (SIGTERM, SIGKILL, etc) what leads to receiving broken requests at director
-            # https://saeljira.it.here.com/browse/OTA-3744
+    with director:
+        with aktualizr:
             install_result = director.wait_for_install()
             install_result = install_result and install_mngr.are_images_installed()
     return install_result
@@ -207,14 +204,7 @@ def test_backend_failure_sanity_customrepo_update_redirect(aktualizr, uptane_rep
   - malformed json is received
 """
 @with_uptane_backend(start_generic_server=True)
-# TODO: if root.json is malformed aktualizr ignores it and proceed with an update
-# https://saeljira.it.here.com/browse/OTA-3717
-# @with_path(paths=['/root.json'])
-
-# TODO: if 1.root.json download from director fails then aktualizr just exits
-# https://saeljira.it.here.com/browse/OTA-3728
-#@with_path(paths=['/1.root.json'])
-@with_path(paths=['/targets.json'])
+@with_path(paths=['/1.root.json', '/root.json', '/targets.json'])
 @with_imagerepo()
 @with_director(handlers=[
                             DownloadInterruptionHandler(number_of_failures=3),
@@ -234,8 +224,7 @@ def test_backend_failure_sanity_director_unsuccessful_download(install_mngr, akt
   - malformed json is received
 """
 @with_uptane_backend(start_generic_server=True)
-#@with_path(paths=['/root.json']) # TODO: if root.json is malformed aktualizr ignores it and proceed with an update
-@with_path(paths=['/1.root.json', '/timestamp.json', '/snapshot.json', '/targets.json'])
+@with_path(paths=['/1.root.json', '/root.json', '/timestamp.json', '/snapshot.json', '/targets.json'])
 @with_imagerepo(handlers=[
                             DownloadInterruptionHandler(number_of_failures=3),
                             MalformedJsonHandler(number_of_failures=1),
