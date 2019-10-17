@@ -186,7 +186,7 @@ data::InstallationResult SotaUptaneClient::PackageInstallSetResult(const Uptane:
 void SotaUptaneClient::reportHwInfo() {
   Json::Value hw_info = Utils::getHardwareInfo();
   if (!hw_info.empty()) {
-    http->put(config.tls.server + "/core/system_info", hw_info);
+    http->put(config.tls.server + "/system_info", hw_info);
   } else {
     LOG_WARNING << "Unable to fetch hardware information from host system.";
   }
