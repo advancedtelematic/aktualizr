@@ -30,18 +30,30 @@ static inline Cmd cmdFromName(const std::string &name) {
 // Out of uptane concept: update campaign for a device
 class Campaign {
  public:
+  Campaign() = default;
+  Campaign(std::string idIn, std::string nameIn, int64_t sizeIn, bool autoAcceptIn, std::string descriptionIn,
+           int estInstallationDurationIn, int estPreparationDurationIn)
+      : id(std::move(idIn)),
+        name(std::move(nameIn)),
+        size(sizeIn),
+        autoAccept(autoAcceptIn),
+        description(std::move(descriptionIn)),
+        estInstallationDuration(estInstallationDurationIn),
+        estPreparationDuration(estPreparationDurationIn) {}
   static Campaign fromJson(const Json::Value &json);
+  void getJson(Json::Value &out) const;
 
   std::string id;
   std::string name;
-  int64_t size;
-  bool autoAccept;
+  int64_t size{0};
+  bool autoAccept{false};
   std::string description;
-  int estInstallationDuration;
-  int estPreparationDuration;
+  int estInstallationDuration{0};
+  int estPreparationDuration{0};
 };
 
 std::vector<Campaign> campaignsFromJson(const Json::Value &json);
+void JsonFromCampaigns(const std::vector<Campaign> &in, Json::Value &out);
 std::vector<Campaign> fetchAvailableCampaigns(HttpInterface &http_client, const std::string &tls_server);
 }  // namespace campaign
 

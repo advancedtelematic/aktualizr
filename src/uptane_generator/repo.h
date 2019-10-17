@@ -54,6 +54,7 @@ class Repo {
 
  private:
   void addDelegationToSnapshot(Json::Value *snapshot, const Uptane::Role &role);
+  void generateCampaigns() const;
 };
 
 #endif  // REPO_H_

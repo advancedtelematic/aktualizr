@@ -3,6 +3,7 @@
 #include "crypto/crypto.h"
 #include "logging/logging.h"
 
+#include "campaign/campaign.h"
 #include "director_repo.h"
 #include "image_repo.h"
 #include "repo.h"
@@ -221,6 +222,27 @@ void Repo::generateRepo(KeyType key_type) {
   if (repo_type_ == Uptane::RepositoryType::Director()) {
     Utils::writeFile(path_ / DirectorRepo::dir / "manifest", std::string());  // just empty file to work with put method
   }
+
+  generateCampaigns();
+}
+
+void Repo::generateCampaigns() const {
+  std::vector<campaign::Campaign> campaigns;
+  campaigns.resize(1);
+  auto &c = campaigns[0];
+
+  c.name = "campaign1";
+  c.id = "c2eb7e8d-8aa0-429d-883f-5ed8fdb2a493";
+  c.size = 62470;
+  c.autoAccept = true;
+  c.description = "this is my message to show on the device";
+  c.estInstallationDuration = 10;
+  c.estPreparationDuration = 20;
+
+  Json::Value json;
+  campaign::JsonFromCampaigns(campaigns, json);
+
+  Utils::writeFile(path_ / "campaigns.json", Utils::jsonToCanonicalStr(json));
 }
 
 Json::Value Repo::getTarget(const std::string &target_name) {
