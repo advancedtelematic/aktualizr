@@ -17,4 +17,4 @@ mkdir -p "$TEST_INSTALL_DESTDIR"
 LDFLAGS="-s" "$GITREPO_ROOT/scripts/test.sh"
 
 git -C "$GITREPO_ROOT" fetch --tags --unshallow || true
-git -C "$GITREPO_ROOT" describe --long > "$TEST_INSTALL_DESTDIR/aktualizr-version"
+"$GITREPO_ROOT/scripts/get_version.sh" git "$GITREPO_ROOT" > "$TEST_INSTALL_DESTDIR/aktualizr-version"
