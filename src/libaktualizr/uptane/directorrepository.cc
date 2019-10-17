@@ -101,6 +101,11 @@ bool DirectorRepository::updateMeta(INvStorage& storage, Fetcher& fetcher) {
       return false;
     }
     int remote_version = extractVersionUntrusted(director_root);
+    if (remote_version == -1) {
+      LOG_ERROR << "Failed to extract a version from Director's root.json: " << director_root;
+      return false;
+    }
+
     int local_version = rootVersion();
 
     for (int version = local_version + 1; version <= remote_version; ++version) {

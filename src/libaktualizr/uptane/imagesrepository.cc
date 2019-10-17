@@ -162,6 +162,11 @@ bool ImagesRepository::updateMeta(INvStorage& storage, Fetcher& fetcher) {
       return false;
     }
     int remote_version = extractVersionUntrusted(images_root);
+    if (remote_version == -1) {
+      LOG_ERROR << "Failed to extract a version from Director's root.json: " << images_root;
+      return false;
+    }
+
     int local_version = rootVersion();
 
     for (int version = local_version + 1; version <= remote_version; ++version) {
