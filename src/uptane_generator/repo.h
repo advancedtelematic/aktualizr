@@ -38,6 +38,7 @@ class Repo {
   void generateRepo(KeyType key_type = KeyType::kRSA2048);
   Json::Value getTarget(const std::string &target_name);
   Json::Value signTuf(const Uptane::Role &role, const Json::Value &json);
+  void generateCampaigns() const;
 
  protected:
   void generateRepoKeys(KeyType key_type);

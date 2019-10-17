@@ -56,6 +56,22 @@ Campaign Campaign::fromJson(const Json::Value &json) {
   }
 }
 
+void Campaign::getJson(Json::Value &out) const {
+  out.clear();
+
+  out["id"] = id;
+  out["name"] = name;
+  out["size"] = Json::UInt(size);
+  out["autoAccept"] = autoAccept;
+
+  out["metadata"][0]["type"] = "DESCRIPTION";
+  out["metadata"][0]["value"] = description;
+  out["metadata"][1]["type"] = "ESTIMATED_INSTALLATION_DURATION";
+  out["metadata"][1]["value"] = std::to_string(estInstallationDuration);
+  out["metadata"][2]["type"] = "ESTIMATED_PREPARATION_DURATION";
+  out["metadata"][2]["value"] = std::to_string(estPreparationDuration);
+}
+
 std::vector<Campaign> campaignsFromJson(const Json::Value &json) {
   std::vector<Campaign> campaigns;
 
@@ -81,6 +97,17 @@ std::vector<Campaign> campaignsFromJson(const Json::Value &json) {
     }
   }
   return campaigns;
+}
+
+void JsonFromCampaigns(const std::vector<Campaign> &in, Json::Value &out) {
+  out.clear();
+  auto i = 0;
+  Json::Value json;
+  for (const auto &c : in) {
+    c.getJson(json);
+    out["campaigns"][i] = json;
+    ++i;
+  }
 }
 
 std::vector<Campaign> fetchAvailableCampaigns(HttpInterface &http_client, const std::string &tls_server) {

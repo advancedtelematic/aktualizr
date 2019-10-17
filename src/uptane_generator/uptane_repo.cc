@@ -9,6 +9,9 @@ void UptaneRepo::generateRepo(KeyType key_type) {
   director_repo_.generateRepo(key_type);
   image_repo_.generateRepo(key_type);
 }
+
+void UptaneRepo::generateCampaigns() { director_repo_.generateCampaigns(); }
+
 void UptaneRepo::addTarget(const std::string &target_name, const std::string &hardware_id,
                            const std::string &ecu_serial, const std::string &url) {
   auto target = image_repo_.getTarget(target_name);

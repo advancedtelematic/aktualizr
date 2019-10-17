@@ -22,6 +22,8 @@ class UptaneRepo {
   void emptyTargets();
   void oldTargets();
 
+  void generateCampaigns();
+
  private:
   DirectorRepo director_repo_;
   ImageRepo image_repo_;

@@ -475,6 +475,28 @@ TEST(uptane_generator, oldtargets) {
   check_repo(temp_dir);
 }
 
+/*
+ * Generate campaigns json to meta dir.
+ */
+TEST(uptane_generator, generateCampaigns) {
+  TemporaryDirectory temp_dir;
+  UptaneRepo repo(temp_dir.Path(), "", "");
+  repo.generateRepo(key_type);
+  repo.generateCampaigns();
+  Json::Value campaigns = Utils::parseJSONFile(temp_dir.Path() / "campaigns.json");
+
+  EXPECT_EQ(campaigns["campaigns"][0]["name"], "campaign1");
+  EXPECT_EQ(campaigns["campaigns"][0]["id"], "c2eb7e8d-8aa0-429d-883f-5ed8fdb2a493");
+  EXPECT_EQ((campaigns["campaigns"][0]["size"]).asInt64(), 62470);
+  EXPECT_EQ(campaigns["campaigns"][0]["autoAccept"], true);
+  EXPECT_EQ(campaigns["campaigns"][0]["metadata"][0]["type"], "DESCRIPTION");
+  EXPECT_EQ(campaigns["campaigns"][0]["metadata"][0]["value"], "this is my message to show on the device");
+  EXPECT_EQ(campaigns["campaigns"][0]["metadata"][1]["type"], "ESTIMATED_INSTALLATION_DURATION");
+  EXPECT_EQ(campaigns["campaigns"][0]["metadata"][1]["value"], "10");
+  EXPECT_EQ(campaigns["campaigns"][0]["metadata"][2]["type"], "ESTIMATED_PREPARATION_DURATION");
+  EXPECT_EQ(campaigns["campaigns"][0]["metadata"][2]["value"], "20");
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

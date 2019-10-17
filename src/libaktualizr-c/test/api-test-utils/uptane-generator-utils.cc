@@ -26,6 +26,7 @@ int main(int argc, char** argv) {
     uptane_gen.run({"addtarget", "--path", metaDirPath.string(), "--targetname", "firmware.txt", "--hwid", "primary_hw",
                     "--serial", "CA:FE:A6:D2:84:9D"});
     uptane_gen.run({"signtargets", "--path", metaDirPath.string()});
+    uptane_gen.run({"addcampaigns", "--path", metaDirPath.string()});
 
     return (uptane_gen.lastExitCode() == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
   }
