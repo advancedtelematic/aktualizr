@@ -3,5 +3,6 @@
 set -euo pipefail
 
 GIT=${1:-git}
+REPO=${2:-.}
 
-"$GIT" describe --long | tr -d '\n'
+"$GIT" -C "$REPO" describe --long | tr -d '\n'
