@@ -34,15 +34,15 @@ void PackageConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt
   CopyFromConfig(packages_file, "packages_file", pt);
   CopyFromConfig(fake_need_reboot, "fake_need_reboot", pt);
 #ifdef BUILD_DOCKERAPP
+  CopyFromConfig(docker_apps_root, "docker_apps_root", pt);
+  CopyFromConfig(docker_compose_bin, "docker_compose_bin", pt);
   std::string val;
   CopyFromConfig(val, "docker_apps", pt);
   if (val.length() > 0) {
     // token_compress_on allows lists like: "foo,bar", "foo, bar", or "foo bar"
     boost::split(docker_apps, val, boost::is_any_of(", "), boost::token_compress_on);
-    CopyFromConfig(docker_apps_root, "docker_apps_root", pt);
     CopyFromConfig(docker_app_params, "docker_app_params", pt);
     CopyFromConfig(docker_app_bin, "docker_app_bin", pt);
-    CopyFromConfig(docker_compose_bin, "docker_compose_bin", pt);
   }
 #endif
 }

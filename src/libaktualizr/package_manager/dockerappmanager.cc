@@ -73,6 +73,16 @@ struct DockerApp {
     return std::system(cmd.c_str()) == 0;
   }
 
+  void remove() {
+    auto bin = boost::filesystem::canonical(compose_bin).string();
+    std::string cmd("cd " + app_root.string() + " && " + bin + " down");
+    if (std::system(cmd.c_str()) == 0) {
+      boost::filesystem::remove_all(app_root);
+    } else {
+      LOG_ERROR << "docker-compose was unable to bring down: " << app_root;
+    }
+  }
+
   std::string name;
   boost::filesystem::path app_root;
   boost::filesystem::path app_params;
@@ -133,6 +143,7 @@ bool DockerAppManager::fetchTarget(const Uptane::Target &target, Uptane::Fetcher
 
 data::InstallationResult DockerAppManager::install(const Uptane::Target &target) const {
   auto res = OstreeManager::install(target);
+  handleRemovedApps();
   auto cb = [this](const std::string &app, const Uptane::Target &app_target) {
     LOG_INFO << "Installing " << app << " -> " << app_target;
     std::stringstream ss;
@@ -144,6 +155,28 @@ data::InstallationResult DockerAppManager::install(const Uptane::Target &target)
     return data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, "Could not render docker app");
   }
   return res;
+}
+
+// Handle the case like:
+//  1) sota.toml is configured with 2 docker apps: "app1, app2"
+//  2) update is applied, so we are now running both app1 and app2
+//  3) sota.toml is updated with 1 docker app: "app1"
+// At this point we should stop app2 and remove it.
+void DockerAppManager::handleRemovedApps() const {
+  if (!boost::filesystem::is_directory(config.docker_apps_root)) {
+    LOG_DEBUG << "config.docker_apps_root does not exist";
+    return;
+  }
+  for (auto &entry : boost::make_iterator_range(boost::filesystem::directory_iterator(config.docker_apps_root), {})) {
+    if (boost::filesystem::is_directory(entry)) {
+      std::string name = entry.path().filename().native();
+      if (std::find(config.docker_apps.begin(), config.docker_apps.end(), name) == config.docker_apps.end()) {
+        LOG_WARNING << "Docker App(" << name
+                    << ") installed, but is now removed from configuration. Removing from system";
+        DockerApp(name, config).remove();
+      }
+    }
+  }
 }
 
 TargetStatus DockerAppManager::verifyTarget(const Uptane::Target &target) const {
