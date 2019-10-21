@@ -35,9 +35,9 @@ In OTA Connect, each user account gets its own personal software repositories an
 +
 A better strategy for production is to create separate user logins to manage the different stages. For example, you might want a three-step process:
 +
-. A developer user such as "dev@acme.com".
-. A QA user such as "qa@acme.com".
-. A production user such as "prod@acme.com".
+. A developer user such as "\dev@acme.com".
+. A QA user such as "\qa@acme.com".
+. A production user such as "\prod@acme.com".
 +
 These logins provide you with a way of clearly separating your development, QA and production resources.
 
