@@ -230,6 +230,7 @@ std::future<HttpResponse> HttpClient::downloadAsync(const std::string& url, curl
   curlEasySetoptWrapper(curl_download, CURLOPT_URL, url.c_str());
   curlEasySetoptWrapper(curl_download, CURLOPT_HTTPGET, 1L);
   curlEasySetoptWrapper(curl_download, CURLOPT_FOLLOWLOCATION, 1L);
+  curlEasySetoptWrapper(curl_download, CURLOPT_MAXREDIRS, 10L);
   curlEasySetoptWrapper(curl_download, CURLOPT_WRITEFUNCTION, write_cb);
   curlEasySetoptWrapper(curl_download, CURLOPT_WRITEDATA, userp);
   if (progress_cb != nullptr) {

@@ -199,6 +199,25 @@ def test_backend_failure_sanity_customrepo_update_redirect(aktualizr, uptane_rep
     return install_result and update_hash == aktualizr.get_current_image_info(aktualizr.id)
 
 """
+    Verifies if aktualizr rejects redirects over 10 times - update fails after redirect
+"""
+@with_uptane_backend(start_generic_server=True)
+@with_customrepo(handlers=[
+                            RedirectHandler(number_of_redirects=(11 * 3 + 1), url='/primary-image.img')
+                        ])
+@with_imagerepo()
+@with_director()
+@with_aktualizr(start=False, run_mode='once', output_logs=True)
+def test_backend_failure_sanity_customrepo_unsuccessful_update_redirect(aktualizr, uptane_repo,
+                                                           custom_repo, director, **kwargs):
+    update_hash = uptane_repo.add_image(aktualizr.id, 'primary-image.img',
+                                        custom_url=custom_repo.base_url + '/' + 'primary-image.img')
+    with aktualizr:
+        aktualizr.wait_for_completion()
+
+    return not director.get_install_result()
+
+"""
   Verifies whether an update fails if director metadata download fails or they are malformed
   - download is interrupted three times
   - malformed json is received
@@ -260,6 +279,7 @@ if __name__ == "__main__":
                     test_backend_failure_sanity_director_unsuccessful_download,
                     test_backend_failure_sanity_imagerepo_unsuccessful_download,
                     test_backend_failure_sanity_customrepo_update_redirect,
+                    test_backend_failure_sanity_customrepo_unsuccessful_update_redirect,
     ]
 
     if input_params.ostree == 'ON':
