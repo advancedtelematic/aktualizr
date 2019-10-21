@@ -7,6 +7,20 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 ## [??? (unreleased)]
 
 
+## [2019.9] - 2019-10-16
+
+### Added
+
+- Handle POSIX signals: [PR](https://github.com/advancedtelematic/aktualizr/pull/1384)
+- Store target custom metadata when installing: [PR](https://github.com/advancedtelematic/aktualizr/pull/1370)
+
+### Fixed
+
+- Incorrect installation status reported if installation interrupted: [PR](https://github.com/advancedtelematic/aktualizr/pull/1402)
+- Binary updates of secondaries from an OSTree primary is again possible: [PR](https://github.com/advancedtelematic/aktualizr/pull/1395)
+- Applications built from release tarballs now report a valid version: [PR](https://github.com/advancedtelematic/aktualizr/pull/1415)
+
+
 ## [2019.8] - 2019-09-12
 
 ### Fixed
