@@ -1,16 +1,18 @@
-#include <boost/filesystem.hpp>
-#include <boost/program_options.hpp>
 #include <iostream>
 #include <string>
 #include <vector>
+
+#include <boost/filesystem.hpp>
+#include <boost/program_options.hpp>
 
 #include "aktualizr_info_config.h"
 #include "logging/logging.h"
 #include "package_manager/packagemanagerfactory.h"
 #include "storage/invstorage.h"
 #include "storage/sql_utils.h"
+#include "utilities/aktualizr_version.h"
 
-namespace po = boost::program_options;
+namespace bpo = boost::program_options;
 
 static int loadAndPrintDelegations(const std::shared_ptr<INvStorage> &storage) {
   std::vector<std::pair<Uptane::Role, std::string> > delegations;
@@ -31,13 +33,25 @@ static int loadAndPrintDelegations(const std::shared_ptr<INvStorage> &storage) {
   return EXIT_SUCCESS;
 }
 
+void check_info_options(const bpo::options_description &description, const bpo::variables_map &vm) {
+  if (vm.count("help") != 0) {
+    std::cout << description << '\n';
+    exit(EXIT_SUCCESS);
+  }
+  if (vm.count("version") != 0) {
+    std::cout << "Current aktualizr-info version is: " << aktualizr_version() << "\n";
+    exit(EXIT_SUCCESS);
+  }
+}
+
 int main(int argc, char **argv) {
-  po::options_description desc("aktualizr-info command line options");
+  bpo::options_description description("aktualizr-info command line options");
   // clang-format off
-  desc.add_options()
+  description.add_options()
     ("help,h", "print usage")
-    ("config,c", po::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
-    ("loglevel", po::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
+    ("version,v", "Current aktualizr version")
+    ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
+    ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
     ("name-only",  "Only output device name (intended for scripting). Cannot be used in combination with other arguments.")
     ("tls-creds",  "Outputs TLS credentials")
     ("tls-root-ca", "Outputs TLS Root CA")
@@ -58,13 +72,16 @@ int main(int argc, char **argv) {
   // clang-format on
 
   try {
-    po::variables_map vm;
-    po::basic_parsed_options<char> parsed_options = po::command_line_parser(argc, argv).options(desc).run();
-    po::store(parsed_options, vm);
-    po::notify(vm);
-    if (vm.count("help") != 0) {
-      std::cout << desc << '\n';
-      exit(EXIT_SUCCESS);
+    bpo::variables_map vm;
+    std::vector<std::string> unregistered_options;
+    bpo::basic_parsed_options<char> parsed_options = bpo::command_line_parser(argc, argv).options(description).run();
+    bpo::store(parsed_options, vm);
+    check_info_options(description, vm);
+    bpo::notify(vm);
+    unregistered_options = bpo::collect_unrecognized(parsed_options.options, bpo::include_positional);
+    if (vm.count("help") == 0 && !unregistered_options.empty()) {
+      std::cout << description << "\n";
+      exit(EXIT_FAILURE);
     }
 
     if (vm.count("loglevel") == 0u) {
@@ -330,9 +347,9 @@ int main(int argc, char **argv) {
     if (!!pending) {
       std::cout << "Pending primary ecu version: " << pending->sha256Hash() << std::endl;
     }
-  } catch (const po::error &o) {
+  } catch (const bpo::error &o) {
     std::cout << o.what() << std::endl;
-    std::cout << desc;
+    std::cout << description;
     return EXIT_FAILURE;
 
   } catch (const std::exception &exc) {
