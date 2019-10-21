@@ -4,8 +4,8 @@ In OTA Connect, all devices and software belong to one *user* login. However, yo
 
 In a proper production workflow, you'll need separate user logins to manage the different stages:
 
-. A developer user such as "dev@acme.com".
-. A QA user such as ""qa@acme.com"".
-. A production user such as "prod@acme.com"".
+. A developer user such as "\dev@acme.com".
+. A QA user such as "\qa@acme.com".
+. A production user such as "\prod@acme.com".
 
 These logins provide you with a convenient way of clearly separating your development, QA and production resources.

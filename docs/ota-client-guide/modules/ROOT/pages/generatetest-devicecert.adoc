@@ -40,7 +40,7 @@ You need this address to get the internal root CA certificate of the device gate
 +
 You should see a URL that resembles the following example:
 +
-`https://946f68b8-13d2-4647-b335-5a48777b5657.tcpgw.prod01.advancedtelematic.com:443`
+`\https://946f68b8-13d2-4647-b335-5a48777b5657.tcpgw.prod01.advancedtelematic.com:443`
 .. Make a note of this URL.
 
 . Get the device gateway's root certificate with the following openssl command:
