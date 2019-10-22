@@ -826,14 +826,6 @@ class HttpFakeProv : public HttpFake {
       EXPECT_EQ(data.size(), 1);
       EXPECT_EQ(data[0]["name"].asString(), "fake-package");
       EXPECT_EQ(data[0]["version"].asString(), "1.0");
-    } else if (url.find("/core/system_info") != std::string::npos) {
-      /* Send hardware info to the server. */
-      system_info_count++;
-      Json::Value hwinfo = Utils::getHardwareInfo();
-      EXPECT_EQ(hwinfo["id"].asString(), data["id"].asString());
-      EXPECT_EQ(hwinfo["description"].asString(), data["description"].asString());
-      EXPECT_EQ(hwinfo["class"].asString(), data["class"].asString());
-      EXPECT_EQ(hwinfo["product"].asString(), data["product"].asString());
     } else if (url.find("/director/manifest") != std::string::npos) {
       /* Get manifest from primary.
        * Get primary installation result.
@@ -871,6 +863,14 @@ class HttpFakeProv : public HttpFake {
       EXPECT_EQ(nwinfo["local_ipv4"].asString(), data["local_ipv4"].asString());
       EXPECT_EQ(nwinfo["mac"].asString(), data["mac"].asString());
       EXPECT_EQ(nwinfo["hostname"].asString(), data["hostname"].asString());
+    } else if (url.find("/system_info") != std::string::npos) {
+      /* Send hardware info to the server. */
+      system_info_count++;
+      Json::Value hwinfo = Utils::getHardwareInfo();
+      EXPECT_EQ(hwinfo["id"].asString(), data["id"].asString());
+      EXPECT_EQ(hwinfo["description"].asString(), data["description"].asString());
+      EXPECT_EQ(hwinfo["class"].asString(), data["class"].asString());
+      EXPECT_EQ(hwinfo["product"].asString(), data["product"].asString());
     } else {
       EXPECT_EQ(0, 1) << "Unexpected put to URL: " << url;
     }
