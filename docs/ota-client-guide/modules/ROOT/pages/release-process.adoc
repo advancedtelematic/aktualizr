@@ -102,7 +102,15 @@ Uptane has a fork of aktualizr in link:https://github.com/uptane/aktualizr[their
 
 == Update the homebrew recipe for aktualizr
 
-The https://github.com/advancedtelematic/homebrew-otaconnect/blob/master/aktualizr.rb[homebrew aktualizr recipe] should be updated with the new release. You'll need a mac, with homebrew installed, to do this.
+The https://github.com/advancedtelematic/homebrew-otaconnect/blob/master/aktualizr.rb[homebrew aktualizr recipe] should be updated with the new release.
+
+There is a github CI job that will automatically update the recipe, build a bottle, and upload the bottle to the release page when a new release is created. The one thing it doesn't do is make the pull request to update the recipe in the tap.
+
+You'll find the new recipe attached to the CI run for the release--it should be the latest run on the https://github.com/advancedtelematic/aktualizr/actions[Actions tab]. You can download the file from there, and submit the changes as a pull request to the https://github.com/advancedtelematic/homebrew-otaconnect/[homebrew-otaconnect repo].
+
+=== Fallback: manually build a bottle and update the homebrew recipe
+
+If the CI job failed for some reason, you might need to manually create the new bottle and edit the recipe. Here are the steps to follow (you'll need a Mac with homebrew installed):
 
 . Edit the recipe on your local system with `brew edit aktualizr`, and replace the old version tag with the new one.
 . Build it, and then bottle it:
