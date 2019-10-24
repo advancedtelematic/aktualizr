@@ -1,47 +1,38 @@
 #include "api-test-utils.h"
 
 #include <boost/process.hpp>
-#include "../tests/httpfake.h"
-#include "../tests/uptane_test_common.h"
+#include "test_utils.h"
 #include "config/config.h"
 
-void Run_fake_http_server(const char *path) {
+std::string serverAddress;
+
+FakeHttpServer *Run_fake_http_server(const char *serverPath, const char *metaPath) {
   std::string port = TestUtils::getFreePort();
-  std::string server = "http://127.0.0.1:" + port;
-  Config config;
-  config.uptane.repo_server = server;
-  boost::process::child http_server_process(path, port, "-f");
-  TestUtils::waitForServer(server + "/");
+  serverAddress = "http://127.0.0.1:" + port;
+
+  auto *server_handle = new boost::process::child(serverPath, port, "-f", "-m", metaPath);
+  TestUtils::waitForServer(serverAddress + "/");
+
+  return server_handle;
 }
 
-UptaneGenerator *Get_uptane_generator(const char *path) { return new Process(path); }
+void Stop_fake_http_server(FakeHttpServer *server) { delete server; }
 
-void Run_uptane_generator(UptaneGenerator *generator, const char **args, size_t args_count) {
-  std::vector<std::string> args_vector;
-  args_vector.reserve(args_count);
-  for (size_t i = 0; i < args_count; ++i) {
-    args_vector.emplace_back(args[i]);
-  }
-  generator->run(args_vector);
-}
+Config *Get_test_config(const char *storagePath) {
+  auto *config = new Config();
 
-void Remove_uptane_generator(UptaneGenerator *generator) { delete generator; }
+  config->tls.server = serverAddress;
 
-TemporaryDirectory *Get_temporary_directory() { return new TemporaryDirectory; }
+  config->provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
+  config->provision.primary_ecu_hardware_id = "primary_hw";
+  config->provision.server = serverAddress;
+  config->provision.provision_path = "tests/test_data/cred.zip";
 
-char *Get_temporary_directory_path(const TemporaryDirectory *dir) {
-  std::string path_string = dir->PathString();
-  void *path_ptr = malloc(sizeof(char) * (path_string.size() + 1));
-  auto *path = static_cast<char *>(path_ptr);
-  strncpy(path, path_string.c_str(), path_string.size() + 1);
-  return path;
-}
+  config->storage.path = storagePath;  //"/home/mcchekhovoi/Work/connect";
+  config->pacman.type = PackageManager::kNone;
 
-void Remove_temporary_directory(TemporaryDirectory *dir) { delete dir; }
-
-Config *Get_test_config(TemporaryDirectory *temp_dir, const char *flavor, TemporaryDirectory *fake_meta_dir) {
-  auto http = std::make_shared<HttpFake>(temp_dir->Path(), flavor, fake_meta_dir->Path());
-  return new Config(UptaneTestCommon::makeTestConfig(*temp_dir, http->tls_server));
+  config->postUpdateValues();
+  return config;
 }
 
 void Remove_test_config(Config *config) { delete config; }

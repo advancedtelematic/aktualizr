@@ -4,7 +4,9 @@
 #include "api-test-utils/api-test-utils.h"
 #include "libaktualizr-c.h"
 
-#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
+#define CLEANUP_AND_RETURN_FAILED \
+  Stop_fake_http_server(server);  \
+  return EXIT_FAILURE;
 
 int main(int argc, char **argv) {
   Aktualizr *a;
@@ -12,93 +14,85 @@ int main(int argc, char **argv) {
   Updates *u;
   Target *t;
   Config *cfg;
+  FakeHttpServer *server;
   int err;
 
-  if (argc != 4) {
-    fprintf(stderr, "Incorrect input params\nUsage:\n\t%s CONFIG_FILE FAKE_HTTP_ERVER_PATH UPTANE_GENERATOR_PATH\n",
-            argv[0]);
+  if (argc != 3) {
+    fprintf(stderr, "Incorrect input params\nUsage:\n\t%s FAKE_HTTP_SERVER_PATH META_DIR_PATH\n", argv[0]);
     return EXIT_FAILURE;
   }
 
-  Run_fake_http_server(argv[2]);
+  const char *serverPath = argv[1];
+  const char *metaPath = argv[2];
+  server = Run_fake_http_server(serverPath, metaPath);
 
-  TemporaryDirectory *temp_dir = Get_temporary_directory();
-  TemporaryDirectory *fake_meta_dir = Get_temporary_directory();
-  UptaneGenerator *g = Get_uptane_generator(argv[3]);
-
-  const char *meta_dir = Get_temporary_directory_path(temp_dir);
-
-  const char *gen_args[] = {"generate", "--path", meta_dir, "--correlationid", "abc123"};
-  const char *image_args[] = {"image",        "--path",       meta_dir, "--filename", "tests/test_data/firmware.txt",
-                              "--targetname", "firmware.txt", "--hwid", "primary_hw"};
-  const char *add_target_args[] = {"addtarget", "--path",     meta_dir,   "--targetname",     "firmware.txt",
-                                   "--hwid",    "primary_hw", "--serial", "CA:FE:A6:D2:84:9D"};
-  const char *sign_args[] = {"signtargets", "--path", meta_dir, "--correlationid", "abc123"};
-
-  Run_uptane_generator(g, gen_args, ARRAY_SIZE(gen_args));
-  Run_uptane_generator(g, image_args, ARRAY_SIZE(image_args));
-  Run_uptane_generator(g, add_target_args, ARRAY_SIZE(add_target_args));
-  Run_uptane_generator(g, sign_args, ARRAY_SIZE(sign_args));
-
-  Remove_uptane_generator(g);
-
-  cfg = Get_test_config(temp_dir, "noupdates", fake_meta_dir);
-
-  // a = Aktualizr_create_from_cfg(cfg);  // Tls init timeout on Aktualizr_initialize() stage
-  a = Aktualizr_create_from_path(argv[1]);
+  cfg = Get_test_config(/* storagePath = */ metaPath);
+  a = Aktualizr_create_from_cfg(cfg);
   if (!a) {
-    return EXIT_FAILURE;
+    printf("Aktualizr_create_from_cfg failed\n");
+    CLEANUP_AND_RETURN_FAILED;
   }
 
   err = Aktualizr_initialize(a);
   if (err) {
-    return EXIT_FAILURE;
+    printf("Aktualizr_initialize failed\n");
+    CLEANUP_AND_RETURN_FAILED;
   }
 
   c = Aktualizr_campaigns_check(a);
-  if (c) {
-    printf("Accepting running campaign\n");
-    err = Aktualizr_campaign_accept(a, c);
-    Aktualizr_campaign_free(c);
-    if (err) {
-      return EXIT_FAILURE;
-    }
+  if (c == NULL) {
+    printf("Aktualizr_campaigns_check returned NULL\n");
+    CLEANUP_AND_RETURN_FAILED;
   }
+
+  printf("Accepting running campaign\n");
+  err = Aktualizr_campaign_accept(a, c);
+  if (err) {
+    printf("Aktualizr_campaign_accept failed\n");
+    CLEANUP_AND_RETURN_FAILED;
+  }
+  Aktualizr_campaign_free(c);
 
   u = Aktualizr_updates_check(a);
   if (u == NULL) {
-    return EXIT_FAILURE;
+    printf("Aktualizr_updates_check returned NULL\n");
+    CLEANUP_AND_RETURN_FAILED;
   }
 
   size_t targets_num = Aktualizr_get_targets_num(u);
-  printf("Found new updates for %zu target(s)\n", targets_num);
   if (targets_num == 0) {
-    return EXIT_FAILURE;
+    printf("Aktualizr_get_targets_num returned 0 targets\n");
+    CLEANUP_AND_RETURN_FAILED;
   }
 
+  printf("Found new updates for %zu target(s)\n", targets_num);
   for (size_t i = 0; i < targets_num; i++) {
     t = Aktualizr_get_nth_target(u, i);
     char *name = Aktualizr_get_target_name(t);
     if (name == NULL) {
-      return EXIT_FAILURE;
+      printf("Aktualizr_get_target_name returned NULL\n");
+      CLEANUP_AND_RETURN_FAILED;
     }
     printf("Downloading target %s\n", name);
 
     err = Aktualizr_download_target(a, t);
-    printf("Installing...\n");
     if (err) {
-      return EXIT_FAILURE;
+      printf("Aktualizr_download_target failed\n");
+      CLEANUP_AND_RETURN_FAILED;
     }
 
+    printf("Installing...\n");
     err = Aktualizr_install_target(a, t);
-    printf("Installation completed\n");
     if (err) {
-      return EXIT_FAILURE;
+      printf("Aktualizr_install_target failed\n");
+      CLEANUP_AND_RETURN_FAILED;
     }
+    printf("Installation completed\n");
 
     void *handle = Aktualizr_open_stored_target(a, t);
     if (!handle) {
-      return EXIT_FAILURE;
+      printf("Aktualizr_open_stored_target failed\n");
+      CLEANUP_AND_RETURN_FAILED;
     }
 
     const size_t bufSize = 1024;
@@ -110,7 +104,8 @@ int main(int argc, char **argv) {
     name = NULL;
 
     if (size == 0) {
-      return EXIT_FAILURE;
+      printf("Aktualizr_read_stored_target read 0 bytes\n");
+      CLEANUP_AND_RETURN_FAILED;
     }
 
     for (size_t iBuf = 0; iBuf < size; ++iBuf) {
@@ -124,32 +119,35 @@ int main(int argc, char **argv) {
 
     err = Aktualizr_close_stored_target(handle);
     if (err) {
-      return EXIT_FAILURE;
+      printf("Aktualizr_close_stored_target failed\n");
+      CLEANUP_AND_RETURN_FAILED;
     }
   }
 
 #if 0
   err = Aktualizr_uptane_cycle(a);
   if (err) {
-    return EXIT_FAILURE;
+    printf("Aktualizr_uptane_cycle failed\n");
+    CLEANUP_AND_RETURN_FAILED;
   }
 #endif
 
   err = Aktualizr_send_manifest(a, "({\"test_field\":\"test_value\"})");
   if (err) {
-    return EXIT_FAILURE;
+    printf("Aktualizr_send_manifest failed\n");
+    CLEANUP_AND_RETURN_FAILED;
   }
 
   err = Aktualizr_send_device_data(a);
   if (err) {
-    return EXIT_FAILURE;
+    printf("Aktualizr_send_device_data failed\n");
+    CLEANUP_AND_RETURN_FAILED;
   }
 
   Aktualizr_destroy(a);
 
+  Stop_fake_http_server(server);
   Remove_test_config(cfg);
-  Remove_temporary_directory(temp_dir);
-  Remove_temporary_directory(fake_meta_dir);
 
   return EXIT_SUCCESS;
 }
