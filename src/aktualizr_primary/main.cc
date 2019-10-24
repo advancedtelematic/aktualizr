@@ -16,7 +16,7 @@
 
 namespace bpo = boost::program_options;
 
-void check_info_options(const bpo::options_description &description, const bpo::variables_map &vm) {
+void checkInfoOptions(const bpo::options_description &description, const bpo::variables_map &vm) {
   if (vm.count("help") != 0) {
     std::cout << description << '\n';
     exit(EXIT_SUCCESS);
@@ -27,7 +27,7 @@ void check_info_options(const bpo::options_description &description, const bpo::
   }
 }
 
-bpo::variables_map parse_options(int argc, char *argv[]) {
+bpo::variables_map parseOptions(int argc, char *argv[]) {
   bpo::options_description description("aktualizr command line options");
   // clang-format off
   // Try to keep these options in the same order as Config::updateFromCommandLine().
@@ -59,7 +59,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
     bpo::basic_parsed_options<char> parsed_options =
         bpo::command_line_parser(argc, argv).options(description).positional(pos).allow_unregistered().run();
     bpo::store(parsed_options, vm);
-    check_info_options(description, vm);
+    checkInfoOptions(description, vm);
     bpo::notify(vm);
     unregistered_options = bpo::collect_unrecognized(parsed_options.options, bpo::exclude_positional);
     if (vm.count("help") == 0 && !unregistered_options.empty()) {
@@ -71,7 +71,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
     std::cout << ex.what() << std::endl << description;
     exit(EXIT_FAILURE);
   } catch (const bpo::error &ex) {
-    check_info_options(description, vm);
+    checkInfoOptions(description, vm);
 
     // log boost error
     LOG_ERROR << "boost command line option error: " << ex.what();
@@ -88,7 +88,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
   return vm;
 }
 
-void process_event(const std::shared_ptr<event::BaseEvent> &event) {
+void processEvent(const std::shared_ptr<event::BaseEvent> &event) {
   if (event->isTypeOf<event::DownloadProgressReport>()) {
     // Do nothing; libaktualizr already logs it.
   } else if (event->variant == "UpdateCheckComplete") {
@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
   logger_init();
   logger_set_threshold(boost::log::trivial::info);
 
-  bpo::variables_map commandline_map = parse_options(argc, argv);
+  bpo::variables_map commandline_map = parseOptions(argc, argv);
 
   LOG_INFO << "Aktualizr version " << aktualizr_version() << " starting";
 
@@ -117,7 +117,7 @@ int main(int argc, char *argv[]) {
     LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
 
     Aktualizr aktualizr(config);
-    std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_event;
+    std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = processEvent;
     boost::signals2::scoped_connection conn;
 
     conn = aktualizr.SetSignalHandler(f_cb);

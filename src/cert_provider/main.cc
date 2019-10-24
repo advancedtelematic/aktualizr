@@ -3,10 +3,10 @@
 #include <random>
 #include <sstream>
 #include <string>
+#include <utility>
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
-#include <utility>
 
 #include "json/json.h"
 
@@ -20,7 +20,7 @@
 
 namespace bpo = boost::program_options;
 
-void check_info_options(const bpo::options_description& description, const bpo::variables_map& vm) {
+void checkInfoOptions(const bpo::options_description& description, const bpo::variables_map& vm) {
   if (vm.count("help") != 0) {
     std::cout << description << '\n';
     exit(EXIT_SUCCESS);
@@ -31,7 +31,7 @@ void check_info_options(const bpo::options_description& description, const bpo::
   }
 }
 
-bpo::variables_map parse_options(int argc, char* argv[]) {
+bpo::variables_map parseOptions(int argc, char* argv[]) {
   bpo::options_description description("aktualizr-cert-provider command line options");
   // clang-format off
   description.add_options()
@@ -62,7 +62,7 @@ bpo::variables_map parse_options(int argc, char* argv[]) {
     bpo::basic_parsed_options<char> parsed_options =
         bpo::command_line_parser(argc, argv).options(description).allow_unregistered().run();
     bpo::store(parsed_options, vm);
-    check_info_options(description, vm);
+    checkInfoOptions(description, vm);
     bpo::notify(vm);
     unregistered_options = bpo::collect_unrecognized(parsed_options.options, bpo::include_positional);
     if (vm.count("help") == 0 && !unregistered_options.empty()) {
@@ -74,7 +74,7 @@ bpo::variables_map parse_options(int argc, char* argv[]) {
     std::cout << ex.what() << std::endl << description;
     exit(EXIT_FAILURE);
   } catch (const bpo::error& ex) {
-    check_info_options(description, vm);
+    checkInfoOptions(description, vm);
 
     // print the error message to the standard output too, as the user provided
     // a non-supported commandline option
@@ -94,8 +94,8 @@ bpo::variables_map parse_options(int argc, char* argv[]) {
     std::cerr << (description) << ERR_error_string(ERR_get_error(), nullptr) << std::endl; \
     return false;                                                                          \
   }
-bool generate_and_sign(const std::string& cacert_path, const std::string& capkey_path, std::string* pkey,
-                       std::string* cert, const bpo::variables_map& commandline_map) {
+bool generateAndSign(const std::string& cacert_path, const std::string& capkey_path, std::string* pkey,
+                     std::string* cert, const bpo::variables_map& commandline_map) {
   int rsa_bits = 2048;
   if (commandline_map.count("bits") != 0) {
     rsa_bits = (commandline_map["bits"].as<int>());
@@ -342,7 +342,7 @@ int main(int argc, char* argv[]) {
   logger_set_threshold(static_cast<boost::log::trivial::severity_level>(2));
 
   try {
-    bpo::variables_map commandline_map = parse_options(argc, argv);
+    bpo::variables_map commandline_map = parseOptions(argc, argv);
 
     std::string target;
     if (commandline_map.count("target") != 0) {
@@ -489,7 +489,7 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
       }
     } else {  // fleet CA set => generate and sign a new certificate
-      if (!generate_and_sign(fleet_ca_path.native(), fleet_ca_key_path.native(), &pkey, &cert, commandline_map)) {
+      if (!generateAndSign(fleet_ca_path.native(), fleet_ca_key_path.native(), &pkey, &cert, commandline_map)) {
         return EXIT_FAILURE;
       }
 
