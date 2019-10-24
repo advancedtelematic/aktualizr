@@ -33,7 +33,7 @@ static int loadAndPrintDelegations(const std::shared_ptr<INvStorage> &storage) {
   return EXIT_SUCCESS;
 }
 
-void check_info_options(const bpo::options_description &description, const bpo::variables_map &vm) {
+void checkInfoOptions(const bpo::options_description &description, const bpo::variables_map &vm) {
   if (vm.count("help") != 0) {
     std::cout << description << '\n';
     exit(EXIT_SUCCESS);
@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
     std::vector<std::string> unregistered_options;
     bpo::basic_parsed_options<char> parsed_options = bpo::command_line_parser(argc, argv).options(description).run();
     bpo::store(parsed_options, vm);
-    check_info_options(description, vm);
+    checkInfoOptions(description, vm);
     bpo::notify(vm);
     unregistered_options = bpo::collect_unrecognized(parsed_options.options, bpo::include_positional);
     if (vm.count("help") == 0 && !unregistered_options.empty()) {
