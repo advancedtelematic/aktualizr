@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "api-test-utils/api-test-utils.h"
 #include "libaktualizr-c.h"
@@ -7,6 +8,31 @@
 #define CLEANUP_AND_RETURN_FAILED \
   Stop_fake_http_server(server);  \
   return EXIT_FAILURE;
+
+struct EventCounts {
+  int DownloadProgressReportCount;
+  int CampaignCheckCompleteCount;
+  int PutManifestCompleteCount;
+  int UpdateCheckCompleteCount;
+  int AllInstallsCompleteCount;
+  int OtherCount;
+} counts;
+
+static void signal_handler(const char *event_name) {
+  if (strcmp(event_name, "DownloadProgressReport") == 0) {
+    ++counts.DownloadProgressReportCount;
+  } else if (strcmp(event_name, "UpdateCheckComplete") == 0) {
+    ++counts.UpdateCheckCompleteCount;
+  } else if (strcmp(event_name, "AllInstallsComplete") == 0) {
+    ++counts.AllInstallsCompleteCount;
+  } else if (strcmp(event_name, "CampaignCheckComplete") == 0) {
+    ++counts.CampaignCheckCompleteCount;
+  } else if (strcmp(event_name, "PutManifestComplete") == 0) {
+    ++counts.PutManifestCompleteCount;
+  } else {
+    ++counts.OtherCount;
+  }
+}
 
 int main(int argc, char **argv) {
   Aktualizr *a;
@@ -36,6 +62,18 @@ int main(int argc, char **argv) {
   err = Aktualizr_initialize(a);
   if (err) {
     printf("Aktualizr_initialize failed\n");
+    CLEANUP_AND_RETURN_FAILED;
+  }
+
+  counts.DownloadProgressReportCount = 0;
+  counts.CampaignCheckCompleteCount = 0;
+  counts.PutManifestCompleteCount = 0;
+  counts.UpdateCheckCompleteCount = 0;
+  counts.AllInstallsCompleteCount = 0;
+  counts.OtherCount = 0;
+  err = Aktualizr_set_signal_handler(a, &signal_handler);
+  if (err) {
+    printf("Aktualizr_set_signal_handler failed\n");
     CLEANUP_AND_RETURN_FAILED;
   }
 
@@ -149,5 +187,16 @@ int main(int argc, char **argv) {
   Stop_fake_http_server(server);
   Remove_test_config(cfg);
 
+  if (counts.AllInstallsCompleteCount == 0 || counts.CampaignCheckCompleteCount == 0 ||
+      counts.PutManifestCompleteCount == 0 || counts.UpdateCheckCompleteCount == 0 ||
+      counts.DownloadProgressReportCount == 0 || counts.OtherCount == 0) {
+    printf(
+        "Aktualizr_set_signal_handler failed\nAllInstallsCompleteCount = %i\nCampaignCheckCompleteCount = "
+        "%i\nPutManifestCompleteCount = %i\nUpdateCheckCompleteCount = %i\nDownloadProgressReportCount = "
+        "%i\nOtherCount = %i\n",
+        counts.AllInstallsCompleteCount, counts.CampaignCheckCompleteCount, counts.PutManifestCompleteCount,
+        counts.UpdateCheckCompleteCount, counts.DownloadProgressReportCount, counts.OtherCount);
+    return EXIT_FAILURE;
+  }
   return EXIT_SUCCESS;
 }

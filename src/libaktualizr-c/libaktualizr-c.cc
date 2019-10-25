@@ -1,4 +1,5 @@
 #include "libaktualizr-c.h"
+#include "primary/events.h"
 
 Aktualizr *Aktualizr_create_from_cfg(Config *cfg) {
   Aktualizr *a;
@@ -42,6 +43,27 @@ int Aktualizr_uptane_cycle(Aktualizr *a) {
 }
 
 void Aktualizr_destroy(Aktualizr *a) { delete a; }
+
+static void handler_wrapper(const std::shared_ptr<event::BaseEvent> &event, void (*handler)(const char *)) {
+  if (handler == nullptr) {
+    std::cerr << "handler_wrapper error: no external handler" << std::endl;
+    return;
+  }
+
+  (*handler)(event->variant.c_str());
+}
+
+int Aktualizr_set_signal_handler(Aktualizr *a, void (*handler)(const char *event_name)) {
+  try {
+    auto functor = std::bind(handler_wrapper, std::placeholders::_1, handler);
+    a->SetSignalHandler(functor);
+
+  } catch (const std::exception &e) {
+    std::cerr << "Aktualizr_set_signal_handler exception: " << e.what() << std::endl;
+    return -1;
+  }
+  return 0;
+}
 
 Campaign *Aktualizr_campaigns_check(Aktualizr *a) {
   try {

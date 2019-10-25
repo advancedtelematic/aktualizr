@@ -26,6 +26,8 @@ int Aktualizr_initialize(Aktualizr *a);
 int Aktualizr_uptane_cycle(Aktualizr *a);
 void Aktualizr_destroy(Aktualizr *a);
 
+int Aktualizr_set_signal_handler(Aktualizr *a, void (*handler)(const char* event_name));
+
 Campaign *Aktualizr_campaigns_check(Aktualizr *a);
 int Aktualizr_campaign_accept(Aktualizr *a, Campaign *c);
 int Aktualizr_campaign_postpone(Aktualizr *a, Campaign *c);

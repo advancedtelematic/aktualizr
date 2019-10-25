@@ -1,8 +1,8 @@
 #include "api-test-utils.h"
 
 #include <boost/process.hpp>
-#include "test_utils.h"
 #include "config/config.h"
+#include "test_utils.h"
 
 std::string serverAddress;
 
