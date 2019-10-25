@@ -16,7 +16,13 @@ FakeHttpServer *Run_fake_http_server(const char *serverPath, const char *metaPat
   return server_handle;
 }
 
-void Stop_fake_http_server(FakeHttpServer *server) { delete server; }
+void Stop_fake_http_server(FakeHttpServer *server) {
+  // NOLINTNEXTLINE
+  if (server != nullptr && server->valid()) {
+    // NOLINTNEXTLINE
+    delete server;
+  }
+}
 
 Config *Get_test_config(const char *storagePath) {
   auto *config = new Config();
@@ -28,7 +34,7 @@ Config *Get_test_config(const char *storagePath) {
   config->provision.server = serverAddress;
   config->provision.provision_path = "tests/test_data/cred.zip";
 
-  config->storage.path = storagePath;  //"/home/mcchekhovoi/Work/connect";
+  config->storage.path = storagePath;
   config->pacman.type = PackageManager::kNone;
 
   config->postUpdateValues();
