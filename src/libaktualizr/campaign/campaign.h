@@ -31,16 +31,7 @@ static inline Cmd cmdFromName(const std::string &name) {
 class Campaign {
  public:
   Campaign() = default;
-  Campaign(std::string idIn, std::string nameIn, int64_t sizeIn, bool autoAcceptIn, std::string descriptionIn,
-           int estInstallationDurationIn, int estPreparationDurationIn)
-      : id(std::move(idIn)),
-        name(std::move(nameIn)),
-        size(sizeIn),
-        autoAccept(autoAcceptIn),
-        description(std::move(descriptionIn)),
-        estInstallationDuration(estInstallationDurationIn),
-        estPreparationDuration(estPreparationDurationIn) {}
-  static Campaign fromJson(const Json::Value &json);
+  Campaign(const Json::Value &json);
   void getJson(Json::Value &out) const;
 
   std::string id;
