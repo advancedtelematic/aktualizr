@@ -223,7 +223,7 @@ void Repo::generateRepo(KeyType key_type) {
     Utils::writeFile(path_ / DirectorRepo::dir / "manifest", std::string());  // just empty file to work with put method
   }
 
-  generateCampaigns();
+  // generateCampaigns();
 }
 
 void Repo::generateCampaigns() const {
