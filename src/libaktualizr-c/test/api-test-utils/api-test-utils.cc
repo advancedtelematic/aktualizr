@@ -17,9 +17,7 @@ FakeHttpServer *Run_fake_http_server(const char *serverPath, const char *metaPat
 }
 
 void Stop_fake_http_server(FakeHttpServer *server) {
-  // NOLINTNEXTLINE
   if (server != nullptr && server->valid()) {
-    // NOLINTNEXTLINE
     delete server;
   }
 }
