@@ -1,7 +1,7 @@
 #include "sig_handler.h"
 #include "logging/logging.h"
 
-std::atomic<bool> SigHandler::signal_marker_;
+std::atomic_uint SigHandler::signal_marker_;
 std::mutex SigHandler::exit_m_;
 std::condition_variable SigHandler::exit_cv_;
 bool SigHandler::exit_flag_;
@@ -34,7 +34,7 @@ void SigHandler::start(const std::function<void()>& on_signal) {
   polling_thread_ = boost::thread([on_signal]() {
     std::unique_lock<std::mutex> l(exit_m_);
     while (true) {
-      bool got_signal = signal_marker_.exchange(false);
+      auto got_signal = signal_marker_.exchange(0);
 
       if (got_signal) {
         on_signal();
@@ -52,7 +52,7 @@ void SigHandler::signal(int sig) { ::signal(sig, signal_handler); }
 
 void SigHandler::signal_handler(int sig) {
   (void)sig;
-  bool v = false;
+  unsigned int v = 0;
   // put true if currently set to false
-  SigHandler::signal_marker_.compare_exchange_strong(v, true);
+  SigHandler::signal_marker_.compare_exchange_strong(v, 1);
 }

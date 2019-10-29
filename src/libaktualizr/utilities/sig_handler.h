@@ -31,7 +31,7 @@ class SigHandler {
   static void signal_handler(int sig);
 
   boost::thread polling_thread_;
-  static std::atomic<bool> signal_marker_;
+  static std::atomic_uint signal_marker_;
 
   static std::mutex exit_m_;
   static std::condition_variable exit_cv_;
