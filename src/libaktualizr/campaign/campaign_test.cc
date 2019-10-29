@@ -32,27 +32,6 @@ TEST(campaign, Campaigns_from_json) {
 }
 
 /* Get JSON from campaign. */
-TEST(campaign, Campaign_to_json) {
-  auto json = Utils::parseJSONFile(test_data_dir / "campaigns_sample.json");
-
-  auto campaigns = campaign::campaignsFromJson(json);
-  Json::Value res;
-  EXPECT_EQ(campaigns.size(), 1);
-  campaigns.at(0).getJson(res);
-
-  EXPECT_EQ(res["name"], "campaign1");
-  EXPECT_EQ(res["id"], "c2eb7e8d-8aa0-429d-883f-5ed8fdb2a493");
-  EXPECT_EQ((res["size"]).asInt64(), 62470);
-  EXPECT_EQ(res["autoAccept"], true);
-  EXPECT_EQ(res["metadata"][0]["type"], "DESCRIPTION");
-  EXPECT_EQ(res["metadata"][0]["value"], "this is my message to show on the device");
-  EXPECT_EQ(res["metadata"][1]["type"], "ESTIMATED_INSTALLATION_DURATION");
-  EXPECT_EQ(res["metadata"][1]["value"], "10");
-  EXPECT_EQ(res["metadata"][2]["type"], "ESTIMATED_PREPARATION_DURATION");
-  EXPECT_EQ(res["metadata"][2]["value"], "20");
-}
-
-/* Get JSON from campaign. */
 TEST(campaign, Campaigns_to_json) {
   auto json = Utils::parseJSONFile(test_data_dir / "campaigns_sample.json");
 
