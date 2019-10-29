@@ -114,6 +114,10 @@ class Handler(SimpleHTTPRequestHandler):
             for i in range(5):
                 self.wfile.write(b'aa')
                 sleep(1)
+        elif self.path == '/campaigner/campaigns':
+            self.send_response(200)
+            self.end_headers()
+            self.serve_meta("/campaigns.json")
         elif self.path == '/user_agent':
             user_agent = self.headers.get('user-agent')
             self.send_response(200)

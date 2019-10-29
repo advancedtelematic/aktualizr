@@ -32,7 +32,8 @@ int main(int argc, char **argv) {
                                           "signtargets: \tsign the staged director targets metadata\n"
                                           "emptytargets: \tclear the staged director targets metadata\n"
                                           "oldtargets: \tfill the staged director targets metadata with what is currently signed\n"
-                                          "sign: \tsign arbitrary metadata with repo keys")
+                                          "sign: \tsign arbitrary metadata with repo keys\n"
+                                          "addcampaigns: \tgenerate campaigns json")
     ("path", po::value<boost::filesystem::path>(), "path to the repository")
     ("filename", po::value<boost::filesystem::path>(), "path to the image")
     ("hwid", po::value<std::string>(), "target hardware identifier")
@@ -215,6 +216,9 @@ int main(int argc, char **argv) {
 
         auto json_signed = base_repo.signTuf(Uptane::Role(vm["keyname"].as<std::string>()), json_to_sign);
         std::cout << Utils::jsonToCanonicalStr(json_signed);
+      } else if (command == "addcampaigns") {
+        repo.generateCampaigns();
+        std::cout << "Generated campaigns" << std::endl;
       } else {
         std::cout << desc << std::endl;
         exit(EXIT_FAILURE);
