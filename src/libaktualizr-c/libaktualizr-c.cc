@@ -183,7 +183,7 @@ int Aktualizr_send_manifest(Aktualizr *a, const char *manifest) {
 
 int Aktualizr_send_device_data(Aktualizr *a) {
   try {
-    a->SendDeviceData();
+    a->SendDeviceData().get();
     return 0;
   } catch (const std::exception &e) {
     std::cerr << "Aktualizr_send_device_data exception: " << e.what() << std::endl;
@@ -226,3 +226,36 @@ int Aktualizr_close_stored_target(StorageTargetHandle *handle) {
     return -1;
   }
 }
+
+static Pause_Status_C get_Pause_Status_C(result::PauseStatus in) {
+  switch (in) {
+    case result::PauseStatus::kSuccess: {
+      return Pause_Status_C::kSuccess;
+    }
+    case result::PauseStatus::kAlreadyPaused: {
+      return Pause_Status_C::kAlreadyPaused;
+    }
+    case result::PauseStatus::kAlreadyRunning: {
+      return Pause_Status_C::kAlreadyRunning;
+    }
+    case result::PauseStatus::kError: {
+      return Pause_Status_C::kError;
+    }
+    default: {
+      assert(false);
+      return Pause_Status_C::kError;
+    }
+  }
+}
+
+Pause_Status_C Aktualizr_pause(Aktualizr *a) {
+  result::Pause pause = a->Pause();
+  return ::get_Pause_Status_C(pause.status);
+}
+
+Pause_Status_C Aktualizr_resume(Aktualizr *a) {
+  result::Pause pause = a->Resume();
+  return ::get_Pause_Status_C(pause.status);
+}
+
+void Aktualizr_abort(Aktualizr *a) { a->Abort(); }

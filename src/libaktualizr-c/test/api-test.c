@@ -97,6 +97,27 @@ int main(int argc, char **argv) {
     CLEANUP_AND_RETURN_FAILED;
   }
 
+  Pause_Status_C status1 = Aktualizr_pause(a);
+  Pause_Status_C status2 = Aktualizr_pause(a);
+  if (status1 != kSuccess || status2 != kAlreadyPaused) {
+    printf("Aktualizr_pause failed, returned %i after first call, %i after second call\n", status1, status2);
+    CLEANUP_AND_RETURN_FAILED;
+  }
+
+  Aktualizr_abort(a);
+  status1 = Aktualizr_pause(a);
+  if (status1 != kAlreadyPaused) {
+    printf("Aktualizr_pause failed, returned %i after Aktualizr_abort\n", status1);
+    CLEANUP_AND_RETURN_FAILED;
+  }
+
+  status1 = Aktualizr_resume(a);
+  status2 = Aktualizr_resume(a);
+  if (status1 != kSuccess || status2 != kAlreadyRunning) {
+    printf("Aktualizr_resume failed, returned %i after first call, %i after second call\n", status1, status2);
+    CLEANUP_AND_RETURN_FAILED;
+  }
+
   size_t targets_num = Aktualizr_get_targets_num(u);
   if (targets_num == 0) {
     printf("Aktualizr_get_targets_num returned 0 targets\n");
