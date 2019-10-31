@@ -40,6 +40,8 @@ if(BUILD_OSTREE)
 
     add_aktualizr_test(NAME ostreemanager SOURCES ostreemanager_test.cc PROJECT_WORKING_DIRECTORY
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
+    add_aktualizr_test(NAME ostreemanager_corrupt SOURCES ostreemanager_corrupt_test.cc PROJECT_WORKING_DIRECTORY
+                       ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
 
     if(BUILD_DOCKERAPP)
         target_sources(package_manager PRIVATE dockerappmanager.cc)
@@ -55,7 +57,8 @@ add_aktualizr_test(NAME fetcher_death SOURCES fetcher_death_test.cc NO_VALGRIND 
 
 aktualizr_source_file_checks(fetcher_death_test.cc fetcher_test.cc)
 
-aktualizr_source_file_checks(packagemanagerfake_test.cc packagemanagerfactory_test.cc ostreemanager_test.cc)
+aktualizr_source_file_checks(packagemanagerfake_test.cc packagemanagerfactory_test.cc ostreemanager_test.cc
+                             ostreemanager_corrupt_test.cc)
 
 aktualizr_source_file_checks(ostreemanager.cc ostreereposync.cc
                              ostreemanager.h ostreereposync.h)

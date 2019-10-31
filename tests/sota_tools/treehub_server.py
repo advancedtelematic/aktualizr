@@ -41,6 +41,9 @@ class TreehubServerHandler(BaseHTTPRequestHandler):
                 time.sleep(args.sleep)
             self.send_response_only(200)
             self.end_headers()
+            if args.corrupt and path.endswith('.filez'):
+                self.wfile.write(b'corrupt')
+                return
             with open(path, 'rb') as source:
                 while True:
                     data = source.read(1024)
@@ -142,6 +145,7 @@ if __name__ == "__main__":
                         help='create new ostree repo')
     parser.add_argument('-d', '--dir', help='ostree repo directory')
     parser.add_argument('-f', '--fail', type=int, help='fail every nth request')
+    parser.add_argument('--corrupt', action='store_true', help='return corrupt objects')
     parser.add_argument('-s', '--sleep', type=float,
                         help='sleep for n.n seconds for every GET request')
     parser.add_argument('-t', '--tls', action='store_true',
