@@ -179,6 +179,34 @@ def test_backend_failure_sanity_treehub_update_after_image_download_failure(upta
 
 
 """
+    Verifies that aktualizr does not install an image which contains files with wrong checksums
+"""
+@with_uptane_backend(start_generic_server=True)
+@with_director()
+@with_treehub(handlers=[
+    MalformedImageHandler(url='/objects/41/5ce9717fc7a5f4d743a4f911e11bd3ed83930e46756303fd13a3eb7ed35892.filez',
+                          number_of_failures=-1, fake_filez=True),
+
+])
+@with_sysroot()
+@with_aktualizr(start=False, run_mode='once', output_logs=True)
+def test_backend_failure_bad_ostree_checksum(uptane_repo,
+                                             aktualizr,
+                                             director,
+                                             uptane_server,
+                                             sysroot, treehub):
+    target_rev = treehub.revision
+    uptane_repo.add_ostree_target(aktualizr.id, target_rev)
+    with aktualizr:
+        aktualizr.wait_for_completion()
+
+    pending_rev = aktualizr.get_primary_pending_version()
+    if pending_rev == target_rev:
+        logger.error("Pending version {} == the target one {}".format(pending_rev, target_rev))
+        return False
+    return True
+
+"""
     Verifies if aktualizr supports redirects - update is successful after redirect
     Note: should aktualizr support unlimited number of redirects
 """
@@ -272,6 +300,7 @@ if __name__ == "__main__":
 
     test_suite = [
                     test_backend_failure_sanity_treehub_update_after_image_download_failure,
+                    test_backend_failure_bad_ostree_checksum,
                     test_backend_failure_sanity_director_update_after_metadata_download_failure,
                     test_backend_failure_sanity_imagerepo_update_after_metadata_download_failure,
                     test_backend_failure_sanity_imagerepo_update_after_image_download_failure,
