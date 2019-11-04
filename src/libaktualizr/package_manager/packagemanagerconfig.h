@@ -11,7 +11,11 @@ enum class PackageManager { kNone = 0, kOstree, kDebian, kAndroid, kOstreeDocker
 std::ostream& operator<<(std::ostream& os, PackageManager pm);
 
 struct PackageConfig {
+#ifdef BUILD_OSTREE
   PackageManager type{PackageManager::kOstree};
+#else
+  PackageManager type{PackageManager::kNone};
+#endif
   std::string os;
   boost::filesystem::path sysroot;
   std::string ostree_server;
