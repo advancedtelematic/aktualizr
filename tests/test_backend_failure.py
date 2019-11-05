@@ -299,8 +299,6 @@ if __name__ == "__main__":
     chdir(input_params.build_dir)
 
     test_suite = [
-                    test_backend_failure_sanity_treehub_update_after_image_download_failure,
-                    test_backend_failure_bad_ostree_checksum,
                     test_backend_failure_sanity_director_update_after_metadata_download_failure,
                     test_backend_failure_sanity_imagerepo_update_after_metadata_download_failure,
                     test_backend_failure_sanity_imagerepo_update_after_image_download_failure,
@@ -313,6 +311,7 @@ if __name__ == "__main__":
 
     if input_params.ostree == 'ON':
         test_suite.append(test_backend_failure_sanity_treehub_update_after_image_download_failure)
+        test_suite.append(test_backend_failure_bad_ostree_checksum)
 
     test_suite_run_result = True
     for test in test_suite:
