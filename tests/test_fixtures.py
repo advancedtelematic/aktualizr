@@ -519,23 +519,32 @@ class DownloadInterruptionHandler:
 
 
 class MalformedImageHandler:
-    def __init__(self, number_of_failures=1, url=''):
+    dummy_filez = (b'\x00\x00\x00\x1a\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x06' +
+                   b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x81\xa4\x00\x00\x00\x00' +
+                   b'\x00\x19\x33\x34\x32\x36\x31\xe5\x02\x00')
+
+    def __init__(self, number_of_failures=1, url='', fake_filez=False):
         self._number_of_failures = number_of_failures
         self._failure_counter = 0
         self._url = url
+        self._fake_filez = fake_filez
 
     def __call__(self, request_handler):
-        if self._failure_counter < self._number_of_failures:
+        if self._number_of_failures == -1 or self._failure_counter < self._number_of_failures:
             request_handler.send_response(200)
             request_handler.end_headers()
-            request_handler.wfile.write(b'malformed image')
+            if self._fake_filez:
+                request_handler.wfile.write(self.dummy_filez)
+            else:
+                request_handler.wfile.write(b'malformed image')
 
             self._failure_counter += 1
         else:
             request_handler.default_get()
 
     def map(self, url):
-        return {'GET': {url if url else self._url: MalformedImageHandler(self._number_of_failures)}}
+        return {'GET': {url if url else self._url: MalformedImageHandler(self._number_of_failures,
+                                                                         fake_filez=self._fake_filez)}}
 
 
 class SlowRetrievalHandler:
