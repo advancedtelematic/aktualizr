@@ -151,6 +151,7 @@ class SotaUptaneClient {
   std::shared_ptr<Bootloader> bootloader;
   std::shared_ptr<ReportQueue> report_queue;
   Json::Value last_network_info_reported;
+  Json::Value last_hw_info_reported;
   Uptane::EcuMap hw_ids;
   std::shared_ptr<event::Channel> events_channel;
   boost::signals2::connection conn;
