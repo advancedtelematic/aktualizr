@@ -21,6 +21,7 @@ class DockerAppManager : public OstreeManager {
 
  private:
   bool iterate_apps(const Uptane::Target &target, const DockerAppCb &cb) const;
+  void handleRemovedApps() const;
 
   // iterate_apps needs an Uptane::Fetcher. However, its an unused parameter
   // and we just need to construct a dummy one to make the compiler happy.

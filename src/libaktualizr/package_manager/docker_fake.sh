@@ -30,5 +30,10 @@ if [ "$1" = "up" ] ; then
   fi
   exit 0
 fi
+if [ "$1" = "down" ] ; then
+  echo "Fake downing the docker-app in $(pwd)"
+  touch ../docker-compose-down-called
+  exit 0
+fi
 echo "Unknown command: $*"
 exit 1

@@ -77,6 +77,10 @@ TEST(DockerAppManager, DockerApp_Fetch) {
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
 
+  // Create a fake "docker-app" that's not configured. We'll test below
+  // to ensure its removed
+  boost::filesystem::create_directories(config.pacman.docker_apps_root / "delete-this-app");
+
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   KeyManager keys(storage, config.keymanagerConfig());
   auto http = std::make_shared<HttpClient>();
@@ -100,6 +104,10 @@ TEST(DockerAppManager, DockerApp_Fetch) {
   client->package_manager_->install(target);
   std::string content = Utils::readFile(config.pacman.docker_apps_root / "app1/docker-compose.yml");
   ASSERT_EQ("DOCKER-APP RENDER OUTPUT\nfake contents of a docker app\n", content);
+
+  // Make sure the unconfigured docker app has been removed:
+  ASSERT_FALSE(boost::filesystem::exists(config.pacman.docker_apps_root / "delete-this-app"));
+  ASSERT_TRUE(boost::filesystem::exists(config.pacman.docker_apps_root / "docker-compose-down-called"));
 
   setenv("DOCKER_APP_FAIL", "1", 1);
   ASSERT_EQ(TargetStatus::kInvalid, client->VerifyTarget(target));
