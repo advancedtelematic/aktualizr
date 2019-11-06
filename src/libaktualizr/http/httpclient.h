@@ -41,6 +41,7 @@ class HttpClient : public HttpInterface {
                                           CurlHandler *easyp) override;
   void setCerts(const std::string &ca, CryptoSource ca_source, const std::string &cert, CryptoSource cert_source,
                 const std::string &pkey, CryptoSource pkey_source) override;
+  bool updateHeader(const std::string &name, const std::string &value);
 
  private:
   FRIEND_TEST(GetTest, download_speed_limit);

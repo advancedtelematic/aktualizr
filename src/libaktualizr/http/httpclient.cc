@@ -258,4 +258,20 @@ std::future<HttpResponse> HttpClient::downloadAsync(const std::string& url, curl
   return resp_future;
 }
 
+bool HttpClient::updateHeader(const std::string& name, const std::string& value) {
+  curl_slist* item = headers;
+  std::string lookfor(name + ": ");
+
+  while (item != nullptr) {
+    if (strncmp(lookfor.c_str(), item->data, lookfor.length()) == 0) {
+      free(item->data);
+      lookfor += value;
+      item->data = strdup(lookfor.c_str());
+      return true;
+    }
+    item = item->next;
+  }
+  return false;
+}
+
 // vim: set tabstop=2 shiftwidth=2 expandtab:
