@@ -1,4 +1,3 @@
-include_directories("${PROJECT_SOURCE_DIR}/src/libaktualizr/third_party/jsoncpp")
 set(SOTA_TOOLS_LIB_SRC
     authenticate.cc
     check.cc
