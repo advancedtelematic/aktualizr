@@ -406,6 +406,7 @@ RAPIDJSON_NAMESPACE_END
 // RAPIDJSON_STATIC_ASSERT
 
 // Adopt from boost
+#define RAPIDJSON_STATIC_ASSERT(X) static_assert(X, "rapidjson assert")
 #ifndef RAPIDJSON_STATIC_ASSERT
 #ifndef __clang__
 //!@cond RAPIDJSON_HIDDEN_FROM_DOXYGEN
@@ -490,39 +491,9 @@ RAPIDJSON_NAMESPACE_END
     RAPIDJSON_VERSION_CODE(__GNUC__,__GNUC_MINOR__,__GNUC_PATCHLEVEL__)
 #endif
 
-#if defined(__clang__) || (defined(RAPIDJSON_GNUC) && RAPIDJSON_GNUC >= RAPIDJSON_VERSION_CODE(4,2,0))
-
-#define RAPIDJSON_PRAGMA(x) _Pragma(RAPIDJSON_STRINGIFY(x))
-#define RAPIDJSON_DIAG_PRAGMA(x) RAPIDJSON_PRAGMA(GCC diagnostic x)
-#define RAPIDJSON_DIAG_OFF(x) \
-    RAPIDJSON_DIAG_PRAGMA(ignored RAPIDJSON_STRINGIFY(RAPIDJSON_JOIN(-W,x)))
-
-// push/pop support in Clang and GCC>=4.6
-#if defined(__clang__) || (defined(RAPIDJSON_GNUC) && RAPIDJSON_GNUC >= RAPIDJSON_VERSION_CODE(4,6,0))
-#define RAPIDJSON_DIAG_PUSH RAPIDJSON_DIAG_PRAGMA(push)
-#define RAPIDJSON_DIAG_POP  RAPIDJSON_DIAG_PRAGMA(pop)
-#else // GCC >= 4.2, < 4.6
-#define RAPIDJSON_DIAG_PUSH /* ignored */
-#define RAPIDJSON_DIAG_POP /* ignored */
-#endif
-
-#elif defined(_MSC_VER)
-
-// pragma (MSVC specific)
-#define RAPIDJSON_PRAGMA(x) __pragma(x)
-#define RAPIDJSON_DIAG_PRAGMA(x) RAPIDJSON_PRAGMA(warning(x))
-
-#define RAPIDJSON_DIAG_OFF(x) RAPIDJSON_DIAG_PRAGMA(disable: x)
-#define RAPIDJSON_DIAG_PUSH RAPIDJSON_DIAG_PRAGMA(push)
-#define RAPIDJSON_DIAG_POP  RAPIDJSON_DIAG_PRAGMA(pop)
-
-#else
-
 #define RAPIDJSON_DIAG_OFF(x) /* ignored */
 #define RAPIDJSON_DIAG_PUSH   /* ignored */
 #define RAPIDJSON_DIAG_POP    /* ignored */
-
-#endif // RAPIDJSON_DIAG_*
 
 ///////////////////////////////////////////////////////////////////////////////
 // C++11 features

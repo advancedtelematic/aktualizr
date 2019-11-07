@@ -1,6 +1,10 @@
 #ifndef RAPIDXML_HPP_INCLUDED
 #define RAPIDXML_HPP_INCLUDED
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+
 // Copyright (C) 2006, 2009 Marcin Kalicinski
 // Version 1.13
 // Revision $DateTime: 2009/05/13 01:46:17 $
@@ -76,9 +80,9 @@ namespace rapidxml
     public:
 
         //! Constructs parse error
-        parse_error(const char *what, void *where)
+        parse_error(const char *what, void *where_)
             : std::runtime_error(what)
-            , m_where(where)
+            , m_where(where_)
         {
         }
 
@@ -96,7 +100,7 @@ namespace rapidxml
     };
 
     class eof_error : public parse_error {
-        eof_error(const char * what, void * where) : parse_error(what, where) {}
+        eof_error(const char * what, void * where_) : parse_error(what, where_) {}
     };
 
     class validation_error : public std::runtime_error
@@ -2119,7 +2123,8 @@ namespace rapidxml
                         {
                             case Ch('['): ++depth; break;
                             case Ch(']'): --depth; break;
-                            case 0: RAPIDXML_PARSE_ERROR("unexpected end of data", text);
+                            case 0: RAPIDXML_PARSE_ERROR("unexpected end of data", text); break;
+                            default: break;
                         }
                         ++text;
                     }
@@ -2444,7 +2449,8 @@ namespace rapidxml
                         text += 9;      // skip '!DOCTYPE '
                         return parse_doctype<Flags>(text);
                     }
-
+                    break;
+                default: break;
                 }   // switch
 
                 // Attempt to skip other, unrecognized node types starting with <!
@@ -2920,5 +2926,7 @@ namespace rapidxml
 #ifdef _MSC_VER
     #pragma warning(pop)
 #endif
+
+#pragma GCC diagnostic pop
 
 #endif

@@ -6,6 +6,9 @@
 // Revision $DateTime: 2009/05/13 01:46:17 $
 //! \file rapidxml_print.hpp This file contains rapidxml printer implementation
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 #include "rapidxml.hpp"
 
 // Only include streams if not disabled
@@ -421,5 +424,7 @@ namespace rapidxml
 #endif
 
 }
+
+#pragma GCC diagnostic pop
 
 #endif

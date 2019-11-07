@@ -120,7 +120,7 @@ void xml2json_add_attributes(rapidxml::xml_node<> *xmlnode, rapidjson::Value &js
                 else
                 {
                     long int value = std::strtol(myattr->value(), nullptr, 0);
-                    jv.SetInt(value);
+                    jv.SetInt64(value);
                 }
             }
         }
@@ -195,7 +195,7 @@ void xml2json_traverse_node(rapidxml::xml_node<> *xmlnode, rapidjson::Value &jsv
                         else
                         {
                             long int value = std::strtol(xmlnode->first_node()->value(), nullptr, 0);
-                            jsvalue.SetInt(value);
+                            jsvalue.SetInt64(value);
                         }
                     }
                 }
