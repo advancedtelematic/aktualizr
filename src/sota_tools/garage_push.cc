@@ -3,6 +3,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
+#include "xml2json.hpp"
+
 #include "accumulator.h"
 #include "authenticate.h"
 #include "deploy.h"
@@ -22,6 +24,7 @@ int main(int argc, char **argv) {
   std::string ref;
   boost::filesystem::path credentials_path;
   std::string cacerts;
+  boost::filesystem::path manifest_path;
   int max_curl_requests;
   RunMode mode = RunMode::kDefault;
   po::options_description desc("garage-push command line options");
@@ -35,6 +38,7 @@ int main(int argc, char **argv) {
     ("ref,r", po::value<std::string>(&ref)->required(), "OSTree ref to push (or commit refhash)")
     ("credentials,j", po::value<boost::filesystem::path>(&credentials_path)->required(), "credentials (json or zip containing json)")
     ("cacert", po::value<std::string>(&cacerts), "override path to CA root certificates, in the same format as curl --cacert")
+    ("repo-manifest", po::value<boost::filesystem::path>(&manifest_path), "manifest describing repository branches used in the image, to be sent as attached metadata")
     ("jobs", po::value<int>(&max_curl_requests)->default_value(30), "maximum number of parallel requests")
     ("dry-run,n", "check arguments and authenticate but don't upload")
     ("walk-tree,w", "walk entire tree and upload all missing objects");
@@ -145,6 +149,27 @@ int main(int argc, char **argv) {
       if (!PushRootRef(push_credentials, ostree_ref, cacerts, mode)) {
         LOG_FATAL << "Error pushing root ref to treehub";
         return EXIT_FAILURE;
+      }
+    }
+
+    if (manifest_path != "") {
+      std::string manifest_json;
+      manifest_json = xml2json(Utils::readFile(manifest_path).c_str());
+
+      LOG_INFO << "Sending manifest:\n" << manifest_json;
+      if (mode != RunMode::kDryRun) {
+        CURL *curl = curl_easy_init();
+        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+        push_server.SetContentType("Content-Type: application/json");
+        push_server.InjectIntoCurl("manifests/" + commit->string(), curl);
+        curlEasySetoptWrapper(curl, CURLOPT_CUSTOMREQUEST, "PUT");
+        curlEasySetoptWrapper(curl, CURLOPT_POSTFIELDS, manifest_json.c_str());
+        CURLcode rc = curl_easy_perform(curl);
+
+        if (rc != CURLE_OK) {
+          LOG_ERROR << "Error pushing repo manifest to Treehub";
+        }
+        curl_easy_cleanup(curl);
       }
     }
   } catch (const BadCredentialsArchive &e) {

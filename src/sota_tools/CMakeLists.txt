@@ -1,3 +1,4 @@
+include_directories("${PROJECT_SOURCE_DIR}/third_party/xml2json")
 set(SOTA_TOOLS_LIB_SRC
     authenticate.cc
     check.cc
