@@ -16,6 +16,8 @@
 #include "utilities/fault_injection.h"
 #include "utilities/utils.h"
 
+#include "ecu.h"
+
 static void report_progress_cb(event::Channel *channel, const Uptane::Target &target, const std::string &description,
                                unsigned int progress) {
   if (channel == nullptr) {
@@ -46,15 +48,20 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, const std::shared_ptr<INvS
       http(std::move(http_client)),
       bootloader(std::move(bootloader_in)),
       report_queue(std::move(report_queue_in)),
-      events_channel(std::move(events_channel_in)) {
+      events_channel(std::move(events_channel_in)),
+      _primarySerial(Uptane::EcuSerial::Unknown()) {
   uptane_fetcher = std::make_shared<Uptane::Fetcher>(config, http);
 
   // consider boot successful as soon as we started, missing internet connection or connection to secondaries are not
   // proper reasons to roll back
-  package_manager_ = PackageManagerFactory::makePackageManager(config.pacman, storage, bootloader, http);
-  if (package_manager_->imageUpdated()) {
+  //package_manager_ = PackageManagerFactory::makePackageManager(config.pacman, storage, bootloader, http);
+  auto primary_ecu = std::make_shared<PrimaryEcu>(config, storage, bootloader, http);
+  if (primary_ecu->packman()->imageUpdated()) {
     bootloader->setBootOK();
   }
+
+  _primarySerial = primary_ecu->serial();
+  _ecuRegistry.addEcu(primary_ecu);
 }
 
 SotaUptaneClient::~SotaUptaneClient() { conn.disconnect(); }
@@ -85,7 +92,7 @@ void SotaUptaneClient::addSecondary(const std::shared_ptr<Uptane::SecondaryInter
 
 bool SotaUptaneClient::isInstalledOnPrimary(const Uptane::Target &target) {
   if (target.ecus().find(uptane_manifest.getPrimaryEcuSerial()) != target.ecus().end()) {
-    return target.MatchTarget(package_manager_->getCurrent());
+    return target.MatchTarget(_ecuRegistry[_primarySerial]->packman()->getCurrent());
   }
   return false;
 }
@@ -102,9 +109,15 @@ std::vector<Uptane::Target> SotaUptaneClient::findForEcu(const std::vector<Uptan
 }
 
 data::InstallationResult SotaUptaneClient::PackageInstall(const Uptane::Target &target) {
-  LOG_INFO << "Installing package using " << package_manager_->name() << " package manager";
   try {
-    return package_manager_->install(target);
+    auto ecu_ids = target.ecus();
+    auto ecu_serial = ecu_ids.begin()->first;
+    auto pack_man = _ecuRegistry[ecu_serial]->packman();
+
+    LOG_INFO << "Installing package using " << pack_man->name() << " package manager";
+
+    //return package_manager_->install(target);
+    return pack_man->install(target);
   } catch (std::exception &ex) {
     return data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, ex.what());
   }
@@ -130,7 +143,7 @@ void SotaUptaneClient::finalizeAfterReboot() {
     if (!!pending_target) {
       const std::string correlation_id = pending_target->correlation_id();
 
-      data::InstallationResult install_res = package_manager_->finalizeInstall(*pending_target);
+      data::InstallationResult install_res = _ecuRegistry[_primarySerial]->packman()->finalizeInstall(*pending_target);
       storage->saveEcuInstallationResult(ecu_serial, install_res);
       if (install_res.success) {
         storage->saveInstalledVersion(ecu_serial.ToString(), *pending_target, InstalledVersionUpdateMode::kCurrent);
@@ -196,8 +209,40 @@ void SotaUptaneClient::reportHwInfo() {
   }
 }
 
+Json::Value SotaUptaneClient::getInstalledPackages() const {
+  // config.pacman.packages_file - Should be system wide config not a package manager
+  if (boost::filesystem::exists(config.pacman.packages_file))
+  {
+    std::string packages_str = Utils::readFile(config.pacman.packages_file);
+    std::vector<std::string> package_lines;
+    boost::split(package_lines, packages_str, boost::is_any_of("\n"));
+    Json::Value packages(Json::arrayValue);
+    for (auto it = package_lines.begin(); it != package_lines.end(); ++it) {
+      if (it->empty()) {
+        continue;
+      }
+      size_t pos = it->find(" ");
+      if (pos == std::string::npos) {
+        throw std::runtime_error("Wrong packages file format");
+      }
+      Json::Value package;
+      package["name"] = it->substr(0, pos);
+      package["version"] = it->substr(pos + 1);
+      packages.append(package);
+    }
+    return packages;
+  } else {
+    Json::Value packages(Json::arrayValue);
+    Json::Value package;
+    package["name"] = "fake-package";
+    package["version"] = "1.0";
+    packages.append(package);
+    return packages;
+  }
+}
+
 void SotaUptaneClient::reportInstalledPackages() {
-  http->put(config.tls.server + "/core/installed", package_manager_->getInstalledPackages());
+  http->put(config.tls.server + "/core/installed", getInstalledPackages());
 }
 
 void SotaUptaneClient::reportNetworkInfo() {
@@ -224,7 +269,7 @@ Json::Value SotaUptaneClient::AssembleManifest() {
   // first part: report current version/state of all ecus
   Json::Value version_manifest;
 
-  Json::Value primary_ecu_version = package_manager_->getManifest(primary_ecu_serial);
+  Json::Value primary_ecu_version = _ecuRegistry[_primarySerial] ->getManifest();
   version_manifest[primary_ecu_serial.ToString()] = uptane_manifest.signManifest(primary_ecu_version);
 
   for (auto it = secondaries.begin(); it != secondaries.end(); it++) {
@@ -613,8 +658,13 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(const Uptane::Ta
   int tries = 0;
   std::chrono::milliseconds wait(500);
 
+  auto ecu_ids = target.ecus();
+  auto ecu_serial = ecu_ids.begin()->first;
+  auto pack_man = _ecuRegistry[ecu_serial]->packman();
+
   for (; tries < max_tries; tries++) {
-    success = package_manager_->fetchTarget(target, *uptane_fetcher, keys, prog_cb, token);
+    //success = package_manager_->fetchTarget(target, *uptane_fetcher, keys, prog_cb, token);
+    success = pack_man->fetchTarget(target, *uptane_fetcher, keys, prog_cb, token);
     if (success) {
       break;
     } else if (tries < max_tries - 1) {
@@ -854,7 +904,7 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
 
   // Recheck the downloaded update hashes.
   for (const auto &update : updates) {
-    if (package_manager_->verifyTarget(update) != TargetStatus::kGood) {
+    if (_ecuRegistry[_primarySerial]->packman()->verifyTarget(update) != TargetStatus::kGood) {
       result.dev_report = {false, data::ResultCode::Numeric::kInternalError, ""};
       storage->storeDeviceInstallationResult(result.dev_report, "Downloaded target is invalid", correlation_id);
       sendEvent<event::AllInstallsComplete>(result);
@@ -963,7 +1013,7 @@ bool SotaUptaneClient::isInstallCompletionRequired() {
 
 void SotaUptaneClient::completeInstall() {
   if (isInstallCompletionRequired()) {
-    package_manager_->completeInstall();
+    _ecuRegistry[_primarySerial]->packman()->completeInstall();
   }
 }
 

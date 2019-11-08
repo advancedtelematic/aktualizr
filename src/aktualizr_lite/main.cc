@@ -112,10 +112,10 @@ static int do_update(LiteClient &client, Uptane::Target &target) {
     return 1;
   }
 
-  if (client.primary->VerifyTarget(target) != TargetStatus::kGood) {
-    LOG_ERROR << "Downloaded target is invalid";
-    return 1;
-  }
+//  if (client.primary->VerifyTarget(target) != TargetStatus::kGood) {
+//    LOG_ERROR << "Downloaded target is invalid";
+//    return 1;
+//  }
 
   auto iresult = client.primary->PackageInstall(target);
   if (iresult.result_code.num_code == data::ResultCode::Numeric::kNeedCompletion) {

@@ -2,7 +2,8 @@ set(SOURCES aktualizr.cc
             aktualizr_helpers.cc
             initializer.cc
             reportqueue.cc
-            sotauptaneclient.cc)
+            sotauptaneclient.cc
+            ecu.cpp)
 
 set(HEADERS secondary_config.h
             aktualizr.h
@@ -11,7 +12,8 @@ set(HEADERS secondary_config.h
             initializer.h
             reportqueue.h
             results.h
-            sotauptaneclient.h)
+            sotauptaneclient.h
+            ecu.h)
 
 
 add_library(primary OBJECT ${SOURCES})

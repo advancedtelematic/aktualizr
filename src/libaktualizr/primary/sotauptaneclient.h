@@ -26,6 +26,7 @@
 #include "uptane/imagesrepository.h"
 #include "uptane/iterator.h"
 #include "uptane/secondaryinterface.h"
+#include "primary/ecu.h"
 
 class SotaUptaneClient {
  public:
@@ -60,12 +61,12 @@ class SotaUptaneClient {
   bool isInstallCompletionRequired();
   void completeInstall();
   Uptane::LazyTargetsList allTargets();
-  Uptane::Target getCurrent() { return package_manager_->getCurrent(); }
+  Uptane::Target getCurrent() { return _ecuRegistry[_primarySerial]->packman()->getCurrent(); }
 
   bool updateImagesMeta();  // TODO: make private once aktualizr has a proper TUF API
   bool checkImagesMetaOffline();
   data::InstallationResult PackageInstall(const Uptane::Target &target);
-  TargetStatus VerifyTarget(const Uptane::Target &target) { return package_manager_->verifyTarget(target); }
+  //TargetStatus VerifyTarget(const Uptane::Target &target) { return package_manager_->verifyTarget(target); }
 
  protected:
   void addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
@@ -140,12 +141,14 @@ class SotaUptaneClient {
     }
   }
 
+  Json::Value getInstalledPackages() const;
+
   Config &config;
   Uptane::DirectorRepository director_repo;
   Uptane::ImagesRepository images_repo;
   Uptane::Manifest uptane_manifest;
   std::shared_ptr<INvStorage> storage;
-  std::shared_ptr<PackageManagerInterface> package_manager_;
+  //std::shared_ptr<PackageManagerInterface> package_manager_;
   std::shared_ptr<HttpInterface> http;
   std::shared_ptr<Uptane::Fetcher> uptane_fetcher;
   std::shared_ptr<Bootloader> bootloader;
@@ -159,6 +162,9 @@ class SotaUptaneClient {
   // ecu_serial => secondary*
   std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>> secondaries;
   std::mutex download_mutex;
+
+  Uptane::EcuSerial _primarySerial;
+  EcuRegistry _ecuRegistry;
 };
 
 class TargetCompare {
