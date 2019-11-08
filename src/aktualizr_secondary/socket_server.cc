@@ -5,7 +5,6 @@
 #include "AKIpUptaneMes.h"
 #include "asn1/asn1_message.h"
 #include "logging/logging.h"
-#include "socket_activation/socket_activation.h"
 #include "utilities/dequeue_buffer.h"
 #include "utilities/sockaddr_io.h"
 
@@ -147,15 +146,7 @@ void SocketServer::HandleOneConnection(int socket) {
   // Timeout on write => shutdown
 }
 
-SocketHandle SocketFromSystemdOrPort(in_port_t port) {
-  if (socket_activation::listen_fds(0) >= 1) {
-    LOG_INFO << "Using socket activation for main service";
-    return SocketHandle(new int(socket_activation::listen_fds_start));
-  }
-
-  LOG_INFO << "Received " << socket_activation::listen_fds(0)
-           << " sockets, not using socket activation for main service";
-
+SocketHandle SocketFromPort(in_port_t port) {
   // manual socket creation
   int socket_fd = socket(AF_INET6, SOCK_STREAM, 0);
   if (socket_fd < 0) {

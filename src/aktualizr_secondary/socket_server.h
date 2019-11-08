@@ -27,10 +27,8 @@ class SocketServer {
 };
 
 /**
- * If we are running under systemd, return the first fd that was handed to us
- * via socket-activation, otherwise create and return a server socket on the
- * given port number
+ * Create and return a server socket on the given port number
  */
-SocketHandle SocketFromSystemdOrPort(in_port_t port);
+SocketHandle SocketFromPort(in_port_t port);
 
 #endif  // AKTUALIZR_SECONDARY_SOCKET_SERVER_H_
