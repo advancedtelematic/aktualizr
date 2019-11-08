@@ -52,6 +52,17 @@ StorageTargetHandle *Aktualizr_open_stored_target(Aktualizr *a, const Target *t)
 size_t Aktualizr_read_stored_target(StorageTargetHandle *handle, uint8_t* buf, size_t size);
 int Aktualizr_close_stored_target(StorageTargetHandle *handle);
 
+typedef enum {
+  kSuccess = 0,
+  kAlreadyPaused,
+  kAlreadyRunning,
+  kError }
+Pause_Status_C;
+
+Pause_Status_C Aktualizr_pause(Aktualizr *a);
+Pause_Status_C Aktualizr_resume(Aktualizr *a);
+void Aktualizr_abort(Aktualizr *a);
+
 #ifdef __cplusplus
 }
 #endif
