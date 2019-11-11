@@ -12,12 +12,6 @@ if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "No CMAKE_BUILD_TYPE specified, defaulting to ${CMAKE_BUILD_TYPE}")
 endif(NOT CMAKE_BUILD_TYPE)
 
-if("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
-    set(BUILD_SYSTEMD_DEFAULT ON)
-else()
-    set(BUILD_SYSTEMD_DEFAULT OFF)
-endif()
-
 if(CMAKE_BUILD_TYPE MATCHES "Valgrind")
     set(TESTSUITE_VALGRIND_DEFAULT ON)
 else()
@@ -33,7 +27,6 @@ option(BUILD_DOCKERAPP "Set to ON to compile with package manager support of doc
 option(BUILD_P11 "Support for key storage in a HSM via PKCS#11" OFF)
 option(BUILD_SOTA_TOOLS "Set to ON to build SOTA tools" OFF)
 option(BUILD_ISOTP "Set to ON to compile with ISO/TP protocol support" OFF)
-option(BUILD_SYSTEMD "Set to ON to compile with systemd additional support" ${BUILD_SYSTEMD_DEFAULT})
 option(BUILD_LOAD_TESTS "Set to ON to build load tests" OFF)
 option(FAULT_INJECTION "Set to ON to enable fault injection" OFF)
 option(INSTALL_LIB "Set to ON to install library and headers" OFF)
@@ -146,12 +139,6 @@ endif(BUILD_SOTA_TOOLS)
 if(BUILD_ISOTP)
     add_definitions(-DISOTP_SECONDARY_ENABLED)
 endif(BUILD_ISOTP)
-
-if(BUILD_SYSTEMD)
-    find_package(Systemd REQUIRED)
-else(BUILD_SYSTEMD)
-    unset(SYSTEMD_LIBRARY CACHE)
-endif(BUILD_SYSTEMD)
 
 if(FAULT_INJECTION)
     find_package(Libfiu REQUIRED)
@@ -376,7 +363,6 @@ set (AKTUALIZR_EXTERNAL_LIBS
     ${LibArchive_LIBRARIES}
     ${LIBP11_LIBRARIES}
     ${GLIB2_LIBRARIES}
-    ${SYSTEMD_LIBRARY}
     ${ZLIB_LIBRARY})
 
 if(ANDROID)

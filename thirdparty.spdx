@@ -17,7 +17,6 @@ Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-libostree
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-sqlite3
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-asn1c
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-libp11
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-systemd
 
 
 PackageName: googletest
@@ -203,19 +202,6 @@ PackageHomePage: https://github.com/OpenSC/libp11
 PackageLicenseConcluded: LGPL-2.1-or-later
 PackageLicenseDeclared: LGPL-2.1-or-later
 PackageLicenseInfoFromFiles: LGPL-2.1-or-later
-PackageCopyrightText: <text>NONE</text>
-FilesAnalyzed: false
-PackageComment: <text>Dynamically linked.</text>
-
-
-PackageName: systemd
-SPDXID: SPDXRef-systemd
-PackageDownloadLocation: https://github.com/systemd/systemd/archive/v238.tar.gz
-PackageHomePage: http://www.freedesktop.org/wiki/Software/systemd
-PackageLicenseConcluded: (GPL-2.0-only AND LGPL-2.1-only)
-PackageLicenseDeclared: (GPL-2.0-only AND LGPL-2.1-only)
-PackageLicenseInfoFromFiles: GPL-2.0-only
-PackageLicenseInfoFromFiles: LGPL-2.1-only
 PackageCopyrightText: <text>NONE</text>
 FilesAnalyzed: false
 PackageComment: <text>Dynamically linked.</text>

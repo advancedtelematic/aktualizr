@@ -16,13 +16,11 @@ add_library(aktualizr_secondary_static_lib STATIC
     $<TARGET_OBJECTS:utilities>
     $<TARGET_OBJECTS:storage>
     $<TARGET_OBJECTS:logging>
-    $<TARGET_OBJECTS:uptane>
-    $<TARGET_OBJECTS:socket_activation>)
+    $<TARGET_OBJECTS:uptane>)
 
 target_link_libraries(aktualizr_secondary_static_lib aktualizr-posix)
 
 target_include_directories(aktualizr_secondary_static_lib PUBLIC
-    $<TARGET_PROPERTY:socket_activation,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:asn1_lib,INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/src/libaktualizr-posix
     )

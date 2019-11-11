@@ -818,7 +818,6 @@ INPUT                  = @CMAKE_SOURCE_DIR@/docs \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/logging \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/package_manager \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/primary \
-                         @CMAKE_SOURCE_DIR@/src/libaktualizr/socket_activation \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/storage \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/telemetry \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/uptane \

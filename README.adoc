@@ -64,7 +64,6 @@ Some features also require additional packages:
 
 * For OSTree support, you will need `libostree-dev` (>= 2017.7).
 * For PKCS#11 support, you will need `libp11-2 libp11-dev`.
-* For systemd support for secondaries, you will need `libsystemd-dev`.
 * For fault injection, you will need `fiu-utils libfiu-dev`.
 
 ==== Mac support

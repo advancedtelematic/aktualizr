@@ -7,7 +7,6 @@
 #ifdef BUILD_OSTREE
 #include "package_manager/ostreemanager.h"  // TODO: Hide behind PackageManagerInterface
 #endif
-#include "socket_activation/socket_activation.h"
 #include "socket_server.h"
 #include "utilities/utils.h"
 
@@ -34,7 +33,7 @@ class SecondaryAdapter : public Uptane::SecondaryInterface {
 AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig& config,
                                        const std::shared_ptr<INvStorage>& storage)
     : AktualizrSecondaryCommon(config, storage),
-      socket_server_(std_::make_unique<SecondaryAdapter>(*this), SocketFromSystemdOrPort(config.network.port)) {
+      socket_server_(std_::make_unique<SecondaryAdapter>(*this), SocketFromPort(config.network.port)) {
   // note: we don't use TlsConfig here and supply the default to
   // KeyManagerConf. Maybe we should figure a cleaner way to do that
   // (split KeyManager?)
