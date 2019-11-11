@@ -10,7 +10,7 @@
 #include "utilities/exceptions.h"
 #include "utilities/utils.h"
 
-Bootloader::Bootloader(const BootloaderConfig& config, INvStorage& storage) : config_(config), storage_(storage) {
+Bootloader::Bootloader(BootloaderConfig config, INvStorage& storage) : config_(std::move(config)), storage_(storage) {
   reboot_sentinel_ = config_.reboot_sentinel_dir / config_.reboot_sentinel_name;
   reboot_command_ = config_.reboot_command;
 

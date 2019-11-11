@@ -97,7 +97,7 @@ TEST_P(UptaneVector, Test) {
 
   auto storage = INvStorage::newStorage(config.storage);
   Uptane::Manifest uptane_manifest{config, storage};
-  auto uptane_client = SotaUptaneClient::newDefaultClient(config, storage);
+  auto uptane_client = std_::make_unique<SotaUptaneClient>(config, storage);
   Uptane::EcuSerial ecu_serial(config.provision.primary_ecu_serial);
   Uptane::HardwareIdentifier hw_id(config.provision.primary_ecu_hardware_id);
   uptane_client->hw_ids.insert(std::make_pair(ecu_serial, hw_id));

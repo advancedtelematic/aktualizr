@@ -330,7 +330,7 @@ int main(int argc, char **argv) {
     std::cout << "Provisioned on server: " << (registered ? "yes" : "no") << std::endl;
     std::cout << "Fetched metadata: " << (has_metadata ? "yes" : "no") << std::endl;
 
-    auto pacman = PackageManagerFactory::makePackageManager(config.pacman, storage, nullptr, nullptr);
+    auto pacman = PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr);
 
     Uptane::Target current_target = pacman->getCurrent();
 

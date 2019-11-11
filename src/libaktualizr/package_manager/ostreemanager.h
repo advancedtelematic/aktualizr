@@ -39,13 +39,13 @@ struct PullMetaStruct {
 
 class OstreeManager : public PackageManagerInterface {
  public:
-  OstreeManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage, std::shared_ptr<Bootloader> bootloader,
+  OstreeManager(PackageConfig pconfig, BootloaderConfig bconfig, std::shared_ptr<INvStorage> storage,
                 std::shared_ptr<HttpInterface> http);
   ~OstreeManager() override = default;
   std::string name() const override { return "ostree"; }
   Json::Value getInstalledPackages() const override;
   Uptane::Target getCurrent() const override;
-  bool imageUpdated() override;
+  bool imageUpdated();
   data::InstallationResult install(const Uptane::Target &target) const override;
   void completeInstall() const override;
   data::InstallationResult finalizeInstall(const Uptane::Target &target) const override;

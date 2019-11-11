@@ -124,8 +124,7 @@ TEST(UptaneNetwork, DownloadFailure) {
   conf.provision.primary_ecu_hardware_id = "hardware_id";
 
   auto storage = INvStorage::newStorage(conf.storage);
-  auto http = std::make_shared<HttpClient>();
-  auto up = newTestClient(conf, storage, http);
+  auto up = std_::make_unique<SotaUptaneClient>(conf, storage);
   EXPECT_NO_THROW(up->initialize());
 
   Json::Value ot_json;

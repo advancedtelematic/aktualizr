@@ -21,11 +21,11 @@ TEST(PackageManagerFactory, Ostree) {
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
 #ifdef BUILD_OSTREE
   std::shared_ptr<PackageManagerInterface> pacman =
-      PackageManagerFactory::makePackageManager(config.pacman, storage, nullptr, nullptr);
+      PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr);
   EXPECT_TRUE(pacman);
 #else
   EXPECT_THROW(std::shared_ptr<PackageManagerInterface> pacman =
-                   PackageManagerFactory::makePackageManager(config.pacman, storage, nullptr, nullptr),
+                   PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr),
                std::runtime_error);
 #endif
 }
@@ -38,11 +38,11 @@ TEST(PackageManagerFactory, Debian) {
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
 #ifdef BUILD_DEB
   std::shared_ptr<PackageManagerInterface> pacman =
-      PackageManagerFactory::makePackageManager(config.pacman, storage, nullptr, nullptr);
+      PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr);
   EXPECT_TRUE(pacman);
 #else
   EXPECT_THROW(std::shared_ptr<PackageManagerInterface> pacman =
-                   PackageManagerFactory::makePackageManager(config.pacman, storage, nullptr, nullptr),
+                   PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr),
                std::runtime_error);
 #endif
 }
@@ -54,7 +54,7 @@ TEST(PackageManagerFactory, None) {
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   config.pacman.type = PackageManager::kNone;
   std::shared_ptr<PackageManagerInterface> pacman =
-      PackageManagerFactory::makePackageManager(config.pacman, storage, nullptr, nullptr);
+      PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr);
   EXPECT_TRUE(pacman);
 }
 
@@ -65,7 +65,7 @@ TEST(PackageManagerFactory, Bad) {
   config.pacman.type = (PackageManager)-1;
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   std::shared_ptr<PackageManagerInterface> pacman =
-      PackageManagerFactory::makePackageManager(config.pacman, storage, nullptr, nullptr);
+      PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr);
   EXPECT_FALSE(pacman);
 }
 

@@ -30,7 +30,7 @@ TEST(Aktualizr, DownloadNonOstreeBin) {
 
   {
     std::shared_ptr<INvStorage> storage = INvStorage::newStorage(conf.storage);
-    auto uptane_client = SotaUptaneClient::newDefaultClient(conf, storage);
+    auto uptane_client = std_::make_unique<SotaUptaneClient>(conf, storage);
     uptane_client->initialize();
     EXPECT_FALSE(uptane_client->uptaneIteration(nullptr, nullptr));
     EXPECT_STREQ(uptane_client->getLastException().what(),
