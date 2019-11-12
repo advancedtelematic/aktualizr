@@ -62,7 +62,7 @@ Note: Aktualizr doesn't send any installation report in manifest in case of meta
                             DownloadInterruptionHandler(number_of_failures=3),
                         ])
 @with_director(start=False)
-@with_aktualizr(run_mode='full')
+@with_aktualizr(start=False, run_mode='full')
 @with_install_manager()
 def test_backend_failure_sanity_imagerepo_update_after_metadata_download_failure(install_mngr, director,
                                                                                  aktualizr, **kwargs):
@@ -90,7 +90,7 @@ Currently, it's tested against two types of image download failure:
                             MalformedImageHandler(number_of_failures=1, url='/targets/primary-image.img'),
                         ])
 @with_director(start=False)
-@with_aktualizr(run_mode='full', id=('primary-hw-ID-001', 'primary-ecu-id'))
+@with_aktualizr(start=False, run_mode='full', id=('primary-hw-ID-001', 'primary-ecu-id'))
 @with_install_manager()
 def test_backend_failure_sanity_imagerepo_update_after_image_download_failure(install_mngr, director,
                                                                               aktualizr, **kwargs):
@@ -116,7 +116,7 @@ def test_backend_failure_sanity_imagerepo_update_after_image_download_failure(in
                         ])
 @with_imagerepo()
 @with_director(start=False)
-@with_aktualizr(run_mode='full')
+@with_aktualizr(start=False, run_mode='full')
 def test_backend_failure_sanity_customrepo_update_after_image_download_failure(uptane_repo, custom_repo, director,
                                                                                aktualizr, **kwargs):
     update_hash = uptane_repo.add_image(aktualizr.id, 'primary-image.img',
