@@ -44,7 +44,6 @@ bpo::variables_map parseOptions(int argc, char *argv[]) {
       ("ostree-server", bpo::value<std::string>(), "url of the ostree repository")
       ("primary-ecu-serial", bpo::value<std::string>(), "serial number of primary ecu")
       ("primary-ecu-hardware-id", bpo::value<std::string>(), "hardware ID of primary ecu")
-      ("secondary-configs-dir", bpo::value<boost::filesystem::path>(), "directory containing secondary ECU configuration files")
       ("secondary-config-file", bpo::value<boost::filesystem::path>(), "secondary ECUs configuration file")
       ("campaign-id", bpo::value<std::string>(), "id of the campaign to act on");
   // clang-format on
