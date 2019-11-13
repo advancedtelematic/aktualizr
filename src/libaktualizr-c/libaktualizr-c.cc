@@ -139,16 +139,18 @@ Target *Aktualizr_get_nth_target(Updates *u, size_t n) {
 }
 
 // TODO: Would it be nicer if t->filename returned const ref?
-char *Aktualizr_get_target_name(Target *t) {
+const char *Aktualizr_get_target_name(Target *t) {
   if (t != nullptr) {
-    void *name_ptr = malloc(sizeof(char) * (t->filename().size() + 1));
-    auto *name = static_cast<char *>(name_ptr);
-    strncpy(name, t->filename().c_str(), t->filename().size() + 1);
+    auto length = t->filename().length();
+    auto *name = new char[length + 1];
+    strncpy(name, t->filename().c_str(), length + 1);
     return name;
   } else {
     return nullptr;
   }
 }
+
+void Aktualizr_free_target_name(const char *n) { delete[] n; }
 
 int Aktualizr_download_target(Aktualizr *a, Target *t) {
   try {
