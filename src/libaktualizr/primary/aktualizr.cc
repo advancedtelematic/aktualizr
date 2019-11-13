@@ -2,8 +2,6 @@
 
 #include <chrono>
 
-#include <openssl/evp.h>
-#include <openssl/rand.h>
 #include <sodium.h>
 
 #include "primary/events.h"
