@@ -12,8 +12,8 @@
 using std::make_shared;
 using std::shared_ptr;
 
-Aktualizr::Aktualizr(Config config)
-    : Aktualizr(std::move(config), INvStorage::newStorage(config.storage), std::make_shared<HttpClient>()) {}
+Aktualizr::Aktualizr(const Config &config)
+    : Aktualizr(config, INvStorage::newStorage(config.storage), std::make_shared<HttpClient>()) {}
 
 Aktualizr::Aktualizr(Config config, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<HttpInterface> http_in)
     : config_{std::move(config)}, sig_{new event::Channel()} {

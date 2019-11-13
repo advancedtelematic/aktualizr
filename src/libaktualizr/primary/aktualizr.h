@@ -21,7 +21,7 @@ class Aktualizr {
  public:
   /** Aktualizr requires a configuration object. Examples can be found in the
    *  config directory. */
-  explicit Aktualizr(Config config);
+  explicit Aktualizr(const Config& config);
   Aktualizr(const Aktualizr&) = delete;
   Aktualizr& operator=(const Aktualizr&) = delete;
 
