@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include <openssl/x509.h>
+#include <openssl/bio.h>
 #include <boost/scoped_array.hpp>
 
 #include "bootstrap/bootstrap.h"

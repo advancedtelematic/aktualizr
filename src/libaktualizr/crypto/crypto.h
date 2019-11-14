@@ -4,10 +4,8 @@
 #include <openssl/engine.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
-#include <openssl/opensslv.h>
 #include <openssl/pem.h>
 #include <openssl/pkcs12.h>
-#include <openssl/rand.h>
 #include <openssl/rsa.h>
 #include <sodium.h>
 #include <boost/algorithm/hex.hpp>
