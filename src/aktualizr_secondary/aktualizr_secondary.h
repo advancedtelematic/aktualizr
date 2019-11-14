@@ -9,9 +9,14 @@
 #include "crypto/keymanager.h"
 #include "socket_server.h"
 #include "storage/invstorage.h"
-#include "uptane/tuf.h"
 #include "utilities/types.h"
 #include "utilities/utils.h"
+
+#include "uptane/directorrepository.h"
+#include "uptane/imagesrepository.h"
+#include "uptane/tuf.h"
+
+#include "aktualizr_secondary_metadata.h"
 
 class AktualizrSecondary : public AktualizrSecondaryInterface, private AktualizrSecondaryCommon {
  public:
@@ -24,7 +29,7 @@ class AktualizrSecondary : public AktualizrSecondaryInterface, private Aktualizr
   Uptane::HardwareIdentifier getHwIdResp() const;
   PublicKey getPublicKeyResp() const;
   Json::Value getManifestResp() const;
-  bool putMetadataResp(const Uptane::RawMetaPack& meta_pack);
+  bool putMetadataResp(const Metadata& metadata);
   int32_t getRootVersionResp(bool director) const;
   bool putRootResp(const std::string& root, bool director);
   bool sendFirmwareResp(const std::shared_ptr<std::string>& firmware);
@@ -34,9 +39,12 @@ class AktualizrSecondary : public AktualizrSecondaryInterface, private Aktualizr
 
  private:
   void connectToPrimary();
+  bool doFullVerification(const Metadata& metadata);
 
  private:
   SocketServer socket_server_;
+  Uptane::DirectorRepository director_repo_;
+  Uptane::ImagesRepository image_repo_;
 };
 
 #endif  // AKTUALIZR_SECONDARY_H

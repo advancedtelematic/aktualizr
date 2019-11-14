@@ -19,7 +19,9 @@ class SecondaryAdapter : public Uptane::SecondaryInterface {
   Uptane::HardwareIdentifier getHwId() override { return secondary.getHwIdResp(); }
   PublicKey getPublicKey() override { return secondary.getPublicKeyResp(); }
   Json::Value getManifest() override { return secondary.getManifestResp(); }
-  bool putMetadata(const Uptane::RawMetaPack& meta_pack) override { return secondary.putMetadataResp(meta_pack); }
+  bool putMetadata(const Uptane::RawMetaPack& meta_pack) override {
+    return secondary.putMetadataResp(Metadata(meta_pack));
+  }
   int32_t getRootVersion(bool director) override { return secondary.getRootVersionResp(director); }
   bool putRoot(const std::string& root, bool director) override { return secondary.putRootResp(root, director); }
   bool sendFirmware(const std::shared_ptr<std::string>& data) override {
@@ -63,36 +65,7 @@ Json::Value AktualizrSecondary::getManifestResp() const {
   return keys_.signTuf(manifest);
 }
 
-bool AktualizrSecondary::putMetadataResp(const Uptane::RawMetaPack& meta_pack) {
-  TimeStamp now(TimeStamp::Now());
-  detected_attack_.clear();
-
-  // TODO: proper partial verification
-  root_ = Uptane::Root(Uptane::RepositoryType::Director(), Utils::parseJSON(meta_pack.director_root), root_);
-  Uptane::Targets targets(Uptane::RepositoryType::Director(), Uptane::Role::Targets(),
-                          Utils::parseJSON(meta_pack.director_targets), std::make_shared<Uptane::Root>(root_));
-  if (meta_targets_.version() > targets.version()) {
-    detected_attack_ = "Rollback attack detected";
-    return true;
-  }
-  meta_targets_ = targets;
-  std::vector<Uptane::Target>::const_iterator it;
-  bool target_found = false;
-  for (it = meta_targets_.targets.begin(); it != meta_targets_.targets.end(); ++it) {
-    if (it->IsForSecondary(getSerialResp())) {
-      if (target_found) {
-        detected_attack_ = "Duplicate entry for this ECU";
-        break;
-      }
-      target_found = true;
-      target_ = std_::make_unique<Uptane::Target>(*it);
-    }
-  }
-  storage_->storeRoot(meta_pack.director_root, Uptane::RepositoryType::Director(), Uptane::Version(root_.version()));
-  storage_->storeNonRoot(meta_pack.director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets());
-
-  return true;
-}
+bool AktualizrSecondary::putMetadataResp(const Metadata& metadata) { return doFullVerification(metadata); }
 
 int32_t AktualizrSecondary::getRootVersionResp(bool director) const {
   std::string root_meta;
@@ -113,14 +86,17 @@ bool AktualizrSecondary::putRootResp(const std::string& root, bool director) {
 }
 
 bool AktualizrSecondary::sendFirmwareResp(const std::shared_ptr<std::string>& firmware) {
-  if (target_ == nullptr) {
-    LOG_ERROR << "No valid installation target found";
+  auto targetsForThisEcu = director_repo_.getTargets(getSerial());
+
+  if (targetsForThisEcu.size() != 1) {
+    LOG_ERROR << "Invalid number of targets (should be one): " << targetsForThisEcu.size();
     return false;
   }
+  auto targetToApply = targetsForThisEcu[0];
 
   std::string treehub_server;
 
-  if (target_->IsOstree()) {
+  if (targetToApply.IsOstree()) {
     // this is the ostree specific case
     try {
       std::string ca, cert, pkey, server_url;
@@ -137,9 +113,9 @@ bool AktualizrSecondary::sendFirmwareResp(const std::shared_ptr<std::string>& fi
 
   data::InstallationResult install_res;
 
-  if (target_->IsOstree()) {
+  if (targetToApply.IsOstree()) {
 #ifdef BUILD_OSTREE
-    install_res = OstreeManager::pull(config_.pacman.sysroot, treehub_server, keys_, *target_);
+    install_res = OstreeManager::pull(config_.pacman.sysroot, treehub_server, keys_, targetToApply);
 
     if (install_res.result_code.num_code != data::ResultCode::Numeric::kOk) {
       LOG_ERROR << "Could not pull from OSTree (" << install_res.result_code.toString()
@@ -156,12 +132,12 @@ bool AktualizrSecondary::sendFirmwareResp(const std::shared_ptr<std::string>& fi
     return false;
   }
 
-  install_res = pacman->install(*target_);
+  install_res = pacman->install(targetToApply);
   if (install_res.result_code.num_code != data::ResultCode::Numeric::kOk) {
     LOG_ERROR << "Could not install target (" << install_res.result_code.toString() << "): " << install_res.description;
     return false;
   }
-  storage_->saveInstalledVersion(getSerialResp().ToString(), *target_, InstalledVersionUpdateMode::kCurrent);
+  storage_->saveInstalledVersion(getSerialResp().ToString(), targetToApply, InstalledVersionUpdateMode::kCurrent);
   return true;
 }
 
@@ -199,4 +175,60 @@ void AktualizrSecondary::connectToPrimary() {
   } else {
     LOG_INFO << "Failed to connect to Primary";
   }
+}
+
+bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
+  // 5.4.4.2. Full verification  https://uptane.github.io/uptane-standard/uptane-standard.html#metadata_verification
+
+  // 1. Load and verify the current time or the most recent securely attested time.
+  //
+  //    We trust the time that the given system/OS/ECU provides, In this ECU we trust :)
+  TimeStamp now(TimeStamp::Now());
+
+  // 2. Download and check the Root metadata file from the Director repository, following the procedure in
+  // Section 5.4.4.3. DirectorRepository::updateMeta() method implements this verification step, certain steps are
+  // missing though. see the method source code for details
+
+  // 3. NOT SUPPORTED: Download and check the Timestamp metadata file from the Director repository, following the
+  // procedure in Section 5.4.4.4.
+  // 4. NOT SUPPORTED: Download and check the Snapshot metadata file from the Director repository, following the
+  // procedure in Section 5.4.4.5.
+  //
+  // 5. Download and check the Targets metadata file from the Director repository, following the procedure in
+  // Section 5.4.4.6. DirectorRepository::updateMeta() method implements this verification step The followin steps of
+  // the Director's target metadata verification are missing in DirectorRepository::updateMeta()
+  //  6. If checking Targets metadata from the Director repository, verify that there are no delegations.
+  //  7. If checking Targets metadata from the Director repository, check that no ECU identifier is represented more
+  //  than once.
+  if (!director_repo_.updateMeta(*storage_, metadata)) {
+    LOG_ERROR << "Failed to update director metadata: " << director_repo_.getLastException().what();
+    return false;
+  }
+
+  auto targetsForThisEcu = director_repo_.getTargets(getSerial());
+
+  if (targetsForThisEcu.size() != 1) {
+    LOG_ERROR << "Invalid number of targets (should be one): " << targetsForThisEcu.size();
+    return false;
+  }
+
+  // 6. Download and check the Root metadata file from the Image repository, following the procedure in Section 5.4.4.3.
+  // 7. Download and check the Timestamp metadata file from the Image repository, following the procedure in
+  // Section 5.4.4.4.
+  // 8. Download and check the Snapshot metadata file from the Image repository, following the procedure in
+  // Section 5.4.4.5.
+  // 9. Download and check the top-level Targets metadata file from the Image repository, following the procedure in
+  // Section 5.4.4.6.
+  if (!image_repo_.updateMeta(*storage_, metadata)) {
+    LOG_ERROR << "Failed to update image metadata: " << image_repo_.getLastException().what();
+    return false;
+  }
+
+  // 10. Verify that Targets metadata from the Director and Image repositories match.
+  if (!(director_repo_.getTargets() == *image_repo_.getTargets())) {
+    LOG_ERROR << "Targets metadata from the Director and Image repositories DOES NOT match ";
+    return false;
+  }
+
+  return true;
 }

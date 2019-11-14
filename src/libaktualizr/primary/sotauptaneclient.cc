@@ -382,7 +382,7 @@ void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult 
 }
 
 bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, unsigned int *ecus_count) {
-  std::vector<Uptane::Target> targets = director_repo.getTargets();
+  std::vector<Uptane::Target> targets = director_repo.getTargets().targets;
   Uptane::EcuSerial primary_ecu_serial = uptane_manifest.getPrimaryEcuSerial();
   if (ecus_count != nullptr) {
     *ecus_count = 0;

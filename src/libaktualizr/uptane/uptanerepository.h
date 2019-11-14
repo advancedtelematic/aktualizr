@@ -8,6 +8,7 @@
 #include "config/config.h"
 #include "crypto/crypto.h"
 #include "crypto/keymanager.h"
+#include "fetcher.h"
 #include "logging/logging.h"
 #include "storage/invstorage.h"
 
@@ -37,10 +38,12 @@ class Manifest {
 class RepositoryCommon {
  public:
   RepositoryCommon(RepositoryType type_in) : type{type_in} {}
+  virtual ~RepositoryCommon() = default;
   bool initRoot(const std::string &root_raw);
   bool verifyRoot(const std::string &root_raw);
   int rootVersion() { return root.version(); }
   bool rootExpired() { return root.isExpired(TimeStamp::Now()); }
+  virtual bool updateMeta(INvStorage &storage, const IMetadataFetcher &fetcher) = 0;
 
  protected:
   void resetRoot();
