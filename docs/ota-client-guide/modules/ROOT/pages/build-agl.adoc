@@ -26,18 +26,16 @@ include::build-raspberry.adoc[tags=prereqs]
 
 == Create your AGL Yocto build environment
 
-=== Get AGL master manifest
+=== Get the AGL code
 
-First, clone a manifest file for AGL Electric Eel:
+First, use the manifest file for AGL's Happy Halibut release to download the required repositories:
 
 ----
 mkdir myproject
 cd myproject
-repo init -b eel -m default.xml -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo.git
+repo init -b halibut -m halibut_8.0.2.xml -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo
 repo sync
 ----
-
-This will download the basic Yocto layers you need. Generally, HERE Technologies recommends using AGL's latest point release.
 
 .What is this actually doing?
 ****
@@ -51,28 +49,55 @@ All of these layers are assembled into a built Linux system by Bitbake, the buil
 Now you can run the following script to get the environment set up:
 
 ----
-source meta-agl/scripts/aglsetup.sh -m <target-architecture> agl-demo agl-appfw-smack agl-sota <1>
+source meta-agl/scripts/aglsetup.sh -m <target-architecture> agl-sota <1>
 ----
 <1> Where `<target-architecture>` is either `raspberrypi3` or `qemux86-64`.
 
-IMPORTANT: Only `raspberrypi3` and `qemux86-64` will work out of the box. If you want to create an {product-name-short}-compatible build for one of the other architectures AGL supports, you'll need to write a BSP layer for that board. You can take the link:https://github.com/advancedtelematic/meta-updater-raspberrypi/tree/morty/recipes-bsp[Raspberry Pi BSP] as an example of what's needed. You can also link:mailto:otaconnect.support@here.com[contact us directly] to inquire about commercial development of BSP layers for specific boards.
+IMPORTANT: Only `raspberrypi3` and `qemux86-64` will work out of the box. If you want to create an {product-name-short}-compatible build for one of the other architectures AGL supports, you may need to write a BSP layer for that board. You can take the link:https://github.com/advancedtelematic/meta-updater-raspberrypi/tree/morty/recipes-bsp[Raspberry Pi BSP] as an example of what's needed. You can also link:mailto:otaconnect.support@here.com[contact us directly] to inquire about commercial development of BSP layers for specific boards.
 
-include::build-raspberry.adoc[tags=config;bitbake]
+=== Additional configuration for Raspberry Pi 3
 
-== Put the built image on your device's boot media
+As described in the link:https://wiki.automotivelinux.org/agl-distro/agl-raspberrypi#sota[AGL wiki], you will need to edit your `bblayers.conf` to replace `meta-updater-qemux86-64` with `meta-updater-raspberrypi`.
 
-The build process creates disk images as an artefact. The exact image you'll need will vary depending on the architecture you're building forfootnote:[For example, building the `agl-demo-platform` target for Raspberry Pi 3 creates an image at `build/tmp/deploy/images/raspberrypi3/agl-demo-platform-raspberrypi3.wic`.], but it will be located in the `/tmp/deploy/images` directory under your build directory. We recommend using https://www.balena.io/etcher/[Etcher, window="_blank"] to write the image, or following the normal flashing procedure for your device if applicable.
+=== Additional configuration for QEMU
+
+By default, AGL for QEMU boots into an initrd before loading the root filesystem, but as of thud, meta-updater by default uses an initramfs. You will need to force the build to use an initramfs by adding this to your `local.conf`:
+
+----
+AGL_DEFAULT_INITRAMFS_FSTYPES = "cpio.gz"
+----
+
+include::build-raspberry.adoc[tags=config]
+
+== Bitbake
+
+Now you're ready to build your image.
+
+[subs=+attributes]
+----
+bitbake agl-image-minimal
+----
+
+This step will take a while. Building everything from scratch, it will likely take several hours.
+
+If the build fails due a problem with the tar recipe, try this command:
+
+----
+bitbake -c clean tar-native
+----
+
+You can then retry bitbaking your image.
+
+== Running the built image
+
+=== Put the built image on an SD card for Raspberry Pi 3
+
+You can now flash the image onto an SD card using the same method as described for a xref:{pageroot}build-raspberry.adoc#_put_the_built_image_on_an_sd_card[regular Raspberry Pi build]. However, the exact image you'll need will vary depending on the architecture you're building forfootnote:[For example, building the `agl-image-minimal` target for Raspberry Pi 3 creates an image at `build/tmp/deploy/images/raspberrypi3/agl-image-minimal-raspberrypi3.wic`.], but it will be located in the `/tmp/deploy/images` directory under your build directory. You can also use https://www.balena.io/etcher/[Etcher, window="_blank"] to write the image, or follow the normal flashing procedure for your device if applicable.
 
 TIP: You can also write the image using `dd`, but since the wrong kind of typo in a dd command is so dangerous, we don't recommend it.
 
-You'll probably also want to resize the main partition to fill all of the space on the boot media:
+=== Run with QEMU
 
-----
-sudo parted -s /dev/sdX resizepart 2 '100%' <1>
-sudo resize2fs /dev/sdX2 <1>
-----
-<1> Where /dev/sdX is the device you wrote the image to.
-
-You should now be able to boot your device and have it show up in your {product-name-short} account.
+You can now run the image in QEMU using the same method as described for a xref:{pageroot}build-qemu.adoc#_run_the_built_image_with_qemu[regular QEMU build]. However, the exact image you'll need will vary depending on the architecture you're building forfootnote:[For example, building the `agl-image-minimal` target for QEMU creates an image at `build/tmp/deploy/images/raspberrypi3/agl-image-minimal-qemux86-64.ota-ext4`.], but it will be located in the `/tmp/deploy/images` directory under your build directory.
 
 include::partial$recommended-steps.adoc[tags=firstbuild-nextstep]
