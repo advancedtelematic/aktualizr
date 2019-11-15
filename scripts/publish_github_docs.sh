@@ -9,9 +9,6 @@ DRY_RUN=${DRY_RUN:-0}
 DESCRIBE=$(git describe)
 LAST_TAG=$(git describe --abbrev=0)
 
-DOX_DOCS=$(realpath "$DOX_DOCS")
-WORKTREE=$(realpath "$WORKTREE")
-
 set -x
 
 git remote add github_rls "$GIT_REMOTE" || true
@@ -24,8 +21,13 @@ fi
 gitcommit() (
     export GIT_AUTHOR_NAME="HERE OTA Gitlab CI"
     export GIT_AUTHOR_EMAIL="gitlab@example.org"
+    export GIT_COMMITTER_NAME=$GIT_AUTHOR_NAME
+    export GIT_COMMITTER_EMAIL=$GIT_AUTHOR_EMAIL
     git commit "$@"
 )
+
+DOX_DOCS=$(realpath "$DOX_DOCS")
+WORKTREE=$(realpath "$WORKTREE")
 
 (
 cd "$WORKTREE"

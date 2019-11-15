@@ -133,6 +133,9 @@ debian-build+static:
     key: "$CI_JOB_NAME"
     paths:
       - ccache/
+  artifacts:
+    paths:
+      - build-debian-testing/docs/doxygen/
   script:
     - ./scripts/test.sh
 
@@ -271,7 +274,9 @@ github-release:
   dependencies:
     - bionic-pkg
     - xenial-pkg
+    - debian-build+static  # for doxygen
   script:
+    # github release
     - ./scripts/make_src_archive.sh ./aktualizr_src-$CI_COMMIT_TAG.tar.gz
     - >-
       ./scripts/publish_github_rls.py $CI_COMMIT_TAG
@@ -280,9 +285,16 @@ github-release:
       build-bionic/pkg/garage_deploy-ubuntu_18.04.deb
       build-bionic/pkg/aktualizr-ubuntu_18.04.deb
       aktualizr_src-$CI_COMMIT_TAG.tar.gz
+    # github doxygen
+    - ./scripts/publish_github_docs.sh
   only:
     variables:
       - $CI_COMMIT_TAG =~ /^\d\d\d\d\.\d+(-\w+)?$/
+  except:
+    - /^20\d\d\.\d\d?-docs$/
+  variables:
+    DOX_DOCS: 'build-debian-testing/docs/doxygen/html'
+    TEST_BUILD_DIR: 'build-gh-rls'
 
 # -- publish coverage results on gitlab pages
 
