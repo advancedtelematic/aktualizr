@@ -127,7 +127,7 @@ int main(int argc, char **argv) {
   printf("Found new updates for %zu target(s)\n", targets_num);
   for (size_t i = 0; i < targets_num; i++) {
     t = Aktualizr_get_nth_target(u, i);
-    char *name = Aktualizr_get_target_name(t);
+    const char *name = Aktualizr_get_target_name(t);
     if (name == NULL) {
       printf("Aktualizr_get_target_name returned NULL\n");
       CLEANUP_AND_RETURN_FAILED;
@@ -159,7 +159,7 @@ int main(int argc, char **argv) {
     size_t size = Aktualizr_read_stored_target(handle, buf, bufSize);
     printf("Downloading target %s: extracted %li bytes (buffer size = %li), content:\n", name, (long int)size,
            (long int)bufSize);
-    free(name);
+    Aktualizr_free_target_name(name);
     name = NULL;
 
     if (size == 0) {

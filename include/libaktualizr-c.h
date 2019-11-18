@@ -39,7 +39,8 @@ void Aktualizr_updates_free(Updates *u);
 
 size_t Aktualizr_get_targets_num(Updates *u);
 Target *Aktualizr_get_nth_target(Updates *u, size_t n);
-char *Aktualizr_get_target_name(Target *t);
+const char *Aktualizr_get_target_name(Target *t);
+void Aktualizr_free_target_name(const char *n);
 
 int Aktualizr_download_target(Aktualizr *a, Target *t);
 
