@@ -181,7 +181,7 @@ if (BUILD_SOTA_TOOLS)
     # Get targets.json from images repository.
     # Find specified OSTree ref in targets.json.
     add_test(NAME check_not_expired_targets
-        COMMAND ${PROJECT_SOURCE_DIR}/tests/run_expired_test.sh 2019-11-17T23:58:40Z ${CMAKE_BINARY_DIR}
+        COMMAND ${PROJECT_SOURCE_DIR}/tests/run_expired_test.sh 2031-11-17T23:58:40Z ${CMAKE_BINARY_DIR}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
     # Verify that a commit exists in a remote repo.
