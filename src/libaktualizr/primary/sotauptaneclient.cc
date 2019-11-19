@@ -190,6 +190,13 @@ Json::Value SotaUptaneClient::AssembleManifest() {
   Json::Value version_manifest;
 
   Json::Value primary_ecu_version = package_manager_->getManifest(primary_ecu_serial);
+  std::vector<std::pair<Uptane::EcuSerial, int64_t>> ecu_cnt;
+  if (!storage->loadEcuReportCounter(&ecu_cnt) || (ecu_cnt.size() == 0)) {
+    LOG_ERROR << "No ECU version report counter, please check the database!";
+  } else {
+    primary_ecu_version["report_counter"] = std::to_string(ecu_cnt[0].second + 1);
+    storage->saveEcuReportCounter(ecu_cnt[0].first, ecu_cnt[0].second + 1);
+  }
   version_manifest[primary_ecu_serial.ToString()] = uptane_manifest.signManifest(primary_ecu_version);
 
   for (auto it = secondaries.begin(); it != secondaries.end(); it++) {

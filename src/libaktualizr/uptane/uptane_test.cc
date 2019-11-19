@@ -155,6 +155,13 @@ TEST(Uptane, AssembleManifestGood) {
   // Manifest should not have an installation result yet.
   EXPECT_FALSE(manifest["testecuserial"]["signed"].isMember("custom"));
   EXPECT_FALSE(manifest["secondary_ecu_serial"]["signed"].isMember("custom"));
+
+  std::string counter_str = manifest["testecuserial"]["signed"]["report_counter"].asString();
+  int64_t primary_ecu_report_counter = std::stoll(counter_str);
+  Json::Value manifest2 = sota_client->AssembleManifest()["ecu_version_manifests"];
+  std::string counter_str2 = manifest2["testecuserial"]["signed"]["report_counter"].asString();
+  int64_t primary_ecu_report_counter2 = std::stoll(counter_str2);
+  EXPECT_EQ(primary_ecu_report_counter2, primary_ecu_report_counter + 1);
 }
 
 /* Bad signatures are ignored when assembling the manifest. */

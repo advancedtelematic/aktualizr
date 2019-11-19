@@ -1323,6 +1323,57 @@ bool SQLStorage::loadDeviceInstallationResult(data::InstallationResult* result, 
   return true;
 }
 
+void SQLStorage::saveEcuReportCounter(const Uptane::EcuSerial& ecu_serial, const int64_t counter) {
+  SQLite3Guard db = dbConnection();
+
+  auto statement = db.prepareStatement<std::string, int64_t>(
+      "INSERT OR REPLACE INTO ecu_report_counter (ecu_serial, counter) VALUES "
+      "(?,?);",
+      ecu_serial.ToString(), counter);
+  if (statement.step() != SQLITE_DONE) {
+    LOG_ERROR << "Can't set ecu counter: " << db.errmsg();
+    return;
+  }
+}
+
+bool SQLStorage::loadEcuReportCounter(std::vector<std::pair<Uptane::EcuSerial, int64_t>>* results) {
+  SQLite3Guard db = dbConnection();
+
+  std::vector<std::pair<Uptane::EcuSerial, int64_t>> ecu_cnt;
+
+  // keep the same order as in ecu_serials (start with primary)
+  auto statement = db.prepareStatement(
+      "SELECT ecu_serial, counter FROM ecu_report_counter INNER JOIN ecu_serials ON "
+      "ecu_serials.serial = ecu_serial ORDER BY ecu_serials.id;");
+  int statement_result = statement.step();
+  if (statement_result != SQLITE_DONE && statement_result != SQLITE_ROW) {
+    LOG_ERROR << "Can't get ecu_report_counter: " << db.errmsg();
+    return false;
+  }
+
+  if (statement_result == SQLITE_DONE) {
+    // if there are no any record in the DB
+    return false;
+  }
+
+  for (; statement_result != SQLITE_DONE; statement_result = statement.step()) {
+    try {
+      std::string ecu_serial = statement.get_result_col_str(0).value();
+      int64_t counter = statement.get_result_col_int(1);
+
+      ecu_cnt.emplace_back(Uptane::EcuSerial(ecu_serial), counter);
+    } catch (const boost::bad_optional_access&) {
+      return false;
+    }
+  }
+
+  if (results != nullptr) {
+    *results = std::move(ecu_cnt);
+  }
+
+  return true;
+}
+
 void SQLStorage::clearInstallationResults() {
   SQLite3Guard db = dbConnection();
   if (!db.beginTransaction()) {

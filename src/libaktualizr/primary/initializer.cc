@@ -201,11 +201,28 @@ InitRetCode Initializer::initEcuRegister() {
   return InitRetCode::kOk;
 }
 
+bool Initializer::initEcuReportCounter() {
+  std::vector<std::pair<Uptane::EcuSerial, int64_t>> ecu_cnt;
+
+  if (storage_->loadEcuReportCounter(&ecu_cnt)) {
+    return true;
+  }
+
+  EcuSerials ecu_serials;
+
+  if (!storage_->loadEcuSerials(&ecu_serials) || (ecu_serials.size() == 0)) {
+    return false;
+  }
+
+  storage_->saveEcuReportCounter(Uptane::EcuSerial(ecu_serials[0].first.ToString()), 0);
+
+  return true;
+}
 // Postcondition: "ECUs registered" flag set in the storage
 Initializer::Initializer(
     const ProvisionConfig& config_in, std::shared_ptr<INvStorage> storage_in,
     std::shared_ptr<HttpInterface> http_client_in, KeyManager& keys_in,
-    const std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >& secondary_info_in)
+    const std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>>& secondary_info_in)
     : config_(config_in),
       storage_(std::move(storage_in)),
       http_client_(std::move(http_client_in)),
@@ -239,6 +256,10 @@ Initializer::Initializer(
     }
     if (!initEcuSerials()) {
       LOG_ERROR << "ECU serial generation failed. Aborting initialization.";
+      return;
+    }
+    if (!initEcuReportCounter()) {
+      LOG_ERROR << "ECU report counter init failed. Aborting initialization.";
       return;
     }
 
