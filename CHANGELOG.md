@@ -7,6 +7,30 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 ## [??? (unreleased)]
 
 
+## [2019.10] - 2019-11-15
+
+### Added
+
+- Option to send Android repo manifest via garage-push: [PR](https://github.com/advancedtelematic/aktualizr/pull/1440)
+- Expanded [C API](https://github.com/advancedtelematic/aktualizr/blob/master/include/libaktualizr-c.h): [PR #1387](https://github.com/advancedtelematic/aktualizr/pull/1387) and [PR #1429](https://github.com/advancedtelematic/aktualizr/pull/1429)
+
+### Changed
+
+- Hardware information is only sent if it has changed: [PR](https://github.com/advancedtelematic/aktualizr/pull/1434)
+- Builds without OSTree now default to using the binary package manager: [PR](https://github.com/advancedtelematic/aktualizr/pull/1432)
+- New endpoint for reporting hardware information: [PR](https://github.com/advancedtelematic/aktualizr/pull/1421)
+
+### Removed
+
+- libsystemd dependency and socket activation support: [PR](https://github.com/advancedtelematic/aktualizr/pull/1437)
+
+### Fixed
+
+- Enforce a limit of 10 HTTP redirects: [PR](https://github.com/advancedtelematic/aktualizr/pull/1420)
+- Reject malformed root.json: [PR](https://github.com/advancedtelematic/aktualizr/pull/1417)
+- Fall back on full file download if byte range requests are not supported: [PR](https://github.com/advancedtelematic/aktualizr/pull/1416)
+
+
 ## [2019.9] - 2019-10-16
 
 ### Added
