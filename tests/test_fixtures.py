@@ -139,7 +139,7 @@ class Aktualizr:
         subprocess.run([self._aktualizr_primary_exe, '-c', self._config_file, '--run-mode', run_mode],
                        check=True, env=self._run_env)
 
-    def get_info(self, retry=10):
+    def get_info(self, retry=15):
         info_exe_res = None
         for ii in range(0, retry):
             info_exe_res = subprocess.run([self._aktualizr_info_exe, '-c', self._config_file],
@@ -151,6 +151,7 @@ class Aktualizr:
         if info_exe_res and info_exe_res.returncode == 0:
             return str(info_exe_res.stdout)
         else:
+            logger.error(str(info_exe_res.stderr))
             return None
 
     # ugly stuff that could be removed if Aktualizr had exposed API to check status
@@ -197,9 +198,13 @@ class Aktualizr:
     def get_current_primary_image_info(self):
         primary_hash_field = 'Current primary ecu running version: '
         aktualizr_status = self.get_info()
-        start = aktualizr_status.find(primary_hash_field)
-        end = aktualizr_status.find('\\n', start)
-        return aktualizr_status[start + len(primary_hash_field):end]
+        if aktualizr_status:
+            start = aktualizr_status.find(primary_hash_field)
+            end = aktualizr_status.find('\\n', start)
+            return aktualizr_status[start + len(primary_hash_field):end]
+        else:
+            logger.error("Failed to get aktualizr info/status")
+            return ""
 
     # ugly stuff that could be removed if Aktualizr had exposed API to check status
     # or aktializr-info had output status/info in a structured way (e.g. json)
