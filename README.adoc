@@ -41,7 +41,7 @@ This client is aligned with the https://uptane.github.io[Uptane] security framew
 To install the minimal requirements on Debian/Ubuntu, run this:
 
 ----
-sudo apt install asn1c build-essential cmake curl libarchive-dev libboost-dev libboost-filesystem-dev libboost-log-dev libboost-program-options-dev libcurl4-openssl-dev libpthread-stubs0-dev libsodium-dev libsqlite3-dev libssl-dev
+sudo apt install asn1c build-essential cmake curl libarchive-dev libboost-dev libboost-filesystem-dev libboost-log-dev libboost-program-options-dev libcurl4-openssl-dev libpthread-stubs0-dev libsodium-dev libsqlite3-dev libssl-dev python3
 ----
 
 The default versions packaged in recent Debian/Ubuntu releases are generally new enough to be compatible. If you are using older releases or a different variety of Linux, there are a few known minimum versions:
@@ -54,7 +54,6 @@ The default versions packaged in recent Debian/Ubuntu releases are generally new
 
 Additional packages are used for non-essential components:
 
-* To build the garage tools, you will need `python3`.
 * To build the test suite, you will need `net-tools python3-dev python3-openssl python3-venv sqlite3 valgrind`.
 * To run the linting tools, you will need `clang clang-format-6.0 clang-tidy-6.0`.
 * To build additional documentation, you will need `doxygen graphviz`.
