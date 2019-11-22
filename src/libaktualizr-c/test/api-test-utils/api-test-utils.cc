@@ -3,26 +3,23 @@
 #include <boost/process.hpp>
 #include "config/config.h"
 #include "test_utils.h"
+#include "utilities/utils.h"
 
 std::string serverAddress;
+std::unique_ptr<boost::process::child> server;
+std::unique_ptr<TemporaryDirectory> temp_dir;
 
-FakeHttpServer *Run_fake_http_server(const char *serverPath, const char *metaPath) {
+void Run_fake_http_server(const char *serverPath, const char *metaPath) {
   std::string port = TestUtils::getFreePort();
   serverAddress = "http://127.0.0.1:" + port;
 
-  auto *server_handle = new boost::process::child(serverPath, port, "-f", "-m", metaPath);
+  server = std_::make_unique<boost::process::child>(serverPath, port, "-f", "-m", metaPath);
   TestUtils::waitForServer(serverAddress + "/");
-
-  return server_handle;
 }
 
-void Stop_fake_http_server(FakeHttpServer *server) {
-  if (server != nullptr && server->valid()) {
-    delete server;
-  }
-}
+void Stop_fake_http_server() { server.reset(); }
 
-Config *Get_test_config(const char *storagePath) {
+Config *Get_test_config() {
   auto *config = new Config();
 
   config->tls.server = serverAddress;
@@ -32,7 +29,8 @@ Config *Get_test_config(const char *storagePath) {
   config->provision.server = serverAddress;
   config->provision.provision_path = "tests/test_data/cred.zip";
 
-  config->storage.path = storagePath;
+  temp_dir = std_::make_unique<TemporaryDirectory>();
+  config->storage.path = temp_dir->Path();
   config->pacman.type = PackageManager::kNone;
 
   config->postUpdateValues();

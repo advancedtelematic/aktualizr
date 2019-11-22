@@ -6,7 +6,7 @@
 #include "libaktualizr-c.h"
 
 #define CLEANUP_AND_RETURN_FAILED \
-  Stop_fake_http_server(server);  \
+  Stop_fake_http_server();        \
   return EXIT_FAILURE;
 
 struct EventCounts {
@@ -40,7 +40,6 @@ int main(int argc, char **argv) {
   Updates *u;
   Target *t;
   Config *cfg;
-  FakeHttpServer *server;
   int err;
 
   if (argc != 3) {
@@ -50,9 +49,9 @@ int main(int argc, char **argv) {
 
   const char *serverPath = argv[1];
   const char *metaPath = argv[2];
-  server = Run_fake_http_server(serverPath, metaPath);
+  Run_fake_http_server(serverPath, metaPath);
 
-  cfg = Get_test_config(/* storagePath = */ metaPath);
+  cfg = Get_test_config();
   a = Aktualizr_create_from_cfg(cfg);
   if (!a) {
     printf("Aktualizr_create_from_cfg failed\n");
@@ -205,7 +204,6 @@ int main(int argc, char **argv) {
 
   Aktualizr_destroy(a);
 
-  Stop_fake_http_server(server);
   Remove_test_config(cfg);
 
   if (counts.AllInstallsCompleteCount == 0 || counts.CampaignCheckCompleteCount == 0 ||
