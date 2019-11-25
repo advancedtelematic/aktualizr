@@ -14,10 +14,10 @@ typedef struct Config Config;
 typedef struct FakeHttpServer FakeHttpServer;
 #endif
 
-FakeHttpServer* Run_fake_http_server(const char* serverPath, const char* metaPath);
-void Stop_fake_http_server(FakeHttpServer* server);
+void Run_fake_http_server(const char* serverPath, const char* metaPath);
+void Stop_fake_http_server();
 
-Config* Get_test_config(const char* storagePath);
+Config* Get_test_config();
 void Remove_test_config(Config* config);
 
 #ifdef __cplusplus
