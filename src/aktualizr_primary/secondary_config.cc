@@ -53,11 +53,10 @@ config file example
 JsonConfigParser::JsonConfigParser(const boost::filesystem::path& config_file) {
   assert(boost::filesystem::exists(config_file));
   std::ifstream json_file_stream(config_file.string());
-  Json::Reader json_reader;
+  std::string errs;
 
-  if (!json_reader.parse(json_file_stream, root_, false)) {
-    throw std::invalid_argument("Failed to parse secondary config file: " + config_file.string() + ": " +
-                                json_reader.getFormattedErrorMessages());
+  if (!Json::parseFromStream(Json::CharReaderBuilder(), json_file_stream, &root_, &errs)) {
+    throw std::invalid_argument("Failed to parse secondary config file: " + config_file.string() + ": " + errs);
   }
 }
 

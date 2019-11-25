@@ -39,11 +39,11 @@ class UpdateCheck {
  public:
   UpdateCheck() = default;
   UpdateCheck(std::vector<Uptane::Target> updates_in, unsigned int ecus_count_in, UpdateStatus status_in,
-              const Json::Value &targets_meta_in, std::string message_in)
+              Json::Value targets_meta_in, std::string message_in)
       : updates(std::move(updates_in)),
         ecus_count(ecus_count_in),
         status(status_in),
-        targets_meta(targets_meta_in),
+        targets_meta(std::move(targets_meta_in)),
         message(std::move(message_in)) {}
   std::vector<Uptane::Target> updates;
   unsigned int ecus_count{0};
