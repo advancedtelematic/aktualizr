@@ -175,6 +175,7 @@ bool ImagesRepository::updateMeta(INvStorage& storage, const IMetadataFetcher& f
     // 2. If local_version becomes higher than 1, e.g. 2 than a rollback attack is possible since the business logic
     // here won't return any error as suggested in #4 of
     // https://uptane.github.io/uptane-standard/uptane-standard.html#check_root
+    // TODO: https://saeljira.it.here.com/browse/OTA-4119
     for (int version = local_version + 1; version <= remote_version; ++version) {
       if (!fetcher.fetchRole(&images_root, kMaxRootSize, RepositoryType::Image(), Role::Root(), Version(version))) {
         return false;
@@ -241,11 +242,11 @@ bool ImagesRepository::updateMeta(INvStorage& storage, const IMetadataFetcher& f
       local_version = -1;
     }
 
-    // I am not sure that #6 of https://uptane.github.io/uptane-standard/uptane-standard.html#check_snapshot is
-    // performed
     // 6. Check that each Targets metadata filename listed in the previous Snapshot metadata file is also listed in this
     // Snapshot metadata file. If this condition is not met, discard the new Snapshot metadata file, abort the update
     // cycle, and report the failure. (Checks for a rollback attack.)
+    // Let's wait for this ticket resolution https://github.com/uptane/uptane-standard/issues/149
+    // https://saeljira.it.here.com/browse/OTA-4121
     if (!verifySnapshot(images_snapshot)) {
       return false;
     }

@@ -132,6 +132,13 @@ bool AktualizrSecondary::sendFirmwareResp(const std::shared_ptr<std::string>& fi
     return false;
   }
 
+  // This check is not applicable for the ostree case, just for the binary file case(s)
+  if (targetToApply.length() != firmware->length()) {
+    LOG_ERROR << "The target image size specified in metadata " << targetToApply.length()
+              << " does not match actual size " << firmware->length();
+    return false;
+  }
+
   install_res = pacman->install(targetToApply);
   if (install_res.result_code.num_code != data::ResultCode::Numeric::kOk) {
     LOG_ERROR << "Could not install target (" << install_res.result_code.toString() << "): " << install_res.description;
@@ -182,7 +189,7 @@ bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
 
   // 1. Load and verify the current time or the most recent securely attested time.
   //
-  //    We trust the time that the given system/OS/ECU provides, In this ECU we trust :)
+  //    We trust the time that the given system/OS/ECU provides, In ECU We Trust :)
   TimeStamp now(TimeStamp::Now());
 
   // 2. Download and check the Root metadata file from the Director repository, following the procedure in
@@ -195,8 +202,9 @@ bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
   // procedure in Section 5.4.4.5.
   //
   // 5. Download and check the Targets metadata file from the Director repository, following the procedure in
-  // Section 5.4.4.6. DirectorRepository::updateMeta() method implements this verification step The followin steps of
-  // the Director's target metadata verification are missing in DirectorRepository::updateMeta()
+  // Section 5.4.4.6. DirectorRepository::updateMeta() method implements this verification step
+  //
+  // The followin steps of the Director's target metadata verification are missing in DirectorRepository::updateMeta()
   //  6. If checking Targets metadata from the Director repository, verify that there are no delegations.
   //  7. If checking Targets metadata from the Director repository, check that no ECU identifier is represented more
   //  than once.

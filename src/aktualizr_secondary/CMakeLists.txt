@@ -53,6 +53,11 @@ list(INSERT TEST_LIBS 0 aktualizr_secondary_static_lib)
 add_aktualizr_test(NAME aktualizr_secondary_config
                    SOURCES aktualizr_secondary_config_test.cc PROJECT_WORKING_DIRECTORY)
 
+add_aktualizr_test(NAME aktualizr_secondary_uptane_verification
+                   SOURCES uptane_verification_test.cc
+                   ARGS "$<TARGET_FILE:uptane-generator>"
+                   PROJECT_WORKING_DIRECTORY)
+
 add_aktualizr_test(NAME aktualizr_secondary_update
                    SOURCES update_test.cc
                    ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)

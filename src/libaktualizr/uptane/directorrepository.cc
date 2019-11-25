@@ -96,10 +96,11 @@ bool DirectorRepository::updateMeta(INvStorage& storage, const IMetadataFetcher&
 
   // Update Director Root Metadata
   {
-    // This procedure doesn't exactly follow the spec:
-    // https://uptane.github.io/uptane-standard/uptane-standard.html#check_root At first, it should try to download N+1
-    // version of the Root metadata file instead of downloading the "latest" one how do we know which version is the
-    // latest and why just root.json is downloaded ?
+    // According to the current design root.json without a number is guaranteed to be the latest version.
+    // Therefore we fetch the latest (root.json), and
+    // if it matches what we already have stored, we're good.
+    // If not, then we have to go fetch the missing ones by name/number until we catch up.
+
     std::string director_root;
     if (!fetcher.fetchLatestRole(&director_root, kMaxRootSize, RepositoryType::Director(), Role::Root())) {
       return false;
@@ -118,6 +119,7 @@ bool DirectorRepository::updateMeta(INvStorage& storage, const IMetadataFetcher&
     // 2. If local_version becomes higher than 1, e.g. 2 than a rollback attack is possible since the business logic
     // here won't return any error as suggested in #4 of
     // https://uptane.github.io/uptane-standard/uptane-standard.html#check_root
+    // TODO: https://saeljira.it.here.com/browse/OTA-4119
     for (int version = local_version + 1; version <= remote_version; ++version) {
       if (!fetcher.fetchRole(&director_root, kMaxRootSize, RepositoryType::Director(), Role::Root(),
                              Version(version))) {
@@ -172,6 +174,7 @@ bool DirectorRepository::updateMeta(INvStorage& storage, const IMetadataFetcher&
     //  6. If checking Targets metadata from the Director repository, verify that there are no delegations.
     //  7. If checking Targets metadata from the Director repository, check that no ECU identifier is represented more
     //  than once.
+    // TODO: https://saeljira.it.here.com/browse/OTA-4118
     if (!verifyTargets(director_targets)) {
       return false;
     }
