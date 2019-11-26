@@ -46,7 +46,7 @@ bool PartialVerificationSecondary::putMetadata(const RawMetaPack &meta) {
   std::vector<Uptane::Target>::const_iterator it;
   bool target_found = false;
   for (it = meta_targets_.targets.begin(); it != meta_targets_.targets.end(); ++it) {
-    if (it->IsForSecondary(getSerial())) {
+    if (it->IsForEcu(getSerial())) {
       if (target_found) {
         detected_attack_ = "Duplicate entry for this ECU";
         break;

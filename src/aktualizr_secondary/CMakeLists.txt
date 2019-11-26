@@ -4,6 +4,7 @@ set(AKTUALIZR_SECONDARY_LIB_SRC
     aktualizr_secondary.cc
     aktualizr_secondary_config.cc
     aktualizr_secondary_common.cc
+    aktualizr_secondary_metadata.cc
     socket_server.cc
     )
 
@@ -40,6 +41,7 @@ set(ALL_AKTUALIZR_SECONDARY_HEADERS
     aktualizr_secondary_interface.h
     aktualizr_secondary_config.h
     aktualizr_secondary_common.h
+    aktualizr_secondary_metadata.h
     socket_server.h
     )
 
@@ -50,6 +52,11 @@ list(INSERT TEST_LIBS 0 aktualizr_secondary_static_lib)
 
 add_aktualizr_test(NAME aktualizr_secondary_config
                    SOURCES aktualizr_secondary_config_test.cc PROJECT_WORKING_DIRECTORY)
+
+add_aktualizr_test(NAME aktualizr_secondary_uptane_verification
+                   SOURCES uptane_verification_test.cc
+                   ARGS "$<TARGET_FILE:uptane-generator>"
+                   PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME aktualizr_secondary_update
                    SOURCES update_test.cc

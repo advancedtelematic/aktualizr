@@ -16,17 +16,16 @@ class AktualizrSecondaryCommon {
 
   bool uptaneInitialize();
 
-  AktualizrSecondaryConfig config_;
+  const Uptane::EcuSerial& getSerial() const { return ecu_serial_; }
 
+ protected:
+  AktualizrSecondaryConfig config_;
   std::shared_ptr<INvStorage> storage_;
   KeyManager keys_;
   Uptane::EcuSerial ecu_serial_;
   Uptane::HardwareIdentifier hardware_id_;
   std::shared_ptr<PackageManagerInterface> pacman;
   Uptane::Root root_;
-  Uptane::Targets meta_targets_;
-  std::string detected_attack_;
-  std::unique_ptr<Uptane::Target> target_;
 };
 
 #endif  // AKTUALIZR_SECONDARY_COMMON_H_

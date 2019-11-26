@@ -70,7 +70,7 @@ bool DirectorRepository::checkMetaOffline(INvStorage& storage) {
   return true;
 }
 
-bool DirectorRepository::updateMeta(INvStorage& storage, Fetcher& fetcher) {
+bool DirectorRepository::updateMeta(INvStorage& storage, const IMetadataFetcher& fetcher) {
   // Uptane step 2 (download time) is not implemented yet.
   // Uptane step 3 (download metadata)
 
@@ -96,6 +96,11 @@ bool DirectorRepository::updateMeta(INvStorage& storage, Fetcher& fetcher) {
 
   // Update Director Root Metadata
   {
+    // According to the current design root.json without a number is guaranteed to be the latest version.
+    // Therefore we fetch the latest (root.json), and
+    // if it matches what we already have stored, we're good.
+    // If not, then we have to go fetch the missing ones by name/number until we catch up.
+
     std::string director_root;
     if (!fetcher.fetchLatestRole(&director_root, kMaxRootSize, RepositoryType::Director(), Role::Root())) {
       return false;
@@ -108,6 +113,13 @@ bool DirectorRepository::updateMeta(INvStorage& storage, Fetcher& fetcher) {
 
     int local_version = rootVersion();
 
+    // if remote_version <= local_version then the director's root metadata are never verified
+    // which leads to two issues
+    // 1. At initial stage (just after provisioning) the root metadata from 1.root.json are not verified
+    // 2. If local_version becomes higher than 1, e.g. 2 than a rollback attack is possible since the business logic
+    // here won't return any error as suggested in #4 of
+    // https://uptane.github.io/uptane-standard/uptane-standard.html#check_root
+    // TODO: https://saeljira.it.here.com/browse/OTA-4119
     for (int version = local_version + 1; version <= remote_version; ++version) {
       if (!fetcher.fetchRole(&director_root, kMaxRootSize, RepositoryType::Director(), Role::Root(),
                              Version(version))) {
@@ -121,10 +133,17 @@ bool DirectorRepository::updateMeta(INvStorage& storage, Fetcher& fetcher) {
       storage.clearNonRootMeta(RepositoryType::Director());
     }
 
+    // Check that the current (or latest securely attested) time is lower than the expiration timestamp in the latest
+    // Root metadata file. (Checks for a freeze attack.)
     if (rootExpired()) {
       return false;
     }
   }
+
+  // Not supported: 3. Download and check the Timestamp metadata file from the Director repository, following the
+  // procedure in Section 5.4.4.4. Not supported: 4. Download and check the Snapshot metadata file from the Director
+  // repository, following the procedure in Section 5.4.4.5.
+
   // Update Director Targets Metadata
   {
     std::string director_targets;
@@ -146,6 +165,16 @@ bool DirectorRepository::updateMeta(INvStorage& storage, Fetcher& fetcher) {
       local_version = -1;
     }
 
+    // Not supported: If the ECU performing the verification is the Primary ECU, it SHOULD also ensure that the Targets
+    // metadata from the Director repository doesn’t contain any ECU identifiers for ECUs not actually present in the
+    // vehicle.
+
+    // Not supported: The followin steps of the Director's target metadata verification are missing in
+    // DirectorRepository::updateMeta()
+    //  6. If checking Targets metadata from the Director repository, verify that there are no delegations.
+    //  7. If checking Targets metadata from the Director repository, check that no ECU identifier is represented more
+    //  than once.
+    // TODO: https://saeljira.it.here.com/browse/OTA-4118
     if (!verifyTargets(director_targets)) {
       return false;
     }

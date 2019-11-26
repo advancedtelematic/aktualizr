@@ -249,7 +249,7 @@ class Target {
   void setUri(std::string uri) { uri_ = std::move(uri); };
   bool MatchHash(const Hash &hash) const;
 
-  bool IsForSecondary(const EcuSerial &ecuIdentifier) const {
+  bool IsForEcu(const EcuSerial &ecuIdentifier) const {
     return (std::find_if(ecus_.cbegin(), ecus_.cend(), [&ecuIdentifier](std::pair<EcuSerial, HardwareIdentifier> pair) {
               return pair.first == ecuIdentifier;
             }) != ecus_.cend());
@@ -428,12 +428,24 @@ class Targets : public MetaWithKeys {
   bool operator==(const Targets &rhs) const {
     return version_ == rhs.version() && expiry_ == rhs.expiry() && MatchTargetVector(targets, rhs.targets);
   }
+
   const std::string &correlation_id() const { return correlation_id_; }
+
   void clear() {
     targets.clear();
     delegated_role_names_.clear();
     paths_for_role_.clear();
     terminating_role_.clear();
+  }
+
+  std::vector<Uptane::Target> getTargets(const Uptane::EcuSerial &ecu_id) const {
+    std::vector<Uptane::Target> result;
+    for (auto it = targets.begin(); it != targets.end(); ++it) {
+      if (it->ecus().find(ecu_id) != it->ecus().end()) {
+        result.push_back(*it);
+      }
+    }
+    return result;
   }
 
   std::vector<Uptane::Target> targets;
