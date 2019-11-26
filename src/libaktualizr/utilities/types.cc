@@ -50,9 +50,9 @@ Json::Value Package::toJson() {
 }
 
 Package Package::fromJson(const std::string &json_str) {
-  Json::Reader reader;
+  std::istringstream jsonss(json_str);
   Json::Value json;
-  reader.parse(json_str, json);
+  Json::parseFromStream(Json::CharReaderBuilder(), jsonss, &json, nullptr);
   Package package;
   package.name = json["name"].asString();
   package.version = json["version"].asString();

@@ -986,7 +986,7 @@ void SQLStorage::saveInstalledVersion(const std::string& ecu_serial, const Uptan
       return;
     }
   } else {
-    std::string custom = Json::FastWriter().write(target.custom_data());
+    std::string custom = Utils::jsonToCanonicalStr(target.custom_data());
     auto statement = db.prepareStatement<std::string, std::string, std::string, std::string, int64_t, std::string,
                                          std::string, int, int>(
         "INSERT INTO installed_versions(ecu_serial, sha256, name, hashes, length, custom_meta, correlation_id, "
@@ -1073,12 +1073,13 @@ bool SQLStorage::loadInstallationLog(const std::string& ecu_serial, std::vector<
 
       Uptane::Target t(filename, ecu_map, hashes, static_cast<uint64_t>(length), correlation_id);
       if (!custom_str.empty()) {
-        Json::Reader reader;
+        std::istringstream css(custom_str);
+        std::string errs;
         Json::Value custom;
-        if (reader.parse(custom_str, custom)) {
+        if (Json::parseFromStream(Json::CharReaderBuilder(), css, &custom, nullptr)) {
           t.updateCustom(custom);
         } else {
-          LOG_ERROR << "Unable to parse custom data: " << reader.getFormatedErrorMessages();
+          LOG_ERROR << "Unable to parse custom data: " << errs;
         }
       }
       new_log.emplace_back(t);
@@ -1133,12 +1134,13 @@ bool SQLStorage::loadInstalledVersions(const std::string& ecu_serial, boost::opt
     }
     Uptane::Target t(filename, ecu_map, hashes, static_cast<uint64_t>(length), correlation_id);
     if (!custom_str.empty()) {
-      Json::Reader reader;
+      std::istringstream css(custom_str);
       Json::Value custom;
-      if (reader.parse(custom_str, custom)) {
+      std::string errs;
+      if (Json::parseFromStream(Json::CharReaderBuilder(), css, &custom, &errs)) {
         t.updateCustom(custom);
       } else {
-        LOG_ERROR << "Unable to parse custom data: " << reader.getFormatedErrorMessages();
+        LOG_ERROR << "Unable to parse custom data: " << errs;
       }
     }
 

@@ -218,7 +218,7 @@ Json::Value KeyManager::signTuf(const Json::Value &in_data) const {
   std::string b64sig;
   if (config_.uptane_key_source == CryptoSource::kAndroid) {
 #if defined(ANDROID)
-    b64sig = AndroidKeyStore::instance().signData(Json::FastWriter().write(in_data));
+    b64sig = AndroidKeyStore::instance().signData(Utils::jsonToCanonicalStr(in_data));
 #else
     throw std::runtime_error("Aktualizr was built without Android support");
 #endif
@@ -227,7 +227,7 @@ Json::Value KeyManager::signTuf(const Json::Value &in_data) const {
       backend_->loadPrimaryPrivate(&private_key);
     }
     b64sig = Utils::toBase64(
-        Crypto::Sign(config_.uptane_key_type, crypto_engine, private_key, Json::FastWriter().write(in_data)));
+        Crypto::Sign(config_.uptane_key_type, crypto_engine, private_key, Utils::jsonToCanonicalStr(in_data)));
   }
 
   Json::Value signature;

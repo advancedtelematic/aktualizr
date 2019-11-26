@@ -26,10 +26,8 @@ VirtualSecondaryConfig::VirtualSecondaryConfig(const Json::Value& json_config) :
 std::vector<VirtualSecondaryConfig> VirtualSecondaryConfig::create_from_file(
     const boost::filesystem::path& file_full_path) {
   Json::Value json_config;
-  Json::Reader reader;
   std::ifstream json_file(file_full_path.string());
-
-  reader.parse(json_file, json_config);
+  Json::parseFromStream(Json::CharReaderBuilder(), json_file, &json_config, nullptr);
   json_file.close();
 
   std::vector<VirtualSecondaryConfig> sec_configs;
@@ -57,10 +55,13 @@ void VirtualSecondaryConfig::dump(const boost::filesystem::path& file_full_path)
   Json::Value root;
   root[Type].append(json_config);
 
-  Json::StyledStreamWriter json_writer;
+  Json::StreamWriterBuilder json_bwriter;
+  json_bwriter["indentation"] = "\t";
+  std::unique_ptr<Json::StreamWriter> const json_writer(json_bwriter.newStreamWriter());
+
   boost::filesystem::create_directories(file_full_path.parent_path());
   std::ofstream json_file(file_full_path.string());
-  json_writer.write(json_file, root);
+  json_writer->write(root, &json_file);
   json_file.close();
 }
 

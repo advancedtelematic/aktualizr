@@ -137,12 +137,12 @@ TEST(crypto, verify_ed25519) {
   root_stream.close();
   std::string signature = "lS1GII6MS2FAPuSzBPHOZbE0wLIRpFhlbaCSgNOJLT1h+69OjaN/YQq16uzoXX3rev/Dhw0Raa4v9xocE8GmBA==";
   PublicKey pkey("cb07563157805c279ec90ccb057f2c3ea6e89200e1e67f8ae66185987ded9b1c", KeyType::kED25519);
-  bool signe_is_ok = pkey.VerifySignature(signature, Json::FastWriter().write(Utils::parseJSON(text)));
+  bool signe_is_ok = pkey.VerifySignature(signature, Utils::jsonToCanonicalStr(Utils::parseJSON(text)));
   EXPECT_TRUE(signe_is_ok);
 
   std::string signature_bad =
       "33lS1GII6MS2FAPuSzBPHOZbE0wLIRpFhlbaCSgNOJLT1h+69OjaN/YQq16uzoXX3rev/Dhw0Raa4v9xocE8GmBA==";
-  signe_is_ok = pkey.VerifySignature(signature_bad, Json::FastWriter().write(Utils::parseJSON(text)));
+  signe_is_ok = pkey.VerifySignature(signature_bad, Utils::jsonToCanonicalStr(Utils::parseJSON(text)));
   EXPECT_FALSE(signe_is_ok);
 }
 

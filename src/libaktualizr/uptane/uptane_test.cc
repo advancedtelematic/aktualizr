@@ -516,7 +516,7 @@ class SecondaryInterfaceMock : public Uptane::SecondaryInterface {
     manifest_unsigned["key"] = "value";
 
     std::string b64sig = Utils::toBase64(
-        Crypto::Sign(sconfig.key_type, nullptr, private_key, Json::FastWriter().write(manifest_unsigned)));
+        Crypto::Sign(sconfig.key_type, nullptr, private_key, Utils::jsonToCanonicalStr(manifest_unsigned)));
     Json::Value signature;
     signature["method"] = "rsassa-pss";
     signature["sig"] = b64sig;

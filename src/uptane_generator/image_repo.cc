@@ -154,7 +154,7 @@ std::vector<std::string> ImageRepo::getDelegationTargets(const Uptane::Role &nam
   std::vector<std::string> result;
   boost::filesystem::path repo_dir(path_ / ImageRepo::dir);
   auto targets = Utils::parseJSONFile((repo_dir / "delegations") / (name.ToString() + ".json"))["signed"]["targets"];
-  for (Json::ValueIterator it = targets.begin(); it != targets.end(); ++it) {
+  for (auto it = targets.begin(); it != targets.end(); ++it) {
     result.push_back(it.key().asString());
   }
   return result;

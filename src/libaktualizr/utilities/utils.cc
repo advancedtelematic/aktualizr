@@ -243,9 +243,9 @@ std::string Utils::extractField(const std::string &in, unsigned int field_id) {
 }
 
 Json::Value Utils::parseJSON(const std::string &json_str) {
-  Json::Reader reader;
+  std::istringstream strs(json_str);
   Json::Value json_value;
-  reader.parse(json_str, json_value);
+  parseFromStream(Json::CharReaderBuilder(), strs, &json_value, nullptr);
   return json_value;
 }
 
@@ -349,7 +349,14 @@ std::string Utils::jsonToStr(const Json::Value &json) {
   return ss.str();
 }
 
-std::string Utils::jsonToCanonicalStr(const Json::Value &json) { return Json::FastWriter().write(json); }
+std::string Utils::jsonToCanonicalStr(const Json::Value &json) {
+  static Json::StreamWriterBuilder wbuilder = []() {
+    Json::StreamWriterBuilder w;
+    wbuilder["indentation"] = "";
+    return w;
+  }();
+  return Json::writeString(wbuilder, json);
+}
 
 Json::Value Utils::getHardwareInfo() {
   std::string result;

@@ -16,8 +16,6 @@ add_subdirectory(${GTEST_ROOT} ${CMAKE_CURRENT_BINARY_DIR}/gtest EXCLUDE_FROM_AL
 add_definitions(-Wswitch-default)
 add_subdirectory(uptane_repo_generation)
 
-include_directories("${PROJECT_SOURCE_DIR}/src/libaktualizr/third_party/jsoncpp")
-
 add_dependencies(build_tests aktualizr)
 if(BUILD_SOTA_TOOLS)
     add_dependencies(build_tests garage-push)

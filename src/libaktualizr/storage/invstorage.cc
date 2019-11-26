@@ -224,7 +224,7 @@ bool INvStorage::fsReadInstalledVersions(const boost::filesystem::path& filename
   const Json::Value installed_versions_json = Utils::parseJSONFile(filename.string());
   std::vector<Uptane::Target> new_versions;
   size_t k = 0;
-  for (Json::ValueIterator it = installed_versions_json.begin(); it != installed_versions_json.end(); ++it, ++k) {
+  for (auto it = installed_versions_json.begin(); it != installed_versions_json.end(); ++it, ++k) {
     if (!(*it).isObject()) {
       // We loaded old format, migrate to new one.
       Json::Value t_json;

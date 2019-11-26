@@ -168,7 +168,7 @@ HttpResponse HttpClient::post(const std::string& url, const Json::Value& data) {
   CURL* curl_post = Utils::curlDupHandleWrapper(curl, pkcs11_key);
   curlEasySetoptWrapper(curl_post, CURLOPT_URL, url.c_str());
   curlEasySetoptWrapper(curl_post, CURLOPT_POST, 1);
-  std::string data_str = Json::FastWriter().write(data);
+  std::string data_str = Utils::jsonToCanonicalStr(data);
   curlEasySetoptWrapper(curl_post, CURLOPT_POSTFIELDS, data_str.c_str());
   LOG_TRACE << "post request body:" << data;
   auto result = perform(curl_post, RETRY_TIMES, HttpInterface::kPostRespLimit);
@@ -179,7 +179,7 @@ HttpResponse HttpClient::post(const std::string& url, const Json::Value& data) {
 HttpResponse HttpClient::put(const std::string& url, const Json::Value& data) {
   CURL* curl_put = Utils::curlDupHandleWrapper(curl, pkcs11_key);
   curlEasySetoptWrapper(curl_put, CURLOPT_URL, url.c_str());
-  std::string data_str = Json::FastWriter().write(data);
+  std::string data_str = Utils::jsonToCanonicalStr(data);
   curlEasySetoptWrapper(curl_put, CURLOPT_POSTFIELDS, data_str.c_str());
   curlEasySetoptWrapper(curl_put, CURLOPT_CUSTOMREQUEST, "PUT");
   LOG_TRACE << "put request body:" << data;

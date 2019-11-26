@@ -10,7 +10,7 @@ MetaWithKeys::MetaWithKeys(RepositoryType repo, const Role &role, const Json::Va
     : BaseMeta(repo, role, json, signer) {}
 
 void Uptane::MetaWithKeys::ParseKeys(const RepositoryType repo, const Json::Value &keys) {
-  for (Json::ValueIterator it = keys.begin(); it != keys.end(); ++it) {
+  for (auto it = keys.begin(); it != keys.end(); ++it) {
     const std::string key_type = boost::algorithm::to_lower_copy((*it)["keytype"].asString());
     if (key_type != "rsa" && key_type != "ed25519") {
       throw SecurityException(repo, "Unsupported key type: " + (*it)["keytype"].asString());
@@ -21,7 +21,7 @@ void Uptane::MetaWithKeys::ParseKeys(const RepositoryType repo, const Json::Valu
   }
 }
 
-void Uptane::MetaWithKeys::ParseRole(const RepositoryType repo, const Json::ValueIterator &it, const Role &role,
+void Uptane::MetaWithKeys::ParseRole(const RepositoryType repo, const Json::ValueConstIterator &it, const Role &role,
                                      const std::string &meta_role) {
   if (role == Role::InvalidRole()) {
     LOG_WARNING << "Invalid role in " << meta_role << ".json";
@@ -50,7 +50,7 @@ void Uptane::MetaWithKeys::ParseRole(const RepositoryType repo, const Json::Valu
 
   // KeyIds
   const Json::Value keyids = (*it)["keyids"];
-  for (Json::ValueIterator itk = keyids.begin(); itk != keyids.end(); ++itk) {
+  for (auto itk = keyids.begin(); itk != keyids.end(); ++itk) {
     keys_for_role_.insert(std::make_pair(role, (*itk).asString()));
   }
 }
@@ -71,12 +71,12 @@ void Uptane::MetaWithKeys::UnpackSignedObject(const RepositoryType repo, const R
                             "Metadata type " + type.ToString() + " does not match expected role " + role.ToString());
   }
 
-  const std::string canonical = Json::FastWriter().write(signed_object["signed"]);
+  const std::string canonical = Utils::jsonToCanonicalStr(signed_object["signed"]);
   const Json::Value signatures = signed_object["signatures"];
   int valid_signatures = 0;
 
   std::set<std::string> used_keyids;
-  for (Json::ValueIterator sig = signatures.begin(); sig != signatures.end(); ++sig) {
+  for (auto sig = signatures.begin(); sig != signatures.end(); ++sig) {
     const std::string keyid = (*sig)["keyid"].asString();
     if (used_keyids.count(keyid) != 0) {
       throw NonUniqueSignatures(repository, role.ToString());

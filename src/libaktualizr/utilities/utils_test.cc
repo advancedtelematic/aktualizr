@@ -46,6 +46,23 @@ TEST(Utils, PrettyNameOk) {
   EXPECT_FALSE(PrettyNameOk("foo-bar-123&"));
 }
 
+TEST(Utils, parseJSON) {
+  // this should not cause valgrind warnings
+  Utils::parseJSON("");
+}
+
+TEST(Utils, jsonToCanonicalStr) {
+  const std::string sample = " { \"b\": 0, \"a\": [1, 2, {}], \"0\": \"x\"}";
+  Json::Value parsed;
+
+  parsed = Utils::parseJSON(sample);
+  EXPECT_EQ(Utils::jsonToCanonicalStr(parsed), "{\"0\":\"x\",\"a\":[1,2,{}],\"b\":0}");
+
+  const std::string sample2 = "0";
+  parsed = Utils::parseJSON(sample2);
+  EXPECT_EQ(Utils::jsonToCanonicalStr(parsed), "0");
+}
+
 /* Read hardware info from the system. */
 TEST(Utils, getHardwareInfo) {
   Json::Value hwinfo = Utils::getHardwareInfo();
