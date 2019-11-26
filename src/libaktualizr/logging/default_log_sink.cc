@@ -30,7 +30,11 @@ static void color_fmt(boost::log::record_view const& rec, boost::log::formatting
 }
 
 void logger_init_sink(bool use_colors = false) {
-  auto sink = boost::log::add_console_log(std::cout, boost::log::keywords::format = "%Message%",
+  auto stream = &std::cerr;
+  if (getenv("LOG_STDERR") == nullptr) {
+    stream = &std::cout;
+  }
+  auto sink = boost::log::add_console_log(*stream, boost::log::keywords::format = "%Message%",
                                           boost::log::keywords::auto_flush = true);
   if (use_colors) {
     sink->set_formatter(&color_fmt);
