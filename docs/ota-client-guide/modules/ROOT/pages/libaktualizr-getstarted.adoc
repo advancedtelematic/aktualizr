@@ -235,11 +235,7 @@ A campaign contains an update which must be accepted by the end user (or on beha
 
 ==== Update management commands
 
-[cols="d,a"]
-
-| TASK  |  CALL
-
-* *Sends local device data to the server*
+* *Send local device data to the server*
 +
 [source,cpp]
 ----
