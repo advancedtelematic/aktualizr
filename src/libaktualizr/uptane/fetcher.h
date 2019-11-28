@@ -27,6 +27,7 @@ class IMetadataFetcher {
 
  protected:
   IMetadataFetcher() = default;
+  IMetadataFetcher(IMetadataFetcher&&) = default;
 };
 
 class Fetcher : public IMetadataFetcher {

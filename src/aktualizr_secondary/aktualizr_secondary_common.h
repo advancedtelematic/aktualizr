@@ -17,6 +17,7 @@ class AktualizrSecondaryCommon {
   bool uptaneInitialize();
 
   const Uptane::EcuSerial& getSerial() const { return ecu_serial_; }
+  const Uptane::HardwareIdentifier& getHardwareID() const { return hardware_id_; }
 
  protected:
   AktualizrSecondaryConfig config_;

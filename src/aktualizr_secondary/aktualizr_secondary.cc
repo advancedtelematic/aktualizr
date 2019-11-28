@@ -86,24 +86,26 @@ bool AktualizrSecondary::putRootResp(const std::string& root, bool director) {
 }
 
 bool AktualizrSecondary::sendFirmwareResp(const std::shared_ptr<std::string>& firmware) {
-  auto targetsForThisEcu = director_repo_.getTargets(getSerial());
+  auto targetsForThisEcu = director_repo_.getTargets(getSerial(), getHardwareID());
 
   if (targetsForThisEcu.size() != 1) {
     LOG_ERROR << "Invalid number of targets (should be one): " << targetsForThisEcu.size();
     return false;
   }
-  auto targetToApply = targetsForThisEcu[0];
+  auto target_to_apply = targetsForThisEcu[0];
 
   std::string treehub_server;
+  std::size_t firmware_size = firmware->length();
 
-  if (targetToApply.IsOstree()) {
+  if (target_to_apply.IsOstree()) {
     // this is the ostree specific case
     try {
       std::string ca, cert, pkey, server_url;
-      extractCredentialsArchive(*firmware, &ca, &cert, &pkey, &treehub_server);
+      extractCredentialsArchive(*firmware, &ca, &cert, &pkey, &server_url);
       keys_.loadKeys(&ca, &cert, &pkey);
       boost::trim(server_url);
       treehub_server = server_url;
+      firmware_size = 0;
     } catch (std::runtime_error& exc) {
       LOG_ERROR << exc.what();
 
@@ -113,9 +115,9 @@ bool AktualizrSecondary::sendFirmwareResp(const std::shared_ptr<std::string>& fi
 
   data::InstallationResult install_res;
 
-  if (targetToApply.IsOstree()) {
+  if (target_to_apply.IsOstree()) {
 #ifdef BUILD_OSTREE
-    install_res = OstreeManager::pull(config_.pacman.sysroot, treehub_server, keys_, targetToApply);
+    install_res = OstreeManager::pull(config_.pacman.sysroot, treehub_server, keys_, target_to_apply);
 
     if (install_res.result_code.num_code != data::ResultCode::Numeric::kOk) {
       LOG_ERROR << "Could not pull from OSTree (" << install_res.result_code.toString()
@@ -128,23 +130,57 @@ bool AktualizrSecondary::sendFirmwareResp(const std::shared_ptr<std::string>& fi
 #endif
   } else if (pacman->name() == "debian") {
     // TODO save debian package here.
-    LOG_ERROR << "Installation of non ostree images is not suppotrted yet.";
+    LOG_ERROR << "Installation of debian images is not suppotrted yet.";
     return false;
   }
 
-  // This check is not applicable for the ostree case, just for the binary file case(s)
-  if (targetToApply.length() != firmware->length()) {
-    LOG_ERROR << "The target image size specified in metadata " << targetToApply.length()
+  if (target_to_apply.length() != firmware_size) {
+    LOG_ERROR << "The target image size specified in metadata " << target_to_apply.length()
               << " does not match actual size " << firmware->length();
     return false;
   }
 
-  install_res = pacman->install(targetToApply);
-  if (install_res.result_code.num_code != data::ResultCode::Numeric::kOk) {
+  if (!target_to_apply.IsOstree()) {
+    auto target_hashes = target_to_apply.hashes();
+    if (target_hashes.size() == 0) {
+      LOG_ERROR << "No hash found in the target metadata: " << target_to_apply.filename();
+      return false;
+    }
+
+    try {
+      auto received_image_data_hash = Uptane::Hash::generate(target_hashes[0].type(), *firmware);
+
+      if (!target_to_apply.MatchHash(received_image_data_hash)) {
+        LOG_ERROR << "The received image data hash doesn't match the hash specified in the target metadata,"
+                     " hash type: "
+                  << target_hashes[0].TypeString();
+        return false;
+      }
+
+    } catch (const std::exception& exc) {
+      LOG_ERROR << "Failed to generate a hash of the received image data: " << exc.what();
+      return false;
+    }
+  }
+
+  install_res = pacman->install(target_to_apply);
+  if (install_res.result_code.num_code != data::ResultCode::Numeric::kOk &&
+      install_res.result_code.num_code != data::ResultCode::Numeric::kNeedCompletion) {
     LOG_ERROR << "Could not install target (" << install_res.result_code.toString() << "): " << install_res.description;
     return false;
   }
-  storage_->saveInstalledVersion(getSerialResp().ToString(), targetToApply, InstalledVersionUpdateMode::kCurrent);
+
+  if (install_res.result_code.num_code == data::ResultCode::Numeric::kNeedCompletion) {
+    storage_->saveInstalledVersion(getSerialResp().ToString(), target_to_apply, InstalledVersionUpdateMode::kPending);
+  } else {
+    storage_->saveInstalledVersion(getSerialResp().ToString(), target_to_apply, InstalledVersionUpdateMode::kCurrent);
+  }
+
+  // TODO: https://saeljira.it.here.com/browse/OTA-4174
+  // - return data::InstallationResult to Primary
+  // - add finaliztion support, pacman->finalizeInstall() must be called at secondary startup if there is pending
+  // version
+
   return true;
 }
 
@@ -213,10 +249,10 @@ bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
     return false;
   }
 
-  auto targetsForThisEcu = director_repo_.getTargets(getSerial());
+  auto targetsForThisEcu = director_repo_.getTargets(getSerial(), getHardwareID());
 
   if (targetsForThisEcu.size() != 1) {
-    LOG_ERROR << "Invalid number of targets (should be one): " << targetsForThisEcu.size();
+    LOG_ERROR << "Invalid number of targets (should be 1): " << targetsForThisEcu.size();
     return false;
   }
 

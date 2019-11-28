@@ -16,7 +16,10 @@ class DirectorRepository : public RepositoryCommon {
 
   bool verifyTargets(const std::string& targets_raw);
   const Targets& getTargets() const { return targets; }
-  std::vector<Uptane::Target> getTargets(const Uptane::EcuSerial& ecu_id) const { return targets.getTargets(ecu_id); }
+  std::vector<Uptane::Target> getTargets(const Uptane::EcuSerial& ecu_id,
+                                         const Uptane::HardwareIdentifier& hw_id) const {
+    return targets.getTargets(ecu_id, hw_id);
+  }
   const std::string& getCorrelationId() const { return targets.correlation_id(); }
   bool targetsExpired() const;
   bool checkMetaOffline(INvStorage& storage);
