@@ -211,11 +211,11 @@ void OstreeManager::completeInstall() const {
 
 data::InstallationResult OstreeManager::finalizeInstall(const Uptane::Target &target) const {
   LOG_INFO << "Checking installation of new OSTree sysroot";
-  Uptane::Target current = getCurrent();
+  const std::string current_hash = getCurrentHash();
 
-  if (current.sha256Hash() != target.sha256Hash()) {
-    LOG_ERROR << "Expected to boot on " << target.sha256Hash() << " but, " << current.sha256Hash()
-              << " found, the system might have experienced a rollback";
+  if (current_hash != target.sha256Hash()) {
+    LOG_ERROR << "Expected to boot " << target.sha256Hash() << " but found " << current_hash
+              << ". The system may have been rolled back.";
     return data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, "Wrong version booted");
   }
 
@@ -307,14 +307,17 @@ Json::Value OstreeManager::getInstalledPackages() const {
   return packages;
 }
 
-Uptane::Target OstreeManager::getCurrent() const {
+std::string OstreeManager::getCurrentHash() const {
   GObjectUniquePtr<OstreeSysroot> sysroot_smart = OstreeManager::LoadSysroot(config.sysroot);
   OstreeDeployment *booted_deployment = ostree_sysroot_get_booted_deployment(sysroot_smart.get());
   if (booted_deployment == nullptr) {
     throw std::runtime_error("Could not get booted deployment in " + config.sysroot.string());
   }
-  std::string current_hash = ostree_deployment_get_csum(booted_deployment);
+  return ostree_deployment_get_csum(booted_deployment);
+}
 
+Uptane::Target OstreeManager::getCurrent() const {
+  const std::string current_hash = getCurrentHash();
   boost::optional<Uptane::Target> current_version;
   storage_->loadPrimaryInstalledVersions(&current_version, nullptr);
 
