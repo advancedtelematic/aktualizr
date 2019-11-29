@@ -71,10 +71,6 @@ The pages should be updated a few minutes after a successful release pipeline ex
 
 Once the release is ready on github, it should be edited to include a link to the changelog and doxygen documentation for that particular release. You can use a previous release as a model of how to format these links.
 
-== Update the Uptane fork of aktualizr
-
-Uptane has a fork of aktualizr in link:https://github.com/uptane/aktualizr[their namespace]. It should be updated with the same version of aktualizr used to make the new release.
-
 == Update the homebrew recipe for aktualizr
 
 The https://github.com/advancedtelematic/homebrew-otaconnect/blob/master/aktualizr.rb[homebrew aktualizr recipe] should be updated with the new release.
