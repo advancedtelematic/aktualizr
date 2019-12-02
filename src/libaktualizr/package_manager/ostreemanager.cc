@@ -319,6 +319,8 @@ std::string OstreeManager::getCurrentHash() const {
 Uptane::Target OstreeManager::getCurrent() const {
   const std::string current_hash = getCurrentHash();
   boost::optional<Uptane::Target> current_version;
+  // This may appear Primary-specific, but since Secondaries only know about
+  // themselves, this actually works just fine for them, too.
   storage_->loadPrimaryInstalledVersions(&current_version, nullptr);
 
   if (!!current_version && current_version->sha256Hash() == current_hash) {
@@ -327,11 +329,12 @@ Uptane::Target OstreeManager::getCurrent() const {
 
   LOG_ERROR << "Current versions in storage and reported by ostree do not match";
 
-  // Look into installation log to find a possible candidate
+  // Look into installation log to find a possible candidate. Again, despite the
+  // name, this will work for Secondaries as well.
   std::vector<Uptane::Target> installed_versions;
   storage_->loadPrimaryInstallationLog(&installed_versions, false);
 
-  // Version should be in installed versions. Its possible that multiple
+  // Version should be in installed versions. It's possible that multiple
   // targets could have the same sha256Hash. In this case the safest assumption
   // is that the most recent (the reverse of the vector) target is what we
   // should return.
