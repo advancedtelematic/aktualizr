@@ -211,11 +211,11 @@ void OstreeManager::completeInstall() const {
 
 data::InstallationResult OstreeManager::finalizeInstall(const Uptane::Target &target) const {
   LOG_INFO << "Checking installation of new OSTree sysroot";
-  Uptane::Target current = getCurrent();
+  const std::string current_hash = getCurrentHash();
 
-  if (current.sha256Hash() != target.sha256Hash()) {
-    LOG_ERROR << "Expected to boot on " << target.sha256Hash() << " but, " << current.sha256Hash()
-              << " found, the system might have experienced a rollback";
+  if (current_hash != target.sha256Hash()) {
+    LOG_ERROR << "Expected to boot " << target.sha256Hash() << " but found " << current_hash
+              << ". The system may have been rolled back.";
     return data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, "Wrong version booted");
   }
 
@@ -307,15 +307,20 @@ Json::Value OstreeManager::getInstalledPackages() const {
   return packages;
 }
 
-Uptane::Target OstreeManager::getCurrent() const {
+std::string OstreeManager::getCurrentHash() const {
   GObjectUniquePtr<OstreeSysroot> sysroot_smart = OstreeManager::LoadSysroot(config.sysroot);
   OstreeDeployment *booted_deployment = ostree_sysroot_get_booted_deployment(sysroot_smart.get());
   if (booted_deployment == nullptr) {
     throw std::runtime_error("Could not get booted deployment in " + config.sysroot.string());
   }
-  std::string current_hash = ostree_deployment_get_csum(booted_deployment);
+  return ostree_deployment_get_csum(booted_deployment);
+}
 
+Uptane::Target OstreeManager::getCurrent() const {
+  const std::string current_hash = getCurrentHash();
   boost::optional<Uptane::Target> current_version;
+  // This may appear Primary-specific, but since Secondaries only know about
+  // themselves, this actually works just fine for them, too.
   storage_->loadPrimaryInstalledVersions(&current_version, nullptr);
 
   if (!!current_version && current_version->sha256Hash() == current_hash) {
@@ -324,11 +329,12 @@ Uptane::Target OstreeManager::getCurrent() const {
 
   LOG_ERROR << "Current versions in storage and reported by ostree do not match";
 
-  // Look into installation log to find a possible candidate
+  // Look into installation log to find a possible candidate. Again, despite the
+  // name, this will work for Secondaries as well.
   std::vector<Uptane::Target> installed_versions;
   storage_->loadPrimaryInstallationLog(&installed_versions, false);
 
-  // Version should be in installed versions. Its possible that multiple
+  // Version should be in installed versions. It's possible that multiple
   // targets could have the same sha256Hash. In this case the safest assumption
   // is that the most recent (the reverse of the vector) target is what we
   // should return.
