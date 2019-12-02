@@ -58,6 +58,7 @@ RUN apt-get update && apt-get -y install --no-install-suggests --no-install-reco
   python3-openssl \
   python3-pip \
   python3-venv \
+  python3-setuptools \
   softhsm2 \
   sqlite3 \
   valgrind \
@@ -73,5 +74,8 @@ RUN make VERBOSE=1 -j4
 RUN make install
 
 RUN useradd testuser
+
+RUN ln -s /usr/bin/pip3 /usr/bin/pip
+RUN pip install pip-tools virtualenv wheel pytest
 
 WORKDIR /
