@@ -125,12 +125,6 @@ if(BUILD_P11)
     add_definitions(-DBUILD_P11)
 endif(BUILD_P11)
 
-# Setup PKCS11
-if(TEST_PKCS11_MODULE_PATH)
-    add_definitions(-DTEST_PKCS11_MODULE_PATH="${TEST_PKCS11_MODULE_PATH}"
-                    -DTEST_PKCS11_ENGINE_PATH="${TEST_PKCS11_ENGINE_PATH}")
-endif(TEST_PKCS11_MODULE_PATH)
-
 if(BUILD_SOTA_TOOLS)
     find_package(GLIB2 REQUIRED)
     find_program(STRACE NAMES strace)
