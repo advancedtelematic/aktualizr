@@ -50,7 +50,7 @@ struct DockerApp {
     Utils::writeFile(app_root / (name + ".dockerapp"), app_content);
     std::string cmd("cd " + app_root.string() + " && " + bin + " render " + name);
     if (!app_params.empty()) {
-      cmd += " -f " + app_params.string();
+      cmd += " --parameters-file " + app_params.string();
     }
     std::string yaml;
     if (Utils::shell(cmd, &yaml, true) != 0) {
