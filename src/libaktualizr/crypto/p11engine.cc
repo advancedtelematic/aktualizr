@@ -1,5 +1,6 @@
 #include "p11engine.h"
 
+#include <array>
 #include <utility>
 #include <vector>
 
@@ -127,20 +128,34 @@ P11Engine::P11Engine(P11Config config) : config_(std::move(config)), ctx_(config
 }
 
 boost::filesystem::path P11Engine::findPkcsLibrary() {
-#ifdef TEST_PKCS11_ENGINE_PATH
-  const boost::filesystem::path custom_path = TEST_PKCS11_ENGINE_PATH;
+#ifdef PKCS11_ENGINE_PATH
+  const boost::filesystem::path custom_path = PKCS11_ENGINE_PATH;
 #else
   const boost::filesystem::path custom_path;
 #endif
-  const boost::filesystem::path openssl11_path = "/usr/lib/engines-1.1/pkcs11.so";
-  const boost::filesystem::path default_path = "/usr/lib/engines/pkcs11.so";
-  if (boost::filesystem::exists(custom_path)) {
-    return custom_path;
-  } else if (boost::filesystem::exists(openssl11_path)) {
-    return openssl11_path;
+  static const std::array<boost::filesystem::path, 3> engine_system_paths = {
+    "/usr/lib/engines-1.1/pkcs11.so",
+    "/usr/lib/engines/pkcs11.so",
+    "/usr/lib/x86_64-linux-gnu/engines-1.1/pkcs11.so"
+  };
+  boost::filesystem::path engine_path;
+
+  if (!custom_path.empty()) {
+    engine_path = custom_path;
   } else {
-    return default_path;
+    for (const auto& p : engine_system_paths) {
+      LOG_DEBUG << "Trying pkcs11 engine " << p;
+      if (boost::filesystem::exists(p)) {
+        engine_path = p;
+      }
+    }
   }
+
+  if (!boost::filesystem::exists(engine_path)) {
+    LOG_ERROR << "PKCS11 engine not available (" << engine_path << ")";
+  }
+
+  return engine_path;
 }
 
 PKCS11_SLOT* P11Engine::findTokenSlot() const {
