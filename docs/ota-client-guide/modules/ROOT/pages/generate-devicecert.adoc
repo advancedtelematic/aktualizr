@@ -19,7 +19,7 @@ We can't tell you exactly how to automate this process, but heres a recap of the
 [source,bash]
 ----
 export SERVER_NAME=myservername
-export DEVICES_DIR = DEVICES_DIR="./${SERVER_NAME}/devices" CWD="${PWD}"
+export DEVICES_DIR="./${SERVER_NAME}/devices" CWD="${PWD}"
 export DEVICE_UUID=$(uuidgen | tr "[:upper:]" "[:lower:]")
 export device_id=${DEVICE_ID:-${DEVICE_UUID}} device_dir="${DEVICES_DIR}/${DEVICE_UUID}"
 mkdir -p "${device_dir}"
