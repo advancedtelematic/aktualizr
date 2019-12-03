@@ -251,9 +251,11 @@ bool P11Engine::generateUptaneKeyPair() {
   }
 
   if (PKCS11_store_private_key(slot->token, pkey.get(), nullptr, id_hex.data(), id_hex.size()) != 0) {
+    LOG_ERROR << "Could not store private key on the token";
     return false;
   }
   if (PKCS11_store_public_key(slot->token, pkey.get(), nullptr, id_hex.data(), id_hex.size()) != 0) {
+    LOG_ERROR << "Could not store public key on the token";
     return false;
   }
 
