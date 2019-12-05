@@ -123,6 +123,7 @@ class SotaUptaneClient {
   void reportHwInfo();
   void reportInstalledPackages();
   void reportNetworkInfo();
+  void reportAktualizrConfiguration();
   void verifySecondaries();
   void sendMetadataToEcus(const std::vector<Uptane::Target> &targets);
   std::future<bool> sendFirmwareAsync(Uptane::SecondaryInterface &secondary, const std::shared_ptr<std::string> &data);
