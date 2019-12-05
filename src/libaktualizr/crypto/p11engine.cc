@@ -1,5 +1,6 @@
 #include "p11engine.h"
 
+#include <array>
 #include <utility>
 #include <vector>
 
@@ -127,20 +128,14 @@ P11Engine::P11Engine(P11Config config) : config_(std::move(config)), ctx_(config
 }
 
 boost::filesystem::path P11Engine::findPkcsLibrary() {
-#ifdef TEST_PKCS11_ENGINE_PATH
-  const boost::filesystem::path custom_path = TEST_PKCS11_ENGINE_PATH;
-#else
-  const boost::filesystem::path custom_path;
-#endif
-  const boost::filesystem::path openssl11_path = "/usr/lib/engines-1.1/pkcs11.so";
-  const boost::filesystem::path default_path = "/usr/lib/engines/pkcs11.so";
-  if (boost::filesystem::exists(custom_path)) {
-    return custom_path;
-  } else if (boost::filesystem::exists(openssl11_path)) {
-    return openssl11_path;
-  } else {
-    return default_path;
+  static const boost::filesystem::path engine_path = PKCS11_ENGINE_PATH;
+
+  if (!boost::filesystem::exists(engine_path)) {
+    LOG_ERROR << "PKCS11 engine not available (" << engine_path << ")";
+    return "";
   }
+
+  return engine_path;
 }
 
 PKCS11_SLOT* P11Engine::findTokenSlot() const {
@@ -236,9 +231,11 @@ bool P11Engine::generateUptaneKeyPair() {
   }
 
   if (PKCS11_store_private_key(slot->token, pkey.get(), nullptr, id_hex.data(), id_hex.size()) != 0) {
+    LOG_ERROR << "Could not store private key on the token";
     return false;
   }
   if (PKCS11_store_public_key(slot->token, pkey.get(), nullptr, id_hex.data(), id_hex.size()) != 0) {
+    LOG_ERROR << "Could not store public key on the token";
     return false;
   }
 

@@ -60,6 +60,7 @@ RUN apt-get update && apt-get -y install --no-install-suggests --no-install-reco
   python3-venv \
   softhsm2 \
   sqlite3 \
+  strace \
   valgrind \
   wget \
   zip

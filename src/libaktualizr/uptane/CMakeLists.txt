@@ -41,6 +41,7 @@ endif(BUILD_OSTREE AND SOTA_PACKED_CREDENTIALS)
 
 
 add_aktualizr_test(NAME uptane SOURCES uptane_test.cc PROJECT_WORKING_DIRECTORY LIBRARIES uptane_generator_lib)
+set_property(SOURCE uptane_test.cc PROPERTY COMPILE_DEFINITIONS TEST_PKCS11_MODULE_PATH="${TEST_PKCS11_MODULE_PATH}")
 set_tests_properties(test_uptane PROPERTIES LABELS "crypto")
 target_link_libraries(t_uptane virtual_secondary)
 
