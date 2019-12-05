@@ -45,14 +45,6 @@ class HttpClient : public HttpInterface {
 
  private:
   FRIEND_TEST(GetTest, download_speed_limit);
-  /**
-   * These are here to catch a common programming error where a Json::Value is
-   * implicitly constructed from a std::string. By having an private overload
-   * that takes string (and with no implementation), this will fail during
-   * compilation.
-   */
-  HttpResponse post(const std::string &url, std::string data);
-  HttpResponse put(const std::string &url, std::string data);
 
   static CurlGlobalInitWrapper manageCurlGlobalInit_;
   CURL *curl;

@@ -160,16 +160,6 @@ class HttpFake : public HttpInterface {
   std::string flavor_;
   boost::filesystem::path meta_dir;
   TemporaryDirectory temp_meta_dir;
-
- private:
-  /**
-   * These are here to catch a common programming error where a Json::Value is
-   * implicitly constructed from a std::string. By having an private overload
-   * that takes string (and with no implementation), this will fail during
-   * compilation.
-   */
-  HttpResponse post(const std::string &url, const std::string data);
-  HttpResponse put(const std::string &url, const std::string data);
 };
 
 #endif  // HTTPFAKE_H_
