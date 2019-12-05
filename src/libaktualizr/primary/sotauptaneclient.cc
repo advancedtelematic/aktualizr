@@ -182,6 +182,11 @@ void SotaUptaneClient::reportNetworkInfo() {
 }
 
 void SotaUptaneClient::reportAktualizrConfiguration() {
+  if (!config.telemetry.report_config) {
+    LOG_DEBUG << "Not reporting network information because telemetry is disabled";
+    return;
+  }
+
   LOG_DEBUG << "Reporting libaktualizr configuration";
   std::stringstream conf_ss;
   config.writeToStream(conf_ss);
