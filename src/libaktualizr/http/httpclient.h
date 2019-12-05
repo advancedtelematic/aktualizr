@@ -31,8 +31,10 @@ class HttpClient : public HttpInterface {
   HttpClient(const HttpClient & /*curl_in*/);
   ~HttpClient() override;
   HttpResponse get(const std::string &url, int64_t maxsize) override;
-  HttpResponse post(const std::string &url, const Json::Value &data) override;
-  HttpResponse put(const std::string &url, const Json::Value &data) override;
+  HttpResponse post(const std::string &url, const std::string &content_type, const std::string &data) override;
+  HttpResponse post(const std::string &url, const Json::Value &data) override { return HttpInterface::post(url, data); }
+  HttpResponse put(const std::string &url, const std::string &content_type, const std::string &data) override;
+  HttpResponse put(const std::string &url, const Json::Value &data) override { return HttpInterface::put(url, data); }
 
   HttpResponse download(const std::string &url, curl_write_callback write_cb, curl_xferinfo_callback progress_cb,
                         void *userp, curl_off_t from) override;
@@ -50,6 +52,7 @@ class HttpClient : public HttpInterface {
   CURL *curl;
   curl_slist *headers;
   HttpResponse perform(CURL *curl_handler, int retry_times, int64_t size_limit);
+  static curl_slist *curl_slist_dup(curl_slist *sl);
 
   static CURLcode sslCtxFunction(CURL *handle, void *sslctx, void *parm);
   std::unique_ptr<TemporaryFile> tls_ca_file;

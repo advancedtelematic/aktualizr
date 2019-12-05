@@ -93,6 +93,13 @@ class HttpFake : public HttpInterface {
     }
   }
 
+  HttpResponse post(const std::string &url, const std::string &content_type, const std::string &data) override {
+    (void)url;
+    (void)content_type;
+    (void)data;
+    return HttpResponse({}, 200, CURLE_OK, "");
+  }
+
   HttpResponse post(const std::string &url, const Json::Value &data) override {
     if (url.find("/devices") != std::string::npos || url.find("/director/ecus") != std::string::npos || url.empty()) {
       LOG_ERROR << "OK create device";
@@ -107,6 +114,13 @@ class HttpFake : public HttpInterface {
     }
 
     return HttpResponse("", 400, CURLE_OK, "");
+  }
+
+  HttpResponse put(const std::string &url, const std::string &content_type, const std::string &data) override {
+    (void)url;
+    (void)content_type;
+    (void)data;
+    return HttpResponse({}, 200, CURLE_OK, "");
   }
 
   HttpResponse put(const std::string &url, const Json::Value &data) override {

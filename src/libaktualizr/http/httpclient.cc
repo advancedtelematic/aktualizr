@@ -53,7 +53,6 @@ HttpClient::HttpClient(const std::vector<std::string>* extra_headers) {
 
   curlEasySetoptWrapper(curl, CURLOPT_VERBOSE, get_curlopt_verbose());
 
-  headers = curl_slist_append(headers, "Content-Type: application/json");
   headers = curl_slist_append(headers, "Accept: */*");
 
   if (extra_headers != nullptr) {
@@ -61,28 +60,12 @@ HttpClient::HttpClient(const std::vector<std::string>* extra_headers) {
       headers = curl_slist_append(headers, header.c_str());
     }
   }
-  curlEasySetoptWrapper(curl, CURLOPT_HTTPHEADER, headers);
   curlEasySetoptWrapper(curl, CURLOPT_USERAGENT, Utils::getUserAgent());
 }
 
 HttpClient::HttpClient(const HttpClient& curl_in) : pkcs11_key(curl_in.pkcs11_key), pkcs11_cert(curl_in.pkcs11_key) {
   curl = curl_easy_duphandle(curl_in.curl);
-
-  struct curl_slist* inlist = curl_in.headers;
-  headers = nullptr;
-  struct curl_slist* tmp;
-
-  while (inlist != nullptr) {
-    tmp = curl_slist_append(headers, inlist->data);
-
-    if (tmp == nullptr) {
-      curl_slist_free_all(headers);
-      throw std::runtime_error("curl_slist_append returned null");
-    }
-
-    headers = tmp;
-    inlist = inlist->next;
-  }
+  headers = curl_slist_dup(curl_in.headers);
 }
 
 CurlGlobalInitWrapper HttpClient::manageCurlGlobalInit_{};
@@ -90,31 +73,6 @@ CurlGlobalInitWrapper HttpClient::manageCurlGlobalInit_{};
 HttpClient::~HttpClient() {
   curl_slist_free_all(headers);
   curl_easy_cleanup(curl);
-}
-
-HttpResponse HttpClient::get(const std::string& url, int64_t maxsize) {
-  CURL* curl_get = Utils::curlDupHandleWrapper(curl, pkcs11_key);
-
-  if (pkcs11_cert) {
-    curlEasySetoptWrapper(curl_get, CURLOPT_SSLCERTTYPE, "ENG");
-  }
-
-  // Clear POSTFIELDS to remove any lingering references to strings that have
-  // probably since been deallocated.
-  curlEasySetoptWrapper(curl_get, CURLOPT_POSTFIELDS, "");
-  curlEasySetoptWrapper(curl_get, CURLOPT_URL, url.c_str());
-  curlEasySetoptWrapper(curl_get, CURLOPT_HTTPGET, 1L);
-  if (maxsize >= 0) {
-    // it will only take effect if the server declares the size in advance,
-    //    writeString callback takes care of the other case
-    curlEasySetoptWrapper(curl_get, CURLOPT_MAXFILESIZE_LARGE, maxsize);
-  }
-  curlEasySetoptWrapper(curl_get, CURLOPT_LOW_SPEED_TIME, speed_limit_time_interval_);
-  curlEasySetoptWrapper(curl_get, CURLOPT_LOW_SPEED_LIMIT, speed_limit_bytes_per_sec_);
-  LOG_DEBUG << "GET " << url;
-  HttpResponse response = perform(curl_get, RETRY_TIMES, maxsize);
-  curl_easy_cleanup(curl_get);
-  return response;
 }
 
 void HttpClient::setCerts(const std::string& ca, CryptoSource ca_source, const std::string& cert,
@@ -158,31 +116,63 @@ void HttpClient::setCerts(const std::string& ca, CryptoSource ca_source, const s
   pkcs11_key = (pkey_source == CryptoSource::kPkcs11);
 }
 
-HttpResponse HttpClient::post(const std::string& url, const Json::Value& data) {
+HttpResponse HttpClient::get(const std::string& url, int64_t maxsize) {
+  CURL* curl_get = Utils::curlDupHandleWrapper(curl, pkcs11_key);
+
+  curlEasySetoptWrapper(curl_get, CURLOPT_HTTPHEADER, headers);
+
+  if (pkcs11_cert) {
+    curlEasySetoptWrapper(curl_get, CURLOPT_SSLCERTTYPE, "ENG");
+  }
+
+  // Clear POSTFIELDS to remove any lingering references to strings that have
+  // probably since been deallocated.
+  curlEasySetoptWrapper(curl_get, CURLOPT_POSTFIELDS, "");
+  curlEasySetoptWrapper(curl_get, CURLOPT_URL, url.c_str());
+  curlEasySetoptWrapper(curl_get, CURLOPT_HTTPGET, 1L);
+  LOG_DEBUG << "GET " << url;
+  HttpResponse response = perform(curl_get, RETRY_TIMES, maxsize);
+  curl_easy_cleanup(curl_get);
+  return response;
+}
+
+HttpResponse HttpClient::post(const std::string& url, const std::string& content_type, const std::string& data) {
   CURL* curl_post = Utils::curlDupHandleWrapper(curl, pkcs11_key);
+  curl_slist* req_headers = curl_slist_dup(headers);
+  req_headers = curl_slist_append(req_headers, (std::string("Content-Type: ") + content_type).c_str());
+  curlEasySetoptWrapper(curl_post, CURLOPT_HTTPHEADER, req_headers);
   curlEasySetoptWrapper(curl_post, CURLOPT_URL, url.c_str());
   curlEasySetoptWrapper(curl_post, CURLOPT_POST, 1);
-  std::string data_str = Utils::jsonToCanonicalStr(data);
-  curlEasySetoptWrapper(curl_post, CURLOPT_POSTFIELDS, data_str.c_str());
-  LOG_TRACE << "post request body:" << data;
+  curlEasySetoptWrapper(curl_post, CURLOPT_POSTFIELDS, data.c_str());
   auto result = perform(curl_post, RETRY_TIMES, HttpInterface::kPostRespLimit);
   curl_easy_cleanup(curl_post);
+  curl_slist_free_all(req_headers);
   return result;
 }
 
-HttpResponse HttpClient::put(const std::string& url, const Json::Value& data) {
+HttpResponse HttpClient::put(const std::string& url, const std::string& content_type, const std::string& data) {
   CURL* curl_put = Utils::curlDupHandleWrapper(curl, pkcs11_key);
+  curl_slist* req_headers = curl_slist_dup(headers);
+  req_headers = curl_slist_append(req_headers, (std::string("Content-Type: ") + content_type).c_str());
+  curlEasySetoptWrapper(curl_put, CURLOPT_HTTPHEADER, req_headers);
   curlEasySetoptWrapper(curl_put, CURLOPT_URL, url.c_str());
-  std::string data_str = Utils::jsonToCanonicalStr(data);
-  curlEasySetoptWrapper(curl_put, CURLOPT_POSTFIELDS, data_str.c_str());
+  curlEasySetoptWrapper(curl_put, CURLOPT_POSTFIELDS, data.c_str());
   curlEasySetoptWrapper(curl_put, CURLOPT_CUSTOMREQUEST, "PUT");
-  LOG_TRACE << "put request body:" << data;
   HttpResponse result = perform(curl_put, RETRY_TIMES, HttpInterface::kPutRespLimit);
   curl_easy_cleanup(curl_put);
+  curl_slist_free_all(req_headers);
   return result;
 }
 
 HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times, int64_t size_limit) {
+  if (size_limit >= 0) {
+    // it will only take effect if the server declares the size in advance,
+    //    writeString callback takes care of the other case
+    curlEasySetoptWrapper(curl_handler, CURLOPT_MAXFILESIZE_LARGE, size_limit);
+  }
+  curlEasySetoptWrapper(curl_handler, CURLOPT_LOW_SPEED_TIME, speed_limit_time_interval_);
+  curlEasySetoptWrapper(curl_handler, CURLOPT_LOW_SPEED_LIMIT, speed_limit_bytes_per_sec_);
+
   WriteStringArg response_arg;
   response_arg.limit = size_limit;
   curlEasySetoptWrapper(curl_handler, CURLOPT_WRITEDATA, static_cast<void*>(&response_arg));
@@ -266,6 +256,16 @@ bool HttpClient::updateHeader(const std::string& name, const std::string& value)
     item = item->next;
   }
   return false;
+}
+
+curl_slist* HttpClient::curl_slist_dup(curl_slist* sl) {
+  curl_slist* new_list = nullptr;
+
+  for (curl_slist* item = sl; item != nullptr; item = item->next) {
+    new_list = curl_slist_append(new_list, item->data);
+  }
+
+  return new_list;
 }
 
 // vim: set tabstop=2 shiftwidth=2 expandtab:
