@@ -5,6 +5,7 @@
  * network issues.
  */
 #include <gtest/gtest.h>
+#include <gtest/internal/gtest-port.h>
 
 #include <boost/process.hpp>
 #include <fstream>
@@ -14,6 +15,7 @@
 #include <vector>
 
 #include "http/httpclient.h"
+#include "httpfake.h"
 #include "logging/logging.h"
 #include "primary/initializer.h"
 #include "primary/sotauptaneclient.h"
@@ -137,6 +139,72 @@ TEST(UptaneNetwork, DownloadFailure) {
 
   std::pair<bool, Uptane::Target> result = up->downloadImage(package_to_install);
   EXPECT_TRUE(result.first);
+}
+
+/*
+ * Output a log when connectivity is restored.
+ */
+class HttpUnstable : public HttpFake {
+ public:
+  HttpUnstable(const boost::filesystem::path &test_dir_in) : HttpFake(test_dir_in, "hasupdates") {}
+  HttpResponse get(const std::string &url, int64_t maxsize) override {
+    if (!connectSwitch) {
+      return HttpResponse({}, 503, CURLE_OK, "");
+    } else {
+      return HttpFake::get(url, maxsize);
+    }
+  }
+
+  HttpResponse put(const std::string &url, const Json::Value &data) override {
+    if (!connectSwitch) {
+      (void)data;
+      return HttpResponse(url, 503, CURLE_OK, "");
+    } else {
+      return HttpFake::put(url, data);
+    }
+  }
+
+  HttpResponse post(const std::string &url, const Json::Value &data) override {
+    if (!connectSwitch) {
+      (void)data;
+      return HttpResponse(url, 503, CURLE_OK, "");
+    } else {
+      return HttpFake::post(url, data);
+    }
+  }
+
+  bool connectSwitch = true;
+};
+
+TEST(UptaneNetwork, LogConnectivityRestored) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpUnstable>(temp_dir.Path());
+  Config config = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+  config.uptane.director_server = http->tls_server + "director";
+  config.uptane.repo_server = http->tls_server + "repo";
+  config.pacman.type = PackageManager::kNone;
+  config.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
+  config.provision.primary_ecu_hardware_id = "primary_hw";
+  config.storage.path = temp_dir.Path();
+  config.tls.server = http->tls_server;
+  UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hw");
+
+  auto storage = INvStorage::newStorage(config.storage);
+  auto up = std_::make_unique<UptaneTestCommon::TestUptaneClient>(config, storage, http);
+  EXPECT_NO_THROW(up->initialize());
+
+  result::UpdateCheck result = up->fetchMeta();
+  EXPECT_EQ(result.status, result::UpdateStatus::kUpdatesAvailable);
+
+  http->connectSwitch = false;
+  result = up->fetchMeta();
+  EXPECT_EQ(result.status, result::UpdateStatus::kError);
+
+  http->connectSwitch = true;
+  testing::internal::CaptureStdout();
+  result = up->fetchMeta();
+  EXPECT_EQ(result.status, result::UpdateStatus::kUpdatesAvailable);
+  EXPECT_NE(std::string::npos, testing::internal::GetCapturedStdout().find("Connectivity is restored."));
 }
 
 #ifndef __NO_MAIN__

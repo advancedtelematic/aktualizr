@@ -948,6 +948,7 @@ bool SotaUptaneClient::putManifestSimple(const Json::Value &custom) {
     return false;
   }
 
+  static bool connected = true;
   auto manifest = AssembleManifest();
   if (custom != Json::nullValue) {
     manifest["custom"] = custom;
@@ -955,8 +956,14 @@ bool SotaUptaneClient::putManifestSimple(const Json::Value &custom) {
   auto signed_manifest = uptane_manifest.signManifest(manifest);
   HttpResponse response = http->put(config.uptane.director_server + "/manifest", signed_manifest);
   if (response.isOk()) {
+    if (!connected) {
+      LOG_INFO << "Connectivity is restored.";
+    }
+    connected = true;
     storage->clearInstallationResults();
     return true;
+  } else {
+    connected = false;
   }
 
   LOG_WARNING << "Put manifest request failed: " << response.getStatusStr();
