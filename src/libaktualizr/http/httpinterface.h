@@ -41,18 +41,9 @@ class HttpInterface {
   virtual ~HttpInterface() = default;
   virtual HttpResponse get(const std::string &url, int64_t maxsize) = 0;
   virtual HttpResponse post(const std::string &url, const std::string &content_type, const std::string &data) = 0;
+  virtual HttpResponse post(const std::string &url, const Json::Value &data) = 0;
   virtual HttpResponse put(const std::string &url, const std::string &content_type, const std::string &data) = 0;
-
-  virtual HttpResponse post(const std::string &url, const Json::Value &data) {
-    std::string data_str = Utils::jsonToCanonicalStr(data);
-    LOG_TRACE << "post request body:" << data;
-    return post(url, "application/json", data_str);
-  }
-  virtual HttpResponse put(const std::string &url, const Json::Value &data) {
-    std::string data_str = Utils::jsonToCanonicalStr(data);
-    LOG_TRACE << "put request body:" << data;
-    return put(url, "application/json", data_str);
-  }
+  virtual HttpResponse put(const std::string &url, const Json::Value &data) = 0;
 
   virtual HttpResponse download(const std::string &url, curl_write_callback write_cb,
                                 curl_xferinfo_callback progress_cb, void *userp, curl_off_t from) = 0;

@@ -150,6 +150,12 @@ HttpResponse HttpClient::post(const std::string& url, const std::string& content
   return result;
 }
 
+HttpResponse HttpClient::post(const std::string& url, const Json::Value& data) {
+  std::string data_str = Utils::jsonToCanonicalStr(data);
+  LOG_TRACE << "post request body:" << data;
+  return post(url, "application/json", data_str);
+}
+
 HttpResponse HttpClient::put(const std::string& url, const std::string& content_type, const std::string& data) {
   CURL* curl_put = Utils::curlDupHandleWrapper(curl, pkcs11_key);
   curl_slist* req_headers = curl_slist_dup(headers);
@@ -162,6 +168,12 @@ HttpResponse HttpClient::put(const std::string& url, const std::string& content_
   curl_easy_cleanup(curl_put);
   curl_slist_free_all(req_headers);
   return result;
+}
+
+HttpResponse HttpClient::put(const std::string& url, const Json::Value& data) {
+  std::string data_str = Utils::jsonToCanonicalStr(data);
+  LOG_TRACE << "put request body:" << data;
+  return put(url, "application/json", data_str);
 }
 
 HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times, int64_t size_limit) {

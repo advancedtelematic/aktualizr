@@ -32,9 +32,9 @@ class HttpClient : public HttpInterface {
   ~HttpClient() override;
   HttpResponse get(const std::string &url, int64_t maxsize) override;
   HttpResponse post(const std::string &url, const std::string &content_type, const std::string &data) override;
-  HttpResponse post(const std::string &url, const Json::Value &data) override { return HttpInterface::post(url, data); }
+  HttpResponse post(const std::string &url, const Json::Value &data) override;
   HttpResponse put(const std::string &url, const std::string &content_type, const std::string &data) override;
-  HttpResponse put(const std::string &url, const Json::Value &data) override { return HttpInterface::put(url, data); }
+  HttpResponse put(const std::string &url, const Json::Value &data) override;
 
   HttpResponse download(const std::string &url, curl_write_callback write_cb, curl_xferinfo_callback progress_cb,
                         void *userp, curl_off_t from) override;
