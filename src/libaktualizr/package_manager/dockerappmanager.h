@@ -11,7 +11,7 @@ class DockerAppManager : public OstreeManager {
   DockerAppManager(PackageConfig pconfig, BootloaderConfig bconfig, std::shared_ptr<INvStorage> storage,
                    std::shared_ptr<HttpInterface> http)
       : OstreeManager(std::move(pconfig), std::move(bconfig), std::move(storage), std::move(http)) {
-    fake_fetcher_ = std::make_shared<Uptane::Fetcher>(Config(), http_);
+    fake_fetcher_ = std::make_shared<Uptane::Fetcher>("", "", http_);
   }
   bool fetchTarget(const Uptane::Target &target, Uptane::Fetcher &fetcher, const KeyManager &keys,
                    FetcherProgressCb progress_cb, const api::FlowControlToken *token) override;
