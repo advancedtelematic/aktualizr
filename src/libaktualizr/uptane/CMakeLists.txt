@@ -51,7 +51,7 @@ add_dependencies(t_uptane_delegation uptane-generator)
 target_link_libraries(t_uptane_delegation virtual_secondary)
 set_tests_properties(test_uptane_delegation PROPERTIES LABELS "crypto")
 
-add_aktualizr_test(NAME uptane_network SOURCES uptane_network_test.cc PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME uptane_network SOURCES uptane_network_test.cc PROJECT_WORKING_DIRECTORY LIBRARIES uptane_generator_lib)
 set_tests_properties(test_uptane_network PROPERTIES LABELS "crypto")
 target_link_libraries(t_uptane_network virtual_secondary)
 
