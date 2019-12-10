@@ -123,6 +123,10 @@ At this point, you can verify that your device contains the three objects by run
 +
 ----
 Using slot 1 with a present token (0x4)
+Public Key Object; RSA 2048 bits
+  label:      uptanekey
+  ID:         03
+  Usage:      encrypt, verify, wrap
 Public Key Object; EC  EC_POINT 256 bits
   EC_POINT:   044104d59c51e5454d46787bdb9db3ea450bc118f71bf5fd352cf0ae4e41720d897eb4051345d0ef5470fd4e3b1c3c18066199915c88eeab7a3ad3e595d4ecaa38f564
   EC_PARAMS:  06082a8648ce3d030107
@@ -165,11 +169,8 @@ server_url_path = "/var/sota/import/gateway.url"
 cert_source = "pkcs11"
 pkey_source = "pkcs11"
 
-[uptane]
-key_source = "pkcs11"
-
 [p11]
-module = "/usr/lib/x86_64-linux-gnu/pkcs11/opensc-pkcs11.so"
+module = "/usr/lib/opensc-pkcs11.so"
 pass = "1234"
 uptane_key_id = "03"
 tls_clientcert_id = "01"
@@ -182,7 +183,24 @@ key_source = "pkcs11"
 base_path = "/var/sota/import"
 tls_cacert_path = "root.crt"
 ----
++
+Note: on Ubuntu Bionic, the OpenSC pkcs11 module lies in `/usr/lib/x86_64-linux-gnu/pkcs11/opensc-pkcs11.so`.
 
 == Provisioning the device
 
 If all these steps have been followed, the device will establish a TLS connection to the backend using the HSM and will sign its manifests with the uptane key.
+
+== Yocto integration
+
+You can here refer to the instructions in xref:enable-device-cred-provisioning.adoc[Enable device-credential provisioning and install device certificates] but use OpenSC instead of SoftHSM:
+
+----
+IMAGE_INSTALL_append = " opensc"
+SOTA_CLIENT_FEATURES = "hsm"
+SOTA_CLIENT_PROV = "aktualizr-device-prov-hsm"
+SOTA_DEPLOY_CREDENTIALS = "0"
+----
+
+Also, the configuration fragment `/usr/lib/sota/conf.d/20-sota-device-cred-hsm.toml` will also have to be modified, as detailed in the previous section, for example with a `.bbappend`.
+
+Note that for the moment, the gateway url and root certificate will still need to be copied manually to the device.
