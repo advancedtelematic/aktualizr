@@ -181,9 +181,15 @@ void OSTreeObject::QueryChildren(RequestPool &pool) {
 
 string OSTreeObject::Url() const { return "objects/" + object_name_; }
 
+std::mutex OSTreeObject::curl_init_mutex_;
+
 void OSTreeObject::MakeTestRequest(const TreehubServer &push_target, CURLM *curl_multi_handle) {
   assert(!curl_handle_);
-  curl_handle_ = curl_easy_init();
+
+  {
+    std::lock_guard<std::mutex> guard(OSTreeObject::curl_init_mutex_);
+    curl_handle_ = curl_easy_init();
+  }
   if (curl_handle_ == nullptr) {
     throw std::runtime_error("Could not initialize curl handle");
   }
@@ -217,7 +223,11 @@ void OSTreeObject::Upload(TreehubServer &push_target, CURLM *curl_multi_handle, 
   }
   assert(!curl_handle_);
 
-  curl_handle_ = curl_easy_init();
+  {
+    std::lock_guard<std::mutex> guard(OSTreeObject::curl_init_mutex_);
+    curl_handle_ = curl_easy_init();
+  }
+
   if (curl_handle_ == nullptr) {
     throw std::runtime_error("Could not initialize curl handle");
   }

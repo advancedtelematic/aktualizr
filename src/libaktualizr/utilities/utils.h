@@ -3,6 +3,7 @@
 
 #include <boost/filesystem.hpp>
 #include <memory>
+#include <mutex>
 #include <string>
 
 #include <curl/curl.h>
@@ -156,6 +157,7 @@ class CurlEasyWrapper {
 
  private:
   CURL *handle;
+  static std::mutex curl_init_mutex;
 };
 
 template <typename... T>

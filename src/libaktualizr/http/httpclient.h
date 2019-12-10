@@ -50,6 +50,7 @@ class HttpClient : public HttpInterface {
 
   static CurlGlobalInitWrapper manageCurlGlobalInit_;
   CURL *curl;
+  static std::mutex curl_init_mutex;
   curl_slist *headers;
   HttpResponse perform(CURL *curl_handler, int retry_times, int64_t size_limit);
   static curl_slist *curl_slist_dup(curl_slist *sl);

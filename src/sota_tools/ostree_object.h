@@ -110,6 +110,7 @@ class OSTreeObject {
 
   std::stringstream http_response_;
   CURL* curl_handle_;
+  static std::mutex curl_init_mutex_;
   FILE* fd_;
   std::list<parentref> parents_;
   std::list<OSTreeObject::ptr> children_;

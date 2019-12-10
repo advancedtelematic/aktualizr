@@ -883,8 +883,13 @@ int Socket::connect() {
   return ::connect(socket_fd_, reinterpret_cast<const struct sockaddr *>(&sock_address_), sizeof(sock_address_));
 }
 
+std::mutex CurlEasyWrapper::curl_init_mutex;
+
 CurlEasyWrapper::CurlEasyWrapper() {
-  handle = curl_easy_init();
+  {
+    std::lock_guard<std::mutex> guard(CurlEasyWrapper::curl_init_mutex);
+    handle = curl_easy_init();
+  }
   if (handle == nullptr) {
     throw std::runtime_error("Could not initialize curl handle");
   }

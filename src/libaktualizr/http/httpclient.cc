@@ -35,8 +35,14 @@ static size_t writeString(void* contents, size_t size, size_t nmemb, void* userp
   return size * nmemb;
 }
 
+std::mutex HttpClient::curl_init_mutex;
+
 HttpClient::HttpClient(const std::vector<std::string>* extra_headers) {
-  curl = curl_easy_init();
+  {
+    std::lock_guard<std::mutex> guard(HttpClient::curl_init_mutex);
+    curl = curl_easy_init();
+  }
+
   if (curl == nullptr) {
     throw std::runtime_error("Could not initialize curl");
   }
