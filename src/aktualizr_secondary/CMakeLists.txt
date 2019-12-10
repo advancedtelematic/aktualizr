@@ -55,8 +55,11 @@ add_aktualizr_test(NAME aktualizr_secondary_config
 
 add_aktualizr_test(NAME aktualizr_secondary_uptane_verification
                    SOURCES uptane_verification_test.cc
-                   ARGS "$<TARGET_FILE:uptane-generator>"
+                   ARGS ${PROJECT_BINARY_DIR}/ostree_repo
                    PROJECT_WORKING_DIRECTORY)
+
+set_target_properties(t_aktualizr_secondary_uptane_verification PROPERTIES LINK_FLAGS -Wl,--export-dynamic)
+target_link_libraries(t_aktualizr_secondary_uptane_verification aktualizr_secondary_static_lib uptane_generator_lib)
 
 add_aktualizr_test(NAME aktualizr_secondary_update
                    SOURCES update_test.cc

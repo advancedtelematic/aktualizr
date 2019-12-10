@@ -37,6 +37,24 @@ std::ostream &Uptane::operator<<(std::ostream &os, const EcuSerial &ecu_serial) 
   return os;
 }
 
+Hash Hash::generate(Type type, const std::string &data) {
+  std::string hash;
+
+  switch (type) {
+    case Type::kSha256: {
+      hash = boost::algorithm::hex(Crypto::sha256digest(data));
+      break;
+    }
+    case Type::kSha512: {
+      hash = boost::algorithm::hex(Crypto::sha512digest(data));
+      break;
+    }
+    default: { throw std::invalid_argument("Unsupported hash type"); }
+  }
+
+  return Hash(type, hash);
+}
+
 Hash::Hash(const std::string &type, const std::string &hash) : hash_(boost::algorithm::to_upper_copy(hash)) {
   if (type == "sha512") {
     type_ = Hash::Type::kSha512;

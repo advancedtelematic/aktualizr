@@ -199,6 +199,7 @@ class Hash {
   // order corresponds algorithm priority
   enum class Type { kSha256, kSha512, kUnknownAlgorithm };
 
+  static Hash generate(Type type, const std::string &data);
   Hash(const std::string &type, const std::string &hash);
   Hash(Type type, const std::string &hash);
 
@@ -236,8 +237,8 @@ class Target {
   std::string filename() const { return filename_; }
   std::string sha256Hash() const;
   std::string sha512Hash() const;
-  std::vector<Hash> hashes() const { return hashes_; };
-  std::vector<HardwareIdentifier> hardwareIds() const { return hwids_; };
+  const std::vector<Hash> &hashes() const { return hashes_; };
+  const std::vector<HardwareIdentifier> &hardwareIds() const { return hwids_; };
   std::string custom_version() const { return custom_["version"].asString(); }
   Json::Value custom_data() const { return custom_; }
   void updateCustom(Json::Value &custom) { custom_ = custom; };
@@ -439,10 +440,16 @@ class Targets : public MetaWithKeys {
     terminating_role_.clear();
   }
 
-  std::vector<Uptane::Target> getTargets(const Uptane::EcuSerial &ecu_id) const {
+  std::vector<Uptane::Target> getTargets(const Uptane::EcuSerial &ecu_id,
+                                         const Uptane::HardwareIdentifier &hw_id) const {
     std::vector<Uptane::Target> result;
     for (auto it = targets.begin(); it != targets.end(); ++it) {
-      if (it->ecus().find(ecu_id) != it->ecus().end()) {
+      auto found_loc = std::find_if(it->ecus().begin(), it->ecus().end(),
+                                    [ecu_id, hw_id](const std::pair<EcuSerial, HardwareIdentifier> &val) {
+                                      return ((ecu_id == val.first) && (hw_id == val.second));
+                                    });
+
+      if (found_loc != it->ecus().end()) {
         result.push_back(*it);
       }
     }
