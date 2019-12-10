@@ -8,6 +8,7 @@ struct TelemetryConfig {
    * Report device network information: IP address, hostname, MAC address
    */
   bool report_network{true};
+  bool report_config{true};
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;

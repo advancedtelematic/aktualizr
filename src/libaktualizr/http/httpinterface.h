@@ -8,6 +8,7 @@
 #include <curl/curl.h>
 #include "json/json.h"
 
+#include "logging/logging.h"
 #include "utilities/types.h"
 #include "utilities/utils.h"
 
@@ -39,7 +40,9 @@ class HttpInterface {
   HttpInterface() = default;
   virtual ~HttpInterface() = default;
   virtual HttpResponse get(const std::string &url, int64_t maxsize) = 0;
+  virtual HttpResponse post(const std::string &url, const std::string &content_type, const std::string &data) = 0;
   virtual HttpResponse post(const std::string &url, const Json::Value &data) = 0;
+  virtual HttpResponse put(const std::string &url, const std::string &content_type, const std::string &data) = 0;
   virtual HttpResponse put(const std::string &url, const Json::Value &data) = 0;
 
   virtual HttpResponse download(const std::string &url, curl_write_callback write_cb,

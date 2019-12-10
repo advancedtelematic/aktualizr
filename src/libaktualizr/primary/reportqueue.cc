@@ -2,8 +2,6 @@
 
 #include <chrono>
 
-#include "config/config.h"
-
 ReportQueue::ReportQueue(const Config& config_in, std::shared_ptr<HttpInterface> http_client)
     : config(config_in), http(std::move(http_client)) {
   thread_ = std::thread(std::bind(&ReportQueue::run, this));

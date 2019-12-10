@@ -181,6 +181,18 @@ void SotaUptaneClient::reportNetworkInfo() {
   }
 }
 
+void SotaUptaneClient::reportAktualizrConfiguration() {
+  if (!config.telemetry.report_config) {
+    LOG_DEBUG << "Not reporting network information because telemetry is disabled";
+    return;
+  }
+
+  LOG_DEBUG << "Reporting libaktualizr configuration";
+  std::stringstream conf_ss;
+  config.writeToStream(conf_ss);
+  http->post(config.tls.server + "/system_info/config", "application/toml", conf_ss.str());
+}
+
 Json::Value SotaUptaneClient::AssembleManifest() {
   Json::Value manifest;  // signed top-level
   Uptane::EcuSerial primary_ecu_serial = uptane_manifest.getPrimaryEcuSerial();
@@ -682,6 +694,7 @@ void SotaUptaneClient::sendDeviceData() {
   reportHwInfo();
   reportInstalledPackages();
   reportNetworkInfo();
+  reportAktualizrConfiguration();
   putManifestSimple();
   sendEvent<event::SendDeviceDataComplete>();
 }
