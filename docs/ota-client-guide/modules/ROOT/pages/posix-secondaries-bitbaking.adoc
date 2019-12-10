@@ -31,7 +31,7 @@ bitbake primary-image
 ....
 
 .Primary configuration variables
-[cols="1,1,10"]
+[%autowidth.stretch]
 |===
 |Name |Default |Description
 
@@ -63,7 +63,7 @@ bitbake secondary-image
 ....
 
 .Secondary configuration variables
-[cols="1,1,10"]
+[%autowidth.stretch]
 |===
 |Name |Default |Description
 
@@ -103,7 +103,7 @@ The following is specifics of building such images targeting RPi.
 By default ethernet NIC is used which implies that Raspberry Pi is connected to LAN with an access to Internet. To use WiFi NIC the following configuration variables should be defined in your local configuration (local.conf):
 
 .WiFi configuration variables
-[cols="1,7,10"]
+[%autowidth.stretch]
 |===
 |Name |Default |Description
 
