@@ -129,7 +129,7 @@ class AktualizrSecondaryWrapper {
 
 class UptaneRepoWrapper {
  public:
-  UptaneRepoWrapper() { _uptane_repo.generateRepo(); }
+  UptaneRepoWrapper() { _uptane_repo.generateRepo(KeyType::kED25519); }
 
   Metadata addImageFile(const std::string& targetname, const std::string& hardware_id, const std::string& serial) {
     const auto image_file_path = _root_dir / targetname;
