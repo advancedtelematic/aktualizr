@@ -57,5 +57,7 @@ bool AktualizrSecondaryCommon::uptaneInitialize() {
   ecu_serial_ = ecu_serials[0].first;
   hardware_id_ = ecu_serials[0].second;
 
+  storage_->importInstalledVersions(config_.import.base_path);
+
   return true;
 }
