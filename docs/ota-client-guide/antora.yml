@@ -1,6 +1,6 @@
 name: ota-client
 title: OTA Connect Developer Guide
 version: latest
-display_version: 2019.10 (latest)
+display_version: 2019.11 (latest)
 nav:
 - modules/ROOT/nav.adoc
