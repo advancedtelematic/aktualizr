@@ -716,7 +716,8 @@ class UptaneTestRepo:
         shutil.rmtree(self.root_dir, ignore_errors=True)
 
     def _generate_repo(self):
-        subprocess.run([self._repo_manager_exe, '--path', self.root_dir, '--command', 'generate'], check=True)
+        subprocess.run([self._repo_manager_exe, '--path', self.root_dir,
+                        '--command', 'generate', '--keytype', 'ED25519'], check=True)
 
 
 def with_aktualizr(start=True, output_logs=False, id=('primary-hw-ID-001', str(uuid4())), wait_timeout=60,
