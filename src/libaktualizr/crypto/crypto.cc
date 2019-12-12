@@ -341,14 +341,16 @@ StructGuard<EVP_PKEY> Crypto::generateRSAKeyPairEVP(KeyType key_type) {
       return {nullptr, EVP_PKEY_free};
   }
 
-#if AKTUALIZR_OPENSSL_PRE_11
-  StructGuard<RSA> rsa(RSA_generate_key(bits,     /* number of bits for the key - 2048 is a sensible value */
-                                        RSA_F4,   /* exponent - RSA_F4 is defined as 0x10001L */
-                                        nullptr,  /* callback - can be NULL if we aren't displaying progress */
-                                        nullptr), /* callback argument - not needed in this case */
-                       RSA_free);
-#else
   int ret;
+
+  ret = RAND_status();
+  if (ret != 1) { /* random generator has NOT been seeded with enough data */
+    ret = RAND_poll();
+    if (ret != 1) { /* seed data was NOT generated */
+      return {nullptr, EVP_PKEY_free};
+    }
+  }
+
   StructGuard<BIGNUM> bne(BN_new(), BN_free);
   ret = BN_set_word(bne.get(), RSA_F4);
   if (ret != 1) {
@@ -361,7 +363,6 @@ StructGuard<EVP_PKEY> Crypto::generateRSAKeyPairEVP(KeyType key_type) {
   if (ret != 1) {
     return {nullptr, EVP_PKEY_free};
   }
-#endif
 
   StructGuard<EVP_PKEY> pkey(EVP_PKEY_new(), EVP_PKEY_free);
   // release the rsa pointer here, pkey is the new owner

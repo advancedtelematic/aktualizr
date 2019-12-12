@@ -84,7 +84,7 @@ endif()
 
 find_package(Boost 1.57.0 COMPONENTS ${BOOST_COMPONENTS} REQUIRED)
 find_package(CURL REQUIRED)
-find_package(OpenSSL REQUIRED)
+find_package(OpenSSL 1.0.2 REQUIRED)
 find_package(Threads REQUIRED)
 find_package(LibArchive REQUIRED)
 find_package(sodium REQUIRED)
