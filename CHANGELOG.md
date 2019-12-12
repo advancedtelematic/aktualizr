@@ -6,7 +6,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ## [??? (unreleased)]
 
-## [2019.11] - 2019-12-11
+## [2019.11] - 2019-12-12
 
 ### Added
 
@@ -25,6 +25,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 - Removed bogus warning at boot when using OStree: [PR](https://github.com/advancedtelematic/aktualizr/pull/1466)
 - Updated the docker-app package manager to work with docker-app v0.8: [PR](https://github.com/advancedtelematic/aktualizr/pull/1468)
 - Overriding of log level when using the docker-app package manager: [PR](https://github.com/advancedtelematic/aktualizr/pull/1478)
+- Report correct hash of the currently installed version on IP Secondary:: [PR](https://github.com/advancedtelematic/aktualizr/pull/1485)
 
 ## [2019.10] - 2019-11-15
 
