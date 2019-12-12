@@ -92,9 +92,12 @@ coverage:
   artifacts:
     paths:
       - build-coverage/coverage/
+    reports:
+      junit: build-coverage/report.xml
   script:
     - aws s3 cp s3://ota-gitlab-ci/hereotaconnect_prod.zip $CI_PROJECT_DIR/credentials.zip
     - ./scripts/test.sh
+    - xsltproc -o build-coverage/report.xml ./third_party/junit/ctest2junit.xsl build-coverage/Testing/**/Test.xml > /dev/null
 
 nop11:
   variables:
@@ -136,8 +139,11 @@ debian-build+static:
   artifacts:
     paths:
       - build-debian-testing/docs/doxygen/
+    reports:
+      junit: build-debian-testing/report.xml
   script:
     - ./scripts/test.sh
+    - xsltproc -o build-debian-testing/report.xml ./third_party/junit/ctest2junit.xsl build-debian-testing/Testing/**/Test.xml > /dev/null
 
 bionic-pkg:
   variables:
