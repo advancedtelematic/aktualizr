@@ -58,6 +58,7 @@ class AktualizrSecondaryConfig : public BaseConfig {
   PackageConfig pacman;
   BootloaderConfig bootloader;
   StorageConfig storage;
+  ImportConfig import;
 
  private:
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);

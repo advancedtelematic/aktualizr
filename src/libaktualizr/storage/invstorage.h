@@ -214,6 +214,7 @@ class INvStorage {
   bool loadPrimaryInstallationLog(std::vector<Uptane::Target>* log, bool only_installed) {
     return loadInstallationLog("", log, only_installed);
   }
+  void importInstalledVersions(const boost::filesystem::path& base_path);
 
  private:
   void importSimple(const boost::filesystem::path& base_path, store_data_t store_func, load_data_t load_func,
@@ -222,7 +223,6 @@ class INvStorage {
                           const BasedPath& imported_data_path);
   void importPrimaryKeys(const boost::filesystem::path& base_path, const BasedPath& import_pubkey_path,
                          const BasedPath& import_privkey_path);
-  void importInstalledVersions(const boost::filesystem::path& base_path);
 
  protected:
   const StorageConfig config_;
