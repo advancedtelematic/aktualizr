@@ -6,6 +6,25 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ## [??? (unreleased)]
 
+## [2019.11] - 2019-12-11
+
+### Added
+
+- Allow logger to use stderr: [PR](https://github.com/advancedtelematic/aktualizr/pull/1457)
+- Full metadata verification on IP Secondaries: [PR](https://github.com/advancedtelematic/aktualizr/pull/1449)
+- Log when connectivity is restored after an interruption: [PR](https://github.com/advancedtelematic/aktualizr/pull/1463)
+- Aktualizr now sends its configuration to the backend at boot, for audit purposes: [PR](https://github.com/advancedtelematic/aktualizr/pull/1474)
+
+### Changed
+
+- The jsoncpp library is now included as a submodule and was updated to v1.8.4: [PR](https://github.com/advancedtelematic/aktualizr/pull/1462)
+- PKCS11 engine paths auto-detection is not done at runtime anymore, but at configure time when possible: [PR](https://github.com/advancedtelematic/aktualizr/pull/1471)
+
+### Fixed
+
+- Removed bogus warning at boot when using OStree: [PR](https://github.com/advancedtelematic/aktualizr/pull/1466)
+- Updated the docker-app package manager to work with docker-app v0.8: [PR](https://github.com/advancedtelematic/aktualizr/pull/1468)
+- Overriding of log level when using the docker-app package manager: [PR](https://github.com/advancedtelematic/aktualizr/pull/1478)
 
 ## [2019.10] - 2019-11-15
 

@@ -31,6 +31,7 @@ The link above is for the doxygen docs on master. Doxygen docs for the following
 * https://advancedtelematic.github.io/aktualizr/2019.8/index.html[2019.8]
 * https://advancedtelematic.github.io/aktualizr/2019.9/index.html[2019.9]
 * https://advancedtelematic.github.io/aktualizr/2019.10/index.html[2019.10]
+* https://advancedtelematic.github.io/aktualizr/2019.11/index.html[2019.11]
 ====
 
 == Release process
