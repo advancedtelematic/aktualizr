@@ -18,7 +18,7 @@ For secure communication, a vehicle needs to have an X.509 certificate and it ne
 The provisioning process ensures that a signed certificate is associated with each device. This process is crucial for securing communication between devices and the OTA Connect server.
 OTA Connect supports two provisioning methods. We refer to these two methods as "provisioning with shared credentials" and "provisioning with device credentials".
 
-Note that in both cases, the server must have access to the fleet root CA for your fleet. The fleet root CA is used to sign identity metadata of thclconnected devices.
+Note that in both cases, the server must have access to the fleet root CA for your fleet. The fleet root CA is used to sign the certificate of the connected devices.
 
 Let's take a closer look at how each method works.
 
