@@ -61,6 +61,7 @@ TEST(DockerAppManager, DockerApp_Fetch) {
   config.pacman.sysroot = test_sysroot;
   config.pacman.docker_apps_root = temp_dir / "docker_apps";
   config.pacman.docker_apps.push_back("app1");
+  config.pacman.docker_apps.push_back("app2");
   config.pacman.docker_app_bin = config.pacman.docker_compose_bin = "src/libaktualizr/package_manager/docker_fake.sh";
   config.pacman.ostree_server = treehub_server;
   config.uptane.repo_server = repo_server + "/repo/repo";
@@ -70,6 +71,9 @@ TEST(DockerAppManager, DockerApp_Fetch) {
   // Create a fake "docker-app" that's not configured. We'll test below
   // to ensure its removed
   boost::filesystem::create_directories(config.pacman.docker_apps_root / "delete-this-app");
+  // This is app is configured, but not a part of the install Target, so
+  // it should get removed below
+  boost::filesystem::create_directories(config.pacman.docker_apps_root / "app2");
 
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   KeyManager keys(storage, config.keymanagerConfig());
@@ -96,6 +100,7 @@ TEST(DockerAppManager, DockerApp_Fetch) {
 
   // Make sure the unconfigured docker app has been removed:
   ASSERT_FALSE(boost::filesystem::exists(config.pacman.docker_apps_root / "delete-this-app"));
+  ASSERT_FALSE(boost::filesystem::exists(config.pacman.docker_apps_root / "app2"));
   ASSERT_TRUE(boost::filesystem::exists(config.pacman.docker_apps_root / "docker-compose-down-called"));
 
   setenv("DOCKER_APP_FAIL", "1", 1);
