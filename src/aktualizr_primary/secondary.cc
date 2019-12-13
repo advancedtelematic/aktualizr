@@ -71,7 +71,7 @@ class SecondaryWaiter {
         timer_{io_context_},
         connected_secondaries_(secondaries) {}
 
-  void addSecoondary(const std::string& ip, uint16_t port) { secondaries_to_wait_for_.insert(key(ip, port)); }
+  void addSecondary(const std::string& ip, uint16_t port) { secondaries_to_wait_for_.insert(key(ip, port)); }
 
   void wait() {
     if (secondaries_to_wait_for_.empty()) {
@@ -149,7 +149,7 @@ static Secondaries createIPSecondaries(const IPSecondariesConfig& config) {
     if (sec_creation_res.first) {
       result.push_back(sec_creation_res.second);
     } else {
-      sec_waiter.addSecoondary(ip_sec_cfg.ip, ip_sec_cfg.port);
+      sec_waiter.addSecondary(ip_sec_cfg.ip, ip_sec_cfg.port);
     }
   }
 
