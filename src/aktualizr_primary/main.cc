@@ -122,11 +122,14 @@ int main(int argc, char *argv[]) {
     conn = aktualizr.SetSignalHandler(f_cb);
 
     if (!config.uptane.secondary_config_file.empty()) {
-      if (boost::filesystem::exists(config.uptane.secondary_config_file)) {
+      try {
         Primary::initSecondaries(aktualizr, config.uptane.secondary_config_file);
-      } else {
-        LOG_WARNING << "The specified secondary config file does not exist: " << config.uptane.secondary_config_file
-                    << "\nProceed further without secondary(ies)";
+      } catch (const std::exception &e) {
+        LOG_ERROR << "Secondary initialization failed";
+        if (!aktualizr.IsRegistered()) {
+          LOG_ERROR << "Cannot provision without all secondaries present, exiting...";
+          return EXIT_FAILURE;
+        }
       }
     }
 

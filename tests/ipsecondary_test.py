@@ -98,7 +98,12 @@ def test_primary_timeout_during_first_run(uptane_repo, secondary, aktualizr, **k
     with aktualizr:
         aktualizr.wait_for_completion()
 
-    return not aktualizr.is_ecu_registered(secondary.id)
+    info = aktualizr.get_info()
+    if info is None:
+        return False
+    not_provisioned = 'Provisioned on server: no' in info
+
+    return not_provisioned and not aktualizr.is_ecu_registered(secondary.id)
 
 
 @with_uptane_backend()

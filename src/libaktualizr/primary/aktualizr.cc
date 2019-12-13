@@ -30,6 +30,8 @@ void Aktualizr::Initialize() {
   api_queue_.run();
 }
 
+bool Aktualizr::IsRegistered() const { return storage_->loadEcuRegistered(); }
+
 bool Aktualizr::UptaneCycle() {
   result::UpdateCheck update_result = CheckUpdates().get();
   if (update_result.updates.empty()) {
