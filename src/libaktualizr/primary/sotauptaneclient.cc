@@ -264,7 +264,7 @@ Json::Value SotaUptaneClient::AssembleManifest() {
   return manifest;
 }
 
-bool SotaUptaneClient::hasPendingUpdates() { return storage->hasPendingInstall(); }
+bool SotaUptaneClient::hasPendingUpdates() const { return storage->hasPendingInstall(); }
 
 void SotaUptaneClient::initialize() {
   LOG_DEBUG << "Checking if device is provisioned...";
@@ -941,12 +941,12 @@ void SotaUptaneClient::campaignPostpone(const std::string &campaign_id) {
   report_queue->enqueue(std_::make_unique<CampaignPostponedReport>(campaign_id));
 }
 
-bool SotaUptaneClient::isInstallCompletionRequired() {
+bool SotaUptaneClient::isInstallCompletionRequired() const {
   bool force_install_completion = (hasPendingUpdates() && config.uptane.force_install_completion);
   return force_install_completion;
 }
 
-void SotaUptaneClient::completeInstall() {
+void SotaUptaneClient::completeInstall() const {
   if (isInstallCompletionRequired()) {
     package_manager_->completeInstall();
   }
@@ -1223,6 +1223,6 @@ std::string SotaUptaneClient::secondaryTreehubCredentials() const {
   }
 }
 
-Uptane::LazyTargetsList SotaUptaneClient::allTargets() {
+Uptane::LazyTargetsList SotaUptaneClient::allTargets() const {
   return Uptane::LazyTargetsList(images_repo, storage, uptane_fetcher);
 }
