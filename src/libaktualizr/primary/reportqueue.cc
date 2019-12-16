@@ -15,7 +15,7 @@ ReportQueue::~ReportQueue() {
   cv_.notify_all();
   thread_.join();
 
-  LOG_DEBUG << "Flushing report queue";
+  LOG_TRACE << "Flushing report queue";
   flushQueue();
 }
 
