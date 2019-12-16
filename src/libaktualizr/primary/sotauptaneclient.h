@@ -65,16 +65,17 @@ class SotaUptaneClient {
   void campaignAccept(const std::string &campaign_id);
   void campaignDecline(const std::string &campaign_id);
   void campaignPostpone(const std::string &campaign_id);
-  bool hasPendingUpdates();
-  bool isInstallCompletionRequired();
-  void completeInstall();
-  Uptane::LazyTargetsList allTargets();
-  Uptane::Target getCurrent() { return package_manager_->getCurrent(); }
+
+  bool hasPendingUpdates() const;
+  bool isInstallCompletionRequired() const;
+  void completeInstall() const;
+  Uptane::LazyTargetsList allTargets() const;
+  Uptane::Target getCurrent() const { return package_manager_->getCurrent(); }
 
   bool updateImagesMeta();  // TODO: make private once aktualizr has a proper TUF API
   bool checkImagesMetaOffline();
   data::InstallationResult PackageInstall(const Uptane::Target &target);
-  TargetStatus VerifyTarget(const Uptane::Target &target) { return package_manager_->verifyTarget(target); }
+  TargetStatus VerifyTarget(const Uptane::Target &target) const { return package_manager_->verifyTarget(target); }
 
  protected:
   void addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);

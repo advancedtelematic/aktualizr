@@ -33,6 +33,11 @@ class Aktualizr {
   void Initialize();
 
   /**
+   * Returns true if the device has been registered to the backend succesffully.
+   */
+  bool IsRegistered() const;
+
+  /**
    * Asynchronously run aktualizr indefinitely until Shutdown is called.
    * @return Empty std::future object
    */

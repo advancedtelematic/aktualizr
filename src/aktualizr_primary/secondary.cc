@@ -57,8 +57,7 @@ void initSecondaries(Aktualizr& aktualizr, const boost::filesystem::path& config
       }
     } catch (const std::exception& exc) {
       LOG_ERROR << "Failed to initialize a secondary: " << exc.what();
-      LOG_ERROR << "Continue with initialization of the remaining secondaries, if any left.";
-      // otherwise rethrow the exception
+      throw exc;
     }
   }
 }
@@ -71,7 +70,7 @@ class SecondaryWaiter {
         timer_{io_context_},
         connected_secondaries_(secondaries) {}
 
-  void addSecoondary(const std::string& ip, uint16_t port) { secondaries_to_wait_for_.insert(key(ip, port)); }
+  void addSecondary(const std::string& ip, uint16_t port) { secondaries_to_wait_for_.insert(key(ip, port)); }
 
   void wait() {
     if (secondaries_to_wait_for_.empty()) {
@@ -82,8 +81,10 @@ class SecondaryWaiter {
     timer_.async_wait([&](const boost::system::error_code& error_code) {
       if (!!error_code) {
         LOG_ERROR << "Wait for secondaries has failed: " << error_code;
+        throw std::runtime_error("Error while waiting for secondary");
       } else {
-        LOG_ERROR << "Timeout while waiting for secondaries: " << error_code;
+        LOG_ERROR << "Timeout while waiting for secondary: " << error_code;
+        throw std::runtime_error("Timeout while waiting for secondary");
       }
       io_context_.stop();
     });
@@ -149,7 +150,7 @@ static Secondaries createIPSecondaries(const IPSecondariesConfig& config) {
     if (sec_creation_res.first) {
       result.push_back(sec_creation_res.second);
     } else {
-      sec_waiter.addSecoondary(ip_sec_cfg.ip, ip_sec_cfg.port);
+      sec_waiter.addSecondary(ip_sec_cfg.ip, ip_sec_cfg.port);
     }
   }
 
