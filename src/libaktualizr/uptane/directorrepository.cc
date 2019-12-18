@@ -139,4 +139,24 @@ void DirectorRepository::dropTargets(INvStorage& storage) {
   resetMeta();
 }
 
+bool DirectorRepository::matchTargetsWithImageTargets(const Uptane::Targets& image_targets) const {
+  // step 10 of https://uptane.github.io/papers/ieee-isto-6100.1.0.0.uptane-standard.html#rfc.section.5.4.4.2
+  // TBD: no delegation support, consider reusing of findTargetInDelegationTree()
+  // that needs to be moved into a common place to be resued by Primary and Secondary
+  const auto& image_target_array = image_targets.targets;
+  const auto& director_target_array = targets.targets;
+
+  for (const auto& director_target : director_target_array) {
+    auto found_it = std::find_if(
+        image_target_array.begin(), image_target_array.end(),
+        [&director_target](const Target& image_target) { return director_target.MatchTarget(image_target); });
+
+    if (found_it == image_target_array.end()) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 }  // namespace Uptane
