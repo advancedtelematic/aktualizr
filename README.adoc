@@ -226,6 +226,10 @@ Some more detailed instructions on how to configure a fake device can be found o
 
 If you intend to use aktualizr to authenticate with a server, you will need some form of provisioning. Aktualizr currently supports provisioning with shared credentials or with device credentials. Device credential provisioning supports using an HSM to store private keys. The differences and details are explained in link:docs/client-provisioning-methods.adoc[] and link:docs/provision-with-device-credentials.adoc[]. You can learn more about the credentials files used to support provisioning in link:docs/provisioning-methods-and-credentialszip.adoc[].
 
+== Changelog
+
+The changelog is available in link:CHANGELOG.md[].
+
 == Maintainers
 
 This code is maintained by the OTA team at https://www.here.com/products/automotive/ota-technology[HERE Technologies]. If you have questions about the project, please reach us through Github issues for this repository or email us at otaconnect.support@here.com.
@@ -234,42 +238,8 @@ This code is maintained by the OTA team at https://www.here.com/products/automot
 
 Complete contribution guidelines can be found in link:CONTRIBUTING.md[].
 
-== Changelog
-
-A changelog can be found in link:CHANGELOG.md[].
-
 == License
 
 This code is licensed under the link:LICENSE[Mozilla Public License 2.0], a copy of which can be found in this repository. All code is copyright HERE Europe B.V., 2016-2019.
 
-We also require that contributors accept the terms of Linux Foundation's link:https://developercertificate.org/[Developer Certificate of Origin]:
-
-----
-Developer's Certificate of Origin 1.1
-
-By making a contribution to this project, I certify that:
-
-(a) The contribution was created in whole or in part by me and I
-    have the right to submit it under the open source license
-    indicated in the file; or
-
-(b) The contribution is based upon previous work that, to the best
-    of my knowledge, is covered under an appropriate open source
-    license and I have the right under that license to submit that
-    work with modifications, whether created in whole or in part
-    by me, under the same open source license (unless I am
-    permitted to submit under a different license), as indicated
-    in the file; or
-
-(c) The contribution was provided directly to me by some other
-    person who certified (a), (b) or (c) and I have not modified
-    it.
-
-(d) I understand and agree that this project and the contribution
-    are public and that a record of the contribution (including all
-    personal information I submit with it, including my sign-off) is
-    maintained indefinitely and may be redistributed consistent with
-    this project or the open source license(s) involved.
-----
-
-Specific instructions can be found in link:CONTRIBUTING.md[]
+We require that contributors accept the terms of Linux Foundation's link:https://developercertificate.org/[Developer Certificate of Origin]. Specific instructions can be found in link:CONTRIBUTING.md[].
