@@ -8,7 +8,7 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 endif::[]
 
 
-Virtual secondary devices can be used as a way to update a configuration file on the primary device (where the primary device is a standard OSTree image running an aktualizr). You can do this in two parts:
+Virtual secondaries can be used as a way to update a configuration file on the primary (where the primary is a standard OSTree image running an aktualizr). You can do this in two parts:
 
 * First you need a virtual secondary configured that can be used to update a configuration file.
 * Afterwards you can integrate it into your Yocto build.
@@ -20,36 +20,26 @@ Virtual secondary devices can be used as a way to update a configuration file on
 . You can create a virtual secondary to run locally by following the steps on how to xref:simulate-device-basic.adoc[simulate a device without building a disk image].
 +
 You can use the provided `.deb` releases mentioned and the `virtualsec.json` file, which you can edit to suit your needs: such as removing one of the two entries and setting the paths and names to whatever you prefer.
-. Afterwards, you will be able to download the arbitrary files to the location specified in the "firmware_path" variable, by uploading the files to the https://connect.ota.here.com[OTA Connect Portal].
-. Now go to the *Software versions* tab and click *Add Software*. You should make sure the *ECU Types* field matches the value specified in the "ecu_hardware_id" variable of the `virtualsec.json` file.
+. Afterwards, you will be able to download the arbitrary files to the location specified in the `firmware_path` variable.
+. Upload the files for the virtual secondary to the https://connect.ota.here.com[OTA Connect Portal].
+. Now go to the *Software versions* tab and click *Add Software*. You should make sure the *ECU Types* field matches the value specified in the `ecu_hardware_id` variable of the `virtualsec.json` file.
 +
-NOTE: "ecu_hardware_id" must be unique per each file type that you'll like to deliver, otherwise an update of one of them will rewrite the others.
+NOTE: `ecu_hardware_id` must be unique per each file type that you'll like to deliver, otherwise an update of one of them will rewrite the others.
 
 
 == Updating via Virtual Secondaries
 
 To issue the update perform the following steps:
 
-. Go to your *Devices* tab and find your primary device. (You can run 'aktualizr-info' locally to get the device name if you don't know it.)
+. Go to your *Devices* tab and find your primary. (You can run `aktualizr-info` locally to get the name of the primary if you don't know it.)
 . Afterwards, select your virtual secondary and the file you uploaded to the *Software versions* tab.
 +
 (For future reference, you can use the *Campaigns* tab to send updates to multiple devices simultaneously.)
+. After your selection, the primary will begin to download the file.
 
 
 
 == Integrating Virtual Secondaries into Yocto
 
-You can use the files in the repository https://github.com/advancedtelematic/meta-updater/pull/611[here] as an example to get the virtual secondaries to work in Yocto. You can use the files directly or you can copy them to one of your layers and modify them according to your needs.
-
-To use the example in the repository, you'll need to make sure that the relevant packages are added to your image. You can do so by adding this to your `local.conf`:
-----
-IMAGE_INSTALL_append += " aktualizr-virtualsec"
-----
-
-Currently, if you want to do this on any branch besides master, you'll need to also add the following to your `local.conf` to pull the latest version of aktualizr into your build:
-
-----
-require classes/sota_bleeding.inc
-----
-
+You can use the files in the repository https://github.com/advancedtelematic/meta-updater/blob/master/recipes-sota/config/aktualizr-virtualsec.bb[here] as an example to get the virtual secondaries to work in Yocto. You can use the files directly or you can copy them to one of your layers and modify them according to your needs.
 
