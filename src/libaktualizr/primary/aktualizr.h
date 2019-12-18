@@ -190,12 +190,16 @@ class Aktualizr {
    */
   void AddSecondary(const std::shared_ptr<Uptane::SecondaryInterface>& secondary);
 
+  // The type proxy is needed in doxygen 1.8.16 because of this bug
+  // https://github.com/doxygen/doxygen/issues/7236
+  using SigHandler = std::function<void(std::shared_ptr<event::BaseEvent>)>;
+
   /**
    * Provide a function to receive event notifications.
    * @param handler a function that can receive event objects.
    * @return a signal connection object, which can be disconnected if desired.
    */
-  boost::signals2::connection SetSignalHandler(const std::function<void(std::shared_ptr<event::BaseEvent>)>& handler);
+  boost::signals2::connection SetSignalHandler(const SigHandler& handler);
 
  private:
   Config config_;
