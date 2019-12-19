@@ -48,6 +48,36 @@ When your feature is ready, push the branch and make a pull request. We will rev
 Developer Certificate of Origin (DCO)
 ----
 
-All commits in pull requests must contain a `Signed-off-by:` line to indicate that the developer has agreed to the terms of the [Developer Certificate of Origin](https://developercertificate.org) (see [readme](README.adoc) for more details). A simple way to achieve that is to use the `-s` flag of `git commit`.
+All commits in pull requests must contain a `Signed-off-by:` line to indicate that the developer has agreed to the terms of the [Developer Certificate of Origin](https://developercertificate.org):
+
+~~~~
+Developer's Certificate of Origin 1.1
+
+By making a contribution to this project, I certify that:
+
+(a) The contribution was created in whole or in part by me and I
+    have the right to submit it under the open source license
+    indicated in the file; or
+
+(b) The contribution is based upon previous work that, to the best
+    of my knowledge, is covered under an appropriate open source
+    license and I have the right under that license to submit that
+    work with modifications, whether created in whole or in part
+    by me, under the same open source license (unless I am
+    permitted to submit under a different license), as indicated
+    in the file; or
+
+(c) The contribution was provided directly to me by some other
+    person who certified (a), (b) or (c) and I have not modified
+    it.
+
+(d) I understand and agree that this project and the contribution
+    are public and that a record of the contribution (including all
+    personal information I submit with it, including my sign-off) is
+    maintained indefinitely and may be redistributed consistent with
+    this project or the open source license(s) involved.
+~~~~
+
+A simple way to sign off is to use the `-s` flag of `git commit`.
 
 New pull requests will automatically be checked by the [probot/dco](https://probot.github.io/apps/dco/).
