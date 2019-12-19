@@ -45,7 +45,7 @@ bitbake primary-image
 
 |`PRIMARY_WAIT_TIMEOUT`
 |`"120"`
-|Time (seconds) to wait for connections from Secondaries. Only the secondaries that connected to Primary will be registered at the server and are part of the device Primary represents.
+|Time (seconds) to wait for connections from Secondaries. Note that, while a Primary can still function if some Secondaries failed to connect, it will only provision if all its Secondaries have connected before this delay.
 
 |`PRIMARY_SECONDARIES`
 |`"10.0.3.2:9050"`
