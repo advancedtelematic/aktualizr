@@ -14,7 +14,6 @@
 #include "utilities/utils.h"
 
 namespace bpo = boost::program_options;
-boost::filesystem::path build_dir;
 
 TEST(config, DefaultValues) {
   Config conf;
@@ -276,11 +275,6 @@ TEST(config, TwoTomlCorrectness) {
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
-  if (argc != 2) {
-    std::cerr << "Error: " << argv[0] << " requires the path to the build directory as an input argument.\n";
-    return EXIT_FAILURE;
-  }
-  build_dir = argv[1];
   return RUN_ALL_TESTS();
 }
 #endif

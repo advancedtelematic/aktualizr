@@ -42,6 +42,10 @@ TEST(Aktualizr, DownloadNonOstreeBin) {
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
+  if (testing::GTEST_FLAG(list_tests)) {
+    return RUN_ALL_TESTS();
+  }
+
   logger_init();
 
   if (argc != 3) {

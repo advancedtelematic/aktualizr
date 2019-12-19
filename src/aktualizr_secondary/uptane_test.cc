@@ -60,6 +60,10 @@ TEST(aktualizr_secondary_uptane, credentialsPassing) {
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
+  if (testing::GTEST_FLAG(list_tests)) {
+    return RUN_ALL_TESTS();
+  }
+
   TemporaryDirectory temp_dir;
   test_config.network.port = 0;  // random port
   test_config.storage.path = temp_dir.Path();

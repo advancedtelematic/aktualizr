@@ -500,6 +500,9 @@ TEST(uptane_generator, generateCampaigns) {
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
+  if (testing::GTEST_FLAG(list_tests)) {
+    return RUN_ALL_TESTS();
+  }
   logger_init();
   logger_set_threshold(boost::log::trivial::trace);
   if (argc >= 2) {

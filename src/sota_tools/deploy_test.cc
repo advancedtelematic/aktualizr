@@ -46,6 +46,10 @@ TEST(deploy, UploadToTreehub) {
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
+
+  if (testing::GTEST_FLAG(list_tests)) {
+    return RUN_ALL_TESTS();
+  }
   port = TestUtils::getFreePort();
   std::string server = "tests/sota_tools/treehub_server.py";
   Json::Value auth;

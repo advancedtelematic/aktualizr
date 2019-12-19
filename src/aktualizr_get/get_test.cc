@@ -19,6 +19,9 @@ TEST(aktualizr_get, good) {
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
+  if (testing::GTEST_FLAG(list_tests)) {
+    return RUN_ALL_TESTS();
+  }
 
   std::string port = TestUtils::getFreePort();
   server += port;

@@ -136,6 +136,10 @@ TEST(authenticate, online_sign_creds) {
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
+  if (testing::GTEST_FLAG(list_tests)) {
+    return RUN_ALL_TESTS();
+  }
+
   if (argc != 2) {
     std::cerr << "Error: " << argv[0] << " requires the path to the directory with generated certificates.\n";
     return EXIT_FAILURE;

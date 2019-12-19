@@ -121,6 +121,10 @@ TEST(http_repo, root) {
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
+  if (testing::GTEST_FLAG(list_tests)) {
+    return RUN_ALL_TESTS();
+  }
+
   std::string server = "tests/sota_tools/treehub_server.py";
   port = TestUtils::getFreePort();
 

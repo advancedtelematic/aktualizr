@@ -32,8 +32,7 @@ add_aktualizr_test(NAME aktualizr_cert_provider SOURCES cert_provider_test.cc PR
 
 if (SOTA_PACKED_CREDENTIALS)
     add_aktualizr_test(NAME aktualizr_cert_provider_shared_cred SOURCES cert_provider_shared_cred_test.cc
-        PROJECT_WORKING_DIRECTORY ARGS $<TARGET_FILE:aktualizr-cert-provider> ${SOTA_PACKED_CREDENTIALS})
-    set_tests_properties(test_aktualizr_cert_provider_shared_cred PROPERTIES LABELS "credentials")
+        PROJECT_WORKING_DIRECTORY ARGS $<TARGET_FILE:aktualizr-cert-provider> ${SOTA_PACKED_CREDENTIALS} PROPERTIES LABELS "credentials")
 endif(SOTA_PACKED_CREDENTIALS)
 
 aktualizr_source_file_checks(${AKTUALIZR_CERT_PROVIDER_SRC}

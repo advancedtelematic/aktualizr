@@ -64,6 +64,10 @@ TEST(treehub_server, basic_auth) {
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
+  if (testing::GTEST_FLAG(list_tests)) {
+    return RUN_ALL_TESTS();
+  }
+
   std::string server = "tests/sota_tools/headers_response_server.py";
   port = TestUtils::getFreePort();
 

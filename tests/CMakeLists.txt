@@ -70,8 +70,8 @@ endif(BUILD_WITH_CODE_COVERAGE)
 
 if(TESTSUITE_VALGRIND)
     # This test is only checking that valgrind finds memory leaks
-    add_aktualizr_test(NAME leak SOURCES leak_test.cc)
-    set_tests_properties(test_leak PROPERTIES WILL_FAIL TRUE)
+    add_aktualizr_test(NAME leak SOURCES leak_test.cc PROPERTIES WILL_FAIL TRUE)
+    #set_tests_properties(test_leak PROPERTIES WILL_FAIL TRUE)
 endif()
 
 if(FAULT_INJECTION)

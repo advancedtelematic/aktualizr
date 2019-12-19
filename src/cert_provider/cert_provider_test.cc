@@ -317,6 +317,10 @@ TEST_F(AktualizrCertProviderTest, DeviceCertParams) {
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
+  if (testing::GTEST_FLAG(list_tests)) {
+    return RUN_ALL_TESTS();
+  }
+
   if (argc < 2) {
     std::cerr << "A path to the cert_provider is not specified." << std::endl;
     return EXIT_FAILURE;

@@ -121,6 +121,10 @@ TEST(Headers, update_header) {
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
+  if (testing::GTEST_FLAG(list_tests)) {
+    return RUN_ALL_TESTS();
+  }
+
   std::string port = TestUtils::getFreePort();
   server += port;
   boost::process::child server_process("tests/fake_http_server/fake_test_server.py", port, "-f");

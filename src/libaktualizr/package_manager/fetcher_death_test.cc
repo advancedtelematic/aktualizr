@@ -98,6 +98,9 @@ TEST(FetcherDeathTest, TestResumeBinary) {
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
+  if (testing::GTEST_FLAG(list_tests)) {
+    return RUN_ALL_TESTS();
+  }
   logger_init();
   logger_set_threshold(boost::log::trivial::trace);
 
@@ -106,6 +109,7 @@ int main(int argc, char** argv) {
   config.uptane.repo_server = server;
   boost::process::child http_server_process("tests/fake_http_server/fake_test_server.py", port, "-f");
   TestUtils::waitForServer(server + "/");
+
   return RUN_ALL_TESTS();
 }
 #endif  // __NO_MAIN__

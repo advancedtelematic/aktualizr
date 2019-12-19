@@ -362,6 +362,7 @@ set(CPACK_DEBIAN_AKTUALIZR_PACKAGE_SHLIBDEPS ON)
 set(CPACK_DEBIAN_AKTUALIZR_PACKAGE_CONTROL_EXTRA "${PROJECT_SOURCE_DIR}/config/systemd/debian-control/postinst;${PROJECT_SOURCE_DIR}/config/systemd/debian-control/prerm;${PROJECT_SOURCE_DIR}/config/systemd/debian-control/postrm;")
 include(CPack)
 include(CPackComponent)
+include(GoogleTest)
 
 
 set (AKTUALIZR_EXTERNAL_LIBS

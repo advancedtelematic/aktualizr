@@ -1,7 +1,7 @@
 function(add_aktualizr_test)
     set(options PROJECT_WORKING_DIRECTORY NO_VALGRIND)
     set(oneValueArgs NAME)
-    set(multiValueArgs SOURCES LIBRARIES ARGS LAUNCH_CMD)
+    set(multiValueArgs SOURCES LIBRARIES ARGS LAUNCH_CMD PROPERTIES)
     cmake_parse_arguments(AKTUALIZR_TEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     set(TEST_TARGET t_${AKTUALIZR_TEST_NAME})
     add_executable(${TEST_TARGET} EXCLUDE_FROM_ALL ${AKTUALIZR_TEST_SOURCES} ${PROJECT_SOURCE_DIR}/tests/test_utils.cc)
@@ -25,8 +25,13 @@ function(add_aktualizr_test)
         list(INSERT CMD_PREFIX 0 ${AKTUALIZR_TEST_LAUNCH_CMD})
     endif()
 
-    add_test(NAME test_${AKTUALIZR_TEST_NAME}
-             COMMAND ${CMD_PREFIX} $<TARGET_FILE:${TEST_TARGET}> ${AKTUALIZR_TEST_ARGS} ${GOOGLE_TEST_OUTPUT} ${WD})
+    if (AKTUALIZR_TEST_PROPERTIES)
+        set(PROP PROPERTIES ${AKTUALIZR_TEST_PROPERTIES})
+    endif()
+
+    gtest_discover_tests(${TEST_TARGET} EXTRA_ARGS ${AKTUALIZR_TEST_ARGS} ${GOOGLE_TEST_OUTPUT} ${PROP} ${WD})
+    #add_test(NAME test_${AKTUALIZR_TEST_NAME}
+    #COMMAND ${CMD_PREFIX} $<TARGET_FILE:${TEST_TARGET}> ${AKTUALIZR_TEST_ARGS} ${GOOGLE_TEST_OUTPUT} ${WD})
 
     add_dependencies(build_tests ${TEST_TARGET})
     set(TEST_SOURCES ${TEST_SOURCES} ${AKTUALIZR_TEST_SOURCES} PARENT_SCOPE)

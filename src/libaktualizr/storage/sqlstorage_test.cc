@@ -516,8 +516,15 @@ TEST(sqlstorage, migrate_from_fs) {
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
+
+  if (testing::GTEST_FLAG(list_tests)) {
+    return RUN_ALL_TESTS();
+  }
+
   logger_init();
   logger_set_threshold(boost::log::trivial::trace);
+
+
   if (argc != 2) {
     std::cout << "Please pass the directory containing sql migration scripts as the first argument\n";
     return 1;

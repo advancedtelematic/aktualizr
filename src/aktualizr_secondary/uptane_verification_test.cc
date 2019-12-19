@@ -390,6 +390,10 @@ TEST_F(SecondaryUptaneVerificationTest, InvalidImageData) {
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
+  if (testing::GTEST_FLAG(list_tests)) {
+    return RUN_ALL_TESTS();
+  }
+
   if (argc != 2) {
     std::cerr << "Error: " << argv[0] << " <ostree rootfs path>\n";
     return EXIT_FAILURE;
