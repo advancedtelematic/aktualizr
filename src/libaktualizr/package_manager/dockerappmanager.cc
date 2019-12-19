@@ -143,7 +143,7 @@ bool DockerAppManager::fetchTarget(const Uptane::Target &target, Uptane::Fetcher
 
 data::InstallationResult DockerAppManager::install(const Uptane::Target &target) const {
   auto res = OstreeManager::install(target);
-  handleRemovedApps();
+  handleRemovedApps(target);
   auto cb = [this](const std::string &app, const Uptane::Target &app_target) {
     LOG_INFO << "Installing " << app << " -> " << app_target;
     std::stringstream ss;
@@ -162,17 +162,25 @@ data::InstallationResult DockerAppManager::install(const Uptane::Target &target)
 //  2) update is applied, so we are now running both app1 and app2
 //  3) sota.toml is updated with 1 docker app: "app1"
 // At this point we should stop app2 and remove it.
-void DockerAppManager::handleRemovedApps() const {
+void DockerAppManager::handleRemovedApps(const Uptane::Target &target) const {
   if (!boost::filesystem::is_directory(config.docker_apps_root)) {
     LOG_DEBUG << "config.docker_apps_root does not exist";
     return;
   }
+
+  std::vector<std::string> target_apps = target.custom_data()["docker_apps"].getMemberNames();
+
   for (auto &entry : boost::make_iterator_range(boost::filesystem::directory_iterator(config.docker_apps_root), {})) {
     if (boost::filesystem::is_directory(entry)) {
       std::string name = entry.path().filename().native();
       if (std::find(config.docker_apps.begin(), config.docker_apps.end(), name) == config.docker_apps.end()) {
         LOG_WARNING << "Docker App(" << name
                     << ") installed, but is now removed from configuration. Removing from system";
+        DockerApp(name, config).remove();
+      }
+      if (std::find(target_apps.begin(), target_apps.end(), name) == target_apps.end()) {
+        LOG_WARNING << "Docker App(" << name
+                    << ") configured, but not defined in installation target. Removing from system";
         DockerApp(name, config).remove();
       }
     }
