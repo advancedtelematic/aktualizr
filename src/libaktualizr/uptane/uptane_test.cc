@@ -761,13 +761,12 @@ class HttpFakeProv : public HttpFake {
     return HttpResponse("", 400, CURLE_OK, "");
   }
 
-  HttpResponse handle_event(const std::string &url, const Json::Value &data) override {
-    (void)url;
-    if (data[0]["eventType"]["id"] == "DownloadProgressReport") {
+  HttpResponse handle_event_single(const Json::Value &event) {
+    if (event["eventType"]["id"] == "DownloadProgressReport") {
       return HttpResponse("", 200, CURLE_OK, "");
     }
-    const std::string event_type = data[0]["eventType"]["id"].asString();
-    const std::string serial = data[0]["event"]["ecu"].asString();
+    const std::string event_type = event["eventType"]["id"].asString();
+    const std::string serial = event["event"]["ecu"].asString();
     std::cout << "Got " << event_type << " event\n";
     ++events_seen;
     switch (events_seen) {
@@ -821,6 +820,14 @@ class HttpFakeProv : public HttpFake {
       default:
         std::cout << "Unexpected event: " << event_type;
         EXPECT_EQ(0, 1);
+    }
+    return HttpResponse("", 200, CURLE_OK, "");
+  }
+
+  HttpResponse handle_event(const std::string &url, const Json::Value &data) override {
+    (void)url;
+    for (const Json::Value &ev : data) {
+      handle_event_single(ev);
     }
     return HttpResponse("", 200, CURLE_OK, "");
   }
