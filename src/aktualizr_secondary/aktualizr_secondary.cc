@@ -27,6 +27,9 @@ class SecondaryAdapter : public Uptane::SecondaryInterface {
   bool sendFirmware(const std::shared_ptr<std::string>& data) override {
     return secondary.AktualizrSecondary::sendFirmwareResp(data);
   }
+  data::ResultCode::Numeric install(const std::string& target_name) override {
+    return secondary.AktualizrSecondary::installResp(target_name);
+  }
 
  private:
   AktualizrSecondary& secondary;
@@ -42,6 +45,29 @@ AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig& config,
   if (!uptaneInitialize()) {
     LOG_ERROR << "Failed to initialize";
     return;
+  }
+
+  if (rebootDetected()) {
+    LOG_INFO << "Reboot has been detected, applying the new ostree revision: " << pending_target_.sha256Hash();
+    // TODO: refactor this
+    std::vector<Uptane::Target> installed_versions;
+    boost::optional<Uptane::Target> pending_target;
+    storage->loadInstalledVersions(ecu_serial_.ToString(), nullptr, &pending_target);
+
+    if (!!pending_target) {
+      data::InstallationResult install_res = pacman->finalizeInstall(*pending_target);
+      storage->saveEcuInstallationResult(ecu_serial_, install_res);
+      if (install_res.success) {
+        storage->saveInstalledVersion(ecu_serial_.ToString(), *pending_target, InstalledVersionUpdateMode::kCurrent);
+      } else {
+        // finalize failed
+        // unset pending flag so that the rest of the uptane process can
+        // go forward again
+        storage->saveInstalledVersion(ecu_serial_.ToString(), *pending_target, InstalledVersionUpdateMode::kNone);
+        director_repo_.dropTargets(*storage);
+      }
+    }
+    pacman->rebootFlagClear();
   }
 }
 
@@ -65,8 +91,6 @@ Json::Value AktualizrSecondary::getManifestResp() const {
   return keys_.signTuf(manifest);
 }
 
-bool AktualizrSecondary::putMetadataResp(const Metadata& metadata) { return doFullVerification(metadata); }
-
 int32_t AktualizrSecondary::getRootVersionResp(bool director) const {
   std::string root_meta;
   if (!storage_->loadLatestRoot(&root_meta,
@@ -85,123 +109,59 @@ bool AktualizrSecondary::putRootResp(const std::string& root, bool director) {
   return false;
 }
 
+bool AktualizrSecondary::putMetadataResp(const Metadata& metadata) { return doFullVerification(metadata); }
+
 bool AktualizrSecondary::sendFirmwareResp(const std::shared_ptr<std::string>& firmware) {
-  auto targetsForThisEcu = director_repo_.getTargets(getSerial(), getHardwareID());
-
-  if (targetsForThisEcu.size() != 1) {
-    LOG_ERROR << "Invalid number of targets (should be one): " << targetsForThisEcu.size();
-    return false;
-  }
-  auto target_to_apply = targetsForThisEcu[0];
-
-  std::string treehub_server;
-  std::size_t firmware_size = firmware->length();
-
-  if (target_to_apply.IsOstree()) {
-    // this is the ostree specific case
-    try {
-      std::string ca, cert, pkey, server_url;
-      extractCredentialsArchive(*firmware, &ca, &cert, &pkey, &server_url);
-      keys_.loadKeys(&ca, &cert, &pkey);
-      boost::trim(server_url);
-      treehub_server = server_url;
-      firmware_size = 0;
-    } catch (std::runtime_error& exc) {
-      LOG_ERROR << exc.what();
-
-      return false;
-    }
-  }
-
-  data::InstallationResult install_res;
-
-  if (target_to_apply.IsOstree()) {
-#ifdef BUILD_OSTREE
-    install_res = OstreeManager::pull(config_.pacman.sysroot, treehub_server, keys_, target_to_apply);
-
-    if (install_res.result_code.num_code != data::ResultCode::Numeric::kOk) {
-      LOG_ERROR << "Could not pull from OSTree (" << install_res.result_code.toString()
-                << "): " << install_res.description;
-      return false;
-    }
-#else
-    LOG_ERROR << "Could not pull from OSTree. Aktualizr was built without OSTree support!";
-    return false;
-#endif
-  } else if (pacman->name() == "debian") {
-    // TODO save debian package here.
-    LOG_ERROR << "Installation of debian images is not suppotrted yet.";
+  if (!pending_target_.IsValid()) {
+    LOG_ERROR << "No any pending target to receive update data/image for";
     return false;
   }
 
-  if (target_to_apply.length() != firmware_size) {
-    LOG_ERROR << "The target image size specified in metadata " << target_to_apply.length()
-              << " does not match actual size " << firmware->length();
-    return false;
-  }
-
-  if (!target_to_apply.IsOstree()) {
-    auto target_hashes = target_to_apply.hashes();
-    if (target_hashes.size() == 0) {
-      LOG_ERROR << "No hash found in the target metadata: " << target_to_apply.filename();
-      return false;
-    }
-
-    try {
-      auto received_image_data_hash = Uptane::Hash::generate(target_hashes[0].type(), *firmware);
-
-      if (!target_to_apply.MatchHash(received_image_data_hash)) {
-        LOG_ERROR << "The received image data hash doesn't match the hash specified in the target metadata,"
-                     " hash type: "
-                  << target_hashes[0].TypeString();
-        return false;
-      }
-
-    } catch (const std::exception& exc) {
-      LOG_ERROR << "Failed to generate a hash of the received image data: " << exc.what();
-      return false;
-    }
-  }
-
-  install_res = pacman->install(target_to_apply);
-  if (install_res.result_code.num_code != data::ResultCode::Numeric::kOk &&
-      install_res.result_code.num_code != data::ResultCode::Numeric::kNeedCompletion) {
-    LOG_ERROR << "Could not install target (" << install_res.result_code.toString() << "): " << install_res.description;
-    return false;
-  }
-
-  if (install_res.result_code.num_code == data::ResultCode::Numeric::kNeedCompletion) {
-    storage_->saveInstalledVersion(getSerialResp().ToString(), target_to_apply, InstalledVersionUpdateMode::kPending);
+  std::unique_ptr<Downloader> downloader;
+  // TBD: this stuff has to be refactored and improved
+  if (pending_target_.IsOstree()) {
+    downloader = std_::make_unique<OstreeDirectDownloader>(config_.pacman.sysroot, keys_);
   } else {
-    storage_->saveInstalledVersion(getSerialResp().ToString(), target_to_apply, InstalledVersionUpdateMode::kCurrent);
+    downloader = std_::make_unique<FakeDownloader>();
   }
 
-  // TODO: https://saeljira.it.here.com/browse/OTA-4174
-  // - return data::InstallationResult to Primary
-  // - add finaliztion support, pacman->finalizeInstall() must be called at secondary startup if there is pending
-  // version
+  if (!downloader->download(pending_target_, *firmware)) {
+    LOG_ERROR << "Failed to pull/store an update data";
+    pending_target_ = Uptane::Target::Unknown();
+    return false;
+  }
 
   return true;
 }
 
-void AktualizrSecondary::extractCredentialsArchive(const std::string& archive, std::string* ca, std::string* cert,
-                                                   std::string* pkey, std::string* treehub_server) {
-  {
-    std::stringstream as(archive);
-    *ca = Utils::readFileFromArchive(as, "ca.pem");
+data::ResultCode::Numeric AktualizrSecondary::installResp(const std::string& target_name) {
+  if (!pending_target_.IsValid()) {
+    LOG_ERROR << "No any pending target to receive update data/image for";
+    return data::ResultCode::Numeric::kInternalError;
   }
-  {
-    std::stringstream as(archive);
-    *cert = Utils::readFileFromArchive(as, "client.pem");
+
+  if (pending_target_.filename() != target_name) {
+    LOG_ERROR << "Targte name to install and the pending target name does not match";
+    return data::ResultCode::Numeric::kInternalError;
   }
-  {
-    std::stringstream as(archive);
-    *pkey = Utils::readFileFromArchive(as, "pkey.pem");
+
+  auto install_result = pacman->install(pending_target_);
+
+  switch (install_result.result_code.num_code) {
+    case data::ResultCode::Numeric::kOk: {
+      storage_->saveInstalledVersion(ecu_serial_.ToString(), pending_target_, InstalledVersionUpdateMode::kCurrent);
+      pending_target_ = Uptane::Target::Unknown();
+      break;
+    }
+    case data::ResultCode::Numeric::kNeedCompletion: {
+      storage_->saveInstalledVersion(ecu_serial_.ToString(), pending_target_, InstalledVersionUpdateMode::kPending);
+      break;
+    }
+    default: {}
   }
-  {
-    std::stringstream as(archive);
-    *treehub_server = Utils::readFileFromArchive(as, "server.url", true);
-  }
+
+  LOG_INFO << "Target has been successfully installed: " << target_name;
+  return install_result.result_code.num_code;
 }
 
 void AktualizrSecondary::connectToPrimary() {
@@ -249,13 +209,6 @@ bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
     return false;
   }
 
-  auto targetsForThisEcu = director_repo_.getTargets(getSerial(), getHardwareID());
-
-  if (targetsForThisEcu.size() != 1) {
-    LOG_ERROR << "Invalid number of targets (should be 1): " << targetsForThisEcu.size();
-    return false;
-  }
-
   // 6. Download and check the Root metadata file from the Image repository, following the procedure in Section 5.4.4.3.
   // 7. Download and check the Timestamp metadata file from the Image repository, following the procedure in
   // Section 5.4.4.4.
@@ -271,6 +224,102 @@ bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
   // 10. Verify that Targets metadata from the Director and Image repositories match.
   if (!director_repo_.matchTargetsWithImageTargets(*(image_repo_.getTargets()))) {
     LOG_ERROR << "Targets metadata from the Director and Image repositories DOES NOT match ";
+    return false;
+  }
+
+  auto targetsForThisEcu = director_repo_.getTargets(getSerial(), getHardwareID());
+
+  if (targetsForThisEcu.size() != 1) {
+    LOG_ERROR << "Invalid number of targets (should be 1): " << targetsForThisEcu.size();
+    return false;
+  }
+
+  pending_target_ = targetsForThisEcu[0];
+
+  return true;
+}
+
+bool OstreeDirectDownloader::download(const Uptane::Target& target, const std::string& data) {
+  std::string treehub_server;
+  bool download_result = false;
+
+  try {
+    std::string ca, cert, pkey, server_url;
+    extractCredentialsArchive(data, &ca, &cert, &pkey, &server_url);
+    _keyMngr.loadKeys(&pkey, &cert, &ca);
+    boost::trim(server_url);
+    treehub_server = server_url;
+  } catch (std::runtime_error& exc) {
+    LOG_ERROR << exc.what();
+    return false;
+  }
+
+  auto install_res = OstreeManager::pull(_sysrootPath, treehub_server, _keyMngr, target);
+
+  switch (install_res.result_code.num_code) {
+    case data::ResultCode::Numeric::kOk: {
+      LOG_INFO << "The target revision has been successfully downloaded: " << target.sha256Hash();
+      download_result = true;
+      break;
+    }
+    case data::ResultCode::Numeric::kAlreadyProcessed: {
+      LOG_INFO << "The target revision is already present on the local ostree repo: " << target.sha256Hash();
+      download_result = true;
+      break;
+    }
+    default: {
+      LOG_ERROR << "Failed to download the target revision: " << target.sha256Hash() << " ( "
+                << install_res.result_code.toString() << " ): " << install_res.description;
+    }
+  }
+
+  return download_result;
+}
+
+void OstreeDirectDownloader::extractCredentialsArchive(const std::string& archive, std::string* ca, std::string* cert,
+                                                       std::string* pkey, std::string* treehub_server) {
+  ::extractCredentialsArchive(archive, ca, cert, pkey, treehub_server);
+}
+
+void extractCredentialsArchive(const std::string& archive, std::string* ca, std::string* cert, std::string* pkey,
+                               std::string* treehub_server) {
+  {
+    std::stringstream as(archive);
+    *ca = Utils::readFileFromArchive(as, "ca.pem");
+  }
+  {
+    std::stringstream as(archive);
+    *cert = Utils::readFileFromArchive(as, "client.pem");
+  }
+  {
+    std::stringstream as(archive);
+    *pkey = Utils::readFileFromArchive(as, "pkey.pem");
+  }
+  {
+    std::stringstream as(archive);
+    *treehub_server = Utils::readFileFromArchive(as, "server.url", true);
+  }
+}
+
+bool FakeDownloader::download(const Uptane::Target& target, const std::string& data) {
+  auto target_hashes = target.hashes();
+  if (target_hashes.size() == 0) {
+    LOG_ERROR << "No hash found in the target metadata: " << target.filename();
+    return false;
+  }
+
+  try {
+    auto received_image_data_hash = Uptane::Hash::generate(target_hashes[0].type(), data);
+
+    if (!target.MatchHash(received_image_data_hash)) {
+      LOG_ERROR << "The received image data hash doesn't match the hash specified in the target metadata,"
+                   " hash type: "
+                << target_hashes[0].TypeString();
+      return false;
+    }
+
+  } catch (const std::exception& exc) {
+    LOG_ERROR << "Failed to generate a hash of the received image data: " << exc.what();
     return false;
   }
 

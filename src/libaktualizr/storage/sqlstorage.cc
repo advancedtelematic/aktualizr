@@ -1200,6 +1200,34 @@ bool SQLStorage::hasPendingInstall() {
   return statement.get_result_col_int(0) > 0;
 }
 
+void SQLStorage::getPendingEcus(std::vector<std::pair<Uptane::EcuSerial, Uptane::Hash>>* pendingEcus) {
+  SQLite3Guard db = dbConnection();
+
+  auto statement = db.prepareStatement("SELECT ecu_serial, sha256 FROM installed_versions where is_pending = 1");
+  int statement_result = statement.step();
+  if (statement_result != SQLITE_DONE && statement_result != SQLITE_ROW) {
+    throw std::runtime_error("Failed to get ECUs with a pending target installation: " + db.errmsg());
+  }
+
+  std::vector<std::pair<Uptane::EcuSerial, Uptane::Hash>> ecu_res;
+
+  if (statement_result == SQLITE_DONE) {
+    // if there are no any record in the DB
+    return;
+  }
+
+  for (; statement_result != SQLITE_DONE; statement_result = statement.step()) {
+    std::string ecu_serial = statement.get_result_col_str(0).value();
+    std::string hash = statement.get_result_col_str(1).value();
+    ecu_res.emplace_back(
+        std::make_pair(Uptane::EcuSerial(ecu_serial), Uptane::Hash(Uptane::Hash::Type::kSha256, hash)));
+  }
+
+  if (pendingEcus != nullptr) {
+    *pendingEcus = std::move(ecu_res);
+  }
+}
+
 void SQLStorage::clearInstalledVersions() {
   SQLite3Guard db = dbConnection();
 

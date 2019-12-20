@@ -29,6 +29,7 @@ class IpUptaneSecondary : public SecondaryInterface {
   int32_t getRootVersion(bool /* director */) override { return 0; }
   bool putRoot(const std::string& /* root */, bool /* director */) override { return true; }
   bool sendFirmware(const std::shared_ptr<std::string>& data) override;
+  data::ResultCode::Numeric install(const std::string& target_name) override;
   Json::Value getManifest() override;
 
  private:

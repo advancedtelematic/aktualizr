@@ -8,33 +8,22 @@
 
 #include "uptane/tuf.h"
 
-/* Json snippet returned by sendMetaXXX():
- * {
- *   valid = true/false,
- *   wait_for_target = true/false
- * }
- */
-
 namespace Uptane {
 
 class SecondaryInterface {
  public:
-  // This ctor should be removed as the secondary configuration SecondaryConfig
-  // is the secondaries's specific, see SecondaryConfig declaration
-  // explicit SecondaryInterface(SecondaryConfig sconfig_in) : sconfig(std::move(sconfig_in)) {}
+  SecondaryInterface() = default;
   virtual ~SecondaryInterface() = default;
-  // not clear what this method for, can be removed
-  // virtual void Initialize(){};  // optional step, called after device registration
-  // should be pure virtual, since the current implementation reads from the secondaries specific config
-  // virtual EcuSerial getSerial() { return Uptane::EcuSerial(sconfig.ecu_serial); }
-  virtual EcuSerial getSerial() = 0;
-  // should be pure virtual, since the current implementation reads from the secondaries specific config
-  //  virtual Uptane::HardwareIdentifier getHwId() { return Uptane::HardwareIdentifier(sconfig.ecu_hardware_id); }
-  virtual Uptane::HardwareIdentifier getHwId() = 0;
-  virtual PublicKey getPublicKey() = 0;
+
+  SecondaryInterface(const SecondaryInterface&) = delete;
+  SecondaryInterface& operator=(const SecondaryInterface&) = delete;
 
   // getSerial(), getHwId() and getPublicKey() can be moved to seperate interface
   // since their usage pattern differ from the following methods' one
+  virtual EcuSerial getSerial() = 0;
+  virtual Uptane::HardwareIdentifier getHwId() = 0;
+  virtual PublicKey getPublicKey() = 0;
+
   virtual Json::Value getManifest() = 0;
   virtual bool putMetadata(const RawMetaPack& meta_pack) = 0;
   virtual int32_t getRootVersion(bool director) = 0;
@@ -42,11 +31,8 @@ class SecondaryInterface {
 
   // FIXME: Instead of std::string we should use StorageTargetRHandle
   virtual bool sendFirmware(const std::shared_ptr<std::string>& data) = 0;
-  // Should be removes as it's secondary specific
-  // const SecondaryConfig sconfig;
 
-  // protected:
-  // SecondaryInterface() : sconfig{} {};
+  virtual data::ResultCode::Numeric install(const std::string& target_name) = 0;
 };
 }  // namespace Uptane
 

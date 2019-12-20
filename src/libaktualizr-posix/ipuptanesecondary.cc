@@ -103,6 +103,30 @@ bool IpUptaneSecondary::sendFirmware(const std::shared_ptr<std::string>& data) {
   return r->result == AKInstallationResult_success;
 }
 
+data::ResultCode::Numeric IpUptaneSecondary::install(const std::string& target_name) {
+  LOG_INFO << "Invoking an installation of the target on the secondary: " << target_name;
+
+  Asn1Message::Ptr req(Asn1Message::Empty());
+  req->present(AKIpUptaneMes_PR_installReq);
+
+  // prepare request message
+  auto req_mes = req->installReq();
+  SetString(&req_mes->hash, target_name);
+  // send request and receive response, a request-response type of RPC
+  auto resp = Asn1Rpc(req, getAddr());
+
+  // invalid type of an response message
+  if (resp->present() != AKIpUptaneMes_PR_installResp) {
+    LOG_ERROR << "Failed to get response to an installation request to secondary";
+    return data::ResultCode::Numeric::kInternalError;
+  }
+
+  // deserialize the response message
+  auto r = resp->installResp();
+
+  return static_cast<data::ResultCode::Numeric>(r->result);
+}
+
 Json::Value IpUptaneSecondary::getManifest() {
   LOG_INFO << "Getting the manifest key of a secondary";
   Asn1Message::Ptr req(Asn1Message::Empty());

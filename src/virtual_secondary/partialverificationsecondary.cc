@@ -79,7 +79,11 @@ bool PartialVerificationSecondary::putRoot(const std::string &root, bool directo
 bool PartialVerificationSecondary::sendFirmware(const std::shared_ptr<std::string> &data) {
   (void)data;
   throw NotImplementedException();
-  return false;
+}
+
+data::ResultCode::Numeric PartialVerificationSecondary::install(const std::string &target_name) {
+  (void)target_name;
+  throw NotImplementedException();
 }
 
 void PartialVerificationSecondary::storeKeys(const std::string &public_key, const std::string &private_key) {

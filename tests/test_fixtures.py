@@ -172,13 +172,15 @@ class Aktualizr:
         else:
             return self._get_current_image_info(ecu_id)
 
+    def get_current_pending_image_info(self, ecu_id):
+        return self._get_current_image_info(ecu_id, secondary_image_hash_field='pending image hash: ')
+
     # applicable only to secondary ECUs due to inconsistency in presenting information
     # about primary and secondary ECUs
     # ugly stuff that could be removed if Aktualizr had exposed API to check status
     # or aktializr-info had output status/info in a structured way (e.g. json)
-    def _get_current_image_info(self, ecu_id):
-        secondary_image_hash_field = 'installed image hash: '
-        secondary_image_filename_field = 'installed image filename: '
+    def _get_current_image_info(self, ecu_id, secondary_image_hash_field='installed image hash: '):
+        #secondary_image_filename_field = 'installed image filename: '
         aktualizr_status = self.get_info()
         ecu_serial = ecu_id[1]
         ecu_info_position = aktualizr_status.find(ecu_serial)
@@ -278,7 +280,8 @@ class KeyStore:
 
 class IPSecondary:
 
-    def __init__(self, aktualizr_secondary_exe, id, port=9050, primary_port=9040):
+    def __init__(self, aktualizr_secondary_exe, id, port=9050, primary_port=9040,
+                 sysroot=None, treehub=None, ostree_mock_path=None, **kwargs):
         self.id = id
         self.port = port
 
@@ -286,13 +289,27 @@ class IPSecondary:
         self._storage_dir = tempfile.TemporaryDirectory()
         self.port = self.get_free_port()
         self.primary_port = self.get_free_port()
+        self._sentinel_file = 'need_reboot'
+        self.reboot_sentinel_file = os.path.join(self._storage_dir.name, self._sentinel_file)
 
         with open(path.join(self._storage_dir.name, 'config.toml'), 'w+') as config_file:
             config_file.write(IPSecondary.CONFIG_TEMPLATE.format(serial=id[1], hw_ID=id[0],
                                                                  port=self.port, primary_port=self.primary_port,
                                                                  storage_dir=self._storage_dir.name,
-                                                                 db_path=path.join(self._storage_dir.name, 'db.sql')))
+                                                                 db_path=path.join(self._storage_dir.name, 'db.sql'),
+                                                                 pacmam_type='ostree' if treehub and sysroot else 'fake',
+                                                                 ostree_sysroot=sysroot.path if sysroot else '',
+                                                                 treehub_server=treehub.base_url if treehub else '',
+                                                                 sentinel_dir=self._storage_dir.name,
+                                                                 sentinel_name=self._sentinel_file
+                                                                 ))
             self._config_file = config_file.name
+
+        self._run_env = {}
+        if sysroot and ostree_mock_path:
+            self._run_env['LD_PRELOAD'] = os.path.abspath(ostree_mock_path)
+            self._run_env['OSTREE_DEPLOYMENT_VERSION_FILE'] = sysroot.version_file
+
 
     CONFIG_TEMPLATE = '''
     [uptane]
@@ -310,7 +327,15 @@ class IPSecondary:
     sqldb_path = "{db_path}"
 
     [pacman]
-    type = "fake"
+    type = "{pacmam_type}"
+    sysroot = "{ostree_sysroot}"
+    ostree_server = "{treehub_server}"
+    os = "dummy-os"
+
+    [bootloader]
+    reboot_sentinel_dir = "{sentinel_dir}"
+    reboot_sentinel_name = "{sentinel_name}"
+    reboot_command = ""
     '''
 
     def is_running(self):
@@ -326,7 +351,10 @@ class IPSecondary:
 
     def __enter__(self):
         self._process = subprocess.Popen([self._aktualizr_secondary_exe, '-c', self._config_file],
-                                         stdout=open(devnull, 'w'), close_fds=True)
+                                         stdout=None,
+                                         stderr=None,
+                                         close_fds=True,
+                                         env=self._run_env)
         logger.debug("IP Secondary {} has been started: {}".format(self.id, self.port))
         return self
 
@@ -334,6 +362,9 @@ class IPSecondary:
         self._process.terminate()
         self._process.wait(timeout=60)
         logger.debug("IP Secondary {} has been stopped".format(self.id))
+
+    def emulate_reboot(self):
+        os.remove(self.reboot_sentinel_file)
 
 
 class UptaneRepo(HTTPServer):
@@ -826,7 +857,7 @@ def with_secondary(start=True, id=('secondary-hw-ID-001', str(uuid4())),
     def decorator(test):
         @wraps(test)
         def wrapper(*args, **kwargs):
-            secondary = IPSecondary(aktualizr_secondary_exe=aktualizr_secondary_exe, id=id)
+            secondary = IPSecondary(aktualizr_secondary_exe=aktualizr_secondary_exe, id=id, **kwargs)
             if start:
                 with secondary:
                     result = test(*args, **kwargs, secondary=secondary)

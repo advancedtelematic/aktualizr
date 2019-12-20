@@ -53,7 +53,7 @@ TEST(aktualizr_secondary_uptane, credentialsPassing) {
 
   std::string arch = sota_client->secondaryTreehubCredentials();
   std::string ca, cert, pkey, server_url;
-  EXPECT_NO_THROW(AktualizrSecondary::extractCredentialsArchive(arch, &ca, &cert, &pkey, &server_url));
+  EXPECT_NO_THROW(extractCredentialsArchive(arch, &ca, &cert, &pkey, &server_url));
 }
 
 #ifndef __NO_MAIN__

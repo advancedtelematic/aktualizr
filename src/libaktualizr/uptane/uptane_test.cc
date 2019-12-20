@@ -544,6 +544,7 @@ class SecondaryInterfaceMock : public Uptane::SecondaryInterface {
 
   bool putRoot(const std::string &, bool) override { return true; }
   bool sendFirmware(const std::shared_ptr<std::string> &) override { return true; }
+  virtual data::ResultCode::Numeric install(const std::string &) override { return data::ResultCode::Numeric::kOk; }
   PublicKey public_key_;
   Json::Value manifest_;
 

@@ -196,6 +196,8 @@ data::InstallationResult OstreeManager::install(const Uptane::Target &target) co
 
   // set reboot flag to be notified later
   if (bootloader_ != nullptr) {
+    LOG_INFO << "Setting the reboot sentinel/flag";
+
     bootloader_->rebootFlagSet();
   }
 

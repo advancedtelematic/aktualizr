@@ -24,6 +24,9 @@ class ShortCircuitSecondary : public Uptane::SecondaryInterface {
   int32_t getRootVersion(bool director) override { return secondary.getRootVersionResp(director); }
   bool putRoot(const std::string& root, bool director) override { return secondary.putRootResp(root, director); }
   bool sendFirmware(const std::shared_ptr<std::string>& data) override { return secondary.sendFirmwareResp(data); }
+  data::ResultCode::Numeric install(const std::string& target_name) override {
+    return secondary.installResp(target_name);
+  }
 
  private:
   AktualizrSecondary& secondary;

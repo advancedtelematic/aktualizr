@@ -35,7 +35,7 @@ class Treehub {
 
  public:
   const std::string& url() const { return _url; }
-  const std::string curRev() const { return _cur_rev; }
+  const std::string& curRev() const { return _cur_rev; }
 
  private:
   TemporaryDirectory _root_dir;
@@ -69,6 +69,7 @@ class OstreeRootfs {
   const char* getOSName() const { return _os_name.c_str(); }
 
   OstreeDeployment* getDeployment() const { return _deployment.get(); }
+  void setNewDeploymentRev(const std::string& new_rev) { _rev = new_rev; }
 
  private:
   const std::string _os_name{"dummy-os"};
@@ -82,18 +83,20 @@ class AktualizrSecondaryWrapper {
  public:
   AktualizrSecondaryWrapper(const OstreeRootfs& sysroot, const Treehub& treehub) {
     // ostree update
-    AktualizrSecondaryConfig config;
 
-    config.pacman.type = PackageManager::kOstree;
-    config.pacman.os = sysroot.getOSName();
-    config.pacman.sysroot = sysroot.getPath();
-    config.pacman.ostree_server = treehub.url();
+    _config.pacman.type = PackageManager::kOstree;
+    _config.pacman.os = sysroot.getOSName();
+    _config.pacman.sysroot = sysroot.getPath();
+    _config.pacman.ostree_server = treehub.url();
 
-    config.storage.path = _storage_dir.Path();
-    config.storage.type = StorageType::kSqlite;
+    _config.bootloader.reboot_sentinel_dir = _storage_dir.Path();
+    _config.bootloader.reboot_sentinel_name = "need_reboot";
 
-    _storage = INvStorage::newStorage(config.storage);
-    _secondary = std::make_shared<AktualizrSecondary>(config, _storage);
+    _config.storage.path = _storage_dir.Path();
+    _config.storage.type = StorageType::kSqlite;
+
+    _storage = INvStorage::newStorage(_config.storage);
+    _secondary = std::make_shared<AktualizrSecondary>(_config, _storage);
   }
 
   AktualizrSecondaryWrapper() {
@@ -111,19 +114,33 @@ class AktualizrSecondaryWrapper {
  public:
   std::shared_ptr<AktualizrSecondary>& operator->() { return _secondary; }
 
-  Uptane::Target getPendingVersion() const {
+  Uptane::Target getPendingVersion() const { return getVersion().first; }
+
+  Uptane::Target getCurrentVersion() const { return getVersion().second; }
+
+  std::pair<Uptane::Target, Uptane::Target> getVersion() const {
+    boost::optional<Uptane::Target> current_target;
     boost::optional<Uptane::Target> pending_target;
 
-    _storage->loadInstalledVersions(_secondary->getSerialResp().ToString(), nullptr, &pending_target);
-    return *pending_target;
+    _storage->loadInstalledVersions(_secondary->getSerialResp().ToString(), &current_target, &pending_target);
+
+    return std::make_pair(!pending_target ? Uptane::Target::Unknown() : *pending_target,
+                          !current_target ? Uptane::Target::Unknown() : *current_target);
   }
 
   std::string hardwareID() const { return _secondary->getHwIdResp().ToString(); }
 
   std::string serial() const { return _secondary->getSerialResp().ToString(); }
 
+  void reboot() {
+    boost::filesystem::remove(_storage_dir / _config.bootloader.reboot_sentinel_name);
+    _secondary.reset(new AktualizrSecondary(_config, _storage));
+  }
+
  private:
   TemporaryDirectory _storage_dir;
+  AktualizrSecondaryConfig _config;
+
   std::shared_ptr<AktualizrSecondary> _secondary;
   std::shared_ptr<INvStorage> _storage;
 };
@@ -226,7 +243,8 @@ class OstreeSecondaryUptaneVerificationTest : public ::testing::Test {
     return std::make_shared<std::string>(creads_strstream.str());
   }
 
-  Uptane::Hash treehubCurRev() const { return Uptane::Hash(Uptane::Hash::Type::kSha256, _treehub->curRev()); }
+  Uptane::Hash treehubCurRevHash() const { return Uptane::Hash(Uptane::Hash::Type::kSha256, _treehub->curRev()); }
+  const std::string& treehubCurRev() const { return _treehub->curRev(); }
 
  protected:
   static std::shared_ptr<Treehub> _treehub;
@@ -244,8 +262,15 @@ std::shared_ptr<OstreeRootfs> OstreeSecondaryUptaneVerificationTest::_sysroot{nu
 TEST_F(OstreeSecondaryUptaneVerificationTest, fullUptaneVerificationPositive) {
   EXPECT_TRUE(_secondary->putMetadataResp(addDefaultTarget()));
   EXPECT_TRUE(_secondary->sendFirmwareResp(getCredsToSend()));
-  EXPECT_TRUE(_secondary.getPendingVersion().MatchHash(treehubCurRev()));
-  // TODO: emulate reboot and check installed version once ostree update finalization is supported by secondary
+  EXPECT_EQ(_secondary->installResp(treehubCurRev()), data::ResultCode::Numeric::kNeedCompletion);
+  EXPECT_TRUE(_secondary->pendingRebootToApplyUpdate());
+  EXPECT_TRUE(_secondary.getPendingVersion().MatchHash(treehubCurRevHash()));
+
+  _sysroot->setNewDeploymentRev(treehubCurRev());
+
+  _secondary.reboot();
+  EXPECT_FALSE(_secondary.getPendingVersion().IsValid());
+  EXPECT_TRUE(_secondary.getCurrentVersion().MatchHash(treehubCurRevHash()));
 }
 
 TEST_F(OstreeSecondaryUptaneVerificationTest, fullUptaneVerificationInvalidRevision) {

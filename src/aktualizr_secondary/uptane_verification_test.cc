@@ -157,6 +157,7 @@ INSTANTIATE_TEST_SUITE_P(SecondaryUptaneVerificationMalformedMetadata, Secondary
 TEST_F(SecondaryUptaneVerificationTest, fullUptaneVerificationPositive) {
   EXPECT_TRUE(_secondary->putMetadataResp(_uptane_repo.getCurrentMetadata()));
   EXPECT_TRUE(_secondary->sendFirmwareResp(getImageData()));
+  EXPECT_EQ(_secondary->installResp(_default_target), data::ResultCode::Numeric::kOk);
 }
 
 TEST_F(SecondaryUptaneVerificationTest, TwoImagesAndOneTarget) {

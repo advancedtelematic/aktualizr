@@ -44,6 +44,7 @@ class PartialVerificationSecondary : public SecondaryInterface {
   bool putRoot(const std::string& root, bool director) override;
 
   bool sendFirmware(const std::shared_ptr<std::string>& data) override;
+  data::ResultCode::Numeric install(const std::string& target_name) override;
   Json::Value getManifest() override;
 
  private:

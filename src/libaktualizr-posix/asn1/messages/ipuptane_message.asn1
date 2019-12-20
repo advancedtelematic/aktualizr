@@ -1,95 +1,121 @@
 IpUptane DEFINITIONS ::= BEGIN
     -- Keep these in Sync with Uptane::KeyType
     AKIpUptaneKeyType ::= ENUMERATED {
-		ed25519(0),
-		rsa2048(1),
-		rsa4096(2),
-		unknownKey(255),
-		...
-	}
+    ed25519(0),
+    rsa2048(1),
+    rsa4096(2),
+    unknownKey(255),
+    ...
+  }
 
-	AKInstallationResult ::= ENUMERATED {
-		success,
-		failure,
-		...
-	}
-	
+  AKInstallationResult ::= ENUMERATED {
+    success,
+    failure,
+    ...
+  }
 
-	-- Json format image repository metadata
-	AKImageMetaJson ::= SEQUENCE {
-		root OCTET STRING,
-		timestamp OCTET STRING,
-		snapshot OCTET STRING,
-		targets OCTET STRING,
-		...
-	}
+  -- Keep these in Sync with data::ResultCode::Numeric
+  AKInstallationResultCode ::= ENUMERATED {
+    ok(0),
+    alreadyProcessed(1),
+    validationFailed(3),
+    installFailed(4),
+    downloadFailed(5),
+    internalError(18),
+    generalError(19),
+    needCompletion(21),
+    customError(22),
+    unknown(-1),
+    ...
+  }
 
-	-- Json format director metadata
-	AKDirectorMetaJson ::= SEQUENCE {
-		root OCTET STRING,
-		targets OCTET STRING,
-		...
-	}
+  -- Json format image repository metadata
+  AKImageMetaJson ::= SEQUENCE {
+    root OCTET STRING,
+    timestamp OCTET STRING,
+    snapshot OCTET STRING,
+    targets OCTET STRING,
+    ...
+  }
 
-	AKGetInfoReqMes ::= SEQUENCE {
-		...
-	}
+  -- Json format director metadata
+  AKDirectorMetaJson ::= SEQUENCE {
+    root OCTET STRING,
+    targets OCTET STRING,
+    ...
+  }
 
-	AKGetInfoRespMes ::= SEQUENCE {
-		ecuSerial UTF8String,
-		hwId UTF8String,
-		keyType AKIpUptaneKeyType,
-		key OCTET STRING,
-		...
-	}
+  AKGetInfoReqMes ::= SEQUENCE {
+    ...
+  }
 
-	AKManifestReqMes ::= SEQUENCE {
-		...
-	}
+  AKGetInfoRespMes ::= SEQUENCE {
+    ecuSerial UTF8String,
+    hwId UTF8String,
+    keyType AKIpUptaneKeyType,
+    key OCTET STRING,
+    ...
+  }
 
-	AKManifestRespMes ::= SEQUENCE {
-		manifest CHOICE {
-			json OCTET STRING
-		},
-		...
-	}
-	
+  AKManifestReqMes ::= SEQUENCE {
+    ...
+  }
 
-	AKPutMetaReqMes ::= SEQUENCE {
-		image CHOICE {
-			json AKImageMetaJson
-		},
-		director CHOICE {
-			json AKDirectorMetaJson
-		},
-		...
-	}
+  AKManifestRespMes ::= SEQUENCE {
+    manifest CHOICE {
+      json OCTET STRING
+    },
+    ...
+  }
 
-	AKPutMetaRespMes ::= SEQUENCE {
-		result AKInstallationResult,
-		...
-	}
-	
-	AKSendFirmwareReqMes ::= SEQUENCE {
-		firmware OCTET STRING,
-		...
-	}
-	
-	AKSendFirmwareRespMes ::= SEQUENCE {
-		result AKInstallationResult,
-		...
-	}
 
-	AKIpUptaneMes ::= CHOICE {
-		getInfoReq [0] AKGetInfoReqMes,
-                getInfoResp [1] AKGetInfoRespMes,
-		manifestReq [2] AKManifestReqMes,
-		manifestResp [3] AKManifestRespMes,
-		putMetaReq [4] AKPutMetaReqMes,
-		putMetaResp [5] AKPutMetaRespMes,
-		sendFirmwareReq [6] AKSendFirmwareReqMes,
-		sendFirmwareResp [7] AKSendFirmwareRespMes,
-		...
-	}
+  AKPutMetaReqMes ::= SEQUENCE {
+    image CHOICE {
+      json AKImageMetaJson
+    },
+    director CHOICE {
+      json AKDirectorMetaJson
+    },
+    ...
+  }
+
+  AKPutMetaRespMes ::= SEQUENCE {
+    result AKInstallationResult,
+    ...
+  }
+
+  AKSendFirmwareReqMes ::= SEQUENCE {
+    firmware OCTET STRING,
+    ...
+  }
+
+  AKSendFirmwareRespMes ::= SEQUENCE {
+    result AKInstallationResult,
+    ...
+  }
+
+  AKInstallReqMes ::= SEQUENCE {
+    hash OCTET STRING,
+    ...
+  }
+
+  AKInstallRespMes ::= SEQUENCE {
+    result AKInstallationResultCode,
+    ...
+  }
+
+  AKIpUptaneMes ::= CHOICE {
+    getInfoReq [0] AKGetInfoReqMes,
+    getInfoResp [1] AKGetInfoRespMes,
+    manifestReq [2] AKManifestReqMes,
+    manifestResp [3] AKManifestRespMes,
+    putMetaReq [4] AKPutMetaReqMes,
+    putMetaResp [5] AKPutMetaRespMes,
+    sendFirmwareReq [6] AKSendFirmwareReqMes,
+    sendFirmwareResp [7] AKSendFirmwareRespMes,
+    installReq [8] AKInstallReqMes,
+    installResp [9] AKInstallRespMes,
+    ...
+  }
 
 END

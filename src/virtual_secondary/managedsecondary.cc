@@ -9,8 +9,7 @@
 
 #include "crypto/crypto.h"
 #include "logging/logging.h"
-
-#include <sys/stat.h>
+#include "utilities/exceptions.h"
 
 namespace Primary {
 
@@ -172,6 +171,11 @@ bool ManagedSecondary::sendFirmware(const std::shared_ptr<std::string> &data) {
   detected_attack = "";
   const bool result = storeFirmware(expected_target_name, *data);
   return result;
+}
+
+data::ResultCode::Numeric ManagedSecondary::install(const std::string &target_name) {
+  (void)target_name;
+  return data::ResultCode::Numeric::kOk;
 }
 
 Json::Value ManagedSecondary::getManifest() {

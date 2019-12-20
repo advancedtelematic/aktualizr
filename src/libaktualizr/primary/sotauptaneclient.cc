@@ -583,28 +583,36 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(const Uptane::Ta
     report_queue->enqueue(std_::make_unique<EcuDownloadStartedReport>(ecu.first, correlation_id));
   }
 
-  KeyManager keys(storage, config.keymanagerConfig());
-  keys.loadKeys();
-  auto prog_cb = [this](const Uptane::Target &t, const std::string description, unsigned int progress) {
-    report_progress_cb(events_channel.get(), t, description, progress);
-  };
+  Uptane::EcuSerial primary_ecu_serial = uptane_manifest.getPrimaryEcuSerial();
 
   bool success = false;
-  const int max_tries = 3;
-  int tries = 0;
-  std::chrono::milliseconds wait(500);
+  if (target.IsForEcu(primary_ecu_serial) || !target.IsOstree()) {
+    // TODO: download should be the logical ECU and packman specific
+    KeyManager keys(storage, config.keymanagerConfig());
+    keys.loadKeys();
+    auto prog_cb = [this](const Uptane::Target &t, const std::string description, unsigned int progress) {
+      report_progress_cb(events_channel.get(), t, description, progress);
+    };
 
-  for (; tries < max_tries; tries++) {
-    success = package_manager_->fetchTarget(target, *uptane_fetcher, keys, prog_cb, token);
-    if (success) {
-      break;
-    } else if (tries < max_tries - 1) {
-      std::this_thread::sleep_for(wait);
-      wait *= 2;
+    const int max_tries = 3;
+    int tries = 0;
+    std::chrono::milliseconds wait(500);
+
+    for (; tries < max_tries; tries++) {
+      success = package_manager_->fetchTarget(target, *uptane_fetcher, keys, prog_cb, token);
+      if (success) {
+        break;
+      } else if (tries < max_tries - 1) {
+        std::this_thread::sleep_for(wait);
+        wait *= 2;
+      }
     }
-  }
-  if (!success) {
-    LOG_ERROR << "Download unsuccessful after " << tries << " attempts.";
+    if (!success) {
+      LOG_ERROR << "Download unsuccessful after " << tries << " attempts.";
+    }
+  } else {
+    // we emulate successfull download in case of the secondary ostree update
+    success = true;
   }
 
   // send this asynchronously before `sendEvent`, so that the report timestamp
@@ -700,6 +708,42 @@ result::UpdateCheck SotaUptaneClient::fetchMeta() {
   result::UpdateCheck result;
 
   reportNetworkInfo();
+
+  if (hasPendingUpdates()) {
+    LOG_INFO << "An update is pending. Check if pending ECUs has been already updated";
+
+    std::vector<std::pair<Uptane::EcuSerial, Uptane::Hash>> pending_ecus;
+    storage->getPendingEcus(&pending_ecus);
+    const auto &primary_ecu_serial = uptane_manifest.getPrimaryEcuSerial();
+
+    for (const auto &pending_ecu : pending_ecus) {
+      if (primary_ecu_serial == pending_ecu.first) {
+        continue;
+      }
+      auto &sec = secondaries[pending_ecu.first];
+      auto manifest = sec->getManifest();
+      const std::string man_body = Utils::jsonToCanonicalStr(manifest["signed"]);
+      auto current_ecu_hash = manifest["signed"]["installed_image"]["fileinfo"]["hashes"]["sha256"];
+      LOG_INFO << "Current secondary hash: " << current_ecu_hash;
+      LOG_INFO << "Pending secondary hash: " << pending_ecu.second.HashString();
+
+      if (pending_ecu.second == Uptane::Hash(Uptane::Hash::Type::kSha256, current_ecu_hash.asString())) {
+        LOG_INFO << "The pending update has been installed: " << current_ecu_hash;
+        boost::optional<Uptane::Target> pending_version;
+        if (storage->loadInstalledVersions(pending_ecu.first.ToString(), nullptr, &pending_version)) {
+          storage->saveEcuInstallationResult(pending_ecu.first,
+                                             data::InstallationResult(data::ResultCode::Numeric::kOk, ""));
+
+          storage->saveInstalledVersion(pending_ecu.first.ToString(), *pending_version,
+                                        InstalledVersionUpdateMode::kCurrent);
+
+          report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(
+              pending_ecu.first, director_repo.getCorrelationId(), true));
+          computeDeviceInstallationResult(nullptr, director_repo.getCorrelationId());
+        }
+      }
+    }
+  }
 
   if (hasPendingUpdates()) {
     // no need in update checking if there are some pending updates
@@ -837,18 +881,22 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
     return result;
   }
 
+  Uptane::EcuSerial primary_ecu_serial = uptane_manifest.getPrimaryEcuSerial();
+
   // Recheck the downloaded update hashes.
   for (const auto &update : updates) {
-    if (package_manager_->verifyTarget(update) != TargetStatus::kGood) {
-      result.dev_report = {false, data::ResultCode::Numeric::kInternalError, ""};
-      storage->storeDeviceInstallationResult(result.dev_report, "Downloaded target is invalid", correlation_id);
-      sendEvent<event::AllInstallsComplete>(result);
-      return result;
+    if (update.IsForEcu(primary_ecu_serial) || !update.IsOstree()) {
+      if (package_manager_->verifyTarget(update) != TargetStatus::kGood) {
+        result.dev_report = {false, data::ResultCode::Numeric::kInternalError, ""};
+        storage->storeDeviceInstallationResult(result.dev_report, "Downloaded target is invalid", correlation_id);
+        sendEvent<event::AllInstallsComplete>(result);
+        return result;
+      }
     }
   }
 
   // Uptane step 5 (send time to all ECUs) is not implemented yet.
-  Uptane::EcuSerial primary_ecu_serial = uptane_manifest.getPrimaryEcuSerial();
+
   std::vector<Uptane::Target> primary_updates = findForEcu(updates, primary_ecu_serial);
   //   6 - send metadata to all the ECUs
   sendMetadataToEcus(updates);
@@ -1125,18 +1173,30 @@ void SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &tar
   }
 }
 
-std::future<bool> SotaUptaneClient::sendFirmwareAsync(Uptane::SecondaryInterface &secondary,
-                                                      const std::shared_ptr<std::string> &data) {
-  auto f = [this, &secondary, data]() {
+std::future<data::ResultCode::Numeric> SotaUptaneClient::sendFirmwareAsync(Uptane::SecondaryInterface &secondary,
+                                                                           const std::shared_ptr<std::string> &data,
+                                                                           const std::string &filename) {
+  auto f = [this, &secondary, data, filename]() {
     const std::string &correlation_id = director_repo.getCorrelationId();
     sendEvent<event::InstallStarted>(secondary.getSerial());
     report_queue->enqueue(std_::make_unique<EcuInstallationStartedReport>(secondary.getSerial(), correlation_id));
-    bool ret = secondary.sendFirmware(data);
-    report_queue->enqueue(
-        std_::make_unique<EcuInstallationCompletedReport>(secondary.getSerial(), correlation_id, ret));
-    sendEvent<event::InstallTargetComplete>(secondary.getSerial(), ret);
 
-    return ret;
+    bool send_firmware_result = secondary.sendFirmware(data);
+    data::ResultCode::Numeric result =
+        send_firmware_result ? data::ResultCode::Numeric::kOk : data::ResultCode::Numeric::kInstallFailed;
+
+    if (send_firmware_result) {
+      result = secondary.install(filename);
+    }
+
+    if (result == data::ResultCode::Numeric::kNeedCompletion) {
+      report_queue->enqueue(std_::make_unique<EcuInstallationAppliedReport>(secondary.getSerial(), correlation_id));
+    } else {
+      report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(
+          secondary.getSerial(), correlation_id, result == data::ResultCode::Numeric::kOk));
+    }
+    sendEvent<event::InstallTargetComplete>(secondary.getSerial(), result == data::ResultCode::Numeric::kOk);
+    return result;
   };
 
   return std::async(std::launch::async, f);
@@ -1144,7 +1204,7 @@ std::future<bool> SotaUptaneClient::sendFirmwareAsync(Uptane::SecondaryInterface
 
 std::vector<result::Install::EcuReport> SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targets) {
   std::vector<result::Install::EcuReport> reports;
-  std::vector<std::pair<result::Install::EcuReport, std::future<bool>>> firmwareFutures;
+  std::vector<std::pair<result::Install::EcuReport, std::future<data::ResultCode::Numeric>>> firmwareFutures;
 
   Uptane::EcuSerial primary_ecu_serial = uptane_manifest.getPrimaryEcuSerial();
   // target images should already have been downloaded to metadata_path/targets/
@@ -1170,14 +1230,16 @@ std::vector<result::Install::EcuReport> SotaUptaneClient::sendImagesToEcus(const
         if (creds_archive.empty()) {
           continue;
         }
-        firmwareFutures.emplace_back(result::Install::EcuReport(*targets_it, ecu_serial, data::InstallationResult()),
-                                     sendFirmwareAsync(sec, std::make_shared<std::string>(creds_archive)));
+        firmwareFutures.emplace_back(
+            result::Install::EcuReport(*targets_it, ecu_serial, data::InstallationResult()),
+            sendFirmwareAsync(sec, std::make_shared<std::string>(creds_archive), (*targets_it).filename()));
       } else {
         std::stringstream sstr;
         sstr << *storage->openTargetFile(*targets_it);
         const std::string fw = sstr.str();
-        firmwareFutures.emplace_back(result::Install::EcuReport(*targets_it, ecu_serial, data::InstallationResult()),
-                                     sendFirmwareAsync(sec, std::make_shared<std::string>(fw)));
+        firmwareFutures.emplace_back(
+            result::Install::EcuReport(*targets_it, ecu_serial, data::InstallationResult()),
+            sendFirmwareAsync(sec, std::make_shared<std::string>(fw), (*targets_it).filename()));
       }
     }
   }
@@ -1192,13 +1254,15 @@ std::vector<result::Install::EcuReport> SotaUptaneClient::sendImagesToEcus(const
       continue;
     }
 
-    bool fut_result = f.second.get();
-    if (fut_result) {
-      f.first.install_res = data::InstallationResult(data::ResultCode::Numeric::kOk, "");
+    auto fut_result = f.second.get();
+    f.first.install_res = data::InstallationResult(fut_result, "");
+    if (fut_result == data::ResultCode::Numeric::kOk) {
       storage->saveInstalledVersion(f.first.serial.ToString(), f.first.update, InstalledVersionUpdateMode::kCurrent);
-    } else {
-      f.first.install_res = data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, "");
+    } else if (fut_result == data::ResultCode::Numeric::kNeedCompletion) {
+      // ostree case: need reboot
+      storage->saveInstalledVersion(f.first.serial.ToString(), f.first.update, InstalledVersionUpdateMode::kPending);
     }
+
     storage->saveEcuInstallationResult(f.first.serial, f.first.install_res);
     reports.push_back(f.first);
   }

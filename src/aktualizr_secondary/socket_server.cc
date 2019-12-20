@@ -120,6 +120,15 @@ void SocketServer::HandleOneConnection(int socket) {
         auto r = resp->sendFirmwareResp();
         r->result = fut.get() ? AKInstallationResult_success : AKInstallationResult_failure;
       } break;
+      case AKIpUptaneMes_PR_installReq: {
+        auto request = msg->installReq();
+
+        auto install_result = impl_->install(ToString(request->hash));
+
+        resp->present(AKIpUptaneMes_PR_installResp);
+        auto response_message = resp->installResp();
+        response_message->result = static_cast<AKInstallationResultCode_t>(install_result);
+      } break;
       default:
         LOG_ERROR << "Unrecognised message type:" << msg->present();
         return;

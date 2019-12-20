@@ -5,7 +5,8 @@ import argparse
 
 from os import getcwd, chdir, path
 
-from test_fixtures import with_aktualizr, with_uptane_backend, KeyStore, with_secondary
+from test_fixtures import with_aktualizr, with_uptane_backend, KeyStore, with_secondary, with_treehub,\
+    with_sysroot, with_director
 
 logger = logging.getLogger("IPSecondaryTest")
 
@@ -81,12 +82,50 @@ def test_secondary_update(uptane_repo, secondary, aktualizr, **kwargs):
 
     return test_result
 
+@with_treehub()
+@with_uptane_backend()
+@with_director()
+@with_sysroot()
+@with_secondary(start=False)
+@with_aktualizr(start=False, run_mode='once', output_logs=True)
+def test_secondary_ostree_update(uptane_repo, secondary, aktualizr, treehub, sysroot, director, **kwargs):
+    """Test Secondary ostree update if a boot order of Secondary and Primary is undefined"""
+
+    test_result = True
+    target_rev = treehub.revision
+    uptane_repo.add_ostree_target(secondary.id, target_rev)
+
+    with secondary:
+        with aktualizr:
+            aktualizr.wait_for_completion()
+
+    pending_rev = aktualizr.get_current_pending_image_info(secondary.id)
+
+    if pending_rev != target_rev:
+        logger.error("Pending version {} != the target one {}".format(pending_rev, target_rev))
+        return False
+
+    sysroot.update_revision(pending_rev)
+    secondary.emulate_reboot()
+
+    with secondary:
+        with aktualizr:
+            aktualizr.wait_for_completion()
+
+    installed_rev = aktualizr.get_current_image_info(secondary.id)
+
+    if installed_rev != target_rev:
+        logger.error("Installed version {} != the target one {}".format(installed_rev, target_rev))
+        return False
+
+    return director.get_install_result()
+
 
 @with_uptane_backend()
 @with_secondary(start=False)
 @with_aktualizr(start=False, output_logs=False, wait_timeout=0.1)
 def test_primary_timeout_during_first_run(uptane_repo, secondary, aktualizr, **kwargs):
-    '''Test Aktualizr's timeout of waiting for Secondaries during initial boot'''
+    """Test Aktualizr's timeout of waiting for Secondaries during initial boot"""
 
     secondary_image_filename = "secondary_image_filename_001.img"
     secondary_image_hash = uptane_repo.add_image(id=secondary.id, image_filename=secondary_image_filename)
@@ -156,11 +195,14 @@ if __name__ == '__main__':
     initial_cwd = getcwd()
     chdir(input_params.build_dir)
 
-    test_suite = [test_secondary_update_if_secondary_starts_first,
-                  test_secondary_update_if_primary_starts_first,
+    test_suite = [
+                  test_secondary_ostree_update,
                   test_secondary_update,
+                  test_secondary_update_if_secondary_starts_first,
+                  test_secondary_update_if_primary_starts_first,
                   test_primary_timeout_during_first_run,
-                  test_primary_timeout_after_device_is_registered]
+                  test_primary_timeout_after_device_is_registered
+    ]
 
     test_suite_run_result = True
     for test in test_suite:
