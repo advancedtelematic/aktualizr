@@ -7,6 +7,7 @@
 
 #include "utilities/config_utils.h"
 
+// TODO: move these to their corresponding headers
 #define PACKAGE_MANAGER_NONE "none"
 #define PACKAGE_MANAGER_OSTREE "ostree"
 #define PACKAGE_MANAGER_DEBIAN "debian"

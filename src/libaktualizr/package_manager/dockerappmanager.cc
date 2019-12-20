@@ -1,4 +1,5 @@
 #include "dockerappmanager.h"
+#include "packagemanagerfactory.h"
 
 #include <sstream>
 
@@ -36,6 +37,8 @@
  *     }
  *   }
  */
+
+AUTO_REGISTER_PACKAGE_MANAGER(PACKAGE_MANAGER_OSTREEDOCKERAPP, DockerAppManager);
 
 struct DockerApp {
   DockerApp(std::string app_name, const PackageConfig &config)

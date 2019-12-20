@@ -54,7 +54,7 @@ static void progress_cb(const Uptane::Target& target, const std::string& descrip
  * Resuming while not paused is ignored.
  * Resuming while not downloading is ignored
  */
-void test_pause(const Uptane::Target& target, const std::string &type = PACKAGE_MANAGER_NONE) {
+void test_pause(const Uptane::Target& target, const std::string& type = PACKAGE_MANAGER_NONE) {
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
   config.uptane.repo_server = server;

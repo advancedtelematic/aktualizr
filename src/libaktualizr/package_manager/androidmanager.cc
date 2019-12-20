@@ -3,6 +3,7 @@
 #include <forward_list>
 
 #include "androidmanager.h"
+#include "packagemanagerfactory.h"
 
 #include "utilities/utils.h"
 
@@ -15,6 +16,8 @@ namespace qi = boost::spirit::qi;
 namespace fs = boost::filesystem;
 
 const std::string AndroidManager::data_ota_package_dir_ = "/data/ota_package";
+
+AUTO_REGISTER_PACKAGE_MANAGER(PACKAGE_MANAGER_ANDROID, AndroidManager);
 
 Json::Value AndroidManager::getInstalledPackages() const {
   using boost::phoenix::copy;
