@@ -5,27 +5,6 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/log/trivial.hpp>
 
-std::ostream& operator<<(std::ostream& os, PackageManager pm) {
-  std::string pm_str;
-  switch (pm) {
-    case PackageManager::kOstree:
-      pm_str = "ostree";
-      break;
-    case PackageManager::kDebian:
-      pm_str = "debian";
-      break;
-    case PackageManager::kOstreeDockerApp:
-      pm_str = "ostree+docker-app";
-      break;
-    case PackageManager::kNone:
-    default:
-      pm_str = "none";
-      break;
-  }
-  os << '"' << pm_str << '"';
-  return os;
-}
-
 void PackageConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(type, "type", pt);
   CopyFromConfig(os, "os", pt);

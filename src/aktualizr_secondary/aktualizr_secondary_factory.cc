@@ -22,7 +22,7 @@ AktualizrSecondary::Ptr AktualizrSecondaryFactory::create(const AktualizrSeconda
 
   UpdateAgent::Ptr update_agent;
 
-  if (config.pacman.type != PackageManager::kOstree) {
+  if (config.pacman.type != PACKAGE_MANAGER_OSTREE) {
     std::string current_target_name;
 
     boost::optional<Uptane::Target> current_version;

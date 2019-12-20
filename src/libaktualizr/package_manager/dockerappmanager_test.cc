@@ -33,7 +33,7 @@ static std::unique_ptr<boost::process::child> create_repo(const boost::filesyste
 
 TEST(DockerAppManager, PackageManager_Factory_Good) {
   Config config;
-  config.pacman.type = PackageManager::kOstreeDockerApp;
+  config.pacman.type = PACKAGE_MANAGER_OSTREEDOCKERAPP;
   config.pacman.sysroot = test_sysroot;
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
@@ -57,7 +57,7 @@ TEST(DockerAppManager, DockerApp_Fetch) {
   auto repod = create_repo(repo);
 
   Config config;
-  config.pacman.type = PackageManager::kOstreeDockerApp;
+  config.pacman.type = PACKAGE_MANAGER_OSTREEDOCKERAPP;
   config.pacman.sysroot = test_sysroot;
   config.pacman.docker_apps_root = temp_dir / "docker_apps";
   config.pacman.docker_apps.push_back("app1");

@@ -11,7 +11,7 @@ class AktualizrSecondaryWrapper {
  public:
   AktualizrSecondaryWrapper() {
     AktualizrSecondaryConfig config;
-    config.pacman.type = PackageManager::kNone;
+    config.pacman.type = PACKAGE_MANAGER_NONE;
 
     config.storage.path = _storage_dir.Path();
     config.storage.type = StorageType::kSqlite;

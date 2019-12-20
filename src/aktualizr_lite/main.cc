@@ -17,7 +17,7 @@ static void log_info_target(const std::string &prefix, const Config &config, con
     name = t.custom_version();
   }
   LOG_INFO << prefix + name << "\tsha256:" << t.sha256Hash();
-  if (config.pacman.type == PackageManager::kOstreeDockerApp) {
+  if (config.pacman.type == PACKAGE_MANAGER_OSTREEDOCKERAPP) {
     bool shown = false;
     auto apps = t.custom_data()["docker_apps"];
     for (Json::ValueIterator i = apps.begin(); i != apps.end(); ++i) {

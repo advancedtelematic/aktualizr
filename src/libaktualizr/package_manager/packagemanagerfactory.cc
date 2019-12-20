@@ -21,35 +21,34 @@
 std::shared_ptr<PackageManagerInterface> PackageManagerFactory::makePackageManager(
     const PackageConfig& pconfig, const BootloaderConfig& bconfig, const std::shared_ptr<INvStorage>& storage,
     const std::shared_ptr<HttpInterface>& http) {
-  switch (pconfig.type) {
-    case PackageManager::kOstree:
+  if (pconfig.type == PACKAGE_MANAGER_OSTREE) {
 #ifdef BUILD_OSTREE
       return std::make_shared<OstreeManager>(pconfig, bconfig, storage, http);
 #else
       throw std::runtime_error("aktualizr was compiled without OStree support!");
 #endif
-    case PackageManager::kDebian:
+  } else if (pconfig.type == PACKAGE_MANAGER_DEBIAN) {
 #ifdef BUILD_DEB
       return std::make_shared<DebianManager>(pconfig, bconfig, storage, http);
 #else
       throw std::runtime_error("aktualizr was compiled without debian packages support!");
 #endif
-    case PackageManager::kAndroid:
+  } else if (pconfig.type == PACKAGE_MANAGER_ANDROID) {
 #if defined(ANDROID)
       return std::make_shared<AndroidManager>(pconfig, bconfig, storage, http);
 #else
       throw std::runtime_error("aktualizr was compiled without android support!");
 #endif
-    case PackageManager::kOstreeDockerApp:
+  } else if (pconfig.type == PACKAGE_MANAGER_OSTREEDOCKERAPP) {
 #if defined(BUILD_DOCKERAPP) && defined(BUILD_OSTREE)
       return std::make_shared<DockerAppManager>(pconfig, bconfig, storage, http);
 #else
       throw std::runtime_error("aktualizr was compiled without ostree+docker-app support!");
 #endif
-    case PackageManager::kNone:
+  } else if (pconfig.type == PACKAGE_MANAGER_NONE) {
       return std::make_shared<PackageManagerFake>(pconfig, bconfig, storage, http);
-    default:
-      LOG_ERROR << "Unrecognized package manager type: " << static_cast<int>(pconfig.type);
+  } else {
+      LOG_ERROR << "Unrecognized package manager type: " << pconfig.type;
       return std::shared_ptr<PackageManagerInterface>();  // NULL-equivalent
   }
 }

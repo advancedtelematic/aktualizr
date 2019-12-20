@@ -30,7 +30,7 @@ TEST(UptaneCI, ProvisionAndPutManifest) {
   config.provision.provision_path = credentials;
   config.provision.mode = ProvisionMode::kSharedCred;
   config.storage.path = temp_dir.Path();
-  config.pacman.type = PackageManager::kNone;
+  config.pacman.type = PACKAGE_MANAGER_NONE;
   config.postUpdateValues();  // re-run copy of urls
 
   auto storage = INvStorage::newStorage(config.storage);
@@ -45,7 +45,7 @@ TEST(UptaneCI, CheckKeys) {
   config.provision.provision_path = credentials;
   config.provision.mode = ProvisionMode::kSharedCred;
   config.storage.path = temp_dir.Path();
-  config.pacman.type = PackageManager::kOstree;
+  config.pacman.type = PACKAGE_MANAGER_OSTREE;
   config.pacman.sysroot = sysroot;
   config.postUpdateValues();  // re-run copy of urls
   boost::filesystem::remove_all(config.storage.path);

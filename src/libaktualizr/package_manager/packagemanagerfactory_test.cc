@@ -14,7 +14,7 @@ boost::filesystem::path sysroot;
 /* Support OSTree as a package manager. */
 TEST(PackageManagerFactory, Ostree) {
   Config config;
-  config.pacman.type = PackageManager::kOstree;
+  config.pacman.type = PACKAGE_MANAGER_OSTREE;
   config.pacman.sysroot = sysroot;
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
@@ -32,7 +32,7 @@ TEST(PackageManagerFactory, Ostree) {
 
 TEST(PackageManagerFactory, Debian) {
   Config config;
-  config.pacman.type = PackageManager::kDebian;
+  config.pacman.type = PACKAGE_MANAGER_DEBIAN;
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
@@ -52,7 +52,7 @@ TEST(PackageManagerFactory, None) {
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
-  config.pacman.type = PackageManager::kNone;
+  config.pacman.type = PACKAGE_MANAGER_NONE;
   std::shared_ptr<PackageManagerInterface> pacman =
       PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr);
   EXPECT_TRUE(pacman);
@@ -62,7 +62,7 @@ TEST(PackageManagerFactory, Bad) {
   Config config;
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
-  config.pacman.type = (PackageManager)-1;
+  config.pacman.type = "bad";
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   std::shared_ptr<PackageManagerInterface> pacman =
       PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr);

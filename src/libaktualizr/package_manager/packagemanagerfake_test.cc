@@ -25,7 +25,7 @@
 TEST(PackageManagerFake, Verify) {
   TemporaryDirectory temp_dir;
   Config config;
-  config.pacman.type = PackageManager::kNone;
+  config.pacman.type = PACKAGE_MANAGER_NONE;
   config.storage.path = temp_dir.Path();
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
 
@@ -72,7 +72,7 @@ TEST(PackageManagerFake, Verify) {
 TEST(PackageManagerFake, FinalizeAfterReboot) {
   TemporaryDirectory temp_dir;
   Config config;
-  config.pacman.type = PackageManager::kNone;
+  config.pacman.type = PACKAGE_MANAGER_NONE;
   config.pacman.fake_need_reboot = true;
   config.bootloader.reboot_sentinel_dir = temp_dir.Path();
   config.storage.path = temp_dir.Path();
@@ -100,7 +100,7 @@ TEST(PackageManagerFake, FinalizeAfterReboot) {
 TEST(PackageManagerFake, DownloadFailureInjection) {
   TemporaryDirectory temp_dir;
   Config config;
-  config.pacman.type = PackageManager::kNone;
+  config.pacman.type = PACKAGE_MANAGER_NONE;
   config.storage.path = temp_dir.Path();
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -131,7 +131,7 @@ TEST(PackageManagerFake, DownloadFailureInjection) {
 TEST(PackageManagerFake, InstallFailureInjection) {
   TemporaryDirectory temp_dir;
   Config config;
-  config.pacman.type = PackageManager::kNone;
+  config.pacman.type = PACKAGE_MANAGER_NONE;
   config.storage.path = temp_dir.Path();
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
 

@@ -7,15 +7,20 @@
 
 #include "utilities/config_utils.h"
 
-enum class PackageManager { kNone = 0, kOstree, kDebian, kAndroid, kOstreeDockerApp };
-std::ostream& operator<<(std::ostream& os, PackageManager pm);
+#define PACKAGE_MANAGER_NONE "none"
+#define PACKAGE_MANAGER_OSTREE "ostree"
+#define PACKAGE_MANAGER_DEBIAN "debian"
+#define PACKAGE_MANAGER_ANDROID "android"
+#define PACKAGE_MANAGER_OSTREEDOCKERAPP "ostree+docker-app"
+
+#ifdef BUILD_OSTREE
+#define PACKAGE_MANAGER_DEFAULT PACKAGE_MANAGER_OSTREE
+#else
+#define PACKAGE_MANAGER_DEFAULT PACKAGE_MANAGER_NONE
+#endif
 
 struct PackageConfig {
-#ifdef BUILD_OSTREE
-  PackageManager type{PackageManager::kOstree};
-#else
-  PackageManager type{PackageManager::kNone};
-#endif
+  std::string type{PACKAGE_MANAGER_DEFAULT};
   std::string os;
   boost::filesystem::path sysroot;
   std::string ostree_server;
@@ -29,31 +34,11 @@ struct PackageConfig {
   boost::filesystem::path docker_compose_bin{"/usr/bin/docker-compose"};
 #endif
 
-  // Options for simulation (to be used with kNone)
+  // Options for simulation ()
   bool fake_need_reboot{false};
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;
 };
-
-template <>
-inline void CopyFromConfig(PackageManager& dest, const std::string& option_name,
-                           const boost::property_tree::ptree& pt) {
-  boost::optional<std::string> value = pt.get_optional<std::string>(option_name);
-  if (value.is_initialized()) {
-    std::string pm_type{StripQuotesFromStrings(value.get())};
-    if (pm_type == "ostree") {
-      dest = PackageManager::kOstree;
-    } else if (pm_type == "debian") {
-      dest = PackageManager::kDebian;
-    } else if (pm_type == "android") {
-      dest = PackageManager::kAndroid;
-    } else if (pm_type == "ostree+docker-app") {
-      dest = PackageManager::kOstreeDockerApp;
-    } else {
-      dest = PackageManager::kNone;
-    }
-  }
-}
 
 #endif  // PACKAGE_MANAGER_PACKAGEMANAGERCONFIG_H_

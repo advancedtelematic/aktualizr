@@ -12,7 +12,7 @@
 
 int updateOneCycle(const boost::filesystem::path &storage_dir, const std::string &server) {
   Config conf;
-  conf.pacman.type = PackageManager::kNone;
+  conf.pacman.type = PACKAGE_MANAGER_NONE;
   conf.pacman.fake_need_reboot = true;
   conf.provision.device_id = "device_id";
   conf.provision.ecu_registration_endpoint = server + "/director/ecus";

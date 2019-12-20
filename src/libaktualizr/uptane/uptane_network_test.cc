@@ -182,7 +182,7 @@ TEST(UptaneNetwork, LogConnectivityRestored) {
   Config config = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
   config.uptane.director_server = http->tls_server + "director";
   config.uptane.repo_server = http->tls_server + "repo";
-  config.pacman.type = PackageManager::kNone;
+  config.pacman.type = PACKAGE_MANAGER_NONE;
   config.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   config.provision.primary_ecu_hardware_id = "primary_hw";
   config.storage.path = temp_dir.Path();
