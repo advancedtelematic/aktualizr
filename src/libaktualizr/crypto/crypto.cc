@@ -380,6 +380,9 @@ StructGuard<EVP_PKEY> Crypto::generateRSAKeyPairEVP(KeyType key_type) {
 bool Crypto::generateRSAKeyPair(KeyType key_type, std::string *public_key, std::string *private_key) {
   int ret = 0;
   StructGuard<EVP_PKEY> pkey = generateRSAKeyPairEVP(key_type);
+  if (pkey == nullptr) {
+    return false;
+  }
 
   char *pubkey_buf;
   StructGuard<BIO> pubkey_sink(BIO_new(BIO_s_mem()), BIO_vfree);

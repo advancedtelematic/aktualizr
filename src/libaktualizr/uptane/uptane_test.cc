@@ -184,7 +184,7 @@ TEST(Uptane, AssembleManifestBad) {
 
   /* Overwrite the secondary's keys on disk. */
   std::string private_key, public_key;
-  Crypto::generateKeyPair(ecu_config.key_type, &public_key, &private_key);
+  ASSERT_TRUE(Crypto::generateKeyPair(ecu_config.key_type, &public_key, &private_key));
   Utils::writeFile(ecu_config.full_client_dir / ecu_config.ecu_private_key, private_key);
   public_key = Utils::readFile("tests/test_data/public.key");
   Utils::writeFile(ecu_config.full_client_dir / ecu_config.ecu_public_key, public_key);
@@ -510,7 +510,9 @@ class SecondaryInterfaceMock : public Uptane::SecondaryInterface {
  public:
   explicit SecondaryInterfaceMock(Primary::VirtualSecondaryConfig &sconfig_in) : sconfig(std::move(sconfig_in)) {
     std::string private_key, public_key;
-    Crypto::generateKeyPair(sconfig.key_type, &public_key, &private_key);
+    if (!Crypto::generateKeyPair(sconfig.key_type, &public_key, &private_key)) {
+      throw std::runtime_error("Key generation failure");
+    }
     public_key_ = PublicKey(public_key, sconfig.key_type);
     Json::Value manifest_unsigned;
     manifest_unsigned["key"] = "value";
