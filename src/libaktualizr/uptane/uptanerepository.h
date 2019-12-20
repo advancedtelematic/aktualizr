@@ -47,6 +47,8 @@ class RepositoryCommon {
 
  protected:
   void resetRoot();
+  bool updateRoot(INvStorage &storage, const IMetadataFetcher &fetcher, RepositoryType repo_type);
+
   Root root;
   RepositoryType type;
 };
