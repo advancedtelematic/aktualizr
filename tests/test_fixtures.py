@@ -365,6 +365,10 @@ class UptaneRepo(HTTPServer):
             self.end_headers()
 
         def default_get(self):
+            if not os.path.exists(self.file_path):
+                self.send_response(404)
+                self.end_headers()
+                return
             self.send_response(200)
             self.end_headers()
             with open(self.file_path, 'rb') as source:
