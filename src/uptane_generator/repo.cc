@@ -128,7 +128,9 @@ void Repo::generateKeyPair(KeyType key_type, const Uptane::Role &key_name) {
   boost::filesystem::create_directories(keys_dir);
 
   std::string public_key_string, private_key;
-  Crypto::generateKeyPair(key_type, &public_key_string, &private_key);
+  if (!Crypto::generateKeyPair(key_type, &public_key_string, &private_key)) {
+    throw std::runtime_error("Key generation failure");
+  }
   PublicKey public_key(public_key_string, key_type);
 
   std::stringstream key_str;
