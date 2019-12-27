@@ -48,9 +48,11 @@ class Aktualizr:
 
         with open(path.join(self._storage_dir.name, 'config.toml'), 'w+') as config_file:
             config_file.write(Aktualizr.CONFIG_TEMPLATE.format(server_url=uptane_server.base_url,
-                                                               ca_path=ca, pkey_path=pkey, cert_path=cert,
+                                                               ca_path=os.path.abspath(ca),
+                                                               pkey_path=os.path.abspath(pkey),
+                                                               cert_path=os.path.abspath(cert),
                                                                serial=id[1], hw_ID=id[0],
-                                                               storage_dir=self._storage_dir,
+                                                               storage_dir=self._storage_dir.name,
                                                                db_path=path.join(self._storage_dir.name, 'sql.db'),
                                                                log_level=self._log_level,
                                                                secondary_cfg_file=self._secondary_config_file,
@@ -281,7 +283,7 @@ class IPSecondary:
         with open(path.join(self._storage_dir.name, 'config.toml'), 'w+') as config_file:
             config_file.write(IPSecondary.CONFIG_TEMPLATE.format(serial=id[1], hw_ID=id[0],
                                                                  port=self.port, primary_port=self.primary_port,
-                                                                 storage_dir=self._storage_dir,
+                                                                 storage_dir=self._storage_dir.name,
                                                                  db_path=path.join(self._storage_dir.name, 'db.sql')))
             self._config_file = config_file.name
 
@@ -299,7 +301,6 @@ class IPSecondary:
     type = "sqlite"
     path = "{storage_dir}"
     sqldb_path = "{db_path}"
-
 
     [pacman]
     type = "fake"
