@@ -65,6 +65,14 @@ bool RepositoryCommon::updateRoot(INvStorage& storage, const IMetadataFetcher& f
         return false;
       }
     } else {
+      // This block is a hack only required as long as we have to explicitly
+      // fetch this to make the Director recognize new devices as "online".
+      if (repo_type == RepositoryType::Director()) {
+        if (!fetcher.fetchLatestRole(&root_raw, kMaxRootSize, repo_type, Role::Root())) {
+          return false;
+        }
+      }
+
       if (!fetcher.fetchRole(&root_raw, kMaxRootSize, repo_type, Role::Root(), Version(1))) {
         return false;
       }
