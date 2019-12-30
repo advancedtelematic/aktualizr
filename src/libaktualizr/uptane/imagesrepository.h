@@ -40,6 +40,9 @@ class ImagesRepository : public RepositoryCommon {
   bool updateMeta(INvStorage& storage, const IMetadataFetcher& fetcher) override;
 
  private:
+  bool fetchSnapshot(INvStorage& storage, const IMetadataFetcher& fetcher, int local_version);
+  bool fetchTargets(INvStorage& storage, const IMetadataFetcher& fetcher, int local_version);
+
   std::shared_ptr<Uptane::Targets> targets;
   Uptane::TimestampMeta timestamp;
   Uptane::Snapshot snapshot;

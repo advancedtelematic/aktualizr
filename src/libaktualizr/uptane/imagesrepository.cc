@@ -22,6 +22,32 @@ bool ImagesRepository::verifyTimestamp(const std::string& timestamp_raw) {
   return true;
 }
 
+bool ImagesRepository::fetchSnapshot(INvStorage& storage, const IMetadataFetcher& fetcher, const int local_version) {
+  std::string images_snapshot;
+  const int64_t snapshot_size = (snapshotSize() > 0) ? snapshotSize() : kMaxSnapshotSize;
+  if (!fetcher.fetchLatestRole(&images_snapshot, snapshot_size, RepositoryType::Image(), Role::Snapshot())) {
+    return false;
+  }
+  const int remote_version = extractVersionUntrusted(images_snapshot);
+
+  // 6. Check that each Targets metadata filename listed in the previous Snapshot metadata file is also listed in this
+  // Snapshot metadata file. If this condition is not met, discard the new Snapshot metadata file, abort the update
+  // cycle, and report the failure. (Checks for a rollback attack.)
+  // Let's wait for this ticket resolution https://github.com/uptane/uptane-standard/issues/149
+  // https://saeljira.it.here.com/browse/OTA-4121
+  if (!verifySnapshot(images_snapshot)) {
+    return false;
+  }
+
+  if (local_version > remote_version) {
+    return false;
+  } else if (local_version < remote_version) {
+    storage.storeNonRoot(images_snapshot, RepositoryType::Image(), Role::Snapshot());
+  }
+
+  return true;
+}
+
 bool ImagesRepository::verifySnapshot(const std::string& snapshot_raw) {
   try {
     const std::string canonical = Utils::jsonToCanonicalStr(Utils::parseJSON(snapshot_raw));
@@ -60,6 +86,32 @@ bool ImagesRepository::verifySnapshot(const std::string& snapshot_raw) {
     last_exception = e;
     return false;
   }
+  return true;
+}
+
+bool ImagesRepository::fetchTargets(INvStorage& storage, const IMetadataFetcher& fetcher, const int local_version) {
+  std::string images_targets;
+  const Role targets_role = Role::Targets();
+
+  auto targets_size = getRoleSize(Role::Targets());
+  if (targets_size <= 0) {
+    targets_size = kMaxImagesTargetsSize;
+  }
+  if (!fetcher.fetchLatestRole(&images_targets, targets_size, RepositoryType::Image(), targets_role)) {
+    return false;
+  }
+  const int remote_version = extractVersionUntrusted(images_targets);
+
+  if (!verifyTargets(images_targets)) {
+    return false;
+  }
+
+  if (local_version > remote_version) {
+    return false;
+  } else if (local_version < remote_version) {
+    storage.storeNonRoot(images_targets, RepositoryType::Image(), targets_role);
+  }
+
   return true;
 }
 
@@ -176,35 +228,26 @@ bool ImagesRepository::updateMeta(INvStorage& storage, const IMetadataFetcher& f
 
   // Update Images Snapshot Metadata
   {
-    std::string images_snapshot;
-
-    int64_t snapshot_size = (snapshotSize() > 0) ? snapshotSize() : kMaxSnapshotSize;
-    if (!fetcher.fetchLatestRole(&images_snapshot, snapshot_size, RepositoryType::Image(), Role::Snapshot())) {
-      return false;
-    }
-    int remote_version = extractVersionUntrusted(images_snapshot);
-
+    // First check if we already have the latest version according to the
+    // Timestamp metadata.
+    bool fetch_snapshot = true;
     int local_version;
     std::string images_snapshot_stored;
     if (storage.loadNonRoot(&images_snapshot_stored, RepositoryType::Image(), Role::Snapshot())) {
-      local_version = extractVersionUntrusted(images_snapshot_stored);
+      if (verifySnapshot(images_snapshot_stored)) {
+        fetch_snapshot = false;
+        LOG_DEBUG << "Skipping Image repo Snapshot download; stored version is still current.";
+      }
+      local_version = snapshot.version();
     } else {
       local_version = -1;
     }
 
-    // 6. Check that each Targets metadata filename listed in the previous Snapshot metadata file is also listed in this
-    // Snapshot metadata file. If this condition is not met, discard the new Snapshot metadata file, abort the update
-    // cycle, and report the failure. (Checks for a rollback attack.)
-    // Let's wait for this ticket resolution https://github.com/uptane/uptane-standard/issues/149
-    // https://saeljira.it.here.com/browse/OTA-4121
-    if (!verifySnapshot(images_snapshot)) {
-      return false;
-    }
-
-    if (local_version > remote_version) {
-      return false;
-    } else if (local_version < remote_version) {
-      storage.storeNonRoot(images_snapshot, RepositoryType::Image(), Role::Snapshot());
+    // If we don't, attempt to fetch the latest.
+    if (fetch_snapshot) {
+      if (!fetchSnapshot(storage, fetcher, local_version)) {
+        return false;
+      }
     }
 
     if (snapshotExpired()) {
@@ -214,34 +257,26 @@ bool ImagesRepository::updateMeta(INvStorage& storage, const IMetadataFetcher& f
 
   // Update Images Targets Metadata
   {
-    std::string images_targets;
-    Role targets_role = Role::Targets();
-
-    auto targets_size = getRoleSize(Role::Targets());
-    if (targets_size <= 0) {
-      targets_size = kMaxImagesTargetsSize;
-    }
-    if (!fetcher.fetchLatestRole(&images_targets, targets_size, RepositoryType::Image(), targets_role)) {
-      return false;
-    }
-    int remote_version = extractVersionUntrusted(images_targets);
-
+    // First check if we already have the latest version according to the
+    // Snapshot metadata.
+    bool fetch_targets = true;
     int local_version;
     std::string images_targets_stored;
-    if (storage.loadNonRoot(&images_targets_stored, RepositoryType::Image(), targets_role)) {
-      local_version = extractVersionUntrusted(images_targets_stored);
+    if (storage.loadNonRoot(&images_targets_stored, RepositoryType::Image(), Role::Targets())) {
+      if (verifyTargets(images_targets_stored)) {
+        fetch_targets = false;
+        LOG_DEBUG << "Skipping Image repo Targets download; stored version is still current.";
+      }
+      local_version = targets->version();
     } else {
       local_version = -1;
     }
 
-    if (!verifyTargets(images_targets)) {
-      return false;
-    }
-
-    if (local_version > remote_version) {
-      return false;
-    } else if (local_version < remote_version) {
-      storage.storeNonRoot(images_targets, RepositoryType::Image(), targets_role);
+    // If we don't, attempt to fetch the latest.
+    if (fetch_targets) {
+      if (!fetchTargets(storage, fetcher, local_version)) {
+        return false;
+      }
     }
 
     if (targetsExpired()) {

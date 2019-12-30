@@ -44,6 +44,9 @@ target_link_libraries(t_custom_url virtual_secondary)
 add_aktualizr_test(NAME target_mismatch SOURCES target_mismatch_test.cc PROJECT_WORKING_DIRECTORY
                    ARGS "$<TARGET_FILE:uptane-generator>" LIBRARIES uptane_generator_lib)
 target_link_libraries(t_target_mismatch virtual_secondary)
+add_aktualizr_test(NAME metadata_fetch SOURCES metadata_fetch_test.cc PROJECT_WORKING_DIRECTORY
+                   ARGS "$<TARGET_FILE:uptane-generator>" LIBRARIES uptane_generator_lib)
+target_link_libraries(t_metadata_fetch virtual_secondary)
 
 add_aktualizr_test(NAME device_cred_prov SOURCES device_cred_prov_test.cc PROJECT_WORKING_DIRECTORY LIBRARIES PUBLIC uptane_generator_lib)
 set_tests_properties(test_device_cred_prov PROPERTIES LABELS "crypto")
