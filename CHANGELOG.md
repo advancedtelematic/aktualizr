@@ -6,6 +6,10 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ## [??? (unreleased)]
 
+### Added
+
+- Ostree update on IP Secondaries: [PR](https://github.com/advancedtelematic/aktualizr/pull/1500)
+
 ## [2019.11] - 2019-12-12
 
 ### Added

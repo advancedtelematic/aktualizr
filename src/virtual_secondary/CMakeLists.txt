@@ -6,6 +6,8 @@ set(TARGET virtual_secondary)
 
 add_library(${TARGET} STATIC
   ${SOURCES}
+  $<TARGET_OBJECTS:crypto>
+  $<TARGET_OBJECTS:uptane>
 )
 
 target_include_directories(${TARGET} PUBLIC ${PROJECT_SOURCE_DIR}/src/virtual_secondary)

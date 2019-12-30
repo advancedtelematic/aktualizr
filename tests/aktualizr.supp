@@ -90,3 +90,19 @@
    fun:ostree_sysroot_simple_write_deployment
    ...
 }
+{
+   asn1c ber_decode issues
+   Memcheck:Cond
+   ...
+   fun:CHOICE_decode_ber
+   fun:ber_decode
+   ...
+}
+{
+   asn1c ber_decode issues
+   Memcheck:Value8
+   ...
+   fun:CHOICE_decode_ber
+   fun:ber_decode
+   ...
+}  

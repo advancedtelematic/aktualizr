@@ -1,30 +1,38 @@
-#include "socket_server.h"
-
-#include <future>
+#include "secondary_tcp_server.h"
 
 #include "AKIpUptaneMes.h"
 #include "asn1/asn1_message.h"
 #include "logging/logging.h"
+#include "uptane/secondaryinterface.h"
 #include "utilities/dequeue_buffer.h"
-#include "utilities/sockaddr_io.h"
 
 #include <netinet/tcp.h>
-#include <sys/socket.h>
-#include <sys/types.h>
 
-void SocketServer::Run() {
-  if (listen(*socket_, SOMAXCONN) < 0) {
+SecondaryTcpServer::SecondaryTcpServer(Uptane::SecondaryInterface &secondary, const std::string &primary_ip,
+                                       in_port_t primary_port, in_port_t port)
+    : SecondaryTcpServer(secondary, port) {
+  ConnectionSocket conn_socket(primary_ip, primary_port, listen_socket_.port());
+  if (conn_socket.connect() == 0) {
+    LOG_INFO << "Connected to Primary, sending info about this secondary...";
+    HandleOneConnection(*conn_socket);
+  } else {
+    LOG_INFO << "Failed to connect to Primary";
+  }
+}
+
+void SecondaryTcpServer::run() {
+  if (listen(*listen_socket_, SOMAXCONN) < 0) {
     throw std::system_error(errno, std::system_category(), "listen");
   }
-  LOG_INFO << "Listening on " << Utils::ipGetSockaddr(*socket_);
+  LOG_INFO << "Secondary TCP server listens on " << listen_socket_.toString();
 
-  while (true) {
+  while (keep_running_.load()) {
     int con_fd;
     sockaddr_storage peer_sa{};
     socklen_t peer_sa_size = sizeof(sockaddr_storage);
 
     LOG_DEBUG << "Waiting for connection from client...";
-    if ((con_fd = accept(*socket_, reinterpret_cast<sockaddr *>(&peer_sa), &peer_sa_size)) == -1) {
+    if ((con_fd = accept(*listen_socket_, reinterpret_cast<sockaddr *>(&peer_sa), &peer_sa_size)) == -1) {
       LOG_INFO << "Socket accept failed. aborting";
       break;
     }
@@ -32,9 +40,18 @@ void SocketServer::Run() {
     HandleOneConnection(con_fd);
     LOG_DEBUG << "Client disconnected";
   }
+  LOG_INFO << "Secondary TCP server exit";
 }
 
-void SocketServer::HandleOneConnection(int socket) {
+void SecondaryTcpServer::stop() {
+  keep_running_ = false;
+  // unblock accept
+  ConnectionSocket("localhost", listen_socket_.port()).connect();
+}
+
+in_port_t SecondaryTcpServer::port() const { return listen_socket_.port(); }
+
+void SecondaryTcpServer::HandleOneConnection(int socket) {
   // Outside the message loop, because one recv() may have parts of 2 messages
   // Note that one recv() call returning 2+ messages doesn't work at the
   // moment. This shouldn't be a problem until we have messages that aren't
@@ -66,9 +83,9 @@ void SocketServer::HandleOneConnection(int socket) {
     Asn1Message::Ptr resp = Asn1Message::Empty();
     switch (msg->present()) {
       case AKIpUptaneMes_PR_getInfoReq: {
-        Uptane::EcuSerial serial = impl_->getSerial();
-        Uptane::HardwareIdentifier hw_id = impl_->getHwId();
-        PublicKey pk = impl_->getPublicKey();
+        Uptane::EcuSerial serial = impl_.getSerial();
+        Uptane::HardwareIdentifier hw_id = impl_.getHwId();
+        PublicKey pk = impl_.getPublicKey();
         resp->present(AKIpUptaneMes_PR_getInfoResp);
         auto r = resp->getInfoResp();
         SetString(&r->ecuSerial, serial.ToString());
@@ -77,7 +94,7 @@ void SocketServer::HandleOneConnection(int socket) {
         SetString(&r->key, pk.Value());
       } break;
       case AKIpUptaneMes_PR_manifestReq: {
-        std::string manifest = Utils::jsonToStr(impl_->getManifest());
+        std::string manifest = Utils::jsonToStr(impl_.getManifest());
         resp->present(AKIpUptaneMes_PR_manifestResp);
         auto r = resp->manifestResp();
         r->manifest.present = manifest_PR_json;
@@ -103,7 +120,7 @@ void SocketServer::HandleOneConnection(int socket) {
         }
         bool ok;
         try {
-          ok = impl_->putMetadata(meta_pack);
+          ok = impl_.putMetadata(meta_pack);
         } catch (Uptane::SecurityException &e) {
           LOG_WARNING << "Rejected metadata push because of security failure" << e.what();
           ok = false;
@@ -114,16 +131,15 @@ void SocketServer::HandleOneConnection(int socket) {
       } break;
       case AKIpUptaneMes_PR_sendFirmwareReq: {
         auto fw = msg->sendFirmwareReq();
-        auto fw_data = std::make_shared<std::string>(ToString(fw->firmware));
-        auto fut = std::async(std::launch::async, &Uptane::SecondaryInterface::sendFirmware, impl_, fw_data);
+        auto send_firmware_result = impl_.sendFirmware(ToString(fw->firmware));
         resp->present(AKIpUptaneMes_PR_sendFirmwareResp);
         auto r = resp->sendFirmwareResp();
-        r->result = fut.get() ? AKInstallationResult_success : AKInstallationResult_failure;
+        r->result = send_firmware_result ? AKInstallationResult_success : AKInstallationResult_failure;
       } break;
       case AKIpUptaneMes_PR_installReq: {
         auto request = msg->installReq();
 
-        auto install_result = impl_->install(ToString(request->hash));
+        auto install_result = impl_.install(ToString(request->hash));
 
         resp->present(AKIpUptaneMes_PR_installResp);
         auto response_message = resp->installResp();
@@ -153,35 +169,4 @@ void SocketServer::HandleOneConnection(int socket) {
   // Parse error => Shutdown the socket
   // write error => Shutdown the socket
   // Timeout on write => shutdown
-}
-
-SocketHandle SocketFromPort(in_port_t port) {
-  // manual socket creation
-  int socket_fd = socket(AF_INET6, SOCK_STREAM, 0);
-  if (socket_fd < 0) {
-    throw std::runtime_error("socket creation failed");
-  }
-  SocketHandle hdl(new int(socket_fd));
-  sockaddr_in6 sa{};
-
-  memset(&sa, 0, sizeof(sa));
-  sa.sin6_family = AF_INET6;
-  sa.sin6_port = htons(port);
-  sa.sin6_addr = IN6ADDR_ANY_INIT;
-
-  int v6only = 0;
-  if (setsockopt(*hdl, IPPROTO_IPV6, IPV6_V6ONLY, &v6only, sizeof(v6only)) < 0) {
-    throw std::system_error(errno, std::system_category(), "setsockopt(IPV6_V6ONLY)");
-  }
-
-  int reuseaddr = 1;
-  if (setsockopt(*hdl, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr)) < 0) {
-    throw std::system_error(errno, std::system_category(), "setsockopt(SO_REUSEADDR)");
-  }
-
-  if (bind(*hdl, reinterpret_cast<const sockaddr *>(&sa), sizeof(sa)) < 0) {
-    throw std::system_error(errno, std::system_category(), "bind");
-  }
-
-  return hdl;
 }

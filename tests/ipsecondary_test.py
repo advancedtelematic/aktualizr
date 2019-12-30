@@ -189,6 +189,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Test IP Secondary')
     parser.add_argument('-b', '--build-dir', help='build directory', default='build')
     parser.add_argument('-s', '--src-dir', help='source directory', default='.')
+    parser.add_argument('-o', '--ostree', help='ostree support', default='OFF')
+
     input_params = parser.parse_args()
 
     KeyStore.base_dir = path.abspath(input_params.src_dir)
@@ -196,13 +198,15 @@ if __name__ == '__main__':
     chdir(input_params.build_dir)
 
     test_suite = [
-                  test_secondary_ostree_update,
-                  test_secondary_update,
-                  test_secondary_update_if_secondary_starts_first,
-                  test_secondary_update_if_primary_starts_first,
-                  test_primary_timeout_during_first_run,
-                  test_primary_timeout_after_device_is_registered
+                    test_secondary_update,
+                    test_secondary_update_if_secondary_starts_first,
+                    test_secondary_update_if_primary_starts_first,
+                    test_primary_timeout_during_first_run,
+                    test_primary_timeout_after_device_is_registered
     ]
+
+    if input_params.ostree == 'ON':
+        test_suite.append(test_secondary_ostree_update)
 
     test_suite_run_result = True
     for test in test_suite:

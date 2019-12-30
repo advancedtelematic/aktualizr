@@ -106,9 +106,9 @@ class SecondaryWaiter {
 
       LOG_INFO << "Accepted connection from a secondary: (" << sec_ip << ":" << sec_port << ")";
       try {
-        auto sec_creation_res = Uptane::IpUptaneSecondary::create(sec_ip, sec_port, con_socket_.native_handle());
-        if (sec_creation_res.first) {
-          connected_secondaries_.push_back(sec_creation_res.second);
+        auto sec = Uptane::IpUptaneSecondary::create(sec_ip, sec_port, con_socket_.native_handle());
+        if (sec != nullptr) {
+          connected_secondaries_.push_back(sec);
         }
       } catch (const std::exception& exc) {
         LOG_ERROR << "Failed to initialize a secondary: " << exc.what();
@@ -146,9 +146,9 @@ static Secondaries createIPSecondaries(const IPSecondariesConfig& config) {
   SecondaryWaiter sec_waiter{config.secondaries_wait_port, config.secondaries_timeout_s, result};
 
   for (auto& ip_sec_cfg : config.secondaries_cfg) {
-    auto sec_creation_res = Uptane::IpUptaneSecondary::connectAndCreate(ip_sec_cfg.ip, ip_sec_cfg.port);
-    if (sec_creation_res.first) {
-      result.push_back(sec_creation_res.second);
+    auto sec = Uptane::IpUptaneSecondary::connectAndCreate(ip_sec_cfg.ip, ip_sec_cfg.port);
+    if (sec != nullptr) {
+      result.push_back(sec);
     } else {
       sec_waiter.addSecondary(ip_sec_cfg.ip, ip_sec_cfg.port);
     }

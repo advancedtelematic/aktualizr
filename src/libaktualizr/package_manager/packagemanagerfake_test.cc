@@ -77,7 +77,7 @@ TEST(PackageManagerFake, FinalizeAfterReboot) {
   config.bootloader.reboot_sentinel_dir = temp_dir.Path();
   config.storage.path = temp_dir.Path();
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
-  std::shared_ptr<Bootloader> bootloader = std::make_shared<Bootloader>(config.bootloader, *storage);
+  std::shared_ptr<Bootloader> bootloader = std::make_shared<Bootloader>(config.bootloader, storage);
 
   PackageManagerFake fakepm(config.pacman, config.bootloader, storage, nullptr);
 

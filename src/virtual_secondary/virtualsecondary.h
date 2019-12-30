@@ -27,7 +27,7 @@ class VirtualSecondary : public ManagedSecondary {
 
  private:
   bool storeFirmware(const std::string& target_name, const std::string& content) override;
-  bool getFirmwareInfo(std::string* target_name, size_t& target_len, std::string* sha256hash) override;
+  bool getFirmwareInfo(Uptane::InstalledImageInfo& firmware_info) const override;
 };
 
 }  // namespace Primary

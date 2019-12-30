@@ -16,6 +16,10 @@ struct PackageConfig {
 #else
   PackageManager type{PackageManager::kNone};
 #endif
+  //  // optional, if not specified nothing is updated, just image data are verified and delivered
+  //  boost::filesystem::path filepath;
+  //  // optional, if not specified any target can be applied
+  //  std::string target_name;
   std::string os;
   boost::filesystem::path sysroot;
   std::string ostree_server;

@@ -7,10 +7,12 @@
 #include <boost/filesystem.hpp>
 
 #include "bootloader.h"
+#include "storage/invstorage.h"
 #include "utilities/exceptions.h"
 #include "utilities/utils.h"
 
-Bootloader::Bootloader(BootloaderConfig config, INvStorage& storage) : config_(std::move(config)), storage_(storage) {
+Bootloader::Bootloader(BootloaderConfig config, std::shared_ptr<INvStorage> storage)
+    : config_(std::move(config)), storage_(std::move(storage)) {
   reboot_sentinel_ = config_.reboot_sentinel_dir / config_.reboot_sentinel_name;
   reboot_command_ = config_.reboot_command;
 
@@ -87,7 +89,7 @@ bool Bootloader::rebootDetected() const {
   bool sentinel_exists = boost::filesystem::exists(reboot_sentinel_);
   bool need_reboot = false;
 
-  storage_.loadNeedReboot(&need_reboot);
+  storage_->loadNeedReboot(&need_reboot);
 
   return need_reboot && !sentinel_exists;
 }
@@ -100,7 +102,7 @@ void Bootloader::rebootFlagSet() {
   // set in storage + volatile flag
 
   Utils::writeFile(reboot_sentinel_, std::string(), false);  // empty file
-  storage_.storeNeedReboot();
+  storage_->storeNeedReboot();
 }
 
 void Bootloader::rebootFlagClear() {
@@ -110,7 +112,7 @@ void Bootloader::rebootFlagClear() {
 
   // clear in storage + volatile flag
 
-  storage_.clearNeedReboot();
+  storage_->clearNeedReboot();
   boost::filesystem::remove(reboot_sentinel_);
 }
 

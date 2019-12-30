@@ -3,11 +3,15 @@
 
 #include "bootloader_config.h"
 
-#include "storage/invstorage.h"
+class INvStorage;
 
 class Bootloader {
  public:
-  Bootloader(BootloaderConfig config, INvStorage& storage);
+  Bootloader(BootloaderConfig config, std::shared_ptr<INvStorage> storage);
+  Bootloader(const Bootloader&) = delete;
+  Bootloader& operator=(const Bootloader&) = delete;
+
+ public:
   void setBootOK() const;
   void updateNotify() const;
 
@@ -27,7 +31,7 @@ class Bootloader {
  private:
   const BootloaderConfig config_;
 
-  INvStorage& storage_;
+  std::shared_ptr<INvStorage> storage_;
   boost::filesystem::path reboot_sentinel_;
   std::string reboot_command_;
   bool reboot_detect_supported_{false};

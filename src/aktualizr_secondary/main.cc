@@ -6,10 +6,11 @@
 
 #include "aktualizr_secondary.h"
 #include "aktualizr_secondary_config.h"
+#include "aktualizr_secondary_factory.h"
+#include "logging/logging.h"
+#include "secondary_tcp_server.h"
 #include "utilities/aktualizr_version.h"
 #include "utilities/utils.h"
-
-#include "logging/logging.h"
 
 namespace bpo = boost::program_options;
 
@@ -85,11 +86,8 @@ int main(int argc, char *argv[]) {
     AktualizrSecondaryConfig config(commandline_map);
     LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
 
-    // storage (share class with primary)
-    std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
-    std::unique_ptr<AktualizrSecondaryInterface> secondary;
-    secondary = std_::make_unique<AktualizrSecondary>(config, storage);
-    secondary->run();
+    auto secondary = AktualizrSecondaryFactory::create(config);
+    SecondaryTcpServer(*secondary, config.network.primary_ip, config.network.primary_port, config.network.port).run();
 
   } catch (std::runtime_error &exc) {
     LOG_ERROR << "Error: " << exc.what();

@@ -1,4 +1,5 @@
 #include "keymanager.h"
+#include "storage/invstorage.h"
 #include "utilities/types.h"
 
 #include <stdexcept>
@@ -231,6 +232,7 @@ Json::Value KeyManager::signTuf(const Json::Value &in_data) const {
   }
 
   Json::Value signature;
+  // TODO: FIX the hardcoded value of a signature method/algorithm
   signature["method"] = "rsassa-pss";
   signature["sig"] = b64sig;
 

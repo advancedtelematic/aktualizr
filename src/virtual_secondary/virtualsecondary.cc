@@ -70,26 +70,37 @@ VirtualSecondary::VirtualSecondary(Primary::VirtualSecondaryConfig sconfig_in)
 
 bool VirtualSecondary::storeFirmware(const std::string& target_name, const std::string& content) {
   if (fiu_fail((std::string("secondary_install_") + getSerial().ToString()).c_str()) != 0) {
+    // consider changing this approach of the fault injection, since the current approach impacts the non-test code flow
+    // here as well as it doesn't test the installation failure on secondary from an end-to-end perspective as it
+    // injects an error on the middle of the control flow that would have happened if an installation error had happened
+    // in case of the virtual or the ip-secondary or any other secondary, e.g. add a mock secondary that returns an
+    // error to sendFirmware/install request we might consider passing the installation description message from
+    // Secondary, not just bool and/or data::ResultCode::Numeric
     return false;
   }
+
+  // TODO: it does not make much sense to read, pass via a function parameter to Virtual secondary
+  // and store the file that has been already downloaded by Primary
+  // Primary should apply ECU (primary, virtual, secondary) specific verification, download and installation logic in
+  // the first place
   Utils::writeFile(sconfig.target_name_path, target_name);
   Utils::writeFile(sconfig.firmware_path, content);
   sync();
   return true;
 }
 
-bool VirtualSecondary::getFirmwareInfo(std::string* target_name, size_t& target_len, std::string* sha256hash) {
+bool VirtualSecondary::getFirmwareInfo(Uptane::InstalledImageInfo& firmware_info) const {
   std::string content;
 
   if (!boost::filesystem::exists(sconfig.target_name_path) || !boost::filesystem::exists(sconfig.firmware_path)) {
-    *target_name = std::string("noimage");
+    firmware_info.name = std::string("noimage");
     content = "";
   } else {
-    *target_name = Utils::readFile(sconfig.target_name_path.string());
+    firmware_info.name = Utils::readFile(sconfig.target_name_path.string());
     content = Utils::readFile(sconfig.firmware_path.string());
   }
-  *sha256hash = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(content)));
-  target_len = content.size();
+  firmware_info.hash = Uptane::ManifestIssuer::generateVersionHashStr(content);
+  firmware_info.len = content.size();
 
   return true;
 }

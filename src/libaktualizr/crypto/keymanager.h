@@ -1,19 +1,22 @@
 #ifndef KEYMANAGER_H_
 #define KEYMANAGER_H_
 
-#include "keymanager_config.h"
-
+#include "crypto.h"
 #include "http/httpinterface.h"
+#include "keymanager_config.h"
 #include "p11engine.h"
-#include "storage/invstorage.h"
 #include "utilities/utils.h"
+
+class INvStorage;
 
 class KeyManager {
  public:
+  KeyManager(std::shared_ptr<INvStorage> backend, KeyManagerConfig config);
+  KeyManager(const KeyManager &) = delete;
+  KeyManager &operator=(const KeyManager &) = delete;
   // std::string RSAPSSSign(const std::string &message);
   // Contains the logic from HttpClient::setCerts()
   void copyCertsToCurl(HttpInterface &http);
-  KeyManager(std::shared_ptr<INvStorage> backend, KeyManagerConfig config);
   void loadKeys(const std::string *pkey_content = nullptr, const std::string *cert_content = nullptr,
                 const std::string *ca_content = nullptr);
   std::string getPkeyFile() const;

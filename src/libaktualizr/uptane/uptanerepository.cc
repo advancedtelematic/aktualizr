@@ -19,18 +19,18 @@
 
 namespace Uptane {
 
-bool RepositoryCommon::initRoot(const std::string& root_raw) {
+bool RepositoryCommon::initRoot(const std::string &root_raw) {
   try {
     root = Root(type, Utils::parseJSON(root_raw));        // initialization and format check
     root = Root(type, Utils::parseJSON(root_raw), root);  // signature verification against itself
-  } catch (const std::exception& e) {
+  } catch (const std::exception &e) {
     LOG_ERROR << "Loading initial root failed: " << e.what();
     return false;
   }
   return true;
 }
 
-bool RepositoryCommon::verifyRoot(const std::string& root_raw) {
+bool RepositoryCommon::verifyRoot(const std::string &root_raw) {
   try {
     int prev_version = rootVersion();
     // 5.4.4.3.2.3. Version N+1 of the Root metadata file MUST have been signed
@@ -46,7 +46,7 @@ bool RepositoryCommon::verifyRoot(const std::string& root_raw) {
       LOG_ERROR << "Version in root metadata doesn't match the expected value";
       return false;
     }
-  } catch (const std::exception& e) {
+  } catch (const std::exception &e) {
     LOG_ERROR << "Signature verification for root metadata failed: " << e.what();
     return false;
   }
@@ -55,7 +55,7 @@ bool RepositoryCommon::verifyRoot(const std::string& root_raw) {
 
 void RepositoryCommon::resetRoot() { root = Root(Root::Policy::kAcceptAll); }
 
-bool RepositoryCommon::updateRoot(INvStorage& storage, const IMetadataFetcher& fetcher,
+bool RepositoryCommon::updateRoot(INvStorage &storage, const IMetadataFetcher &fetcher,
                                   const RepositoryType repo_type) {
   // 5.4.4.3.1. Load the previous Root metadata file.
   {
@@ -105,11 +105,6 @@ bool RepositoryCommon::updateRoot(INvStorage& storage, const IMetadataFetcher& f
   // lower than the expiration timestamp in the latest Root metadata file.
   // (Checks for a freeze attack.)
   return !rootExpired();
-}
-
-Json::Value Manifest::signManifest(const Json::Value& manifest_unsigned) const {
-  Json::Value manifest = keys_.signTuf(manifest_unsigned);
-  return manifest;
 }
 
 }  // namespace Uptane

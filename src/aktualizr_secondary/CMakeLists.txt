@@ -1,12 +1,12 @@
 set(AKTUALIZR_SECONDARY_SRC main.cc)
 
 set(AKTUALIZR_SECONDARY_LIB_SRC
+    update_agent_file.cc
     aktualizr_secondary.cc
     aktualizr_secondary_config.cc
-    aktualizr_secondary_common.cc
     aktualizr_secondary_metadata.cc
-    socket_server.cc
-    )
+    secondary_tcp_server.cc
+    aktualizr_secondary_factory.cc)
 
 # do not link tests with libaktualizr
 list(REMOVE_ITEM TEST_LIBS aktualizr_lib)
@@ -26,18 +26,19 @@ add_library(aktualizr_secondary_lib SHARED
     $<TARGET_OBJECTS:utilities>
     $<TARGET_OBJECTS:storage>
     $<TARGET_OBJECTS:logging>
-    $<TARGET_OBJECTS:uptane>)
+    $<TARGET_OBJECTS:uptane>
+    $<TARGET_OBJECTS:campaign>)
 target_link_libraries(aktualizr_secondary_lib ${AKTUALIZR_EXTERNAL_LIBS})
 target_include_directories(aktualizr_secondary_lib PUBLIC
     $<TARGET_PROPERTY:asn1_lib,INCLUDE_DIRECTORIES>
-    ${PROJECT_SOURCE_DIR}/src/libaktualizr-posix
-    )
+    ${PROJECT_SOURCE_DIR}/src/libaktualizr-posix)
 
 if (BUILD_ISOTP)
     target_sources(aktualizr_secondary_lib PRIVATE $<TARGET_OBJECTS:isotp_conn>)
 endif (BUILD_ISOTP)
 
 add_executable(aktualizr-secondary ${AKTUALIZR_SECONDARY_SRC})
+
 target_link_libraries(aktualizr-secondary aktualizr_secondary_lib)
 install(TARGETS aktualizr_secondary_lib LIBRARY DESTINATION lib COMPONENT aktualizr)
 
@@ -46,13 +47,13 @@ install(TARGETS aktualizr-secondary
         RUNTIME DESTINATION bin)
 
 set(ALL_AKTUALIZR_SECONDARY_HEADERS
+    update_agent.h
+    update_agent_file.h
     aktualizr_secondary.h
-    aktualizr_secondary_interface.h
     aktualizr_secondary_config.h
-    aktualizr_secondary_common.h
     aktualizr_secondary_metadata.h
-    socket_server.h
-    )
+    secondary_tcp_server.h
+    aktualizr_secondary_factory.h)
 
 include(AddAktualizrTest)
 
@@ -62,47 +63,30 @@ list(INSERT TEST_LIBS 0 aktualizr_secondary_lib)
 add_aktualizr_test(NAME aktualizr_secondary_config
                    SOURCES aktualizr_secondary_config_test.cc PROJECT_WORKING_DIRECTORY)
 
-if(BUILD_OSTREE)
-add_aktualizr_test(NAME aktualizr_secondary_uptane_verification_ostree
-                   SOURCES uptane_verification_ostree_test.cc
-                   ARGS ${PROJECT_BINARY_DIR}/ostree_repo
-                   PROJECT_WORKING_DIRECTORY)
-
-set_target_properties(t_aktualizr_secondary_uptane_verification_ostree PROPERTIES LINK_FLAGS -Wl,--export-dynamic)
-target_link_libraries(t_aktualizr_secondary_uptane_verification_ostree aktualizr_secondary_static_lib uptane_generator_lib)
-
-else(BUILD_OSTREE)
-    list(APPEND TEST_SOURCES uptane_verification_ostree_test.cc)
-endif(BUILD_OSTREE)
-
-add_aktualizr_test(NAME aktualizr_secondary_uptane_verification
-                   SOURCES uptane_verification_test.cc
-                   PROJECT_WORKING_DIRECTORY)
-
-target_link_libraries(t_aktualizr_secondary_uptane_verification aktualizr_secondary_static_lib uptane_generator_lib)
-
-add_aktualizr_test(NAME aktualizr_secondary_update
-                   SOURCES update_test.cc
-                   ARGS ${PROJECT_BINARY_DIR}/ostree_repo
-                   PROJECT_WORKING_DIRECTORY LIBRARIES aktualizr_secondary_lib)
+add_aktualizr_test(NAME secondary_tcp_server
+                   SOURCES secondary_tcp_server_test.cc PROJECT_WORKING_DIRECTORY)
 
 if(BUILD_OSTREE)
-    add_aktualizr_test(NAME aktualizr_secondary_uptane_verification
-                       SOURCES uptane_verification_test.cc
-                       ARGS ${PROJECT_BINARY_DIR}/ostree_repo
-                       LIBRARIES aktualizr_secondary_lib uptane_generator_lib $<TARGET_OBJECTS:campaign>
-                       PROJECT_WORKING_DIRECTORY )
+    target_sources(aktualizr_secondary_lib PRIVATE update_agent_ostree.cc)
+    list(APPEND  AKTUALIZR_SECONDARY_LIB_SRC update_agent_ostree.cc)
+    list(APPEND ALL_AKTUALIZR_SECONDARY_HEADERS update_agent_ostree.h)
 
-    set_target_properties(t_aktualizr_secondary_uptane_verification PROPERTIES LINK_FLAGS -Wl,--export-dynamic)
-    target_link_libraries(t_aktualizr_secondary_uptane_verification aktualizr_secondary_lib uptane_generator_lib)
-
-    add_aktualizr_test(NAME aktualizr_secondary_uptane
-                       SOURCES uptane_test.cc
-                       LIBRARIES aktualizr_secondary_lib uptane_generator_lib virtual_secondary $<TARGET_OBJECTS:campaign> $<TARGET_OBJECTS:primary> $<TARGET_OBJECTS:http>
+    add_aktualizr_test(NAME aktualizr_secondary_ostree SOURCES aktualizr_secondary_ostree_test.cc
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
+
+    set_target_properties(t_aktualizr_secondary_ostree PROPERTIES LINK_FLAGS -Wl,--export-dynamic)
+    target_link_libraries(t_aktualizr_secondary_ostree aktualizr_secondary_lib uptane_generator_lib)
+
 else(BUILD_OSTREE)
-    list(APPEND TEST_SOURCES uptane_verification_test.cc uptane_test.cc)
+    list(APPEND TEST_SOURCES aktualizr_secondary_ostree_test.cc update_agent_ostree.cc)
+    list(APPEND ALL_AKTUALIZR_SECONDARY_HEADERS update_agent_ostree.h)
 endif(BUILD_OSTREE)
+
+add_aktualizr_test(NAME aktualizr_secondary
+                   SOURCES aktualizr_secondary_test.cc
+                   PROJECT_WORKING_DIRECTORY)
+
+target_link_libraries(t_aktualizr_secondary aktualizr_secondary_lib uptane_generator_lib)
 
 # test running the executable with command line option --help
 add_test(NAME aktualizr_secondary_cmdline--help COMMAND aktualizr-secondary --help)

@@ -122,29 +122,45 @@ class BasedPath {
 template <typename T>
 using StructGuard = std::unique_ptr<T, void (*)(T *)>;
 
-// helper object for RAII socket management
-struct SocketCloser {
-  void operator()(const int *ptr) const {
-    close(*ptr);
-    delete ptr;
-  }
-};
-
-using SocketHandle = std::unique_ptr<int, SocketCloser>;
 bool operator<(const sockaddr_storage &left, const sockaddr_storage &right);  // required by std::map
 
 class Socket {
  public:
-  Socket(const std::string &ip, uint16_t port);
-  ~Socket();
+  Socket();
+  virtual ~Socket() = 0;
 
-  int bind(in_port_t port, bool reuse = true);
+  Socket(const Socket &) = delete;
+  Socket &operator=(const Socket &) = delete;
+
+  int &operator*() { return socket_fd_; }
+  std::string toString();
+
+ protected:
+  void bind(in_port_t port, bool reuse = true);
+
+ protected:
+  int socket_fd_;
+};
+
+class ConnectionSocket : public Socket {
+ public:
+  ConnectionSocket(const std::string &ip, in_port_t port, in_port_t bind_port = 0);
+  ~ConnectionSocket() override;
+
+ public:
   int connect();
-  int getFD() { return socket_fd_; }
 
  private:
-  struct sockaddr_in sock_address_;
-  int socket_fd_;
+  struct sockaddr_in remote_sock_address_;
+};
+
+class ListenSocket : public Socket {
+ public:
+  ListenSocket(in_port_t port);
+  in_port_t port() const { return _port; }
+
+ private:
+  in_port_t _port;
 };
 
 // wrapper for curl handles

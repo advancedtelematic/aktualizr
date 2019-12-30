@@ -141,8 +141,8 @@ void DirectorRepository::dropTargets(INvStorage& storage) {
 
 bool DirectorRepository::matchTargetsWithImageTargets(const Uptane::Targets& image_targets) const {
   // step 10 of https://uptane.github.io/papers/ieee-isto-6100.1.0.0.uptane-standard.html#rfc.section.5.4.4.2
-  // TBD: no delegation support, consider reusing of findTargetInDelegationTree()
-  // that needs to be moved into a common place to be resued by Primary and Secondary
+  // TODO: no delegation support, consider reusing of findTargetInDelegationTree()
+  // TODO:  reuse this verification at Primary, require some refactoring of Primary/sotauptaneclient
   const auto& image_target_array = image_targets.targets;
   const auto& director_target_array = targets.targets;
 

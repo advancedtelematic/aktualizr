@@ -8,9 +8,9 @@ using DockerAppCb = std::function<bool(const std::string &app, const Uptane::Tar
 
 class DockerAppManager : public OstreeManager {
  public:
-  DockerAppManager(PackageConfig pconfig, BootloaderConfig bconfig, std::shared_ptr<INvStorage> storage,
-                   std::shared_ptr<HttpInterface> http)
-      : OstreeManager(std::move(pconfig), std::move(bconfig), std::move(storage), std::move(http)) {
+  DockerAppManager(const PackageConfig &pconfig, const BootloaderConfig &bconfig,
+                   const std::shared_ptr<INvStorage> &storage, const std::shared_ptr<HttpInterface> &http)
+      : OstreeManager(pconfig, bconfig, storage, http) {
     fake_fetcher_ = std::make_shared<Uptane::Fetcher>("", "", http_);
   }
   bool fetchTarget(const Uptane::Target &target, Uptane::Fetcher &fetcher, const KeyManager &keys,

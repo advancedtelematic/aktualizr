@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
 #include "bootloader.h"
+#include "storage/invstorage.h"
+#include "utilities/utils.h"
 
 /* Check that the reboot detection feature works */
 TEST(bootloader, detectReboot) {
@@ -11,7 +13,7 @@ TEST(bootloader, detectReboot) {
 
   BootloaderConfig boot_config;
   boot_config.reboot_sentinel_dir = temp_dir.Path();
-  Bootloader bootloader(boot_config, *storage);
+  Bootloader bootloader(boot_config, storage);
 
   ASSERT_TRUE(bootloader.supportRebootDetection());
 

@@ -526,24 +526,24 @@ class SecondaryInterfaceMock : public Uptane::SecondaryInterface {
     manifest_["signed"] = manifest_unsigned;
     manifest_["signatures"].append(signature);
   }
-  PublicKey getPublicKey() override { return public_key_; }
+  PublicKey getPublicKey() const override { return public_key_; }
 
-  Uptane::HardwareIdentifier getHwId() override { return Uptane::HardwareIdentifier(sconfig.ecu_hardware_id); }
-  Uptane::EcuSerial getSerial() override {
+  Uptane::HardwareIdentifier getHwId() const override { return Uptane::HardwareIdentifier(sconfig.ecu_hardware_id); }
+  Uptane::EcuSerial getSerial() const override {
     if (!sconfig.ecu_serial.empty()) {
       return Uptane::EcuSerial(sconfig.ecu_serial);
     }
     return Uptane::EcuSerial(public_key_.KeyId());
   }
-  Json::Value getManifest() override { return manifest_; }
+  Uptane::Manifest getManifest() const override { return manifest_; }
   MOCK_METHOD1(putMetadataMock, bool(const Uptane::RawMetaPack &));
-  MOCK_METHOD1(getRootVersionMock, int32_t(bool));
+  MOCK_CONST_METHOD1(getRootVersionMock, int32_t(bool));
 
   bool putMetadata(const Uptane::RawMetaPack &meta_pack) override { return putMetadataMock(meta_pack); }
-  int32_t getRootVersion(bool director) override { return getRootVersionMock(director); }
+  int32_t getRootVersion(bool director) const override { return getRootVersionMock(director); }
 
   bool putRoot(const std::string &, bool) override { return true; }
-  bool sendFirmware(const std::shared_ptr<std::string> &) override { return true; }
+  bool sendFirmware(const std::string &) override { return true; }
   virtual data::ResultCode::Numeric install(const std::string &) override { return data::ResultCode::Numeric::kOk; }
   PublicKey public_key_;
   Json::Value manifest_;

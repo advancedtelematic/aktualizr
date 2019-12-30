@@ -35,7 +35,7 @@ namespace Uptane {
 IsoTpSecondary::IsoTpSecondary(const std::string& can_iface, uint16_t can_id)
     : conn(can_iface, LIBUPTINY_ISOTP_PRIMARY_CANID, can_id) {}
 
-EcuSerial IsoTpSecondary::getSerial() {
+EcuSerial IsoTpSecondary::getSerial() const {
   std::string out;
   std::string in;
 
@@ -50,7 +50,7 @@ EcuSerial IsoTpSecondary::getSerial() {
   return EcuSerial(in.substr(1));
 }
 
-HardwareIdentifier IsoTpSecondary::getHwId() {
+HardwareIdentifier IsoTpSecondary::getHwId() const {
   std::string out;
   std::string in;
 
@@ -65,7 +65,7 @@ HardwareIdentifier IsoTpSecondary::getHwId() {
   return HardwareIdentifier(in.substr(1));
 }
 
-PublicKey IsoTpSecondary::getPublicKey() {
+PublicKey IsoTpSecondary::getPublicKey() const {
   std::string out;
   std::string in;
 
@@ -80,22 +80,22 @@ PublicKey IsoTpSecondary::getPublicKey() {
   return PublicKey(boost::algorithm::hex(in.substr(1)), KeyType::kED25519);
 }
 
-Json::Value IsoTpSecondary::getManifest() {
+Uptane::Manifest IsoTpSecondary::getManifest() const {
   std::string out;
   std::string in;
 
   out += static_cast<char>(IsoTpUptaneMesType::kGetManifest);
   if (!conn.SendRecv(out, &in)) {
-    return Json::nullValue;
+    return Json::Value(Json::nullValue);
   }
 
   if (in[0] != static_cast<char>(IsoTpUptaneMesType::kGetManifestResp)) {
-    return Json::nullValue;
+    return Json::Value(Json::nullValue);
   }
   return Utils::parseJSON(in.substr(1));
 }
 
-int IsoTpSecondary::getRootVersion(bool director) {
+int IsoTpSecondary::getRootVersion(bool director) const {
   if (!director) {
     return 0;
   }
@@ -137,8 +137,8 @@ bool IsoTpSecondary::putMetadata(const RawMetaPack& meta_pack) {
   return conn.Send(out);
 }
 
-bool IsoTpSecondary::sendFirmware(const std::shared_ptr<std::string>& data) {
-  size_t num_chunks = 1 + (data->length() - 1) / kChunkSize;
+bool IsoTpSecondary::sendFirmware(const std::string& data) {
+  size_t num_chunks = 1 + (data.length() - 1) / kChunkSize;
 
   if (num_chunks > 127) {
     return false;
@@ -151,9 +151,9 @@ bool IsoTpSecondary::sendFirmware(const std::shared_ptr<std::string>& data) {
     out += static_cast<char>(num_chunks);
     out += static_cast<char>(i + 1);
     if (i == num_chunks - 1) {
-      out += data->substr(static_cast<size_t>(i * kChunkSize));
+      out += data.substr(static_cast<size_t>(i * kChunkSize));
     } else {
-      out += data->substr(static_cast<size_t>(i * kChunkSize), static_cast<size_t>(kChunkSize));
+      out += data.substr(static_cast<size_t>(i * kChunkSize), static_cast<size_t>(kChunkSize));
     }
     if (!conn.SendRecv(out, &in)) {
       return false;
