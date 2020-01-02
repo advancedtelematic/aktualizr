@@ -14,11 +14,11 @@ logger = logging.getLogger(__file__)
 
 """
  Test update of Primary and Secondary if their package manager differs, `ostree` and `fake` respectively
- 
+
  Aktualizr/Primary's package manager is set to `ostree`
  Secondary's package manager is set to `fake`
  Primary goal is to verify whether aktualizr succeeds with a binary/fake update of secondary
- while aktualizr/primary is configured with ostree package manager   
+ while aktualizr/primary is configured with ostree package manager
 """
 @with_uptane_backend(start_generic_server=True)
 @with_director()
@@ -40,14 +40,14 @@ def test_primary_ostree_secondary_fake_updates(uptane_repo, secondary, aktualizr
     # check the Primary update, must be in pending state since it requires reboot
     pending_rev = aktualizr.get_primary_pending_version()
     if pending_rev != target_rev:
-        logger.error("Pending version {} != the target one {}".format(pending_rev, target_rev))
+        logger.error("Pending version {} != the target version {}".format(pending_rev, target_rev))
         return False
 
     # check the Secondary update
     current_secondary_image_hash = aktualizr.get_current_image_info(secondary.id)
     if current_secondary_image_hash != secondary_update_hash:
-        logger.error("Secondary current image {} != {} expected one".format(current_secondary_image_hash,
-                                                                            secondary_update_hash))
+        logger.error("Current secondary image {} != expected image {}".format(current_secondary_image_hash,
+                                                                              secondary_update_hash))
         return False
 
     # emulate reboot and run aktualizr once more
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     for test in test_suite:
         logger.info('>>> Running {}...'.format(test.__name__))
         test_run_result = test()
-        logger.info('>>> {}: {}'.format('OK' if test_run_result else 'Failed', test.__name__))
+        logger.info('>>> {}: {}\n'.format('OK' if test_run_result else 'FAILED', test.__name__))
         test_suite_run_result = test_suite_run_result and test_run_result
 
     chdir(initial_cwd)
