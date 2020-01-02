@@ -63,6 +63,7 @@ RUN apt-get update && apt-get -y install --no-install-suggests --no-install-reco
   strace \
   valgrind \
   wget \
+  xsltproc \
   zip
 
 WORKDIR /ostree

@@ -17,6 +17,7 @@ Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-libostree
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-sqlite3
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-asn1c
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-libp11
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-ctest2junit.xsl
 
 
 PackageName: googletest
@@ -205,6 +206,18 @@ PackageLicenseInfoFromFiles: LGPL-2.1-or-later
 PackageCopyrightText: <text>NONE</text>
 FilesAnalyzed: false
 PackageComment: <text>Dynamically linked.</text>
+
+
+PackageName: ctest2junit.xsl
+SPDXID: SPDXRef-ctest2junit.xsl
+PackageDownloadLocation: https://github.com/manticoresoftware/manticoresearch/tree/master/misc/junit/ctest2junit.xsl
+PackageHomePage: https://github.com/manticoresoftware/manticoresearch
+PackageLicenseConcluded: GPLv2
+PackageLicenseDeclared: GPLv2
+PackageLicenseInfoFromFiles: GPLv2
+PackageCopyrightText: <text>NONE</text>
+FilesAnalyzed: false
+PackageComment: <text>Testing only.</text>
 
 
 LicenseID: LicenseRef-jsoncpp-public-domain

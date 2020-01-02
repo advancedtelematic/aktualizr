@@ -62,6 +62,7 @@ RUN apt-get update && apt-get -y install --no-install-suggests --no-install-reco
   strace \
   valgrind \
   wget \
+  xsltproc \
   zip
 
 RUN ln -s clang-6.0 /usr/bin/clang && \
