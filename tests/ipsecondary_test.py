@@ -3,7 +3,7 @@
 import logging
 import argparse
 
-from os import getcwd, chdir
+from os import getcwd, chdir, path
 
 from test_fixtures import with_aktualizr, with_uptane_backend, KeyStore, with_secondary
 
@@ -152,7 +152,7 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--src-dir', help='source directory', default='.')
     input_params = parser.parse_args()
 
-    KeyStore.base_dir = input_params.src_dir
+    KeyStore.base_dir = path.abspath(input_params.src_dir)
     initial_cwd = getcwd()
     chdir(input_params.build_dir)
 
