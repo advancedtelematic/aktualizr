@@ -54,7 +54,8 @@ class SQLiteStatement {
     if (b == nullptr) {
       return boost::none;
     }
-    return std::string(b);
+    auto length = static_cast<size_t>(sqlite3_column_bytes(stmt_.get(), iCol));
+    return std::string(b, length);
   }
 
   inline boost::optional<std::string> get_result_col_str(int iCol) {
