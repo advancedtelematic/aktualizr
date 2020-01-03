@@ -1,7 +1,7 @@
 {
   "virtual": [
                 {
-                        "partial_verifying": "false",
+                        "partial_verifying": false,
                         "ecu_hardware_id": "demo-virtual",
                         "full_client_dir": "storage/demo-vsec1",
                         "ecu_private_key": "sec.private",
@@ -11,7 +11,7 @@
                         "metadata_path": "storage/demo-vsec1/metadata"
                 },
                 {
-                        "partial_verifying": "false",
+                        "partial_verifying": false,
                         "ecu_hardware_id": "demo-virtual",
                         "full_client_dir": "storage/demo-vsec2",
                         "ecu_private_key": "sec.private",
