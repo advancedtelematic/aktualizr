@@ -47,6 +47,10 @@ class RepositoryCommon {
 
  protected:
   void resetRoot();
+  bool updateRoot(INvStorage &storage, const IMetadataFetcher &fetcher, RepositoryType repo_type);
+
+  static const int64_t kMaxRotations = 1000;
+
   Root root;
   RepositoryType type;
 };

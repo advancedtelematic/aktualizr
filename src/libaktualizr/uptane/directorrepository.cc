@@ -76,68 +76,9 @@ bool DirectorRepository::updateMeta(INvStorage& storage, const IMetadataFetcher&
 
   // reset director repo to initial state before starting UPTANE iteration
   resetMeta();
-  // Load Initial Director Root Metadata
-  {
-    std::string director_root;
-    if (storage.loadLatestRoot(&director_root, RepositoryType::Director())) {
-      if (!initRoot(director_root)) {
-        return false;
-      }
-    } else {
-      if (!fetcher.fetchRole(&director_root, kMaxRootSize, RepositoryType::Director(), Role::Root(), Version(1))) {
-        return false;
-      }
-      if (!initRoot(director_root)) {
-        return false;
-      }
-      storage.storeRoot(director_root, RepositoryType::Director(), Version(1));
-    }
-  }
 
-  // Update Director Root Metadata
-  {
-    // According to the current design root.json without a number is guaranteed to be the latest version.
-    // Therefore we fetch the latest (root.json), and
-    // if it matches what we already have stored, we're good.
-    // If not, then we have to go fetch the missing ones by name/number until we catch up.
-
-    std::string director_root;
-    if (!fetcher.fetchLatestRole(&director_root, kMaxRootSize, RepositoryType::Director(), Role::Root())) {
-      return false;
-    }
-    int remote_version = extractVersionUntrusted(director_root);
-    if (remote_version == -1) {
-      LOG_ERROR << "Failed to extract a version from Director's root.json: " << director_root;
-      return false;
-    }
-
-    int local_version = rootVersion();
-
-    // if remote_version <= local_version then the director's root metadata are never verified
-    // which leads to two issues
-    // 1. At initial stage (just after provisioning) the root metadata from 1.root.json are not verified
-    // 2. If local_version becomes higher than 1, e.g. 2 than a rollback attack is possible since the business logic
-    // here won't return any error as suggested in #4 of
-    // https://uptane.github.io/uptane-standard/uptane-standard.html#check_root
-    // TODO: https://saeljira.it.here.com/browse/OTA-4119
-    for (int version = local_version + 1; version <= remote_version; ++version) {
-      if (!fetcher.fetchRole(&director_root, kMaxRootSize, RepositoryType::Director(), Role::Root(),
-                             Version(version))) {
-        return false;
-      }
-
-      if (!verifyRoot(director_root)) {
-        return false;
-      }
-      storage.storeRoot(director_root, RepositoryType::Director(), Version(version));
-      storage.clearNonRootMeta(RepositoryType::Director());
-    }
-
-    // Check that the current (or latest securely attested) time is lower than the expiration timestamp in the latest
-    // Root metadata file. (Checks for a freeze attack.)
-    if (rootExpired()) {
-      return false;
-    }
+  if (!updateRoot(storage, fetcher, RepositoryType::Director())) {
+    return false;
   }
 
   // Not supported: 3. Download and check the Timestamp metadata file from the Director repository, following the

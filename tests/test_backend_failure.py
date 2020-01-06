@@ -26,7 +26,7 @@ Note: Aktualizr doesn't send any installation report in manifest in case of meta
 https://saeljira.it.here.com/browse/OTA-3730
 """
 @with_uptane_backend(start_generic_server=True)
-@with_path(paths=['/1.root.json', '/root.json', '/targets.json'])
+@with_path(paths=['/1.root.json', '/targets.json'])
 @with_director(handlers=[
                             DownloadInterruptionHandler(number_of_failures=1),
                             MalformedJsonHandler(number_of_failures=1),
@@ -55,7 +55,7 @@ Currently, it's tested against two types of metadata download/parsing failure:
 Note: Aktualizr doesn't send any installation report in manifest in case of metadata download failure
 """
 @with_uptane_backend(start_generic_server=True)
-@with_path(paths=['/1.root.json', '/root.json', '/timestamp.json', '/snapshot.json', '/targets.json'])
+@with_path(paths=['/1.root.json', '/timestamp.json', '/snapshot.json', '/targets.json'])
 @with_imagerepo(handlers=[
                             DownloadInterruptionHandler(number_of_failures=1),
                             MalformedJsonHandler(number_of_failures=1),
@@ -251,7 +251,7 @@ def test_backend_failure_sanity_customrepo_unsuccessful_update_redirect(aktualiz
   - malformed json is received
 """
 @with_uptane_backend(start_generic_server=True)
-@with_path(paths=['/1.root.json', '/root.json', '/targets.json'])
+@with_path(paths=['/1.root.json', '/targets.json'])
 @with_imagerepo()
 @with_director(handlers=[
                             DownloadInterruptionHandler(number_of_failures=3),
@@ -271,7 +271,7 @@ def test_backend_failure_sanity_director_unsuccessful_download(install_mngr, akt
   - malformed json is received
 """
 @with_uptane_backend(start_generic_server=True)
-@with_path(paths=['/1.root.json', '/root.json', '/timestamp.json', '/snapshot.json', '/targets.json'])
+@with_path(paths=['/1.root.json', '/timestamp.json', '/snapshot.json', '/targets.json'])
 @with_imagerepo(handlers=[
                             DownloadInterruptionHandler(number_of_failures=3),
                             MalformedJsonHandler(number_of_failures=1),
@@ -317,7 +317,7 @@ if __name__ == "__main__":
     for test in test_suite:
         logger.info('>>> Running {}...'.format(test.__name__))
         test_run_result = test()
-        logger.info('>>> {}: {}'.format('OK' if test_run_result else 'Failed', test.__name__))
+        logger.info('>>> {}: {}\n'.format('OK' if test_run_result else 'FAILED', test.__name__))
         test_suite_run_result = test_suite_run_result and test_run_result
 
     chdir(initial_cwd)

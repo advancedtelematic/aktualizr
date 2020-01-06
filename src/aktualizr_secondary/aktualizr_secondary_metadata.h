@@ -16,11 +16,14 @@ class Metadata : public Uptane::IMetadataFetcher {
                        const Uptane::Role& role) const override;
 
  protected:
-  virtual bool getRoleMetadata(std::string* result, const Uptane::RepositoryType& repo, const Uptane::Role& role) const;
+  virtual bool getRoleMetadata(std::string* result, const Uptane::RepositoryType& repo, const Uptane::Role& role,
+                               Uptane::Version version) const;
 
  private:
   const std::unordered_map<std::string, std::string> _director_metadata;
   const std::unordered_map<std::string, std::string> _image_metadata;
+  Uptane::Version director_root_version;
+  Uptane::Version image_root_version;
 };
 
 #endif  // AKTUALIZR_SECONDARY_METADATA_H_

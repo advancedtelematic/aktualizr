@@ -278,9 +278,9 @@ class SecondaryUptaneVerificationTestNegative
                         const Uptane::Role& role)
         : Metadata(valid_metadata), _repo_type(repo), _role(role) {}
 
-    bool getRoleMetadata(std::string* result, const Uptane::RepositoryType& repo,
-                         const Uptane::Role& role) const override {
-      auto return_val = Metadata::getRoleMetadata(result, repo, role);
+    bool getRoleMetadata(std::string* result, const Uptane::RepositoryType& repo, const Uptane::Role& role,
+                         Uptane::Version version) const override {
+      auto return_val = Metadata::getRoleMetadata(result, repo, role, version);
       if (!(_repo_type == repo && _role == role)) {
         return return_val;
       }

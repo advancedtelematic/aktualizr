@@ -53,7 +53,7 @@ if __name__ == "__main__":
     for test in test_suite:
         logger.info('>>> Running {}...'.format(test.__name__))
         test_run_result = test()
-        logger.info('>>> {}: {}'.format('OK' if test_run_result else 'Failed', test.__name__))
+        logger.info('>>> {}: {}\n'.format('OK' if test_run_result else 'FAILED', test.__name__))
         test_suite_run_result = test_suite_run_result and test_run_result
 
     chdir(initial_cwd)

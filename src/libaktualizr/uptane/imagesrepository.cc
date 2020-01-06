@@ -137,59 +137,9 @@ std::shared_ptr<Uptane::Targets> ImagesRepository::verifyDelegation(const std::s
 
 bool ImagesRepository::updateMeta(INvStorage& storage, const IMetadataFetcher& fetcher) {
   resetMeta();
-  // Load Initial Images Root Metadata
-  {
-    std::string images_root;
-    if (storage.loadLatestRoot(&images_root, RepositoryType::Image())) {
-      if (!initRoot(images_root)) {
-        return false;
-      }
-    } else {
-      if (!fetcher.fetchRole(&images_root, kMaxRootSize, RepositoryType::Image(), Role::Root(), Version(1))) {
-        return false;
-      }
-      if (!initRoot(images_root)) {
-        return false;
-      }
-      storage.storeRoot(images_root, RepositoryType::Image(), Version(1));
-    }
-  }
 
-  // Update Image Root Metadata
-  {
-    std::string images_root;
-    if (!fetcher.fetchLatestRole(&images_root, kMaxRootSize, RepositoryType::Image(), Role::Root())) {
-      return false;
-    }
-    int remote_version = extractVersionUntrusted(images_root);
-    if (remote_version == -1) {
-      LOG_ERROR << "Failed to extract a version from Director's root.json: " << images_root;
-      return false;
-    }
-
-    int local_version = rootVersion();
-
-    // if remote_version <= local_version then the director's root metadata are never verified
-    // which leads to two issues
-    // 1. At initial stage (just after provisioning) the root metadata from 1.root.json are not verified
-    // 2. If local_version becomes higher than 1, e.g. 2 than a rollback attack is possible since the business logic
-    // here won't return any error as suggested in #4 of
-    // https://uptane.github.io/uptane-standard/uptane-standard.html#check_root
-    // TODO: https://saeljira.it.here.com/browse/OTA-4119
-    for (int version = local_version + 1; version <= remote_version; ++version) {
-      if (!fetcher.fetchRole(&images_root, kMaxRootSize, RepositoryType::Image(), Role::Root(), Version(version))) {
-        return false;
-      }
-      if (!verifyRoot(images_root)) {
-        return false;
-      }
-      storage.storeRoot(images_root, RepositoryType::Image(), Version(version));
-      storage.clearNonRootMeta(RepositoryType::Image());
-    }
-
-    if (rootExpired()) {
-      return false;
-    }
+  if (!updateRoot(storage, fetcher, RepositoryType::Image())) {
+    return false;
   }
 
   // Update Images Timestamp Metadata

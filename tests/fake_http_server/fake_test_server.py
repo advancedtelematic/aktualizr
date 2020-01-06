@@ -45,27 +45,29 @@ class Handler(SimpleHTTPRequestHandler):
     def serve_meta(self, uri):
         if self.server.meta_path is None:
             raise RuntimeError("Please supply a path for metadata")
-        self._serve_simple(self.server.meta_path + uri)
+        if not os.path.exists(self.server.meta_path + uri):
+            self.send_response(404)
+            self.end_headers()
+        else:
+            self.send_response(200)
+            self.end_headers()
+            self._serve_simple(self.server.meta_path + uri)
 
     def serve_target(self, filename):
         if self.server.target_path is None:
             raise RuntimeError("Please supply a path for targets")
+        self.send_response(200)
+        self.end_headers()
         self._serve_simple(self.server.target_path + filename)
 
     def do_GET(self):
         if self.path.startswith("/director/") and self.path.endswith(".json"):
-            self.send_response(200)
-            self.end_headers()
             role = self.path[len("/director/"):]
             self.serve_meta("/repo/director/" + role)
         elif self.path.startswith("/repo/") and self.path.endswith(".json"):
-            self.send_response(200)
-            self.end_headers()
             role = self.path[len("/repo/"):]
             self.serve_meta('/repo/repo/' + role)
         elif self.path.startswith("/repo/targets"):
-            self.send_response(200)
-            self.end_headers()
             filename = self.path[len("/repo/targets"):]
             self.serve_target(filename)
 
@@ -115,8 +117,6 @@ class Handler(SimpleHTTPRequestHandler):
                 self.wfile.write(b'aa')
                 sleep(1)
         elif self.path == '/campaigner/campaigns':
-            self.send_response(200)
-            self.end_headers()
             self.serve_meta("/campaigns.json")
         elif self.path == '/user_agent':
             user_agent = self.headers.get('user-agent')

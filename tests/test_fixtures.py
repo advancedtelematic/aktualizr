@@ -26,18 +26,19 @@ logger = logging.getLogger(__name__)
 class Aktualizr:
 
     def __init__(self, aktualizr_primary_exe, aktualizr_info_exe, id,
-                 uptane_server, ca, pkey, cert, wait_port=9040, wait_timeout=60, log_level=1,
+                 uptane_server, wait_port=9040, wait_timeout=60, log_level=1,
                  secondary=None, output_logs=True,
                  run_mode='once', director=None, image_repo=None,
                  sysroot=None, treehub=None, ostree_mock_path=None, **kwargs):
         self.id = id
-
         self._aktualizr_primary_exe = aktualizr_primary_exe
         self._aktualizr_info_exe = aktualizr_info_exe
         self._storage_dir = tempfile.TemporaryDirectory()
         self._log_level = log_level
         self._sentinel_file = 'need_reboot'
         self.reboot_sentinel_file = os.path.join(self._storage_dir.name, self._sentinel_file)
+        self._import_dir = os.path.join(self._storage_dir.name, 'import')
+        KeyStore.copy_keys(self._import_dir)
 
         with open(path.join(self._storage_dir.name, 'secondary_config.json'), 'w+') as secondary_config_file:
             secondary_cfg = json.loads(Aktualizr.SECONDARY_CONFIG_TEMPLATE.
@@ -48,9 +49,9 @@ class Aktualizr:
 
         with open(path.join(self._storage_dir.name, 'config.toml'), 'w+') as config_file:
             config_file.write(Aktualizr.CONFIG_TEMPLATE.format(server_url=uptane_server.base_url,
-                                                               ca_path=ca, pkey_path=pkey, cert_path=cert,
+                                                               import_path=self._import_dir,
                                                                serial=id[1], hw_ID=id[0],
-                                                               storage_dir=self._storage_dir,
+                                                               storage_dir=self._storage_dir.name,
                                                                db_path=path.join(self._storage_dir.name, 'sql.db'),
                                                                log_level=self._log_level,
                                                                secondary_cfg_file=self._secondary_config_file,
@@ -76,9 +77,10 @@ class Aktualizr:
     server = "{server_url}"
 
     [import]
-    tls_cacert_path = "{ca_path}"
-    tls_pkey_path = "{pkey_path}"
-    tls_clientcert_path = "{cert_path}"
+    base_path = "{import_path}"
+    tls_cacert_path = "ca.pem"
+    tls_pkey_path = "pkey.pem"
+    tls_clientcert_path = "client.pem"
 
     [provision]
     primary_ecu_serial = "{serial}"
@@ -255,6 +257,13 @@ class KeyStore:
     base_dir = "./"
 
     @staticmethod
+    def copy_keys(dest_path):
+        os.mkdir(dest_path)
+        shutil.copy(KeyStore.ca(), dest_path)
+        shutil.copy(KeyStore.pkey(), dest_path)
+        shutil.copy(KeyStore.cert(), dest_path)
+
+    @staticmethod
     def ca():
         return path.join(KeyStore.base_dir, 'tests/test_data/prov_testupdate/ca.pem')
 
@@ -281,7 +290,7 @@ class IPSecondary:
         with open(path.join(self._storage_dir.name, 'config.toml'), 'w+') as config_file:
             config_file.write(IPSecondary.CONFIG_TEMPLATE.format(serial=id[1], hw_ID=id[0],
                                                                  port=self.port, primary_port=self.primary_port,
-                                                                 storage_dir=self._storage_dir,
+                                                                 storage_dir=self._storage_dir.name,
                                                                  db_path=path.join(self._storage_dir.name, 'db.sql')))
             self._config_file = config_file.name
 
@@ -299,7 +308,6 @@ class IPSecondary:
     type = "sqlite"
     path = "{storage_dir}"
     sqldb_path = "{db_path}"
-
 
     [pacman]
     type = "fake"
@@ -365,6 +373,10 @@ class UptaneRepo(HTTPServer):
             self.end_headers()
 
         def default_get(self):
+            if not os.path.exists(self.file_path):
+                self.send_response(404)
+                self.end_headers()
+                return
             self.send_response(200)
             self.end_headers()
             with open(self.file_path, 'rb') as source:
@@ -728,8 +740,7 @@ def with_aktualizr(start=True, output_logs=False, id=('primary-hw-ID-001', str(u
         @wraps(test)
         def wrapper(*args, ostree_mock_path=None, **kwargs):
             aktualizr = Aktualizr(aktualizr_primary_exe=aktualizr_primary_exe,
-                                  aktualizr_info_exe=aktualizr_info_exe,
-                                  id=id, ca=KeyStore.ca(), pkey=KeyStore.pkey(), cert=KeyStore.cert(),
+                                  aktualizr_info_exe=aktualizr_info_exe, id=id,
                                   wait_timeout=wait_timeout, log_level=log_level, output_logs=output_logs,
                                   run_mode=run_mode, ostree_mock_path=ostree_mock_path, **kwargs)
             if start:

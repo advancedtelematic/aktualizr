@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import os.path
 import sys
 import socket
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -9,9 +10,14 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         local_path = self.path
         print("GET: " + local_path)
+        full_path = self.server.base_dir + "/fake_root/repo/" + local_path
+        if not os.path.exists(full_path):
+            self.send_response(404)
+            self.end_headers()
+            return
         self.send_response(200)
         self.end_headers()
-        with open(self.server.base_dir + "/fake_root/repo/" + local_path, "rb") as fl:
+        with open(full_path, "rb") as fl:
             self.wfile.write(bytearray(fl.read()))
 
     def do_POST(self):

@@ -1190,13 +1190,20 @@ class HttpFakeUnstable : public HttpFake {
   HttpFakeUnstable(const boost::filesystem::path &test_dir_in) : HttpFake(test_dir_in, "hasupdates") {}
   HttpResponse get(const std::string &url, int64_t maxsize) override {
     if (unstable_valid_count >= unstable_valid_num) {
-      ++unstable_valid_num;
-      unstable_valid_count = 0;
       return HttpResponse({}, 503, CURLE_OK, "");
     } else {
-      ++unstable_valid_count;
+      // This if is a hack only required as long as we have to explicitly fetch
+      // this to make the Director recognize new devices as "online".
+      if (url.find("director/root.json") == std::string::npos) {
+        ++unstable_valid_count;
+      }
       return HttpFake::get(url, maxsize);
     }
+  }
+
+  void setUnstableValidNum(int num) {
+    unstable_valid_num = num;
+    unstable_valid_count = 0;
   }
 
   int unstable_valid_num{0};
@@ -1208,7 +1215,10 @@ class HttpFakeUnstable : public HttpFake {
  * Check metadata from the director.
  * Identify targets for known ECUs.
  * Fetch metadata from the images repo.
- * Check metadata from the images repo. */
+ * Check metadata from the images repo.
+ *
+ * This is a bit fragile because it depends upon a precise number of HTTP get
+ * requests being made. If that changes, this test will need to be adjusted. */
 TEST(Uptane, restoreVerify) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFakeUnstable>(temp_dir.Path());
@@ -1232,32 +1242,38 @@ TEST(Uptane, restoreVerify) {
   EXPECT_FALSE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Director()));
 
   // 2nd attempt, get director root.json
+  http->setUnstableValidNum(1);
   EXPECT_FALSE(sota_client->uptaneIteration(nullptr, nullptr));
   EXPECT_TRUE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Director()));
   EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Director(), Uptane::Role::Targets()));
 
   // 3rd attempt, get director targets.json
+  http->setUnstableValidNum(2);
   EXPECT_FALSE(sota_client->uptaneIteration(nullptr, nullptr));
   EXPECT_TRUE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Director()));
   EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Director(), Uptane::Role::Targets()));
   EXPECT_FALSE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Image()));
 
   // 4th attempt, get images root.json
+  http->setUnstableValidNum(3);
   EXPECT_FALSE(sota_client->uptaneIteration(nullptr, nullptr));
   EXPECT_TRUE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Image()));
   EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()));
 
   // 5th attempt, get images timestamp.json
+  http->setUnstableValidNum(4);
   EXPECT_FALSE(sota_client->uptaneIteration(nullptr, nullptr));
   EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()));
   EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()));
 
   // 6th attempt, get images snapshot.json
+  http->setUnstableValidNum(5);
   EXPECT_FALSE(sota_client->uptaneIteration(nullptr, nullptr));
   EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()));
   EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Targets()));
 
   // 7th attempt, get images targets.json, successful iteration
+  http->setUnstableValidNum(6);
   EXPECT_TRUE(sota_client->uptaneIteration(nullptr, nullptr));
   EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Targets()));
 }
