@@ -18,12 +18,9 @@ add_aktualizr_test(NAME packagemanagerfake SOURCES packagemanagerfake_test.cc LI
 if(BUILD_DEB)
     set_property(SOURCE packagemanagerfactory.cc packagemanagerfactory_test.cc PROPERTY COMPILE_DEFINITIONS BUILD_DEB)
     target_sources(package_manager PRIVATE debianmanager.cc)
-    add_executable(t_packagemanager_deb EXCLUDE_FROM_ALL debianmanager_test.cc)
-    add_dependencies(build_tests t_packagemanager_deb)
-    target_link_libraries(t_packagemanager_deb aktualizr_static_lib ${TEST_LIBS})
 
-    add_test(NAME test_packagemanager_deb COMMAND ${PROJECT_SOURCE_DIR}/tests/run_debian_tests.sh ${CMAKE_CURRENT_BINARY_DIR}/t_packagemanager_deb
-            ${PROJECT_SOURCE_DIR}/tests/test_data/fake_dpkg)
+    add_aktualizr_test(NAME debianmanager SOURCES debianmanager_test.cc)
+    set_tests_properties(test_debianmanager PROPERTIES ENVIRONMENT PATH=${PROJECT_SOURCE_DIR}/tests/test_data/fake_dpkg:$ENV{PATH})
 
 endif(BUILD_DEB)
 aktualizr_source_file_checks(debianmanager.cc debianmanager.h debianmanager_test.cc)
