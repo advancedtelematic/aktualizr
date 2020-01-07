@@ -531,13 +531,8 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
     } else {
       result =
           result::Download(downloaded_targets, result::DownloadStatus::kError, "Error rechecking stored metadata.");
-      // Store installation report to inform Director of the download failure.
-      const std::string &correlation_id = director_repo.getCorrelationId();
-      data::InstallationResult device_installation_result =
-          data::InstallationResult(data::ResultCode::Numeric::kInternalError, "Error rechecking stored metadata.");
-      storage->storeDeviceInstallationResult(device_installation_result, "", correlation_id);
-      // Fix for OTA-2587, listen to backend again after end of install.
-      director_repo.dropTargets(*storage);
+      storeInstallationFailure(
+          data::InstallationResult(data::ResultCode::Numeric::kInternalError, "Error rechecking stored metadata."));
     }
     sendEvent<event::AllDownloadsComplete>(result);
     return result;
@@ -560,13 +555,8 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
       LOG_ERROR << "Only " << downloaded_targets.size() << " of " << targets.size() << " were successfully downloaded.";
       result = result::Download(downloaded_targets, result::DownloadStatus::kPartialSuccess, "");
     }
-    // Store installation report to inform Director of the download failure.
-    const std::string &correlation_id = director_repo.getCorrelationId();
-    data::InstallationResult device_installation_result =
-        data::InstallationResult(data::ResultCode::Numeric::kDownloadFailed, "Target download failed");
-    storage->storeDeviceInstallationResult(device_installation_result, "", correlation_id);
-    // Fix for OTA-2587, listen to backend again after end of install.
-    director_repo.dropTargets(*storage);
+    storeInstallationFailure(
+        data::InstallationResult(data::ResultCode::Numeric::kDownloadFailed, "Target download failed."));
   }
 
   sendEvent<event::AllDownloadsComplete>(result);
@@ -760,14 +750,8 @@ result::UpdateCheck SotaUptaneClient::checkUpdates() {
       LOG_ERROR << "No matching target in images targets metadata for " << target;
       result = result::UpdateCheck({}, 0, result::UpdateStatus::kError, Utils::parseJSON(director_targets),
                                    "Target mismatch.");
-      // Store installation report to inform Director of the metadata
-      // verification failure.
-      const std::string &correlation_id = director_repo.getCorrelationId();
-      data::InstallationResult device_installation_result =
-          data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed, "Metadata verification failed.");
-      storage->storeDeviceInstallationResult(device_installation_result, "", correlation_id);
-      // Fix for OTA-2587, listen to backend again after end of install.
-      director_repo.dropTargets(*storage);
+      storeInstallationFailure(
+          data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed, "Metadata verification failed."));
       return result;
     }
     // If the URL from the Director is unset, but the URL from the Images repo
@@ -1053,6 +1037,15 @@ void SotaUptaneClient::verifySecondaries() {
   }
 
   storage->storeMisconfiguredEcus(misconfigured_ecus);
+}
+
+void SotaUptaneClient::storeInstallationFailure(const data::InstallationResult &result) {
+  // Store installation report to inform Director of the update failure before
+  // we actually got to the install step.
+  const std::string &correlation_id = director_repo.getCorrelationId();
+  storage->storeDeviceInstallationResult(result, "", correlation_id);
+  // Fix for OTA-2587, listen to backend again after end of install.
+  director_repo.dropTargets(*storage);
 }
 
 void SotaUptaneClient::rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::SecondaryInterface &secondary) {
