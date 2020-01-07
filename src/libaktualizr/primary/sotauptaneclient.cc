@@ -531,6 +531,13 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
     } else {
       result =
           result::Download(downloaded_targets, result::DownloadStatus::kError, "Error rechecking stored metadata.");
+      // Store installation report to inform Director of the download failure.
+      const std::string &correlation_id = director_repo.getCorrelationId();
+      data::InstallationResult device_installation_result =
+          data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed, "Metadata verification failed");
+      storage->storeDeviceInstallationResult(device_installation_result, "", correlation_id);
+      // Fix for OTA-2587, listen to backend again after end of install.
+      director_repo.dropTargets(*storage);
     }
     sendEvent<event::AllDownloadsComplete>(result);
     return result;
