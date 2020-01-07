@@ -534,7 +534,7 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
       // Store installation report to inform Director of the download failure.
       const std::string &correlation_id = director_repo.getCorrelationId();
       data::InstallationResult device_installation_result =
-          data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed, "Metadata verification failed");
+          data::InstallationResult(data::ResultCode::Numeric::kInternalError, "Error rechecking stored metadata.");
       storage->storeDeviceInstallationResult(device_installation_result, "", correlation_id);
       // Fix for OTA-2587, listen to backend again after end of install.
       director_repo.dropTargets(*storage);
@@ -743,22 +743,31 @@ result::UpdateCheck SotaUptaneClient::checkUpdates() {
 
   if (updates.empty()) {
     LOG_DEBUG << "No new updates found in Uptane metadata.";
-    result = result::UpdateCheck(updates, ecus_count, result::UpdateStatus::kNoUpdatesAvailable,
-                                 Utils::parseJSON(director_targets), "");
+    result =
+        result::UpdateCheck({}, 0, result::UpdateStatus::kNoUpdatesAvailable, Utils::parseJSON(director_targets), "");
     return result;
   }
 
-  // For every target in the Director Targets metadata, walk the delegation
-  // tree (if necessary) and find a matching target in the Images repo
-  // metadata.
+  // 5.4.4.2.10.: Verify that Targets metadata from the Director and Image
+  // repositories match. A Primary ECU MUST perform this check on metadata for
+  // all images listed in the Targets metadata file from the Director
+  // repository.
   for (auto &target : updates) {
     auto images_target = findTargetInDelegationTree(target, false);
     if (images_target == nullptr) {
       // TODO: Could also be a missing target or delegation expiration.
       last_exception = Uptane::TargetMismatch(target.filename());
       LOG_ERROR << "No matching target in images targets metadata for " << target;
-      result = result::UpdateCheck(updates, ecus_count, result::UpdateStatus::kError,
-                                   Utils::parseJSON(director_targets), "Target mismatch.");
+      result = result::UpdateCheck({}, 0, result::UpdateStatus::kError, Utils::parseJSON(director_targets),
+                                   "Target mismatch.");
+      // Store installation report to inform Director of the metadata
+      // verification failure.
+      const std::string &correlation_id = director_repo.getCorrelationId();
+      data::InstallationResult device_installation_result =
+          data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed, "Metadata verification failed.");
+      storage->storeDeviceInstallationResult(device_installation_result, "", correlation_id);
+      // Fix for OTA-2587, listen to backend again after end of install.
+      director_repo.dropTargets(*storage);
       return result;
     }
     // If the URL from the Director is unset, but the URL from the Images repo
