@@ -48,7 +48,7 @@ make
 
 NOTE: The `--recursive` flag in the `git clone` command is needed to recursively clone all the *git submodules*.
 
-After the build is finished, you'll find the client library at the following location: `$\{PROJECT_ROOT}/build/src/libaktualizr/libaktualizr_static_lib.a`.
+After the build is finished, you'll find the client library at the following location: `$\{PROJECT_ROOT}/build/src/libaktualizr/libaktualizr_lib.so`.
 
 == Integrating libaktualizr into your application
 
@@ -75,12 +75,18 @@ $ git clone --recursive https://github.com/advancedtelematic/aktualizr.git
 add_subdirectory(aktualizr)
 ----
 +
-This command automatically adds the needed entries to `INCLUDE_DIRECTORIES` variable, create the `AKTUALIZR_EXTERNAL_LIBS` variable, which contains the list of external libraries required for linking with libaktualizr, and create the `aktualizr_static_lib` target.
+This command automatically adds the needed entries to `INCLUDE_DIRECTORIES` variable, create the `AKTUALIZR_EXTERNAL_LIBS` variable, which contains the list of external libraries required for linking with libaktualizr, and create the `aktualizr_static_lib` and `aktualizr_lib` targets.
 . Do a test build of your application
 +
 Whenever you build your application you must add these libraries as follows:
 +
 [source,cmake]
+target_link_libraries(your-app aktualizr_lib)
++
+Or:
++
+[source,cmake]
+# DEPRECATED!
 target_link_libraries(your-app aktualizr_static_lib ${AKTUALIZR_EXTERNAL_LIBS})
 +
 You also might need to add the following line if you are using boost libraries:
@@ -93,7 +99,7 @@ If you don't want to make libaktualizr part of your cmake project, it's also pos
 Here's an example of how to specify the required libraries for an out-of-tree build in cmake project:
 [source,cmake]
 ----
-target_link_libraries(your-app ${AKTUALIZR_PROJECT_DIR}/build/src/libaktualizr/libaktualizr_static_lib.a)
+target_link_libraries(your-app aktualizr_lib)
 target_link_libraries(your-app pthread)
 target_link_libraries(your-app archive)
 target_link_libraries(your-app boost_atomic)

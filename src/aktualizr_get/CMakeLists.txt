@@ -1,6 +1,6 @@
 
 add_executable(aktualizr-get main.cc get.cc)
-target_link_libraries(aktualizr-get aktualizr_static_lib ${AKTUALIZR_EXTERNAL_LIBS})
+target_link_libraries(aktualizr-get aktualizr_lib)
 
 install(TARGETS aktualizr-get RUNTIME DESTINATION bin COMPONENT aktualizr-get)
 

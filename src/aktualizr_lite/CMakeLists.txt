@@ -3,7 +3,7 @@ set(AKTUALIZR_LITE_HEADERS helpers.h)
 
 if(BUILD_OSTREE)
 add_executable(aktualizr-lite ${AKTUALIZR_LITE_SRC})
-target_link_libraries(aktualizr-lite aktualizr_static_lib ${AKTUALIZR_EXTERNAL_LIBS})
+target_link_libraries(aktualizr-lite aktualizr_lib)
 
 install(TARGETS aktualizr-lite RUNTIME DESTINATION bin COMPONENT aktualizr-lite)
 

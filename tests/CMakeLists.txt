@@ -80,7 +80,7 @@ endif()
 
 
 add_executable(aktualizr_uptane_vector_tests uptane_vector_tests.cc)
-target_link_libraries(aktualizr_uptane_vector_tests aktualizr_static_lib ${TEST_LIBS})
+target_link_libraries(aktualizr_uptane_vector_tests aktualizr_lib ${TEST_LIBS})
 add_dependencies(build_tests aktualizr_uptane_vector_tests)
 
 if(TESTSUITE_VALGRIND)
@@ -212,7 +212,7 @@ add_test(NAME test_install_aktualizr_and_update COMMAND ${PROJECT_SOURCE_DIR}/te
 set_tests_properties(test_install_aktualizr_and_update PROPERTIES LABELS "noptest")
 
 add_executable(aktualizr-cycle-simple aktualizr_cycle_simple.cc)
-target_link_libraries(aktualizr-cycle-simple aktualizr_static_lib ${AKTUALIZR_EXTERNAL_LIBS})
+target_link_libraries(aktualizr-cycle-simple aktualizr_lib)
 aktualizr_source_file_checks(aktualizr_cycle_simple.cc)
 add_dependencies(build_tests aktualizr-cycle-simple)
 
