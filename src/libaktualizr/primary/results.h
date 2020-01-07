@@ -88,6 +88,29 @@ enum class DownloadStatus {
   kError,
 };
 
+inline std::ostream& operator<<(std::ostream& os, const DownloadStatus stat) {
+  std::string stat_str;
+  switch (stat) {
+    case DownloadStatus::kSuccess:
+      stat_str = "Success";
+      break;
+    case DownloadStatus::kPartialSuccess:
+      stat_str = "Partial success";
+      break;
+    case DownloadStatus::kNothingToDownload:
+      stat_str = "Nothing to download";
+      break;
+    case DownloadStatus::kError:
+      stat_str = "Error";
+      break;
+    default:
+      stat_str = "unknown";
+      break;
+  }
+  os << '"' << stat_str << '"';
+  return os;
+}
+
 /**
  * Container for information about downloading an update.
  */
