@@ -35,11 +35,19 @@ bool Aktualizr::IsRegistered() const { return storage_->loadEcuRegistered(); }
 bool Aktualizr::UptaneCycle() {
   result::UpdateCheck update_result = CheckUpdates().get();
   if (update_result.updates.empty()) {
+    if (update_result.status == result::UpdateStatus::kError) {
+      // If the metadata verification failed, inform the backend immediately.
+      SendManifest().get();
+    }
     return true;
   }
 
   result::Download download_result = Download(update_result.updates).get();
   if (download_result.status != result::DownloadStatus::kSuccess || download_result.updates.empty()) {
+    if (download_result.status != result::DownloadStatus::kNothingToDownload) {
+      // If the download failed, inform the backend immediately.
+      SendManifest().get();
+    }
     return true;
   }
 
