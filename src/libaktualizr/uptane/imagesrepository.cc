@@ -260,16 +260,16 @@ bool ImagesRepository::updateMeta(INvStorage& storage, const IMetadataFetcher& f
     // First check if we already have the latest version according to the
     // Snapshot metadata.
     bool fetch_targets = true;
-    int local_version;
+    int local_version = -1;
     std::string images_targets_stored;
     if (storage.loadNonRoot(&images_targets_stored, RepositoryType::Image(), Role::Targets())) {
       if (verifyTargets(images_targets_stored)) {
         fetch_targets = false;
         LOG_DEBUG << "Skipping Image repo Targets download; stored version is still current.";
       }
-      local_version = targets->version();
-    } else {
-      local_version = -1;
+      if (targets) {
+        local_version = targets->version();
+      }
     }
 
     // If we don't, attempt to fetch the latest.
