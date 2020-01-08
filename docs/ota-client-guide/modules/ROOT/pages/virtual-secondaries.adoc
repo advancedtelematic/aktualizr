@@ -21,8 +21,7 @@ Virtual secondaries can be used as a way to update a configuration file on the p
 +
 You can use the provided `.deb` releases mentioned and the `virtualsec.json` file, which you can edit to suit your needs: such as removing one of the two entries and setting the paths and names to whatever you prefer.
 . Afterwards, you will be able to download the arbitrary files to the location specified in the `firmware_path` variable.
-. Upload the files for the virtual secondary to the https://connect.ota.here.com[OTA Connect Portal].
-. Now go to the *Software versions* tab and click *Add Software*. You should make sure the *ECU Types* field matches the value specified in the `ecu_hardware_id` variable of the `virtualsec.json` file.
+. Next, you can upload the files for the virtual secondary. To do so, go to the *Software versions* tab in the https://connect.ota.here.com[OTA Connect Portal] and click *Add Software*. You should make sure the *ECU Types* field matches the value specified in the `ecu_hardware_id` variable of the `virtualsec.json` file.
 +
 NOTE: `ecu_hardware_id` must be unique per each file type that you'll like to deliver, otherwise an update of one of them will rewrite the others.
 
@@ -33,9 +32,9 @@ To issue the update perform the following steps:
 
 . Go to your *Devices* tab and find your primary. (You can run `aktualizr-info` locally to get the name of the primary if you don't know it.)
 . Afterwards, select your virtual secondary and the file you uploaded to the *Software versions* tab.
-+
-(For future reference, you can use the *Campaigns* tab to send updates to multiple devices simultaneously.)
 . After your selection, the primary will begin to download the file.
++
+For future reference, you can use the *Campaigns* tab to send updates to multiple devices simultaneously.
 
 
 
