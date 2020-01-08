@@ -92,6 +92,56 @@ TEST(Aktualizr, EmptyTargets) {
   }
 }
 
+/* Check that Aktualizr switches back to empty targets after failing to verify
+ * the Target matching. Also check that no updates are reported if any are
+ * invalid. */
+TEST(Aktualizr, EmptyTargetsAfterVerification) {
+  TemporaryDirectory temp_dir;
+  TemporaryDirectory meta_dir;
+  auto http = std::make_shared<HttpRejectEmptyCorrId>(temp_dir.Path(), meta_dir.Path() / "repo");
+  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+  logger_set_threshold(boost::log::trivial::trace);
+
+  // Add two images: a valid one for the Primary and an invalid for the
+  // Secondary. The Primary will get verified first and should succeed.
+  Process uptane_gen(uptane_generator_path.string());
+  uptane_gen.run({"generate", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
+  uptane_gen.run({"image", "--path", meta_dir.PathString(), "--filename", "tests/test_data/firmware.txt",
+                  "--targetname", "firmware.txt", "--hwid", "primary_hw"});
+  uptane_gen.run({"addtarget", "--path", meta_dir.PathString(), "--targetname", "firmware.txt", "--hwid", "primary_hw",
+                  "--serial", "CA:FE:A6:D2:84:9D"});
+  uptane_gen.run({"image", "--path", meta_dir.PathString(), "--filename", "tests/test_data/firmware_name.txt",
+                  "--targetname", "firmware_name.txt", "--hwid", "bad"});
+  uptane_gen.run({"addtarget", "--path", meta_dir.PathString(), "--targetname", "firmware_name.txt", "--hwid",
+                  "secondary_hw", "--serial", "secondary_ecu_serial"});
+  uptane_gen.run({"signtargets", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
+
+  // failing verification
+  auto storage = INvStorage::newStorage(conf.storage);
+  {
+    UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
+    aktualizr.Initialize();
+
+    result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
+    EXPECT_EQ(update_result.status, result::UpdateStatus::kError);
+    EXPECT_EQ(update_result.ecus_count, 0);
+    EXPECT_TRUE(update_result.updates.empty());
+  }
+
+  // Backend reacts to failure: no need to install the target anymore
+  uptane_gen.run({"emptytargets", "--path", meta_dir.PathString()});
+  uptane_gen.run({"signtargets", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
+
+  // check that no update is available
+  {
+    UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
+    aktualizr.Initialize();
+
+    result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
+    EXPECT_EQ(update_result.status, result::UpdateStatus::kNoUpdatesAvailable);
+  }
+}
+
 #ifdef FIU_ENABLE
 
 /* Check that Aktualizr switches back to empty targets after failing a
