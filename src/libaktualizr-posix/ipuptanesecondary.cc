@@ -104,7 +104,7 @@ bool IpUptaneSecondary::sendFirmware(const std::shared_ptr<std::string>& data) {
 }
 
 Json::Value IpUptaneSecondary::getManifest() {
-  LOG_INFO << "Getting the manifest key of a secondary";
+  LOG_DEBUG << "Getting the manifest from secondary with serial " << getSerial();
   Asn1Message::Ptr req(Asn1Message::Empty());
 
   req->present(AKIpUptaneMes_PR_manifestReq);
