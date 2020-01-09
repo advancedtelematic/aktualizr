@@ -92,6 +92,12 @@ void processEvent(const std::shared_ptr<event::BaseEvent> &event) {
     // Do nothing; libaktualizr already logs it.
   } else if (event->variant == "UpdateCheckComplete") {
     // Do nothing; libaktualizr already logs it.
+  } else if (event->variant == "AllDownloadsComplete") {
+    const auto downloads_complete = dynamic_cast<event::AllDownloadsComplete *>(event.get());
+    LOG_INFO << "got " << event->variant << " event with status: " << downloads_complete->result.status;
+  } else if (event->variant == "AllInstallsComplete") {
+    const auto installs_complete = dynamic_cast<event::AllInstallsComplete *>(event.get());
+    LOG_INFO << "got " << event->variant << " event with status: " << installs_complete->result.dev_report.result_code;
   } else {
     LOG_INFO << "got " << event->variant << " event";
   }

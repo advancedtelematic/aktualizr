@@ -62,7 +62,7 @@ Package Package::fromJson(const std::string &json_str) {
 const std::map<data::ResultCode::Numeric, const char *> data::ResultCode::string_repr{
     {ResultCode::Numeric::kOk, "OK"},
     {ResultCode::Numeric::kAlreadyProcessed, "ALREADY_PROCESSED"},
-    {ResultCode::Numeric::kValidationFailed, "VALIDATION_FAILED"},
+    {ResultCode::Numeric::kVerificationFailed, "VERIFICATION_FAILED"},
     {ResultCode::Numeric::kInstallFailed, "INSTALL_FAILED"},
     {ResultCode::Numeric::kDownloadFailed, "DOWNLOAD_FAILED"},
     {ResultCode::Numeric::kInternalError, "INTERNAL_ERROR"},

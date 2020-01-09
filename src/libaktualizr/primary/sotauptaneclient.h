@@ -132,6 +132,7 @@ class SotaUptaneClient {
   std::vector<result::Install::EcuReport> sendImagesToEcus(const std::vector<Uptane::Target> &targets);
 
   bool putManifestSimple(const Json::Value &custom = Json::nullValue);
+  void storeInstallationFailure(const data::InstallationResult &result);
   bool getNewTargets(std::vector<Uptane::Target> *new_targets, unsigned int *ecus_count = nullptr);
   void rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::SecondaryInterface &secondary);
   bool updateDirectorMeta();

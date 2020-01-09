@@ -126,8 +126,8 @@ struct ResultCode {
     kOk = 0,
     /// Operation has already been processed
     kAlreadyProcessed = 1,
-    /// Update image integrity has been compromised
-    kValidationFailed = 3,
+    /// Metadata verification failed
+    kVerificationFailed = 3,
     /// Package installation failed
     kInstallFailed = 4,
     /// Package download failed
