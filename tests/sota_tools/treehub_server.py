@@ -113,12 +113,26 @@ def create_repo(path):
     Same should be done for permissions, stored in dirmeta objects, and
     timestamp in commit.
     """
-    tree = Path(path) / 'tree'
-    tree.mkdir(mode=0o755)
     seed(0)  # to generate same files each time
     try:
+        tree = Path(path) / 'tree'
+        tree.mkdir(mode=0o755)
+        kdir = tree / 'usr/lib/modules/1.0/'
+        kdir.mkdir(parents=True)
+        bindir = tree / 'usr/bin'
+        bindir.mkdir()
+        (tree / 'boot').mkdir()
+        (tree / 'usr/etc').mkdir()
+
+        f = kdir / 'vmlinuz'
+        f.write_bytes(bytes([randrange(256) for _ in range(2**20)]))
+        f = kdir / 'initramfs.img'
+        f.write_bytes(bytes([randrange(256) for _ in range(2**20)]))
+        f = tree / 'usr/lib/os-release'
+        f.write_text('ID=dummy-os\n')
+
         for i in range(10):
-            file = (tree / str(i)).with_suffix('.bin')
+            file = (bindir / str(i))
             file.write_bytes(bytes([randrange(256) for _ in range(2**18)]))
             file.chmod(0o644)
 
