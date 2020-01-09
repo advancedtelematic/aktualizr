@@ -14,16 +14,20 @@ endif::[]
 :icons: font
 :toc: macro
 
+
+Before devices can receive updates, each device needs to have a unique identity and a certificate. The provisioning process ensures that a signed certificate is associated with each device. This process is crucial for securing communication between devices and the OTA Connect server.
+
+OTA Connect supports two provisioning methods. These methods determine the components that will issue and verify the certificate in your infrastructure. We refer to these two methods as "*provisioning with shared credentials*" and "*provisioning with device credentials*". The end result of these two provisioning methods is the same, as they both provide a device with a signed certificate that can be used for communication.
+
+
 For secure communication, a vehicle needs to have an X.509 certificate and it needs to trust the device gateway’s X.509 certificate. (Each account has its own unique device gateway, and that certificate is included in the credentials.zip and baked into the image as a pinned CA when you bitbake.) The device gateway trusts a vehicle’s X.509 certificate if and only if that certificate is signed by what we call the fleet root certificate authority (CA). Every device, regardless of how it is initially provisioned, ends up with its own unique X.509 certificate signed by the fleet root CA. Whenever the device interacts with the OTA Connect server, the device gateway authenticates and identifies it by its X.509 certificate.
-The provisioning process ensures that a signed certificate is associated with each device. This process is crucial for securing communication between devices and the OTA Connect server.
-OTA Connect supports two provisioning methods. We refer to these two methods as "provisioning with shared credentials" and "provisioning with device credentials".
 
 Note that in both cases, the server must have access to the fleet root CA for your fleet. The fleet root CA is used to sign the certificate of the connected devices.
 
 Let's take a closer look at how each method works.
 
 
-. *Provisioning with shared credentials*
+=== Provisioning with shared credentials
 
 This type of provisioning is great for testing because the OTA Connect server manages the certificates and keys of the device. You can try out OTA Connect without involving the rest of your infrastructure. However, this method is not secure enough for a production scenario.
 
@@ -34,13 +38,13 @@ In this method, the following steps occur:
 * You should download your initial provisioning key from your OTA Connect account, and bake it into the image for the device.
 * The first time the device comes online, it connects to the device gateway and says, “Hi, I’m a new device, and I don’t have a TLS certificate yet. Here’s my provisioning key.”
 * Then, our crypto service generates a new keypair and X.509 certificate for the device, signs that certificate with the private fleet root CA in the Vault instance, and sends the whole bundle to the vehicle.
-* Then it deletes the vehicle’s private key.
+* Lastly, it deletes the vehicle’s private key.
 
 This entire transaction is secured with TLS, using the pinned device gateway certificate provisioned in the image.
 
 
-[arabic, start=2]
-. *Provisioning with device credentials*
+
+=== Provisioning with device credentials
 
 If you're using OTA Connect in production, you should provision with device credentials.
 In this method there is no shared credential. Instead the following steps occur:
@@ -59,6 +63,7 @@ With "device credential" provisioning, you decide how devices are identified. Yo
 == Setting up the OTA Connect Server for Provisioning
 
 If you want to use "shared credential" provisioning, we'll generate a fleet root CA and keypair for you and store them on the OTA Connect server. We take the security of these keys and certificates extremely seriously: following industry best practices, they are kept in a Vault instance and only taken out when you request them.
+
 If you want to use "device credential" provisioning, you'll need to provide us with your own fleet root CA so that the OTA Connect server can verify devices.
 Of course, you can use both methods, but in that case, we recommend that you maintain separate user accounts:
 
