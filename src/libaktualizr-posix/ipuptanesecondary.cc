@@ -127,7 +127,7 @@ data::ResultCode::Numeric IpUptaneSecondary::install(const std::string& target_n
 }
 
 Manifest IpUptaneSecondary::getManifest() const {
-  LOG_INFO << "Getting the manifest key of a secondary";
+  LOG_DEBUG << "Getting the manifest from secondary with serial " << getSerial();
   Asn1Message::Ptr req(Asn1Message::Empty());
 
   req->present(AKIpUptaneMes_PR_manifestReq);
