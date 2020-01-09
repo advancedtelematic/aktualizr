@@ -7,7 +7,6 @@ function(add_aktualizr_test)
     add_executable(${TEST_TARGET} EXCLUDE_FROM_ALL ${AKTUALIZR_TEST_SOURCES} ${PROJECT_SOURCE_DIR}/tests/test_utils.cc)
     target_link_libraries(${TEST_TARGET}
         ${AKTUALIZR_TEST_LIBRARIES}
-        aktualizr_static_lib
         ${TEST_LIBS})
     target_include_directories(${TEST_TARGET} PUBLIC ${PROJECT_SOURCE_DIR}/tests)
 

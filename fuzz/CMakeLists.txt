@@ -6,7 +6,7 @@ if (ENABLE_FUZZING)
     endif()
 
     add_executable(afl afl.cc)
-    target_link_libraries(afl aktualizr_static_lib ${AKTUALIZR_EXTERNAL_LIBS})
+    target_link_libraries(afl aktualizr_lib)
 
     if (NOT ENABLE_SANITIZERS)
         message(FATAL_ERROR "Enable sanitizers with -DENABLE_SANITIZERS=On to do fuzzing.")

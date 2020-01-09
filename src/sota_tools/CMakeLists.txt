@@ -15,33 +15,33 @@ set(SOTA_TOOLS_LIB_SRC
     server_credentials.cc
     treehub_server.cc)
 
-if (BUILD_SOTA_TOOLS)
-    set(GARAGE_TOOLS_VERSION "${AKTUALIZR_VERSION}")
-    set_property(SOURCE garage_tools_version.cc PROPERTY COMPILE_DEFINITIONS GARAGE_TOOLS_VERSION="${GARAGE_TOOLS_VERSION}")
-    add_library(sota_tools_static_lib STATIC ${SOTA_TOOLS_LIB_SRC})
-    target_include_directories(sota_tools_static_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_SOURCE_DIR} ${GLIB2_INCLUDE_DIRS})
-endif (BUILD_SOTA_TOOLS)
-
-
 ##### garage-push targets
 set(GARAGE_PUSH_SRCS
     garage_push.cc)
 
-set(SOTA_TOOLS_EXTERNAL_LIBS
-    ${Boost_SYSTEM_LIBRARIES}
-    ${Boost_LIBRARIES}
-    ${JSONCPP_LIBRARIES}
-    ${CMAKE_THREAD_LIBS_INIT}
-    ${LibArchive_LIBRARIES}
-    ${CURL_LIBRARIES}
-    ${OPENSSL_LIBRARIES}
-    ${sodium_LIBRARY_RELEASE}
-    ${GLIB2_LIBRARIES})
-
 if (BUILD_SOTA_TOOLS)
-    add_executable(garage-push ${GARAGE_PUSH_SRCS})
+    set(SOTA_TOOLS_EXTERNAL_LIBS
+        ${Boost_SYSTEM_LIBRARIES}
+        ${Boost_LIBRARIES}
+        ${JSONCPP_LIBRARIES}
+        ${CMAKE_THREAD_LIBS_INIT}
+        ${LibArchive_LIBRARIES}
+        ${CURL_LIBRARIES}
+        ${OPENSSL_LIBRARIES}
+        ${sodium_LIBRARY_RELEASE}
+        ${GLIB2_LIBRARIES})
 
-    target_link_libraries(garage-push sota_tools_static_lib aktualizr_static_lib ${SOTA_TOOLS_EXTERNAL_LIBS})
+    set(GARAGE_TOOLS_VERSION "${AKTUALIZR_VERSION}")
+    set_property(SOURCE garage_tools_version.cc PROPERTY COMPILE_DEFINITIONS GARAGE_TOOLS_VERSION="${GARAGE_TOOLS_VERSION}")
+    add_library(sota_tools_lib SHARED ${SOTA_TOOLS_LIB_SRC})
+    target_include_directories(sota_tools_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_SOURCE_DIR} ${GLIB2_INCLUDE_DIRS})
+
+    # we link with aktualizr static lib here, to bundle everything in sota_tools_lib
+    target_link_libraries(sota_tools_lib aktualizr_static_lib ${SOTA_TOOLS_EXTERNAL_LIBS})
+    install(TARGETS sota_tools_lib LIBRARY DESTINATION lib COMPONENT garage_deploy)
+
+    add_executable(garage-push ${GARAGE_PUSH_SRCS})
+    target_link_libraries(garage-push sota_tools_lib)
 
     install(TARGETS garage-push RUNTIME DESTINATION bin COMPONENT garage_deploy)
 endif (BUILD_SOTA_TOOLS)
@@ -54,7 +54,7 @@ set(GARAGE_CHECK_SRCS
 if (BUILD_SOTA_TOOLS)
     add_executable(garage-check ${GARAGE_CHECK_SRCS})
 
-    target_link_libraries(garage-check sota_tools_static_lib aktualizr_static_lib ${SOTA_TOOLS_EXTERNAL_LIBS})
+    target_link_libraries(garage-check sota_tools_lib)
 
     install(TARGETS garage-check RUNTIME DESTINATION bin COMPONENT garage_deploy)
 endif (BUILD_SOTA_TOOLS)
@@ -66,7 +66,7 @@ set(GARAGE_DEPLOY_SRCS
 
 if (BUILD_SOTA_TOOLS)
     add_executable(garage-deploy ${GARAGE_DEPLOY_SRCS})
-    target_link_libraries(garage-deploy sota_tools_static_lib aktualizr_static_lib ${SOTA_TOOLS_EXTERNAL_LIBS})
+    target_link_libraries(garage-deploy sota_tools_lib)
 
     add_dependencies(build_tests garage-deploy)
 
@@ -132,49 +132,46 @@ endif(NOT BUILD_SOTA_TOOLS)
 
 ##### tests
 if (BUILD_SOTA_TOOLS)
+
     add_custom_target(sota_tools_cert_generation
         COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/cert_generation/generate-zips.sh
         ${PROJECT_BINARY_DIR}/sota_tools/certs)
 
+    # do not link tests with libaktualizr, but sota_tools_lib
+    list(REMOVE_ITEM TEST_LIBS aktualizr_lib)
+    list(INSERT TEST_LIBS 0 sota_tools_lib)
+
     ### common tests
     add_aktualizr_test(NAME sota_tools_auth_test
                        SOURCES authenticate_test.cc
-                       LIBRARIES sota_tools_static_lib aktualizr_static_lib
                        PROJECT_WORKING_DIRECTORY
                        ARGS ${PROJECT_BINARY_DIR}/sota_tools/certs)
     add_dependencies(t_sota_tools_auth_test sota_tools_cert_generation)
 
     add_aktualizr_test(NAME ostree_hash
-                       LIBRARIES sota_tools_static_lib
                        SOURCES ostree_hash_test.cc)
 
     add_aktualizr_test(NAME rate_controller
-                       LIBRARIES sota_tools_static_lib
                        SOURCES rate_controller_test.cc)
 
     add_aktualizr_test(NAME ostree_dir_repo
                        SOURCES ostree_dir_repo_test.cc
-                       LIBRARIES sota_tools_static_lib
                        PROJECT_WORKING_DIRECTORY)
 
     add_aktualizr_test(NAME ostree_http_repo
                        SOURCES ostree_http_repo_test.cc
-                       LIBRARIES sota_tools_static_lib
                        PROJECT_WORKING_DIRECTORY)
 
     add_aktualizr_test(NAME treehub_server
                        SOURCES treehub_server_test.cc
-                       LIBRARIES sota_tools_static_lib
                        PROJECT_WORKING_DIRECTORY)
 
     add_aktualizr_test(NAME deploy
                        SOURCES deploy_test.cc
-                       LIBRARIES sota_tools_static_lib
                        PROJECT_WORKING_DIRECTORY)
 
     add_aktualizr_test(NAME ostree_object
                        SOURCES ostree_object_test.cc
-                       LIBRARIES sota_tools_static_lib
                        PROJECT_WORKING_DIRECTORY)
 
     ### garage-check tests

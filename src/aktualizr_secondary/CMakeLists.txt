@@ -8,8 +8,17 @@ set(AKTUALIZR_SECONDARY_LIB_SRC
     socket_server.cc
     )
 
-add_library(aktualizr_secondary_static_lib STATIC
+# do not link tests with libaktualizr
+list(REMOVE_ITEM TEST_LIBS aktualizr_lib)
+
+# TODO: a lot of these should be removed
+add_library(aktualizr_secondary_lib SHARED
     ${AKTUALIZR_SECONDARY_LIB_SRC}
+    $<TARGET_OBJECTS:aktualizr-posix>
+    $<TARGET_OBJECTS:asn1>
+    $<TARGET_OBJECTS:asn1_lib>
+    $<TARGET_OBJECTS:bootstrap>
+    $<TARGET_OBJECTS:config>
     $<TARGET_OBJECTS:bootloader>
     $<TARGET_OBJECTS:crypto>
     $<TARGET_OBJECTS:jsoncpp>
@@ -18,19 +27,19 @@ add_library(aktualizr_secondary_static_lib STATIC
     $<TARGET_OBJECTS:storage>
     $<TARGET_OBJECTS:logging>
     $<TARGET_OBJECTS:uptane>)
-
-target_link_libraries(aktualizr_secondary_static_lib aktualizr-posix)
-
-target_include_directories(aktualizr_secondary_static_lib PUBLIC
+target_link_libraries(aktualizr_secondary_lib ${AKTUALIZR_EXTERNAL_LIBS})
+target_include_directories(aktualizr_secondary_lib PUBLIC
     $<TARGET_PROPERTY:asn1_lib,INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/src/libaktualizr-posix
     )
 
+if (BUILD_ISOTP)
+    target_sources(aktualizr_secondary_lib PRIVATE $<TARGET_OBJECTS:isotp_conn>)
+endif (BUILD_ISOTP)
+
 add_executable(aktualizr-secondary ${AKTUALIZR_SECONDARY_SRC})
-target_link_libraries(aktualizr-secondary
-    aktualizr_secondary_static_lib
-    ${AKTUALIZR_EXTERNAL_LIBS}
-    )
+target_link_libraries(aktualizr-secondary aktualizr_secondary_lib)
+install(TARGETS aktualizr_secondary_lib LIBRARY DESTINATION lib COMPONENT aktualizr)
 
 install(TARGETS aktualizr-secondary
         COMPONENT aktualizr
@@ -48,32 +57,32 @@ set(ALL_AKTUALIZR_SECONDARY_HEADERS
 include(AddAktualizrTest)
 
 # insert in front, so that the order matches the dependencies to the system libraries
-list(INSERT TEST_LIBS 0 aktualizr_secondary_static_lib)
+list(INSERT TEST_LIBS 0 aktualizr_secondary_lib)
 
 add_aktualizr_test(NAME aktualizr_secondary_config
-                   SOURCES aktualizr_secondary_config_test.cc PROJECT_WORKING_DIRECTORY)
-
-add_aktualizr_test(NAME aktualizr_secondary_uptane_verification
-                   SOURCES uptane_verification_test.cc
-                   ARGS ${PROJECT_BINARY_DIR}/ostree_repo
-                   PROJECT_WORKING_DIRECTORY)
-
-set_target_properties(t_aktualizr_secondary_uptane_verification PROPERTIES LINK_FLAGS -Wl,--export-dynamic)
-target_link_libraries(t_aktualizr_secondary_uptane_verification aktualizr_secondary_static_lib uptane_generator_lib)
+    SOURCES aktualizr_secondary_config_test.cc PROJECT_WORKING_DIRECTORY LIBRARIES aktualizr_secondary_lib)
 
 add_aktualizr_test(NAME aktualizr_secondary_update
                    SOURCES update_test.cc
-                   ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
+                   ARGS ${PROJECT_BINARY_DIR}/ostree_repo
+                   PROJECT_WORKING_DIRECTORY LIBRARIES aktualizr_secondary_lib)
 
 if(BUILD_OSTREE)
+    add_aktualizr_test(NAME aktualizr_secondary_uptane_verification
+                       SOURCES uptane_verification_test.cc
+                       ARGS ${PROJECT_BINARY_DIR}/ostree_repo
+                       LIBRARIES aktualizr_secondary_lib uptane_generator_lib $<TARGET_OBJECTS:campaign>
+                       PROJECT_WORKING_DIRECTORY )
+
+    set_target_properties(t_aktualizr_secondary_uptane_verification PROPERTIES LINK_FLAGS -Wl,--export-dynamic)
+    target_link_libraries(t_aktualizr_secondary_uptane_verification aktualizr_secondary_lib uptane_generator_lib)
+
     add_aktualizr_test(NAME aktualizr_secondary_uptane
                        SOURCES uptane_test.cc
-                       LIBRARIES uptane_generator_lib
-                       LIBRARIES aktualizr-posix
+                       LIBRARIES aktualizr_secondary_lib uptane_generator_lib virtual_secondary $<TARGET_OBJECTS:campaign> $<TARGET_OBJECTS:primary> $<TARGET_OBJECTS:http>
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
-    target_link_libraries(t_aktualizr_secondary_uptane virtual_secondary)
 else(BUILD_OSTREE)
-    list(APPEND TEST_SOURCES uptane_test.cc)
+    list(APPEND TEST_SOURCES uptane_verification_test.cc uptane_test.cc)
 endif(BUILD_OSTREE)
 
 # test running the executable with command line option --help

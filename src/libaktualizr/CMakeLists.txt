@@ -18,7 +18,10 @@ if(BUILD_ISOTP)
     add_subdirectory("isotp_conn")
 endif(BUILD_ISOTP)
 
+# deprecated, we recommend using aktualizr_lib
 add_library(aktualizr_static_lib STATIC
+    $<TARGET_OBJECTS:asn1>
+    $<TARGET_OBJECTS:asn1_lib>
     $<TARGET_OBJECTS:bootloader>
     $<TARGET_OBJECTS:bootstrap>
     $<TARGET_OBJECTS:campaign>
@@ -33,9 +36,26 @@ add_library(aktualizr_static_lib STATIC
     $<TARGET_OBJECTS:storage>
     $<TARGET_OBJECTS:uptane>)
 
+add_library(aktualizr_lib SHARED
+    $<TARGET_OBJECTS:asn1>
+    $<TARGET_OBJECTS:asn1_lib>
+    $<TARGET_OBJECTS:bootloader>
+    $<TARGET_OBJECTS:bootstrap>
+    $<TARGET_OBJECTS:campaign>
+    $<TARGET_OBJECTS:config>
+    $<TARGET_OBJECTS:crypto>
+    $<TARGET_OBJECTS:http>
+    $<TARGET_OBJECTS:jsoncpp>
+    $<TARGET_OBJECTS:package_manager>
+    $<TARGET_OBJECTS:primary>
+    $<TARGET_OBJECTS:utilities>
+    $<TARGET_OBJECTS:logging>
+    $<TARGET_OBJECTS:storage>
+    $<TARGET_OBJECTS:uptane>)
+target_link_libraries(aktualizr_lib ${AKTUALIZR_EXTERNAL_LIBS})
+install(TARGETS aktualizr_lib LIBRARY DESTINATION lib COMPONENT aktualizr)
+
 if (BUILD_ISOTP)
     target_sources(aktualizr_static_lib PRIVATE $<TARGET_OBJECTS:isotp_conn>)
+    target_sources(aktualizr_lib PRIVATE $<TARGET_OBJECTS:isotp_conn>)
 endif (BUILD_ISOTP)
-
-target_include_directories(aktualizr_static_lib PUBLIC
-    $<TARGET_PROPERTY:package_manager,INCLUDE_DIRECTORIES>)

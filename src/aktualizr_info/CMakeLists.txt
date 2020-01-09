@@ -3,7 +3,7 @@ set(AKTUALIZR_INFO_SRC main.cc aktualizr_info_config.cc)
 set(AKTUALIZR_INFO_HEADERS aktualizr_info_config.h)
 
 add_executable(aktualizr-info ${AKTUALIZR_INFO_SRC})
-target_link_libraries(aktualizr-info aktualizr_static_lib ${AKTUALIZR_EXTERNAL_LIBS})
+target_link_libraries(aktualizr-info aktualizr_lib)
 
 
 install(TARGETS aktualizr-info
