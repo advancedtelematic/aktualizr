@@ -407,7 +407,3 @@ int main(int argc, char** argv) {
 extern "C" OstreeDeployment* ostree_sysroot_get_booted_deployment(OstreeSysroot* ostree_sysroot) {
   return OstreeSecondaryUptaneVerificationTest::curOstreeDeployment(ostree_sysroot);
 }
-
-extern "C" const char* ostree_deployment_get_csum(OstreeDeployment* ostree_deployment) {
-  return OstreeSecondaryUptaneVerificationTest::curOstreeRootfsRev(ostree_deployment);
-}

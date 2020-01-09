@@ -37,11 +37,6 @@ extern "C" OstreeDeployment *ostree_sysroot_get_booted_deployment(OstreeSysroot 
   return dep.get();
 }
 
-extern "C" const char *ostree_deployment_get_csum(OstreeDeployment *self) {
-  (void)self;
-  return ostree_deployment.rev.c_str();
-}
-
 /*
  * Install an OSTree update on the primary.
  */

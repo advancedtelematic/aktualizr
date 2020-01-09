@@ -77,17 +77,6 @@ static struct OstreeDeploymentInfo* get_ostree_deployment_info() {
   return &DeploymentInfo;
 }
 
-const char* ostree_deployment_get_csum(OstreeDeployment* self) {
-  const char* (*orig)(OstreeDeployment*) = (const char* (*)(OstreeDeployment*))(dlsym(RTLD_NEXT, __func__));
-  struct OstreeDeploymentInfo* deployment_info = get_ostree_deployment_info();
-
-  if (deployment_info != NULL) {
-    return deployment_info->deployed.rev;
-  }
-
-  return orig(self);
-}
-
 OstreeDeployment* ostree_sysroot_get_booted_deployment(OstreeSysroot* self) {
   OstreeDeployment* (*orig)(OstreeSysroot*) = (OstreeDeployment * (*)(OstreeSysroot*))(dlsym(RTLD_NEXT, __func__));
   struct OstreeDeploymentInfo* deployment_info = get_ostree_deployment_info();
