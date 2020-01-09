@@ -41,7 +41,6 @@ bpo::variables_map parseOptions(int argc, char *argv[]) {
       ("tls-server", bpo::value<std::string>(), "url of device gateway")
       ("repo-server", bpo::value<std::string>(), "url of the uptane repo repository")
       ("director-server", bpo::value<std::string>(), "url of the uptane director repository")
-      ("ostree-server", bpo::value<std::string>(), "url of the ostree repository")
       ("primary-ecu-serial", bpo::value<std::string>(), "serial number of primary ecu")
       ("primary-ecu-hardware-id", bpo::value<std::string>(), "hardware ID of primary ecu")
       ("secondary-config-file", bpo::value<boost::filesystem::path>(), "secondary ECUs configuration file")
