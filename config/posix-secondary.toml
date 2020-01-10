@@ -12,7 +12,7 @@ primary_ip = "127.0.0.1"
 primary_port = 9040
 
 [pacman]
-type = "fake"
+type = "none"
 
 [logger]
 loglevel = 0
