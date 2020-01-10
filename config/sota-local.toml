@@ -10,6 +10,3 @@ path = "storage"
 
 [pacman]
 type = "none"
-
-[uptane]
-secondary_config_file = "virtualsec.json"
