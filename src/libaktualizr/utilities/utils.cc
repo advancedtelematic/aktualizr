@@ -17,6 +17,9 @@
 #include <fcntl.h>
 #include <glob.h>
 #include <ifaddrs.h>
+#ifdef BUILD_OSTREE
+#include <ostree.h>
+#endif
 #include <netinet/in.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -896,3 +899,68 @@ CurlEasyWrapper::~CurlEasyWrapper() {
     curl_easy_cleanup(handle);
   }
 }
+
+#ifdef BUILD_OSTREE
+template <typename T>
+struct GObjectFinalizer {
+  void operator()(T *e) const { g_object_unref(reinterpret_cast<gpointer>(e)); }
+};
+
+template <typename T>
+using GObjectUniquePtr = std::unique_ptr<T, GObjectFinalizer<T>>;
+
+struct GKeyFileFinalizer {
+  void operator()(GKeyFile *e) const { g_key_file_free(e); }
+};
+using GKeyFileUniquePtr = std::unique_ptr<GKeyFile, GKeyFileFinalizer>;
+
+bool createFakeOstreeSysroot(boost::filesystem::path path)
+{
+  namespace bfs = boost::filesystem;
+
+  try {
+    // Create basic directory structure. See ot_admin_builtin_init_fs() for reference
+    const std::vector<std::string> dirs{"boot", "dev", "home", "proc", "run", "sys"};
+    for (auto const& d: dirs) {
+      bfs::create_directory(path / d);
+    }
+    bfs::create_directory(path / "root");
+    bfs::permissions(path / "root", bfs::remove_perms | bfs::others_all | bfs::group_all);
+    bfs::create_directory(path / "tmp");
+    bfs::permissions(path / "tmp", bfs::add_perms | bfs::all_all | bfs::sticky_bit);
+
+    // Make ostree modify u-boot configuration
+    bfs::create_directory(path / "boot/loader.0");
+    bfs::create_symlink("loader.0", path / "boot/loader");
+    bfs::ofstream(path / "boot/loader/uEnv.txt");
+    bfs::create_symlink("loader/uEnv.txt", path / "boot/uEnv.txt");
+  } catch (...) {
+    return false;
+  }
+
+  // Initialize sysroot repo and deployments
+  GObjectUniquePtr<GFile> sysroot_dir(g_file_new_for_path(path.c_str()));
+  GObjectUniquePtr<OstreeSysroot> sysroot(ostree_sysroot_new(sysroot_dir.get()));
+  if (!ostree_sysroot_ensure_initialized(sysroot.get(), nullptr, nullptr)) {
+    return false;
+  }
+  if (!ostree_sysroot_init_osname(sysroot.get(), "dummy-os", nullptr, nullptr)) {
+    return false;
+  }
+
+  // Change repo mode to bare-user-only
+  auto repo_path = path / "ostree/repo";
+  GObjectUniquePtr<GFile> repo_dir(g_file_new_for_path(repo_path.c_str()));
+  GObjectUniquePtr<OstreeRepo> repo(ostree_repo_new(repo_dir.get()));
+  if (!ostree_repo_open(repo.get(), nullptr, nullptr)) {
+    return false;
+  }
+  GKeyFileUniquePtr config(ostree_repo_copy_config(repo.get()));
+  g_key_file_set_string(config.get(), "core", "mode", "bare-user-only");
+  if (!ostree_repo_write_config(repo.get(), config.get(), nullptr)) {
+    return false;
+  }
+
+  return true;
+}
+#endif // BUILD_OSTREE

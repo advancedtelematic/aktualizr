@@ -397,6 +397,13 @@ TEST(Utils, TrimNewline) {
   EXPECT_EQ(output, input);
 }
 
+#ifdef BUILD_OSTREE
+TEST(Utils, FakeOstreeSysroot) {
+  TemporaryDirectory tmpdir;
+  EXPECT_TRUE(createFakeOstreeSysroot(tmpdir.Path()));
+}
+#endif
+
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

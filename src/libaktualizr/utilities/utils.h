@@ -166,6 +166,10 @@ static void curlEasySetoptWrapper(CURL *curl_handle, CURLoption option, T &&... 
   }
 }
 
+#ifdef BUILD_OSTREE
+bool createFakeOstreeSysroot(boost::filesystem::path path);
+#endif
+
 // this is reference implementation of make_unique which is not yet included to C++11
 namespace std_ {
 template <class T>
