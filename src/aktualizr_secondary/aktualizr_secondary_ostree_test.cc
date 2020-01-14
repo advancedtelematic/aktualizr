@@ -95,18 +95,6 @@ class AktualizrSecondaryWrapper {
     _secondary = std::make_shared<AktualizrSecondary>(config, _storage);
   }
 
-  AktualizrSecondaryWrapper() {
-    // binary update
-    AktualizrSecondaryConfig config;
-    config.pacman.type = PackageManager::kNone;
-
-    config.storage.path = _storage_dir.Path();
-    config.storage.type = StorageType::kSqlite;
-
-    auto storage = INvStorage::newStorage(config.storage);
-    _secondary = std::make_shared<AktualizrSecondary>(config, storage);
-  }
-
  public:
   std::shared_ptr<AktualizrSecondary>& operator->() { return _secondary; }
 
@@ -186,24 +174,7 @@ class UptaneRepoWrapper {
   UptaneRepo _uptane_repo{_root_dir.Path(), "", ""};
 };
 
-class SecondaryUptaneVerificationTest : public ::testing::Test {
- protected:
-  SecondaryUptaneVerificationTest() {
-    _uptane_repo.addImageFile(_default_target, _secondary->getHwIdResp().ToString(),
-                              _secondary->getSerialResp().ToString());
-  }
-
-  std::shared_ptr<std::string> getImageData(const std::string& targetname = _default_target) const {
-    return _uptane_repo.getImageData(targetname);
-  }
-
- protected:
-  static constexpr const char* const _default_target{"defaulttarget"};
-  AktualizrSecondaryWrapper _secondary;
-  UptaneRepoWrapper _uptane_repo;
-};
-
-class OstreeSecondaryUptaneVerificationTest : public ::testing::Test {
+class SecondaryOstreeTest : public ::testing::Test {
  public:
   static const char* curOstreeRootfsRev(OstreeDeployment* ostree_depl) {
     (void)ostree_depl;
@@ -231,7 +202,7 @@ class OstreeSecondaryUptaneVerificationTest : public ::testing::Test {
   }
 
  protected:
-  OstreeSecondaryUptaneVerificationTest() {}
+  SecondaryOstreeTest() {}
 
   Metadata addDefaultTarget() { return addTarget(_treehub->curRev()); }
 
@@ -268,134 +239,28 @@ class OstreeSecondaryUptaneVerificationTest : public ::testing::Test {
   UptaneRepoWrapper _uptane_repo;
 };
 
-std::shared_ptr<Treehub> OstreeSecondaryUptaneVerificationTest::_treehub{nullptr};
-std::string OstreeSecondaryUptaneVerificationTest::_ostree_rootfs_template{"./build/ostree_repo"};
-std::shared_ptr<OstreeRootfs> OstreeSecondaryUptaneVerificationTest::_sysroot{nullptr};
+std::shared_ptr<Treehub> SecondaryOstreeTest::_treehub{nullptr};
+std::string SecondaryOstreeTest::_ostree_rootfs_template{"./build/ostree_repo"};
+std::shared_ptr<OstreeRootfs> SecondaryOstreeTest::_sysroot{nullptr};
 
-class SecondaryUptaneVerificationTestNegative
-    : public SecondaryUptaneVerificationTest,
-      public ::testing::WithParamInterface<std::pair<Uptane::RepositoryType, Uptane::Role>> {
- protected:
-  class MetadataInvalidator : public Metadata {
-   public:
-    MetadataInvalidator(const Uptane::RawMetaPack& valid_metadata, const Uptane::RepositoryType& repo,
-                        const Uptane::Role& role)
-        : Metadata(valid_metadata), _repo_type(repo), _role(role) {}
-
-    bool getRoleMetadata(std::string* result, const Uptane::RepositoryType& repo, const Uptane::Role& role,
-                         Uptane::Version version) const override {
-      auto return_val = Metadata::getRoleMetadata(result, repo, role, version);
-      if (!(_repo_type == repo && _role == role)) {
-        return return_val;
-      }
-      (*result)[10] = 'f';
-      return true;
-    }
-
-   private:
-    Uptane::RepositoryType _repo_type;
-    Uptane::Role _role;
-  };
-
- protected:
-  MetadataInvalidator currentMetadata() const {
-    return MetadataInvalidator(_uptane_repo.getCurrentMetadata(), GetParam().first, GetParam().second);
-  }
-};
-
-/**
- * Parameterized test,
- * The parameter is std::pair<Uptane::RepositoryType, Uptane::Role> to indicate which metadata to malform
- *
- * see INSTANTIATE_TEST_SUITE_P for the test instantiations with concrete parameter values
- */
-TEST_P(SecondaryUptaneVerificationTestNegative, MalformedMetadaJson) {
-  EXPECT_FALSE(_secondary->putMetadataResp(currentMetadata()));
-}
-
-/**
- * Instantiates the parameterized test for each specified value of std::pair<Uptane::RepositoryType, Uptane::Role>
- * the parameter value indicates which metadata to malform
- */
-INSTANTIATE_TEST_SUITE_P(SecondaryUptaneVerificationMalformedMetadata, SecondaryUptaneVerificationTestNegative,
-                         ::testing::Values(std::make_pair(Uptane::RepositoryType::Director(), Uptane::Role::Root()),
-                                           std::make_pair(Uptane::RepositoryType::Director(), Uptane::Role::Targets()),
-                                           std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Root()),
-                                           std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()),
-                                           std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()),
-                                           std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Targets())));
-
-TEST_F(OstreeSecondaryUptaneVerificationTest, fullUptaneVerificationPositive) {
+TEST_F(SecondaryOstreeTest, fullUptaneVerificationPositive) {
   EXPECT_TRUE(_secondary->putMetadataResp(addDefaultTarget()));
   EXPECT_TRUE(_secondary->sendFirmwareResp(getCredsToSend()));
   EXPECT_TRUE(_secondary.getPendingVersion().MatchHash(treehubCurRev()));
   // TODO: emulate reboot and check installed version once ostree update finalization is supported by secondary
 }
 
-TEST_F(OstreeSecondaryUptaneVerificationTest, fullUptaneVerificationInvalidRevision) {
+TEST_F(SecondaryOstreeTest, fullUptaneVerificationInvalidRevision) {
   EXPECT_TRUE(_secondary->putMetadataResp(addTarget("invalid-revision")));
   EXPECT_FALSE(_secondary->sendFirmwareResp(getCredsToSend()));
 }
 
-TEST_F(OstreeSecondaryUptaneVerificationTest, fullUptaneVerificationInvalidHwID) {
+TEST_F(SecondaryOstreeTest, fullUptaneVerificationInvalidHwID) {
   EXPECT_FALSE(_secondary->putMetadataResp(addTarget("", "invalid-hardware-id", "")));
 }
 
-TEST_F(OstreeSecondaryUptaneVerificationTest, fullUptaneVerificationInvalidSerial) {
+TEST_F(SecondaryOstreeTest, fullUptaneVerificationInvalidSerial) {
   EXPECT_FALSE(_secondary->putMetadataResp(addTarget("", "", "invalid-serial-id")));
-}
-
-TEST_F(SecondaryUptaneVerificationTest, fullUptaneVerificationPositive) {
-  EXPECT_TRUE(_secondary->putMetadataResp(_uptane_repo.getCurrentMetadata()));
-  EXPECT_TRUE(_secondary->sendFirmwareResp(getImageData()));
-}
-
-TEST_F(SecondaryUptaneVerificationTest, TwoImagesAndOneTarget) {
-  // two images for the same ECU, just one of them is added as a target and signed
-  // default image and corresponding target has been already added, just add another image
-  _uptane_repo.addImageFile("second_image_00", _secondary->getHwIdResp().ToString(),
-                            _secondary->getSerialResp().ToString(), false);
-  EXPECT_TRUE(_secondary->putMetadataResp(_uptane_repo.getCurrentMetadata()));
-}
-
-TEST_F(SecondaryUptaneVerificationTest, IncorrectTargetQuantity) {
-  {
-    // two targets for the same ECU
-    _uptane_repo.addImageFile("second_target", _secondary->getHwIdResp().ToString(),
-                              _secondary->getSerialResp().ToString());
-
-    EXPECT_FALSE(_secondary->putMetadataResp(_uptane_repo.getCurrentMetadata()));
-  }
-
-  {
-    // zero targets for the ECU being tested
-    auto metadata =
-        UptaneRepoWrapper().addImageFile("mytarget", _secondary->getHwIdResp().ToString(), "non-existing-serial");
-
-    EXPECT_FALSE(_secondary->putMetadataResp(metadata));
-  }
-
-  {
-    // zero targets for the ECU being tested
-    auto metadata =
-        UptaneRepoWrapper().addImageFile("mytarget", "non-existig-hwid", _secondary->getSerialResp().ToString());
-
-    EXPECT_FALSE(_secondary->putMetadataResp(metadata));
-  }
-}
-
-TEST_F(SecondaryUptaneVerificationTest, InvalidImageFileSize) {
-  EXPECT_TRUE(_secondary->putMetadataResp(_uptane_repo.getCurrentMetadata()));
-  auto image_data = getImageData();
-  image_data->append("\n");
-  EXPECT_FALSE(_secondary->sendFirmwareResp(image_data));
-}
-
-TEST_F(SecondaryUptaneVerificationTest, InvalidImageData) {
-  EXPECT_TRUE(_secondary->putMetadataResp(_uptane_repo.getCurrentMetadata()));
-  auto image_data = getImageData();
-  image_data->operator[](3) = '0';
-  EXPECT_FALSE(_secondary->sendFirmwareResp(image_data));
 }
 
 int main(int argc, char** argv) {
@@ -406,7 +271,7 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  OstreeSecondaryUptaneVerificationTest::setOstreeRootfsTemplate(argv[1]);
+  SecondaryOstreeTest::setOstreeRootfsTemplate(argv[1]);
 
   logger_init();
   logger_set_threshold(boost::log::trivial::info);
@@ -415,9 +280,9 @@ int main(int argc, char** argv) {
 }
 
 extern "C" OstreeDeployment* ostree_sysroot_get_booted_deployment(OstreeSysroot* ostree_sysroot) {
-  return OstreeSecondaryUptaneVerificationTest::curOstreeDeployment(ostree_sysroot);
+  return SecondaryOstreeTest::curOstreeDeployment(ostree_sysroot);
 }
 
 extern "C" const char* ostree_deployment_get_csum(OstreeDeployment* ostree_deployment) {
-  return OstreeSecondaryUptaneVerificationTest::curOstreeRootfsRev(ostree_deployment);
+  return SecondaryOstreeTest::curOstreeRootfsRev(ostree_deployment);
 }

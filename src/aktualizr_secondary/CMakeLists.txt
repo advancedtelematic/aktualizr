@@ -63,17 +63,21 @@ add_aktualizr_test(NAME aktualizr_secondary_config
     SOURCES aktualizr_secondary_config_test.cc PROJECT_WORKING_DIRECTORY LIBRARIES aktualizr_secondary_lib)
 
 if(BUILD_OSTREE)
-    add_aktualizr_test(NAME aktualizr_secondary_uptane_verification
-                       SOURCES uptane_verification_test.cc
+    add_aktualizr_test(NAME aktualizr_secondary_ostree_test
+                       SOURCES aktualizr_secondary_ostree_test.cc
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo
                        LIBRARIES aktualizr_secondary_lib uptane_generator_lib $<TARGET_OBJECTS:campaign>
-                       PROJECT_WORKING_DIRECTORY )
+                       PROJECT_WORKING_DIRECTORY)
 
-    set_target_properties(t_aktualizr_secondary_uptane_verification PROPERTIES LINK_FLAGS -Wl,--export-dynamic)
-    target_link_libraries(t_aktualizr_secondary_uptane_verification aktualizr_secondary_lib uptane_generator_lib)
+    set_target_properties(t_aktualizr_secondary_ostree_test PROPERTIES LINK_FLAGS -Wl,--export-dynamic)
+#    target_link_libraries(t_aktualizr_secondary_ostree_test aktualizr_secondary_lib uptane_generator_lib)
 else(BUILD_OSTREE)
-    list(APPEND TEST_SOURCES uptane_verification_test.cc)
+    list(APPEND TEST_SOURCES aktualizr_secondary_ostree_test.cc)
 endif(BUILD_OSTREE)
+
+add_aktualizr_test(NAME aktualizr_secondary_test
+                   SOURCES aktualizr_secondary_test.cc
+                   LIBRARIES aktualizr_secondary_lib uptane_generator_lib $<TARGET_OBJECTS:campaign>)
 
 # test running the executable with command line option --help
 add_test(NAME aktualizr_secondary_cmdline--help COMMAND aktualizr-secondary --help)
