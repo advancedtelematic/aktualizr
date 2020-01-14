@@ -32,7 +32,7 @@ add_aktualizr_test(NAME tuf_hash SOURCES tuf_hash_test.cc PROJECT_WORKING_DIRECT
 
 if(BUILD_OSTREE AND SOTA_PACKED_CREDENTIALS)
     add_aktualizr_test(NAME uptane_ci SOURCES uptane_ci_test.cc PROJECT_WORKING_DIRECTORY
-                        ARGS ${SOTA_PACKED_CREDENTIALS} ${PROJECT_BINARY_DIR}/ostree_repo)
+                        ARGS ${SOTA_PACKED_CREDENTIALS})
     set_tests_properties(test_uptane_ci PROPERTIES LABELS "credentials")
     target_link_libraries(t_uptane_ci virtual_secondary)
 else(BUILD_OSTREE AND SOTA_PACKED_CREDENTIALS)

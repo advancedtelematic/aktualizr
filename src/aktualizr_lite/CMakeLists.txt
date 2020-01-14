@@ -19,8 +19,7 @@ add_test(test_aktualizr-lite
         ${RUN_VALGRIND}
 )
 add_library(t_lite-mock SHARED ostree_mock.cc)
-add_aktualizr_test(NAME lite-helpers SOURCES helpers.cc helpers_test.cc
-                   ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
+add_aktualizr_test(NAME lite-helpers SOURCES helpers.cc helpers_test.cc)
 set_tests_properties(test_lite-helpers PROPERTIES
         ENVIRONMENT LD_PRELOAD=$<TARGET_FILE:t_lite-mock> LABELS "noptest")
 

@@ -64,13 +64,11 @@ add_aktualizr_test(NAME aktualizr_secondary_config
 
 add_aktualizr_test(NAME aktualizr_secondary_update
                    SOURCES update_test.cc
-                   ARGS ${PROJECT_BINARY_DIR}/ostree_repo
                    PROJECT_WORKING_DIRECTORY LIBRARIES aktualizr_secondary_lib)
 
 if(BUILD_OSTREE)
     add_aktualizr_test(NAME aktualizr_secondary_uptane_verification
                        SOURCES uptane_verification_test.cc
-                       ARGS ${PROJECT_BINARY_DIR}/ostree_repo
                        LIBRARIES aktualizr_secondary_lib uptane_generator_lib $<TARGET_OBJECTS:campaign>
                        PROJECT_WORKING_DIRECTORY )
 
@@ -80,7 +78,7 @@ if(BUILD_OSTREE)
     add_aktualizr_test(NAME aktualizr_secondary_uptane
                        SOURCES uptane_test.cc
                        LIBRARIES aktualizr_secondary_lib uptane_generator_lib virtual_secondary $<TARGET_OBJECTS:campaign> $<TARGET_OBJECTS:primary> $<TARGET_OBJECTS:http>
-                       ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
+                       PROJECT_WORKING_DIRECTORY)
 else(BUILD_OSTREE)
     list(APPEND TEST_SOURCES uptane_verification_test.cc uptane_test.cc)
 endif(BUILD_OSTREE)
