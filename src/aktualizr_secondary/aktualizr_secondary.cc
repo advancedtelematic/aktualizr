@@ -269,7 +269,7 @@ bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
   }
 
   // 10. Verify that Targets metadata from the Director and Image repositories match.
-  if (!(director_repo_.getTargets() == *image_repo_.getTargets())) {
+  if (!director_repo_.matchTargetsWithImageTargets(*(image_repo_.getTargets()))) {
     LOG_ERROR << "Targets metadata from the Director and Image repositories DOES NOT match ";
     return false;
   }

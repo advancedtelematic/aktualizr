@@ -131,13 +131,17 @@ class UptaneRepoWrapper {
  public:
   UptaneRepoWrapper() { _uptane_repo.generateRepo(KeyType::kED25519); }
 
-  Metadata addImageFile(const std::string& targetname, const std::string& hardware_id, const std::string& serial) {
+  Metadata addImageFile(const std::string& targetname, const std::string& hardware_id, const std::string& serial,
+                        bool add_and_sign_target = true) {
     const auto image_file_path = _root_dir / targetname;
     boost::filesystem::ofstream(image_file_path) << "some data";
 
     _uptane_repo.addImage(image_file_path, targetname, hardware_id, "", Delegation());
-    _uptane_repo.addTarget(targetname, hardware_id, serial, "");
-    _uptane_repo.signTargets();
+
+    if (add_and_sign_target) {
+      _uptane_repo.addTarget(targetname, hardware_id, serial, "");
+      _uptane_repo.signTargets();
+    }
 
     return getCurrentMetadata();
   }
@@ -346,6 +350,14 @@ TEST_F(SecondaryUptaneVerificationTest, fullUptaneVerificationPositive) {
   EXPECT_TRUE(_secondary->sendFirmwareResp(getImageData()));
 }
 
+TEST_F(SecondaryUptaneVerificationTest, TwoImagesAndOneTarget) {
+  // two images for the same ECU, just one of them is added as a target and signed
+  // default image and corresponding target has been already added, just add another image
+  _uptane_repo.addImageFile("second_image_00", _secondary->getHwIdResp().ToString(),
+                            _secondary->getSerialResp().ToString(), false);
+  EXPECT_TRUE(_secondary->putMetadataResp(_uptane_repo.getCurrentMetadata()));
+}
+
 TEST_F(SecondaryUptaneVerificationTest, IncorrectTargetQuantity) {
   {
     // two targets for the same ECU
@@ -386,7 +398,6 @@ TEST_F(SecondaryUptaneVerificationTest, InvalidImageData) {
   EXPECT_FALSE(_secondary->sendFirmwareResp(image_data));
 }
 
-#ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
@@ -402,7 +413,6 @@ int main(int argc, char** argv) {
 
   return RUN_ALL_TESTS();
 }
-#endif
 
 extern "C" OstreeDeployment* ostree_sysroot_get_booted_deployment(OstreeSysroot* ostree_sysroot) {
   return OstreeSecondaryUptaneVerificationTest::curOstreeDeployment(ostree_sysroot);
