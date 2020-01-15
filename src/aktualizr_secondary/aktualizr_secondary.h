@@ -27,14 +27,14 @@ class AktualizrSecondary : public Uptane::SecondaryInterface {
                      const std::shared_ptr<KeyManager>& key_mngr,
                      const std::shared_ptr<PackageManagerInterface>& pacman);
 
-  Uptane::EcuSerial getSerial() override;
-  Uptane::HardwareIdentifier getHwId() override;
-  PublicKey getPublicKey() override;
-  Json::Value getManifest() override;
+  Uptane::EcuSerial getSerial() const override;
+  Uptane::HardwareIdentifier getHwId() const override;
+  PublicKey getPublicKey() const override;
+  Json::Value getManifest() const override;
   bool putMetadata(const Uptane::RawMetaPack& meta_pack) override;
-  int32_t getRootVersion(bool director) override;
+  int32_t getRootVersion(bool director) const override;
   bool putRoot(const std::string& root, bool director) override;
-  bool sendFirmware(const std::shared_ptr<std::string>& firmware) override;
+  bool sendFirmware(const std::string& firmware) override;
 
   static void extractCredentialsArchive(const std::string& archive, std::string* ca, std::string* cert,
                                         std::string* pkey, std::string* treehub_server);

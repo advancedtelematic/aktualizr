@@ -109,7 +109,7 @@ bool ManagedSecondary::putMetadata(const Uptane::RawMetaPack &meta_pack) {
   return true;
 }
 
-int ManagedSecondary::getRootVersion(const bool director) {
+int ManagedSecondary::getRootVersion(const bool director) const {
   if (director) {
     return current_meta.director_root.version();
   }
@@ -138,7 +138,7 @@ bool ManagedSecondary::putRoot(const std::string &root, const bool director) {
   return true;
 }
 
-bool ManagedSecondary::sendFirmware(const std::shared_ptr<std::string> &data) {
+bool ManagedSecondary::sendFirmware(const std::string &data) {
   std::lock_guard<std::mutex> l(install_mutex);
 
   if (expected_target_name.empty()) {
@@ -148,7 +148,7 @@ bool ManagedSecondary::sendFirmware(const std::shared_ptr<std::string> &data) {
     return false;
   }
 
-  if (data->size() > static_cast<size_t>(expected_target_length)) {
+  if (data.size() > static_cast<size_t>(expected_target_length)) {
     detected_attack = "overflow";
     return false;
   }
@@ -156,13 +156,13 @@ bool ManagedSecondary::sendFirmware(const std::shared_ptr<std::string> &data) {
   std::vector<Uptane::Hash>::const_iterator it;
   for (it = expected_target_hashes.begin(); it != expected_target_hashes.end(); it++) {
     if (it->TypeString() == "sha256") {
-      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(*data))) !=
+      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(data))) !=
           boost::algorithm::to_lower_copy(it->HashString())) {
         detected_attack = "wrong_hash";
         return false;
       }
     } else if (it->TypeString() == "sha512") {
-      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(*data))) !=
+      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(data))) !=
           boost::algorithm::to_lower_copy(it->HashString())) {
         detected_attack = "wrong_hash";
         return false;
@@ -170,11 +170,11 @@ bool ManagedSecondary::sendFirmware(const std::shared_ptr<std::string> &data) {
     }
   }
   detected_attack = "";
-  const bool result = storeFirmware(expected_target_name, *data);
+  const bool result = storeFirmware(expected_target_name, data);
   return result;
 }
 
-Json::Value ManagedSecondary::getManifest() {
+Json::Value ManagedSecondary::getManifest() const {
   std::string hash;
   std::string targetname;
   size_t target_len;

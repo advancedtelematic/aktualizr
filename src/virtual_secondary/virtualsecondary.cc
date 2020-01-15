@@ -78,7 +78,7 @@ bool VirtualSecondary::storeFirmware(const std::string& target_name, const std::
   return true;
 }
 
-bool VirtualSecondary::getFirmwareInfo(std::string* target_name, size_t& target_len, std::string* sha256hash) {
+bool VirtualSecondary::getFirmwareInfo(std::string* target_name, size_t& target_len, std::string* sha256hash) const {
   std::string content;
 
   if (!boost::filesystem::exists(sconfig.target_name_path) || !boost::filesystem::exists(sconfig.firmware_path)) {

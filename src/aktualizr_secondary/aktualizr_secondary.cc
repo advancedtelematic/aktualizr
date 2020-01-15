@@ -23,13 +23,13 @@ AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig& config,
   }
 }
 
-Uptane::EcuSerial AktualizrSecondary::getSerial() { return ecu_serial_; }
+Uptane::EcuSerial AktualizrSecondary::getSerial() const { return ecu_serial_; }
 
-Uptane::HardwareIdentifier AktualizrSecondary::getHwId() { return hardware_id_; }
+Uptane::HardwareIdentifier AktualizrSecondary::getHwId() const { return hardware_id_; }
 
-PublicKey AktualizrSecondary::getPublicKey() { return keys_->UptanePublicKey(); }
+PublicKey AktualizrSecondary::getPublicKey() const { return keys_->UptanePublicKey(); }
 
-Json::Value AktualizrSecondary::getManifest() {
+Json::Value AktualizrSecondary::getManifest() const {
   Json::Value manifest = pacman_->getManifest(getSerial());
 
   return keys_->signTuf(manifest);
@@ -39,7 +39,7 @@ bool AktualizrSecondary::putMetadata(const Uptane::RawMetaPack& meta_pack) {
   return doFullVerification(Metadata(meta_pack));
 }
 
-int32_t AktualizrSecondary::getRootVersion(bool director) {
+int32_t AktualizrSecondary::getRootVersion(bool director) const {
   std::string root_meta;
   if (!storage_->loadLatestRoot(&root_meta,
                                 (director) ? Uptane::RepositoryType::Director() : Uptane::RepositoryType::Image())) {
@@ -59,7 +59,7 @@ bool AktualizrSecondary::putRoot(const std::string& root, bool director) {
 
 bool AktualizrSecondary::putMetadata(const Metadata& metadata) { return doFullVerification(metadata); }
 
-bool AktualizrSecondary::sendFirmware(const std::shared_ptr<std::string>& firmware) {
+bool AktualizrSecondary::sendFirmware(const std::string& firmware) {
   auto targetsForThisEcu = director_repo_.getTargets(getSerial(), getHwId());
 
   if (targetsForThisEcu.size() != 1) {
@@ -69,13 +69,13 @@ bool AktualizrSecondary::sendFirmware(const std::shared_ptr<std::string>& firmwa
   auto target_to_apply = targetsForThisEcu[0];
 
   std::string treehub_server;
-  std::size_t firmware_size = firmware->length();
+  std::size_t firmware_size = firmware.length();
 
   if (target_to_apply.IsOstree()) {
     // this is the ostree specific case
     try {
       std::string ca, cert, pkey, server_url;
-      extractCredentialsArchive(*firmware, &ca, &cert, &pkey, &server_url);
+      extractCredentialsArchive(firmware, &ca, &cert, &pkey, &server_url);
       keys_->loadKeys(&ca, &cert, &pkey);
       boost::trim(server_url);
       treehub_server = server_url;
@@ -110,7 +110,7 @@ bool AktualizrSecondary::sendFirmware(const std::shared_ptr<std::string>& firmwa
 
   if (target_to_apply.length() != firmware_size) {
     LOG_ERROR << "The target image size specified in metadata " << target_to_apply.length()
-              << " does not match actual size " << firmware->length();
+              << " does not match actual size " << firmware.length();
     return false;
   }
 
@@ -122,7 +122,7 @@ bool AktualizrSecondary::sendFirmware(const std::shared_ptr<std::string>& firmwa
     }
 
     try {
-      auto received_image_data_hash = Uptane::Hash::generate(target_hashes[0].type(), *firmware);
+      auto received_image_data_hash = Uptane::Hash::generate(target_hashes[0].type(), firmware);
 
       if (!target_to_apply.MatchHash(received_image_data_hash)) {
         LOG_ERROR << "The received image data hash doesn't match the hash specified in the target metadata,"

@@ -20,16 +20,15 @@ class IpUptaneSecondary : public SecondaryInterface {
                              HardwareIdentifier hw_id, PublicKey pub_key);
 
   // It looks more natural to return const EcuSerial& and const Uptane::HardwareIdentifier&
-  // and they should be 'const' methods
-  EcuSerial getSerial() /*const*/ override { return serial_; };
-  Uptane::HardwareIdentifier getHwId() /*const*/ override { return hw_id_; }
-  PublicKey getPublicKey() /*const*/ override { return pub_key_; }
+  EcuSerial getSerial() const override { return serial_; };
+  Uptane::HardwareIdentifier getHwId() const override { return hw_id_; }
+  PublicKey getPublicKey() const override { return pub_key_; }
 
   bool putMetadata(const RawMetaPack& meta_pack) override;
-  int32_t getRootVersion(bool /* director */) override { return 0; }
+  int32_t getRootVersion(bool /* director */) const override { return 0; }
   bool putRoot(const std::string& /* root */, bool /* director */) override { return true; }
-  bool sendFirmware(const std::shared_ptr<std::string>& data) override;
-  Json::Value getManifest() override;
+  bool sendFirmware(const std::string& data) override;
+  Json::Value getManifest() const override;
 
  private:
   const std::pair<std::string, uint16_t>& getAddr() const { return addr_; }

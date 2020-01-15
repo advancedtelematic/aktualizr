@@ -1131,7 +1131,7 @@ std::future<bool> SotaUptaneClient::sendFirmwareAsync(Uptane::SecondaryInterface
     const std::string &correlation_id = director_repo.getCorrelationId();
     sendEvent<event::InstallStarted>(secondary.getSerial());
     report_queue->enqueue(std_::make_unique<EcuInstallationStartedReport>(secondary.getSerial(), correlation_id));
-    bool ret = secondary.sendFirmware(data);
+    bool ret = secondary.sendFirmware(*data);
     report_queue->enqueue(
         std_::make_unique<EcuInstallationCompletedReport>(secondary.getSerial(), correlation_id, ret));
     sendEvent<event::InstallTargetComplete>(secondary.getSerial(), ret);

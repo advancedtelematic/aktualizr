@@ -73,9 +73,9 @@ class UptaneRepoWrapper {
     return metadata;
   }
 
-  std::shared_ptr<std::string> getImageData(const std::string& targetname) const {
-    auto image_data = std::make_shared<std::string>();
-    boost::filesystem::load_string_file(_root_dir / targetname, *image_data);
+  std::string getImageData(const std::string& targetname) const {
+    std::string image_data;
+    boost::filesystem::load_string_file(_root_dir / targetname, image_data);
     return image_data;
   }
 
@@ -92,7 +92,7 @@ class SecondaryTest : public ::testing::Test {
     _uptane_repo.addImageFile(_default_target, _secondary->getHwId().ToString(), _secondary->getSerial().ToString());
   }
 
-  std::shared_ptr<std::string> getImageData(const std::string& targetname = _default_target) const {
+  std::string getImageData(const std::string& targetname = _default_target) const {
     return _uptane_repo.getImageData(targetname);
   }
 
@@ -194,14 +194,14 @@ TEST_F(SecondaryTest, InvalidImageFileSize) {
   EXPECT_TRUE(_secondary->putMetadata(_uptane_repo.getCurrentMetadata()));
 
   auto image_data = getImageData();
-  image_data->append("\n");
+  image_data.append("\n");
   EXPECT_FALSE(_secondary->sendFirmware(image_data));
 }
 
 TEST_F(SecondaryTest, InvalidImageData) {
   EXPECT_TRUE(_secondary->putMetadata(_uptane_repo.getCurrentMetadata()));
   auto image_data = getImageData();
-  image_data->operator[](3) = '0';
+  image_data[3] = '0';
   EXPECT_FALSE(_secondary->sendFirmware(image_data));
 }
 

@@ -220,14 +220,14 @@ class SecondaryOstreeTest : public ::testing::Test {
 
   Uptane::RawMetaPack currentMetadata() const { return _uptane_repo.getCurrentMetadata(); }
 
-  std::shared_ptr<std::string> getCredsToSend() const {
+  std::string getCredsToSend() const {
     std::map<std::string, std::string> creds_map = {
         {"ca.pem", ""}, {"client.pem", ""}, {"pkey.pem", ""}, {"server.url", _treehub->url()}};
 
     std::stringstream creads_strstream;
     Utils::writeArchive(creds_map, creads_strstream);
 
-    return std::make_shared<std::string>(creads_strstream.str());
+    return creads_strstream.str();
   }
 
   Uptane::Hash treehubCurRev() const { return Uptane::Hash(Uptane::Hash::Type::kSha256, _treehub->curRev()); }
