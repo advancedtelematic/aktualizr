@@ -373,7 +373,7 @@ app-docker-image:
   before_script:
     - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
   script:
-    - sed 's@$BUILDER@'$UBUNTU_BIONIC_MASTER_IMAGE'@' ./ci/gitlab/Dockerfile.aktualizr > ./ci/gitlab/Dockerfile
+    - sed 's@advancedtelematic/aktualizr-base@'$UBUNTU_BIONIC_MASTER_IMAGE'@' ./docker/Dockerfile.aktualizr > ./ci/gitlab/Dockerfile
     - docker build -t $CI_REGISTRY_IMAGE/app:ci-$CI_COMMIT_REF_SLUG -f ./ci/gitlab/Dockerfile .
     - docker push $CI_REGISTRY_IMAGE/app:ci-$CI_COMMIT_REF_SLUG
 
