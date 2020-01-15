@@ -2,17 +2,34 @@
 
 This file summarizes notable changes introduced in aktualizr version. It roughly follows the guidelines from [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new release is deemed necessary. Thus it does not exactly map to months of the year.
+Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new release is issued. Thus `N` does not necessarily map to months of the year.
 
 ## [??? (unreleased)]
+
+
+## [2020.1] - 2020-01-17
 
 ### Added
 
 - Basic file update on IP Secondaries: [PR](https://github.com/advancedtelematic/aktualizr/pull/1518)
 
+### Changed
+
+- Increased Targets metadata file size limit: [PR](https://github.com/advancedtelematic/aktualizr/pull/1476)
+- Check and fetch root metadata according to the Uptane standard: [PR](https://github.com/advancedtelematic/aktualizr/pull/1501)
+- Don't fetch Snapshot or Targets metadata if we already have the latest: [PR](https://github.com/advancedtelematic/aktualizr/pull/1503)
+- Dynamically link aktualizr and the tests with libaktualizr as shared library: [PR](https://github.com/advancedtelematic/aktualizr/pull/1512)
+- Reject all targets if one doesn't match: [PR](https://github.com/advancedtelematic/aktualizr/pull/1510)
+
 ### Fixed
 
+- Do not provision if the Primary times out while connecting to Secondaries: [PR](https://github.com/advancedtelematic/aktualizr/pull/1491)
+- Use a bool type instead of a string in the virtual secondary config: [PR](https://github.com/advancedtelematic/aktualizr/pull/1505)
+- Correctly read blob data with null terminators from the SQL database: [PR](https://github.com/advancedtelematic/aktualizr/pull/1502)
+- Report installation failure if download or target matching fails: [PR](https://github.com/advancedtelematic/aktualizr/pull/1510)
+- Disk space is now checked before downloading binary files to ensure sufficient available disk space: [PR](https://github.com/advancedtelematic/aktualizr/pull/1520)
 - Fixed several issues with OSTree updates on IP Secondaries: [PR](https://github.com/advancedtelematic/aktualizr/pull/1518)
+
 
 ## [2019.11] - 2019-12-12
 
