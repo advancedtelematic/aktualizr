@@ -891,8 +891,18 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
     }
   }
 
+  // wait some time for secondaries to come up
+  // note: this fail after a time out but will be retried at the next install
+  // phase if the targets have not been changed. This is done to avoid being
+  // stuck in an unrecoverable state here
+  if (!waitSecondariesReachable(updates)) {
+    result.dev_report = {false, data::ResultCode::Numeric::kInternalError, ""};
+    return result;
+  }
+
   // Uptane step 5 (send time to all ECUs) is not implemented yet.
   std::vector<Uptane::Target> primary_updates = findForEcu(updates, primary_ecu_serial);
+
   //   6 - send metadata to all the ECUs
   sendMetadataToEcus(updates);
 
@@ -1079,6 +1089,55 @@ void SotaUptaneClient::verifySecondaries() {
   storage->storeMisconfiguredEcus(misconfigured_ecus);
 }
 
+bool SotaUptaneClient::waitSecondariesReachable(const std::vector<Uptane::Target> &updates) {
+  std::map<Uptane::EcuSerial, Uptane::SecondaryInterface *> targeted_secondaries;
+  const Uptane::EcuSerial &primary_ecu_serial = primaryEcuSerial();
+  for (const auto &t : updates) {
+    for (const auto &ecu : t.ecus()) {
+      if (ecu.first == primary_ecu_serial) {
+        continue;
+      }
+      auto f = getSecondary(ecu.first);
+      if (f == nullptr) {
+        LOG_ERROR << "Target " << t << " has unknown ECU ID";
+        continue;
+      }
+
+      targeted_secondaries[ecu.first] = f->second.get();
+    }
+  }
+
+  if (targeted_secondaries.empty()) {
+    return true;
+  }
+
+  LOG_INFO << "Waiting for secondaries to connect to start installation...";
+
+  auto deadline = std::chrono::system_clock::now() + std::chrono::minutes(10);
+  while (std::chrono::system_clock::now() <= deadline) {
+    if (targeted_secondaries.empty()) {
+      return true;
+    }
+
+    for (auto sec_it = targeted_secondaries.begin(); sec_it != targeted_secondaries.end();) {
+      if (sec_it->second->ping()) {
+        sec_it = targeted_secondaries.erase(sec_it);
+      } else {
+        sec_it++;
+      }
+    }
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+  }
+
+  LOG_ERROR << "Secondaries did not connect: ";
+
+  for (const auto &sec : targeted_secondaries) {
+    LOG_ERROR << sec.second->getSerial();
+  }
+
+  return false;
+}
+
 void SotaUptaneClient::storeInstallationFailure(const data::InstallationResult &result) {
   // Store installation report to inform Director of the update failure before
   // we actually got to the install step.
@@ -1147,7 +1206,6 @@ void SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &tar
     return;
   }
 
-  // target images should already have been downloaded to metadata_path/targets/
   for (auto targets_it = targets.cbegin(); targets_it != targets.cend(); ++targets_it) {
     for (auto ecus_it = targets_it->ecus().cbegin(); ecus_it != targets_it->ecus().cend(); ++ecus_it) {
       const Uptane::EcuSerial ecu_serial = ecus_it->first;
