@@ -3,6 +3,7 @@
 #include <ostree.h>
 #include <boost/process.hpp>
 #include "aktualizr_secondary.h"
+#include "aktualizr_secondary_factory.h"
 #include "package_manager/ostreemanager.h"
 #include "test_utils.h"
 #include "uptane_repo.h"
@@ -92,26 +93,26 @@ class AktualizrSecondaryWrapper {
     config.storage.type = StorageType::kSqlite;
 
     _storage = INvStorage::newStorage(config.storage);
-    _secondary = std::make_shared<AktualizrSecondary>(config, _storage);
+    _secondary = AktualizrSecondaryFactory::create(config, _storage);
   }
 
  public:
-  std::shared_ptr<AktualizrSecondary>& operator->() { return _secondary; }
+  AktualizrSecondary::Ptr& operator->() { return _secondary; }
 
   Uptane::Target getPendingVersion() const {
     boost::optional<Uptane::Target> pending_target;
 
-    _storage->loadInstalledVersions(_secondary->getSerialResp().ToString(), nullptr, &pending_target);
+    _storage->loadInstalledVersions(_secondary->getSerial().ToString(), nullptr, &pending_target);
     return *pending_target;
   }
 
-  std::string hardwareID() const { return _secondary->getHwIdResp().ToString(); }
+  std::string hardwareID() const { return _secondary->getHwId().ToString(); }
 
-  std::string serial() const { return _secondary->getSerialResp().ToString(); }
+  std::string serial() const { return _secondary->getSerial().ToString(); }
 
  private:
   TemporaryDirectory _storage_dir;
-  std::shared_ptr<AktualizrSecondary> _secondary;
+  AktualizrSecondary::Ptr _secondary;
   std::shared_ptr<INvStorage> _storage;
 };
 
@@ -204,9 +205,10 @@ class SecondaryOstreeTest : public ::testing::Test {
  protected:
   SecondaryOstreeTest() {}
 
-  Metadata addDefaultTarget() { return addTarget(_treehub->curRev()); }
+  Uptane::RawMetaPack addDefaultTarget() { return addTarget(_treehub->curRev()); }
 
-  Metadata addTarget(const std::string& rev = "", const std::string& hardware_id = "", const std::string& serial = "") {
+  Uptane::RawMetaPack addTarget(const std::string& rev = "", const std::string& hardware_id = "",
+                                const std::string& serial = "") {
     auto rev_to_apply = rev.empty() ? _treehub->curRev() : rev;
     auto hw_id = hardware_id.empty() ? _secondary.hardwareID() : hardware_id;
     auto serial_id = serial.empty() ? _secondary.serial() : serial;
@@ -216,7 +218,7 @@ class SecondaryOstreeTest : public ::testing::Test {
     return currentMetadata();
   }
 
-  Metadata currentMetadata() const { return _uptane_repo.getCurrentMetadata(); }
+  Uptane::RawMetaPack currentMetadata() const { return _uptane_repo.getCurrentMetadata(); }
 
   std::shared_ptr<std::string> getCredsToSend() const {
     std::map<std::string, std::string> creds_map = {
@@ -244,23 +246,23 @@ std::string SecondaryOstreeTest::_ostree_rootfs_template{"./build/ostree_repo"};
 std::shared_ptr<OstreeRootfs> SecondaryOstreeTest::_sysroot{nullptr};
 
 TEST_F(SecondaryOstreeTest, fullUptaneVerificationPositive) {
-  EXPECT_TRUE(_secondary->putMetadataResp(addDefaultTarget()));
-  EXPECT_TRUE(_secondary->sendFirmwareResp(getCredsToSend()));
+  EXPECT_TRUE(_secondary->putMetadata(addDefaultTarget()));
+  EXPECT_TRUE(_secondary->sendFirmware(getCredsToSend()));
   EXPECT_TRUE(_secondary.getPendingVersion().MatchHash(treehubCurRev()));
   // TODO: emulate reboot and check installed version once ostree update finalization is supported by secondary
 }
 
 TEST_F(SecondaryOstreeTest, fullUptaneVerificationInvalidRevision) {
-  EXPECT_TRUE(_secondary->putMetadataResp(addTarget("invalid-revision")));
-  EXPECT_FALSE(_secondary->sendFirmwareResp(getCredsToSend()));
+  EXPECT_TRUE(_secondary->putMetadata(addTarget("invalid-revision")));
+  EXPECT_FALSE(_secondary->sendFirmware(getCredsToSend()));
 }
 
 TEST_F(SecondaryOstreeTest, fullUptaneVerificationInvalidHwID) {
-  EXPECT_FALSE(_secondary->putMetadataResp(addTarget("", "invalid-hardware-id", "")));
+  EXPECT_FALSE(_secondary->putMetadata(addTarget("", "invalid-hardware-id", "")));
 }
 
 TEST_F(SecondaryOstreeTest, fullUptaneVerificationInvalidSerial) {
-  EXPECT_FALSE(_secondary->putMetadataResp(addTarget("", "", "invalid-serial-id")));
+  EXPECT_FALSE(_secondary->putMetadata(addTarget("", "", "invalid-serial-id")));
 }
 
 int main(int argc, char** argv) {

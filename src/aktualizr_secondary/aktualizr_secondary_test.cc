@@ -2,6 +2,7 @@
 
 #include <boost/process.hpp>
 #include "aktualizr_secondary.h"
+#include "aktualizr_secondary_factory.h"
 #include "package_manager/ostreemanager.h"
 #include "test_utils.h"
 #include "uptane_repo.h"
@@ -15,27 +16,27 @@ class AktualizrSecondaryWrapper {
     config.storage.path = _storage_dir.Path();
     config.storage.type = StorageType::kSqlite;
 
-    auto storage = INvStorage::newStorage(config.storage);
-    _secondary = std::make_shared<AktualizrSecondary>(config, storage);
+    _storage = INvStorage::newStorage(config.storage);
+    _secondary = AktualizrSecondaryFactory::create(config, _storage);
   }
 
  public:
-  std::shared_ptr<AktualizrSecondary>& operator->() { return _secondary; }
+  AktualizrSecondary::Ptr& operator->() { return _secondary; }
 
   Uptane::Target getPendingVersion() const {
     boost::optional<Uptane::Target> pending_target;
 
-    _storage->loadInstalledVersions(_secondary->getSerialResp().ToString(), nullptr, &pending_target);
+    _storage->loadInstalledVersions(_secondary->getSerial().ToString(), nullptr, &pending_target);
     return *pending_target;
   }
 
-  std::string hardwareID() const { return _secondary->getHwIdResp().ToString(); }
+  std::string hardwareID() const { return _secondary->getHwId().ToString(); }
 
-  std::string serial() const { return _secondary->getSerialResp().ToString(); }
+  std::string serial() const { return _secondary->getSerial().ToString(); }
 
  private:
   TemporaryDirectory _storage_dir;
-  std::shared_ptr<AktualizrSecondary> _secondary;
+  AktualizrSecondary::Ptr _secondary;
   std::shared_ptr<INvStorage> _storage;
 };
 
@@ -43,8 +44,8 @@ class UptaneRepoWrapper {
  public:
   UptaneRepoWrapper() { _uptane_repo.generateRepo(KeyType::kED25519); }
 
-  Metadata addImageFile(const std::string& targetname, const std::string& hardware_id, const std::string& serial,
-                        bool add_and_sign_target = true) {
+  Uptane::RawMetaPack addImageFile(const std::string& targetname, const std::string& hardware_id,
+                                   const std::string& serial, bool add_and_sign_target = true) {
     const auto image_file_path = _root_dir / targetname;
     boost::filesystem::ofstream(image_file_path) << "some data";
 
@@ -88,8 +89,7 @@ class UptaneRepoWrapper {
 class SecondaryTest : public ::testing::Test {
  protected:
   SecondaryTest() {
-    _uptane_repo.addImageFile(_default_target, _secondary->getHwIdResp().ToString(),
-                              _secondary->getSerialResp().ToString());
+    _uptane_repo.addImageFile(_default_target, _secondary->getHwId().ToString(), _secondary->getSerial().ToString());
   }
 
   std::shared_ptr<std::string> getImageData(const std::string& targetname = _default_target) const {
@@ -138,13 +138,13 @@ class SecondaryTestNegative : public SecondaryTest,
  *
  * see INSTANTIATE_TEST_SUITE_P for the test instantiations with concrete parameter values
  */
-TEST_P(SecondaryTestNegative, MalformedMetadaJson) { EXPECT_FALSE(_secondary->putMetadataResp(currentMetadata())); }
+TEST_P(SecondaryTestNegative, MalformedMetadaJson) { EXPECT_FALSE(_secondary->putMetadata(currentMetadata())); }
 
 /**
  * Instantiates the parameterized test for each specified value of std::pair<Uptane::RepositoryType, Uptane::Role>
  * the parameter value indicates which metadata to malform
  */
-INSTANTIATE_TEST_SUITE_P(SecondaryUptaneVerificationMalformedMetadata, SecondaryTestNegative,
+INSTANTIATE_TEST_SUITE_P(SecondaryTestMalformedMetadata, SecondaryTestNegative,
                          ::testing::Values(std::make_pair(Uptane::RepositoryType::Director(), Uptane::Role::Root()),
                                            std::make_pair(Uptane::RepositoryType::Director(), Uptane::Role::Targets()),
                                            std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Root()),
@@ -153,56 +153,56 @@ INSTANTIATE_TEST_SUITE_P(SecondaryUptaneVerificationMalformedMetadata, Secondary
                                            std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Targets())));
 
 TEST_F(SecondaryTest, fullUptaneVerificationPositive) {
-  EXPECT_TRUE(_secondary->putMetadataResp(_uptane_repo.getCurrentMetadata()));
-  EXPECT_TRUE(_secondary->sendFirmwareResp(getImageData()));
+  EXPECT_TRUE(_secondary->putMetadata(_uptane_repo.getCurrentMetadata()));
+  EXPECT_TRUE(_secondary->sendFirmware(getImageData()));
 }
 
 TEST_F(SecondaryTest, TwoImagesAndOneTarget) {
   // two images for the same ECU, just one of them is added as a target and signed
   // default image and corresponding target has been already added, just add another image
-  _uptane_repo.addImageFile("second_image_00", _secondary->getHwIdResp().ToString(),
-                            _secondary->getSerialResp().ToString(), false);
-  EXPECT_TRUE(_secondary->putMetadataResp(_uptane_repo.getCurrentMetadata()));
+  _uptane_repo.addImageFile("second_image_00", _secondary->getHwId().ToString(), _secondary->getSerial().ToString(),
+                            false);
+  EXPECT_TRUE(_secondary->putMetadata(_uptane_repo.getCurrentMetadata()));
 }
 
 TEST_F(SecondaryTest, IncorrectTargetQuantity) {
   {
     // two targets for the same ECU
-    _uptane_repo.addImageFile("second_target", _secondary->getHwIdResp().ToString(),
-                              _secondary->getSerialResp().ToString());
+    _uptane_repo.addImageFile("second_target", _secondary->getHwId().ToString(), _secondary->getSerial().ToString());
 
-    EXPECT_FALSE(_secondary->putMetadataResp(_uptane_repo.getCurrentMetadata()));
+    EXPECT_FALSE(_secondary->putMetadata(_uptane_repo.getCurrentMetadata()));
   }
 
   {
     // zero targets for the ECU being tested
     auto metadata =
-        UptaneRepoWrapper().addImageFile("mytarget", _secondary->getHwIdResp().ToString(), "non-existing-serial");
+        UptaneRepoWrapper().addImageFile("mytarget", _secondary->getHwId().ToString(), "non-existing-serial");
 
-    EXPECT_FALSE(_secondary->putMetadataResp(metadata));
+    EXPECT_FALSE(_secondary->putMetadata(metadata));
   }
 
   {
     // zero targets for the ECU being tested
     auto metadata =
-        UptaneRepoWrapper().addImageFile("mytarget", "non-existig-hwid", _secondary->getSerialResp().ToString());
+        UptaneRepoWrapper().addImageFile("mytarget", "non-existig-hwid", _secondary->getSerial().ToString());
 
-    EXPECT_FALSE(_secondary->putMetadataResp(metadata));
+    EXPECT_FALSE(_secondary->putMetadata(metadata));
   }
 }
 
 TEST_F(SecondaryTest, InvalidImageFileSize) {
-  EXPECT_TRUE(_secondary->putMetadataResp(_uptane_repo.getCurrentMetadata()));
+  EXPECT_TRUE(_secondary->putMetadata(_uptane_repo.getCurrentMetadata()));
+
   auto image_data = getImageData();
   image_data->append("\n");
-  EXPECT_FALSE(_secondary->sendFirmwareResp(image_data));
+  EXPECT_FALSE(_secondary->sendFirmware(image_data));
 }
 
 TEST_F(SecondaryTest, InvalidImageData) {
-  EXPECT_TRUE(_secondary->putMetadataResp(_uptane_repo.getCurrentMetadata()));
+  EXPECT_TRUE(_secondary->putMetadata(_uptane_repo.getCurrentMetadata()));
   auto image_data = getImageData();
   image_data->operator[](3) = '0';
-  EXPECT_FALSE(_secondary->sendFirmwareResp(image_data));
+  EXPECT_FALSE(_secondary->sendFirmware(image_data));
 }
 
 int main(int argc, char** argv) {

@@ -2,8 +2,8 @@ set(AKTUALIZR_SECONDARY_SRC main.cc)
 
 set(AKTUALIZR_SECONDARY_LIB_SRC
     aktualizr_secondary.cc
+    aktualizr_secondary_factory.cc
     aktualizr_secondary_config.cc
-    aktualizr_secondary_common.cc
     aktualizr_secondary_metadata.cc
     socket_server.cc
     )
@@ -47,9 +47,8 @@ install(TARGETS aktualizr-secondary
 
 set(ALL_AKTUALIZR_SECONDARY_HEADERS
     aktualizr_secondary.h
-    aktualizr_secondary_interface.h
+    aktualizr_secondary_factory.h
     aktualizr_secondary_config.h
-    aktualizr_secondary_common.h
     aktualizr_secondary_metadata.h
     socket_server.h
     )
@@ -63,19 +62,18 @@ add_aktualizr_test(NAME aktualizr_secondary_config
     SOURCES aktualizr_secondary_config_test.cc PROJECT_WORKING_DIRECTORY LIBRARIES aktualizr_secondary_lib)
 
 if(BUILD_OSTREE)
-    add_aktualizr_test(NAME aktualizr_secondary_ostree_test
+    add_aktualizr_test(NAME aktualizr_secondary_ostree
                        SOURCES aktualizr_secondary_ostree_test.cc
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo
                        LIBRARIES aktualizr_secondary_lib uptane_generator_lib $<TARGET_OBJECTS:campaign>
                        PROJECT_WORKING_DIRECTORY)
 
-    set_target_properties(t_aktualizr_secondary_ostree_test PROPERTIES LINK_FLAGS -Wl,--export-dynamic)
-#    target_link_libraries(t_aktualizr_secondary_ostree_test aktualizr_secondary_lib uptane_generator_lib)
+    set_target_properties(t_aktualizr_secondary_ostree PROPERTIES LINK_FLAGS -Wl,--export-dynamic)
 else(BUILD_OSTREE)
     list(APPEND TEST_SOURCES aktualizr_secondary_ostree_test.cc)
 endif(BUILD_OSTREE)
 
-add_aktualizr_test(NAME aktualizr_secondary_test
+add_aktualizr_test(NAME aktualizr_secondary
                    SOURCES aktualizr_secondary_test.cc
                    LIBRARIES aktualizr_secondary_lib uptane_generator_lib $<TARGET_OBJECTS:campaign>)
 
