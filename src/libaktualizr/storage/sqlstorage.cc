@@ -1,6 +1,7 @@
 #include "sqlstorage.h"
 
 #include <sys/stat.h>
+#include <sys/statvfs.h>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -1394,6 +1395,25 @@ void SQLStorage::clearInstallationResults() {
   }
 
   db.commitTransaction();
+}
+
+bool SQLStorage::checkAvailableDiskSpace(const uint64_t required_bytes) const {
+  struct statvfs stvfsbuf {};
+  const int stat_res = statvfs(dbPath().c_str(), &stvfsbuf);
+  if (stat_res < 0) {
+    LOG_WARNING << "Unable to read filesystem statistics: error code " << stat_res;
+    return true;
+  }
+  const uint64_t available_bytes = (stvfsbuf.f_bsize * stvfsbuf.f_bavail);
+  const uint64_t reserved_bytes = 1 << 20;
+
+  if (required_bytes + reserved_bytes < available_bytes) {
+    return true;
+  } else {
+    LOG_ERROR << "Insufficient disk space available to download target! Required: " << required_bytes
+              << ", available: " << available_bytes << ", reserved: " << reserved_bytes;
+    return false;
+  }
 }
 
 boost::optional<std::pair<size_t, std::string>> SQLStorage::checkTargetFile(const Uptane::Target& target) const {
