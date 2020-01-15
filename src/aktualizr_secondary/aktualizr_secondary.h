@@ -3,9 +3,9 @@
 
 #include <memory>
 
-#include "aktualizr_secondary_common.h"
 #include "aktualizr_secondary_config.h"
-#include "aktualizr_secondary_interface.h"
+#include "uptane/secondaryinterface.h"
+
 #include "crypto/keymanager.h"
 #include "socket_server.h"
 #include "storage/invstorage.h"
@@ -17,34 +17,50 @@
 #include "uptane/tuf.h"
 
 #include "aktualizr_secondary_metadata.h"
+#include "package_manager/packagemanagerinterface.h"
 
-class AktualizrSecondary : public AktualizrSecondaryInterface, private AktualizrSecondaryCommon {
+class AktualizrSecondary : public Uptane::SecondaryInterface {
  public:
-  AktualizrSecondary(const AktualizrSecondaryConfig& config, const std::shared_ptr<INvStorage>& storage);
-  void run() override;
-  void stop() override;
+  using Ptr = std::shared_ptr<AktualizrSecondary>;
 
-  // implementation of primary's SecondaryInterface
-  Uptane::EcuSerial getSerialResp() const;
-  Uptane::HardwareIdentifier getHwIdResp() const;
-  PublicKey getPublicKeyResp() const;
-  Json::Value getManifestResp() const;
-  bool putMetadataResp(const Metadata& metadata);
-  int32_t getRootVersionResp(bool director) const;
-  bool putRootResp(const std::string& root, bool director);
-  bool sendFirmwareResp(const std::shared_ptr<std::string>& firmware);
+ public:
+  AktualizrSecondary(const AktualizrSecondaryConfig& config,
+                     const std::shared_ptr<INvStorage>& storage,
+                     const std::shared_ptr<KeyManager>& key_mngr,
+                     const std::shared_ptr<PackageManagerInterface>& pacman);
+
+  Uptane::EcuSerial getSerial() override;
+  Uptane::HardwareIdentifier getHwId() override;
+  PublicKey getPublicKey() override;
+  Json::Value getManifest() override;
+  bool putMetadata(const Uptane::RawMetaPack& meta_pack) override;
+  int32_t getRootVersion(bool director) override;
+  bool putRoot(const std::string& root, bool director) override;
+  bool sendFirmware(const std::shared_ptr<std::string>& firmware) override;
 
   static void extractCredentialsArchive(const std::string& archive, std::string* ca, std::string* cert,
                                         std::string* pkey, std::string* treehub_server);
 
+  bool putMetadata(const Metadata& metadata);
+
  private:
   void connectToPrimary();
   bool doFullVerification(const Metadata& metadata);
+  bool uptaneInitialize();
 
  private:
-  SocketServer socket_server_;
+  AktualizrSecondaryConfig config_;
   Uptane::DirectorRepository director_repo_;
   Uptane::ImagesRepository image_repo_;
+
+  std::shared_ptr<INvStorage> storage_;
+
+  std::shared_ptr<KeyManager> keys_;
+
+  Uptane::EcuSerial ecu_serial_{Uptane::EcuSerial::Unknown()};
+  Uptane::HardwareIdentifier hardware_id_{Uptane::HardwareIdentifier::Unknown()};
+
+  std::shared_ptr<PackageManagerInterface> pacman_;
 };
 
 #endif  // AKTUALIZR_SECONDARY_H
