@@ -84,14 +84,14 @@ bool IpUptaneSecondary::putMetadata(const RawMetaPack& meta_pack) {
   return r->result == AKInstallationResult_success;
 }
 
-bool IpUptaneSecondary::sendFirmware(const std::shared_ptr<std::string>& data) {
+bool IpUptaneSecondary::sendFirmware(const std::string& data) {
   std::lock_guard<std::mutex> l(install_mutex);
   LOG_INFO << "Sending firmware to the secondary";
   Asn1Message::Ptr req(Asn1Message::Empty());
   req->present(AKIpUptaneMes_PR_sendFirmwareReq);
 
   auto m = req->sendFirmwareReq();
-  SetString(&m->firmware, *data);
+  SetString(&m->firmware, data);
   auto resp = Asn1Rpc(req, getAddr());
 
   if (resp->present() != AKIpUptaneMes_PR_sendFirmwareResp) {
@@ -103,7 +103,7 @@ bool IpUptaneSecondary::sendFirmware(const std::shared_ptr<std::string>& data) {
   return r->result == AKInstallationResult_success;
 }
 
-Json::Value IpUptaneSecondary::getManifest() {
+Json::Value IpUptaneSecondary::getManifest() const {
   LOG_INFO << "Getting the manifest key of a secondary";
   Asn1Message::Ptr req(Asn1Message::Empty());
 

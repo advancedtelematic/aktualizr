@@ -13,15 +13,15 @@ class SecondaryMock : public Uptane::SecondaryInterface {
       : _serial(serial), _hdw_id(hdw_id), _pub_key(pub_key), _manifest(manifest) {}
 
  public:
-  virtual Uptane::EcuSerial getSerial() { return _serial; }
-  virtual Uptane::HardwareIdentifier getHwId() { return _hdw_id; }
-  virtual PublicKey getPublicKey() { return _pub_key; }
-  virtual Json::Value getManifest() { return _manifest; }
+  virtual Uptane::EcuSerial getSerial() const { return _serial; }
+  virtual Uptane::HardwareIdentifier getHwId() const { return _hdw_id; }
+  virtual PublicKey getPublicKey() const { return _pub_key; }
+  virtual Json::Value getManifest() const { return _manifest; }
   virtual bool putMetadata(const Uptane::RawMetaPack& meta_pack) {
     _metapack = meta_pack;
     return true;
   }
-  virtual int32_t getRootVersion(bool director) {
+  virtual int32_t getRootVersion(bool director) const {
     (void)director;
     return 0;
   }
@@ -31,8 +31,8 @@ class SecondaryMock : public Uptane::SecondaryInterface {
     return true;
   }
 
-  virtual bool sendFirmware(const std::shared_ptr<std::string>& data) {
-    _data = *data;
+  virtual bool sendFirmware(const std::string& data) {
+    _data = data;
     return true;
   }
 
@@ -88,7 +88,7 @@ TEST(SecondaryTcpServer, TestIpSecondaryRPC) {
   EXPECT_TRUE(meta_pack == secondary._metapack);
 
   std::string firmware = "firmware";
-  EXPECT_TRUE(ip_secondary->sendFirmware(std::make_shared<std::string>(firmware)));
+  EXPECT_TRUE(ip_secondary->sendFirmware(firmware));
   EXPECT_EQ(firmware, secondary._data);
 
   secondary_server.stop();
@@ -116,7 +116,7 @@ TEST(SecondaryTcpServer, TestIpSecondaryIfSecondaryIsNotRunning) {
 
   // expect failures since the secondary is not running
   EXPECT_EQ(ip_secondary->getManifest(), Json::Value());
-  EXPECT_FALSE(ip_secondary->sendFirmware(std::make_shared<std::string>("firmware")));
+  EXPECT_FALSE(ip_secondary->sendFirmware("firmware"));
   EXPECT_FALSE(ip_secondary->putMetadata(meta_pack));
 }
 

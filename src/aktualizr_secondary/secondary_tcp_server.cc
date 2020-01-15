@@ -131,8 +131,7 @@ void SecondaryTcpServer::HandleOneConnection(int socket) {
       } break;
       case AKIpUptaneMes_PR_sendFirmwareReq: {
         auto fw = msg->sendFirmwareReq();
-        auto fw_data = std::make_shared<std::string>(ToString(fw->firmware));
-        auto result = impl_.sendFirmware(fw_data);
+        auto result = impl_.sendFirmware(ToString(fw->firmware));
         resp->present(AKIpUptaneMes_PR_sendFirmwareResp);
         auto r = resp->sendFirmwareResp();
         r->result = result ? AKInstallationResult_success : AKInstallationResult_failure;
