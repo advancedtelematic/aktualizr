@@ -48,11 +48,14 @@ bool Metadata::getRoleMetadata(std::string* result, const Uptane::RepositoryType
   }
 
   if (role == Uptane::Role::Root() && version != Uptane::Version()) {
-    if (repo == Uptane::RepositoryType::Director() && director_root_version != version) {
+    // If requesting a Root version beyond what we have available, fail as
+    // expected. If requesting a version before what is available, just use what
+    // is available, since root rotation isn't supported here.
+    if (repo == Uptane::RepositoryType::Director() && director_root_version < version) {
       LOG_DEBUG << "Requested Director root version " << version << " but only version " << director_root_version
                 << " is available.";
       return false;
-    } else if (repo == Uptane::RepositoryType::Image() && image_root_version != version) {
+    } else if (repo == Uptane::RepositoryType::Image() && image_root_version < version) {
       LOG_DEBUG << "Requested Image repo root version " << version << " but only version " << image_root_version
                 << " is available.";
       return false;
