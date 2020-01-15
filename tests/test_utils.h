@@ -10,6 +10,7 @@
 
 struct TestUtils {
   static std::string getFreePort();
+  static in_port_t getFreePortAsInt();
   static void writePathToConfig(const boost::filesystem::path &toml_in, const boost::filesystem::path &toml_out,
                                 const boost::filesystem::path &storage_path);
   static void waitForServer(const std::string &address);

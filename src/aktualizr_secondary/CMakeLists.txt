@@ -5,7 +5,7 @@ set(AKTUALIZR_SECONDARY_LIB_SRC
     aktualizr_secondary_factory.cc
     aktualizr_secondary_config.cc
     aktualizr_secondary_metadata.cc
-    socket_server.cc
+    secondary_tcp_server.cc
     )
 
 # do not link tests with libaktualizr
@@ -50,7 +50,7 @@ set(ALL_AKTUALIZR_SECONDARY_HEADERS
     aktualizr_secondary_factory.h
     aktualizr_secondary_config.h
     aktualizr_secondary_metadata.h
-    socket_server.h
+    secondary_tcp_server.h
     )
 
 include(AddAktualizrTest)
@@ -60,6 +60,9 @@ list(INSERT TEST_LIBS 0 aktualizr_secondary_lib)
 
 add_aktualizr_test(NAME aktualizr_secondary_config
     SOURCES aktualizr_secondary_config_test.cc PROJECT_WORKING_DIRECTORY LIBRARIES aktualizr_secondary_lib)
+
+add_aktualizr_test(NAME secondary_tcp_server
+                   SOURCES secondary_tcp_server_test.cc PROJECT_WORKING_DIRECTORY)
 
 if(BUILD_OSTREE)
     add_aktualizr_test(NAME aktualizr_secondary_ostree

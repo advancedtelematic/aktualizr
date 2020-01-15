@@ -275,7 +275,10 @@ std::string Utils::genPrettyName() {
 std::string Utils::readFile(const boost::filesystem::path &filename, const bool trim) {
   boost::filesystem::path tmpFilename = filename;
   tmpFilename += ".new";
-
+  // that's kind of dangerous to include a specific use-case business logic
+  // into a generic function used by many use cases
+  // TODO: consider refactoring it, e.g. a generic readFile + a specific one with that includes
+  // the ".new" file handling
   if (boost::filesystem::exists(tmpFilename)) {
     LOG_WARNING << tmpFilename << " was found on FS, removing";
     boost::filesystem::remove(tmpFilename);
@@ -847,24 +850,21 @@ bool operator<(const sockaddr_storage &left, const sockaddr_storage &right) {
   return (res < 0);
 }
 
-Socket::Socket(const std::string &ip, uint16_t port) : sock_address_{} {
-  memset(&sock_address_, 0, sizeof(sock_address_));
-  sock_address_.sin_family = AF_INET;
-  inet_pton(AF_INET, ip.c_str(), &(sock_address_.sin_addr));
-  sock_address_.sin_port = htons(port);
-
+Socket::Socket() {
   socket_fd_ = socket(AF_INET, SOCK_STREAM, 0);
-  if (socket_fd_ < 0) {
+  if (-1 == socket_fd_) {
     throw std::system_error(errno, std::system_category(), "socket");
   }
 }
 
-Socket::~Socket() {
-  shutdown(socket_fd_, SHUT_RDWR);
-  ::close(socket_fd_);
+Socket::~Socket() { ::close(socket_fd_); }
+
+std::string Socket::toString() {
+  auto saddr = Utils::ipGetSockaddr(socket_fd_);
+  return Utils::ipDisplayName(saddr) + ":" + std::to_string(Utils::ipPort(saddr));
 }
 
-int Socket::bind(in_port_t port, bool reuse) {
+void Socket::bind(in_port_t port, bool reuse) {
   sockaddr_in sa{};
   memset(&sa, 0, sizeof(sa));
   sa.sin_family = AF_INET;
@@ -872,15 +872,45 @@ int Socket::bind(in_port_t port, bool reuse) {
   sa.sin_addr.s_addr = htonl(INADDR_ANY);
 
   int reuseaddr = reuse ? 1 : 0;
-  if (setsockopt(socket_fd_, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr)) < 0) {
-    return errno;
+  if (-1 == setsockopt(socket_fd_, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr))) {
+    throw std::system_error(errno, std::system_category(), "socket");
   }
 
-  return ::bind(socket_fd_, reinterpret_cast<const sockaddr *>(&sa), sizeof(sa));
+  if (-1 == ::bind(socket_fd_, reinterpret_cast<const sockaddr *>(&sa), sizeof(sa))) {
+    throw std::system_error(errno, std::system_category(), "socket");
+  }
 }
 
-int Socket::connect() {
-  return ::connect(socket_fd_, reinterpret_cast<const struct sockaddr *>(&sock_address_), sizeof(sock_address_));
+ListenSocket::ListenSocket(in_port_t port) : _port(port) {
+  bind(port);
+  if (_port == 0) {
+    // ephemeral port was bound, find out its real port number
+    auto ephemeral_port = Utils::ipPort(Utils::ipGetSockaddr(socket_fd_));
+    if (-1 != ephemeral_port) {
+      _port = static_cast<in_port_t>(ephemeral_port);
+    }
+  }
+}
+
+ConnectionSocket::ConnectionSocket(const std::string &ip, in_port_t port, in_port_t bind_port)
+    : remote_sock_address_{} {
+  memset(&remote_sock_address_, 0, sizeof(remote_sock_address_));
+  remote_sock_address_.sin_family = AF_INET;
+  if (-1 == inet_pton(AF_INET, ip.c_str(), &(remote_sock_address_.sin_addr))) {
+    throw std::system_error(errno, std::system_category(), "socket");
+  }
+  remote_sock_address_.sin_port = htons(port);
+
+  if (bind_port > 0) {
+    bind(bind_port);
+  }
+}
+
+ConnectionSocket::~ConnectionSocket() { ::shutdown(socket_fd_, SHUT_RDWR); }
+
+int ConnectionSocket::connect() {
+  return ::connect(socket_fd_, reinterpret_cast<const struct sockaddr *>(&remote_sock_address_),
+                   sizeof(remote_sock_address_));
 }
 
 CurlEasyWrapper::CurlEasyWrapper() {

@@ -12,7 +12,6 @@ AktualizrSecondary::Ptr AktualizrSecondaryFactory::create(const AktualizrSeconda
 
 AktualizrSecondary::Ptr AktualizrSecondaryFactory::create(const AktualizrSecondaryConfig& config,
                                                           const std::shared_ptr<INvStorage>& storage) {
-
   auto key_mngr = std::make_shared<KeyManager>(storage, config.keymanagerConfig());
   std::shared_ptr<PackageManagerInterface> pacman =
       PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr);

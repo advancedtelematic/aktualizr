@@ -11,6 +11,7 @@
 #include "utilities/utils.h"
 
 #include "logging/logging.h"
+#include "secondary_tcp_server.h"
 
 namespace bpo = boost::program_options;
 
@@ -87,7 +88,7 @@ int main(int argc, char *argv[]) {
     LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
 
     auto secondary = AktualizrSecondaryFactory::create(config);
-    // secondary->run();
+    SecondaryTcpServer(*secondary, config.network.primary_ip, config.network.primary_port, config.network.port).run();
 
   } catch (std::runtime_error &exc) {
     LOG_ERROR << "Error: " << exc.what();

@@ -14,7 +14,7 @@ std::pair<bool, std::shared_ptr<Uptane::SecondaryInterface>> IpUptaneSecondary::
     const std::string& address, unsigned short port) {
   LOG_INFO << "Connecting to and getting info about IP Secondary: " << address << ":" << port << "...";
 
-  Socket con_sock{address, port};
+  ConnectionSocket con_sock{address, port};
 
   if (con_sock.connect() != 0) {
     LOG_ERROR << "Failed to connect to a secondary: " << std::strerror(errno);
@@ -24,7 +24,7 @@ std::pair<bool, std::shared_ptr<Uptane::SecondaryInterface>> IpUptaneSecondary::
   LOG_INFO << "Connected to IP Secondary: "
            << "(" << address << ":" << port << ")";
 
-  return create(address, port, con_sock.getFD());
+  return create(address, port, *con_sock);
 }
 
 std::pair<bool, std::shared_ptr<Uptane::SecondaryInterface>> IpUptaneSecondary::create(const std::string& address,

@@ -7,7 +7,6 @@
 #ifdef BUILD_OSTREE
 #include "package_manager/ostreemanager.h"  // TODO: Hide behind PackageManagerInterface
 #endif
-#include "socket_server.h"
 #include "utilities/utils.h"
 
 AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig& config,

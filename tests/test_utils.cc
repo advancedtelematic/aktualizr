@@ -19,7 +19,7 @@
 
 #include "logging/logging.h"
 
-std::string TestUtils::getFreePort() {
+in_port_t TestUtils::getFreePortAsInt() {
   int s = socket(AF_INET, SOCK_STREAM, 0);
   if (s == -1) {
     std::cout << "socket() failed: " << errno;
@@ -42,8 +42,10 @@ std::string TestUtils::getFreePort() {
     throw std::runtime_error("getsockname failed");
   }
   close(s);
-  return std::to_string(ntohs(sa.sin_port));
+  return sa.sin_port;
 }
+
+std::string TestUtils::getFreePort() { return std::to_string(ntohs(getFreePortAsInt())); }
 
 void TestUtils::writePathToConfig(const boost::filesystem::path &toml_in, const boost::filesystem::path &toml_out,
                                   const boost::filesystem::path &storage_path) {

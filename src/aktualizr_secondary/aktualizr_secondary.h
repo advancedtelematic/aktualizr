@@ -7,7 +7,6 @@
 #include "uptane/secondaryinterface.h"
 
 #include "crypto/keymanager.h"
-#include "socket_server.h"
 #include "storage/invstorage.h"
 #include "utilities/types.h"
 #include "utilities/utils.h"
@@ -24,8 +23,7 @@ class AktualizrSecondary : public Uptane::SecondaryInterface {
   using Ptr = std::shared_ptr<AktualizrSecondary>;
 
  public:
-  AktualizrSecondary(const AktualizrSecondaryConfig& config,
-                     const std::shared_ptr<INvStorage>& storage,
+  AktualizrSecondary(const AktualizrSecondaryConfig& config, const std::shared_ptr<INvStorage>& storage,
                      const std::shared_ptr<KeyManager>& key_mngr,
                      const std::shared_ptr<PackageManagerInterface>& pacman);
 
