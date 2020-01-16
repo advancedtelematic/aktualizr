@@ -202,6 +202,7 @@ int main(int argc, char **argv) {
     CLEANUP_AND_RETURN_FAILED;
   }
 
+  Aktualizr_updates_free(u);
   Aktualizr_destroy(a);
 
   Remove_test_config(cfg);
