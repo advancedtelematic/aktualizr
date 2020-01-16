@@ -18,9 +18,9 @@ Repo::Repo(Uptane::RepositoryType repo_type, boost::filesystem::path path, const
     }
   }
 
-  if (repo_type == Uptane::RepositoryType("director")) {
+  if (repo_type_ == Uptane::RepositoryType::Director()) {
     repo_dir_ = path_ / DirectorRepo::dir;
-  } else if (repo_type == Uptane::RepositoryType("image")) {
+  } else if (repo_type_ == Uptane::RepositoryType::Image()) {
     repo_dir_ = path_ / ImageRepo::dir;
   }
 }
@@ -47,25 +47,21 @@ void Repo::addDelegationToSnapshot(Json::Value *snapshot, const Uptane::Role &ro
 }
 
 void Repo::updateRepo() {
-  boost::filesystem::path repo_dir = repo_dir_;
-  Json::Value old_snapshot = Utils::parseJSONFile(repo_dir / "snapshot.json")["signed"];
-
+  const Json::Value old_snapshot = Utils::parseJSONFile(repo_dir_ / "snapshot.json")["signed"];
   Json::Value snapshot;
   snapshot["_type"] = "Snapshot";
   snapshot["expires"] = old_snapshot["expires"];
   snapshot["version"] = (old_snapshot["version"].asUInt()) + 1;
 
-  Json::Value root = Utils::parseJSONFile(repo_dir / "root.json")["signed"];
-  std::string signed_root = Utils::readFile(repo_dir / "root.json");
-
+  const Json::Value root = Utils::parseJSONFile(repo_dir_ / "root.json")["signed"];
   snapshot["meta"]["root.json"]["version"] = root["version"].asUInt();
 
   addDelegationToSnapshot(&snapshot, Uptane::Role::Targets());
 
-  std::string signed_snapshot = Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Snapshot(), snapshot));
-  Utils::writeFile(repo_dir / "snapshot.json", signed_snapshot);
+  const std::string signed_snapshot = Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Snapshot(), snapshot));
+  Utils::writeFile(repo_dir_ / "snapshot.json", signed_snapshot);
 
-  Json::Value timestamp = Utils::parseJSONFile(repo_dir / "timestamp.json")["signed"];
+  Json::Value timestamp = Utils::parseJSONFile(repo_dir_ / "timestamp.json")["signed"];
   timestamp["version"] = (timestamp["version"].asUInt()) + 1;
   timestamp["meta"]["snapshot.json"]["hashes"]["sha256"] =
       boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(signed_snapshot)));
@@ -73,7 +69,7 @@ void Repo::updateRepo() {
       boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(signed_snapshot)));
   timestamp["meta"]["snapshot.json"]["length"] = static_cast<Json::UInt>(signed_snapshot.length());
   timestamp["meta"]["snapshot.json"]["version"] = snapshot["version"].asUInt();
-  Utils::writeFile(repo_dir / "timestamp.json",
+  Utils::writeFile(repo_dir_ / "timestamp.json",
                    Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Timestamp(), timestamp)));
 }
 
@@ -180,7 +176,7 @@ void Repo::generateRepo(KeyType key_type) {
   role["keyids"].append(keys_[Uptane::Role::Timestamp()].public_key.KeyId());
   root["roles"]["timestamp"] = role;
 
-  std::string signed_root = Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Root(), root));
+  const std::string signed_root = Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Root(), root));
   Utils::writeFile(repo_dir_ / "root.json", signed_root);
   Utils::writeFile(repo_dir_ / "1.root.json", signed_root);
 
@@ -192,7 +188,7 @@ void Repo::generateRepo(KeyType key_type) {
   if (repo_type_ == Uptane::RepositoryType::Director() && correlation_id_ != "") {
     targets["custom"]["correlationId"] = correlation_id_;
   }
-  std::string signed_targets = Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Targets(), targets));
+  const std::string signed_targets = Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Targets(), targets));
   Utils::writeFile(repo_dir_ / "targets.json", signed_targets);
 
   Json::Value snapshot;
@@ -278,6 +274,44 @@ void Repo::readKeys() {
     keys_[Uptane::Role(name, !Uptane::Role::IsReserved(name))] =
         KeyPair(PublicKey(public_key_string, key_type), private_key_string);
   }
+}
+
+void Repo::refresh(const Uptane::Role &role) {
+  boost::filesystem::path meta_path = repo_dir_;
+
+  if (repo_type_ == Uptane::RepositoryType::Director() &&
+      (role == Uptane::Role::Timestamp() || role == Uptane::Role::Snapshot())) {
+    throw std::runtime_error("The " + role.ToString() + " in the Director repo is not currently supported.");
+  }
+
+  if (role == Uptane::Role::Root()) {
+    meta_path /= "root.json";
+  } else if (role == Uptane::Role::Timestamp()) {
+    meta_path /= "timestamp.json";
+  } else if (role == Uptane::Role::Snapshot()) {
+    meta_path /= "snapshot.json";
+  } else if (role == Uptane::Role::Targets()) {
+    meta_path /= "targets.json";
+  } else {
+    throw std::runtime_error("Refreshing custom role " + role.ToString() + " is not currently supported.");
+  }
+
+  // The only interesting part here is to increment the version. It could be
+  // interesting to allow changing the expiry, too.
+  Json::Value meta_raw = Utils::parseJSONFile(meta_path)["signed"];
+  const unsigned version = meta_raw["version"].asUInt() + 1;
+  meta_raw["version"] = version;
+  const std::string signed_meta = Utils::jsonToCanonicalStr(signTuf(role, meta_raw));
+  Utils::writeFile(meta_path, signed_meta);
+
+  // Write a new numbered version of the Root if relevant.
+  if (role == Uptane::Role::Root()) {
+    std::stringstream root_name;
+    root_name << version << ".root.json";
+    Utils::writeFile(repo_dir_ / root_name.str(), signed_meta);
+  }
+
+  updateRepo();
 }
 
 Delegation::Delegation(const boost::filesystem::path &repo_path, std::string delegation_name)
