@@ -240,7 +240,7 @@ void Repo::generateCampaigns() const {
   c.estPreparationDuration = 20;
 
   Json::Value json;
-  campaign::JsonFromCampaigns(campaigns, json);
+  campaign::Campaign::JsonFromCampaigns(campaigns, json);
 
   Utils::writeFile(path_ / "campaigns.json", Utils::jsonToCanonicalStr(json));
 }
