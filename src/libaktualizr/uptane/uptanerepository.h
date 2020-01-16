@@ -14,9 +14,9 @@
 
 namespace Uptane {
 
-class Manifest {
+class PrimaryManifest {
  public:
-  Manifest(const Config &config_in, std::shared_ptr<INvStorage> storage_in)
+  PrimaryManifest(const Config &config_in, std::shared_ptr<INvStorage> storage_in)
       : storage_{std::move(storage_in)}, keys_(storage_, config_in.keymanagerConfig()) {}
 
   Json::Value signManifest(const Json::Value &manifest_unsigned) const;

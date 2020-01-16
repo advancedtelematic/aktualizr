@@ -131,10 +131,19 @@ void SecondaryTcpServer::HandleOneConnection(int socket) {
       } break;
       case AKIpUptaneMes_PR_sendFirmwareReq: {
         auto fw = msg->sendFirmwareReq();
-        auto result = impl_.sendFirmware(ToString(fw->firmware));
+        auto send_firmware_result = impl_.sendFirmware(ToString(fw->firmware));
         resp->present(AKIpUptaneMes_PR_sendFirmwareResp);
         auto r = resp->sendFirmwareResp();
-        r->result = result ? AKInstallationResult_success : AKInstallationResult_failure;
+        r->result = send_firmware_result ? AKInstallationResult_success : AKInstallationResult_failure;
+      } break;
+      case AKIpUptaneMes_PR_installReq: {
+        auto request = msg->installReq();
+
+        auto install_result = impl_.install(ToString(request->hash));
+
+        resp->present(AKIpUptaneMes_PR_installResp);
+        auto response_message = resp->installResp();
+        response_message->result = static_cast<AKInstallationResultCode_t>(install_result);
       } break;
       default:
         LOG_ERROR << "Unrecognised message type:" << msg->present();

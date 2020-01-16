@@ -96,7 +96,7 @@ TEST_P(UptaneVector, Test) {
   logger_set_threshold(boost::log::trivial::trace);
 
   auto storage = INvStorage::newStorage(config.storage);
-  Uptane::Manifest uptane_manifest{config, storage};
+  Uptane::PrimaryManifest uptane_manifest{config, storage};
   auto uptane_client = std_::make_unique<SotaUptaneClient>(config, storage);
   Uptane::EcuSerial ecu_serial(config.provision.primary_ecu_serial);
   Uptane::HardwareIdentifier hw_id(config.provision.primary_ecu_hardware_id);

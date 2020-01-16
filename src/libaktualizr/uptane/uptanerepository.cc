@@ -107,7 +107,7 @@ bool RepositoryCommon::updateRoot(INvStorage& storage, const IMetadataFetcher& f
   return !rootExpired();
 }
 
-Json::Value Manifest::signManifest(const Json::Value& manifest_unsigned) const {
+Json::Value PrimaryManifest::signManifest(const Json::Value& manifest_unsigned) const {
   Json::Value manifest = keys_.signTuf(manifest_unsigned);
   return manifest;
 }

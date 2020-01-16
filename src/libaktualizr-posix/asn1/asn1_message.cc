@@ -1,11 +1,9 @@
 #include "asn1_message.h"
-#include "logging/logging.h"
-#include "utilities/dequeue_buffer.h"
-#include "utilities/sockaddr_io.h"
-#include "utilities/utils.h"
-
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
+#include "logging/logging.h"
+#include "utilities/dequeue_buffer.h"
+#include "utilities/utils.h"
 
 #ifndef MSG_NOSIGNAL
 #define MSG_NOSIGNAL 0
@@ -90,7 +88,8 @@ Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, const std::pair<std::string
   ConnectionSocket connection(addr.first, addr.second);
 
   if (connection.connect() < 0) {
-    LOG_ERROR << "Failed to connect to the secondary: " << std::strerror(errno);
+    LOG_ERROR << "Failed to connect to the secondary ( " << addr.first << ":" << addr.second
+              << "): " << std::strerror(errno);
     return Asn1Message::Empty();
   }
   return Asn1Rpc(tx, *connection);

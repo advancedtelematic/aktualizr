@@ -1,6 +1,7 @@
 set(AKTUALIZR_SECONDARY_SRC main.cc)
 
 set(AKTUALIZR_SECONDARY_LIB_SRC
+    update_agent_file.cc
     aktualizr_secondary.cc
     aktualizr_secondary_factory.cc
     aktualizr_secondary_config.cc
@@ -46,6 +47,8 @@ install(TARGETS aktualizr-secondary
         RUNTIME DESTINATION bin)
 
 set(ALL_AKTUALIZR_SECONDARY_HEADERS
+    update_agent.h
+    update_agent_file.h
     aktualizr_secondary.h
     aktualizr_secondary_factory.h
     aktualizr_secondary_config.h
@@ -65,6 +68,10 @@ add_aktualizr_test(NAME secondary_tcp_server
                    SOURCES secondary_tcp_server_test.cc PROJECT_WORKING_DIRECTORY)
 
 if(BUILD_OSTREE)
+    target_sources(aktualizr_secondary_lib PRIVATE update_agent_ostree.cc)
+    list(APPEND  AKTUALIZR_SECONDARY_LIB_SRC update_agent_ostree.cc)
+    list(APPEND ALL_AKTUALIZR_SECONDARY_HEADERS update_agent_ostree.h)
+
     add_aktualizr_test(NAME aktualizr_secondary_ostree
                        SOURCES aktualizr_secondary_ostree_test.cc
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo
@@ -73,7 +80,8 @@ if(BUILD_OSTREE)
 
     set_target_properties(t_aktualizr_secondary_ostree PROPERTIES LINK_FLAGS -Wl,--export-dynamic)
 else(BUILD_OSTREE)
-    list(APPEND TEST_SOURCES aktualizr_secondary_ostree_test.cc)
+    list(APPEND TEST_SOURCES aktualizr_secondary_ostree_test.cc update_agent_ostree.cc)
+    list(APPEND ALL_AKTUALIZR_SECONDARY_HEADERS update_agent_ostree.h)
 endif(BUILD_OSTREE)
 
 add_aktualizr_test(NAME aktualizr_secondary

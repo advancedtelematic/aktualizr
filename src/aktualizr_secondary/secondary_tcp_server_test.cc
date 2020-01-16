@@ -9,14 +9,14 @@
 class SecondaryMock : public Uptane::SecondaryInterface {
  public:
   SecondaryMock(const Uptane::EcuSerial& serial, const Uptane::HardwareIdentifier& hdw_id, const PublicKey& pub_key,
-                const Json::Value& manifest)
+                const Uptane::Manifest& manifest)
       : _serial(serial), _hdw_id(hdw_id), _pub_key(pub_key), _manifest(manifest) {}
 
  public:
   virtual Uptane::EcuSerial getSerial() const { return _serial; }
   virtual Uptane::HardwareIdentifier getHwId() const { return _hdw_id; }
   virtual PublicKey getPublicKey() const { return _pub_key; }
-  virtual Json::Value getManifest() const { return _manifest; }
+  virtual Uptane::Manifest getManifest() const { return _manifest; }
   virtual bool putMetadata(const Uptane::RawMetaPack& meta_pack) {
     _metapack = meta_pack;
     return true;
@@ -36,11 +36,16 @@ class SecondaryMock : public Uptane::SecondaryInterface {
     return true;
   }
 
+  virtual data::ResultCode::Numeric install(const std::string& target_name) {
+    (void)target_name;
+    return data::ResultCode::Numeric::kOk;
+  }
+
  public:
   const Uptane::EcuSerial _serial;
   const Uptane::HardwareIdentifier _hdw_id;
   const PublicKey _pub_key;
-  const Json::Value _manifest;
+  const Uptane::Manifest _manifest;
 
   Uptane::RawMetaPack _metapack;
   std::string _data;
@@ -57,7 +62,7 @@ bool operator==(const Uptane::RawMetaPack& lhs, const Uptane::RawMetaPack& rhs) 
 TEST(SecondaryTcpServer, TestIpSecondaryRPC) {
   // secondary object on Secondary ECU
   SecondaryMock secondary(Uptane::EcuSerial("serial"), Uptane::HardwareIdentifier("hardware-id"),
-                          PublicKey("pub-key", KeyType::kED25519), Json::Value::null);
+                          PublicKey("pub-key", KeyType::kED25519), Uptane::Manifest());
 
   // create Secondary on Secondary ECU, and run it in a dedicated thread
   SecondaryTcpServer secondary_server{secondary};
@@ -66,13 +71,9 @@ TEST(SecondaryTcpServer, TestIpSecondaryRPC) {
   // create Secondary on Primary ECU, try it a few times since the secondary thread
   // might not be ready at the moment of the first try
   const int max_try = 5;
-  std::shared_ptr<Uptane::SecondaryInterface> ip_secondary;
+  Uptane::SecondaryInterface::Ptr ip_secondary;
   for (int ii = 0; ii < max_try && ip_secondary == nullptr; ++ii) {
-    auto secondary_res = Uptane::IpUptaneSecondary::connectAndCreate("localhost", secondary_server.port());
-    if (secondary_res.first) {
-      ip_secondary = secondary_res.second;
-      break;
-    }
+    ip_secondary = Uptane::IpUptaneSecondary::connectAndCreate("localhost", secondary_server.port());
   }
 
   ASSERT_TRUE(ip_secondary != nullptr) << "Failed to create IP Secondary";
@@ -91,19 +92,18 @@ TEST(SecondaryTcpServer, TestIpSecondaryRPC) {
   EXPECT_TRUE(ip_secondary->sendFirmware(firmware));
   EXPECT_EQ(firmware, secondary._data);
 
+  EXPECT_EQ(ip_secondary->install(""), data::ResultCode::Numeric::kOk);
+
   secondary_server.stop();
   secondary_server_thread.join();
 }
 
 TEST(SecondaryTcpServer, TestIpSecondaryIfSecondaryIsNotRunning) {
   in_port_t secondary_port = TestUtils::getFreePortAsInt();
-  std::shared_ptr<Uptane::SecondaryInterface> ip_secondary;
+  Uptane::SecondaryInterface::Ptr ip_secondary;
 
   // trying to connect to a non-running Secondary and create a corresponding instance on Primary
-  auto secondary_res = Uptane::IpUptaneSecondary::connectAndCreate("localhost", secondary_port);
-  if (secondary_res.first) {
-    ip_secondary = secondary_res.second;
-  }
+  ip_secondary = Uptane::IpUptaneSecondary::connectAndCreate("localhost", secondary_port);
   EXPECT_EQ(ip_secondary, nullptr);
 
   // create Primary's secondary without connecting to Secondary
@@ -118,6 +118,7 @@ TEST(SecondaryTcpServer, TestIpSecondaryIfSecondaryIsNotRunning) {
   EXPECT_EQ(ip_secondary->getManifest(), Json::Value());
   EXPECT_FALSE(ip_secondary->sendFirmware("firmware"));
   EXPECT_FALSE(ip_secondary->putMetadata(meta_pack));
+  EXPECT_EQ(ip_secondary->install(""), data::ResultCode::Numeric::kInternalError);
 }
 
 int main(int argc, char** argv) {

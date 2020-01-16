@@ -6,6 +6,14 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ## [??? (unreleased)]
 
+### Added
+
+- Basic file update on IP Secondaries: [PR](https://github.com/advancedtelematic/aktualizr/pull/1518)
+
+### Fixed
+
+- Fixed several issues with OSTree updates on IP Secondaries: [PR](https://github.com/advancedtelematic/aktualizr/pull/1518)
+
 ## [2019.11] - 2019-12-12
 
 ### Added

@@ -17,7 +17,7 @@ class IsoTpSecondary : public SecondaryInterface {
   int getRootVersion(bool director) const override;
   bool putRoot(const std::string& root, bool director) override;
   bool sendFirmware(const std::string& data) override;
-  Json::Value getManifest() const override;
+  Uptane::Manifest getManifest() const override;
 
  private:
   mutable IsoTpSendRecv conn;

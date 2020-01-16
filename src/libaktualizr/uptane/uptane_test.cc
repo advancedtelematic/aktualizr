@@ -535,7 +535,7 @@ class SecondaryInterfaceMock : public Uptane::SecondaryInterface {
     }
     return Uptane::EcuSerial(public_key_.KeyId());
   }
-  Json::Value getManifest() const override { return manifest_; }
+  Uptane::Manifest getManifest() const override { return manifest_; }
   MOCK_METHOD1(putMetadataMock, bool(const Uptane::RawMetaPack &));
   MOCK_CONST_METHOD1(getRootVersionMock, int32_t(bool));
 
@@ -544,6 +544,8 @@ class SecondaryInterfaceMock : public Uptane::SecondaryInterface {
 
   bool putRoot(const std::string &, bool) override { return true; }
   bool sendFirmware(const std::string &) override { return true; }
+  virtual data::ResultCode::Numeric install(const std::string &) override { return data::ResultCode::Numeric::kOk; }
+
   PublicKey public_key_;
   Json::Value manifest_;
 

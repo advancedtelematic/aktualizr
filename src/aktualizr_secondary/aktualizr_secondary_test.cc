@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
 #include <boost/process.hpp>
+
 #include "aktualizr_secondary.h"
 #include "aktualizr_secondary_factory.h"
-#include "package_manager/ostreemanager.h"
 #include "test_utils.h"
 #include "uptane_repo.h"
 
@@ -21,7 +21,7 @@ class AktualizrSecondaryWrapper {
   }
 
  public:
-  AktualizrSecondary::Ptr& operator->() { return _secondary; }
+  std::shared_ptr<AktualizrSecondary>& operator->() { return _secondary; }
 
   Uptane::Target getPendingVersion() const {
     boost::optional<Uptane::Target> pending_target;
@@ -44,13 +44,12 @@ class UptaneRepoWrapper {
  public:
   UptaneRepoWrapper() { _uptane_repo.generateRepo(KeyType::kED25519); }
 
-  Uptane::RawMetaPack addImageFile(const std::string& targetname, const std::string& hardware_id,
-                                   const std::string& serial, bool add_and_sign_target = true) {
+  Metadata addImageFile(const std::string& targetname, const std::string& hardware_id, const std::string& serial,
+                        bool add_and_sign_target = true) {
     const auto image_file_path = _root_dir / targetname;
     boost::filesystem::ofstream(image_file_path) << "some data";
 
     _uptane_repo.addImage(image_file_path, targetname, hardware_id, "", Delegation());
-
     if (add_and_sign_target) {
       _uptane_repo.addTarget(targetname, hardware_id, serial, "");
       _uptane_repo.signTargets();
@@ -155,6 +154,7 @@ INSTANTIATE_TEST_SUITE_P(SecondaryTestMalformedMetadata, SecondaryTestNegative,
 TEST_F(SecondaryTest, fullUptaneVerificationPositive) {
   EXPECT_TRUE(_secondary->putMetadata(_uptane_repo.getCurrentMetadata()));
   EXPECT_TRUE(_secondary->sendFirmware(getImageData()));
+  EXPECT_EQ(_secondary->install(_default_target), data::ResultCode::Numeric::kOk);
 }
 
 TEST_F(SecondaryTest, TwoImagesAndOneTarget) {
@@ -192,7 +192,6 @@ TEST_F(SecondaryTest, IncorrectTargetQuantity) {
 
 TEST_F(SecondaryTest, InvalidImageFileSize) {
   EXPECT_TRUE(_secondary->putMetadata(_uptane_repo.getCurrentMetadata()));
-
   auto image_data = getImageData();
   image_data.append("\n");
   EXPECT_FALSE(_secondary->sendFirmware(image_data));
@@ -201,9 +200,11 @@ TEST_F(SecondaryTest, InvalidImageFileSize) {
 TEST_F(SecondaryTest, InvalidImageData) {
   EXPECT_TRUE(_secondary->putMetadata(_uptane_repo.getCurrentMetadata()));
   auto image_data = getImageData();
-  image_data[3] = '0';
+  image_data.operator[](3) = '0';
   EXPECT_FALSE(_secondary->sendFirmware(image_data));
 }
+
+// TODO: add more tests in case of file/binary based updates
 
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);

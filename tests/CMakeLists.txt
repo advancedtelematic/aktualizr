@@ -189,7 +189,7 @@ set_tests_properties(test_log_negative
 
 add_test(NAME test_ip_secondary
          COMMAND ${PROJECT_SOURCE_DIR}/tests/ipsecondary_test.py
-         --build-dir ${PROJECT_BINARY_DIR} --src-dir ${PROJECT_SOURCE_DIR})
+         --build-dir ${PROJECT_BINARY_DIR} --src-dir ${PROJECT_SOURCE_DIR} --ostree ${BUILD_OSTREE})
 
 add_test(NAME test_backend_failure
          COMMAND ${PROJECT_SOURCE_DIR}/tests/test_backend_failure.py

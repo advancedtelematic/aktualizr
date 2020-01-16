@@ -58,7 +58,9 @@ class ManagedSecondary : public Uptane::SecondaryInterface {
   bool putRoot(const std::string& root, bool director) override;
 
   bool sendFirmware(const std::string& data) override;
-  Json::Value getManifest() const override;
+  data::ResultCode::Numeric install(const std::string& target_name) override;
+
+  Uptane::Manifest getManifest() const override;
 
   bool loadKeys(std::string* pub_key, std::string* priv_key);
 
@@ -79,7 +81,7 @@ class ManagedSecondary : public Uptane::SecondaryInterface {
   std::mutex install_mutex;
 
   virtual bool storeFirmware(const std::string& target_name, const std::string& content) = 0;
-  virtual bool getFirmwareInfo(std::string* target_name, size_t& target_len, std::string* sha256hash) const = 0;
+  virtual bool getFirmwareInfo(Uptane::InstalledImageInfo& firmware_info) const = 0;
 
   void storeKeys(const std::string& pub_key, const std::string& priv_key);
   void rawToMeta();
