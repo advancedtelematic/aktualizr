@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
   Config *cfg;
   int err;
 
-  if (argc != 3) {
+  if (argc < 3) {
     fprintf(stderr, "Incorrect input params\nUsage:\n\t%s FAKE_HTTP_SERVER_PATH META_DIR_PATH\n", argv[0]);
     return EXIT_FAILURE;
   }
