@@ -54,8 +54,6 @@ set(ALL_AKTUALIZR_SECONDARY_HEADERS
     socket_server.h
     )
 
-include(AddAktualizrTest)
-
 # insert in front, so that the order matches the dependencies to the system libraries
 list(INSERT TEST_LIBS 0 aktualizr_secondary_lib)
 

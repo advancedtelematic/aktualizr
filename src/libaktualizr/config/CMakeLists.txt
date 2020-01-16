@@ -1,6 +1,5 @@
 set(HEADERS config.h)
 set(SOURCES config.cc)
-include(AddAktualizrTest)
 
 add_library(config OBJECT ${SOURCES})
 # note: the Config object is composed with multiple sub-config objects that live

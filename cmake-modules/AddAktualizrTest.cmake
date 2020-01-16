@@ -4,7 +4,8 @@ function(add_aktualizr_test)
     set(multiValueArgs SOURCES LIBRARIES ARGS LAUNCH_CMD)
     cmake_parse_arguments(AKTUALIZR_TEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     set(TEST_TARGET t_${AKTUALIZR_TEST_NAME})
-    add_executable(${TEST_TARGET} EXCLUDE_FROM_ALL ${AKTUALIZR_TEST_SOURCES} ${PROJECT_SOURCE_DIR}/tests/test_utils.cc)
+
+    add_executable(${TEST_TARGET} EXCLUDE_FROM_ALL ${AKTUALIZR_TEST_SOURCES})
     target_link_libraries(${TEST_TARGET}
         ${AKTUALIZR_TEST_LIBRARIES}
         ${TEST_LIBS})

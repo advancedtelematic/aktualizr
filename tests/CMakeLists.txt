@@ -51,8 +51,7 @@ set(TEST_SOURCES httpfake.h metafake.h test_utils.cc test_utils.h uptane_vector_
 
 include(CMakeParseArguments)
 
-add_library(testutilities test_utils.cc)
-list(APPEND TEST_LIBS testutilities)
+add_library(testutilities STATIC test_utils.cc)
 
 if(BUILD_OSTREE)
     add_library(ostree_mock SHARED ostree_mock.c)
