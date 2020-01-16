@@ -1,12 +1,13 @@
-#include <fcntl.h>
-#include <sys/stat.h>
+#include "bootloader.h"
 
+#include <fcntl.h>
 #include <sys/reboot.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include <boost/filesystem.hpp>
 
-#include "bootloader.h"
+#include "storage/invstorage.h"
 #include "utilities/exceptions.h"
 #include "utilities/utils.h"
 

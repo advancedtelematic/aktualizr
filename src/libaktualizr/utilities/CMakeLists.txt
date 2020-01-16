@@ -2,7 +2,6 @@ set(SOURCES aktualizr_version.cc
             apiqueue.cc
             dequeue_buffer.cc
             sig_handler.cc
-            sockaddr_io.cc
             timer.cc
             types.cc
             utils.cc)
@@ -14,7 +13,6 @@ set(HEADERS apiqueue.h
             exceptions.h
             fault_injection.h
             sig_handler.h
-            sockaddr_io.h
             timer.h
             types.h
             utils.h
