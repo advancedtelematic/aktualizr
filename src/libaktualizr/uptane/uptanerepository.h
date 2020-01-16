@@ -14,27 +14,6 @@
 
 namespace Uptane {
 
-class PrimaryManifest {
- public:
-  PrimaryManifest(const Config &config_in, std::shared_ptr<INvStorage> storage_in)
-      : storage_{std::move(storage_in)}, keys_(storage_, config_in.keymanagerConfig()) {}
-
-  Json::Value signManifest(const Json::Value &manifest_unsigned) const;
-
-  void setPrimaryEcuSerialHwId(const std::pair<Uptane::EcuSerial, Uptane::HardwareIdentifier> &serials) {
-    primary_ecu_serial = serials.first;
-    primary_hardware_id = serials.second;
-  }
-
-  EcuSerial getPrimaryEcuSerial() const { return primary_ecu_serial; }
-
- private:
-  Uptane::EcuSerial primary_ecu_serial{Uptane::EcuSerial::Unknown()};
-  Uptane::HardwareIdentifier primary_hardware_id{Uptane::HardwareIdentifier::Unknown()};
-  std::shared_ptr<INvStorage> storage_;
-  KeyManager keys_;
-};
-
 class RepositoryCommon {
  public:
   RepositoryCommon(RepositoryType type_in) : type{type_in} {}

@@ -187,6 +187,9 @@ Uptane::Manifest ManagedSecondary::getManifest() const {
   }
 
   Json::Value manifest = Uptane::ManifestIssuer::assembleManifest(firmware_info, getSerial());
+  // consider updating Uptane::ManifestIssuer functionality to fulfill the given use-case
+  // and removing the following code from here so we encapsulate manifest generation
+  // and signing functionality in one place
   manifest["attacks_detected"] = detected_attack;
 
   Json::Value signed_ecu_version;
