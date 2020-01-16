@@ -4,6 +4,7 @@
 #include <string>
 
 #include "json/json.h"
+#include "uptane/manifest.h"
 #include "uptane/tuf.h"
 
 namespace Uptane {
@@ -17,13 +18,14 @@ class SecondaryInterface {
   virtual Uptane::HardwareIdentifier getHwId() const = 0;
   virtual PublicKey getPublicKey() const = 0;
 
-  virtual Json::Value getManifest() const = 0;
+  virtual Uptane::Manifest getManifest() const = 0;
   virtual bool putMetadata(const RawMetaPack& meta_pack) = 0;
 
   virtual int32_t getRootVersion(bool director) const = 0;
   virtual bool putRoot(const std::string& root, bool director) = 0;
 
   virtual bool sendFirmware(const std::string& data) = 0;
+  virtual data::ResultCode::Numeric install(const std::string& target_name) = 0;
 
   virtual ~SecondaryInterface() = default;
 

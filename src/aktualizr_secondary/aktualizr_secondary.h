@@ -1,64 +1,63 @@
 #ifndef AKTUALIZR_SECONDARY_H
 #define AKTUALIZR_SECONDARY_H
 
-#include <memory>
-
 #include "aktualizr_secondary_config.h"
+#include "aktualizr_secondary_metadata.h"
 #include "uptane/secondaryinterface.h"
-
-#include "crypto/keymanager.h"
-#include "storage/invstorage.h"
-#include "utilities/types.h"
-#include "utilities/utils.h"
 
 #include "uptane/directorrepository.h"
 #include "uptane/imagesrepository.h"
-#include "uptane/tuf.h"
+#include "uptane/manifest.h"
 
-#include "aktualizr_secondary_metadata.h"
-#include "package_manager/packagemanagerinterface.h"
+class UpdateAgent;
+class INvStorage;
+class Bootloader;
+class KeyManager;
 
 class AktualizrSecondary : public Uptane::SecondaryInterface {
  public:
   using Ptr = std::shared_ptr<AktualizrSecondary>;
 
  public:
-  AktualizrSecondary(const AktualizrSecondaryConfig& config, const std::shared_ptr<INvStorage>& storage,
-                     const std::shared_ptr<KeyManager>& key_mngr,
-                     const std::shared_ptr<PackageManagerInterface>& pacman);
+  // TODO: free AktualizrSecondary from dependencies as much as possible, e.g. bootloader
+  AktualizrSecondary(AktualizrSecondaryConfig config, std::shared_ptr<INvStorage> storage,
+                     std::shared_ptr<KeyManager> key_mngr, std::shared_ptr<UpdateAgent> update_agent);
 
   Uptane::EcuSerial getSerial() const override;
   Uptane::HardwareIdentifier getHwId() const override;
   PublicKey getPublicKey() const override;
-  Json::Value getManifest() const override;
-  bool putMetadata(const Uptane::RawMetaPack& meta_pack) override;
+
+  Uptane::Manifest getManifest() const override;
+  bool putMetadata(const Uptane::RawMetaPack& meta_pack) override { return putMetadata(Metadata(meta_pack)); }
   int32_t getRootVersion(bool director) const override;
   bool putRoot(const std::string& root, bool director) override;
   bool sendFirmware(const std::string& firmware) override;
-
-  static void extractCredentialsArchive(const std::string& archive, std::string* ca, std::string* cert,
-                                        std::string* pkey, std::string* treehub_server);
+  data::ResultCode::Numeric install(const std::string& target_name) override;
 
   bool putMetadata(const Metadata& metadata);
 
  private:
-  void connectToPrimary();
+  bool hasPendingUpdate() { return storage_->hasPendingInstall(); }
   bool doFullVerification(const Metadata& metadata);
   bool uptaneInitialize();
 
  private:
-  AktualizrSecondaryConfig config_;
+  // Uptane verification
   Uptane::DirectorRepository director_repo_;
   Uptane::ImagesRepository image_repo_;
 
-  std::shared_ptr<INvStorage> storage_;
+  // installation
+  Uptane::Target pending_target_{Uptane::Target::Unknown()};
 
+  AktualizrSecondaryConfig config_;
+  std::shared_ptr<INvStorage> storage_;
   std::shared_ptr<KeyManager> keys_;
+  Uptane::ManifestIssuer::Ptr manifest_issuer_;
 
   Uptane::EcuSerial ecu_serial_{Uptane::EcuSerial::Unknown()};
   Uptane::HardwareIdentifier hardware_id_{Uptane::HardwareIdentifier::Unknown()};
 
-  std::shared_ptr<PackageManagerInterface> pacman_;
+  std::shared_ptr<UpdateAgent> update_agent_;
 };
 
 #endif  // AKTUALIZR_SECONDARY_H

@@ -128,7 +128,8 @@ class SotaUptaneClient {
   void reportAktualizrConfiguration();
   void verifySecondaries();
   void sendMetadataToEcus(const std::vector<Uptane::Target> &targets);
-  std::future<bool> sendFirmwareAsync(Uptane::SecondaryInterface &secondary, const std::shared_ptr<std::string> &data);
+  std::future<data::ResultCode::Numeric> sendFirmwareAsync(Uptane::SecondaryInterface &secondary,
+                                                           const Uptane::Target &target);
   std::vector<result::Install::EcuReport> sendImagesToEcus(const std::vector<Uptane::Target> &targets);
 
   bool putManifestSimple(const Json::Value &custom = Json::nullValue);
@@ -142,6 +143,7 @@ class SotaUptaneClient {
   std::unique_ptr<Uptane::Target> findTargetHelper(const Uptane::Targets &cur_targets,
                                                    const Uptane::Target &queried_target, int level, bool terminating,
                                                    bool offline);
+  void checkAndUpdatePendingSecondaries();
 
   template <class T, class... Args>
   void sendEvent(Args &&... args) {
@@ -156,7 +158,7 @@ class SotaUptaneClient {
   Config &config;
   Uptane::DirectorRepository director_repo;
   Uptane::ImagesRepository images_repo;
-  Uptane::Manifest uptane_manifest;
+  Uptane::PrimaryManifest uptane_manifest;
   std::shared_ptr<INvStorage> storage;
   std::shared_ptr<HttpInterface> http;
   std::shared_ptr<PackageManagerInterface> package_manager_;

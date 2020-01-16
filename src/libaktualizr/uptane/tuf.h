@@ -128,6 +128,15 @@ class Version {
   friend std::ostream &operator<<(std::ostream &os, const Version &v);
 };
 
+struct InstalledImageInfo {
+  InstalledImageInfo() : name{""}, len{0} {}
+  InstalledImageInfo(std::string name_in, uint64_t len_in, std::string hash_in)
+      : name(std::move(name_in)), len(len_in), hash(std::move(hash_in)) {}
+  std::string name;
+  uint64_t len;
+  std::string hash;
+};
+
 std::ostream &operator<<(std::ostream &os, const Version &v);
 
 class HardwareIdentifier {
@@ -265,12 +274,14 @@ class Target {
    * root commit object.
    */
   bool IsOstree() const;
+  std::string type() const { return type_; }
 
   // Comparison is usually not meaningful. Use MatchTarget instead.
   bool operator==(const Target &t2) = delete;
   bool MatchTarget(const Target &t2) const;
   Json::Value toDebugJson() const;
   friend std::ostream &operator<<(std::ostream &os, const Target &t);
+  InstalledImageInfo getTargetImageInfo() const { return {filename(), length(), sha256Hash()}; }
 
  private:
   bool valid{true};

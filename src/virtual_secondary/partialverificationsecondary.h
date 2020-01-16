@@ -44,7 +44,8 @@ class PartialVerificationSecondary : public SecondaryInterface {
   bool putRoot(const std::string& root, bool director) override;
 
   bool sendFirmware(const std::string& data) override;
-  Json::Value getManifest() const override;
+  data::ResultCode::Numeric install(const std::string& target_name) override;
+  Uptane::Manifest getManifest() const override;
 
  private:
   void storeKeys(const std::string& public_key, const std::string& private_key);

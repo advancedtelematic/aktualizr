@@ -96,6 +96,7 @@ void AktualizrSecondaryConfig::updateFromPropertyTree(const boost::property_tree
   CopySubtreeFromConfig(pacman, "pacman", pt);
   CopySubtreeFromConfig(storage, "storage", pt);
   CopySubtreeFromConfig(import, "import", pt);
+  CopySubtreeFromConfig(bootloader, "bootloader", pt);
 }
 
 void AktualizrSecondaryConfig::writeToStream(std::ostream& sink) const {
@@ -109,6 +110,7 @@ void AktualizrSecondaryConfig::writeToStream(std::ostream& sink) const {
   WriteSectionToStream(pacman, "pacman", sink);
   WriteSectionToStream(storage, "storage", sink);
   WriteSectionToStream(import, "import", sink);
+  WriteSectionToStream(bootloader, "bootloader", sink);
 }
 
 std::ostream& operator<<(std::ostream& os, const AktualizrSecondaryConfig& cfg) {

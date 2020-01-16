@@ -80,17 +80,17 @@ PublicKey IsoTpSecondary::getPublicKey() const {
   return PublicKey(boost::algorithm::hex(in.substr(1)), KeyType::kED25519);
 }
 
-Json::Value IsoTpSecondary::getManifest() const {
+Uptane::Manifest IsoTpSecondary::getManifest() const {
   std::string out;
   std::string in;
 
   out += static_cast<char>(IsoTpUptaneMesType::kGetManifest);
   if (!conn.SendRecv(out, &in)) {
-    return Json::nullValue;
+    return Json::Value(Json::nullValue);
   }
 
   if (in[0] != static_cast<char>(IsoTpUptaneMesType::kGetManifestResp)) {
-    return Json::nullValue;
+    return Json::Value(Json::nullValue);
   }
   return Utils::parseJSON(in.substr(1));
 }

@@ -7,7 +7,8 @@ set(SOURCES
     tuf.cc
     uptanerepository.cc
     directorrepository.cc
-    imagesrepository.cc)
+    imagesrepository.cc
+    manifest.cc)
 
 set(HEADERS
     exceptions.h
@@ -17,7 +18,8 @@ set(HEADERS
     tuf.h
     uptanerepository.h
     directorrepository.h
-    imagesrepository.h)
+    imagesrepository.h
+    manifest.h)
 
 
 add_library(uptane OBJECT ${SOURCES})
