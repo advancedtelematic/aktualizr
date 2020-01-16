@@ -27,7 +27,8 @@ add_library(aktualizr_secondary_lib SHARED
     $<TARGET_OBJECTS:utilities>
     $<TARGET_OBJECTS:storage>
     $<TARGET_OBJECTS:logging>
-    $<TARGET_OBJECTS:uptane>)
+    $<TARGET_OBJECTS:uptane>
+    $<TARGET_OBJECTS:campaign>)
 target_link_libraries(aktualizr_secondary_lib ${AKTUALIZR_EXTERNAL_LIBS})
 target_include_directories(aktualizr_secondary_lib PUBLIC
     $<TARGET_PROPERTY:asn1_lib,INCLUDE_DIRECTORIES>
@@ -75,7 +76,7 @@ if(BUILD_OSTREE)
     add_aktualizr_test(NAME aktualizr_secondary_ostree
                        SOURCES aktualizr_secondary_ostree_test.cc
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo
-                       LIBRARIES aktualizr_secondary_lib uptane_generator_lib $<TARGET_OBJECTS:campaign>
+                       LIBRARIES aktualizr_secondary_lib uptane_generator_lib
                        PROJECT_WORKING_DIRECTORY)
 
     set_target_properties(t_aktualizr_secondary_ostree PROPERTIES LINK_FLAGS -Wl,--export-dynamic)
@@ -86,7 +87,7 @@ endif(BUILD_OSTREE)
 
 add_aktualizr_test(NAME aktualizr_secondary
                    SOURCES aktualizr_secondary_test.cc
-                   LIBRARIES aktualizr_secondary_lib uptane_generator_lib $<TARGET_OBJECTS:campaign>)
+                   LIBRARIES aktualizr_secondary_lib uptane_generator_lib)
 
 # test running the executable with command line option --help
 add_test(NAME aktualizr_secondary_cmdline--help COMMAND aktualizr-secondary --help)

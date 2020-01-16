@@ -11,7 +11,6 @@
 
 class UpdateAgent;
 class INvStorage;
-class Bootloader;
 class KeyManager;
 
 class AktualizrSecondary : public Uptane::SecondaryInterface {

@@ -1,16 +1,9 @@
 #ifndef UPTANE_REPOSITORY_H_
 #define UPTANE_REPOSITORY_H_
 
-#include <vector>
-
-#include "json/json.h"
-
-#include "config/config.h"
-#include "crypto/crypto.h"
-#include "crypto/keymanager.h"
 #include "fetcher.h"
-#include "logging/logging.h"
-#include "storage/invstorage.h"
+
+class INvStorage;
 
 namespace Uptane {
 

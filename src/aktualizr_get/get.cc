@@ -1,6 +1,7 @@
 #include "get.h"
 #include "crypto/keymanager.h"
 #include "http/httpclient.h"
+#include "storage/invstorage.h"
 
 std::string aktualizrGet(Config &config, const std::string &url) {
   auto storage = INvStorage::newStorage(config.storage);

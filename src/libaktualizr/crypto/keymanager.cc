@@ -1,10 +1,12 @@
 #include "keymanager.h"
-#include "utilities/types.h"
 
 #include <stdexcept>
 
 #include <boost/scoped_array.hpp>
 #include <utility>
+
+#include "storage/invstorage.h"
+#include "utilities/types.h"
 
 #if defined(ANDROID)
 #include "androidkeystore.h"
