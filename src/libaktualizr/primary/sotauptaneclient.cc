@@ -935,7 +935,7 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
 }
 
 result::CampaignCheck SotaUptaneClient::campaignCheck() {
-  auto campaigns = campaign::fetchAvailableCampaigns(*http, config.tls.server);
+  auto campaigns = campaign::Campaign::fetchAvailableCampaigns(*http, config.tls.server);
   for (const auto &c : campaigns) {
     LOG_INFO << "Campaign: " << c.name;
     LOG_INFO << "Campaign id: " << c.id;
