@@ -121,6 +121,7 @@ class Version {
   int version() const { return version_; }
   bool operator==(const Version &rhs) const { return version_ == rhs.version_; }
   bool operator!=(const Version &rhs) const { return version_ != rhs.version_; }
+  bool operator<(const Version &rhs) const { return version_ < rhs.version_; }
 
  private:
   static const int ANY_VERSION = -1;

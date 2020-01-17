@@ -21,8 +21,8 @@ class UptaneRepo {
   void signTargets();
   void emptyTargets();
   void oldTargets();
-
   void generateCampaigns();
+  void refresh(Uptane::RepositoryType repo_type, const Uptane::Role &role);
 
  private:
   DirectorRepo director_repo_;

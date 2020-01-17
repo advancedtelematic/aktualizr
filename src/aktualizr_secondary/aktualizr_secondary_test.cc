@@ -78,6 +78,8 @@ class UptaneRepoWrapper {
     return image_data;
   }
 
+  void refreshRoot(Uptane::RepositoryType repo) { _uptane_repo.refresh(repo, Uptane::Role::Root()); }
+
  private:
   TemporaryDirectory _root_dir;
   boost::filesystem::path _director_dir{_root_dir / "repo/director"};
@@ -188,6 +190,16 @@ TEST_F(SecondaryTest, IncorrectTargetQuantity) {
 
     EXPECT_FALSE(_secondary->putMetadata(metadata));
   }
+}
+
+TEST_F(SecondaryTest, DirectorRootVersionIncremented) {
+  _uptane_repo.refreshRoot(Uptane::RepositoryType::Director());
+  EXPECT_TRUE(_secondary->putMetadata(_uptane_repo.getCurrentMetadata()));
+}
+
+TEST_F(SecondaryTest, ImageRootVersionIncremented) {
+  _uptane_repo.refreshRoot(Uptane::RepositoryType::Image());
+  EXPECT_TRUE(_secondary->putMetadata(_uptane_repo.getCurrentMetadata()));
 }
 
 TEST_F(SecondaryTest, InvalidImageFileSize) {

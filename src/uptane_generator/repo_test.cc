@@ -497,6 +497,126 @@ TEST(uptane_generator, generateCampaigns) {
   EXPECT_EQ(campaigns["campaigns"][0]["metadata"][2]["value"], "20");
 }
 
+/*
+ * Bump the version of the Director Root metadata.
+ */
+TEST(uptane_generator, refreshDirectorRoot) {
+  TemporaryDirectory temp_dir;
+  UptaneRepo repo(temp_dir.Path(), "", "");
+  repo.generateRepo(key_type);
+  repo.refresh(Uptane::RepositoryType::Director(), Uptane::Role::Root());
+
+  const Json::Value director_root = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "root.json");
+  EXPECT_EQ(director_root["signed"]["version"].asUInt(), 2);
+  const Json::Value director_timestamp = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "timestamp.json");
+  EXPECT_EQ(director_timestamp["signed"]["version"].asUInt(), 2);
+  const Json::Value director_snapshot = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "snapshot.json");
+  EXPECT_EQ(director_snapshot["signed"]["version"].asUInt(), 2);
+  const Json::Value director_targets = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "targets.json");
+  EXPECT_EQ(director_targets["signed"]["version"].asUInt(), 1);
+
+  const Json::Value image_root = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "root.json");
+  EXPECT_EQ(image_root["signed"]["version"].asUInt(), 1);
+  const Json::Value image_timestamp = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "timestamp.json");
+  EXPECT_EQ(image_timestamp["signed"]["version"].asUInt(), 1);
+  const Json::Value image_snapshot = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "snapshot.json");
+  EXPECT_EQ(image_snapshot["signed"]["version"].asUInt(), 1);
+  const Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "targets.json");
+  EXPECT_EQ(image_targets["signed"]["version"].asUInt(), 1);
+
+  check_repo(temp_dir);
+}
+
+/*
+ * Bump the version of the Director Targets metadata.
+ */
+TEST(uptane_generator, refreshDirectorTargets) {
+  TemporaryDirectory temp_dir;
+  UptaneRepo repo(temp_dir.Path(), "", "");
+  repo.generateRepo(key_type);
+  repo.refresh(Uptane::RepositoryType::Director(), Uptane::Role::Targets());
+
+  const Json::Value director_root = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "root.json");
+  EXPECT_EQ(director_root["signed"]["version"].asUInt(), 1);
+  const Json::Value director_timestamp = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "timestamp.json");
+  EXPECT_EQ(director_timestamp["signed"]["version"].asUInt(), 2);
+  const Json::Value director_snapshot = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "snapshot.json");
+  EXPECT_EQ(director_snapshot["signed"]["version"].asUInt(), 2);
+  const Json::Value director_targets = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "targets.json");
+  EXPECT_EQ(director_targets["signed"]["version"].asUInt(), 2);
+
+  const Json::Value image_root = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "root.json");
+  EXPECT_EQ(image_root["signed"]["version"].asUInt(), 1);
+  const Json::Value image_timestamp = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "timestamp.json");
+  EXPECT_EQ(image_timestamp["signed"]["version"].asUInt(), 1);
+  const Json::Value image_snapshot = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "snapshot.json");
+  EXPECT_EQ(image_snapshot["signed"]["version"].asUInt(), 1);
+  const Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "targets.json");
+  EXPECT_EQ(image_targets["signed"]["version"].asUInt(), 1);
+
+  check_repo(temp_dir);
+}
+
+/*
+ * Bump the version of the Image repo Root metadata.
+ */
+TEST(uptane_generator, refreshImageRoot) {
+  TemporaryDirectory temp_dir;
+  UptaneRepo repo(temp_dir.Path(), "", "");
+  repo.generateRepo(key_type);
+  repo.refresh(Uptane::RepositoryType::Image(), Uptane::Role::Root());
+
+  const Json::Value director_root = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "root.json");
+  EXPECT_EQ(director_root["signed"]["version"].asUInt(), 1);
+  const Json::Value director_timestamp = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "timestamp.json");
+  EXPECT_EQ(director_timestamp["signed"]["version"].asUInt(), 1);
+  const Json::Value director_snapshot = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "snapshot.json");
+  EXPECT_EQ(director_snapshot["signed"]["version"].asUInt(), 1);
+  const Json::Value director_targets = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "targets.json");
+  EXPECT_EQ(director_targets["signed"]["version"].asUInt(), 1);
+
+  const Json::Value image_root = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "root.json");
+  EXPECT_EQ(image_root["signed"]["version"].asUInt(), 2);
+  const Json::Value image_timestamp = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "timestamp.json");
+  EXPECT_EQ(image_timestamp["signed"]["version"].asUInt(), 2);
+  const Json::Value image_snapshot = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "snapshot.json");
+  EXPECT_EQ(image_snapshot["signed"]["version"].asUInt(), 2);
+  const Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "targets.json");
+  EXPECT_EQ(image_targets["signed"]["version"].asUInt(), 1);
+
+  check_repo(temp_dir);
+}
+
+/*
+ * Bump the version of the Image repo Targets metadata.
+ */
+TEST(uptane_generator, refreshImageTargets) {
+  TemporaryDirectory temp_dir;
+  UptaneRepo repo(temp_dir.Path(), "", "");
+  repo.generateRepo(key_type);
+  repo.refresh(Uptane::RepositoryType::Image(), Uptane::Role::Targets());
+
+  const Json::Value director_root = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "root.json");
+  EXPECT_EQ(director_root["signed"]["version"].asUInt(), 1);
+  const Json::Value director_timestamp = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "timestamp.json");
+  EXPECT_EQ(director_timestamp["signed"]["version"].asUInt(), 1);
+  const Json::Value director_snapshot = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "snapshot.json");
+  EXPECT_EQ(director_snapshot["signed"]["version"].asUInt(), 1);
+  const Json::Value director_targets = Utils::parseJSONFile(temp_dir.Path() / DirectorRepo::dir / "targets.json");
+  EXPECT_EQ(director_targets["signed"]["version"].asUInt(), 1);
+
+  const Json::Value image_root = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "root.json");
+  EXPECT_EQ(image_root["signed"]["version"].asUInt(), 1);
+  const Json::Value image_timestamp = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "timestamp.json");
+  EXPECT_EQ(image_timestamp["signed"]["version"].asUInt(), 2);
+  const Json::Value image_snapshot = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "snapshot.json");
+  EXPECT_EQ(image_snapshot["signed"]["version"].asUInt(), 2);
+  const Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / ImageRepo::dir / "targets.json");
+  EXPECT_EQ(image_targets["signed"]["version"].asUInt(), 2);
+
+  check_repo(temp_dir);
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

@@ -33,7 +33,8 @@ int main(int argc, char **argv) {
                                           "emptytargets: \tclear the staged director targets metadata\n"
                                           "oldtargets: \tfill the staged director targets metadata with what is currently signed\n"
                                           "sign: \tsign arbitrary metadata with repo keys\n"
-                                          "addcampaigns: \tgenerate campaigns json")
+                                          "addcampaigns: \tgenerate campaigns json\n"
+                                          "refresh: \trefresh a metadata object (bump the version)")
     ("path", po::value<boost::filesystem::path>(), "path to the repository")
     ("filename", po::value<boost::filesystem::path>(), "path to the image")
     ("hwid", po::value<std::string>(), "target hardware identifier")
@@ -219,6 +220,13 @@ int main(int argc, char **argv) {
       } else if (command == "addcampaigns") {
         repo.generateCampaigns();
         std::cout << "Generated campaigns" << std::endl;
+      } else if (command == "refresh") {
+        if (vm.count("repotype") == 0 || vm.count("keyname") == 0) {
+          std::cerr << "refresh command requires --repotype and --keyname\n";
+          exit(EXIT_FAILURE);
+        }
+        repo.refresh(Uptane::RepositoryType(vm["repotype"].as<std::string>()),
+                     Uptane::Role(vm["keyname"].as<std::string>()));
       } else {
         std::cout << desc << std::endl;
         exit(EXIT_FAILURE);
