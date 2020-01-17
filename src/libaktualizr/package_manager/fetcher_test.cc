@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <sys/statvfs.h>
 #include <chrono>
 #include <future>
 #include <iostream>
@@ -264,6 +265,43 @@ TEST(Fetcher, DownloadLengthZero) {
 
   // Non-empty target: download succeeds, and http module is called. This is
   // done purely to make sure the test is designed correctly.
+  Json::Value nonempty_target_json;
+  nonempty_target_json["hashes"]["sha256"] = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+  nonempty_target_json["length"] = 1;
+  Uptane::Target nonempty_target("fake_file", nonempty_target_json);
+  EXPECT_TRUE(pacman->fetchTarget(nonempty_target, fetcher, keys, progress_cb, nullptr));
+  EXPECT_EQ(http->counter, 1);
+}
+
+/* Don't bother downloading a target that is larger than the available disk
+ * space. */
+TEST(Fetcher, NotEnoughDiskSpace) {
+  TemporaryDirectory temp_dir;
+  config.storage.path = temp_dir.Path();
+  config.uptane.repo_server = server;
+
+  std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
+  auto http = std::make_shared<HttpZeroLength>(temp_dir.Path());
+  auto pacman = std::make_shared<PackageManagerFake>(config.pacman, config.bootloader, storage, http);
+  KeyManager keys(storage, config.keymanagerConfig());
+  Uptane::Fetcher fetcher(config, http);
+
+  // Find how much space is available on disk.
+  struct statvfs stvfsbuf {};
+  EXPECT_EQ(statvfs(temp_dir.Path().c_str(), &stvfsbuf), 0);
+  const uint64_t available_bytes = (stvfsbuf.f_bsize * stvfsbuf.f_bavail);
+
+  // Try to fetch a target larger than the available disk space: an exception is
+  // thrown and the http module is never called.
+  Json::Value empty_target_json;
+  empty_target_json["hashes"]["sha256"] = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+  empty_target_json["length"] = available_bytes * 2;
+  Uptane::Target empty_target("empty_file", empty_target_json);
+  EXPECT_THROW(pacman->fetchTarget(empty_target, fetcher, keys, progress_cb, nullptr), std::runtime_error);
+  EXPECT_EQ(http->counter, 0);
+
+  // Try to fetch a 1-byte target: download succeeds, and http module is called.
+  // This is done purely to make sure the test is designed correctly.
   Json::Value nonempty_target_json;
   nonempty_target_json["hashes"]["sha256"] = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
   nonempty_target_json["length"] = 1;

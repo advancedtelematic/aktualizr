@@ -110,6 +110,11 @@ bool PackageManagerInterface::fetchTarget(const Uptane::Target& target, Uptane::
       ds->fhandle = storage_->allocateTargetFile(false, target);
     }
 
+    const uint64_t required_bytes = target.length() - ds->downloaded_length;
+    if (!storage_->checkAvailableDiskSpace(required_bytes)) {
+      throw std::runtime_error("Insufficient disk space available to download target");
+    }
+
     std::string target_url = target.uri();
     if (target_url.empty()) {
       target_url = fetcher.getRepoServer() + "/targets/" + Utils::urlEncode(target.filename());
