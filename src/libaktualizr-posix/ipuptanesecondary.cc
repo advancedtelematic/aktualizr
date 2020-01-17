@@ -10,28 +10,27 @@
 
 namespace Uptane {
 
-std::pair<bool, std::shared_ptr<Uptane::SecondaryInterface>> IpUptaneSecondary::connectAndCreate(
-    const std::string& address, unsigned short port) {
+Uptane::SecondaryInterface::Ptr IpUptaneSecondary::connectAndCreate(const std::string& address, unsigned short port) {
   LOG_INFO << "Connecting to and getting info about IP Secondary: " << address << ":" << port << "...";
 
-  Socket con_sock{address, port};
+  ConnectionSocket con_sock{address, port};
 
   if (con_sock.connect() != 0) {
     LOG_ERROR << "Failed to connect to a secondary: " << std::strerror(errno);
-    return {false, std::shared_ptr<Uptane::SecondaryInterface>()};
+    return std::shared_ptr<Uptane::SecondaryInterface>();
   }
 
   LOG_INFO << "Connected to IP Secondary: "
            << "(" << address << ":" << port << ")";
 
-  return create(address, port, con_sock.getFD());
+  return create(address, port, *con_sock);
 }
 
-std::pair<bool, std::shared_ptr<Uptane::SecondaryInterface>> IpUptaneSecondary::create(const std::string& address,
-                                                                                       unsigned short port,
-                                                                                       int con_fd) {
+Uptane::SecondaryInterface::Ptr IpUptaneSecondary::create(const std::string& address, unsigned short port, int con_fd) {
   Asn1Message::Ptr req(Asn1Message::Empty());
   req->present(AKIpUptaneMes_PR_getInfoReq);
+
+  auto m = req->getInfoReq();
 
   auto resp = Asn1Rpc(req, con_fd);
 
@@ -50,7 +49,7 @@ std::pair<bool, std::shared_ptr<Uptane::SecondaryInterface>> IpUptaneSecondary::
   LOG_INFO << "Got info on IP Secondary: "
            << "hw-ID: " << hw_id << " serial: " << serial;
 
-  return {true, std::make_shared<IpUptaneSecondary>(address, port, serial, hw_id, pub_key)};
+  return std::make_shared<IpUptaneSecondary>(address, port, serial, hw_id, pub_key);
 }
 
 IpUptaneSecondary::IpUptaneSecondary(const std::string& address, unsigned short port, EcuSerial serial,
@@ -84,14 +83,14 @@ bool IpUptaneSecondary::putMetadata(const RawMetaPack& meta_pack) {
   return r->result == AKInstallationResult_success;
 }
 
-bool IpUptaneSecondary::sendFirmware(const std::shared_ptr<std::string>& data) {
+bool IpUptaneSecondary::sendFirmware(const std::string& data) {
   std::lock_guard<std::mutex> l(install_mutex);
   LOG_INFO << "Sending firmware to the secondary";
   Asn1Message::Ptr req(Asn1Message::Empty());
   req->present(AKIpUptaneMes_PR_sendFirmwareReq);
 
   auto m = req->sendFirmwareReq();
-  SetString(&m->firmware, *data);
+  SetString(&m->firmware, data);
   auto resp = Asn1Rpc(req, getAddr());
 
   if (resp->present() != AKIpUptaneMes_PR_sendFirmwareResp) {
@@ -103,8 +102,32 @@ bool IpUptaneSecondary::sendFirmware(const std::shared_ptr<std::string>& data) {
   return r->result == AKInstallationResult_success;
 }
 
-Json::Value IpUptaneSecondary::getManifest() {
-  LOG_INFO << "Getting the manifest key of a secondary";
+data::ResultCode::Numeric IpUptaneSecondary::install(const std::string& target_name) {
+  LOG_INFO << "Invoking an installation of the target on the secondary: " << target_name;
+
+  Asn1Message::Ptr req(Asn1Message::Empty());
+  req->present(AKIpUptaneMes_PR_installReq);
+
+  // prepare request message
+  auto req_mes = req->installReq();
+  SetString(&req_mes->hash, target_name);
+  // send request and receive response, a request-response type of RPC
+  auto resp = Asn1Rpc(req, getAddr());
+
+  // invalid type of an response message
+  if (resp->present() != AKIpUptaneMes_PR_installResp) {
+    LOG_ERROR << "Failed to get response to an installation request to secondary";
+    return data::ResultCode::Numeric::kInternalError;
+  }
+
+  // deserialize the response message
+  auto r = resp->installResp();
+
+  return static_cast<data::ResultCode::Numeric>(r->result);
+}
+
+Manifest IpUptaneSecondary::getManifest() const {
+  LOG_DEBUG << "Getting the manifest from secondary with serial " << getSerial();
   Asn1Message::Ptr req(Asn1Message::Empty());
 
   req->present(AKIpUptaneMes_PR_manifestReq);

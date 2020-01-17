@@ -57,12 +57,12 @@ bool PartialVerificationSecondary::putMetadata(const RawMetaPack &meta) {
   return true;
 }
 
-Json::Value PartialVerificationSecondary::getManifest() {
+Uptane::Manifest PartialVerificationSecondary::getManifest() const {
   throw NotImplementedException();
   return Json::Value();
 }
 
-int PartialVerificationSecondary::getRootVersion(bool director) {
+int PartialVerificationSecondary::getRootVersion(bool director) const {
   (void)director;
   throw NotImplementedException();
   return 0;
@@ -76,10 +76,14 @@ bool PartialVerificationSecondary::putRoot(const std::string &root, bool directo
   return false;
 }
 
-bool PartialVerificationSecondary::sendFirmware(const std::shared_ptr<std::string> &data) {
+bool PartialVerificationSecondary::sendFirmware(const std::string &data) {
   (void)data;
   throw NotImplementedException();
-  return false;
+}
+
+data::ResultCode::Numeric PartialVerificationSecondary::install(const std::string &target_name) {
+  (void)target_name;
+  throw NotImplementedException();
 }
 
 void PartialVerificationSecondary::storeKeys(const std::string &public_key, const std::string &private_key) {

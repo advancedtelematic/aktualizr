@@ -76,6 +76,8 @@ class Asn1Message {
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKPutMetaRespMes_t, putMetaResp);
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKSendFirmwareReqMes_t, sendFirmwareReq);
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKSendFirmwareRespMes_t, sendFirmwareResp);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKInstallReqMes_t, installReq);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKInstallRespMes_t, installResp);
 
   /**
    * The underlying message structure. This is public to simplify calls to

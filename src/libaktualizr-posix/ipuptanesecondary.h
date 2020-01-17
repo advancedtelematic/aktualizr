@@ -10,26 +10,24 @@ namespace Uptane {
 
 class IpUptaneSecondary : public SecondaryInterface {
  public:
-  static std::pair<bool, std::shared_ptr<Uptane::SecondaryInterface>> connectAndCreate(const std::string& address,
-                                                                                       unsigned short port);
+  static SecondaryInterface::Ptr connectAndCreate(const std::string& address, unsigned short port);
 
-  static std::pair<bool, std::shared_ptr<Uptane::SecondaryInterface>> create(const std::string& address,
-                                                                             unsigned short port, int con_fd);
+  static SecondaryInterface::Ptr create(const std::string& address, unsigned short port, int con_fd);
 
   explicit IpUptaneSecondary(const std::string& address, unsigned short port, EcuSerial serial,
                              HardwareIdentifier hw_id, PublicKey pub_key);
 
   // It looks more natural to return const EcuSerial& and const Uptane::HardwareIdentifier&
-  // and they should be 'const' methods
-  EcuSerial getSerial() /*const*/ override { return serial_; };
-  Uptane::HardwareIdentifier getHwId() /*const*/ override { return hw_id_; }
-  PublicKey getPublicKey() /*const*/ override { return pub_key_; }
+  EcuSerial getSerial() const override { return serial_; };
+  Uptane::HardwareIdentifier getHwId() const override { return hw_id_; }
+  PublicKey getPublicKey() const override { return pub_key_; }
 
   bool putMetadata(const RawMetaPack& meta_pack) override;
-  int32_t getRootVersion(bool /* director */) override { return 0; }
+  int32_t getRootVersion(bool /* director */) const override { return 0; }
   bool putRoot(const std::string& /* root */, bool /* director */) override { return true; }
-  bool sendFirmware(const std::shared_ptr<std::string>& data) override;
-  Json::Value getManifest() override;
+  bool sendFirmware(const std::string& data) override;
+  data::ResultCode::Numeric install(const std::string& target_name) override;
+  Manifest getManifest() const override;
 
  private:
   const std::pair<std::string, uint16_t>& getAddr() const { return addr_; }

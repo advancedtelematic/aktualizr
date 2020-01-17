@@ -9,8 +9,9 @@
 
 #include "crypto/crypto.h"
 #include "logging/logging.h"
-
-#include <sys/stat.h>
+#include "uptane/manifest.h"
+#include "uptane/uptanerepository.h"
+#include "utilities/exceptions.h"
 
 namespace Primary {
 
@@ -109,7 +110,7 @@ bool ManagedSecondary::putMetadata(const Uptane::RawMetaPack &meta_pack) {
   return true;
 }
 
-int ManagedSecondary::getRootVersion(const bool director) {
+int ManagedSecondary::getRootVersion(const bool director) const {
   if (director) {
     return current_meta.director_root.version();
   }
@@ -138,7 +139,7 @@ bool ManagedSecondary::putRoot(const std::string &root, const bool director) {
   return true;
 }
 
-bool ManagedSecondary::sendFirmware(const std::shared_ptr<std::string> &data) {
+bool ManagedSecondary::sendFirmware(const std::string &data) {
   std::lock_guard<std::mutex> l(install_mutex);
 
   if (expected_target_name.empty()) {
@@ -148,7 +149,7 @@ bool ManagedSecondary::sendFirmware(const std::shared_ptr<std::string> &data) {
     return false;
   }
 
-  if (data->size() > static_cast<size_t>(expected_target_length)) {
+  if (data.size() > static_cast<size_t>(expected_target_length)) {
     detected_attack = "overflow";
     return false;
   }
@@ -156,13 +157,13 @@ bool ManagedSecondary::sendFirmware(const std::shared_ptr<std::string> &data) {
   std::vector<Uptane::Hash>::const_iterator it;
   for (it = expected_target_hashes.begin(); it != expected_target_hashes.end(); it++) {
     if (it->TypeString() == "sha256") {
-      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(*data))) !=
+      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(data))) !=
           boost::algorithm::to_lower_copy(it->HashString())) {
         detected_attack = "wrong_hash";
         return false;
       }
     } else if (it->TypeString() == "sha512") {
-      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(*data))) !=
+      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(data))) !=
           boost::algorithm::to_lower_copy(it->HashString())) {
         detected_attack = "wrong_hash";
         return false;
@@ -170,32 +171,26 @@ bool ManagedSecondary::sendFirmware(const std::shared_ptr<std::string> &data) {
     }
   }
   detected_attack = "";
-  const bool result = storeFirmware(expected_target_name, *data);
+  const bool result = storeFirmware(expected_target_name, data);
   return result;
 }
 
-Json::Value ManagedSecondary::getManifest() {
-  std::string hash;
-  std::string targetname;
-  size_t target_len;
-  if (!getFirmwareInfo(&targetname, target_len, &hash)) {
-    return Json::nullValue;
+data::ResultCode::Numeric ManagedSecondary::install(const std::string &target_name) {
+  (void)target_name;
+  return data::ResultCode::Numeric::kOk;
+}
+
+Uptane::Manifest ManagedSecondary::getManifest() const {
+  Uptane::InstalledImageInfo firmware_info;
+  if (!getFirmwareInfo(firmware_info)) {
+    return Json::Value(Json::nullValue);
   }
 
-  Json::Value manifest;
-
-  // package manager will generate this part in future
-  Json::Value installed_image;
-  installed_image["filepath"] = targetname;
-
-  installed_image["fileinfo"]["hashes"]["sha256"] = hash;
-  installed_image["fileinfo"]["length"] = static_cast<Json::Int64>(target_len);
-
+  Json::Value manifest = Uptane::ManifestIssuer::assembleManifest(firmware_info, getSerial());
+  // consider updating Uptane::ManifestIssuer functionality to fulfill the given use-case
+  // and removing the following code from here so we encapsulate manifest generation
+  // and signing functionality in one place
   manifest["attacks_detected"] = detected_attack;
-  manifest["installed_image"] = installed_image;
-  manifest["ecu_serial"] = getSerial().ToString();
-  manifest["previous_timeserver_time"] = "1970-01-01T00:00:00Z";
-  manifest["timeserver_time"] = "1970-01-01T00:00:00Z";
 
   Json::Value signed_ecu_version;
 

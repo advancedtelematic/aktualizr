@@ -309,33 +309,6 @@ TEST(Utils, writeFileJson) {
   EXPECT_EQ(result_json["key"].asString(), val["key"].asString());
 }
 
-TEST(Utils, ipUtils) {
-  int fd = socket(AF_INET6, SOCK_STREAM, 0);
-
-  EXPECT_NE(fd, -1);
-  SocketHandle hdl(new int(fd));
-
-  sockaddr_in6 sa{};
-
-  memset(&sa, 0, sizeof(sa));
-  sa.sin6_family = AF_INET6;
-  sa.sin6_port = htons(0);
-  sa.sin6_addr = IN6ADDR_ANY_INIT;
-
-  int reuseaddr = 1;
-  if (setsockopt(*hdl, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr)) < 0) {
-    throw std::runtime_error("setsockopt(SO_REUSEADDR) failed");
-  }
-
-  EXPECT_NE(bind(*hdl, reinterpret_cast<const sockaddr *>(&sa), sizeof(sa)), -1);
-
-  sockaddr_storage ss{};
-  EXPECT_NO_THROW(ss = Utils::ipGetSockaddr(*hdl));
-
-  EXPECT_NE(Utils::ipDisplayName(ss), "unknown");
-  EXPECT_NE(Utils::ipPort(ss), -1);
-}
-
 TEST(Utils, shell) {
   std::string out;
   int statuscode = Utils::shell("ls /", &out);

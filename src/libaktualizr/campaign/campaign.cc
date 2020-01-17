@@ -68,7 +68,7 @@ void Campaign::getJson(Json::Value &out) const {
   out["metadata"][2]["value"] = std::to_string(estPreparationDuration);
 }
 
-std::vector<Campaign> campaignsFromJson(const Json::Value &json) {
+std::vector<Campaign> Campaign::campaignsFromJson(const Json::Value &json) {
   std::vector<Campaign> campaigns;
 
   Json::Value campaigns_array;
@@ -95,7 +95,7 @@ std::vector<Campaign> campaignsFromJson(const Json::Value &json) {
   return campaigns;
 }
 
-void JsonFromCampaigns(const std::vector<Campaign> &in, Json::Value &out) {
+void Campaign::JsonFromCampaigns(const std::vector<Campaign> &in, Json::Value &out) {
   out.clear();
   auto i = 0;
   Json::Value json;
@@ -106,7 +106,7 @@ void JsonFromCampaigns(const std::vector<Campaign> &in, Json::Value &out) {
   }
 }
 
-std::vector<Campaign> fetchAvailableCampaigns(HttpInterface &http_client, const std::string &tls_server) {
+std::vector<Campaign> Campaign::fetchAvailableCampaigns(HttpInterface &http_client, const std::string &tls_server) {
   HttpResponse response = http_client.get(tls_server + "/campaigner/campaigns", kMaxCampaignsMetaSize);
   if (!response.isOk()) {
     LOG_ERROR << "Failed to fetch list of available campaigns";

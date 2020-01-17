@@ -1,73 +1,75 @@
 #include "aktualizr_secondary.h"
 
+#include "crypto/keymanager.h"
+#include "logging/logging.h"
+#include "update_agent.h"
+#include "uptane/manifest.h"
+#include "utilities/utils.h"
+
 #include <sys/types.h>
 #include <memory>
 
-#include "logging/logging.h"
-#ifdef BUILD_OSTREE
-#include "package_manager/ostreemanager.h"  // TODO: Hide behind PackageManagerInterface
-#endif
-#include "socket_server.h"
-#include "utilities/utils.h"
-
-class SecondaryAdapter : public Uptane::SecondaryInterface {
- public:
-  SecondaryAdapter(AktualizrSecondary& sec) : secondary(sec) {}
-  ~SecondaryAdapter() override = default;
-
-  Uptane::EcuSerial getSerial() override { return secondary.getSerialResp(); }
-  Uptane::HardwareIdentifier getHwId() override { return secondary.getHwIdResp(); }
-  PublicKey getPublicKey() override { return secondary.getPublicKeyResp(); }
-  Json::Value getManifest() override { return secondary.getManifestResp(); }
-  bool putMetadata(const Uptane::RawMetaPack& meta_pack) override {
-    return secondary.putMetadataResp(Metadata(meta_pack));
-  }
-  int32_t getRootVersion(bool director) override { return secondary.getRootVersionResp(director); }
-  bool putRoot(const std::string& root, bool director) override { return secondary.putRootResp(root, director); }
-  bool sendFirmware(const std::shared_ptr<std::string>& data) override {
-    return secondary.AktualizrSecondary::sendFirmwareResp(data);
-  }
-
- private:
-  AktualizrSecondary& secondary;
-};
-
-AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig& config,
-                                       const std::shared_ptr<INvStorage>& storage)
-    : AktualizrSecondaryCommon(config, storage),
-      socket_server_(std_::make_unique<SecondaryAdapter>(*this), SocketFromPort(config.network.port)) {
-  // note: we don't use TlsConfig here and supply the default to
-  // KeyManagerConf. Maybe we should figure a cleaner way to do that
-  // (split KeyManager?)
+AktualizrSecondary::AktualizrSecondary(AktualizrSecondaryConfig config, std::shared_ptr<INvStorage> storage,
+                                       std::shared_ptr<KeyManager> key_mngr, std::shared_ptr<UpdateAgent> update_agent)
+    : config_(std::move(config)),
+      storage_(std::move(storage)),
+      keys_(std::move(key_mngr)),
+      update_agent_(std::move(update_agent)) {
   if (!uptaneInitialize()) {
     LOG_ERROR << "Failed to initialize";
     return;
   }
+
+  manifest_issuer_ = std::make_shared<Uptane::ManifestIssuer>(keys_, ecu_serial_);
+
+  if (hasPendingUpdate()) {
+    // TODO: refactor this to make it simpler as we don't need to persist/store
+    // an installation status of each ECU but store it just for a given secondary ECU
+    std::vector<Uptane::Target> installed_versions;
+    boost::optional<Uptane::Target> pending_target;
+    storage_->loadInstalledVersions(ecu_serial_.ToString(), nullptr, &pending_target);
+    data::InstallationResult install_res =
+        data::InstallationResult(data::ResultCode::Numeric::kUnknown, "Unknown installation error");
+    LOG_INFO << "Pending update found; attempting to apply it. Target hash: " << pending_target_.sha256Hash();
+
+    if (!!pending_target) {
+      install_res = update_agent_->applyPendingInstall(*pending_target);
+
+      if (install_res.result_code != data::ResultCode::Numeric::kNeedCompletion) {
+        storage_->saveEcuInstallationResult(ecu_serial_, install_res);
+        if (install_res.success) {
+          LOG_INFO << "Pending update has been successfully applied: " << pending_target_.sha256Hash();
+          storage_->saveInstalledVersion(ecu_serial_.ToString(), *pending_target, InstalledVersionUpdateMode::kCurrent);
+        } else {
+          LOG_ERROR << "Application of the pending update has failed: (" << install_res.result_code.toString() << ")"
+                    << install_res.description;
+          storage_->saveInstalledVersion(ecu_serial_.ToString(), *pending_target, InstalledVersionUpdateMode::kNone);
+          director_repo_.dropTargets(*storage_);
+        }
+      } else {
+        LOG_INFO << "Pending update hasn't been applied because a reboot hasn't been detected";
+      }
+    }
+  }
 }
 
-void AktualizrSecondary::run() {
-  connectToPrimary();
-  socket_server_.Run();
+Uptane::EcuSerial AktualizrSecondary::getSerial() const { return ecu_serial_; }
+
+Uptane::HardwareIdentifier AktualizrSecondary::getHwId() const { return hardware_id_; }
+
+PublicKey AktualizrSecondary::getPublicKey() const { return keys_->UptanePublicKey(); }
+
+Uptane::Manifest AktualizrSecondary::getManifest() const {
+  Uptane::InstalledImageInfo installed_image_info;
+  Uptane::Manifest manifest;
+  if (update_agent_->getInstalledImageInfo(installed_image_info)) {
+    manifest = manifest_issuer_->assembleAndSignManifest(installed_image_info);
+  }
+
+  return manifest;
 }
 
-void AktualizrSecondary::stop() { /* TODO? */
-}
-
-Uptane::EcuSerial AktualizrSecondary::getSerialResp() const { return ecu_serial_; }
-
-Uptane::HardwareIdentifier AktualizrSecondary::getHwIdResp() const { return hardware_id_; }
-
-PublicKey AktualizrSecondary::getPublicKeyResp() const { return keys_.UptanePublicKey(); }
-
-Json::Value AktualizrSecondary::getManifestResp() const {
-  Json::Value manifest = pacman->getManifest(getSerialResp());
-
-  return keys_.signTuf(manifest);
-}
-
-bool AktualizrSecondary::putMetadataResp(const Metadata& metadata) { return doFullVerification(metadata); }
-
-int32_t AktualizrSecondary::getRootVersionResp(bool director) const {
+int32_t AktualizrSecondary::getRootVersion(bool director) const {
   std::string root_meta;
   if (!storage_->loadLatestRoot(&root_meta,
                                 (director) ? Uptane::RepositoryType::Director() : Uptane::RepositoryType::Image())) {
@@ -78,146 +80,61 @@ int32_t AktualizrSecondary::getRootVersionResp(bool director) const {
   return Uptane::extractVersionUntrusted(root_meta);
 }
 
-bool AktualizrSecondary::putRootResp(const std::string& root, bool director) {
+bool AktualizrSecondary::putRoot(const std::string& root, bool director) {
   (void)root;
   (void)director;
   LOG_ERROR << "putRootResp is not implemented yet";
   return false;
 }
 
-bool AktualizrSecondary::sendFirmwareResp(const std::shared_ptr<std::string>& firmware) {
-  auto targetsForThisEcu = director_repo_.getTargets(getSerial(), getHardwareID());
+bool AktualizrSecondary::putMetadata(const Metadata& metadata) { return doFullVerification(metadata); }
 
-  if (targetsForThisEcu.size() != 1) {
-    LOG_ERROR << "Invalid number of targets (should be one): " << targetsForThisEcu.size();
-    return false;
-  }
-  auto target_to_apply = targetsForThisEcu[0];
-
-  std::string treehub_server;
-  std::size_t firmware_size = firmware->length();
-
-  if (target_to_apply.IsOstree()) {
-    // this is the ostree specific case
-    try {
-      std::string ca, cert, pkey, server_url;
-      extractCredentialsArchive(*firmware, &ca, &cert, &pkey, &server_url);
-      keys_.loadKeys(&ca, &cert, &pkey);
-      boost::trim(server_url);
-      treehub_server = server_url;
-      firmware_size = 0;
-    } catch (std::runtime_error& exc) {
-      LOG_ERROR << exc.what();
-
-      return false;
-    }
-  }
-
-  data::InstallationResult install_res;
-
-  if (target_to_apply.IsOstree()) {
-#ifdef BUILD_OSTREE
-    install_res = OstreeManager::pull(config_.pacman.sysroot, treehub_server, keys_, target_to_apply);
-
-    if (install_res.result_code.num_code != data::ResultCode::Numeric::kOk) {
-      LOG_ERROR << "Could not pull from OSTree (" << install_res.result_code.toString()
-                << "): " << install_res.description;
-      return false;
-    }
-#else
-    LOG_ERROR << "Could not pull from OSTree. Aktualizr was built without OSTree support!";
-    return false;
-#endif
-  } else if (pacman->name() == "debian") {
-    // TODO save debian package here.
-    LOG_ERROR << "Installation of debian images is not suppotrted yet.";
+bool AktualizrSecondary::sendFirmware(const std::string& firmware) {
+  // TODO: how to handle the case when secondary is rebooted after metadata are received
+  if (!pending_target_.IsValid()) {
+    LOG_ERROR << "Aborting image download/receiving; no valid target found.";
     return false;
   }
 
-  if (target_to_apply.length() != firmware_size) {
-    LOG_ERROR << "The target image size specified in metadata " << target_to_apply.length()
-              << " does not match actual size " << firmware->length();
+  if (!update_agent_->download(pending_target_, firmware)) {
+    LOG_ERROR << "Failed to pull/store an update data";
+    pending_target_ = Uptane::Target::Unknown();
     return false;
   }
-
-  if (!target_to_apply.IsOstree()) {
-    auto target_hashes = target_to_apply.hashes();
-    if (target_hashes.size() == 0) {
-      LOG_ERROR << "No hash found in the target metadata: " << target_to_apply.filename();
-      return false;
-    }
-
-    try {
-      auto received_image_data_hash = Uptane::Hash::generate(target_hashes[0].type(), *firmware);
-
-      if (!target_to_apply.MatchHash(received_image_data_hash)) {
-        LOG_ERROR << "The received image data hash doesn't match the hash specified in the target metadata,"
-                     " hash type: "
-                  << target_hashes[0].TypeString();
-        return false;
-      }
-
-    } catch (const std::exception& exc) {
-      LOG_ERROR << "Failed to generate a hash of the received image data: " << exc.what();
-      return false;
-    }
-  }
-
-  install_res = pacman->install(target_to_apply);
-  if (install_res.result_code.num_code != data::ResultCode::Numeric::kOk &&
-      install_res.result_code.num_code != data::ResultCode::Numeric::kNeedCompletion) {
-    LOG_ERROR << "Could not install target (" << install_res.result_code.toString() << "): " << install_res.description;
-    return false;
-  }
-
-  if (install_res.result_code.num_code == data::ResultCode::Numeric::kNeedCompletion) {
-    storage_->saveInstalledVersion(getSerialResp().ToString(), target_to_apply, InstalledVersionUpdateMode::kPending);
-  } else {
-    storage_->saveInstalledVersion(getSerialResp().ToString(), target_to_apply, InstalledVersionUpdateMode::kCurrent);
-  }
-
-  // TODO: https://saeljira.it.here.com/browse/OTA-4174
-  // - return data::InstallationResult to Primary
-  // - add finaliztion support, pacman->finalizeInstall() must be called at secondary startup if there is pending
-  // version
 
   return true;
 }
 
-void AktualizrSecondary::extractCredentialsArchive(const std::string& archive, std::string* ca, std::string* cert,
-                                                   std::string* pkey, std::string* treehub_server) {
-  {
-    std::stringstream as(archive);
-    *ca = Utils::readFileFromArchive(as, "ca.pem");
-  }
-  {
-    std::stringstream as(archive);
-    *cert = Utils::readFileFromArchive(as, "client.pem");
-  }
-  {
-    std::stringstream as(archive);
-    *pkey = Utils::readFileFromArchive(as, "pkey.pem");
-  }
-  {
-    std::stringstream as(archive);
-    *treehub_server = Utils::readFileFromArchive(as, "server.url", true);
-  }
-}
-
-void AktualizrSecondary::connectToPrimary() {
-  Socket socket(config_.network.primary_ip, config_.network.primary_port);
-
-  if (socket.bind(config_.network.port) != 0) {
-    LOG_ERROR << "Failed to bind a connection socket to the secondary's port";
-    return;
+data::ResultCode::Numeric AktualizrSecondary::install(const std::string& target_name) {
+  // TODO: how to handle the case when secondary is rebooted after metadata are received
+  if (!pending_target_.IsValid()) {
+    LOG_ERROR << "Aborting target image installation; no valid target found.";
+    return data::ResultCode::Numeric::kInternalError;
   }
 
-  if (socket.connect() == 0) {
-    LOG_INFO << "Connected to Primary, sending info about this secondary...";
-    socket_server_.HandleOneConnection(socket.getFD());
-  } else {
-    LOG_INFO << "Failed to connect to Primary";
+  if (pending_target_.filename() != target_name) {
+    LOG_ERROR << "name of the target to install and a name of the pending target do not match";
+    return data::ResultCode::Numeric::kInternalError;
   }
+
+  auto install_result = update_agent_->install(pending_target_);
+
+  switch (install_result) {
+    case data::ResultCode::Numeric::kOk: {
+      storage_->saveInstalledVersion(ecu_serial_.ToString(), pending_target_, InstalledVersionUpdateMode::kCurrent);
+      pending_target_ = Uptane::Target::Unknown();
+      LOG_INFO << "The target has been successfully installed: " << target_name;
+      break;
+    }
+    case data::ResultCode::Numeric::kNeedCompletion: {
+      storage_->saveInstalledVersion(ecu_serial_.ToString(), pending_target_, InstalledVersionUpdateMode::kPending);
+      LOG_INFO << "The target has been successfully installed, but a reboot is required to be applied: " << target_name;
+      break;
+    }
+    default: { LOG_INFO << "Failed to install the target: " << target_name; }
+  }
+
+  return install_result;
 }
 
 bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
@@ -249,13 +166,6 @@ bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
     return false;
   }
 
-  auto targetsForThisEcu = director_repo_.getTargets(getSerial(), getHardwareID());
-
-  if (targetsForThisEcu.size() != 1) {
-    LOG_ERROR << "Invalid number of targets (should be 1): " << targetsForThisEcu.size();
-    return false;
-  }
-
   // 6. Download and check the Root metadata file from the Image repository, following the procedure in Section 5.4.4.3.
   // 7. Download and check the Timestamp metadata file from the Image repository, following the procedure in
   // Section 5.4.4.4.
@@ -269,10 +179,61 @@ bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
   }
 
   // 10. Verify that Targets metadata from the Director and Image repositories match.
-  if (!(director_repo_.getTargets() == *image_repo_.getTargets())) {
+  if (!director_repo_.matchTargetsWithImageTargets(*(image_repo_.getTargets()))) {
     LOG_ERROR << "Targets metadata from the Director and Image repositories DOES NOT match ";
     return false;
   }
+
+  auto targetsForThisEcu = director_repo_.getTargets(getSerial(), getHwId());
+
+  if (targetsForThisEcu.size() != 1) {
+    LOG_ERROR << "Invalid number of targets (should be 1): " << targetsForThisEcu.size();
+    return false;
+  }
+
+  if (!update_agent_->isTargetSupported(targetsForThisEcu[0])) {
+    LOG_ERROR << "The given target type is not supported: " << targetsForThisEcu[0].type();
+    return false;
+  }
+
+  pending_target_ = targetsForThisEcu[0];
+
+  return true;
+}
+
+bool AktualizrSecondary::uptaneInitialize() {
+  if (keys_->generateUptaneKeyPair().size() == 0) {
+    LOG_ERROR << "Failed to generate uptane key pair";
+    return false;
+  }
+
+  // from uptane/initialize.cc but we only take care of our own serial/hwid
+  EcuSerials ecu_serials;
+
+  if (storage_->loadEcuSerials(&ecu_serials)) {
+    ecu_serial_ = ecu_serials[0].first;
+    hardware_id_ = ecu_serials[0].second;
+
+    return true;
+  }
+
+  std::string ecu_serial_local = config_.uptane.ecu_serial;
+  if (ecu_serial_local.empty()) {
+    ecu_serial_local = keys_->UptanePublicKey().KeyId();
+  }
+
+  std::string ecu_hardware_id = config_.uptane.ecu_hardware_id;
+  if (ecu_hardware_id.empty()) {
+    ecu_hardware_id = Utils::getHostname();
+    if (ecu_hardware_id == "") {
+      return false;
+    }
+  }
+
+  ecu_serials.emplace_back(Uptane::EcuSerial(ecu_serial_local), Uptane::HardwareIdentifier(ecu_hardware_id));
+  storage_->storeEcuSerials(ecu_serials);
+  ecu_serial_ = ecu_serials[0].first;
+  hardware_id_ = ecu_serials[0].second;
 
   return true;
 }

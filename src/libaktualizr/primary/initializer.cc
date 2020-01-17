@@ -8,6 +8,7 @@
 #include "bootstrap/bootstrap.h"
 #include "crypto/keymanager.h"
 #include "logging/logging.h"
+#include "storage/invstorage.h"
 
 // Postcondition: device_id is in the storage
 bool Initializer::initDeviceId() {

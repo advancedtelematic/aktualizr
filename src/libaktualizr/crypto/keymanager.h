@@ -3,10 +3,12 @@
 
 #include "keymanager_config.h"
 
+#include "crypto.h"
 #include "http/httpinterface.h"
 #include "p11engine.h"
-#include "storage/invstorage.h"
 #include "utilities/utils.h"
+
+class INvStorage;
 
 class KeyManager {
  public:

@@ -10,7 +10,7 @@ boost::filesystem::path test_data_dir;
 TEST(campaign, Campaigns_from_json) {
   auto json = Utils::parseJSONFile(test_data_dir / "campaigns_sample.json");
 
-  auto campaigns = campaign::campaignsFromJson(json);
+  auto campaigns = campaign::Campaign::campaignsFromJson(json);
   EXPECT_EQ(campaigns.size(), 1);
 
   EXPECT_EQ(campaigns.at(0).name, "campaign1");
@@ -27,7 +27,7 @@ TEST(campaign, Campaigns_from_json) {
   bad4["campaigns"][0] = Json::Value();
   bad4["campaigns"][0]["name"] = "a";
   bad4["campaigns"][0]["id"] = "a";
-  auto campaignsNoAutoAccept = campaign::campaignsFromJson(bad4);
+  auto campaignsNoAutoAccept = campaign::Campaign::campaignsFromJson(bad4);
   EXPECT_FALSE(campaignsNoAutoAccept.at(0).autoAccept);
 }
 
@@ -35,9 +35,9 @@ TEST(campaign, Campaigns_from_json) {
 TEST(campaign, Campaigns_to_json) {
   auto json = Utils::parseJSONFile(test_data_dir / "campaigns_sample.json");
 
-  auto campaigns = campaign::campaignsFromJson(json);
+  auto campaigns = campaign::Campaign::campaignsFromJson(json);
   Json::Value res;
-  JsonFromCampaigns(campaigns, res);
+  campaign::Campaign::JsonFromCampaigns(campaigns, res);
 
   EXPECT_EQ(res["campaigns"][0]["name"], "campaign1");
   EXPECT_EQ(res["campaigns"][0]["id"], "c2eb7e8d-8aa0-429d-883f-5ed8fdb2a493");
@@ -53,27 +53,27 @@ TEST(campaign, Campaigns_to_json) {
 
 TEST(campaign, Campaigns_from_invalid_json) {
   // empty object
-  EXPECT_EQ(campaign::campaignsFromJson(Json::Value()).size(), 0);
+  EXPECT_EQ(campaign::Campaign::campaignsFromJson(Json::Value()).size(), 0);
 
   // naked array
-  EXPECT_EQ(campaign::campaignsFromJson(Json::Value(Json::arrayValue)).size(), 0);
+  EXPECT_EQ(campaign::Campaign::campaignsFromJson(Json::Value(Json::arrayValue)).size(), 0);
 
   // object in object
   Json::Value bad1;
   bad1["campaigns"] = Json::Value();
-  EXPECT_EQ(campaign::campaignsFromJson(bad1).size(), 0);
+  EXPECT_EQ(campaign::Campaign::campaignsFromJson(bad1).size(), 0);
 
   // array in array in object
   Json::Value bad2;
   bad2["campaigns"] = Json::Value(Json::arrayValue);
   bad2["campaigns"][0] = Json::Value(Json::arrayValue);
-  EXPECT_EQ(campaign::campaignsFromJson(bad2).size(), 0);
+  EXPECT_EQ(campaign::Campaign::campaignsFromJson(bad2).size(), 0);
 
   // no name
   Json::Value bad3;
   bad3["campaigns"] = Json::Value(Json::arrayValue);
   bad3["campaigns"][0] = Json::Value();
-  EXPECT_EQ(campaign::campaignsFromJson(bad3).size(), 0);
+  EXPECT_EQ(campaign::Campaign::campaignsFromJson(bad3).size(), 0);
 }
 
 #ifndef __NO_MAIN__

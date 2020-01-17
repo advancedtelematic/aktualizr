@@ -3,7 +3,7 @@
 
 #include "bootloader_config.h"
 
-#include "storage/invstorage.h"
+class INvStorage;
 
 class Bootloader {
  public:

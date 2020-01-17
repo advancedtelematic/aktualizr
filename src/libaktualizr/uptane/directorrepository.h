@@ -27,6 +27,7 @@ class DirectorRepository : public RepositoryCommon {
 
   Exception getLastException() const { return last_exception; }
   bool updateMeta(INvStorage& storage, const IMetadataFetcher& fetcher) override;
+  bool matchTargetsWithImageTargets(const Uptane::Targets& image_targets) const;
 
  private:
   void resetMeta();
