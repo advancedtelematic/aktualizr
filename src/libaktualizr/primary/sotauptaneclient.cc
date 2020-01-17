@@ -25,24 +25,32 @@ static void report_progress_cb(event::Channel *channel, const Uptane::Target &ta
 }
 
 void SotaUptaneClient::addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec) {
-  const Uptane::EcuSerial sec_serial = sec->getSerial();
-  const Uptane::HardwareIdentifier sec_hw_id = sec->getHwId();
+  Uptane::EcuSerial serial = sec->getSerial();
+
+  SecondaryInfo info;
+  if (!storage->loadSecondaryInfo(serial, &info) || info.type == "") {
+    info.serial = serial;
+    info.hw_id = sec->getHwId();
+    info.type = sec->Type();
+    info.pub_key = sec->getPublicKey();
+    storage->saveSecondaryInfo(info.serial, info.type, info.pub_key);
+  }
 
   if (storage->loadEcuRegistered()) {
     EcuSerials serials;
     storage->loadEcuSerials(&serials);
-    SerialCompare secondary_comp(sec_serial);
+    SerialCompare secondary_comp(serial);
     if (std::find_if(serials.cbegin(), serials.cend(), secondary_comp) == serials.cend()) {
       throw std::logic_error("Add new secondaries for provisioned device is not implemented yet");
     }
   }
 
-  std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>>::const_iterator map_it =
-      secondaries.find(sec_serial);
+  const auto map_it = secondaries.find(serial);
   if (map_it != secondaries.end()) {
-    throw std::runtime_error(std::string("Multiple secondaries found with the same serial: ") + sec_serial.ToString());
+    throw std::runtime_error(std::string("Multiple secondaries found with the same serial: ") + serial.ToString());
   }
-  secondaries.insert(std::make_pair(sec_serial, sec));
+
+  secondaries.emplace(serial, sec);
 }
 
 bool SotaUptaneClient::isInstalledOnPrimary(const Uptane::Target &target) {
@@ -1044,8 +1052,7 @@ void SotaUptaneClient::verifySecondaries() {
     found[static_cast<size_t>(std::distance(serials.cbegin(), store_it))] = true;
   }
 
-  std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>>::const_iterator it;
-  for (it = secondaries.cbegin(); it != secondaries.cend(); ++it) {
+  for (auto it = secondaries.cbegin(); it != secondaries.cend(); ++it) {
     SerialCompare secondary_comp(it->second->getSerial());
     store_it = std::find_if(serials.cbegin(), serials.cend(), secondary_comp);
     if (store_it == serials.cend()) {
@@ -1151,7 +1158,7 @@ void SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &tar
         rotateSecondaryRoot(Uptane::RepositoryType::Director(), *(sec->second));
         rotateSecondaryRoot(Uptane::RepositoryType::Image(), *(sec->second));
         if (!sec->second->putMetadata(meta)) {
-          LOG_ERROR << "Sending metadata to " << sec->second->getSerial() << " failed";
+          LOG_ERROR << "Sending metadata to " << sec->first << " failed";
         }
       }
     }

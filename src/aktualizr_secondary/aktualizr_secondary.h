@@ -21,6 +21,7 @@ class AktualizrSecondary : public Uptane::SecondaryInterface {
   AktualizrSecondary(AktualizrSecondaryConfig config, std::shared_ptr<INvStorage> storage,
                      std::shared_ptr<KeyManager> key_mngr, std::shared_ptr<UpdateAgent> update_agent);
 
+  std::string Type() const override { return ""; }
   Uptane::EcuSerial getSerial() const override;
   Uptane::HardwareIdentifier getHwId() const override;
   PublicKey getPublicKey() const override;

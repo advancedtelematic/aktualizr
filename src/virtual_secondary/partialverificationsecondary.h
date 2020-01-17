@@ -30,6 +30,7 @@ class PartialVerificationSecondary : public SecondaryInterface {
  public:
   explicit PartialVerificationSecondary(Primary::PartialVerificationSecondaryConfig sconfig_in);
 
+  std::string Type() const override { return Primary::PartialVerificationSecondaryConfig::Type; }
   EcuSerial getSerial() const override {
     if (!sconfig.ecu_serial.empty()) {
       return Uptane::EcuSerial(sconfig.ecu_serial);

@@ -526,6 +526,7 @@ class SecondaryInterfaceMock : public Uptane::SecondaryInterface {
     manifest_["signed"] = manifest_unsigned;
     manifest_["signatures"].append(signature);
   }
+  std::string Type() const override { return "mock"; }
   PublicKey getPublicKey() const override { return public_key_; }
 
   Uptane::HardwareIdentifier getHwId() const override { return Uptane::HardwareIdentifier(sconfig.ecu_hardware_id); }

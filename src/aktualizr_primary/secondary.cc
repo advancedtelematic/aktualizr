@@ -4,6 +4,7 @@
 #include <boost/asio/placeholders.hpp>
 #include <boost/bind.hpp>
 
+#include <algorithm>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -14,18 +15,19 @@
 namespace Primary {
 
 using Secondaries = std::vector<std::shared_ptr<Uptane::SecondaryInterface>>;
-using SecondaryFactoryRegistry = std::unordered_map<std::string, std::function<Secondaries(const SecondaryConfig&)>>;
+using SecondaryFactoryRegistry =
+    std::unordered_map<std::string, std::function<Secondaries(const SecondaryConfig&, Aktualizr& aktualizr)>>;
 
-static Secondaries createIPSecondaries(const IPSecondariesConfig& config);
+static Secondaries createIPSecondaries(const IPSecondariesConfig& config, Aktualizr& aktualizr);
 
 static SecondaryFactoryRegistry sec_factory_registry = {
     {IPSecondariesConfig::Type,
-     [](const SecondaryConfig& config) {
+     [](const SecondaryConfig& config, Aktualizr& aktualizr) {
        auto ip_sec_cgf = dynamic_cast<const IPSecondariesConfig&>(config);
-       return createIPSecondaries(ip_sec_cgf);
+       return createIPSecondaries(ip_sec_cgf, aktualizr);
      }},
     {VirtualSecondaryConfig::Type,
-     [](const SecondaryConfig& config) {
+     [](const SecondaryConfig& config, Aktualizr& /* unused */) {
        auto virtual_sec_cgf = dynamic_cast<const VirtualSecondaryConfig&>(config);
        return Secondaries({std::make_shared<VirtualSecondary>(virtual_sec_cgf)});
      }},
@@ -34,8 +36,8 @@ static SecondaryFactoryRegistry sec_factory_registry = {
     //  }
 };
 
-static Secondaries createSecondaries(const SecondaryConfig& config) {
-  return (sec_factory_registry.at(config.type()))(config);
+static Secondaries createSecondaries(const SecondaryConfig& config, Aktualizr& aktualizr) {
+  return (sec_factory_registry.at(config.type()))(config, aktualizr);
 }
 
 void initSecondaries(Aktualizr& aktualizr, const boost::filesystem::path& config_file) {
@@ -48,7 +50,7 @@ void initSecondaries(Aktualizr& aktualizr, const boost::filesystem::path& config
   for (auto& config : secondary_configs) {
     try {
       LOG_INFO << "Creating " << config->type() << " secondaries...";
-      Secondaries secondaries = createSecondaries(*config);
+      Secondaries secondaries = createSecondaries(*config, aktualizr);
 
       for (const auto& secondary : secondaries) {
         LOG_INFO << "Adding Secondary with ECU serial: " << secondary->getSerial()
@@ -141,20 +143,86 @@ class SecondaryWaiter {
   std::unordered_set<std::string> secondaries_to_wait_for_;
 };
 
-static Secondaries createIPSecondaries(const IPSecondariesConfig& config) {
+static Secondaries createIPSecondaries(const IPSecondariesConfig& config, Aktualizr& aktualizr) {
   Secondaries result;
-  SecondaryWaiter sec_waiter{config.secondaries_wait_port, config.secondaries_timeout_s, result};
+  const bool provision = !aktualizr.IsRegistered();
 
-  for (auto& ip_sec_cfg : config.secondaries_cfg) {
-    auto secondary = Uptane::IpUptaneSecondary::connectAndCreate(ip_sec_cfg.ip, ip_sec_cfg.port);
-    if (secondary) {
-      result.push_back(secondary);
-    } else {
-      sec_waiter.addSecondary(ip_sec_cfg.ip, ip_sec_cfg.port);
+  if (provision) {
+    SecondaryWaiter sec_waiter{config.secondaries_wait_port, config.secondaries_timeout_s, result};
+
+    for (const auto& ip_sec_cfg : config.secondaries_cfg) {
+      auto secondary = Uptane::IpUptaneSecondary::connectAndCreate(ip_sec_cfg.ip, ip_sec_cfg.port);
+      if (secondary) {
+        result.push_back(secondary);
+      } else {
+        sec_waiter.addSecondary(ip_sec_cfg.ip, ip_sec_cfg.port);
+      }
+    }
+
+    sec_waiter.wait();
+
+    // set ip/port in the db so that we can match everything later
+    for (size_t k = 0; k < config.secondaries_cfg.size(); k++) {
+      const auto cfg = config.secondaries_cfg[k];
+      const auto sec = result[k];
+      Json::Value d;
+      d["ip"] = cfg.ip;
+      d["port"] = cfg.port;
+      aktualizr.SetSecondaryData(sec->getSerial(), Utils::jsonToCanonicalStr(d));
+    }
+  } else {
+    auto secondaries_info = aktualizr.GetSecondaries();
+
+    for (const auto& cfg : config.secondaries_cfg) {
+      Uptane::SecondaryInterface::Ptr secondary;
+      const SecondaryInfo* info = nullptr;
+
+      auto f = std::find_if(secondaries_info.cbegin(), secondaries_info.cend(), [&cfg](const SecondaryInfo& i) {
+        Json::Value d = Utils::parseJSON(i.extra);
+        return d["ip"] == cfg.ip && d["port"] == cfg.port;
+      });
+
+      if (f == secondaries_info.cend() && config.secondaries_cfg.size() == 1 && secondaries_info.size() == 1) {
+        // /!\ backward compatibility: handle the case with one secondary, but
+        // store the info for later anyway
+        info = &secondaries_info[0];
+        Json::Value d;
+        d["ip"] = cfg.ip;
+        d["port"] = cfg.port;
+        aktualizr.SetSecondaryData(info->serial, Utils::jsonToCanonicalStr(d));
+        LOG_INFO << "Migrated single IP secondary to new storage format";
+      } else if (f == secondaries_info.cend()) {
+        // Match the other way if we can
+        secondary = Uptane::IpUptaneSecondary::connectAndCreate(cfg.ip, cfg.port);
+        if (secondary == nullptr) {
+          LOG_ERROR << "Could not instantiate secondary " << cfg.ip << ":" << cfg.port;
+          continue;
+        }
+        auto f_serial =
+            std::find_if(secondaries_info.cbegin(), secondaries_info.cend(),
+                         [&secondary](const SecondaryInfo& i) { return i.serial == secondary->getSerial(); });
+        if (f_serial == secondaries_info.cend()) {
+          LOG_ERROR << "Could not instantiate secondary " << cfg.ip << ":" << cfg.port;
+          continue;
+        }
+        info = &(*f_serial);
+      } else {
+        info = &(*f);
+      }
+
+      if (secondary == nullptr) {
+        secondary =
+            Uptane::IpUptaneSecondary::connectAndCheck(cfg.ip, cfg.port, info->serial, info->hw_id, info->pub_key);
+      }
+
+      if (secondary != nullptr) {
+        result.push_back(secondary);
+      } else {
+        LOG_ERROR << "Could not instantiate secondary " << info->serial;
+      }
     }
   }
 
-  sec_waiter.wait();
   return result;
 }
 

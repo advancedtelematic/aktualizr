@@ -223,7 +223,50 @@ void SQLStorage::saveSecondaryData(const Uptane::EcuSerial& ecu_serial, const st
   db.commitTransaction();
 }
 
-bool SQLStorage::loadSecondaryInfo(std::vector<SecondaryInfo>* secondaries) {
+bool SQLStorage::loadSecondaryInfo(const Uptane::EcuSerial& ecu_serial, SecondaryInfo* secondary) {
+  SQLite3Guard db = dbConnection();
+
+  SecondaryInfo new_sec{};
+
+  auto statement = db.prepareStatement<std::string>(
+      "SELECT serial, hardware_id, sec_type, public_key_type, public_key, extra FROM ecus LEFT JOIN secondary_ecus "
+      "USING "
+      "(serial) WHERE (serial = ? AND is_primary = 0);",
+      ecu_serial.ToString());
+  int statement_state = statement.step();
+  if (statement_state == SQLITE_DONE) {
+    LOG_TRACE << "Secondary ecu " << ecu_serial << " not found";
+    return false;
+  } else if (statement_state != SQLITE_ROW) {
+    LOG_ERROR << "Cannot load secondary info: " << db.errmsg();
+    return false;
+  }
+
+  try {
+    Uptane::EcuSerial serial = Uptane::EcuSerial(statement.get_result_col_str(0).value());
+    Uptane::HardwareIdentifier hw_id = Uptane::HardwareIdentifier(statement.get_result_col_str(1).value());
+    std::string sec_type = statement.get_result_col_str(2).value_or("");
+    std::string kt_str = statement.get_result_col_str(3).value_or("");
+    PublicKey key;
+    if (kt_str != "") {
+      KeyType key_type;
+      std::stringstream(kt_str) >> key_type;
+      key = PublicKey(statement.get_result_col_str(4).value_or(""), key_type);
+    }
+    std::string extra = statement.get_result_col_str(5).value_or("");
+    new_sec = SecondaryInfo{serial, hw_id, sec_type, key, extra};
+  } catch (const boost::bad_optional_access&) {
+    return false;
+  }
+
+  if (secondary != nullptr) {
+    *secondary = std::move(new_sec);
+  }
+
+  return true;
+}
+
+bool SQLStorage::loadSecondariesInfo(std::vector<SecondaryInfo>* secondaries) {
   SQLite3Guard db = dbConnection();
 
   std::vector<SecondaryInfo> new_secs;

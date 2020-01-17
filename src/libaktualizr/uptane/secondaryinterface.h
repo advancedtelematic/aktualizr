@@ -14,6 +14,7 @@ class SecondaryInterface {
   using Ptr = std::shared_ptr<SecondaryInterface>;
 
  public:
+  virtual std::string Type() const = 0;
   virtual EcuSerial getSerial() const = 0;
   virtual Uptane::HardwareIdentifier getHwId() const = 0;
   virtual PublicKey getPublicKey() const = 0;

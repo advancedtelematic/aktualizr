@@ -13,6 +13,7 @@ class SecondaryMock : public Uptane::SecondaryInterface {
       : _serial(serial), _hdw_id(hdw_id), _pub_key(pub_key), _manifest(manifest) {}
 
  public:
+  virtual std::string Type() const { return "mock"; }
   virtual Uptane::EcuSerial getSerial() const { return _serial; }
   virtual Uptane::HardwareIdentifier getHwId() const { return _hdw_id; }
   virtual PublicKey getPublicKey() const { return _pub_key; }

@@ -14,7 +14,7 @@ class Initializer {
  public:
   Initializer(const ProvisionConfig& config_in, std::shared_ptr<INvStorage> storage_in,
               std::shared_ptr<HttpInterface> http_client_in, KeyManager& keys_in,
-              const std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >& secondary_info_in);
+              const std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >& secondaries_in);
   bool isSuccessful() const { return success_; }
 
  private:
@@ -22,7 +22,7 @@ class Initializer {
   std::shared_ptr<INvStorage> storage_;
   std::shared_ptr<HttpInterface> http_client_;
   KeyManager& keys_;
-  const std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >& secondary_info_;
+  const std::map<Uptane::EcuSerial, Uptane::SecondaryInterface::Ptr>& secondaries_;
   bool success_;
 
   bool initDeviceId();

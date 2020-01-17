@@ -190,6 +190,20 @@ class Aktualizr {
    */
   void AddSecondary(const std::shared_ptr<Uptane::SecondaryInterface>& secondary);
 
+  /**
+   * Store some free-form data to be associated with a particular secondary, to
+   * be retrieved later through `GetSecondaries`
+   */
+  void SetSecondaryData(const Uptane::EcuSerial& ecu, const std::string& data);
+
+  /**
+   * Returns a list of the registered secondaries, along with some associated
+   * metadata
+   *
+   * @return vector of SecondaryInfo objects
+   */
+  std::vector<SecondaryInfo> GetSecondaries() const;
+
   // The type proxy is needed in doxygen 1.8.16 because of this bug
   // https://github.com/doxygen/doxygen/issues/7236
   using SigHandler = std::function<void(std::shared_ptr<event::BaseEvent>)>;

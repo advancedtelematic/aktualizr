@@ -15,13 +15,13 @@ Uptane::SecondaryInterface::Ptr IpUptaneSecondary::connectAndCreate(const std::s
 
   ConnectionSocket con_sock{address, port};
 
-  if (con_sock.connect() != 0) {
-    LOG_ERROR << "Failed to connect to a secondary: " << std::strerror(errno);
-    return std::shared_ptr<Uptane::SecondaryInterface>();
+  if (con_sock.connect() == 0) {
+    LOG_INFO << "Connected to IP Secondary: "
+             << "(" << address << ":" << port << ")";
+  } else {
+    LOG_WARNING << "Failed to connect to a secondary: " << std::strerror(errno);
+    return nullptr;
   }
-
-  LOG_INFO << "Connected to IP Secondary: "
-           << "(" << address << ":" << port << ")";
 
   return create(address, port, *con_sock);
 }
@@ -50,6 +50,40 @@ Uptane::SecondaryInterface::Ptr IpUptaneSecondary::create(const std::string& add
            << "hw-ID: " << hw_id << " serial: " << serial;
 
   return std::make_shared<IpUptaneSecondary>(address, port, serial, hw_id, pub_key);
+}
+
+SecondaryInterface::Ptr IpUptaneSecondary::connectAndCheck(const std::string& address, unsigned short port,
+                                                           EcuSerial serial, HardwareIdentifier hw_id,
+                                                           PublicKey pub_key) {
+  // try to connect:
+  // - if it succeeds compare with what we expect
+  // - otherwise, keep using what we know
+  try {
+    auto sec = IpUptaneSecondary::connectAndCreate(address, port);
+    if (sec != nullptr) {
+      auto s = sec->getSerial();
+      if (s != serial) {
+        LOG_ERROR << "Mismatch between secondary serials " << s << " and " << serial;
+        return nullptr;
+      }
+      auto h = sec->getHwId();
+      if (h != hw_id) {
+        LOG_ERROR << "Mismatch between hardware ids " << h << " and " << hw_id;
+        return nullptr;
+      }
+      auto p = sec->getPublicKey();
+      if (p != pub_key) {
+        LOG_WARNING << "Mismatch between public keys " << p.Value() << " and " << pub_key.Value() << " for secondary "
+                    << serial;
+      }
+      return sec;
+    }
+  } catch (std::exception& e) {
+    LOG_WARNING << "Could not connect to secondary " << serial << " at " << address << ":" << port
+                << ", using previously known registration data";
+  }
+
+  return std::make_shared<IpUptaneSecondary>(address, port, std::move(serial), std::move(hw_id), std::move(pub_key));
 }
 
 IpUptaneSecondary::IpUptaneSecondary(const std::string& address, unsigned short port, EcuSerial serial,

@@ -11,13 +11,15 @@ namespace Uptane {
 class IpUptaneSecondary : public SecondaryInterface {
  public:
   static SecondaryInterface::Ptr connectAndCreate(const std::string& address, unsigned short port);
-
   static SecondaryInterface::Ptr create(const std::string& address, unsigned short port, int con_fd);
+
+  static SecondaryInterface::Ptr connectAndCheck(const std::string& address, unsigned short port, EcuSerial serial,
+                                                 HardwareIdentifier hw_id, PublicKey pub_key);
 
   explicit IpUptaneSecondary(const std::string& address, unsigned short port, EcuSerial serial,
                              HardwareIdentifier hw_id, PublicKey pub_key);
 
-  // It looks more natural to return const EcuSerial& and const Uptane::HardwareIdentifier&
+  std::string Type() const override { return "IP"; }
   EcuSerial getSerial() const override { return serial_; };
   Uptane::HardwareIdentifier getHwId() const override { return hw_id_; }
   PublicKey getPublicKey() const override { return pub_key_; }

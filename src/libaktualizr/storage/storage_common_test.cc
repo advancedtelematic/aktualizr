@@ -586,7 +586,7 @@ TEST(storage, load_store_secondary_info) {
   EXPECT_NE(std::string::npos, testing::internal::GetCapturedStdout().find("Can't save secondary"));
 
   std::vector<SecondaryInfo> sec_infos;
-  EXPECT_TRUE(storage->loadSecondaryInfo(&sec_infos));
+  EXPECT_TRUE(storage->loadSecondariesInfo(&sec_infos));
 
   ASSERT_EQ(sec_infos.size(), 2);
   EXPECT_EQ(sec_infos[0].serial.ToString(), "secondary_1");
@@ -601,7 +601,7 @@ TEST(storage, load_store_secondary_info) {
   // test update of data
   storage->saveSecondaryInfo(Uptane::EcuSerial("secondary_1"), "ip", PublicKey("key2", KeyType::kED25519));
   storage->saveSecondaryData(Uptane::EcuSerial("secondary_1"), "data1");
-  EXPECT_TRUE(storage->loadSecondaryInfo(&sec_infos));
+  EXPECT_TRUE(storage->loadSecondariesInfo(&sec_infos));
 
   ASSERT_EQ(sec_infos.size(), 2);
   EXPECT_EQ(sec_infos[0].pub_key.Value(), "key2");

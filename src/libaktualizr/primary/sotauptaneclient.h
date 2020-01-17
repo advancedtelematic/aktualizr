@@ -172,7 +172,7 @@ class SotaUptaneClient {
   boost::signals2::scoped_connection conn;
   Uptane::Exception last_exception{"", ""};
   // ecu_serial => secondary*
-  std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>> secondaries;
+  std::map<Uptane::EcuSerial, Uptane::SecondaryInterface::Ptr> secondaries;
   std::mutex download_mutex;
   Uptane::EcuSerial primary_ecu_serial_;
   Uptane::HardwareIdentifier primary_ecu_hw_id_;

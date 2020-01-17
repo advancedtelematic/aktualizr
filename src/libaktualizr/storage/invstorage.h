@@ -105,6 +105,15 @@ class StorageTargetRHandle {
 enum class InstalledVersionUpdateMode { kNone, kCurrent, kPending };
 
 struct SecondaryInfo {
+  SecondaryInfo() : serial(Uptane::EcuSerial::Unknown()), hw_id(Uptane::HardwareIdentifier::Unknown()) {}
+  SecondaryInfo(Uptane::EcuSerial serial_in, Uptane::HardwareIdentifier hw_id_in, std::string type_in,
+                PublicKey pub_key_in, std::string extra_in)
+      : serial(std::move(serial_in)),
+        hw_id(std::move(hw_id_in)),
+        type(std::move(type_in)),
+        pub_key(std::move(pub_key_in)),
+        extra(std::move(extra_in)) {}
+
   Uptane::EcuSerial serial;
   Uptane::HardwareIdentifier hw_id;
   std::string type;
@@ -129,7 +138,8 @@ class INvStorage {
   virtual void saveSecondaryInfo(const Uptane::EcuSerial& ecu_serial, const std::string& sec_type,
                                  const PublicKey& public_key) = 0;
   virtual void saveSecondaryData(const Uptane::EcuSerial& ecu_serial, const std::string& data) = 0;
-  virtual bool loadSecondaryInfo(std::vector<SecondaryInfo>* secondaries) = 0;
+  virtual bool loadSecondaryInfo(const Uptane::EcuSerial& ecu_serial, SecondaryInfo* secondary) = 0;
+  virtual bool loadSecondariesInfo(std::vector<SecondaryInfo>* secondaries) = 0;
 
   virtual void storeTlsCreds(const std::string& ca, const std::string& cert, const std::string& pkey) = 0;
   virtual void storeTlsCa(const std::string& ca) = 0;

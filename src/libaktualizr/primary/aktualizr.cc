@@ -101,6 +101,17 @@ void Aktualizr::AddSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &
   uptane_client_->addSecondary(secondary);
 }
 
+void Aktualizr::SetSecondaryData(const Uptane::EcuSerial &ecu, const std::string &data) {
+  storage_->saveSecondaryData(ecu, data);
+}
+
+std::vector<SecondaryInfo> Aktualizr::GetSecondaries() const {
+  std::vector<SecondaryInfo> info;
+  storage_->loadSecondariesInfo(&info);
+
+  return info;
+}
+
 std::future<result::CampaignCheck> Aktualizr::CampaignCheck() {
   std::function<result::CampaignCheck()> task([this] { return uptane_client_->campaignCheck(); });
   return api_queue_.enqueue(task);
