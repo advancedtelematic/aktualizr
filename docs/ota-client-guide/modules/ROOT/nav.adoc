@@ -62,6 +62,11 @@ ifndef::env-github[:pageroot:]
 ** xref:{pageroot}hsm-provisioning-example.adoc[Generate a device certificate using an HSM]
 ** xref:{pageroot}enable-device-cred-provisioning.adoc[Enable and install device certificates]
 
+* xref:{pageroot}test-root-cert.adoc[Testing with a root certificate]
+** xref:{pageroot}provide-testroot-cert.adoc[Register your test root certificate]
+** xref:{pageroot}generatetest-devicecert.adoc[Generate a test device certificate]
+** xref:{pageroot}enable-device-cred-provtest.adoc[Enable and install test device certificates]
+
 * xref:{pageroot}secure-software-updates.adoc[Secure your software repository]
 ** xref:{pageroot}install-garage-sign-deploy.adoc[Install the garage-deploy tool]
 ** xref:{pageroot}rotating-signing-keys.adoc[Manage keys for software metadata]

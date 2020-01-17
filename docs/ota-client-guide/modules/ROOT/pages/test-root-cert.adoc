@@ -1,0 +1,30 @@
+= Testing with a root certificate
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
+
+//MC: This is intended for the "test" use case of device credentials provisioning.
+
+If you would like to set up a test environment for device credentials provisioning, you should perform the following steps:
+
+. *xref:generate-selfsigned-root.adoc[Generate a self-signed root certificate for your test fleet]*
++
+You'll need a CA certificate to sign your device certificates for a production environment.
+
+. *xref:provide-testroot-cert.adoc[Register your test root certificate with your OTA Connect account]*
++
+Register the test root certificate you generated with your OTA Connect account, so that OTA Connect can validate your device certificates.
+
+. *xref:generatetest-devicecert.adoc[Generate a test device certificate]*
++
+You need a test device whose certifcate is to be signed by your test root. You can generate a test device certificate for this test.
+
+. *xref:enable-device-cred-provtest.adoc[Enable device credentials provisioning and install device certificates]*
++
+Finally, you can enable device credentials provisioning on a test device and install the test device certificate.
+

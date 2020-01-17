@@ -10,6 +10,8 @@ endif::[]
 
 When you move to production, you'll need to register your fleet root certificate with OTA Connect server. This certificate needs to be signed by a trusted Certificate Authority (CA).
 
+If you already have your own CA certificate, you can proceed to xref:provide-root-cert.adoc[register your root certificate for your fleet with HERE OTA Connect].
+
 If you don't yet have your own CA certificate for signing device certificates, you can generate a self-signed certificate for testing.
 
 // tag::install-root-ca[]
