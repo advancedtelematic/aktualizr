@@ -297,6 +297,7 @@ bool Crypto::parseP12(BIO *p12_bio, const std::string &p12_password, std::string
   for (int i = 0; i < sk_X509_num(ca_certs.get()); i++) {  // NOLINT
     ca_cert = sk_X509_value(ca_certs.get(), i);            // NOLINT
     PEM_write_bio_X509(ca_sink.get(), ca_cert);
+    PEM_write_bio_X509(cert_sink.get(), ca_cert);
   }
   ca_len = static_cast<size_t>(BIO_get_mem_data(ca_sink.get(), &ca_buf));  // NOLINT
   *out_ca = std::string(ca_buf, ca_len);
