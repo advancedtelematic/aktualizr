@@ -55,7 +55,7 @@ class SotaUptaneClient {
       : SotaUptaneClient(config_in, storage_in, std::make_shared<HttpClient>()) {}
 
   void initialize();
-  void addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
+  void addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
   result::Download downloadImages(const std::vector<Uptane::Target> &targets,
                                   const api::FlowControlToken *token = nullptr);
   std::pair<bool, Uptane::Target> downloadImage(const Uptane::Target &target,
@@ -82,9 +82,6 @@ class SotaUptaneClient {
   bool checkImagesMetaOffline();
   data::InstallationResult PackageInstall(const Uptane::Target &target);
   TargetStatus VerifyTarget(const Uptane::Target &target) const { return package_manager_->verifyTarget(target); }
-
- protected:
-  void addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
 
  private:
   FRIEND_TEST(Aktualizr, FullNoUpdates);

@@ -24,21 +24,19 @@ static void report_progress_cb(event::Channel *channel, const Uptane::Target &ta
   (*channel)(event);
 }
 
-void SotaUptaneClient::addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec) {
+void SotaUptaneClient::addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec) {
+  const Uptane::EcuSerial sec_serial = sec->getSerial();
+  const Uptane::HardwareIdentifier sec_hw_id = sec->getHwId();
+
   if (storage->loadEcuRegistered()) {
     EcuSerials serials;
     storage->loadEcuSerials(&serials);
-    SerialCompare secondary_comp(sec->getSerial());
+    SerialCompare secondary_comp(sec_serial);
     if (std::find_if(serials.cbegin(), serials.cend(), secondary_comp) == serials.cend()) {
       throw std::logic_error("Add new secondaries for provisioned device is not implemented yet");
     }
   }
-  addSecondary(sec);
-}
 
-void SotaUptaneClient::addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec) {
-  const Uptane::EcuSerial sec_serial = sec->getSerial();
-  const Uptane::HardwareIdentifier sec_hw_id = sec->getHwId();
   std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>>::const_iterator map_it =
       secondaries.find(sec_serial);
   if (map_it != secondaries.end()) {

@@ -98,7 +98,7 @@ void Aktualizr::Shutdown() {
 }
 
 void Aktualizr::AddSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &secondary) {
-  uptane_client_->addNewSecondary(secondary);
+  uptane_client_->addSecondary(secondary);
 }
 
 std::future<result::CampaignCheck> Aktualizr::CampaignCheck() {
