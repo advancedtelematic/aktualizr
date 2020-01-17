@@ -42,6 +42,9 @@ In this method, the following steps occur:
 
 This entire transaction is secured with TLS, using the pinned device gateway certificate provisioned in the image.
 
+.Summary of Shared credentials provisioning
+[caption="Figure 1: "]
+image::shared-cred-provisioning.png[1280, 500]
 
 
 == Provisioning with device credentials
@@ -60,6 +63,9 @@ With "shared credential" provisioning, devices are identified by the provisionin
 
 With "device credential" provisioning, you decide how devices are identified. You provide the OTA server with only your fleet root CA and ensure your devices already have an X.509 certificate signed by your fleet root CA.
 
+.Summary of Device credentials provisioning
+[caption="Figure 2: "]
+image::device-cred-provisioning.png[1280,500]
 
 == Setting up the OTA Connect Server for Provisioning
 
