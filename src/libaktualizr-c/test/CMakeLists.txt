@@ -1,8 +1,3 @@
-SET(TARGET_NAME api-test)
-SET(SOURCES api-test.c)
-
-SET(CMAKE_SKIP_RPATH TRUE)
-
 SET(REPO_PATH ${PROJECT_BINARY_DIR}/uptane_repos/c-api-test-repo)
 
 if(CMAKE_CROSSCOMPILING)
@@ -18,18 +13,11 @@ add_custom_target(api-test-resources-generation
     --add_campaigns)
 add_dependencies(api-test-resources-generation uptane-generator)
 
-add_executable(${TARGET_NAME} EXCLUDE_FROM_ALL ${SOURCES})
-add_dependencies(build_tests ${TARGET_NAME})
-target_link_libraries(${TARGET_NAME} aktualizr-c api-test-utils)
-add_dependencies(${TARGET_NAME} api-test-resources-generation)
-
-aktualizr_source_file_checks(${SOURCES})
-
-add_test(NAME t_c_api_test COMMAND ${TARGET_NAME}
-    ${PROJECT_SOURCE_DIR}/tests/fake_http_server/fake_test_server.py
-    ${REPO_PATH}
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-set_tests_properties(t_c_api_test PROPERTIES
-    ENVIRONMENT LD_PRELOAD=${PROJECT_BINARY_DIR}/src/libaktualizr-c/test/api-test-utils/libapi-test-utils.so:${PROJECT_BINARY_DIR}/src/libaktualizr-c/libaktualizr-c.so)
+list(REMOVE_ITEM TEST_LIBS aktualizr_lib testutilities)
+add_aktualizr_test(NAME c_api SOURCES api-test.c PROJECT_WORKING_DIRECTORY
+    ARGS ${PROJECT_SOURCE_DIR}/tests/fake_http_server/fake_test_server.py ${REPO_PATH}
+    LIBRARIES api-test-utils aktualizr-c)
+add_dependencies(t_c_api api-test-resources-generation)
+aktualizr_source_file_checks(api-test.c)
 
 add_subdirectory(api-test-utils EXCLUDE_FROM_ALL)

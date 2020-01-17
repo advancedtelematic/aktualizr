@@ -21,7 +21,6 @@ set(HEADERS apiqueue.h
 set_property(SOURCE aktualizr_version.cc PROPERTY COMPILE_DEFINITIONS AKTUALIZR_VERSION="${AKTUALIZR_VERSION}")
 
 add_library(utilities OBJECT ${SOURCES})
-include(AddAktualizrTest)
 
 add_aktualizr_test(NAME dequeue_buffer SOURCES dequeue_buffer_test.cc)
 add_aktualizr_test(NAME timer SOURCES timer_test.cc)
