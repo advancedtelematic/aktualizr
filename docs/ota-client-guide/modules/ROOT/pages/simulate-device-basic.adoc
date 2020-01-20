@@ -91,12 +91,12 @@ Build from source::
 Modify as needed for your distro. See https://github.com/advancedtelematic/aktualizr for further instructions
 [source,sh,subs="attributes"]
 ----
-sudo apt install asn1c build-essentialclang clang-format-6.0 clang-tidy-6.0 cmake \
-curl doxygen graphviz lcov libarchive-devlibboost-devlibboost-filesystem-dev \
-libboost-log-dev libboost-program-options-dev libboost-serialization-dev \
-libboost-iostreams-dev libcurl4-openssl-dev libdpkg-dev libostree-dev libp11-2 \
-libp11-dev libpthread-stubs0-dev libsodium-devlibsqlite3-devlibssl-devlibsystemd-dev \
-python3-dev python3-openssl python3-venv sqlite3 valgrind
+sudo apt install asn1c build-essential clang clang-format-6.0 clang-tidy-6.0 \
+cmake curl doxygen graphviz lcov libarchive-dev libboost-dev \
+libboost-filesystem-dev libboost-log-dev libboost-program-options-dev \
+libcurl4-openssl-dev libostree-dev libp11-3 libp11-dev libpthread-stubs0-dev \
+libsodium-dev libsqlite3-dev libssl-dev python3-dev python3-openssl \
+python3-venv sqlite3 valgrind
 ----
 .Clone the sources from GitHub
 [source,sh,subs="attributes"]
