@@ -27,6 +27,11 @@ class SQLStorage : public SQLStorageBase, public INvStorage {
   bool loadPrimaryPrivate(std::string* private_key) override;
   void clearPrimaryKeys() override;
 
+  void saveSecondaryInfo(const Uptane::EcuSerial& ecu_serial, const std::string& sec_type,
+                         const PublicKey& public_key) override;
+  void saveSecondaryData(const Uptane::EcuSerial& ecu_serial, const std::string& data) override;
+  bool loadSecondaryInfo(std::vector<SecondaryInfo>* secondaries) override;
+
   void storeTlsCreds(const std::string& ca, const std::string& cert, const std::string& pkey) override;
   void storeTlsCa(const std::string& ca) override;
   void storeTlsCert(const std::string& cert) override;

@@ -566,6 +566,48 @@ TEST(storage, list_remove_targets) {
   EXPECT_FALSE(boost::filesystem::exists(temp_dir.Path() / "images" / "HASH"));
 }
 
+TEST(storage, load_store_secondary_info) {
+  TemporaryDirectory temp_dir;
+  std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
+
+  // note: this can be done before the ecu is known
+  storage->saveSecondaryData(Uptane::EcuSerial("secondary_2"), "data2");
+
+  EcuSerials serials{{Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")},
+                     {Uptane::EcuSerial("secondary_1"), Uptane::HardwareIdentifier("secondary_hw")},
+                     {Uptane::EcuSerial("secondary_2"), Uptane::HardwareIdentifier("secondary_hw")}};
+  storage->storeEcuSerials(serials);
+
+  storage->saveSecondaryInfo(Uptane::EcuSerial("secondary_1"), "ip", PublicKey("key1", KeyType::kED25519));
+
+  testing::internal::CaptureStdout();
+  storage->saveSecondaryInfo(Uptane::EcuSerial("primary"), "ip",
+                             PublicKey("key0", KeyType::kRSA2048));  // should show an error
+  EXPECT_NE(std::string::npos, testing::internal::GetCapturedStdout().find("Can't save secondary"));
+
+  std::vector<SecondaryInfo> sec_infos;
+  EXPECT_TRUE(storage->loadSecondaryInfo(&sec_infos));
+
+  ASSERT_EQ(sec_infos.size(), 2);
+  EXPECT_EQ(sec_infos[0].serial.ToString(), "secondary_1");
+  EXPECT_EQ(sec_infos[0].hw_id.ToString(), "secondary_hw");
+  EXPECT_EQ(sec_infos[0].type, "ip");
+  EXPECT_EQ(sec_infos[0].pub_key.Value(), "key1");
+  EXPECT_EQ(sec_infos[0].pub_key.Type(), KeyType::kED25519);
+  EXPECT_EQ(sec_infos[1].pub_key.Type(), KeyType::kUnknown);
+  EXPECT_EQ(sec_infos[1].type, "");
+  EXPECT_EQ(sec_infos[1].extra, "data2");
+
+  // test update of data
+  storage->saveSecondaryInfo(Uptane::EcuSerial("secondary_1"), "ip", PublicKey("key2", KeyType::kED25519));
+  storage->saveSecondaryData(Uptane::EcuSerial("secondary_1"), "data1");
+  EXPECT_TRUE(storage->loadSecondaryInfo(&sec_infos));
+
+  ASSERT_EQ(sec_infos.size(), 2);
+  EXPECT_EQ(sec_infos[0].pub_key.Value(), "key2");
+  EXPECT_EQ(sec_infos[0].extra, "data1");
+}
+
 TEST(storage, checksum) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
