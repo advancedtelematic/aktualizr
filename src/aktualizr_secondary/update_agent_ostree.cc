@@ -12,11 +12,22 @@ bool OstreeUpdateAgent::isTargetSupported(const Uptane::Target& target) const { 
 bool OstreeUpdateAgent::getInstalledImageInfo(Uptane::InstalledImageInfo& installed_image_info) const {
   bool result = false;
   try {
-    installed_image_info.hash = _ostreePackMan->getCurrentHash();
-    // This is the policy on a target image name in case of ostree
-    // The policy in followed and implied in meta-updater (garage-sign/push) and the backend
-    installed_image_info.name = _targetname_prefix + "-" + installed_image_info.hash;
     installed_image_info.len = 0;
+    installed_image_info.hash = _ostreePackMan->getCurrentHash();
+
+    // TODO: consider more elegant way of storing currently installed target name
+    // usage of the SQLStorage and ostree implementions aimed for Primary is
+    // a quite overhead for Secondary
+    auto currently_installed_target = _ostreePackMan->getCurrent();
+    if (!currently_installed_target.IsValid()) {
+      // This is the policy on a target image name in case of ostree
+      // The policy in followed and implied in meta-updater (garage-sign/push) and the backend
+      // installed_image_info.name = _targetname_prefix + "-" + installed_image_info.hash;
+      installed_image_info.name = _targetname_prefix + "-" + installed_image_info.hash;
+    } else {
+      installed_image_info.name = currently_installed_target.filename();
+    }
+
     result = true;
   } catch (const std::exception& exc) {
     LOG_ERROR << "Failed to get the currently installed revision: " << exc.what();

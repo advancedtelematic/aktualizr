@@ -105,9 +105,8 @@ def test_secondary_update(uptane_repo, secondary, aktualizr, director, **kwargs)
 def test_secondary_ostree_update(uptane_repo, secondary, aktualizr, treehub, sysroot, director, **kwargs):
     """Test Secondary ostree update if a boot order of Secondary and Primary is undefined"""
 
-    test_result = True
     target_rev = treehub.revision
-    uptane_repo.add_ostree_target(secondary.id, target_rev)
+    expected_targetname = uptane_repo.add_ostree_target(secondary.id, target_rev, "GARAGE_TARGET_NAME")
 
     with secondary:
         with aktualizr:
@@ -136,10 +135,10 @@ def test_secondary_ostree_update(uptane_repo, secondary, aktualizr, treehub, sys
         logger.error("Installed version {} != the target one {}".format(installed_rev, target_rev))
         return False
 
-    expected_targetname = "{}-{}".format(secondary.id[0], target_rev)
     if expected_targetname != director.get_ecu_manifest_filepath(secondary.id[1]):
         logger.error(
-            "Target name doesn't match a filepath value of the reported manifest: {}".format(director.get_manifest()))
+            "Target name doesn't match a filepath value of the reported manifest: expected: {}, actual: {}".
+            format(expected_targetname, director.get_ecu_manifest_filepath(secondary.id[1])))
         return False
 
     return True

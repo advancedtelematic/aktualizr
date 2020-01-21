@@ -741,11 +741,13 @@ class UptaneTestRepo:
 
         return target_hash
 
-    def add_ostree_target(self, id, rev_hash):
+    def add_ostree_target(self, id, rev_hash, target_name=None):
+        # emulate the backend behavior on defining a target name for OSTREE target format
+        target_name = rev_hash if target_name is None else "{}-{}".format(target_name, rev_hash)
         image_creation_cmdline = [self._repo_manager_exe,
                                   '--command', 'image',
                                   '--path', self.root_dir,
-                                  '--targetname', rev_hash,
+                                  '--targetname', target_name,
                                   '--targetsha256', rev_hash,
                                   '--targetlength', '0',
                                   '--targetformat', 'OSTREE',
@@ -755,12 +757,14 @@ class UptaneTestRepo:
         subprocess.run([self._repo_manager_exe,
                         '--command', 'addtarget',
                         '--path', self.root_dir,
-                        '--targetname', rev_hash,
+                        '--targetname', target_name,
                         '--hwid', id[0],
                         '--serial', id[1]],
                        check=True)
 
         subprocess.run([self._repo_manager_exe, '--path', self.root_dir, '--command', 'signtargets'], check=True)
+
+        return target_name
 
     def __enter__(self):
         self._generate_repo()
