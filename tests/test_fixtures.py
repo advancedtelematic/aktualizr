@@ -286,21 +286,21 @@ class IPSecondary:
         self.port = port
 
         self._aktualizr_secondary_exe = aktualizr_secondary_exe
-        self._storage_dir = tempfile.TemporaryDirectory()
+        self.storage_dir = tempfile.TemporaryDirectory()
         self.port = self.get_free_port()
         self.primary_port = self.get_free_port()
         self._sentinel_file = 'need_reboot'
-        self.reboot_sentinel_file = os.path.join(self._storage_dir.name, self._sentinel_file)
+        self.reboot_sentinel_file = os.path.join(self.storage_dir.name, self._sentinel_file)
 
-        with open(path.join(self._storage_dir.name, 'config.toml'), 'w+') as config_file:
+        with open(path.join(self.storage_dir.name, 'config.toml'), 'w+') as config_file:
             config_file.write(IPSecondary.CONFIG_TEMPLATE.format(serial=id[1], hw_ID=id[0],
                                                                  port=self.port, primary_port=self.primary_port,
-                                                                 storage_dir=self._storage_dir.name,
-                                                                 db_path=path.join(self._storage_dir.name, 'db.sql'),
+                                                                 storage_dir=self.storage_dir.name,
+                                                                 db_path=path.join(self.storage_dir.name, 'db.sql'),
                                                                  pacman_type='ostree' if treehub and sysroot else 'fake',
                                                                  ostree_sysroot=sysroot.path if sysroot else '',
                                                                  treehub_server=treehub.base_url if treehub else '',
-                                                                 sentinel_dir=self._storage_dir.name,
+                                                                 sentinel_dir=self.storage_dir.name,
                                                                  sentinel_name=self._sentinel_file
                                                                  ))
             self._config_file = config_file.name
@@ -451,6 +451,7 @@ class DirectorRepo(UptaneRepo):
         super(DirectorRepo, self).__init__(os.path.join(uptane_repo_root, self.director_subdir), ifc=ifc, port=port,
                                            client_handler_map=client_handler_map)
 
+        self._manifest = None
         self._last_install_res = False
         self._last_install_res_lock = threading.RLock()
         self._installed_condition = threading.Condition()
@@ -470,13 +471,14 @@ class DirectorRepo(UptaneRepo):
             if json_data:
                 install_report = json_data['signed'].get('installation_report', "")
                 if install_report:
-                    self.server.set_install_event(install_report['report']['result']['success'])
+                    self.server.set_install_event(json_data)
 
         handler_map = {'PUT': {'/manifest': handle_manifest}}
 
-    def set_install_event(self, result):
+    def set_install_event(self, manifest):
         with self._installed_condition:
-            self._last_install_res = result
+            self._manifest = manifest
+            self._last_install_res = manifest['signed']['installation_report']['report']['result']['success']
             self._installed_condition.notifyAll()
 
     def wait_for_install(self, timeout=180):
@@ -488,6 +490,15 @@ class DirectorRepo(UptaneRepo):
         with self._installed_condition:
             return self._last_install_res
 
+    def get_manifest(self):
+        with self._installed_condition:
+            return self._manifest
+
+    def get_ecu_manifest(self, ecu_serial):
+        return self.get_manifest()['signed']['ecu_version_manifests'][ecu_serial]
+
+    def get_ecu_manifest_filepath(self, ecu_serial):
+        return self.get_ecu_manifest(ecu_serial)['signed']['installed_image']['filepath']
 
 class ImageRepo(UptaneRepo):
     """

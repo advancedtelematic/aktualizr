@@ -56,31 +56,45 @@ def test_secondary_update_if_primary_starts_first(uptane_repo, secondary, aktual
 
 
 @with_uptane_backend()
+@with_director()
 @with_secondary(start=False)
 @with_aktualizr(start=False, output_logs=False)
-def test_secondary_update(uptane_repo, secondary, aktualizr, **kwargs):
+def test_secondary_update(uptane_repo, secondary, aktualizr, director, **kwargs):
     '''Test Secondary update if a boot order of Secondary and Primary is undefined'''
 
     test_result = True
-    number_of_updates = 1
-    ii = 0
-    while ii < number_of_updates and test_result:
-        # add a new image to the repo in order to update the secondary with it
-        secondary_image_filename = "secondary_image_filename_{}.img".format(ii)
-        secondary_image_hash = uptane_repo.add_image(id=secondary.id, image_filename=secondary_image_filename)
+    # add a new image to the repo in order to update the secondary with it
+    secondary_image_filename = "secondary_image_filename.img"
+    secondary_image_hash = uptane_repo.add_image(id=secondary.id, image_filename=secondary_image_filename)
 
-        logger.debug("Trying to update ECU {} with the image {}".
-                    format(secondary.id, (secondary_image_hash, secondary_image_filename)))
+    logger.debug("Trying to update ECU {} with the image {}".
+                format(secondary.id, (secondary_image_hash, secondary_image_filename)))
 
-        # start Secondary and Aktualizr processes, aktualizr is started in 'once' mode
-        with secondary, aktualizr:
-            aktualizr.wait_for_completion()
+    # start Secondary and Aktualizr processes, aktualizr is started in 'once' mode
+    with secondary, aktualizr:
+        aktualizr.wait_for_completion()
 
-        test_result = secondary_image_hash == aktualizr.get_current_image_info(secondary.id)
-        logger.debug("Update result: {}".format("success" if test_result else "failed"))
-        ii += 1
+    if not director.get_install_result():
+        logger.error("Installation result is not successful")
+        return False
 
-    return test_result
+    # check currently installed hash
+    if secondary_image_hash != aktualizr.get_current_image_info(secondary.id):
+        logger.error("Target image hash doesn't match the currently installed hash")
+        return False
+
+    # check updated file
+    update_file = path.join(secondary.storage_dir.name, "firmware.txt")
+    if not path.exists(update_file):
+        logger.error("Expected updated file does not exist: {}".format(update_file))
+        return False
+
+    if secondary_image_filename != director.get_ecu_manifest_filepath(secondary.id[1]):
+        logger.error("Target name doesn't match a filepath value of the reported manifest: {}".format(director.get_manifest()))
+        return False
+
+    return True
+
 
 @with_treehub()
 @with_uptane_backend()
@@ -112,13 +126,23 @@ def test_secondary_ostree_update(uptane_repo, secondary, aktualizr, treehub, sys
         with aktualizr:
             aktualizr.wait_for_completion()
 
+    if not director.get_install_result():
+        logger.error("Installation result is not successful")
+        return False
+
     installed_rev = aktualizr.get_current_image_info(secondary.id)
 
     if installed_rev != target_rev:
         logger.error("Installed version {} != the target one {}".format(installed_rev, target_rev))
         return False
 
-    return director.get_install_result()
+    expected_targetname = "{}-{}".format(secondary.id[0], target_rev)
+    if expected_targetname != director.get_ecu_manifest_filepath(secondary.id[1]):
+        logger.error(
+            "Target name doesn't match a filepath value of the reported manifest: {}".format(director.get_manifest()))
+        return False
+
+    return True
 
 
 @with_uptane_backend()
