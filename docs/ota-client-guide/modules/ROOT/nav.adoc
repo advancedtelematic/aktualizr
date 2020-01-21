@@ -89,7 +89,7 @@ ifndef::env-github[:pageroot:]
 * xref:{pageroot}provisioning-methods-and-credentialszip.adoc[Contents of the credentials file]
 * xref:{pageroot}useful-bitbake-commands.adoc[Bitbake commands]
 * xref:{pageroot}ostree-usage.adoc[OSTree commands]
-* xref:{pageroot}ecu_events.adoc[ECU events]
+// xref:{pageroot}ecu_events.adoc[ECU events]
 * xref:{pageroot}meta-updater-usage.adoc[Advanced usage of meta-updater]
 
 .Test and simulate OTA functions
