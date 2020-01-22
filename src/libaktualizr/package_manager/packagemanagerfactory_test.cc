@@ -69,8 +69,36 @@ TEST(PackageManagerFactory, Bad) {
   EXPECT_FALSE(pacman);
 }
 
+#include "package_manager/packagemanagerfake.h"
+
+TEST(PackageManagerFactory, Register) {
+  // a package manager cannot be registered twice
+  EXPECT_THROW(PackageManagerFactory::registerPackageManager(
+                   "none",
+                   [](const PackageConfig&, const BootloaderConfig&, const std::shared_ptr<INvStorage>&,
+                      const std::shared_ptr<HttpInterface>&) -> PackageManagerInterface* {
+                     throw std::runtime_error("unimplemented");
+                   }),
+               std::runtime_error);
+
+  PackageManagerFactory::registerPackageManager(
+      "new",
+      [](const PackageConfig& pconfig, const BootloaderConfig& bconfig, const std::shared_ptr<INvStorage>& storage,
+         const std::shared_ptr<HttpInterface>& http) -> PackageManagerInterface* {
+        return new PackageManagerFake(pconfig, bconfig, storage, http);
+      });
+
+  Config config;
+  TemporaryDirectory temp_dir;
+  config.storage.path = temp_dir.Path();
+  config.pacman.type = "new";
+  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
+
+  EXPECT_NE(PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr), nullptr);
+}
+
 #ifndef __NO_MAIN__
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
   if (argc != 2) {
