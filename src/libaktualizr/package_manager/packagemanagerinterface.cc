@@ -157,7 +157,7 @@ bool PackageManagerInterface::fetchTarget(const Uptane::Target& target, Uptane::
     }
     ds->fhandle->wcommit();
     result = true;
-  } catch (const Uptane::Exception& e) {
+  } catch (const std::exception& e) {
     LOG_WARNING << "Error while downloading a target: " << e.what();
   }
   return result;
