@@ -297,7 +297,7 @@ TEST(Fetcher, NotEnoughDiskSpace) {
   empty_target_json["hashes"]["sha256"] = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
   empty_target_json["length"] = available_bytes * 2;
   Uptane::Target empty_target("empty_file", empty_target_json);
-  EXPECT_THROW(pacman->fetchTarget(empty_target, fetcher, keys, progress_cb, nullptr), std::runtime_error);
+  EXPECT_FALSE(pacman->fetchTarget(empty_target, fetcher, keys, progress_cb, nullptr));
   EXPECT_EQ(http->counter, 0);
 
   // Try to fetch a 1-byte target: download succeeds, and http module is called.
