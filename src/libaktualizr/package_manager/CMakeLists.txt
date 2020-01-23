@@ -39,7 +39,7 @@ if(BUILD_OSTREE)
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
 
     if(BUILD_DOCKERAPP)
-        target_sources(package_manager PRIVATE dockerappmanager.cc dockerapp_standalone.cc)
+        target_sources(package_manager PRIVATE dockerappmanager.cc dockerapp_standalone.cc dockerapp_bundles.cc)
         add_aktualizr_test(NAME dockerapp SOURCES dockerappmanager_test.cc PROJECT_WORKING_DIRECTORY
                            ARGS ${PROJECT_BINARY_DIR}/ostree_repo "$<TARGET_FILE:uptane-generator>")
     endif(BUILD_DOCKERAPP)
@@ -58,7 +58,7 @@ aktualizr_source_file_checks(ostreemanager.cc ostreereposync.cc
                              ostreemanager.h ostreereposync.h)
 
 aktualizr_source_file_checks(androidmanager.cc androidmanager.h)
-aktualizr_source_file_checks(dockerappmanager.cc dockerappmanager.h dockerapp_standalone.cc dockerappmanager_test.cc)
+aktualizr_source_file_checks(dockerappmanager.cc dockerappmanager.h dockerapp_standalone.cc dockerapp_bundles.cc dockerappmanager_test.cc)
 
 if(ANDROID)
     target_sources(package_manager PRIVATE androidmanager.cc)

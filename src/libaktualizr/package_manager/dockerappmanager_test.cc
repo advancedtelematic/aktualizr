@@ -43,7 +43,7 @@ TEST(DockerAppManager, PackageManager_Factory_Good) {
   EXPECT_TRUE(pacman);
 }
 
-TEST(DockerAppManager, DockerApp_Fetch) {
+TEST(DockerAppManager, DockerAppStandalone) {
   std::string sha = Utils::readFile(test_sysroot / "ostree/repo/refs/heads/ostree/1/1/0", true);
   Json::Value target_json;
   target_json["hashes"]["sha256"] = sha;
@@ -107,6 +107,65 @@ TEST(DockerAppManager, DockerApp_Fetch) {
 
   setenv("DOCKER_APP_FAIL", "1", 1);
   ASSERT_EQ(TargetStatus::kInvalid, client->VerifyTarget(target));
+}
+
+TEST(DockerAppManager, DockerAppBundles) {
+  // Define the target we want to update to
+  unsetenv("DOCKER_APP_FAIL");  // Make sure this is cleared from previous test
+  std::string sha = Utils::readFile(test_sysroot / "ostree/repo/refs/heads/ostree/1/1/0", true);
+  Json::Value target_json;
+  target_json["hashes"]["sha256"] = sha;
+  target_json["custom"]["targetFormat"] = "OSTREE";
+  target_json["length"] = 0;
+  target_json["custom"]["docker_apps"]["app1"]["uri"] = "hub.docker.io/user/hello@sha256:deadbeef";
+  Uptane::Target target("pull", target_json);
+
+  TemporaryDirectory temp_dir;
+
+  // Insert a facke "docker" binary into our path
+  boost::filesystem::path docker =
+      boost::filesystem::system_complete("src/libaktualizr/package_manager/docker_fake.sh");
+  ASSERT_EQ(0, symlink(docker.c_str(), (temp_dir.Path() / "docker").c_str()));
+  std::string path(temp_dir.PathString() + ":" + getenv("PATH"));
+  setenv("PATH", path.c_str(), 1);
+
+  // Set up a SotaUptaneClient to test with
+  boost::filesystem::path apps_root = temp_dir / "docker_apps";
+  Config config;
+  config.pacman.type = PACKAGE_MANAGER_OSTREEDOCKERAPP;
+  config.pacman.sysroot = test_sysroot;
+  config.pacman.extra["docker_apps_root"] = apps_root.string();
+  config.pacman.extra["docker_apps"] = "app1 app2";
+  config.pacman.extra["docker_compose_bin"] = "src/libaktualizr/package_manager/docker_fake.sh";
+  config.pacman.ostree_server = treehub_server;
+  config.uptane.repo_server = repo_server + "/repo/repo";
+  TemporaryDirectory dir;
+  config.storage.path = dir.Path();
+
+  // Create a fake "docker-app" that's not configured. We'll test below
+  // to ensure its removed
+  // boost::filesystem::create_directories(apps_root / "delete-this-app");
+  // This is app is configured, but not a part of the install Target, so
+  // it should get removed below
+  boost::filesystem::create_directories(apps_root / "app2");
+
+  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
+  storage->savePrimaryInstalledVersion(target, InstalledVersionUpdateMode::kCurrent);
+  KeyManager keys(storage, config.keymanagerConfig());
+  auto client = std_::make_unique<SotaUptaneClient>(config, storage);
+
+  ASSERT_TRUE(client->package_manager_->fetchTarget(target, *(client->uptane_fetcher), keys, progress_cb, nullptr));
+  std::string content = Utils::readFile(temp_dir / "docker-app-pull");
+  ASSERT_EQ("PULL CALLED app pull hub.docker.io/user/hello@sha256:deadbeef\n", content);
+
+  client->package_manager_->install(target);
+  content = Utils::readFile(apps_root / "app1/docker-compose.yml");
+  ASSERT_EQ("FAKE CONTENT FOR IMAGE RENDER\nhub.docker.io/user/hello@sha256:deadbeef\n", content);
+
+  // Make sure the unconfigured docker app has been removed:
+  ASSERT_FALSE(boost::filesystem::exists(apps_root / "delete-this-app"));
+  ASSERT_FALSE(boost::filesystem::exists(apps_root / "app2"));
+  ASSERT_TRUE(boost::filesystem::exists(apps_root / "docker-compose-down-called"));
 }
 
 #ifndef __NO_MAIN__

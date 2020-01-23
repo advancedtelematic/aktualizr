@@ -123,6 +123,8 @@ bool DockerAppStandalone::iterate_apps(const Uptane::Target &target, const Docke
             }
           }
         }
+      } else if ((*i).isObject() && (*i).isMember("uri")) {
+        LOG_TRACE << "Skipping docker app bundle format for " << i.key().asString() << " -> " << *i;
       } else {
         LOG_ERROR << "Invalid custom data for docker-app: " << i.key().asString() << " -> " << *i;
       }

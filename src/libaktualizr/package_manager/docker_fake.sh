@@ -6,6 +6,21 @@ if [ -n "$DOCKER_APP_FAIL" ] ; then
   exit 1
 fi
 
+if [ "$1" = "app" ] ; then
+  HERE=$(dirname $0)
+  if [ "$2" = "pull" ] ; then
+    echo PULL CALLED $* > $HERE/docker-app-pull
+    exit 0
+  fi
+  if [ "$2" = "image" ] ; then
+    if [ "$3" == "render" ] ; then
+      echo "FAKE CONTENT FOR IMAGE RENDER" > $5
+      echo $6 >> $5
+      exit 0
+    fi
+  fi
+fi
+
 if [ "$1" = "render" ] ; then
   echo "DOCKER-APP RENDER OUTPUT"
   if [ ! -f app1.dockerapp ] ; then
