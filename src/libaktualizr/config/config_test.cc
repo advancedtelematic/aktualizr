@@ -89,7 +89,7 @@ TEST(config, ExtractCredentials) {
             "FBA3C8FAD16D8B3EC64F7D47CBDD8456A51A6399734A3F6B7E2D6E562072F264");
   std::cout << "Certificate: " << boot.getCert() << std::endl;
   EXPECT_EQ(boost::algorithm::hex(Crypto::sha256digest(boot.getCert())),
-            "02300CC9797556915D88CFA05644BFF22D8C458367A3636F7921585F828ECB81");
+            "97FEE312F1AC7BEDD9E0979CA8AE57C2824F39928AA9486C56467732B298893E");
   std::cout << "Pkey: " << boot.getPkey() << std::endl;
   EXPECT_EQ(boost::algorithm::hex(Crypto::sha256digest(boot.getPkey())),
             "D27E3E56BEF02AAA6D6FFEFDA5357458C477A8E891C5EADF4F04CE67BB5866A4");

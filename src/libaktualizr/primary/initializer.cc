@@ -122,12 +122,24 @@ InitRetCode Initializer::initTlsCreds() {
 
   std::string pkey;
   std::string cert;
-  std::string ca;
+  std::vector<std::string> ca_certs;
   StructGuard<BIO> device_p12(BIO_new_mem_buf(response.body.c_str(), static_cast<int>(response.body.size())),
                               BIO_vfree);
-  if (!Crypto::parseP12(device_p12.get(), "", &pkey, &cert, &ca)) {
+  if (!Crypto::parseP12(device_p12.get(), "", pkey, cert, ca_certs)) {
     LOG_ERROR << "Received a malformed P12 package from the server";
     return InitRetCode::kBadP12;
+  }
+  // The last cert in ca_certs is a subCA for client certificate,
+  // which server expects us to send together with the client cert.
+  // Depending on the curl backend we need to keep subCA cert in different places:
+  // OpenSSL expects only the client cert to be passed as `SSLCERT` and will
+  // build client certificate chain searching `CAINFO` for intermediate certs.
+  // GnuTLS expect complete certificate chain in `SSLCERT` and doesn't look at `CAINFO`.
+  cert += ca_certs.back();
+
+  std::string ca;
+  for (auto const& s : ca_certs) {
+    ca += s;
   }
   storage_->storeTlsCreds(ca, cert, pkey);
 

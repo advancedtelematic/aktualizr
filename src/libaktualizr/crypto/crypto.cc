@@ -234,8 +234,14 @@ bool Crypto::ED25519Verify(const std::string &public_key, const std::string &sig
                                      reinterpret_cast<const unsigned char *>(public_key.c_str())) == 0;
 }
 
-bool Crypto::parseP12(BIO *p12_bio, const std::string &p12_password, std::string *out_pkey, std::string *out_cert,
-                      std::string *out_ca) {
+std::string Crypto::bioToString(BIO *b) {
+  char *buf;
+  auto len = BIO_get_mem_data(b, &buf);  // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+  return std::string(buf, static_cast<size_t>(len));
+}
+
+bool Crypto::parseP12(BIO *p12_bio, const std::string &p12_password, std::string &out_pkey, std::string &out_cert,
+                      std::vector<std::string> &out_ca) {
 #if AKTUALIZR_OPENSSL_PRE_11
   SSLeay_add_all_algorithms();
 #endif
@@ -266,46 +272,50 @@ bool Crypto::parseP12(BIO *p12_bio, const std::string &p12_password, std::string
     ca_certs.reset(cacs);
   }
 
-  StructGuard<BIO> pkey_pem_sink(BIO_new(BIO_s_mem()), BIO_vfree);
-  if (pkey_pem_sink == nullptr) {
-    LOG_ERROR << "Could not open pkey buffer for writing";
+  StructGuard<BIO> sink(BIO_new(BIO_s_mem()), BIO_vfree);
+  if (sink == nullptr) {
+    LOG_ERROR << "Could not allocate BIO";
     return false;
   }
-  PEM_write_bio_PrivateKey(pkey_pem_sink.get(), pkey.get(), nullptr, nullptr, 0, nullptr, nullptr);
 
-  char *pkey_buf;
-  auto pkey_len = BIO_get_mem_data(pkey_pem_sink.get(), &pkey_buf);  // NOLINT
-  *out_pkey = std::string(pkey_buf, static_cast<size_t>(pkey_len));
-
-  char *cert_buf;
-  size_t cert_len;
-  StructGuard<BIO> cert_sink(BIO_new(BIO_s_mem()), BIO_vfree);
-  if (cert_sink == nullptr) {
-    LOG_ERROR << "Could not open certificate buffer for writing";
+  PEM_write_bio_PrivateKey(sink.get(), pkey.get(), nullptr, nullptr, 0, nullptr, nullptr);
+  out_pkey = bioToString(sink.get());
+  if (BIO_reset(sink.get()) != 1) {
+    LOG_ERROR << "Could not reset BIO";
     return false;
   }
-  PEM_write_bio_X509(cert_sink.get(), x509_cert.get());
 
-  char *ca_buf;
-  size_t ca_len;
-  StructGuard<BIO> ca_sink(BIO_new(BIO_s_mem()), BIO_vfree);
-  if (ca_sink == nullptr) {
-    LOG_ERROR << "Could not open ca buffer for writing";
+  PEM_write_bio_X509(sink.get(), x509_cert.get());
+  out_cert = bioToString(sink.get());
+  if (BIO_reset(sink.get()) != 1) {
+    LOG_ERROR << "Could not reset BIO";
     return false;
   }
-  X509 *ca_cert = nullptr;
-  for (int i = 0; i < sk_X509_num(ca_certs.get()); i++) {  // NOLINT
-    ca_cert = sk_X509_value(ca_certs.get(), i);            // NOLINT
-    PEM_write_bio_X509(ca_sink.get(), ca_cert);
-    PEM_write_bio_X509(cert_sink.get(), ca_cert);
-  }
-  ca_len = static_cast<size_t>(BIO_get_mem_data(ca_sink.get(), &ca_buf));  // NOLINT
-  *out_ca = std::string(ca_buf, ca_len);
 
-  cert_len = static_cast<size_t>(BIO_get_mem_data(cert_sink.get(), &cert_buf));  // NOLINT
-  *out_cert = std::string(cert_buf, cert_len);
+  for (int i = 0; i < sk_X509_num(ca_certs.get()); i++) {
+    auto ca_cert = sk_X509_value(ca_certs.get(), i);
+    PEM_write_bio_X509(sink.get(), ca_cert);
+    out_ca.push_back(bioToString(sink.get()));
+    if (BIO_reset(sink.get()) != 1) {
+      LOG_ERROR << "Could not reset BIO";
+      return false;
+    }
+  }
 
   return true;
+}
+
+bool Crypto::parseP12(BIO *p12_bio, const std::string &p12_password, std::string &out_pkey, std::string &out_cert,
+                      std::string &out_ca) {
+  std::vector<std::string> ca_certs;
+  if (parseP12(p12_bio, p12_password, out_pkey, out_cert, ca_certs)) {
+    for (auto const &s : ca_certs) {
+      out_ca += s;
+    }
+    return true;
+  } else {
+    return false;
+  }
 }
 
 bool Crypto::extractSubjectCN(const std::string &cert, std::string *cn) {

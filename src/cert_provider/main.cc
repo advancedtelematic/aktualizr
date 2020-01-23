@@ -484,7 +484,7 @@ int main(int argc, char* argv[]) {
 
       StructGuard<BIO> device_p12(BIO_new_mem_buf(response.body.c_str(), static_cast<int>(response.body.size())),
                                   BIO_vfree);
-      if (!Crypto::parseP12(device_p12.get(), "", &pkey, &cert, &ca)) {
+      if (!Crypto::parseP12(device_p12.get(), "", pkey, cert, ca)) {
         std::cout << "Unable to parse p12 file received from server.\n";
         return EXIT_FAILURE;
       }

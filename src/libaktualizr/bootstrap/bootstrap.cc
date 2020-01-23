@@ -37,7 +37,7 @@ void Bootstrap::readTlsP12(const std::string& p12_str, const std::string& provis
     throw std::runtime_error("Unable to parse bootstrap credentials");
   }
 
-  if (!Crypto::parseP12(reg_p12.get(), provision_password, &pkey, &cert, &ca)) {
+  if (!Crypto::parseP12(reg_p12.get(), provision_password, pkey, cert, ca)) {
     LOG_ERROR << "Unable to parse P12 archive";
     throw std::runtime_error("Unable to parse bootstrap credentials");
   }
