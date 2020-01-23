@@ -26,7 +26,7 @@ Before you start, make sure that you've installed the xref:install-garage-sign-d
 
 === Create a local image repository
 
-A image repository is just a directory structure containing signed metadata in JSON format. Create a new one called _myimagerepo_ with `garage-sign`:
+An image repository is just a directory structure containing signed metadata in JSON format. Create a new one called _myimagerepo_ with `garage-sign`:
 
 ----
 garage-sign init --repo myimagerepo --credentials /path/to/credentials.zip
