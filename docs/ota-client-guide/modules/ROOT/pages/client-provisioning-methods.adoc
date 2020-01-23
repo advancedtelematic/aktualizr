@@ -90,4 +90,4 @@ Of course, you can use both methods, but in that case, we recommend that you mai
 * one account for production with "device credential" provisioning
 
 Migrating devices from a test account to a production account is an extremely complex process and should be avoided.  Instead, we recommend that you test with devices that will not go into production or devices that can be completely wiped and reset once they are ready to deploy.
-Once you are ready for production, you should use your production account, your own fleet root certificate, and production devices that have their device certificates preinstalled.
+Once you are ready for production, you should use your production account, your own Fleet Root certificate, and production devices that have their device certificates preinstalled.

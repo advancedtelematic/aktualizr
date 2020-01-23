@@ -8,43 +8,43 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 endif::[]
 
 
-OTA Connect is designed to integrate easily into development workflows: you build your image, push it, set auto-updates for some of your test-bench devices, and so on. But once you're ready to move from testing into production, you will likely want to do a few things differently. 
+OTA Connect is designed to integrate easily into development workflows: you build your image, push it, set auto-updates for some of your test-bench devices, and so on. But once you're ready to move from testing into production, you will likely want to do a few things differently.
 
 Here is a checklist for all the tasks you should consider when moving to production:
 
 [cols="2,5a,2a",options="header"]
 |====================
 | Task  | Summary | Documentation
-|**Register the root certificate for your fleet ** | 
+|**Register the root certificate for your fleet ** |
 * If you followed our recommendations, you should have accounts for development, testing and production.
-** If you also followed our recommendation to use device-credential povisioning, you need to register your fleet root certificate with your production account
+** If you also followed our recommendation to use device-credential provisioning, you need to register your Fleet Root certificate with your production account
 
-* You might have already registered a self-signed root certificate with your test account. 
+* You might have already registered a self-signed root certificate with your test account.
 +
-However, regardless of the type of certficate that you use, you'll need to register a new certificate with your *production* account. | 
+However, regardless of the type of certficate that you use, you'll need to register a new certificate with your *production* account. |
 * xref:client-provisioning-methods.adoc[Device provisioning methods]
 * xref:provide-root-cert.adoc[Register the Root Certificate for your Fleet]
 
-|**Generate and install final device certs**  | 
-* Once you have your final fleet root certificate, you can use it to generate and sign device certificates.
+|**Generate, sign, and install production device certs**  |
+* Once you have your production Fleet Root CA, you can use it to sign device certificates.
 +
-You can then automate the process of installing device certificates on your devices.
+You can then automate the process of either generating the device certificates on your devices and getting them signed via PKCS#10 CSR, or of generating and signing the keys and certs externally, and then installing them into a secure place on each device.
 
 * We can’t tell you exactly how to automate this process, but you can use the commands from our documentation as a guideline.
-| 
+|
 * xref:generate-devicecert.adoc[Generate a device certificate]
 * xref:enable-device-cred-provisioning.adoc[Enable device-credential provisioning and install device certificates]
-|**Rotate production keys**  | 
-* In line with our security concept, We recommend that you sign disk images with secure, offline keys. 
+|**Rotate production keys**  |
+* In line with our security concept, we recommend that you sign software version with secure, offline keys.
 
 * Even if you've done this already for with a test account, you need to do it again with a `credentials.zip` from your production account.
 
 * You should keep these keys on a secure storage medium such as a link:https://www.yubico.com/[YubiKey]. You would only plug in your YubiKey when you need to sign metadata on your local computer.|  xref:rotating-signing-keys.adoc[Manage keys for software metadata]
 
-|**Transfer disk images to your production repository**  | 
+|**Transfer disk images to your production repository**  |
 * When you're ready to deploy your software to production, you'll need to move all approved disk images from the software repository in your testing account to the one in your production account.  |  xref:cross-deploy-images.adoc[Transfer software to another repository]
-|**Create production-ready client configuration**  | 
+|**Create production-ready client configuration**  |
 * You'll need to update the configuration for aktualizr or libaktualizr.
 +
-Settings that are convenient for testing, such as small polling invervals, are not suitable for production and should be changed. |  xref:recommended-clientconfig.adoc[Recommended client configurations] 
+Settings that are convenient for testing, such as small polling invervals, are not suitable for production and should be changed. |  xref:recommended-clientconfig.adoc[Recommended client configurations]
 |====================
