@@ -47,14 +47,15 @@ inline std::istream& operator>>(std::istream& is, KeyType& kt) {
 
   is >> kt_str;
   std::transform(kt_str.begin(), kt_str.end(), kt_str.begin(), ::toupper);
+  kt_str.erase(std::remove(kt_str.begin(), kt_str.end(), '"'), kt_str.end());
 
-  if (kt_str == "\"RSA2048\"") {
+  if (kt_str == "RSA2048") {
     kt = KeyType::kRSA2048;
-  } else if (kt_str == "\"RSA3072\"") {
+  } else if (kt_str == "RSA3072") {
     kt = KeyType::kRSA3072;
-  } else if (kt_str == "\"RSA4096\"") {
+  } else if (kt_str == "RSA4096") {
     kt = KeyType::kRSA4096;
-  } else if (kt_str == "\"ED25519\"") {
+  } else if (kt_str == "ED25519") {
     kt = KeyType::kED25519;
   } else {
     kt = KeyType::kUnknown;

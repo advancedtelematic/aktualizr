@@ -36,7 +36,7 @@ TEST(config, TomlEmpty) {
 
 TEST(config, TomlInt) {
   Config conf;
-  conf.updateFromTomlString("[uptane]\nkey_type = ED25519\npolling_sec = 99\n");
+  conf.updateFromTomlString("[uptane]\nkey_type = \"ED25519\"\npolling_sec = 99\n");
   EXPECT_EQ(conf.uptane.key_type, KeyType::kED25519);
   EXPECT_EQ(conf.uptane.polling_sec, 99u);
 }
