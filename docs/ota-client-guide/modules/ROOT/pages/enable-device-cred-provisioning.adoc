@@ -18,7 +18,7 @@ How you get the certificate on the device is up to you:
 
 * You could have your HSM generate a private key and certificate directly on the device.
 +
-You woud then sign the certificate with your fleet root key.
+You would then use your Fleet Root CA to sign the device's certificate, for example using a PKCS#10 request.
 +
 ** We don't have documentation on how to do this, since the method is different for each HSM model.
 * You can also generate the device certificates and private keys on your development computer and copy them over to the device.

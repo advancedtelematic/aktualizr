@@ -10,14 +10,13 @@ endif::[]
 
 //MC: This is a copy of the topic "provide-testroot-cert.adoc" but intended for the "prod" use case. Need to use more includes to reduce redundancy
 
-Once you are ready to move to production, you need to have your final fleet root certificate registered with your production account. Ideally, your fleet root certificate should come from an external certificate authority (CA) who can take care of safeguarding your private key.
+Once you are ready to move to production, you need to have your final Fleet Root certificate registered with your production account.
 
-During testing, you might have followed our procedure to generate a self-signed root certificate and had it registered with your test account. We don't recommend using a self-signed certificate for production because it makes you more vulnerable to security breaches. Nevertheless, if you'd prefer to stick with a self-signed certificate, you'll need to generate another one and have it registered with your production account. 
 
-* To register your fleet root certificate with HERE OTA Connect, send it to link:mailto:otaconnect.support@here.com[otaconnect.support@here.com].
+* To register your Fleet Root certificate with HERE OTA Connect, send it to link:mailto:otaconnect.support@here.com[otaconnect.support@here.com].
 
 If you followed our recommendations, you should have one OTA Connect account for testing and another for production. Make sure that you specify that this certificate is for your *production* account.
 
 * While you wait for confirmation from the OTA Connect support team, you can already set up your xref:generate-devicecert.adoc[device certificate generation].
 
-* Once you've received confirmation that the fleet root certificate has been registered, you can xref:enable-device-cred-provisioning.adoc[enable device-credential provisioning and install the certificates] on your devices.
+* Once you've received confirmation that the Fleet Root certificate has been registered, you can xref:enable-device-cred-provisioning.adoc[enable device-credential provisioning and install the certificates] on your devices.
