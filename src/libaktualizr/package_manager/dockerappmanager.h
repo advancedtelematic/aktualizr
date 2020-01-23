@@ -17,10 +17,10 @@ class DockerAppManagerConfig {
   boost::filesystem::path docker_compose_bin{"/usr/bin/docker-compose"};
 };
 
-class DockerAppManager : public OstreeManager {
+class DockerAppStandalone : public OstreeManager {
  public:
-  DockerAppManager(const PackageConfig &pconfig, const BootloaderConfig &bconfig,
-                   const std::shared_ptr<INvStorage> &storage, const std::shared_ptr<HttpInterface> &http)
+  DockerAppStandalone(const PackageConfig &pconfig, const BootloaderConfig &bconfig,
+                      const std::shared_ptr<INvStorage> &storage, const std::shared_ptr<HttpInterface> &http)
       : OstreeManager(pconfig, bconfig, storage, http), dappcfg_(pconfig) {
     fake_fetcher_ = std::make_shared<Uptane::Fetcher>("", "", http_);
   }
@@ -28,7 +28,7 @@ class DockerAppManager : public OstreeManager {
                    FetcherProgressCb progress_cb, const api::FlowControlToken *token) override;
   data::InstallationResult install(const Uptane::Target &target) const override;
   TargetStatus verifyTarget(const Uptane::Target &target) const override;
-  std::string name() const override { return "ostree+docker-app"; }
+  std::string name() const override { return "ostree+docker-app-standalone"; }
 
  private:
   DockerAppManagerConfig dappcfg_;
@@ -40,4 +40,24 @@ class DockerAppManager : public OstreeManager {
   // and we just need to construct a dummy one to make the compiler happy.
   std::shared_ptr<Uptane::Fetcher> fake_fetcher_;
 };
+
+class DockerAppManager : public OstreeManager {
+ public:
+  DockerAppManager(const PackageConfig &pconfig, const BootloaderConfig &bconfig,
+                   const std::shared_ptr<INvStorage> &storage, const std::shared_ptr<HttpInterface> &http)
+      : OstreeManager(pconfig, bconfig, storage, http) {
+    impl_ = std_::make_unique<DockerAppStandalone>(pconfig, bconfig, storage, http);
+  }
+  bool fetchTarget(const Uptane::Target &target, Uptane::Fetcher &fetcher, const KeyManager &keys,
+                   FetcherProgressCb progress_cb, const api::FlowControlToken *token) override {
+    return impl_->fetchTarget(target, fetcher, keys, progress_cb, token);
+  }
+  data::InstallationResult install(const Uptane::Target &target) const override { return impl_->install(target); }
+  TargetStatus verifyTarget(const Uptane::Target &target) const override { return impl_->verifyTarget(target); }
+  std::string name() const override { return "ostree+docker-app"; }
+
+ private:
+  std::unique_ptr<OstreeManager> impl_;
+};
+
 #endif  // DOCKERAPPMGR_H_
