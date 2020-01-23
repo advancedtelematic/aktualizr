@@ -1009,6 +1009,43 @@ void SQLStorage::clearEcuSerials() {
   db.commitTransaction();
 }
 
+void SQLStorage::storeCachedEcuManifest(const Uptane::EcuSerial& ecu_serial, const std::string& manifest) {
+  SQLite3Guard db = dbConnection();
+
+  auto statement = db.prepareStatement<std::string, std::string>(
+      "UPDATE secondary_ecus SET manifest = ? WHERE (serial = ?);", manifest, ecu_serial.ToString());
+  if (statement.step() != SQLITE_DONE || sqlite3_changes(db.get()) != 1) {
+    LOG_ERROR << "Can't save secondary manifest " << db.errmsg();
+    return;
+  }
+}
+
+bool SQLStorage::loadCachedEcuManifest(const Uptane::EcuSerial& ecu_serial, std::string* manifest) {
+  SQLite3Guard db = dbConnection();
+
+  std::string stmanifest;
+
+  bool empty = false;
+
+  auto statement = db.prepareStatement<std::string>("SELECT manifest FROM secondary_ecus WHERE (serial = ?);",
+                                                    ecu_serial.ToString());
+
+  if (statement.step() != SQLITE_ROW) {
+    LOG_WARNING << "Could not find manifest for ecu " << ecu_serial;
+    return false;
+  } else {
+    stmanifest = statement.get_result_col_str(0).value_or("");
+
+    empty = stmanifest == "";
+  }
+
+  if (manifest != nullptr) {
+    *manifest = std::move(stmanifest);
+  }
+
+  return !empty;
+}
+
 void SQLStorage::storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecus) {
   if (ecus.size() >= 1) {
     SQLite3Guard db = dbConnection();

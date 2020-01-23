@@ -174,6 +174,9 @@ class INvStorage {
   virtual bool loadEcuSerials(EcuSerials* serials) = 0;
   virtual void clearEcuSerials() = 0;
 
+  virtual void storeCachedEcuManifest(const Uptane::EcuSerial& ecu_serial, const std::string& manifest) = 0;
+  virtual bool loadCachedEcuManifest(const Uptane::EcuSerial& ecu_serial, std::string* manifest) = 0;
+
   virtual void storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecus) = 0;
   virtual bool loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) = 0;
   virtual void clearMisconfiguredEcus() = 0;

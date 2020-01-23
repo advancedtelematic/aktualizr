@@ -219,10 +219,27 @@ Json::Value SotaUptaneClient::AssembleManifest() {
   version_manifest[primary_ecu_serial.ToString()] = uptane_manifest->sign(primary_manifest, report_counter);
 
   for (auto it = secondaries.begin(); it != secondaries.end(); it++) {
+    const Uptane::EcuSerial &ecu_serial = it->first;
     Uptane::Manifest secmanifest = it->second->getManifest();
 
+    bool from_cache = false;
+    if (secmanifest == Json::Value()) {
+      // could not get the secondary manifest, a cached value will be provided
+      std::string cached;
+      if (storage->loadCachedEcuManifest(ecu_serial, &cached)) {
+        LOG_WARNING << "Could not reach secondary " << ecu_serial << ", sending a cached version of its manifest";
+        secmanifest = Utils::parseJSON(cached);
+        from_cache = true;
+      } else {
+        LOG_ERROR << "Could not fetch a valid secondary manifest from cache";
+      }
+    }
+
     if (secmanifest.verifySignature(it->second->getPublicKey())) {
-      version_manifest[it->first.ToString()] = secmanifest;
+      version_manifest[ecu_serial.ToString()] = secmanifest;
+      if (!from_cache) {
+        storage->storeCachedEcuManifest(ecu_serial, Utils::jsonToCanonicalStr(secmanifest));
+      }
     } else {
       // TODO: send a corresponding event/report in this case, https://saeljira.it.here.com/browse/OTA-4305
       LOG_ERROR << "Secondary manifest is corrupted or not signed, or signature is invalid manifest: " << secmanifest;
@@ -1097,8 +1114,8 @@ bool SotaUptaneClient::waitSecondariesReachable(const std::vector<Uptane::Target
       if (ecu.first == primary_ecu_serial) {
         continue;
       }
-      auto f = getSecondary(ecu.first);
-      if (f == nullptr) {
+      auto f = secondaries.find(ecu.first);
+      if (f == secondaries.end()) {
         LOG_ERROR << "Target " << t << " has unknown ECU ID";
         continue;
       }

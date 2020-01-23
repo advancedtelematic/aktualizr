@@ -2,7 +2,7 @@
 SAVEPOINT MIGRATION;
 
 ALTER TABLE ecu_serials RENAME TO ecus;
-CREATE TABLE secondary_ecus(serial TEXT PRIMARY KEY, sec_type TEXT, public_key_type TEXT, public_key TEXT, extra TEXT);
+CREATE TABLE secondary_ecus(serial TEXT PRIMARY KEY, sec_type TEXT, public_key_type TEXT, public_key TEXT, extra TEXT, manifest TEXT);
 
 DELETE FROM version;
 INSERT INTO version VALUES(23);
