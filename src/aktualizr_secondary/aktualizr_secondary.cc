@@ -15,12 +15,9 @@ AktualizrSecondary::AktualizrSecondary(AktualizrSecondaryConfig config, std::sha
       storage_(std::move(storage)),
       keys_(std::move(key_mngr)),
       update_agent_(std::move(update_agent)) {
-  if (!uptaneInitialize()) {
-    LOG_ERROR << "Failed to initialize";
-    return;
-  }
-
+  uptaneInitialize();
   manifest_issuer_ = std::make_shared<Uptane::ManifestIssuer>(keys_, ecu_serial_);
+  initPendingTargetIfAny();
 
   if (hasPendingUpdate()) {
     // TODO: refactor this to make it simpler as we don't need to persist/store
@@ -30,22 +27,24 @@ AktualizrSecondary::AktualizrSecondary(AktualizrSecondaryConfig config, std::sha
     storage_->loadInstalledVersions(ecu_serial_.ToString(), nullptr, &pending_target);
     data::InstallationResult install_res =
         data::InstallationResult(data::ResultCode::Numeric::kUnknown, "Unknown installation error");
-    LOG_INFO << "Pending update found; attempting to apply it. Target hash: " << pending_target_.sha256Hash();
+    LOG_INFO << "Pending update found; attempting to apply it. Target hash: " << pending_target->sha256Hash();
 
     if (!!pending_target) {
       install_res = update_agent_->applyPendingInstall(*pending_target);
 
       if (install_res.result_code != data::ResultCode::Numeric::kNeedCompletion) {
         storage_->saveEcuInstallationResult(ecu_serial_, install_res);
+
         if (install_res.success) {
-          LOG_INFO << "Pending update has been successfully applied: " << pending_target_.sha256Hash();
+          LOG_INFO << "Pending update has been successfully applied: " << pending_target->sha256Hash();
           storage_->saveInstalledVersion(ecu_serial_.ToString(), *pending_target, InstalledVersionUpdateMode::kCurrent);
         } else {
           LOG_ERROR << "Application of the pending update has failed: (" << install_res.result_code.toString() << ")"
                     << install_res.description;
           storage_->saveInstalledVersion(ecu_serial_.ToString(), *pending_target, InstalledVersionUpdateMode::kNone);
-          director_repo_.dropTargets(*storage_);
         }
+
+        director_repo_.dropTargets(*storage_);
       } else {
         LOG_INFO << "Pending update hasn't been applied because a reboot hasn't been detected";
       }
@@ -90,7 +89,6 @@ bool AktualizrSecondary::putRoot(const std::string& root, bool director) {
 bool AktualizrSecondary::putMetadata(const Metadata& metadata) { return doFullVerification(metadata); }
 
 bool AktualizrSecondary::sendFirmware(const std::string& firmware) {
-  // TODO: how to handle the case when secondary is rebooted after metadata are received
   if (!pending_target_.IsValid()) {
     LOG_ERROR << "Aborting image download/receiving; no valid target found.";
     return false;
@@ -106,7 +104,6 @@ bool AktualizrSecondary::sendFirmware(const std::string& firmware) {
 }
 
 data::ResultCode::Numeric AktualizrSecondary::install(const std::string& target_name) {
-  // TODO: how to handle the case when secondary is rebooted after metadata are received
   if (!pending_target_.IsValid()) {
     LOG_ERROR << "Aborting target image installation; no valid target found.";
     return data::ResultCode::Numeric::kInternalError;
@@ -201,10 +198,9 @@ bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
   return true;
 }
 
-bool AktualizrSecondary::uptaneInitialize() {
+void AktualizrSecondary::uptaneInitialize() {
   if (keys_->generateUptaneKeyPair().size() == 0) {
-    LOG_ERROR << "Failed to generate uptane key pair";
-    return false;
+    throw std::runtime_error("Failed to generate uptane key pair");
   }
 
   // from uptane/initialize.cc but we only take care of our own serial/hwid
@@ -213,8 +209,7 @@ bool AktualizrSecondary::uptaneInitialize() {
   if (storage_->loadEcuSerials(&ecu_serials)) {
     ecu_serial_ = ecu_serials[0].first;
     hardware_id_ = ecu_serials[0].second;
-
-    return true;
+    return;
   }
 
   std::string ecu_serial_local = config_.uptane.ecu_serial;
@@ -226,7 +221,7 @@ bool AktualizrSecondary::uptaneInitialize() {
   if (ecu_hardware_id.empty()) {
     ecu_hardware_id = Utils::getHostname();
     if (ecu_hardware_id == "") {
-      return false;
+      throw std::runtime_error("Failed to define ECU hardware ID");
     }
   }
 
@@ -235,5 +230,35 @@ bool AktualizrSecondary::uptaneInitialize() {
   ecu_serial_ = ecu_serials[0].first;
   hardware_id_ = ecu_serials[0].second;
 
-  return true;
+  // this is a way to find out and store a value of the target name that is installed
+  // at the initial/provisioning stage and included into a device manifest
+  // i.e. 'filepath' field or ["signed"]["installed_image"]["filepath"]
+  // this value must match the value pushed to the backend during the bitbaking process,
+  // specifically, at its ostree push phase and is equal to
+  // GARAGE_TARGET_NAME ?= "${OSTREE_BRANCHNAME}" which in turn is equal to OSTREE_BRANCHNAME ?= "${SOTA_HARDWARE_ID}"
+  // therefore, by default GARAGE_TARGET_NAME == OSTREE_BRANCHNAME == SOTA_HARDWARE_ID
+  // If there is no match then the backend/UI will not render/highlight currently installed version at all/correctly
+  storage_->importInstalledVersions(config_.import.base_path);
+}
+
+void AktualizrSecondary::initPendingTargetIfAny() {
+  if (!director_repo_.checkMetaOffline(*storage_)) {
+    LOG_INFO << "No any valid and pending director's targets to be applied";
+    return;
+  }
+
+  auto targetsForThisEcu = director_repo_.getTargets(ecu_serial_, hardware_id_);
+
+  if (targetsForThisEcu.size() != 1) {
+    LOG_ERROR << "Invalid number of targets (should be 1): " << targetsForThisEcu.size();
+    return;
+  }
+
+  if (!update_agent_->isTargetSupported(targetsForThisEcu[0])) {
+    LOG_ERROR << "The given target type is not supported: " << targetsForThisEcu[0].type();
+    return;
+  }
+
+  LOG_INFO << "There is a valid and pending director's target to be applied";
+  pending_target_ = targetsForThisEcu[0];
 }

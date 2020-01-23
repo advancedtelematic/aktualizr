@@ -37,14 +37,13 @@ class AktualizrSecondary : public Uptane::SecondaryInterface {
  private:
   bool hasPendingUpdate() { return storage_->hasPendingInstall(); }
   bool doFullVerification(const Metadata& metadata);
-  bool uptaneInitialize();
+  void uptaneInitialize();
+  void initPendingTargetIfAny();
 
  private:
-  // Uptane verification
   Uptane::DirectorRepository director_repo_;
   Uptane::ImagesRepository image_repo_;
 
-  // installation
   Uptane::Target pending_target_{Uptane::Target::Unknown()};
 
   AktualizrSecondaryConfig config_;

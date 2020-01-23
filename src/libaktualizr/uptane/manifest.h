@@ -15,6 +15,7 @@ class Manifest : public Json::Value {
   Manifest(const Json::Value &value = Json::Value()) : Json::Value(value) {}
 
  public:
+  std::string filepath() const;
   Hash installedImageHash() const;
   std::string signature() const;
   std::string signedBody() const;

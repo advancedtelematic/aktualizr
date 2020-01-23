@@ -34,6 +34,10 @@ class AktualizrSecondaryWrapper {
 
   std::string serial() const { return _secondary->getSerial().ToString(); }
 
+  boost::filesystem::path targetFilepath() const {
+    return _storage_dir.Path() / AktualizrSecondaryFactory::BinaryUpdateDefaultFile;
+  }
+
  private:
   TemporaryDirectory _storage_dir;
   AktualizrSecondary::Ptr _secondary;
@@ -85,6 +89,7 @@ class UptaneRepoWrapper {
   boost::filesystem::path _director_dir{_root_dir / "repo/director"};
   boost::filesystem::path _imagerepo_dir{_root_dir / "repo/repo"};
   UptaneRepo _uptane_repo{_root_dir.Path(), "", ""};
+  Uptane::DirectorRepository _director_repo;
 };
 
 class SecondaryTest : public ::testing::Test {
@@ -97,13 +102,28 @@ class SecondaryTest : public ::testing::Test {
     return _uptane_repo.getImageData(targetname);
   }
 
+  std::vector<Uptane::Target> getCurrentTargets() {
+    auto targets = Uptane::Targets(Utils::parseJSON(_uptane_repo.getCurrentMetadata().director_targets));
+    return targets.getTargets(_secondary->getSerial(), _secondary->getHwId());
+  }
+
+  Uptane::Target getDefaultTarget() {
+    auto targets = getCurrentTargets();
+    EXPECT_GT(targets.size(), 0);
+    return targets[0];
+  }
+
+  Uptane::Hash getDefaultTargetHash() {
+    return Uptane::Hash(Uptane::Hash::Type::kSha256, getDefaultTarget().sha256Hash());
+  }
+
  protected:
-  static constexpr const char* const _default_target{"defaulttarget"};
+  static constexpr const char* const _default_target{"default-target"};
   AktualizrSecondaryWrapper _secondary;
   UptaneRepoWrapper _uptane_repo;
 };
 
-class SecondaryTestNegative : public SecondaryTest,
+class SecondaryTestNegative : public ::testing::Test,
                               public ::testing::WithParamInterface<std::pair<Uptane::RepositoryType, Uptane::Role>> {
  protected:
   class MetadataInvalidator : public Metadata {
@@ -131,7 +151,14 @@ class SecondaryTestNegative : public SecondaryTest,
   MetadataInvalidator currentMetadata() const {
     return MetadataInvalidator(_uptane_repo.getCurrentMetadata(), GetParam().first, GetParam().second);
   }
+
+ protected:
+  static AktualizrSecondaryWrapper _secondary;
+  static UptaneRepoWrapper _uptane_repo;
 };
+
+AktualizrSecondaryWrapper SecondaryTestNegative::_secondary;
+UptaneRepoWrapper SecondaryTestNegative::_uptane_repo;
 
 /**
  * Parameterized test,
@@ -154,9 +181,24 @@ INSTANTIATE_TEST_SUITE_P(SecondaryTestMalformedMetadata, SecondaryTestNegative,
                                            std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Targets())));
 
 TEST_F(SecondaryTest, fullUptaneVerificationPositive) {
-  EXPECT_TRUE(_secondary->putMetadata(_uptane_repo.getCurrentMetadata()));
-  EXPECT_TRUE(_secondary->sendFirmware(getImageData()));
-  EXPECT_EQ(_secondary->install(_default_target), data::ResultCode::Numeric::kOk);
+  ASSERT_TRUE(_secondary->putMetadata(_uptane_repo.getCurrentMetadata()));
+  ASSERT_TRUE(_secondary->sendFirmware(getImageData()));
+  ASSERT_EQ(_secondary->install(_default_target), data::ResultCode::Numeric::kOk);
+
+  // check if a file was actually updated
+  ASSERT_TRUE(boost::filesystem::exists(_secondary.targetFilepath()));
+  auto target = getDefaultTarget();
+
+  // check the updated file hash
+  auto target_hash = Uptane::Hash(Uptane::Hash::Type::kSha256, target.sha256Hash());
+  auto target_file_hash =
+      Uptane::Hash::generate(Uptane::Hash::Type::kSha256, Utils::readFile(_secondary.targetFilepath()));
+  EXPECT_EQ(target_hash, target_file_hash);
+
+  // check the secondary manifest
+  auto manifest = _secondary->getManifest();
+  EXPECT_EQ(manifest.installedImageHash(), target_file_hash);
+  EXPECT_EQ(manifest.filepath(), target.filename());
 }
 
 TEST_F(SecondaryTest, TwoImagesAndOneTarget) {
@@ -215,8 +257,6 @@ TEST_F(SecondaryTest, InvalidImageData) {
   image_data.operator[](3) = '0';
   EXPECT_FALSE(_secondary->sendFirmware(image_data));
 }
-
-// TODO: add more tests in case of file/binary based updates
 
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);

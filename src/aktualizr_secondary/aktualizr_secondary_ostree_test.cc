@@ -279,8 +279,13 @@ TEST_F(SecondaryOstreeTest, verifyUpdatePositive) {
   EXPECT_TRUE(manifest.verifySignature(_secondary->getPublicKey()));
   EXPECT_EQ(manifest.installedImageHash(), sysrootCurRevHash());
 
-  // do update
+  // send metadata and do their full Uptane verification
   EXPECT_TRUE(_secondary->putMetadata(addDefaultTarget()));
+
+  // emulate reboot to make sure that we can continue with an update installation after reboot
+  _secondary.reboot();
+
+  // send and install firmware
   EXPECT_TRUE(_secondary->sendFirmware(getCredsToSend()));
   EXPECT_EQ(_secondary->install(treehubCurRev()), data::ResultCode::Numeric::kNeedCompletion);
 
@@ -312,7 +317,6 @@ TEST_F(SecondaryOstreeTest, verifyUpdatePositive) {
   EXPECT_EQ(manifest.installedImageHash(), treehubCurRevHash());
 }
 
-#ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
@@ -328,7 +332,6 @@ int main(int argc, char** argv) {
 
   return RUN_ALL_TESTS();
 }
-#endif
 
 extern "C" OstreeDeployment* ostree_sysroot_get_booted_deployment(OstreeSysroot* ostree_sysroot) {
   return SecondaryOstreeTest::curOstreeDeployment(ostree_sysroot);

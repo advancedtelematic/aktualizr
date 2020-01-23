@@ -8,6 +8,8 @@
 #include "update_agent_ostree.h"
 #endif
 
+const std::string AktualizrSecondaryFactory::BinaryUpdateDefaultFile{"firmware.txt"};
+
 // TODO: consider implementation of a proper registry/builder/factory
 AktualizrSecondary::Ptr AktualizrSecondaryFactory::create(const AktualizrSecondaryConfig& config) {
   auto storage = INvStorage::newStorage(config.storage);
@@ -31,7 +33,8 @@ AktualizrSecondary::Ptr AktualizrSecondaryFactory::create(const AktualizrSeconda
       current_target_name = current_version->filename();
     }
 
-    update_agent = std::make_shared<FileUpdateAgent>(config.storage.path / "firmware.txt", current_target_name);
+    update_agent =
+        std::make_shared<FileUpdateAgent>(config.storage.path / BinaryUpdateDefaultFile, current_target_name);
   }
 #ifdef BUILD_OSTREE
   else {

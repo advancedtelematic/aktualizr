@@ -4,6 +4,8 @@
 
 namespace Uptane {
 
+std::string Manifest::filepath() const { return (*this)["signed"]["installed_image"]["filepath"].asString(); }
+
 Hash Manifest::installedImageHash() const {
   // TODO: proper verification of the required fields
   return Uptane::Hash(Uptane::Hash::Type::kSha256,

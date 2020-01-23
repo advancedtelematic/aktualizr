@@ -5,6 +5,8 @@
 
 class AktualizrSecondaryFactory {
  public:
+  static const std::string BinaryUpdateDefaultFile;
+
   static AktualizrSecondary::Ptr create(const AktualizrSecondaryConfig& config);
   static AktualizrSecondary::Ptr create(const AktualizrSecondaryConfig& config,
                                         const std::shared_ptr<INvStorage>& storage);
