@@ -160,7 +160,7 @@ $ gdb aktualizr
 
 In CLion the remote debugger is configured as follows:
 
-image::clion-debugger.png[CLion GDB configuration]
+image::img::clion-debugger.png[CLion GDB configuration]
 
 It is also possible to run it inside valgrind:
 
