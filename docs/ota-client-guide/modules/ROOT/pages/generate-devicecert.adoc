@@ -8,7 +8,7 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 endif::[]
 
 
-Once you have your final fleet root certificate, you can use it to generate and sign device certificates. You can then automate the process of installing device certificates on your devices.
+Once you have your final Fleet Root CA, you can use it to sign device certificates. You can then automate the process of installing device certificates, or generate the keys and certificate on the device and sign the cert via PKCS#10 CSR.
 
 We can't tell you exactly how to automate this process, but heres a recap of the steps involved.
 
@@ -31,7 +31,7 @@ end::createdevicedir[]
 ====
 You might want to update the line `export DEVICE_UUID=` and update it to reflect your own schema for generating device IDs. Currently this command generates a random ID.
 ====
-. Generate a device certificate and public key, and sign it with your fleet root certificate.
+. Generate a device certificate and public key, and sign it using your Fleet Root CA.
 +
 As a reference, here is the command to generate and sign a device certificate with a self-signed root certificate.
 +

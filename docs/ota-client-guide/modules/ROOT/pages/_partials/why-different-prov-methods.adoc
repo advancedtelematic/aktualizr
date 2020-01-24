@@ -1,6 +1,5 @@
-If you followed the xref:getstarted::get-started.adoc[Get Started Guide], you used a provisioning key that was shared by all devices. In this scenario, the OTA Connect server generates the device credentials for you. This method is fine if you're just evaluating OTA Connect and want to get started quickly. If you want to do some serious testing and eventually move to production, you'll need a switch to a more secure provisioning method. 
+If you followed the xref:getstarted::get-started.adoc[Get Started Guide], you used a provisioning key that was shared by all devices. In this scenario, the OTA Connect server generates the device credentials for you. This method is fine if you're just evaluating OTA Connect and want to get started quickly. If you want to do some serious testing and eventually move to production, you'll probably want to switch to a more secure provisioning method.
 
-In this case, you shouldn't use the OTA Connect server to generate your device credentials.  If you generate *and* validate credentials with the same server, you're taking a big risk. Generation and validation should always be done by separate entities. 
-Otherwise, if an attacker were able to infiltrate the OTA Connect server, they would be able to provision their own devices.
+Instead of having OTA Connect generate device certificates for you, you can use your own infrastructure to generate and sign device credentials. We call this method "provisioning with device credentials".
 
-Instead, you should use your own infrastructure to generate device credentials outside of OTA Connect. We call this method "provisioning with device credentials". 
+TIP: For a more detailed conceptual overview of the difference between the two types of provisioning, read our xref:client-provisioning-methods.adoc[guide to device provisioning].

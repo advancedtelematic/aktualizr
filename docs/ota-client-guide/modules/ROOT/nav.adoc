@@ -25,9 +25,10 @@ ifndef::env-github[:pageroot:]
 // ---
 * xref:{pageroot}security.adoc[Security]
 ** xref:{pageroot}pki.adoc[Key management]
+** xref:{pageroot}client-provisioning-methods.adoc[Device provisioning]
 ** xref:{pageroot}uptane.adoc[The Uptane security specification]
 // future iteration: * xref:{pageroot}prod-intro[Testing and production environments]
-* xref:{pageroot}client-provisioning-methods.adoc[Device provisioning]
+
 
 .Evaluate OTA Connect
 * xref:{pageroot}intro-evaluate.adoc[Evaluating OTA Connect]
