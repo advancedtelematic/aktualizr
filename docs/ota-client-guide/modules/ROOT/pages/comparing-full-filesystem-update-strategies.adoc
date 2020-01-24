@@ -18,7 +18,7 @@ When the system needs to be updated, the new filesystem image is written to the 
 
 .Dual-bank update process (click to enlarge)
 [caption="Figure 1: ",link={attachmentsdir}/dual-bank-system-update-flow.svg]
-image::dual-bank-system-update-flow.svg[]
+image::img::dual-bank-system-update-flow.svg[]
 
 The main advantage of this update model is its safety. Updates are always strictly atomic, and there is always a known good image that can be rolled back to. However, there are significant trade-offs in flexibility and materials costs that must be made: the size of the root partition must be chosen when the system is flashed for the very first time, and the duplication of the root partition doubles the space required. When choosing how big to make the root partition, a device manufacturer has to consider not just how big their filesystem image currently is, but also must estimate and plan for the size of all future updates. If the size chosen is too small, it may restrict the ability to add new features. Making it larger, of course, adds to the bill of goods for the product--and since it's duplicated, every extra megabyte of future capacity actually costs two megabytes to accommodate.
 
@@ -30,7 +30,7 @@ When the system needs to be updated, {product-name} sends a small metadata file 
 
 .OSTree update process (click to enlarge)
 [caption="Figure 2: ",link={attachmentsdir}/ostree-update-flow.svg]
-image::ostree-update-flow.svg[]
+image::img::ostree-update-flow.svg[]
 
 With OSTree, you no longer need to guess how much room you might need in the future to expand your system; the OSTree content store expands and contracts as needed. You also save a significant amount of space, since only diffs between versions need to be stored. OSTree also allows you to garbage-collect old images: if you upgrade 1.0 -> 1.1 -> 1.2, for example, by default the {product-name-short} client will garbage-collect all local objects unique to 1.0. If you decided later on that you in fact did want to go back to v1.0, you still could: if you pushed v1.0 from {product-name-short}, the client would download only the diff from TreeHub, repopulate the local object store, and then reboot into that version. Of course, it's also possible to configure OSTree to keep more than two revisions on the local disk; this can be particularly useful in QA workflows, allowing for rapid testing of a feature or an external integration against multiple different firmware versions.
 

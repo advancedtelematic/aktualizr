@@ -28,7 +28,7 @@ This is the provisioning method that you should use in production. In this scena
 
 .How the server roles change depending on which method you choose:
 [caption="Figure 1: "]
-image::prov-diff-infra.png[]
+image::img::prov-diff-infra.png[]
 
 
 Note that in both cases, the server that plays "issuer" role, must have access to the private key and the root certificate for your fleet. The root certificate and private key are used to sign identity metadata and to verify the identity of connected devices.
@@ -62,7 +62,7 @@ The following diagram summarizes the differences in how devices are provisioned 
 
 .How the server roles change depending on which method you choose:
 [caption="Figure 2: "]
-image::prov-diff-devices.png[]
+image::img::prov-diff-devices.png[]
 
 With "shared credential" provisioning, devices identified by the provisioning key and the device ID. The role of "issuer" is played by the OTA Connect server, which expects a provisioning key.
 With "device credential" provisioning, you decide how devices are identified. You could generate and preinstall certificate signing request (CSR) files which provide your Certificate Authority (CA) with all the necessary identification details.
