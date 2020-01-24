@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
-import logging
 import argparse
+import logging
+import threading
+import time
 
 from os import getcwd, chdir, path
 
@@ -169,6 +171,32 @@ def test_primary_timeout_during_first_run(uptane_repo, secondary, aktualizr, **k
 
 
 @with_uptane_backend()
+@with_director()
+@with_secondary(start=False)
+@with_aktualizr(start=False, output_logs=True)
+def test_primary_wait_secondary_install(uptane_repo, secondary, aktualizr, director, **kwargs):
+    """Test that Primary waits for Secondary to connect before installing"""
+
+    # provision device with a secondary
+    with secondary, aktualizr:
+        aktualizr.wait_for_completion()
+
+    secondary_image_filename = "secondary_image_filename.img"
+    secondary_image_hash = uptane_repo.add_image(id=secondary.id, image_filename=secondary_image_filename)
+
+    with aktualizr:
+        time.sleep(10)
+        with secondary:
+            aktualizr.wait_for_completion()
+
+    if not director.get_install_result():
+        logger.error("Installation result is not successful")
+        return False
+
+    return True
+
+
+@with_uptane_backend()
 @with_secondary(start=False)
 @with_aktualizr(start=False, output_logs=False)
 def test_primary_timeout_after_device_is_registered(uptane_repo, secondary, aktualizr, **kwargs):
@@ -201,8 +229,7 @@ def test_primary_timeout_after_device_is_registered(uptane_repo, secondary, aktu
     with aktualizr:
         aktualizr.wait_for_completion()
 
-    return (aktualizr.get_current_primary_image_info() == primary_image_hash)\
-            and not aktualizr.is_ecu_registered(secondary.id)
+    return aktualizr.get_current_primary_image_info() == primary_image_hash
 
 
 # test suit runner

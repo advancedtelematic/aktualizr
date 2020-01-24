@@ -158,7 +158,7 @@ class Aktualizr:
             return None
 
     # ugly stuff that could be removed if Aktualizr had exposed API to check status
-    # or aktializr-info had output status/info in a structured way (e.g. json)
+    # or aktualizr-info had output status/info in a structured way (e.g. json)
     def is_ecu_registered(self, ecu_id):
         device_status = self.get_info()
         if not ((device_status.find(ecu_id[0]) != -1) and (device_status.find(ecu_id[1]) != -1)):
