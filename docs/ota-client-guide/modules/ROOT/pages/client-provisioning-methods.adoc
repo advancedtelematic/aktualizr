@@ -57,9 +57,7 @@ In this method, the following steps occur:
 This entire transaction is secured with TLS, using the pinned device gateway certificate provisioned in the image.
 
 .Summary of Shared credential provisioning
-[caption="Figure 1: "]
-image::shared-cred-provisioning.png[1280, 500]
-
+image::img::shared-cred-provisioning.png[width=100%]
 
 == Provisioning with device credentials
 
@@ -76,8 +74,7 @@ Note that nowhere in this process have we had to use a shared credential, nor ha
 TIP: For a more practical overview, read our xref:enable-device-cred-provisioning.adoc[step-by-step guide to setting up device credential provisioning].
 
 .Summary of Device credential provisioning
-[caption="Figure 2: "]
-image::device-cred-provisioning.png[1280,500]
+image::img::device-cred-provisioning.png[width=100%]
 
 == Setting up the OTA Connect Server for Provisioning
 
