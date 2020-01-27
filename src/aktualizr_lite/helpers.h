@@ -20,6 +20,7 @@ struct LiteClient {
   Config config;
   std::shared_ptr<INvStorage> storage;
   std::shared_ptr<SotaUptaneClient> primary;
+  std::pair<Uptane::EcuSerial, Uptane::HardwareIdentifier> primary_ecu;
 };
 
 #endif  // AKTUALIZR_LITE_HELPERS

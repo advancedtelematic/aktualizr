@@ -266,6 +266,16 @@ Json::Value SotaUptaneClient::AssembleManifest() {
 
 bool SotaUptaneClient::hasPendingUpdates() const { return storage->hasPendingInstall(); }
 
+void SotaUptaneClient::initializePrimaryEcu() {
+  EcuSerials serials;
+  if (!storage->loadEcuSerials(&serials) || serials.size() == 0) {
+    throw std::runtime_error("Unable to load ECU serials after device registration.");
+  }
+
+  primary_ecu_serial_ = serials[0].first;
+  hw_ids.insert(serials[0]);
+}
+
 void SotaUptaneClient::initialize() {
   LOG_DEBUG << "Checking if device is provisioned...";
   auto keys = std::make_shared<KeyManager>(storage, config.keymanagerConfig());
@@ -275,14 +285,8 @@ void SotaUptaneClient::initialize() {
     throw std::runtime_error("Fatal error during provisioning or ECU device registration.");
   }
 
-  EcuSerials serials;
-  if (!storage->loadEcuSerials(&serials) || serials.size() == 0) {
-    throw std::runtime_error("Unable to load ECU serials after device registration.");
-  }
-
-  uptane_manifest = std::make_shared<Uptane::ManifestIssuer>(keys, serials[0].first);
-  primary_ecu_serial_ = serials[0].first;
-  hw_ids.insert(serials[0]);
+  initializePrimaryEcu();
+  uptane_manifest = std::make_shared<Uptane::ManifestIssuer>(keys, primary_ecu_serial_);
 
   verifySecondaries();
   LOG_DEBUG << "... provisioned OK";

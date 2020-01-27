@@ -72,7 +72,8 @@ class SotaUptaneClient {
   Uptane::LazyTargetsList allTargets() const;
   Uptane::Target getCurrent() const { return package_manager_->getCurrent(); }
 
-  bool updateImagesMeta();  // TODO: make private once aktualizr has a proper TUF API
+  bool updateImagesMeta();      // TODO: make private once aktualizr has a proper TUF API
+  void initializePrimaryEcu();  // TODO: make private once aktualizr has a proper TUF API
   bool checkImagesMetaOffline();
   data::InstallationResult PackageInstall(const Uptane::Target &target);
   TargetStatus VerifyTarget(const Uptane::Target &target) const { return package_manager_->verifyTarget(target); }

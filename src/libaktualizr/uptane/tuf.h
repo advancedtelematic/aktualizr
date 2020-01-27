@@ -262,6 +262,10 @@ class Target {
   void setUri(std::string uri) { uri_ = std::move(uri); };
   bool MatchHash(const Hash &hash) const;
 
+  void InsertEcu(const EcuSerial &ecuIdentifier, const HardwareIdentifier &hwid) {
+    ecus_.insert({ecuIdentifier, hwid});
+  }
+
   bool IsForEcu(const EcuSerial &ecuIdentifier) const {
     return (std::find_if(ecus_.cbegin(), ecus_.cend(), [&ecuIdentifier](std::pair<EcuSerial, HardwareIdentifier> pair) {
               return pair.first == ecuIdentifier;
