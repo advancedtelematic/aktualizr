@@ -33,7 +33,7 @@ distinguished_name = dn
 x509_extensions = ext
 
 [dn]
-CN = $ENV::fleet_name
+CN = \$ENV::fleet_name
 
 [ext]
 basicConstraints=CA:TRUE
@@ -51,4 +51,6 @@ openssl ecparam -genkey -name prime256v1 | openssl ec -out "${fleet_name}/fleet_
 openssl req -new -x509 -days 3650 -key "${fleet_name}/fleet_root_ca.key" -config \
   "${fleet_name}/fleet_root_ca.cnf" -out "${fleet_name}/fleet_root_ca.crt"
 ----
++
+WARNING: These commands are designed for openssl 1.1 or higher. If you are using an older version, or if you are using LibreSSL, it may not work. Note that the default openssl provided by MacOS is LibreSSL; if you wish to try this process on a Mac you should install openssl from HomeBrew and add it to your path.
 . Send an email to link:mailto:otaconnect.support@here.com[otaconnect.support@here.com] with your `fleet_root_ca.crt` file (but not `fleet_root_ca.key`!), and ask us register it as a Fleet Root certificate on your OTA Connect account. Depending on your account usage we may require extra verification steps to validate the new CA.
