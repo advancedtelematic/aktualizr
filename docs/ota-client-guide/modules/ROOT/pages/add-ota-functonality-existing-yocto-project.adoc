@@ -16,7 +16,7 @@ endif::[]
 If you already have a Yocto-based project, you can start your functional integration with {product-name} by following these four steps:
 
 1.  Clone the https://github.com/advancedtelematic/meta-updater[meta-updater] layer and add it to your https://www.yoctoproject.org/docs/2.6/ref-manual/ref-manual.html#structure-build-conf-bblayers.conf[bblayers.conf].
-2.  Clone a BSP integration layer (`meta-updater-$\{PLATFORM}`, e.g. https://github.com/advancedtelematic/meta-updater-raspberrypi[meta-updater-raspberrypi]) and add it to your `conf/bblayers.conf`. If your board isn't supported yet, you could write a BSP integration for it yourself. See the <<Adding support for your board>> section for the details.
+2.  Clone a BSP integration layer (`meta-updater-$\{PLATFORM}`, e.g. https://github.com/advancedtelematic/meta-updater-raspberrypi[meta-updater-raspberrypi]) and add it to your `conf/bblayers.conf`. If your board isn't supported yet, you could write a BSP integration for it yourself. See xref:supported-boards.adoc#_adding_support_for_your_board[Adding support for your board] for more details.
 3.  Set up your https://www.yoctoproject.org/docs/2.6/ref-manual/ref-manual.html#var-DISTRO[distro]. If you are using "poky", the default distro in Yocto, you can change it in your `conf/local.conf` to `poky-sota` or to `poky-sota-systemd`. Alternatively, if you are using your own or a third-party distro configuration, you can add the following parameters to it, thus combining the capabilities of your distro with meta-updater features.
 +
 ----
