@@ -1,4 +1,4 @@
-= Generate a self-signed root certificate
+= Generate a self-signed fleet root certificate
 ifdef::env-github[]
 
 [NOTE]
@@ -12,27 +12,43 @@ When you move to production, you'll need to register your Fleet Root certificate
 
 If you don't yet have your own CA for signing device certificates, you can generate a self-signed certificate for testing.
 
-// tag::install-root-ca[]
+To generate a self-signed fleet root certificate, follow these steps: ::
+. Create a directory structure for your fleet. We will use this same basic directory structure in each of the sections of this guide.
++
+[source,bash]
+----
+export fleet_name=myfleet
+mkdir ${fleet_name}
+mkdir ${fleet_name}/devices
+----
++
+. Create a file called `fleet_root_ca.cnf` inside your fleet directory to configure openSSL for generating your fleet root CA:
++
+[source,bash]
+----
+cat <<EOF > ${fleet_name}/fleet_root_ca.cnf
+[req]
+prompt = no
+distinguished_name = dn
+x509_extensions = ext
 
-To generate a self-signed root certificate, follow these steps: ::
-. Create a directory structure for the keys, and get some sample configurations for the certificates from the OTA Community Edition project:
+[dn]
+CN = $ENV::fleet_name
+
+[ext]
+basicConstraints=CA:TRUE
+keyUsage = keyCertSign
+extendedKeyUsage = critical, serverAuth
+EOF
+----
++
+TIP: All of the listed extensions in this config file are required. If your fleet root CA does not contain at least these three extensions, it will be rejected.
+. Generate the key and cert using openssl on the command line.
 +
 [source,bash]
 ----
-export SERVER_NAME=myservername
-export SERVER_DIR="./${SERVER_NAME}" DEVICES_DIR="./${SERVER_NAME}/devices" CWD="${PWD}"
-mkdir -p "$DEVICES_DIR" certs
-for file in client.cnf device_ca.cnf server.ext client.ext server.cnf server_ca.cnf; do
-  curl -o certs/$file https://raw.githubusercontent.com/advancedtelematic/ota-community-edition/master/scripts/certs/$file
-done
+openssl ecparam -genkey -name prime256v1 | openssl ec -out "${fleet_name}/fleet_root_ca.key"
+openssl req -new -x509 -days 3650 -key "${fleet_name}/fleet_root_ca.key" -config \
+  "${fleet_name}/fleet_root_ca.cnf" -out "${fleet_name}/fleet_root_ca.crt"
 ----
-+
-Then, generate the key and cert using openssl on the command line:
-+
-[source,bash]
-----
-include::example$start.sh[tags="genserverkeys"]
-----
-+
-This will create a `./$\{SERVER_DIR}/devices/` directory with the `ca.crt` certificate and a `ca.key` private key. Keep the private key safe and secure.
-. Next, xref:provide-testroot-cert.adoc[register the test root certificate with your OTA Connect account].
+. Send an email to link:mailto:otaconnect.support@here.com[otaconnect.support@here.com] with your `fleet_root_ca.crt` file (but not `fleet_root_ca.key`!), and ask us register it as a Fleet Root certificate on your OTA Connect account. Depending on your account usage we may require extra verification steps to validate the new CA.
