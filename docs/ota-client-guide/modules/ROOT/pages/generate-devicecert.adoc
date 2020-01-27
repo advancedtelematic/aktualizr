@@ -14,66 +14,60 @@ We can't tell you exactly how to automate this process, but heres a recap of how
 
 *To generate a device certificate, follow these steps*
 
-. Make a directory for your fleet:
-+
-[source, bash]
-----
-export fleetname=myfleet
-mkdir ${fleetname}
-----
+. Make sure you already have xref:generate-selfsigned-root.adoc[generated a fleet root CA], and have a directory structure like the one in that guide. If you don't have exactly the same directory structure, adjust the following commands as needed.
 . Generate an ID for the device, and make a directory for it. This ID should be unique within your fleet, so we recommend using a UUID if you do not already have a scheme of unique identifiers.
 +
 [source,bash]
 ----
 export device_id=$(uuidgen | tr "[:upper:]" "[:lower:]")
-export device_dir=${fleetname}/devices/${device_id}
+export device_dir=${fleet_name}/devices/${device_id}
 mkdir -p ${device_dir}
 ----
-. Generate a device certificate and public key. The instructions here tell you how to do this with OpenSSL, assuming you have the Fleet Root CA's private key available on your local machine. (See xref:generate-selfsigned-root.adoc[Generate a self-signed root certificate] for details on how to generate a Fleet Root CA.) More complex architectures are possible, such as using a CSR server and xref:hsm-provisioning-example.adoc[generating the device certificates inside an HSM on the device], but are out of scope for this document.
+. Generate a device certificate and public key, and sign it with your local Fleet Root CA. More complex architectures are possible, such as using a CSR server and xref:hsm-provisioning-example.adoc[generating the device certificates inside an HSM on the device], but are out of scope for this document.
+.. You'll need OpenSSL config files called `client.cnf` and `client.ext` stored in the `devices` directory. You can paste the following to create the files with our recommended configuration:
 +
-You'll need OpenSSL config files called `client.cnf` and `client.ext`. Our recommendation is to use the following config for these two:
-+
-[{tabs}]
-====
-client.cnf::
-+
+[source,bash]
 ----
+cat <<EOF > ${fleet_name}/devices/device_cert.cnf
 [req]
 prompt = no
 distinguished_name = dn
 req_extensions = ext
 
 [dn]
-CN=$ENV::device_id
+CN=\$ENV::device_id
 
 [ext]
 keyUsage=critical, digitalSignature
 extendedKeyUsage=critical, clientAuth
-----
+EOF
 
-client.ext::
-+
-----
+cat <<EOF > ${fleet_name}/devices/device_cert.ext
 keyUsage=critical, digitalSignature
 extendedKeyUsage=critical, clientAuth
+EOF
 ----
-====
+.. Generate and sign the new device certificate:
 +
-With your config files saved in the current directory, continue as follows:
-+
+[source,bash]
 ----
 # Generate a new elliptic curve based key
 openssl ecparam -genkey -name prime256v1 | openssl ec -out "${device_dir}/pkey.ec.pem"
+
 # Convert it to PKCS#8 format
 openssl pkcs8 -topk8 -nocrypt -in "${device_dir}/pkey.ec.pem" -out "${device_dir}/pkey.pem"
+
 # Create a CSR for the new device
-openssl req -new -config "./client.cnf" -key "${device_dir}/pkey.pem" -out "${device_dir}/${device_id}.csr"
-# Submit and resolve the CSR using your locally-generated Fleet Root CA--assumes your Fleet Root CA key
-# and cert are saved in ${fleetname}/devices
-openssl x509 -req -days 365 -extfile "${CWD}/certs/client.ext" -in "${device_dir}/${device_id}.csr" \
-    -CAkey "${fleetname}/devices/ca.key" -CA "${fleetname}/devices/ca.crt" -CAcreateserial \
-    -out "${device_dir}/client.pem"
+openssl req -new -config "${fleet_name}/devices/device_cert.cnf" -key "${device_dir}/pkey.pem" \
+  -out "${device_dir}/${device_id}.csr"
+
+# Submit and resolve the CSR using your locally-generated Fleet Root CA
+openssl x509 -req -days 365 -extfile "${fleet_name}/devices/device_cert.ext" \
+  -in "${device_dir}/${device_id}.csr" -CAkey "${fleet_name}/fleet_root_ca.key" \
+  -CA "${fleet_name}/fleet_root_ca.crt" -CAcreateserial -out "${device_dir}/client.pem"
 ----
++
+WARNING: These command string is designed for openssl 1.1 or higher. If you are using an older version, or if you are using LibreSSL, it may not work. Note that the default openssl provided by MacOS is LibreSSL; if you wish to try this process on a Mac you should install openssl from HomeBrew and add it to your path.
 . Get the URL and certificate for your account's device gateway
 .. You can get the URL from the `credentials.zip` that you download from the OTA Connect Portal. If you haven't done so already, xref:generating-provisioning-credentials.adoc[download a provisioning key].
 .. Extract the contents of the `credentials.zip` file to a local folder.
@@ -84,6 +78,7 @@ https://beefcafe-13eb-478b-b215-fbd10dbbec0e.device-gateway.ota.api.here.com:443
 ----
 .. Get the device gateway's root certificate and save it in the device directory with the following openssl command:
 +
+[source,bash]
 ----
 export device_gateway=<your-gateway-url> <1>
 openssl s_client -connect ${device_gateway}:8000 -servername $device_gateway -showcerts | \
