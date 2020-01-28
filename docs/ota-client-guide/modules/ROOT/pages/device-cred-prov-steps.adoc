@@ -24,7 +24,7 @@ include::partial$how-prov-with-device-cred.adoc[]
 * *xref:provide-root-cert.adoc[Provide us with the root certificate for your fleet]*
 +
 We'll need to register this certificate for your account so that OTA Connect can validate your device certificates.
-* *xref:install-device-certs.adoc[Install your device certificates on devices]*
+* *xref:enable-device-cred-provisioning.adoc[Install your device certificates on devices]*
 +
 The installation process happens outside of OTA Connect but we can give you some pointers on how to set up this process.
 * *xref:enable-device-cred-provisioning.adoc[Configure the OTA Connect client to use your device certificates for provisioning]*
