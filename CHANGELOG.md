@@ -7,6 +7,18 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 ## [??? (unreleased)]
 
 
+## [2020.2] - 2020-01-30
+
+### Changed
+
+- Require OpenSSL >= 1.0.2 explicitly
+- Remove images from current location and Update image references to use new location: [PR](https://github.com/advancedtelematic/aktualizr/pull/1534)
+
+### Fixed
+
+- Catch the disk space availability exception
+- Correct secondary target name/filepath in a manifest: [PR](https://github.com/advancedtelematic/aktualizr/pull/1529)
+
 ## [2020.1] - 2020-01-17
 
 ### Added
