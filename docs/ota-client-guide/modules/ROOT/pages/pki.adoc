@@ -8,30 +8,27 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 endif::[]
 
 
-Once you move to production, we recommend that you manage these keys offline in your own PKI rather than having all keys managed on the OTA Connect server.
+OTA Connect uses public key cryptography to protect sensitive data. Once you move to production, we recommend that you manage these keys offline rather than having all keys managed on the OTA Connect server.
 
-OTA Connect uses pairs of public and private keys to protect sensitive data. Normally, you use a PKI (Public Key Infrastructure) to manage these keys. 
+== Risks keeping your keys on the OTA Connect server
 
-== Risks of using OTA Connect as your PKI
+When you first sign up for an account, OTA Connect generates all of the keys you need and securely stores them, so you don't have to worry about key management to get started.
 
-By default, OTA Connect server plays the role of a PKI so you don't have to think about key management. This is useful if you don't yet have your own PKI, but not so secure.
+However, this means that OTA Connect account password is the only thing standing between an attacker and your devices. If your password was guessed or stolen, the attacker would be install whatever software they wanted on any of devices OTA Connect manages. If your device happens to be a vehicle, such a breach could have very dangerous consequences.
 
-If an attacker were able to take over your OTA Connect account, they would be able to provision their own devices and send malicious updates to your devices. If your device happens to be a vehicle, such a breach could have very dangerous consequences.
-
-This is why we recommend that you use your own PKI in production.
+This is why we recommend xref:rotating-signing-keys.adoc[rotating your software signing keys offline] and xref:client-provisioning-methods.adoc[choosing an appropriately secure provisioning method].
 
 == Key Types
 
-If you follow our security recommendations, you'll need to manage several different keys.
+If you follow our highest security recommendations, you'll need to manage several different keys.
 
 
 .Key Types
 [width="100%",cols="2,2,4",options="header"]
 |====================
-| Key Name | Purpose  |  Description 
-| Fleet Root | Device Identity | This key is used to sign your fleet root certificate. The root certificate certifies the identity of your fleet and is used to sign device certificates. The OTA Connect server can then validate device certificates to ensure that a connecting device is part of your fleet.
+| Key Name | Purpose  |  Description
+| Fleet Root | Device Identity | The private key of your Fleet Root CA. This is used to sign the individual device certificates for your fleet of devices. The OTA Connect server can then validate device certificates to ensure that a connecting device is part of your fleet. See xref:client-provisioning-methods.adoc[Device Provisioning Methods] for more details.
 
-If you obtain a root certificate from an external certificate authority such as DigiCert, you don't have to worry about managing this key. The certificate authority takes are of this for you. 
 | Uptane Root | Software Integrity |  This key is used to sign the "root" metadata file for your software repository. This file contains information about all the roles that can sign software metadata. For more information on how to take these keys offline, see the topic "xref:rotating-signing-keys.adoc[Manage keys for software metadata]".
 | Uptane Targets | Software Integrity |  This  key is used to sign the "targets" metadata file for software updates. This file contains information about all the valid software files in your software repository. For more information on how to take these keys offline, see the topic "xref:rotating-signing-keys.adoc[Manage keys for software metadata]".
 |====================

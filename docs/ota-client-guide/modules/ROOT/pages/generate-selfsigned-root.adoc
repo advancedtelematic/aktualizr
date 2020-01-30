@@ -8,9 +8,9 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 endif::[]
 
 
-When you move to production, you'll need to register your fleet root certificate with OTA Connect server. This certificate needs to be signed by a trusted Certificate Authority (CA).
+When you move to production, you'll need to register your Fleet Root certificate with OTA Connect server.
 
-If you don't yet have your own CA certificate for signing device certificates, you can generate a self-signed certificate for testing.
+If you don't yet have your own CA for signing device certificates, you can generate a self-signed certificate for testing.
 
 // tag::install-root-ca[]
 
