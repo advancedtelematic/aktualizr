@@ -1,5 +1,5 @@
 name: ota-client
 title: OTA Connect Developer Guide
-version: 2019.5
+version: '2019.5'
 nav:
 - modules/ROOT/nav.adoc
