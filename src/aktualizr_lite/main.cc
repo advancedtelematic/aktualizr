@@ -155,7 +155,7 @@ static SubCommand commands[] = {
 };
 
 void check_info_options(const bpo::options_description &description, const bpo::variables_map &vm) {
-  if (vm.count("help") != 0 || vm.count("command") == 0) {
+  if (vm.count("help") != 0 || (vm.count("command") == 0 && vm.count("version") == 0)) {
     std::cout << description << '\n';
     exit(EXIT_SUCCESS);
   }
