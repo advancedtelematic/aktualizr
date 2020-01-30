@@ -22,7 +22,7 @@ You can try out OTA Connect without having to build a whole device image. This c
 == Prerequisites
 
 * A Linux or MacOS machine to run aktualizr on
-* xref:generating-provisioning-credentials.adoc[Provisioning credentials] (`credentials.zip` file)
+* xref:ota-client::generating-provisioning-credentials.adoc[Provisioning credentials] (`credentials.zip` file)
 
 == Install aktualizr locally
 
@@ -123,7 +123,7 @@ Each directory should contain the following:
 
 * credentials.zip
 * sota_local.toml -- a config file for aktualizr
-* (Optional) A `virtualsec.json` file containing the configuration for one or more secondary ECUs.footnote:[The terms "primary" and "secondary" ECU are used in the Uptane specification. For more information about the difference between primary and secondary ECUs, see our overview of the xref:uptane.adoc#_primary_and_secondary_ecus[Uptane framework\].]
+* (Optional) A `virtualsec.json` file containing the configuration for one or more secondary ECUs.footnote:[The terms "primary" and "secondary" ECU are used in the Uptane specification. For more information about the difference between primary and secondary ECUs, see our overview of the xref:ota-client::uptane.adoc#_primary_and_secondary_ecus[Uptane framework\].]
 
 An example directory is below:
 
@@ -163,7 +163,7 @@ From the directory you've created, run aktualizr and point it to the current dir
 
     aktualizr -c .
 
-This will start aktualizr in its normal mode: it will provision with the server using the `credentials.zip` provided, then start listening for updates. You can also xref:aktualizr-runningmodes-finegrained-commandline-control.adoc[selectively trigger aktualizr] or use any of the other options; you just need to specify `-c .` each time.
+This will start aktualizr in its normal mode: it will provision with the server using the `credentials.zip` provided, then start listening for updates. You can also xref:ota-client::aktualizr-runningmodes-finegrained-commandline-control.adoc[selectively trigger aktualizr] or use any of the other options; you just need to specify `-c .` each time.
 
 You should now be able to see your simulated device provisioned into your OTA Connect account, with two secondary ECUs listed.
 
