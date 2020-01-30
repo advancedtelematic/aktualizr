@@ -12,7 +12,6 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 ### Changed
 
 - Require OpenSSL >= 1.0.2 explicitly: [PR](https://github.com/advancedtelematic/aktualizr/pull/1487)
-- Docs: Remove images from current location and Update image references to use new location: [PR](https://github.com/advancedtelematic/aktualizr/pull/1534)
 
 ### Fixed
 
