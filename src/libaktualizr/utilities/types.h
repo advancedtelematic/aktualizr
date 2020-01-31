@@ -85,9 +85,11 @@ inline std::ostream& operator<<(std::ostream& os, CryptoSource cs) {
 class TimeStamp {
  public:
   static TimeStamp Now();
+  static struct tm CurrentTime();
   /** An invalid TimeStamp */
   TimeStamp() { ; }
   explicit TimeStamp(std::string rfc3339);
+  explicit TimeStamp(struct tm time);
   bool IsExpiredAt(const TimeStamp& now) const;
   bool IsValid() const;
   std::string ToString() const { return time_; }

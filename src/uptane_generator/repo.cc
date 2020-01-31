@@ -300,6 +300,18 @@ void Repo::refresh(const Uptane::Role &role) {
   // interesting to allow changing the expiry, too.
   Json::Value meta_raw = Utils::parseJSONFile(meta_path)["signed"];
   const unsigned version = meta_raw["version"].asUInt() + 1;
+
+  auto current_expire_time = TimeStamp(meta_raw["expires"].asString());
+
+  if (current_expire_time.IsExpiredAt(TimeStamp::Now())) {
+    time_t new_expiration_time;
+    std::time(&new_expiration_time);
+    new_expiration_time += 60 * 60;  // make it valid for the next hour
+    struct tm new_expiration_time_str {};
+    gmtime_r(&new_expiration_time, &new_expiration_time_str);
+
+    meta_raw["expires"] = TimeStamp(new_expiration_time_str).ToString();
+  }
   meta_raw["version"] = version;
   const std::string signed_meta = Utils::jsonToCanonicalStr(signTuf(role, meta_raw));
   Utils::writeFile(meta_path, signed_meta);

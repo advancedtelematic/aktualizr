@@ -165,7 +165,7 @@ int main(int argc, char **argv) {
         if (vm.count("url") != 0) {
           url = vm["url"].as<std::string>();
         }
-        repo.addTarget(targetname, hwid, serial, url);
+        repo.addTarget(targetname, hwid, serial, url, expiration_time);
         std::cout << "Added target " << targetname << " to director targets metadata for ECU with serial " << serial
                   << " and hardware ID " << hwid << std::endl;
       } else if (command == "adddelegation") {

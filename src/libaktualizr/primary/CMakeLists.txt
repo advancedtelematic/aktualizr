@@ -48,6 +48,10 @@ add_aktualizr_test(NAME metadata_fetch SOURCES metadata_fetch_test.cc PROJECT_WO
                    ARGS "$<TARGET_FILE:uptane-generator>" LIBRARIES uptane_generator_lib)
 target_link_libraries(t_metadata_fetch virtual_secondary)
 
+add_aktualizr_test(NAME metadata_expiration SOURCES metadata_expiration_test.cc PROJECT_WORKING_DIRECTORY
+                   ARGS "$<TARGET_FILE:uptane-generator>" LIBRARIES uptane_generator_lib)
+target_link_libraries(t_metadata_expiration virtual_secondary)
+
 add_aktualizr_test(NAME device_cred_prov SOURCES device_cred_prov_test.cc PROJECT_WORKING_DIRECTORY LIBRARIES PUBLIC uptane_generator_lib)
 set_tests_properties(test_device_cred_prov PROPERTIES LABELS "crypto")
 

@@ -209,7 +209,20 @@ void OstreeManager::completeInstall() const {
   bootloader_->reboot();
 }
 
-data::InstallationResult OstreeManager::finalizeInstall(const Uptane::Target &target) const {
+data::InstallationResult OstreeManager::finalizeInstall(const Uptane::Target &target) {
+  if (!bootloader_->rebootDetected()) {
+    return data::InstallationResult(data::ResultCode::Numeric::kNeedCompletion,
+                                    "Reboot is required for the pending update application");
+  }
+
+  data::InstallationResult install_result = applyInstall(target);
+  // it should be removed from here, once we refactor the ostree package manager,
+  // e.g. the pacman will reset/clear the flag by itself
+  bootloader_->rebootFlagClear();
+  return install_result;
+}
+
+data::InstallationResult OstreeManager::applyInstall(const Uptane::Target &target) {
   LOG_INFO << "Checking installation of new OSTree sysroot";
   const std::string current_hash = getCurrentHash();
 

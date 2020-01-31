@@ -47,7 +47,7 @@ class PackageManagerInterface {
   virtual Uptane::Target getCurrent() const = 0;
   virtual data::InstallationResult install(const Uptane::Target& target) const = 0;
   virtual void completeInstall() const { throw std::runtime_error("Unimplemented"); };
-  virtual data::InstallationResult finalizeInstall(const Uptane::Target& target) const = 0;
+  virtual data::InstallationResult finalizeInstall(const Uptane::Target& target) = 0;
   virtual bool rebootDetected() { return bootloader_->rebootDetected(); };
   virtual void rebootFlagClear() { bootloader_->rebootFlagClear(); };
   virtual void updateNotify() { bootloader_->updateNotify(); };
