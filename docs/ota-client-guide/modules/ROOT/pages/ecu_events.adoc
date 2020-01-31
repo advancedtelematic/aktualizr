@@ -7,6 +7,8 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
+// AB: This page is currently out of date and will be temporarily hidden in the developer guide portal to be updated later and connected to the API documentation.
+
 :aktualizr-github-url: https://github.com/advancedtelematic/aktualizr/tree/master
 
 This is a technical document describing the format of the events reported to the back-end by aktualizr during an ongoing update installation.
