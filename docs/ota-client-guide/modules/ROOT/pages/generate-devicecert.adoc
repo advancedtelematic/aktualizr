@@ -10,65 +10,81 @@ endif::[]
 
 Once you have your final Fleet Root CA, you can use it to sign device certificates. You can then automate the process of installing device certificates, or generate the keys and certificate on the device and sign the cert via PKCS#10 CSR.
 
-We can't tell you exactly how to automate this process, but heres a recap of the steps involved.
+We can't tell you exactly how to automate this process, but heres a recap of how to do it manually with a self-signed fleet root CA:
 
 *To generate a device certificate, follow these steps*
 
-. Generate a UUID for the device, and make a directory for it:
-+
-[source,bash]
-tag::createdevicedir[]
-----
-export SERVER_NAME=myservername
-export DEVICES_DIR="./${SERVER_NAME}/devices" CWD="${PWD}"
-export DEVICE_UUID=$(uuidgen | tr "[:upper:]" "[:lower:]")
-export device_id=${DEVICE_ID:-${DEVICE_UUID}} device_dir="${DEVICES_DIR}/${DEVICE_UUID}"
-mkdir -p "${device_dir}"
-----
-end::createdevicedir[]
-+
-[NOTE]
-====
-You might want to update the line `export DEVICE_UUID=` and update it to reflect your own schema for generating device IDs. Currently this command generates a random ID.
-====
-. Generate a device certificate and public key, and sign it using your Fleet Root CA.
-+
-As a reference, here is the command to generate and sign a device certificate with a self-signed root certificate.
+. Make sure you already have xref:generate-selfsigned-root.adoc[generated a fleet root CA], and have a directory structure like the one in that guide. If you don't have exactly the same directory structure, adjust the following commands as needed.
+. Generate an ID for the device, and make a directory for it. This ID should be unique within your fleet, so we recommend using a UUID if you do not already have a scheme of unique identifiers.
 +
 [source,bash]
 ----
-include::example$start.sh[tags="genclientkeys"]
+export device_id=$(uuidgen | tr "[:upper:]" "[:lower:]")
+export device_dir=${fleet_name}/devices/${device_id}
+mkdir -p ${device_dir}
 ----
-
-. Find out the address of the device gateway for your OTA Connect Account
+. Generate a device certificate and public key, and sign it with your local Fleet Root CA. More complex architectures are possible, such as using a CSR server and xref:hsm-provisioning-example.adoc[generating the device certificates inside an HSM on the device], but are out of scope for this document.
+.. You'll need OpenSSL config files called `client.cnf` and `client.ext` stored in the `devices` directory. You can paste the following to create the files with our recommended configuration:
 +
-You can get this address from the `credentials.zip` that you download from the OTA Connect Portal.
-+
-You need this address to get the internal root CA certificate of the device gateway. This certificate is also necessary to provision devices.
+[source,bash]
+----
+cat <<EOF > ${fleet_name}/devices/device_cert.cnf
+[req]
+prompt = no
+distinguished_name = dn
+req_extensions = ext
 
-.. If you haven't done so already, xref:generating-provisioning-credentials.adoc[download a provisioning key].
+[dn]
+CN=\$ENV::device_id
+
+[ext]
+keyUsage=critical, digitalSignature
+extendedKeyUsage=critical, clientAuth
+EOF
+
+cat <<EOF > ${fleet_name}/devices/device_cert.ext
+keyUsage=critical, digitalSignature
+extendedKeyUsage=critical, clientAuth
+EOF
+----
+.. Generate and sign the new device certificate:
++
+[source,bash]
+----
+# Generate a new elliptic curve based key
+openssl ecparam -genkey -name prime256v1 | openssl ec -out "${device_dir}/pkey.ec.pem"
+
+# Convert it to PKCS#8 format
+openssl pkcs8 -topk8 -nocrypt -in "${device_dir}/pkey.ec.pem" -out "${device_dir}/pkey.pem"
+
+# Create a CSR for the new device
+openssl req -new -config "${fleet_name}/devices/device_cert.cnf" -key "${device_dir}/pkey.pem" \
+  -out "${device_dir}/${device_id}.csr"
+
+# Submit and resolve the CSR using your locally-generated Fleet Root CA
+openssl x509 -req -days 365 -extfile "${fleet_name}/devices/device_cert.ext" \
+  -in "${device_dir}/${device_id}.csr" -CAkey "${fleet_name}/fleet_root_ca.key" \
+  -CA "${fleet_name}/fleet_root_ca.crt" -CAcreateserial -out "${device_dir}/client.pem"
+----
++
+WARNING: These command string is designed for openssl 1.1 or higher. If you are using an older version, or if you are using LibreSSL, it may not work. Note that the default openssl provided by MacOS is LibreSSL; if you wish to try this process on a Mac you should install openssl from HomeBrew and add it to your path.
+. Get the URL and certificate for your account's device gateway
+.. You can get the URL from the `credentials.zip` that you download from the OTA Connect Portal. If you haven't done so already, xref:generating-provisioning-credentials.adoc[download a provisioning key].
 .. Extract the contents of the `credentials.zip` file to a local folder.
-.. In that folder, look for the file `autoprov` and open it with a text editor.
-+
-You should see a URL that resembles the following example:
-+
-`\https://946f68b8-13d2-4647-b335-5a48777b5657.tcpgw.prod01.advancedtelematic.com:443`
-.. Make a note of this URL.
-
-. Get the device gateway's root certificate with the following openssl command:
+.. In that folder, look for the file `autoprov.url`. It will contain a URL that resembles the following example:
 +
 ----
-export device_gateway=<your-gateway-url>
+https://beefcafe-13eb-478b-b215-fbd10dbbec0e.device-gateway.ota.api.here.com:443
+----
+.. Get the device gateway's root certificate and save it in the device directory with the following openssl command:
++
+[source,bash]
+----
+export device_gateway=<your-gateway-url> <1>
 openssl s_client -connect ${device_gateway}:8000 -servername $device_gateway -showcerts | \
   sed -n '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > ${device_dir}/root.crt
 ----
-+
-Replace, the placeholder `<your-gateway-url>` with URL that you noted in the previous step.
-+
-. Make a note where the actual `$\{device_dir}` is on your computer.
-+
-You can quickly get it with the command `echo $\{device_dir}`. Your device directory should resemble the following example:
-+
-`myservername/devices/4e7cdc4f-b7dc-4fb0-900f-a237ba3e804c/`
-. Once have noted your device directory, you can xref:enable-device-cred-provisioning.adoc[install the device certificate on the device].
+<1> Replace `<your-gateway-url>` with the URL from the previous step.
+
+Once you have a signed device certificate and the device gateway's cert saved in your device directory, you can xref:enable-device-cred-provisioning.adoc[install the certificates on the device].
 // end::install-root-ca[]
