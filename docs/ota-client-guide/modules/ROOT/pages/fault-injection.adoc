@@ -8,7 +8,7 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 endif::[]
 
 ifdef::env-github[:simulatelink: link:https://docs.ota.here.com/ota-client/latest/simulate-device-basic.html[Simulate a device without building a disk image]]
-ifndef::env-github[:simulatelink: xref:getstarted::simulate-device-basic.adoc[Simulate a device without building a disk image]]
+ifndef::env-github[:simulatelink: xref:simulate-device-basic.adoc[Simulate a device without building a disk image]]
 
 
 To test the system in adverse conditions, it can be useful to make aktualizr fail in a controlled fashion.
