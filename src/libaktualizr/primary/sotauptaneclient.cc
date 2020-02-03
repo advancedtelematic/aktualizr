@@ -119,8 +119,6 @@ void SotaUptaneClient::finalizeAfterReboot() {
 
   director_repo.dropTargets(*storage);  // fix for OTA-2587, listen to backend again after end of install
   computeDeviceInstallationResult(nullptr, correlation_id);
-  // Do we really need to send a device manifest here at the initialization phase
-  // while we send it within the uptane cycle anyway
   putManifestSimple();
 }
 

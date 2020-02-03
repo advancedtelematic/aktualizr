@@ -65,7 +65,6 @@ class OstreeManager : public PackageManagerInterface {
 
  private:
   TargetStatus verifyTargetInternal(const Uptane::Target &target) const;
-  data::InstallationResult applyInstall(const Uptane::Target &target);
 };
 
 #endif  // OSTREE_H_

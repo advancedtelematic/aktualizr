@@ -129,7 +129,9 @@ TEST_F(MetadataExpirationTest, MetadataExpirationAfterInstallationAndBeforeReboo
   result::UpdateCheck update_result = aktualizr_->CheckUpdates().get();
   EXPECT_EQ(update_result.status, result::UpdateStatus::kNoUpdatesAvailable);
 
-  addTargetToInstall(2);
+  const int expiration_in_sec = 5;
+  addTargetToInstall(expiration_in_sec);
+  auto target_init_time = std::chrono::system_clock::now();
 
   // run the uptane cycle to install the target
   aktualizr_->UptaneCycle();
@@ -140,7 +142,8 @@ TEST_F(MetadataExpirationTest, MetadataExpirationAfterInstallationAndBeforeReboo
   ASSERT_TRUE(client->isInstallCompletionRequired());
 
   // emulate the target metadata expiration while the uptane cycle is running
-  std::this_thread::sleep_for(std::chrono::seconds(3));
+  std::this_thread::sleep_for(std::chrono::seconds(expiration_in_sec) -
+                              (std::chrono::system_clock::now() - target_init_time));
   aktualizr_->UptaneCycle();
 
   // since the installation happenned before the metadata expiration we expect that
@@ -168,7 +171,9 @@ TEST_F(MetadataExpirationTest, MetadataExpirationAfterInstallationAndBeforeAppli
   result::UpdateCheck update_result = aktualizr_->CheckUpdates().get();
   EXPECT_EQ(update_result.status, result::UpdateStatus::kNoUpdatesAvailable);
 
-  addTargetToInstall(2);
+  const int expiration_in_sec = 5;
+  addTargetToInstall(expiration_in_sec);
+  auto target_init_time = std::chrono::system_clock::now();
 
   // run the uptane cycle to install the target
   aktualizr_->UptaneCycle();
@@ -179,7 +184,9 @@ TEST_F(MetadataExpirationTest, MetadataExpirationAfterInstallationAndBeforeAppli
   ASSERT_TRUE(client->isInstallCompletionRequired());
 
   // wait until the target metadata are expired
-  std::this_thread::sleep_for(std::chrono::seconds(3));
+  // emulate the target metadata expiration while the uptane cycle is running
+  std::this_thread::sleep_for(std::chrono::seconds(expiration_in_sec) -
+                              (std::chrono::system_clock::now() - target_init_time));
 
   // force reboot
   client->completeInstall();
