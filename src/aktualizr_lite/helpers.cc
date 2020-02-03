@@ -53,7 +53,7 @@ LiteClient::LiteClient(Config &config_in)
   KeyManager keys(storage, config.keymanagerConfig());
   keys.copyCertsToCurl(*http_client);
 
-  primary = std::make_shared<SotaUptaneClient>(config, storage, http_client);
-  primary->initializePrimaryEcu();
+  primary =
+      std::make_shared<SotaUptaneClient>(config, storage, http_client, nullptr, primary_ecu.first, primary_ecu.second);
   finalizeIfNeeded(*storage, config.pacman);
 }
