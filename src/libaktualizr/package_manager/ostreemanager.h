@@ -50,6 +50,7 @@ class OstreeManager : public PackageManagerInterface {
   data::InstallationResult install(const Uptane::Target &target) const override;
   void completeInstall() const override;
   data::InstallationResult finalizeInstall(const Uptane::Target &target) override;
+  void updateNotify() override { bootloader_->updateNotify(); };
   bool fetchTarget(const Uptane::Target &target, Uptane::Fetcher &fetcher, const KeyManager &keys,
                    FetcherProgressCb progress_cb, const api::FlowControlToken *token) override;
   TargetStatus verifyTarget(const Uptane::Target &target) const override;
@@ -65,6 +66,9 @@ class OstreeManager : public PackageManagerInterface {
 
  private:
   TargetStatus verifyTargetInternal(const Uptane::Target &target) const;
+
+ private:
+  std::unique_ptr<Bootloader> bootloader_;
 };
 
 #endif  // OSTREE_H_

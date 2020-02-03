@@ -37,10 +37,9 @@ class PackageManagerInterface {
  public:
   PackageManagerInterface(PackageConfig pconfig, BootloaderConfig bconfig, std::shared_ptr<INvStorage> storage,
                           std::shared_ptr<HttpInterface> http)
-      : config(std::move(pconfig)),
-        storage_(std::move(storage)),
-        http_(std::move(http)),
-        bootloader_{new Bootloader(std::move(bconfig), *storage_)} {}
+      : config(std::move(pconfig)), storage_(std::move(storage)), http_(std::move(http)) {
+    (void)bconfig;
+  }
   virtual ~PackageManagerInterface() = default;
   virtual std::string name() const = 0;
   virtual Json::Value getInstalledPackages() const = 0;
@@ -48,7 +47,7 @@ class PackageManagerInterface {
   virtual data::InstallationResult install(const Uptane::Target& target) const = 0;
   virtual void completeInstall() const { throw std::runtime_error("Unimplemented"); };
   virtual data::InstallationResult finalizeInstall(const Uptane::Target& target) = 0;
-  virtual void updateNotify() { bootloader_->updateNotify(); };
+  virtual void updateNotify(){};
   virtual bool fetchTarget(const Uptane::Target& target, Uptane::Fetcher& fetcher, const KeyManager& keys,
                            FetcherProgressCb progress_cb, const api::FlowControlToken* token);
   virtual TargetStatus verifyTarget(const Uptane::Target& target) const;
@@ -57,6 +56,5 @@ class PackageManagerInterface {
   PackageConfig config;
   std::shared_ptr<INvStorage> storage_;
   std::shared_ptr<HttpInterface> http_;
-  std::unique_ptr<Bootloader> bootloader_;
 };
 #endif  // PACKAGEMANAGERINTERFACE_H_
