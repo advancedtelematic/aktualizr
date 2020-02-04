@@ -8,6 +8,7 @@ import os
 import shutil
 import signal
 import socket
+import time
 
 from os import devnull
 from os import path
@@ -741,7 +742,7 @@ class UptaneTestRepo:
 
         return target_hash
 
-    def add_ostree_target(self, id, rev_hash, target_name=None):
+    def add_ostree_target(self, id, rev_hash, target_name=None, expires_within_sec=(60 * 5)):
         # emulate the backend behavior on defining a target name for OSTREE target format
         target_name = rev_hash if target_name is None else "{}-{}".format(target_name, rev_hash)
         image_creation_cmdline = [self._repo_manager_exe,
@@ -754,12 +755,16 @@ class UptaneTestRepo:
                                   '--hwid', id[0]]
         subprocess.run(image_creation_cmdline, check=True)
 
+        expiration_time = time.time() + expires_within_sec
+        expiration_time_str = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(expiration_time))
+
         subprocess.run([self._repo_manager_exe,
                         '--command', 'addtarget',
                         '--path', self.root_dir,
                         '--targetname', target_name,
                         '--hwid', id[0],
-                        '--serial', id[1]],
+                        '--serial', id[1],
+                        '--expires', expiration_time_str],
                        check=True)
 
         subprocess.run([self._repo_manager_exe, '--path', self.root_dir, '--command', 'signtargets'], check=True)

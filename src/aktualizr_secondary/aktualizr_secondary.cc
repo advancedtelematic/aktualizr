@@ -25,11 +25,12 @@ AktualizrSecondary::AktualizrSecondary(AktualizrSecondaryConfig config, std::sha
     std::vector<Uptane::Target> installed_versions;
     boost::optional<Uptane::Target> pending_target;
     storage_->loadInstalledVersions(ecu_serial_.ToString(), nullptr, &pending_target);
-    data::InstallationResult install_res =
-        data::InstallationResult(data::ResultCode::Numeric::kUnknown, "Unknown installation error");
-    LOG_INFO << "Pending update found; attempting to apply it. Target hash: " << pending_target->sha256Hash();
 
     if (!!pending_target) {
+      data::InstallationResult install_res =
+          data::InstallationResult(data::ResultCode::Numeric::kUnknown, "Unknown installation error");
+      LOG_INFO << "Pending update found; attempting to apply it. Target hash: " << pending_target->sha256Hash();
+
       install_res = update_agent_->applyPendingInstall(*pending_target);
 
       if (install_res.result_code != data::ResultCode::Numeric::kNeedCompletion) {

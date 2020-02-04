@@ -3,14 +3,21 @@
 #include <stdexcept>
 #include <utility>
 
-TimeStamp TimeStamp::Now() {
+std::string TimeToString(struct tm time) {
+  char formatted[22];
+  strftime(formatted, 22, "%Y-%m-%dT%H:%M:%SZ", &time);
+  return formatted;
+}
+
+TimeStamp TimeStamp::Now() { return TimeStamp(CurrentTime()); }
+
+struct tm TimeStamp::CurrentTime() {
   time_t raw_time;
   struct tm time_struct {};
   time(&raw_time);
   gmtime_r(&raw_time, &time_struct);
-  char formatted[22];
-  strftime(formatted, 22, "%Y-%m-%dT%H:%M:%SZ", &time_struct);
-  return TimeStamp(formatted);
+
+  return time_struct;
 }
 
 TimeStamp::TimeStamp(std::string rfc3339) {
@@ -19,6 +26,8 @@ TimeStamp::TimeStamp(std::string rfc3339) {
   }
   time_ = rfc3339;
 }
+
+TimeStamp::TimeStamp(struct tm time) : TimeStamp(TimeToString(time)) {}
 
 bool TimeStamp::IsValid() const { return time_.length() != 0; }
 

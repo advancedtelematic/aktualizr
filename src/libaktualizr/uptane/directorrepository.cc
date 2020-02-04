@@ -63,6 +63,7 @@ bool DirectorRepository::checkMetaOffline(INvStorage& storage) {
     }
 
     if (targetsExpired()) {
+      last_exception = Uptane::ExpiredMetadata(type.toString(), Role::Targets().ToString());
       return false;
     }
   }
@@ -127,6 +128,7 @@ bool DirectorRepository::updateMeta(INvStorage& storage, const IMetadataFetcher&
     }
 
     if (targetsExpired()) {
+      last_exception = Uptane::ExpiredMetadata(type.toString(), Role::Targets().ToString());
       return false;
     }
   }

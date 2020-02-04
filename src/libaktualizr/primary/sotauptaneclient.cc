@@ -76,54 +76,50 @@ data::InstallationResult SotaUptaneClient::PackageInstall(const Uptane::Target &
 }
 
 void SotaUptaneClient::finalizeAfterReboot() {
-  if (!package_manager_->rebootDetected()) {
-    // nothing to do
+  // TODO: consider bringing checkAndUpdatePendingSecondaries and the following functionality
+  // to the common denominator
+  if (!hasPendingUpdates()) {
+    LOG_INFO << "No any pending update, continue with initialization";
     return;
   }
 
-  LOG_INFO << "Device has been rebooted after an update";
+  LOG_INFO << "Checking for a pending update to apply for Primary ECU";
 
-  std::vector<Uptane::Target> updates;
-  unsigned int ecus_count = 0;
-  if (uptaneOfflineIteration(&updates, &ecus_count)) {
-    const Uptane::EcuSerial &primary_ecu_serial = primaryEcuSerial();
+  const Uptane::EcuSerial &primary_ecu_serial = primaryEcuSerial();
+  boost::optional<Uptane::Target> pending_target;
+  storage->loadInstalledVersions(primary_ecu_serial.ToString(), nullptr, &pending_target);
 
-    std::vector<Uptane::Target> installed_versions;
-    boost::optional<Uptane::Target> pending_target;
-    storage->loadInstalledVersions(primary_ecu_serial.ToString(), nullptr, &pending_target);
-
-    if (!!pending_target && pending_target->IsForEcu(primary_ecu_serial)) {
-      const std::string correlation_id = pending_target->correlation_id();
-
-      data::InstallationResult install_res = package_manager_->finalizeInstall(*pending_target);
-      storage->saveEcuInstallationResult(primary_ecu_serial, install_res);
-      if (install_res.success) {
-        storage->saveInstalledVersion(primary_ecu_serial.ToString(), *pending_target,
-                                      InstalledVersionUpdateMode::kCurrent);
-        report_queue->enqueue(
-            std_::make_unique<EcuInstallationCompletedReport>(primary_ecu_serial, correlation_id, true));
-      } else {
-        // finalize failed
-        // unset pending flag so that the rest of the uptane process can
-        // go forward again
-        storage->saveInstalledVersion(primary_ecu_serial.ToString(), *pending_target,
-                                      InstalledVersionUpdateMode::kNone);
-        report_queue->enqueue(
-            std_::make_unique<EcuInstallationCompletedReport>(primary_ecu_serial, correlation_id, false));
-        director_repo.dropTargets(*storage);  // fix for OTA-2587, listen to backend again after end of install
-      }
-
-      computeDeviceInstallationResult(nullptr, correlation_id);
-      putManifestSimple();
-    } else {
-      // nothing found on primary
-      LOG_ERROR << "No any pending update for Primary is found";
-    }
-  } else {
-    LOG_ERROR << "Invalid Uptane metadata in storage.";
+  if (!pending_target) {
+    LOG_ERROR << "No any pending update for Primary ECU is found, continue with initialization";
+    return;
   }
 
-  package_manager_->rebootFlagClear();
+  LOG_INFO << "Pending update for Primary ECU was found, trying to apply it...";
+
+  data::InstallationResult install_res = package_manager_->finalizeInstall(*pending_target);
+
+  if (install_res.result_code == data::ResultCode::Numeric::kNeedCompletion) {
+    LOG_INFO << "Pending update for Primary ECU was not applied because reboot was not detected, "
+                "continue with initialization";
+    return;
+  }
+
+  storage->saveEcuInstallationResult(primary_ecu_serial, install_res);
+
+  const std::string correlation_id = pending_target->correlation_id();
+  if (install_res.success) {
+    storage->saveInstalledVersion(primary_ecu_serial.ToString(), *pending_target, InstalledVersionUpdateMode::kCurrent);
+
+    report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(primary_ecu_serial, correlation_id, true));
+  } else {
+    // finalize failed, unset pending flag so that the rest of the uptane process can go forward again
+    storage->saveInstalledVersion(primary_ecu_serial.ToString(), *pending_target, InstalledVersionUpdateMode::kNone);
+    report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(primary_ecu_serial, correlation_id, false));
+  }
+
+  director_repo.dropTargets(*storage);  // fix for OTA-2587, listen to backend again after end of install
+  computeDeviceInstallationResult(nullptr, correlation_id);
+  putManifestSimple();
 }
 
 data::InstallationResult SotaUptaneClient::PackageInstallSetResult(const Uptane::Target &target) {

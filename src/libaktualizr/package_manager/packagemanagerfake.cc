@@ -51,7 +51,12 @@ void PackageManagerFake::completeInstall() const {
   bootloader_->reboot(true);
 }
 
-data::InstallationResult PackageManagerFake::finalizeInstall(const Uptane::Target& target) const {
+data::InstallationResult PackageManagerFake::finalizeInstall(const Uptane::Target& target) {
+  if (config.fake_need_reboot && !bootloader_->rebootDetected()) {
+    return data::InstallationResult(data::ResultCode::Numeric::kNeedCompletion,
+                                    "Reboot is required for the pending update application");
+  }
+
   boost::optional<Uptane::Target> pending_version;
   storage_->loadPrimaryInstalledVersions(nullptr, &pending_version);
 
@@ -80,6 +85,9 @@ data::InstallationResult PackageManagerFake::finalizeInstall(const Uptane::Targe
         data::InstallationResult(data::ResultCode::Numeric::kInternalError, "Pending and new target do not match");
   }
 
+  if (config.fake_need_reboot) {
+    bootloader_->rebootFlagClear();
+  }
   return install_res;
 }
 

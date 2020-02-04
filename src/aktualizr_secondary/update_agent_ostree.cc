@@ -78,18 +78,7 @@ data::ResultCode::Numeric OstreeUpdateAgent::install(const Uptane::Target& targe
 }
 
 data::InstallationResult OstreeUpdateAgent::applyPendingInstall(const Uptane::Target& target) {
-  if (!_ostreePackMan->rebootDetected()) {
-    // it should be removed from here, once we refactor the ostree package manager,
-    // e.g. _ostreePackMan->finalizeInstall() does this check/if
-    return data::InstallationResult(data::ResultCode::Numeric::kNeedCompletion,
-                                    "Reboot is required for the pending update application");
-  }
-
-  data::InstallationResult install_result = _ostreePackMan->finalizeInstall(target);
-  // it should be removed from here, once we refactor the ostree package manager,
-  // e.g. the pacman will reset/clear the flag by itself
-  _ostreePackMan->rebootFlagClear();
-  return install_result;
+  return _ostreePackMan->finalizeInstall(target);
 }
 
 void extractCredentialsArchive(const std::string& archive, std::string* ca, std::string* cert, std::string* pkey,

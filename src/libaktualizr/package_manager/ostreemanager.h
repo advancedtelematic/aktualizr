@@ -49,7 +49,7 @@ class OstreeManager : public PackageManagerInterface {
   bool imageUpdated();
   data::InstallationResult install(const Uptane::Target &target) const override;
   void completeInstall() const override;
-  data::InstallationResult finalizeInstall(const Uptane::Target &target) const override;
+  data::InstallationResult finalizeInstall(const Uptane::Target &target) override;
   bool fetchTarget(const Uptane::Target &target, Uptane::Fetcher &fetcher, const KeyManager &keys,
                    FetcherProgressCb progress_cb, const api::FlowControlToken *token) override;
   TargetStatus verifyTarget(const Uptane::Target &target) const override;

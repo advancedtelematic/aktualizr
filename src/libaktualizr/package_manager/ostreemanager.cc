@@ -209,17 +209,26 @@ void OstreeManager::completeInstall() const {
   bootloader_->reboot();
 }
 
-data::InstallationResult OstreeManager::finalizeInstall(const Uptane::Target &target) const {
+data::InstallationResult OstreeManager::finalizeInstall(const Uptane::Target &target) {
+  if (!bootloader_->rebootDetected()) {
+    return data::InstallationResult(data::ResultCode::Numeric::kNeedCompletion,
+                                    "Reboot is required for the pending update application");
+  }
+
   LOG_INFO << "Checking installation of new OSTree sysroot";
   const std::string current_hash = getCurrentHash();
+
+  data::InstallationResult install_result =
+      data::InstallationResult(data::ResultCode::Numeric::kOk, "Successfully booted on new version");
 
   if (current_hash != target.sha256Hash()) {
     LOG_ERROR << "Expected to boot " << target.sha256Hash() << " but found " << current_hash
               << ". The system may have been rolled back.";
-    return data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, "Wrong version booted");
+    install_result = data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, "Wrong version booted");
   }
 
-  return data::InstallationResult(data::ResultCode::Numeric::kOk, "Successfully booted on new version");
+  bootloader_->rebootFlagClear();
+  return install_result;
 }
 
 OstreeManager::OstreeManager(PackageConfig pconfig, BootloaderConfig bconfig, std::shared_ptr<INvStorage> storage,

@@ -1,7 +1,7 @@
 #include "director_repo.h"
 
 void DirectorRepo::addTarget(const std::string &target_name, const Json::Value &target, const std::string &hardware_id,
-                             const std::string &ecu_serial, const std::string &url) {
+                             const std::string &ecu_serial, const std::string &url, const std::string &expires) {
   const boost::filesystem::path current = path_ / DirectorRepo::dir / "targets.json";
   const boost::filesystem::path staging = path_ / DirectorRepo::dir / "staging/targets.json";
 
@@ -13,6 +13,9 @@ void DirectorRepo::addTarget(const std::string &target_name, const Json::Value &
   } else {
     throw std::runtime_error(std::string("targets.json not found at ") + staging.c_str() + " or " + current.c_str() +
                              "!");
+  }
+  if (!expires.empty()) {
+    director_targets["expires"] = expires;
   }
   director_targets["targets"][target_name] = target;
   director_targets["targets"][target_name]["custom"].removeMember("hardwareIds");
