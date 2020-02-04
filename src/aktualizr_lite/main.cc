@@ -108,6 +108,7 @@ static std::unique_ptr<Uptane::Target> find_target(const std::shared_ptr<SotaUpt
 }
 
 static int do_update(LiteClient &client, Uptane::Target &target) {
+  target.InsertEcu(client.primary_ecu);
   if (!client.primary->downloadImage(target).first) {
     return 1;
   }

@@ -25,7 +25,8 @@ static void finalizeIfNeeded(INvStorage &storage, PackageConfig &config) {
   }
 }
 
-LiteClient::LiteClient(Config &config_in) : config(std::move(config_in)) {
+LiteClient::LiteClient(Config &config_in)
+    : config(std::move(config_in)), primary_ecu(Uptane::EcuSerial::Unknown(), "") {
   std::string pkey;
   storage = INvStorage::newStorage(config.storage);
   storage->importData(config.import);
@@ -45,12 +46,14 @@ LiteClient::LiteClient(Config &config_in) : config(std::move(config_in)) {
     ecu_serials.emplace_back(Uptane::EcuSerial(serial), Uptane::HardwareIdentifier(hwid));
     storage->storeEcuSerials(ecu_serials);
   }
+  primary_ecu = ecu_serials[0];
 
   auto http_client = std::make_shared<HttpClient>();
 
   KeyManager keys(storage, config.keymanagerConfig());
   keys.copyCertsToCurl(*http_client);
 
-  primary = std::make_shared<SotaUptaneClient>(config, storage, http_client);
+  primary =
+      std::make_shared<SotaUptaneClient>(config, storage, http_client, nullptr, primary_ecu.first, primary_ecu.second);
   finalizeIfNeeded(*storage, config.pacman);
 }

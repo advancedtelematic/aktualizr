@@ -31,7 +31,9 @@
 class SotaUptaneClient {
  public:
   SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<HttpInterface> http_in,
-                   std::shared_ptr<event::Channel> events_channel_in)
+                   std::shared_ptr<event::Channel> events_channel_in,
+                   const Uptane::EcuSerial &primary_serial = Uptane::EcuSerial::Unknown(),
+                   const Uptane::HardwareIdentifier &hwid = Uptane::HardwareIdentifier::Unknown())
       : config(config_in),
         storage(std::move(storage_in)),
         http(std::move(http_in)),
@@ -39,7 +41,11 @@ class SotaUptaneClient {
         uptane_fetcher(new Uptane::Fetcher(config, http)),
         report_queue(new ReportQueue(config, http)),
         events_channel(std::move(events_channel_in)),
-        primary_ecu_serial_{Uptane::EcuSerial::Unknown()} {}
+        primary_ecu_serial_(primary_serial) {
+    if (hwid != Uptane::HardwareIdentifier::Unknown()) {
+      hw_ids.insert({primary_ecu_serial_, hwid});
+    }
+  }
 
   SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in,
                    std::shared_ptr<HttpInterface> http_in)
