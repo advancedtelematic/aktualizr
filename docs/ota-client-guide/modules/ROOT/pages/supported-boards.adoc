@@ -21,12 +21,8 @@ We also historically supported the https://github.com/advancedtelematic/meta-upd
 
 == Adding support for your board
 
-If your board isn't supported yet, you can add board integration code yourself. The main purpose of this code is to provide a bootloader that will be able to use https://ostree.readthedocs.io/en/latest/manual/atomic-upgrades/[OSTree's boot directory]. In the meta-updater integration layers we have written so far, the basic steps are:
+If your board isn't supported yet, you can add board integration code yourself. To do this, follow our xref:bsp-integration.adoc[BSP integration guide].
 
-1.  Make the board boot into http://www.denx.de/wiki/U-Boot[U-Boot]
-2.  Make U-boot import variables from /boot/loader/uEnv.txt and load the kernel with initramfs and kernel command line arguments according to what is set in this file.
-
-Take a look at the https://github.com/advancedtelematic/meta-updater-minnowboard[Minnowboard] or https://github.com/advancedtelematic/meta-updater-raspberrypi[Raspberry Pi] integration layers for examples.
 
 If you want our developers to add support for your board, contact us at mailto:otaconnect.support@here.com[] and we can discuss a potential NRE (Non-recurring Engineering) agreement.
 
@@ -35,7 +31,7 @@ If you want our developers to add support for your board, contact us at mailto:o
 Although we have focused on U-Boot and GRUB so far, other bootloaders can be configured to work with OSTree as well. If you want to use a different bootloader, contact us at mailto:otaconnect.support@here.com[].
 ====
 
-Your images will also need network connectivity to be able to reach an actual OTA backend. Our 'poky-sota' distribution does not mandate or install a default network manager but our supported platforms use the `virtual/network-configuration` recipe, which can be used as a starting example.
+Your images will also need network connectivity to be able to reach an actual OTA backend. Our `poky-sota` distribution does not mandate or install a default network manager but our supported platforms use the `virtual/network-configuration` recipe, which can be used as a starting example.
 
 == Minimum hardware requirements for controllers (ECUs)
 

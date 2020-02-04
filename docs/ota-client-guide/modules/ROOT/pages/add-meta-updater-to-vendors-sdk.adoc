@@ -1,0 +1,62 @@
+= Add meta-updater features to the vendor's SDK
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
+
+To avoid conflicts and bug classes, we require the use of `usrmerge`, even on systems that do not use systemd. In the https://www.yoctoproject.org/docs/2.7/mega-manual/mega-manual.html[Yocto] ecosystem, it is a general best practice to write `do_install()` functions that install to the variable `{bindir}`, but some recipes still hard-code the location of `/bin`.
+
+If a board vendor’s BSP has recipes like this, they will need to be patched so that the files install to the correct locations. In older Yocto versions, the only way to do this was to create a new BSP-specific layer with the patches, and only include that BSP-specific layer when the corresponding BSP was in use. (Otherwise, the recipes would fail to parse.)
+
+Currently, the https://patchwork.openembedded.org/patch/148271/[dynamic-layers] feature allows us to conditionally patch recipes from BSP layers if and only if they are present.
+
+An example of a patch can be seen https://git.yoctoproject.org/cgit/cgit.cgi/meta-virtualization/tree/recipes-containers/cgroup-lite/cgroup-lite_1.15.bb[here], and this can be included in the meta-updater as the file `dynamic-layers/virtualization-layer/{asterisk}/{asterisk}/{asterisk}.bbappend` containing the following:
+
+----
+do_install() {
+	install -d ${D}/${bindir}
+	install -m 0755 ${S}/scripts/cgroups-mount ${D}/${bindir}
+	install -m 0755 ${S}/scripts/cgroups-umount ${D}/${bindir}
+	install -d ${D}${sysconfdir}/init.d
+	install -m 0755 ${WORKDIR}/cgroups-init ${D}${sysconfdir}/init.d/cgroups-init
+	install -d ${D}${systemd_unitdir}/system
+	ln -sf /dev/null ${D}${systemd_unitdir}/system/cgroups-init.service
+}
+----
+
+NOTE: You might need to modify a few installments in the `.bbappend` file, however the file needs to include the complete `do_install()` function.
+
+
+== Add OTA Connect/meta-updater FS types
+
+Meta-updater provides several FS types for secure OTA delivery which need to be added to the FS types for the image class being built.
+
+For example, in the `fsl-image-networking-full.bb` image file, the line below specifies the image type to be built.
+----
+IMAGE_FSTYPES_qoriq = "tar.gz ext2.gz.u-boot ext2.gz"
+----
+
+This image builds `tar.gz`, `ext2.gz.u-boot`, and `ext2.gz` by default.
+
+We can also decide to add new FS types such as `ostreepush`, `garagesign`, `garagecheck`, `ota-ext4`, `ostree.tar.bz2`, `ota.tar.xz` and `wic` with the line below.
+----
+IMAGE_FSTYPES_qoriq_append = " ostreepush garagesign garagecheck ota-ext4 ostree.tar.bz2 ota.tar.xz wic"
+----
+
+These are defined in the meta-updater layer; simply adding them to an existing definition should usually suffice.
+
+
+== Create U-Boot script for OSTree initialization
+
+As described in the xref:bsp-integration.adoc#_key_concepts[key concepts section of BSP integration], OSTree needs the bootloader to load a minimal script that points it to the "real" script that OSTree generates to deploy the image. Exactly what this script looks like will vary from board to board, but the basic principle is to direct U-Boot to load the "real" script and the kernel image from the boot partition.
+
+In some cases, it can be necessary or desirable to make the initial script a bit more complex. For example, implementing a boot watchdog for automated rollback needs some extra logic. An example of a more complex script can be seen in the https://github.com/advancedtelematic/meta-updater-raspberrypi/blob/master/recipes-bsp/u-boot-otascript/u-boot-otascript/uEnv.txt[meta-updater-raspberrypi] repo.
+
+
+See also:
+
+* link:https://www.freedesktop.org/wiki/Software/systemd/TheCaseForTheUsrMerge/[The Case for the /usr Merge]

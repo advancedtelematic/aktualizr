@@ -1,0 +1,16 @@
+= Set up boot image layout for OSTree compatibility
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
+This is the second step in getting a new board running after xref:add-board-class.adoc[adding a new board class for the new target board in meta-updater].
+
+This step involves getting Yocto to build a physical image with the partitions in the correct place, with the necessary modifications for OSTree. The standard approach here is to use https://www.yoctoproject.org/docs/2.7/dev-manual/dev-manual.html#creating-partitioned-images-using-wic[Wic, the OpenEmbedded Image Creator].
+
+You will need to create a Wic Kickstart file that places the necessary firmware in memory where the board needs it to be. Typically, board vendors will provide a table with the memory layout of the board’s firmware.
+
+Once you complete this step, you can proceed to the final step of xref:add-meta-updater-to-vendors-sdk.adoc[adding meta-updater features to the vendor's SDK].
