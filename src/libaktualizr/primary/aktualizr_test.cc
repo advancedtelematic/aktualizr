@@ -841,7 +841,7 @@ TEST(Aktualizr, FinalizationFailure) {
     auto aktualizr_cycle_thread_status = aktualizr_cycle_thread.wait_for(std::chrono::seconds(20));
 
     ASSERT_EQ(aktualizr_cycle_thread_status, std::future_status::ready);
-    EXPECT_TRUE(aktualizr.uptane_client()->package_manager_->rebootDetected());
+    EXPECT_TRUE(aktualizr.uptane_client()->isInstallCompletionRequired());
     EXPECT_TRUE(event_hdlr.checkReceivedEvents(expected_event_order));
     EXPECT_TRUE(aktualizr.uptane_client()->hasPendingUpdates());
     EXPECT_TRUE(http_server_mock->checkReceivedReports(expected_report_order));
@@ -1114,7 +1114,7 @@ TEST(Aktualizr, AutoRebootAfterUpdate) {
     auto aktualizr_cycle_thread_status = aktualizr_cycle_thread.wait_for(std::chrono::seconds(20));
 
     EXPECT_EQ(aktualizr_cycle_thread_status, std::future_status::ready);
-    EXPECT_TRUE(aktualizr.uptane_client()->package_manager_->rebootDetected());
+    EXPECT_TRUE(aktualizr.uptane_client()->isInstallCompletionRequired());
   }
 
   {
