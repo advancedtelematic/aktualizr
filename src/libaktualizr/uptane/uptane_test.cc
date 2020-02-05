@@ -537,6 +537,7 @@ class SecondaryInterfaceMock : public Uptane::SecondaryInterface {
     return Uptane::EcuSerial(public_key_.KeyId());
   }
   Uptane::Manifest getManifest() const override { return manifest_; }
+  bool ping() const override { return true; }
   MOCK_METHOD1(putMetadataMock, bool(const Uptane::RawMetaPack &));
   MOCK_CONST_METHOD1(getRootVersionMock, int32_t(bool));
 

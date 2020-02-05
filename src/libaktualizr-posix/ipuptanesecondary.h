@@ -30,6 +30,7 @@ class IpUptaneSecondary : public SecondaryInterface {
   bool sendFirmware(const std::string& data) override;
   data::ResultCode::Numeric install(const std::string& target_name) override;
   Manifest getManifest() const override;
+  bool ping() const override;
 
  private:
   const std::pair<std::string, uint16_t>& getAddr() const { return addr_; }

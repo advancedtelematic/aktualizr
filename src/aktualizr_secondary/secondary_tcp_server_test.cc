@@ -18,6 +18,7 @@ class SecondaryMock : public Uptane::SecondaryInterface {
   virtual Uptane::HardwareIdentifier getHwId() const { return _hdw_id; }
   virtual PublicKey getPublicKey() const { return _pub_key; }
   virtual Uptane::Manifest getManifest() const { return _manifest; }
+  virtual bool ping() const { return true; }
   virtual bool putMetadata(const Uptane::RawMetaPack& meta_pack) {
     _metapack = meta_pack;
     return true;

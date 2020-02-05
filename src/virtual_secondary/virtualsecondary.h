@@ -27,6 +27,8 @@ class VirtualSecondary : public ManagedSecondary {
 
   std::string Type() const override { return VirtualSecondaryConfig::Type; }
 
+  bool ping() const override { return true; }
+
  private:
   bool storeFirmware(const std::string& target_name, const std::string& content) override;
   bool getFirmwareInfo(Uptane::InstalledImageInfo& firmware_info) const override;

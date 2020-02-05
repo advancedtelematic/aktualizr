@@ -181,4 +181,16 @@ Manifest IpUptaneSecondary::getManifest() const {
   std::string manifest = ToString(r->manifest.choice.json);  // NOLINT
   return Utils::parseJSON(manifest);
 }
+
+bool IpUptaneSecondary::ping() const {
+  Asn1Message::Ptr req(Asn1Message::Empty());
+  req->present(AKIpUptaneMes_PR_getInfoReq);
+
+  auto m = req->getInfoReq();
+
+  auto resp = Asn1Rpc(req, getAddr());
+
+  return resp->present() == AKIpUptaneMes_PR_getInfoResp;
+}
+
 }  // namespace Uptane

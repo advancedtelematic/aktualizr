@@ -27,6 +27,7 @@ class AktualizrSecondary : public Uptane::SecondaryInterface {
   PublicKey getPublicKey() const override;
 
   Uptane::Manifest getManifest() const override;
+  bool ping() const override { return true; }
   bool putMetadata(const Uptane::RawMetaPack& meta_pack) override { return putMetadata(Metadata(meta_pack)); }
   int32_t getRootVersion(bool director) const override;
   bool putRoot(const std::string& root, bool director) override;

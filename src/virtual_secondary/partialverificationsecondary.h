@@ -47,6 +47,7 @@ class PartialVerificationSecondary : public SecondaryInterface {
   bool sendFirmware(const std::string& data) override;
   data::ResultCode::Numeric install(const std::string& target_name) override;
   Uptane::Manifest getManifest() const override;
+  bool ping() const override { return true; }
 
  private:
   void storeKeys(const std::string& public_key, const std::string& private_key);
