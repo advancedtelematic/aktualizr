@@ -43,7 +43,7 @@ TEST(PackageManagerFake, Verify) {
   EXPECT_EQ(fakepm.verifyTarget(target), TargetStatus::kNotFound);
 
   // Target has a bad hash.
-  auto whandle = storage->allocateTargetFile(false, target);
+  auto whandle = storage->allocateTargetFile(target);
   uint8_t content_bad[length + 1];
   memset(content_bad, 0, length + 1);
   EXPECT_EQ(whandle->wfeed(content_bad, length), length);
@@ -51,19 +51,19 @@ TEST(PackageManagerFake, Verify) {
   EXPECT_EQ(fakepm.verifyTarget(target), TargetStatus::kHashMismatch);
 
   // Target is oversized.
-  whandle = storage->allocateTargetFile(false, target);
+  whandle = storage->allocateTargetFile(target);
   EXPECT_EQ(whandle->wfeed(content_bad, length + 1), length + 1);
   whandle->wcommit();
   EXPECT_EQ(fakepm.verifyTarget(target), TargetStatus::kOversized);
 
   // Target is incomplete.
-  whandle = storage->allocateTargetFile(false, target);
+  whandle = storage->allocateTargetFile(target);
   EXPECT_EQ(whandle->wfeed(content, length - 1), length - 1);
   whandle->wcommit();
   EXPECT_EQ(fakepm.verifyTarget(target), TargetStatus::kIncomplete);
 
   // Target is good.
-  whandle = storage->allocateTargetFile(false, target);
+  whandle = storage->allocateTargetFile(target);
   EXPECT_EQ(whandle->wfeed(content, length), length);
   whandle->wcommit();
   EXPECT_EQ(fakepm.verifyTarget(target), TargetStatus::kGood);

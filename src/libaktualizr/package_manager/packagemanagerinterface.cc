@@ -107,7 +107,7 @@ bool PackageManagerInterface::fetchTarget(const Uptane::Target& target, Uptane::
     } else {
       // If the target was found, but is oversized or the hash doesn't match,
       // just start over.
-      ds->fhandle = storage_->allocateTargetFile(false, target);
+      ds->fhandle = storage_->allocateTargetFile(target);
     }
 
     const uint64_t required_bytes = target.length() - ds->downloaded_length;
@@ -130,7 +130,7 @@ bool PackageManagerInterface::fetchTarget(const Uptane::Target& target, Uptane::
                        " try to download the image from the beginning: "
                     << target_url;
         ds = std_::make_unique<DownloadMetaStruct>(target, progress_cb, token);
-        ds->fhandle = storage_->allocateTargetFile(false, target);
+        ds->fhandle = storage_->allocateTargetFile(target);
         continue;
       }
 

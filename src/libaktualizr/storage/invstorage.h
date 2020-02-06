@@ -215,8 +215,7 @@ class INvStorage {
   virtual boost::optional<std::pair<size_t, std::string>> checkTargetFile(const Uptane::Target& target) const = 0;
 
   // Incremental file API
-  virtual std::unique_ptr<StorageTargetWHandle> allocateTargetFile(bool from_director,
-                                                                   const Uptane::Target& target) = 0;
+  virtual std::unique_ptr<StorageTargetWHandle> allocateTargetFile(const Uptane::Target& target) = 0;
 
   virtual std::unique_ptr<StorageTargetRHandle> openTargetFile(const Uptane::Target& target) = 0;
   virtual std::vector<Uptane::Target> getTargetFiles() = 0;

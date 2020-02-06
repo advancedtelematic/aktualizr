@@ -95,7 +95,7 @@ class SQLStorage : public SQLStorageBase, public INvStorage {
 
   bool checkAvailableDiskSpace(uint64_t required_bytes) const override;
 
-  std::unique_ptr<StorageTargetWHandle> allocateTargetFile(bool from_director, const Uptane::Target& target) override;
+  std::unique_ptr<StorageTargetWHandle> allocateTargetFile(const Uptane::Target& target) override;
   std::unique_ptr<StorageTargetRHandle> openTargetFile(const Uptane::Target& target) override;
   boost::optional<std::pair<size_t, std::string>> checkTargetFile(const Uptane::Target& target) const override;
   std::vector<Uptane::Target> getTargetFiles() override;

@@ -1796,8 +1796,7 @@ class SQLTargetWHandle : public StorageTargetWHandle {
   std::ofstream stream_;
 };
 
-std::unique_ptr<StorageTargetWHandle> SQLStorage::allocateTargetFile(bool from_director, const Uptane::Target& target) {
-  (void)from_director;
+std::unique_ptr<StorageTargetWHandle> SQLStorage::allocateTargetFile(const Uptane::Target& target) {
   return std::unique_ptr<StorageTargetWHandle>(new SQLTargetWHandle(*this, target));
 }
 
