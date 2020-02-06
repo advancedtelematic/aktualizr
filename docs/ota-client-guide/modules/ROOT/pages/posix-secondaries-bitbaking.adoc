@@ -74,6 +74,10 @@ bitbake secondary-image
 |`SECONDARY_PORT`
 |`"9050"`
 |A TCP port that Secondary listen on for connections from Primary
+
+|`SECONDARY_UPDATE_TYPE`
+|`"ostree"`
+|An update type to configure for Secondary, supported types: ostree, file
 |===
 
 ==== Multiple secondaries use case
