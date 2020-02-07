@@ -20,6 +20,7 @@ Values specified in `local.conf` have the highest priority in a Yocto build. Mos
 
 For example, let's say for target_board_example, the environment setup script added a line to the `local.conf` that overrode the INITRAMFS_IMAGE value. To
 fix this, you need to specify the correct value in your `local.conf` when you build:
+[source,bash]
 ----
 INITRAMFS_IMAGE = "initramfs-ostree-image"
 ----
