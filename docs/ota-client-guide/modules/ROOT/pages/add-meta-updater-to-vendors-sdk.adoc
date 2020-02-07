@@ -12,9 +12,9 @@ To avoid conflicts and bug classes, we require the use of `usrmerge`, even on sy
 
 If a board vendor’s BSP has recipes like this, they will need to be patched so that the files install to the correct locations. In older Yocto versions, the only way to do this was to create a new BSP-specific layer with the patches, and only include that BSP-specific layer when the corresponding BSP was in use. (Otherwise, the recipes would fail to parse.)
 
-Currently, the https://patchwork.openembedded.org/patch/148271/[dynamic-layers] feature allows us to conditionally patch recipes from BSP layers if and only if they are present.
+Now, however, the https://patchwork.openembedded.org/patch/148271/[dynamic-layers] feature allows us to conditionally patch recipes from BSP layers if and only if they are present. This is the approach we took to support the NXP board for our example.
 
-An example of a patch can be seen https://git.yoctoproject.org/cgit/cgit.cgi/meta-virtualization/tree/recipes-containers/cgroup-lite/cgroup-lite_1.15.bb[here], and this can be included in the meta-updater as the file `dynamic-layers/virtualization-layer/{asterisk}/{asterisk}/{asterisk}.bbappend` containing the following:
+Several recipes needed to be patched in our example. One example patch can be seen here of the  https://git.yoctoproject.org/cgit/cgit.cgi/meta-virtualization/tree/recipes-containers/cgroup-lite/cgroup-lite_1.15.bb[cgroup-lite-recipe], and this can be included in the meta-updater as the file `dynamic-layers/virtualization-layer/recipes-containers/cgroup-lite/cgroup-lite_%.bbappend`:
 
 [source,bash]
 ----
@@ -29,21 +29,23 @@ do_install() {
 }
 ----
 
-NOTE: You might need to modify a few installments in the `.bbappend` file, however the file needs to include the complete `do_install()` function.
+NOTE: Even though only some of the install statements needed to be modified, the `bbappend` file still needs to include the complete `do_install()` function.
 
 
 == Add OTA Connect/meta-updater FS types
 
 Meta-updater provides several FS types for secure OTA delivery which need to be added to the FS types for the image class being built.
 
-For example, in the `fsl-image-networking-full.bb` image file, the line below specifies the image type to be built.
+For the LS1043ARDB, we targeted the `fsl-image-networking-full.bb` image file, the line below specifies the image type to be built.
+[source,bash]
 ----
 IMAGE_FSTYPES_qoriq = "tar.gz ext2.gz.u-boot ext2.gz"
 ----
 
 This image builds `tar.gz`, `ext2.gz.u-boot`, and `ext2.gz` by default.
 
-We can also decide to add new FS types such as `ostreepush`, `garagesign`, `garagecheck`, `ota-ext4`, `ostree.tar.bz2`, `ota.tar.xz` and `wic` with the line below.
+You should add the following FS types `ostreepush`, `garagesign`, `garagecheck`, `ota-ext4`, `ostree.tar.bz2`, `ota.tar.xz` and `wic` with the line below.
+[source,bash]
 ----
 IMAGE_FSTYPES_qoriq_append = " ostreepush garagesign garagecheck ota-ext4 ostree.tar.bz2 ota.tar.xz wic"
 ----
@@ -54,6 +56,28 @@ These are defined in the meta-updater layer; simply adding them to an existing d
 == Create U-Boot script for OSTree initialization
 
 As described in the xref:bsp-integration.adoc#_key_concepts[key concepts section of BSP integration], OSTree needs the bootloader to load a minimal script that points it to the "real" script that OSTree generates to deploy the image. Exactly what this script looks like will vary from board to board, but the basic principle is to direct U-Boot to load the "real" script and the kernel image from the boot partition.
+
+For the LS1043ARDB, this is how we implemented the script. Note that, because it was very simple, we elected to simply embed the text of the file in the `deploy_append` of the qoriq image; this could also be done via including files, but it would be a bit more roundabout that way. This `bbappend` just cats the 4 lines of the script into a file in bitbake’s deployment directory, and then places it in the image.
+
+[source,bash]
+----
+DEPENDS += "u-boot-mkimage-native"
+
+do_deploy_append_qoriq() {
+	cat > ${DEPLOYDIR}/ls1043ardb_boot.txt << EOF
+load mmc 0:2 \${load_addr} /boot/loader/uEnv.txt <1>
+env import -t \${fileaddr} \${filesize}
+load mmc 0:2 \${load_addr} /boot\${kernel_image}
+bootm \${load_addr}
+EOF
+
+	mkimage -A arm64 -O linux -T script -d ${DEPLOYDIR}/ls1043ardb_boot.txt ${DEPLOYDIR}/ls1043ardb_boot.scr <2>
+}
+----
+
+<1> This is the crucial line pointing the bootloader to the OSTree-managed script. The OSTree-managed script sets the values of `$\{fileaddr}`, `$\{filesize}`, and `$\{kernel_image}`.
+<2> Note that `ls1043ardb_boot.scr` is the name of the file specified to be included as `IMAGE_BOOT_FILES` in the boardspecific bbclass described in the xref:add-board-class.adoc[first step].
+
 
 In some cases, it can be necessary or desirable to make the initial script a bit more complex. For example, implementing a boot watchdog for automated rollback needs some extra logic. An example of a more complex script can be seen in the https://github.com/advancedtelematic/meta-updater-raspberrypi/blob/master/recipes-bsp/u-boot-otascript/u-boot-otascript/uEnv.txt[meta-updater-raspberrypi] repo.
 
