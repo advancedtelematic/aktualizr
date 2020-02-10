@@ -41,11 +41,8 @@ class SotaUptaneClient {
         uptane_fetcher(new Uptane::Fetcher(config, http)),
         report_queue(new ReportQueue(config, http)),
         events_channel(std::move(events_channel_in)),
-        primary_ecu_serial_(primary_serial) {
-    if (hwid != Uptane::HardwareIdentifier::Unknown()) {
-      hw_ids.insert({primary_ecu_serial_, hwid});
-    }
-  }
+        primary_ecu_serial_(primary_serial),
+        primary_ecu_hw_id_(hwid) {}
 
   SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in,
                    std::shared_ptr<HttpInterface> http_in)
@@ -148,6 +145,8 @@ class SotaUptaneClient {
                                                    bool offline);
   void checkAndUpdatePendingSecondaries();
   const Uptane::EcuSerial &primaryEcuSerial() const { return primary_ecu_serial_; }
+  boost::optional<Uptane::HardwareIdentifier> ecuHwId(const Uptane::EcuSerial &serial) const;
+
   template <class T, class... Args>
   void sendEvent(Args &&... args) {
     std::shared_ptr<event::BaseEvent> event = std::make_shared<T>(std::forward<Args>(args)...);
@@ -169,7 +168,6 @@ class SotaUptaneClient {
   std::unique_ptr<ReportQueue> report_queue;
   Json::Value last_network_info_reported;
   Json::Value last_hw_info_reported;
-  Uptane::EcuMap hw_ids;
   std::shared_ptr<event::Channel> events_channel;
   boost::signals2::scoped_connection conn;
   Uptane::Exception last_exception{"", ""};
@@ -177,6 +175,7 @@ class SotaUptaneClient {
   std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>> secondaries;
   std::mutex download_mutex;
   Uptane::EcuSerial primary_ecu_serial_;
+  Uptane::HardwareIdentifier primary_ecu_hw_id_;
 };
 
 class TargetCompare {
