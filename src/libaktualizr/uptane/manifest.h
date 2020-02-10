@@ -19,7 +19,7 @@ class Manifest : public Json::Value {
   Hash installedImageHash() const;
   std::string signature() const;
   std::string signedBody() const;
-  bool verifySignature(PublicKey &&pub_key) const;
+  bool verifySignature(const PublicKey &pub_key) const;
 };
 
 class ManifestIssuer {

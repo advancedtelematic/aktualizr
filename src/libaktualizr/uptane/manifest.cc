@@ -22,7 +22,7 @@ std::string Manifest::signedBody() const {
   return Utils::jsonToCanonicalStr((*this)["signed"]);
 }
 
-bool Manifest::verifySignature(PublicKey &&pub_key) const {
+bool Manifest::verifySignature(const PublicKey &pub_key) const {
   if (!(isMember("signatures") && isMember("signed"))) {
     LOG_ERROR << "Missing either signature or the signing body/subject: " << *this;
     return false;
