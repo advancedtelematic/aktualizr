@@ -1,0 +1,17 @@
+name: Build aktualizr on macOS with homebrew bottle
+on: 
+  push:
+    branches:
+      - master
+jobs:
+  macOS:
+    name: Build macOS homebrew bottle for aktualizr release page
+    runs-on: macOS-10.15
+    steps:
+    - name: Build Aktualizr bottle for macOS
+      run: |
+        curl -O "https://raw.githubusercontent.com/advancedtelematic/homebrew-otaconnect/master/aktualizr-dev.rb"
+        brew install -v --build-bottle ./aktualizr-dev.rb
+
+        echo "Aktualizr has been successfully brewed !!!"
+        echo "-------------------------------------------------------------------------------"
