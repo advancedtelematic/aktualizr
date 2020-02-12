@@ -192,8 +192,64 @@ std::string KeyManager::getCN() const {
   }
   boost::scoped_array<char> buf(new char[len + 1]);
   X509_NAME_get_text_by_NID(X509_get_subject_name(x.get()), NID_commonName, buf.get(), len + 1);
-  std::string cn(buf.get());
+  const std::string cn(buf.get());
   return cn;
+}
+
+void KeyManager::getCertInfo(std::string *subject, std::string *issuer, std::string *not_before,
+                             std::string *not_after) const {
+  std::string not_found_cert_message = "Certificate is not found, can't extract device certificate";
+  std::string cert;
+  if (config_.tls_cert_source == CryptoSource::kFile || config_.tls_cert_source == CryptoSource::kAndroid) {
+    if (!backend_->loadTlsCert(&cert)) {
+      throw std::runtime_error(not_found_cert_message);
+    }
+  } else {  // CryptoSource::kPkcs11
+    if (!built_with_p11) {
+      throw std::runtime_error("Aktualizr was built without PKCS#11 support, can't extract device certificate");
+    }
+    if (!(*p11_)->readTlsCert(&cert)) {
+      throw std::runtime_error(not_found_cert_message);
+    }
+  }
+
+  StructGuard<BIO> bio(BIO_new_mem_buf(const_cast<char *>(cert.c_str()), static_cast<int>(cert.size())), BIO_vfree);
+  StructGuard<X509> x(PEM_read_bio_X509(bio.get(), nullptr, nullptr, nullptr), X509_free);
+  if (x == nullptr) {
+    throw std::runtime_error("Could not parse certificate");
+  }
+
+  StructGuard<BIO> subj_bio(BIO_new(BIO_s_mem()), BIO_vfree);
+  X509_NAME_print_ex(subj_bio.get(), X509_get_subject_name(x.get()), 1, 0);
+  char *subj_buf = nullptr;
+  auto subj_len = BIO_get_mem_data(subj_bio.get(), &subj_buf);  // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+  if (subj_buf == nullptr) {
+    throw std::runtime_error("Could not parse certificate subject");
+  }
+  *subject = std::string(subj_buf, static_cast<size_t>(subj_len));
+
+  StructGuard<BIO> issuer_bio(BIO_new(BIO_s_mem()), BIO_vfree);
+  X509_NAME_print_ex(issuer_bio.get(), X509_get_issuer_name(x.get()), 1, 0);
+  char *issuer_buf = nullptr;
+  auto issuer_len = BIO_get_mem_data(issuer_bio.get(), &issuer_buf);  // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+  if (issuer_buf == nullptr) {
+    throw std::runtime_error("Could not parse certificate issuer");
+  }
+  *issuer = std::string(issuer_buf, static_cast<size_t>(issuer_len));
+
+  const ASN1_TIME *nb_asn1 = X509_get0_notBefore(x.get());
+  StructGuard<BIO> nb_bio(BIO_new(BIO_s_mem()), BIO_vfree);
+  ASN1_TIME_print(nb_bio.get(), nb_asn1);
+  char *nb_buf;
+  auto nb_len = BIO_get_mem_data(nb_bio.get(), &nb_buf);  // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+  *not_before = std::string(nb_buf, static_cast<size_t>(nb_len));
+
+  const ASN1_TIME *na_asn1 = X509_get0_notAfter(x.get());
+  StructGuard<BIO> na_bio(BIO_new(BIO_s_mem()), BIO_vfree);
+  ASN1_TIME_print(na_bio.get(), na_asn1);
+  char *na_buf;
+  auto na_len = BIO_get_mem_data(na_bio.get(), &na_buf);  // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+  *not_after = std::string(na_buf, static_cast<size_t>(na_len));
 }
 
 void KeyManager::copyCertsToCurl(HttpInterface &http) {

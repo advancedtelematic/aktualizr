@@ -290,6 +290,15 @@ void SotaUptaneClient::initialize() {
   LOG_INFO << "Device ID: " << device_id;
   LOG_INFO << "Device Gateway URL: " << config.tls.server;
 
+  std::string subject;
+  std::string issuer;
+  std::string not_before;
+  std::string not_after;
+  keys->getCertInfo(&subject, &issuer, &not_before, &not_after);
+  LOG_INFO << "Certificate subject: " << subject;
+  LOG_INFO << "Certificate issuer: " << issuer;
+  LOG_INFO << "Certificate valid from: " << not_before << " until: " << not_after;
+
   LOG_DEBUG << "... provisioned OK";
   finalizeAfterReboot();
 }
