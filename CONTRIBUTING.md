@@ -36,24 +36,27 @@ All code should be developed according to the [Google C++ style guide](https://g
    - All the reviewer's concerns must be resolved to reviewer's satisfaction.
    - Reviews should enforce the coding guidelines for the project.
 * Bugs should be reproduced with a failing test case before they are resolved.
-   - Reviewers of code including bug fixes should check that a covering test has been included with the fix.
+   - Reviewers of code including bug fixes should check that a corresponding test has been included with the fix.
+* Code that is unfinished or that requires further review should be indicated as such with a `TODO` comment.
+   - If appropriate, this comment should include a reference to a Jira ticket that describes the work to be done in detail.
+   - Since external contributors do not have access to our Jira, the comment must at least briefly describe the work to be done.
 * New features, bug fixes, and removed functionality should be documented in the [changelog](CHANGELOG.md).
 
 Making a Pull Request
 ----
 
-When you start developing a feature, please create a feature branch that includes the type of branch, the ID of the issue or ticket if available, and a brief description. For example `feat/9/https-support`, `fix/OTA-123/fix-token-expiry` or `refactor/tidy-up-imports`. Please do not mix feature development, bugfixes and refactoring into the same branch.
+When you start developing a feature, please create a feature branch that includes the type of branch, the ID of the github issue or Jira ticket if available, and a brief description. For example `feat/9/https-support`, `fix/OTA-123/fix-token-expiry` or `refactor/tidy-up-imports`. Please do not mix feature development, bugfixes and refactoring into the same branch.
 
 When your feature is ready, push the branch and make a pull request. We will review the request and give you feedback. Once the code passes the review it can be merged into master and the branch can be deleted.
 
 Continuous Integration (CI)
 ----
 
-We currently have two CI servers: Travis CI and gitlab. Travis CI is usually slower and flakier, and we don't run the tests that require provisioning credentials on it. Gitlab is more powerful and is the source of truth. Normally, we expect PRs to pass CI on both CI servers, but if Travis CI is particularly unreliable, we sometimes make exceptions and ignore it.
+We currently have two CI servers: Travis CI and gitlab. Travis CI is usually slower and flakier, and we don't run the tests that require provisioning credentials on it, but it is publicly accessible. Gitlab is more powerful and is the source of truth, but it is inaccessible to external contributors. Normally, we expect PRs to pass CI on both CI servers, but if Travis CI is particularly unreliable, we sometimes make exceptions and ignore it.
 
-PRs from external contributors will not automatically trigger CI on gitlab. If the PR is small and we believe that passing Travis CI is good enough, we will merge it if that succeeds. Otherwise, we can manually trigger gitlab to run CI on your PR.
+PRs from external contributors will not automatically trigger CI on gitlab. If the PR is small and we believe that passing Travis CI is good enough, we will merge it if that succeeds. Otherwise, we can trigger gitlab to run CI on your PR by manually pushing the branch to gitlab.
 
-PRs that only affect documentation do not strictly need to pass CI. As such, gitlab does not run CI on branches that start with "docs/".
+PRs that only affect documentation do not strictly need to pass CI. As such, gitlab does not run CI on branches that start with "docs/". Please do not make code changes in a branch with that prefix.
 
 Developer Certificate of Origin (DCO)
 ----
