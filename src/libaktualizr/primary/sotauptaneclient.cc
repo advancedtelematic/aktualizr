@@ -28,11 +28,14 @@ void SotaUptaneClient::addSecondary(const std::shared_ptr<Uptane::SecondaryInter
   Uptane::EcuSerial serial = sec->getSerial();
 
   SecondaryInfo info;
-  if (!storage->loadSecondaryInfo(serial, &info) || info.type == "") {
+  if (!storage->loadSecondaryInfo(serial, &info) || info.type == "" || info.pub_key.Type() == KeyType::kUnknown) {
     info.serial = serial;
     info.hw_id = sec->getHwId();
     info.type = sec->Type();
-    info.pub_key = sec->getPublicKey();
+    const PublicKey &p = sec->getPublicKey();
+    if (p.Type() != KeyType::kUnknown) {
+      info.pub_key = p;
+    }
     storage->saveSecondaryInfo(info.serial, info.type, info.pub_key);
   }
 

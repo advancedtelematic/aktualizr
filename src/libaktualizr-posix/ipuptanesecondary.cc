@@ -72,9 +72,12 @@ SecondaryInterface::Ptr IpUptaneSecondary::connectAndCheck(const std::string& ad
         return nullptr;
       }
       auto p = sec->getPublicKey();
-      if (p != pub_key) {
-        LOG_WARNING << "Mismatch between public keys " << p.Value() << " and " << pub_key.Value() << " for secondary "
-                    << serial;
+      if (pub_key.Type() == KeyType::kUnknown) {
+        LOG_INFO << "Secondary " << s << " do not have a known public key";
+      } else if (p != pub_key) {
+        LOG_ERROR << "Mismatch between public keys " << p.Value() << " and " << pub_key.Value() << " for secondary "
+                  << serial;
+        return nullptr;
       }
       return sec;
     }
