@@ -7,6 +7,7 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
+include::_partials/aktualizr-version.adoc[]
 
 == U-Boot loading the wrong config file
 
@@ -28,10 +29,10 @@ INITRAMFS_IMAGE = "initramfs-ostree-image"
 
 Building an integration with a new board involves dealing with several different systems. See the following links for more information on this:
 
-* https://www.yoctoproject.org/docs/2.7/mega-manual/mega-manual.html[Yocto Mega Manual, v2.7]: The Yocto Mega Manual is a concatenation of all the various other reference manuals; it’s usually better to use the individual manuals if you know what you’re looking for. In particular, these three are the most frequently used in the BSP development domain:
-** https://www.yoctoproject.org/docs/2.7/ref-manual/ref-manual.html[Yocto Reference Manual, v2.7]
-** https://www.yoctoproject.org/docs/2.7/bsp-guide/bsp-guide.html[Yocto BSP Developer's Guide, v2.7]
-** https://www.yoctoproject.org/docs/2.7/bitbake-user-manual/bitbake-user-manual.html[Bitbake User Manual, v2.7]
+* https://www.yoctoproject.org/docs/{yocto-version}/mega-manual/mega-manual.html[Yocto Mega Manual, v2.6]: The Yocto Mega Manual is a concatenation of all the various other reference manuals; it’s usually better to use the individual manuals if you know what you’re looking for. In particular, these three are the most frequently used in the BSP development domain:
+** https://www.yoctoproject.org/docs/{yocto-version}/ref-manual/ref-manual.html[Yocto Reference Manual, v2.6]
+** https://www.yoctoproject.org/docs/{yocto-version}/bsp-guide/bsp-guide.html[Yocto BSP Developer's Guide, v2.6]
+** https://www.yoctoproject.org/docs/{yocto-version}/bitbake-user-manual/bitbake-user-manual.html[Bitbake User Manual, v2.6]
 
 * https://ostree.readthedocs.io/en/latest/[libostree reference documentation]
 ** https://ostree.readthedocs.io/en/latest/manual/deployment/[Deployments]

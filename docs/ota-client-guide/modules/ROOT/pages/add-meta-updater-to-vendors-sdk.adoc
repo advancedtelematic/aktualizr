@@ -7,8 +7,9 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
+include::_partials/aktualizr-version.adoc[]
 
-To avoid conflicts and bug classes, we require the use of `usrmerge`, even on systems that do not use systemd. In the https://www.yoctoproject.org/docs/2.7/mega-manual/mega-manual.html[Yocto] ecosystem, it is a general best practice to write `do_install()` functions that install to the variable `\{bindir}`, but some recipes still hard-code the location of `/bin`.
+To avoid conflicts and certain classes of bugs, we require the use of `usrmerge`, even on systems that do not use systemd. In the https://www.yoctoproject.org/docs/{yocto-version}/mega-manual/mega-manual.html[Yocto] ecosystem, it is a general best practice to write `do_install()` functions that install to the variable `\{bindir}`, but some recipes still hard-code the location of `/bin`.
 
 If a board vendor’s BSP has recipes like this, they will need to be patched so that the files install to the correct locations. In older Yocto versions, the only way to do this was to create a new BSP-specific layer with the patches, and only include that BSP-specific layer when the corresponding BSP was in use. (Otherwise, the recipes would fail to parse.)
 
@@ -76,7 +77,7 @@ EOF
 ----
 
 <1> This is the crucial line pointing the bootloader to the OSTree-managed script. The OSTree-managed script sets the values of `$\{fileaddr}`, `$\{filesize}`, and `$\{kernel_image}`.
-<2> Note that `ls1043ardb_boot.scr` is the name of the file specified to be included as `IMAGE_BOOT_FILES` in the boardspecific bbclass described in the xref:add-board-class.adoc[first step].
+<2> Note that `ls1043ardb_boot.scr` is the name of the file specified to be included as `IMAGE_BOOT_FILES` in the board-specific bbclass described in the xref:add-board-class.adoc[first step].
 
 
 In some cases, it can be necessary or desirable to make the initial script a bit more complex. For example, implementing a boot watchdog for automated rollback needs some extra logic. An example of a more complex script can be seen in the https://github.com/advancedtelematic/meta-updater-raspberrypi/blob/master/recipes-bsp/u-boot-otascript/u-boot-otascript/uEnv.txt[meta-updater-raspberrypi] repo.
