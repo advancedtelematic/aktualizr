@@ -51,8 +51,8 @@ void initSecondaries(Aktualizr& aktualizr, const boost::filesystem::path& config
       Secondaries secondaries = createSecondaries(*config);
 
       for (const auto& secondary : secondaries) {
-        LOG_INFO << "Adding Secondary to Aktualizr."
-                 << "HW_ID: " << secondary->getHwId() << " Serial: " << secondary->getSerial();
+        LOG_INFO << "Adding Secondary with ECU serial: " << secondary->getSerial()
+                 << " with hardware ID: " << secondary->getHwId();
         aktualizr.AddSecondary(secondary);
       }
     } catch (const std::exception& exc) {
