@@ -17,7 +17,7 @@ PartialVerificationSecondary::PartialVerificationSecondary(Primary::PartialVerif
     : sconfig(std::move(sconfig_in)), root_(Root::Policy::kAcceptAll) {
   boost::filesystem::create_directories(sconfig.metadata_path);
 
-  // FIXME Probably we need to generate keys on the secondary
+  // TODO: Probably we need to generate keys on the secondary
   std::string public_key_string;
   if (!loadKeys(&public_key_string, &private_key_)) {
     if (!Crypto::generateKeyPair(sconfig.key_type, &public_key_string, &private_key_)) {
