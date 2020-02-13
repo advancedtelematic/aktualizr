@@ -28,7 +28,7 @@ class Aktualizr:
 
     def __init__(self, aktualizr_primary_exe, aktualizr_info_exe, id,
                  uptane_server, wait_port=9040, wait_timeout=60, log_level=1,
-                 secondary=None, output_logs=True,
+                 primary_port=None, secondaries=None, output_logs=True,
                  run_mode='once', director=None, image_repo=None,
                  sysroot=None, treehub=None, ostree_mock_path=None, **kwargs):
         self.id = id
@@ -43,7 +43,7 @@ class Aktualizr:
 
         with open(path.join(self._storage_dir.name, 'secondary_config.json'), 'w+') as secondary_config_file:
             secondary_cfg = json.loads(Aktualizr.SECONDARY_CONFIG_TEMPLATE.
-                                       format(port=secondary.primary_port if secondary else wait_port,
+                                       format(port=primary_port if primary_port else wait_port,
                                               timeout=wait_timeout))
             json.dump(secondary_cfg, secondary_config_file)
             self._secondary_config_file = secondary_config_file.name
@@ -65,7 +65,9 @@ class Aktualizr:
                                                                sentinel_name=self._sentinel_file))
             self._config_file = config_file.name
 
-        self.add_secondary(secondary) if secondary else None
+        if secondaries is not None:
+            for s in secondaries:
+                self.add_secondary(s)
         self._output_logs = output_logs
         self._run_mode = run_mode
         self._run_env = {}
@@ -281,16 +283,16 @@ class KeyStore:
 
 class IPSecondary:
 
-    def __init__(self, aktualizr_secondary_exe, id, port=9050, primary_port=9040,
-                 sysroot=None, treehub=None, ostree_mock_path=None, **kwargs):
+    def __init__(self, aktualizr_secondary_exe, id, port=None, primary_port=None,
+                 sysroot=None, treehub=None, output_logs=True, ostree_mock_path=None, **kwargs):
         self.id = id
-        self.port = port
 
         self._aktualizr_secondary_exe = aktualizr_secondary_exe
         self.storage_dir = tempfile.TemporaryDirectory()
-        self.port = self.get_free_port()
-        self.primary_port = self.get_free_port()
+        self.port = self.get_free_port() if port is None else port
+        self.primary_port = self.get_free_port() if primary_port is None else primary_port
         self._sentinel_file = 'need_reboot'
+        self._output_logs = output_logs
         self.reboot_sentinel_file = os.path.join(self.storage_dir.name, self._sentinel_file)
 
         with open(path.join(self.storage_dir.name, 'config.toml'), 'w+') as config_file:
@@ -352,8 +354,8 @@ class IPSecondary:
 
     def __enter__(self):
         self._process = subprocess.Popen([self._aktualizr_secondary_exe, '-c', self._config_file],
-                                         stdout=None,
-                                         stderr=None,
+                                         stdout=None if self._output_logs else subprocess.PIPE,
+                                         stderr=None if self._output_logs else subprocess.STDOUT,
                                          close_fds=True,
                                          env=self._run_env)
         logger.debug("IP Secondary {} has been started: {}".format(self.id, self.port))
@@ -872,17 +874,24 @@ def with_imagerepo(start=True, handlers=[]):
     return decorator
 
 
-def with_secondary(start=True, id=('secondary-hw-ID-001', str(uuid4())),
+def with_secondary(start=True, output_logs=False, id=('secondary-hw-ID-001', None), arg_name='secondary',
                    aktualizr_secondary_exe='src/aktualizr_secondary/aktualizr-secondary'):
     def decorator(test):
         @wraps(test)
         def wrapper(*args, **kwargs):
-            secondary = IPSecondary(aktualizr_secondary_exe=aktualizr_secondary_exe, id=id, **kwargs)
+            id1 = id
+            if id1[1] is None:
+                id1 = (id1[0], str(uuid4()))
+            secondary = IPSecondary(aktualizr_secondary_exe=aktualizr_secondary_exe, output_logs=output_logs, id=id1, **kwargs)
+            sl = kwargs.get("secondaries", []) + [secondary]
+            kwargs.update({arg_name: secondary, "secondaries": sl})
+            if "primary_port" not in kwargs:
+                kwargs["primary_port"] = secondary.primary_port
             if start:
                 with secondary:
-                    result = test(*args, **kwargs, secondary=secondary)
+                    result = test(*args, **kwargs)
             else:
-                result = test(*args, **kwargs, secondary=secondary)
+                result = test(*args, **kwargs)
             return result
         return wrapper
     return decorator

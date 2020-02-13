@@ -29,7 +29,7 @@ logger = logging.getLogger(__file__)
 @with_sysroot()
 @with_aktualizr(start=False, run_mode='once', output_logs=True)
 def test_primary_ostree_secondary_file_updates(uptane_repo, secondary, aktualizr, director, sysroot,
-                                               treehub, uptane_server):
+                                               treehub, uptane_server, **kwargs):
     target_rev = treehub.revision
     # add an ostree update for Primary
     uptane_repo.add_ostree_target(aktualizr.id, target_rev)
@@ -129,7 +129,7 @@ def test_secodary_ostree_update_if_metadata_expires(uptane_repo, secondary, aktu
 @with_treehub()
 @with_sysroot()
 @with_aktualizr(start=False, run_mode='once', output_logs=True)
-def test_primary_ostree_update_if_metadata_expires(uptane_repo, aktualizr, director, sysroot, treehub, uptane_server):
+def test_primary_ostree_update_if_metadata_expires(uptane_repo, aktualizr, director, sysroot, treehub, uptane_server, **kwargs):
     target_rev = treehub.revision
     expires_within_sec = 10
 

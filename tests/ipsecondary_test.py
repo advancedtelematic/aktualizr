@@ -182,7 +182,7 @@ def test_primary_wait_secondary_install(uptane_repo, secondary, aktualizr, direc
         aktualizr.wait_for_completion()
 
     secondary_image_filename = "secondary_image_filename.img"
-    secondary_image_hash = uptane_repo.add_image(id=secondary.id, image_filename=secondary_image_filename)
+    uptane_repo.add_image(id=secondary.id, image_filename=secondary_image_filename)
 
     with aktualizr:
         time.sleep(10)
@@ -232,6 +232,36 @@ def test_primary_timeout_after_device_is_registered(uptane_repo, secondary, aktu
     return aktualizr.get_current_primary_image_info() == primary_image_hash
 
 
+@with_uptane_backend()
+@with_secondary(start=False)
+@with_secondary(start=False, arg_name='secondary2')
+@with_aktualizr(start=False, output_logs=True)
+def test_primary_multiple_secondaries(uptane_repo, secondary, secondary2, aktualizr, **kwargs):
+    '''Test Aktualizr with multiple ip secondaries'''
+
+    with aktualizr, secondary, secondary2:
+        aktualizr.wait_for_completion()
+
+    if not aktualizr.is_ecu_registered(secondary.id) or not aktualizr.is_ecu_registered(secondary2.id):
+        return False
+
+    return True
+    secondary_image_filename = "secondary_image_filename.img"
+    uptane_repo.add_image(id=secondary.id, image_filename=secondary_image_filename)
+    uptane_repo.add_image(id=secondary2.id, image_filename=secondary_image_filename)
+
+    with aktualizr:
+        time.sleep(10)
+        with secondary:
+            aktualizr.wait_for_completion()
+
+    if not director.get_install_result():
+        logger.error("Installation result is not successful")
+        return False
+
+    return True
+
+
 # test suit runner
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
@@ -252,7 +282,8 @@ if __name__ == '__main__':
                     test_secondary_update_if_secondary_starts_first,
                     test_secondary_update_if_primary_starts_first,
                     test_primary_timeout_during_first_run,
-                    test_primary_timeout_after_device_is_registered
+                    test_primary_timeout_after_device_is_registered,
+                    test_primary_multiple_secondaries,
     ]
 
     if input_params.ostree == 'ON':
