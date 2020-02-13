@@ -79,7 +79,7 @@ void SotaUptaneClient::finalizeAfterReboot() {
   // TODO: consider bringing checkAndUpdatePendingSecondaries and the following functionality
   // to the common denominator
   if (!hasPendingUpdates()) {
-    LOG_INFO << "No any pending update, continue with initialization";
+    LOG_DEBUG << "No pending updates, continuing with initialization";
     return;
   }
 
@@ -90,7 +90,7 @@ void SotaUptaneClient::finalizeAfterReboot() {
   storage->loadInstalledVersions(primary_ecu_serial.ToString(), nullptr, &pending_target);
 
   if (!pending_target) {
-    LOG_ERROR << "No any pending update for Primary ECU is found, continue with initialization";
+    LOG_ERROR << "No pending update for Primary ECU found, continuing with initialization";
     return;
   }
 
@@ -100,7 +100,7 @@ void SotaUptaneClient::finalizeAfterReboot() {
 
   if (install_res.result_code == data::ResultCode::Numeric::kNeedCompletion) {
     LOG_INFO << "Pending update for Primary ECU was not applied because reboot was not detected, "
-                "continue with initialization";
+                "continuing with initialization";
     return;
   }
 
@@ -279,10 +279,27 @@ void SotaUptaneClient::initialize() {
   uptane_manifest = std::make_shared<Uptane::ManifestIssuer>(keys, serials[0].first);
   primary_ecu_serial_ = serials[0].first;
   hw_ids.insert(serials[0]);
+  LOG_INFO << "Primary ECU serial: " << primary_ecu_serial_ << " with hardware ID: " << serials[0].second;
 
   verifySecondaries();
-  LOG_DEBUG << "... provisioned OK";
 
+  std::string device_id;
+  if (!storage->loadDeviceId(&device_id)) {
+    throw std::runtime_error("Unable to load device ID after device registration.");
+  }
+  LOG_INFO << "Device ID: " << device_id;
+  LOG_INFO << "Device Gateway URL: " << config.tls.server;
+
+  std::string subject;
+  std::string issuer;
+  std::string not_before;
+  std::string not_after;
+  keys->getCertInfo(&subject, &issuer, &not_before, &not_after);
+  LOG_INFO << "Certificate subject: " << subject;
+  LOG_INFO << "Certificate issuer: " << issuer;
+  LOG_INFO << "Certificate valid from: " << not_before << " until: " << not_after;
+
+  LOG_DEBUG << "... provisioned OK";
   finalizeAfterReboot();
 }
 
