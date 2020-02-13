@@ -274,7 +274,7 @@ bool Crypto::parseP12(BIO *p12_bio, const std::string &p12_password, std::string
   PEM_write_bio_PrivateKey(pkey_pem_sink.get(), pkey.get(), nullptr, nullptr, 0, nullptr, nullptr);
 
   char *pkey_buf;
-  auto pkey_len = BIO_get_mem_data(pkey_pem_sink.get(), &pkey_buf);  // NOLINT
+  auto pkey_len = BIO_get_mem_data(pkey_pem_sink.get(), &pkey_buf);  // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
   *out_pkey = std::string(pkey_buf, static_cast<size_t>(pkey_len));
 
   char *cert_buf;
@@ -299,10 +299,12 @@ bool Crypto::parseP12(BIO *p12_bio, const std::string &p12_password, std::string
     PEM_write_bio_X509(ca_sink.get(), ca_cert);
     PEM_write_bio_X509(cert_sink.get(), ca_cert);
   }
-  ca_len = static_cast<size_t>(BIO_get_mem_data(ca_sink.get(), &ca_buf));  // NOLINT
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
+  ca_len = static_cast<size_t>(BIO_get_mem_data(ca_sink.get(), &ca_buf));
   *out_ca = std::string(ca_buf, ca_len);
 
-  cert_len = static_cast<size_t>(BIO_get_mem_data(cert_sink.get(), &cert_buf));  // NOLINT
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
+  cert_len = static_cast<size_t>(BIO_get_mem_data(cert_sink.get(), &cert_buf));
   *out_cert = std::string(cert_buf, cert_len);
 
   return true;
@@ -394,7 +396,7 @@ bool Crypto::generateRSAKeyPair(KeyType key_type, std::string *public_key, std::
   if (ret != 1) {
     return false;
   }
-  auto pubkey_len = BIO_get_mem_data(pubkey_sink.get(), &pubkey_buf);  // NOLINT
+  auto pubkey_len = BIO_get_mem_data(pubkey_sink.get(), &pubkey_buf);  // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
   *public_key = std::string(pubkey_buf, static_cast<size_t>(pubkey_len));
 
   char *privkey_buf;
@@ -408,7 +410,8 @@ bool Crypto::generateRSAKeyPair(KeyType key_type, std::string *public_key, std::
   if (ret != 1) {
     return false;
   }
-  auto privkey_len = BIO_get_mem_data(privkey_sink.get(), &privkey_buf);  // NOLINT
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
+  auto privkey_len = BIO_get_mem_data(privkey_sink.get(), &privkey_buf);
   *private_key = std::string(privkey_buf, static_cast<size_t>(privkey_len));
   return true;
 }

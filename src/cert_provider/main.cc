@@ -249,7 +249,8 @@ bool generateAndSign(const std::string& cacert_path, const std::string& capkey_p
     std::cerr << "PEM_write_RSAPrivateKey" << std::endl;
     return false;
   }
-  auto privkey_len = BIO_get_mem_data(privkey_file.get(), &privkey_buf);  // NOLINT
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
+  auto privkey_len = BIO_get_mem_data(privkey_file.get(), &privkey_buf);
   *pkey = std::string(privkey_buf, static_cast<size_t>(privkey_len));
 
   // serialize certificate
@@ -264,7 +265,8 @@ bool generateAndSign(const std::string& cacert_path, const std::string& capkey_p
     std::cerr << "PEM_write_X509" << std::endl;
     return false;
   }
-  auto cert_len = BIO_get_mem_data(cert_file.get(), &cert_buf);  // NOLINT
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
+  auto cert_len = BIO_get_mem_data(cert_file.get(), &cert_buf);
   *cert = std::string(cert_buf, static_cast<size_t>(cert_len));
 
   return true;
