@@ -1,10 +1,11 @@
 #include "keymanager.h"
 
 #include <stdexcept>
-
-#include <boost/scoped_array.hpp>
 #include <utility>
 
+#include <boost/scoped_array.hpp>
+
+#include "crypto/openssl_compat.h"
 #include "storage/invstorage.h"
 #include "utilities/types.h"
 
@@ -237,14 +238,22 @@ void KeyManager::getCertInfo(std::string *subject, std::string *issuer, std::str
   }
   *issuer = std::string(issuer_buf, static_cast<size_t>(issuer_len));
 
+#if AKTUALIZR_OPENSSL_PRE_11
+  const ASN1_TIME *nb_asn1 = X509_get_notBefore(x.get());
+#else
   const ASN1_TIME *nb_asn1 = X509_get0_notBefore(x.get());
+#endif
   StructGuard<BIO> nb_bio(BIO_new(BIO_s_mem()), BIO_vfree);
   ASN1_TIME_print(nb_bio.get(), nb_asn1);
   char *nb_buf;
   auto nb_len = BIO_get_mem_data(nb_bio.get(), &nb_buf);  // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
   *not_before = std::string(nb_buf, static_cast<size_t>(nb_len));
 
+#if AKTUALIZR_OPENSSL_PRE_11
+  const ASN1_TIME *na_asn1 = X509_get_notAfter(x.get());
+#else
   const ASN1_TIME *na_asn1 = X509_get0_notAfter(x.get());
+#endif
   StructGuard<BIO> na_bio(BIO_new(BIO_s_mem()), BIO_vfree);
   ASN1_TIME_print(na_bio.get(), na_asn1);
   char *na_buf;
