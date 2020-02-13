@@ -1,55 +1,44 @@
+#include <cstdlib>
+#include <map>
+
 #include "package_manager/packagemanagerfactory.h"
-#include "package_manager/packagemanagerfake.h"
-
-#ifdef BUILD_OSTREE
-#include "package_manager/ostreemanager.h"
-#ifdef BUILD_DOCKERAPP
-#include "package_manager/dockerappmanager.h"
-#endif
-#endif
-
-#ifdef BUILD_DEB
-#include "package_manager/debianmanager.h"
-#endif
-
-#if defined(ANDROID)
-#include "package_manager/androidmanager.h"
-#endif
 
 #include "logging/logging.h"
 
-std::shared_ptr<PackageManagerInterface> PackageManagerFactory::makePackageManager(
-    const PackageConfig& pconfig, const BootloaderConfig& bconfig, const std::shared_ptr<INvStorage>& storage,
-    const std::shared_ptr<HttpInterface>& http) {
-  switch (pconfig.type) {
-    case PackageManager::kOstree:
-#ifdef BUILD_OSTREE
-      return std::make_shared<OstreeManager>(pconfig, bconfig, storage, http);
-#else
-      throw std::runtime_error("aktualizr was compiled without OStree support!");
-#endif
-    case PackageManager::kDebian:
-#ifdef BUILD_DEB
-      return std::make_shared<DebianManager>(pconfig, bconfig, storage, http);
-#else
-      throw std::runtime_error("aktualizr was compiled without debian packages support!");
-#endif
-    case PackageManager::kAndroid:
-#if defined(ANDROID)
-      return std::make_shared<AndroidManager>(pconfig, bconfig, storage, http);
-#else
-      throw std::runtime_error("aktualizr was compiled without android support!");
-#endif
-    case PackageManager::kOstreeDockerApp:
-#if defined(BUILD_DOCKERAPP) && defined(BUILD_OSTREE)
-      return std::make_shared<DockerAppManager>(pconfig, bconfig, storage, http);
-#else
-      throw std::runtime_error("aktualizr was compiled without ostree+docker-app support!");
-#endif
-    case PackageManager::kNone:
-      return std::make_shared<PackageManagerFake>(pconfig, bconfig, storage, http);
-    default:
-      LOG_ERROR << "Unrecognized package manager type: " << static_cast<int>(pconfig.type);
-      return std::shared_ptr<PackageManagerInterface>();  // NULL-equivalent
+static std::map<std::string, PackageManagerBuilder> *registered_pkgms_;
+
+bool PackageManagerFactory::registerPackageManager(const char *name, PackageManagerBuilder builder) {
+  // this trick is needed so that this object is constructed before any element
+  // is added to it
+  static std::map<std::string, PackageManagerBuilder> rpkgms;
+
+  if (registered_pkgms_ == nullptr) {
+    registered_pkgms_ = &rpkgms;
   }
+  if (registered_pkgms_->find(name) != registered_pkgms_->end()) {
+    throw std::runtime_error(std::string("fatal: tried to register package manager \"") + name + "\" twice");
+  }
+  (*registered_pkgms_)[name] = std::move(builder);
+  return true;
+}
+
+std::shared_ptr<PackageManagerInterface> PackageManagerFactory::makePackageManager(
+    const PackageConfig &pconfig, const BootloaderConfig &bconfig, const std::shared_ptr<INvStorage> &storage,
+    const std::shared_ptr<HttpInterface> &http) {
+  for (const auto &b : *registered_pkgms_) {
+    if (b.first == pconfig.type) {
+      PackageManagerInterface *pkgm = b.second(pconfig, bconfig, storage, http);
+      return std::shared_ptr<PackageManagerInterface>(pkgm);
+    }
+  }
+
+  LOG_ERROR << "Package manager type \"" << pconfig.type << "\" does not exist";
+  LOG_ERROR << "Available options are: " << []() {
+    std::stringstream ss;
+    for (const auto &b : *registered_pkgms_) {
+      ss << "\n" << b.first;
+    }
+    return ss.str();
+  }();
+  return nullptr;
 }

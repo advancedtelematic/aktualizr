@@ -14,9 +14,9 @@ TEST(aktualizr_secondary_config, config_toml_parsing) {
 
   EXPECT_EQ(conf.network.port, 9031);
 #ifdef BUILD_OSTREE
-  EXPECT_EQ(conf.pacman.type, PackageManager::kOstree);
+  EXPECT_EQ(conf.pacman.type, PACKAGE_MANAGER_OSTREE);
 #else
-  EXPECT_EQ(conf.pacman.type, PackageManager::kNone);
+  EXPECT_EQ(conf.pacman.type, PACKAGE_MANAGER_NONE);
 #endif
   EXPECT_EQ(conf.pacman.os, std::string("testos"));
   EXPECT_EQ(conf.pacman.sysroot, boost::filesystem::path("testsysroot"));

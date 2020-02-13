@@ -21,7 +21,7 @@ TEST(OstreeManager, PullBadUriNoCreds) {
   TemporaryDirectory temp_dir;
   Config config;
   config.pacman.ostree_server = "bad-url";
-  config.pacman.type = PackageManager::kOstree;
+  config.pacman.type = PACKAGE_MANAGER_OSTREE;
   config.pacman.sysroot = test_sysroot;
   config.storage.path = temp_dir.Path();
 
@@ -44,7 +44,7 @@ TEST(OstreeManager, PullBadUriWithCreds) {
   TemporaryDirectory temp_dir;
   Config config;
   config.pacman.ostree_server = "bad-url";
-  config.pacman.type = PackageManager::kOstree;
+  config.pacman.type = PACKAGE_MANAGER_OSTREE;
   config.pacman.sysroot = test_sysroot;
   config.storage.path = temp_dir.Path();
 
@@ -76,7 +76,7 @@ TEST(OstreeManager, InstallBadUri) {
   Uptane::Target target("branch-name-hash", target_json);
   TemporaryDirectory temp_dir;
   Config config;
-  config.pacman.type = PackageManager::kOstree;
+  config.pacman.type = PACKAGE_MANAGER_OSTREE;
   config.pacman.sysroot = test_sysroot;
   config.storage.path = temp_dir.Path();
 
@@ -91,7 +91,7 @@ TEST(OstreeManager, InstallBadUri) {
 TEST(OstreeManager, BadSysroot) {
   TemporaryDirectory temp_dir;
   Config config;
-  config.pacman.type = PackageManager::kOstree;
+  config.pacman.type = PACKAGE_MANAGER_OSTREE;
   config.pacman.sysroot = "sysroot-that-is-missing";
   config.storage.path = temp_dir.Path();
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
@@ -112,7 +112,7 @@ TEST(OstreeManager, ParseInstalledPackages) {
   Utils::writeFile(packages_file, content);
 
   Config config;
-  config.pacman.type = PackageManager::kOstree;
+  config.pacman.type = PACKAGE_MANAGER_OSTREE;
   config.pacman.sysroot = test_sysroot;
   config.pacman.packages_file = packages_file;
   config.storage.path = temp_dir.Path();
@@ -132,7 +132,7 @@ TEST(OstreeManager, ParseInstalledPackages) {
 TEST(OstreeManager, AddRemoteNoCreds) {
   TemporaryDirectory temp_dir;
   Config config;
-  config.pacman.type = PackageManager::kOstree;
+  config.pacman.type = PACKAGE_MANAGER_OSTREE;
   config.pacman.sysroot = test_sysroot;
   config.storage.path = temp_dir.Path();
 
@@ -172,7 +172,7 @@ TEST(OstreeManager, AddRemoteNoCreds) {
 TEST(OstreeManager, AddRemoteWithCreds) {
   TemporaryDirectory temp_dir;
   Config config;
-  config.pacman.type = PackageManager::kOstree;
+  config.pacman.type = PACKAGE_MANAGER_OSTREE;
   config.pacman.sysroot = test_sysroot;
   config.storage.path = temp_dir.Path();
 

@@ -1,4 +1,5 @@
 #include "dockerappmanager.h"
+#include "packagemanagerfactory.h"
 
 #include <sstream>
 
@@ -37,8 +38,34 @@
  *   }
  */
 
+AUTO_REGISTER_PACKAGE_MANAGER(PACKAGE_MANAGER_OSTREEDOCKERAPP, DockerAppManager);
+
+DockerAppManagerConfig::DockerAppManagerConfig(const PackageConfig &pconfig) {
+  const std::map<std::string, std::string> raw = pconfig.extra;
+
+  if (raw.count("docker_apps") == 1) {
+    std::string val = raw.at("docker_apps");
+    if (val.length() > 0) {
+      // token_compress_on allows lists like: "foo,bar", "foo, bar", or "foo bar"
+      boost::split(docker_apps, val, boost::is_any_of(", "), boost::token_compress_on);
+    }
+  }
+  if (raw.count("docker_apps_root") == 1) {
+    docker_apps_root = raw.at("docker_apps_root");
+  }
+  if (raw.count("docker_app_params") == 1) {
+    docker_app_params = raw.at("docker_app_params");
+  }
+  if (raw.count("docker_app_bin") == 1) {
+    docker_app_bin = raw.at("docker_app_bin");
+  }
+  if (raw.count("docker_compose_bin") == 1) {
+    docker_compose_bin = raw.at("docker_compose_bin");
+  }
+}
+
 struct DockerApp {
-  DockerApp(std::string app_name, const PackageConfig &config)
+  DockerApp(std::string app_name, const DockerAppManagerConfig &config)
       : name(std::move(app_name)),
         app_root(config.docker_apps_root / name),
         app_params(config.docker_app_params),
@@ -112,7 +139,7 @@ bool DockerAppManager::iterate_apps(const Uptane::Target &target, const DockerAp
   for (const auto &t : Uptane::LazyTargetsList(repo, storage_, fake_fetcher_)) {
     for (Json::ValueIterator i = apps.begin(); i != apps.end(); ++i) {
       if ((*i).isObject() && (*i).isMember("filename")) {
-        for (const auto &app : config.docker_apps) {
+        for (const auto &app : dappcfg_.docker_apps) {
           if (i.key().asString() == app && (*i)["filename"].asString() == t.filename()) {
             if (!cb(app, t)) {
               res = false;
@@ -148,7 +175,7 @@ data::InstallationResult DockerAppManager::install(const Uptane::Target &target)
     LOG_INFO << "Installing " << app << " -> " << app_target;
     std::stringstream ss;
     ss << *storage_->openTargetFile(app_target);
-    DockerApp dapp(app, config);
+    DockerApp dapp(app, dappcfg_);
     return dapp.render(ss.str(), true) && dapp.start();
   };
   if (!iterate_apps(target, cb)) {
@@ -163,25 +190,25 @@ data::InstallationResult DockerAppManager::install(const Uptane::Target &target)
 //  3) sota.toml is updated with 1 docker app: "app1"
 // At this point we should stop app2 and remove it.
 void DockerAppManager::handleRemovedApps(const Uptane::Target &target) const {
-  if (!boost::filesystem::is_directory(config.docker_apps_root)) {
-    LOG_DEBUG << "config.docker_apps_root does not exist";
+  if (!boost::filesystem::is_directory(dappcfg_.docker_apps_root)) {
+    LOG_DEBUG << "dappcfg_.docker_apps_root does not exist";
     return;
   }
 
   std::vector<std::string> target_apps = target.custom_data()["docker_apps"].getMemberNames();
 
-  for (auto &entry : boost::make_iterator_range(boost::filesystem::directory_iterator(config.docker_apps_root), {})) {
+  for (auto &entry : boost::make_iterator_range(boost::filesystem::directory_iterator(dappcfg_.docker_apps_root), {})) {
     if (boost::filesystem::is_directory(entry)) {
       std::string name = entry.path().filename().native();
-      if (std::find(config.docker_apps.begin(), config.docker_apps.end(), name) == config.docker_apps.end()) {
+      if (std::find(dappcfg_.docker_apps.begin(), dappcfg_.docker_apps.end(), name) == dappcfg_.docker_apps.end()) {
         LOG_WARNING << "Docker App(" << name
                     << ") installed, but is now removed from configuration. Removing from system";
-        DockerApp(name, config).remove();
+        DockerApp(name, dappcfg_).remove();
       }
       if (std::find(target_apps.begin(), target_apps.end(), name) == target_apps.end()) {
         LOG_WARNING << "Docker App(" << name
                     << ") configured, but not defined in installation target. Removing from system";
-        DockerApp(name, config).remove();
+        DockerApp(name, dappcfg_).remove();
       }
     }
   }
@@ -199,7 +226,7 @@ TargetStatus DockerAppManager::verifyTarget(const Uptane::Target &target) const 
     LOG_INFO << "Verifying " << app << " -> " << app_target;
     std::stringstream ss;
     ss << *storage_->openTargetFile(app_target);
-    DockerApp dapp(app, config);
+    DockerApp dapp(app, dappcfg_);
     return dapp.render(ss.str(), false);
   };
   if (!iterate_apps(target, cb)) {

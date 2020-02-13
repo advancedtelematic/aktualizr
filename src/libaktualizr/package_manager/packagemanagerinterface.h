@@ -35,9 +35,9 @@ enum class TargetStatus {
 
 class PackageManagerInterface {
  public:
-  PackageManagerInterface(PackageConfig pconfig, BootloaderConfig bconfig, std::shared_ptr<INvStorage> storage,
-                          std::shared_ptr<HttpInterface> http)
-      : config(std::move(pconfig)), storage_(std::move(storage)), http_(std::move(http)) {
+  PackageManagerInterface(const PackageConfig& pconfig, const BootloaderConfig& bconfig,
+                          const std::shared_ptr<INvStorage>& storage, const std::shared_ptr<HttpInterface>& http)
+      : config(pconfig), storage_(storage), http_(http) {
     (void)bconfig;
   }
   virtual ~PackageManagerInterface() = default;

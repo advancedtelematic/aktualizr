@@ -430,7 +430,7 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
 
       if (primary_ecu_serial == ecu_serial) {
         if (!target.IsOstree() &&
-            (config.pacman.type == PackageManager::kOstree || config.pacman.type == PackageManager::kOstreeDockerApp)) {
+            (config.pacman.type == PACKAGE_MANAGER_OSTREE || config.pacman.type == PACKAGE_MANAGER_OSTREEDOCKERAPP)) {
           LOG_ERROR << "Cannot install a non-OSTree package on an OSTree system";
           last_exception = Uptane::InvalidTarget(target.filename());
           return false;

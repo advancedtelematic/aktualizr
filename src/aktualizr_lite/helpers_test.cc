@@ -27,7 +27,7 @@ TEST(helpers, lite_client_finalize) {
 
   Config config;
   config.storage.path = cfg_dir.Path();
-  config.pacman.type = PackageManager::kOstree;
+  config.pacman.type = PACKAGE_MANAGER_OSTREE;
   config.pacman.sysroot = test_sysroot;
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
 
@@ -43,7 +43,7 @@ TEST(helpers, lite_client_finalize) {
 
   config = Config();  // Create a new config since LiteClient std::move's it
   config.storage.path = cfg_dir.Path();
-  config.pacman.type = PackageManager::kOstree;
+  config.pacman.type = "ostree";
   config.pacman.sysroot = test_sysroot;
 
   setenv("OSTREE_HASH", "abcd", 1);

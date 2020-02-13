@@ -1,7 +1,10 @@
-#include "package_manager/debianmanager.h"
+#include "debianmanager.h"
+#include "packagemanagerfactory.h"
 
 #include <stdio.h>
 #include <unistd.h>
+
+AUTO_REGISTER_PACKAGE_MANAGER(PACKAGE_MANAGER_DEBIAN, DebianManager);
 
 Json::Value DebianManager::getInstalledPackages() const {
   // Currently not implemented

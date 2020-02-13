@@ -7,9 +7,10 @@ class AndroidInstallationDispatcher;
 
 class AndroidManager : public PackageManagerInterface {
  public:
-  explicit AndroidManager(PackageConfig pconfig, BootloaderConfig bconfig, std::shared_ptr<INvStorage> storage,
-                          std::shared_ptr<Bootloader> bootloader, std::shared_ptr<HttpInterface> http)
-      : PackageManagerInterface(std::move(pconfig), std::move(bconfig), std::move(storage), std::move(http)) {}
+  explicit AndroidManager(const PackageConfig& pconfig, const BootloaderConfig& bconfig,
+                          const std::shared_ptr<INvStorage>& storage, const std::shared_ptr<Bootloader>& bootloader,
+                          const std::shared_ptr<HttpInterface>& http)
+      : PackageManagerInterface(pconfig, bconfig, storage, http) {}
   ~AndroidManager() override = default;
   std::string name() const override { return "android"; }
   Json::Value getInstalledPackages() const override;

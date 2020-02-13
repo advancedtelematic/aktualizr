@@ -116,10 +116,6 @@ else(BUILD_OSTREE)
     unset(LIBOSTREE_LIBRARIES CACHE)
 endif(BUILD_OSTREE)
 
-if(BUILD_DOCKERAPP)
-    add_definitions(-DBUILD_DOCKERAPP)
-endif(BUILD_DOCKERAPP)
-
 if(BUILD_P11)
     find_package(LibP11 REQUIRED)
     add_definitions(-DBUILD_P11)

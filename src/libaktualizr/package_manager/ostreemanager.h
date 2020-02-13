@@ -39,8 +39,8 @@ struct PullMetaStruct {
 
 class OstreeManager : public PackageManagerInterface {
  public:
-  OstreeManager(PackageConfig pconfig, BootloaderConfig bconfig, std::shared_ptr<INvStorage> storage,
-                std::shared_ptr<HttpInterface> http);
+  OstreeManager(const PackageConfig &pconfig, const BootloaderConfig &bconfig,
+                const std::shared_ptr<INvStorage> &storage, const std::shared_ptr<HttpInterface> &http);
   ~OstreeManager() override = default;
   std::string name() const override { return "ostree"; }
   Json::Value getInstalledPackages() const override;

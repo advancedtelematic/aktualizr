@@ -24,7 +24,7 @@ TEST(config, DefaultValues) {
 
 TEST(config, TomlBasic) {
   Config conf("tests/config/basic.toml");
-  EXPECT_EQ(conf.pacman.type, PackageManager::kNone);
+  EXPECT_EQ(conf.pacman.type, PACKAGE_MANAGER_NONE);
 }
 
 TEST(config, TomlEmpty) {
@@ -217,7 +217,7 @@ TEST(config, TwoDirs) {
 
 void checkConfigExpectations(const Config &conf) {
   EXPECT_EQ(conf.storage.type, StorageType::kSqlite);
-  EXPECT_EQ(conf.pacman.type, PackageManager::kNone);
+  EXPECT_EQ(conf.pacman.type, PACKAGE_MANAGER_NONE);
   EXPECT_EQ(conf.tls.ca_source, CryptoSource::kPkcs11);
   EXPECT_EQ(conf.tls.pkey_source, CryptoSource::kPkcs11);
   EXPECT_EQ(conf.tls.cert_source, CryptoSource::kPkcs11);

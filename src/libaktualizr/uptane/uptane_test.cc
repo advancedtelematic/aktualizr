@@ -141,7 +141,7 @@ TEST(Uptane, AssembleManifestGood) {
   config.uptane.director_server = http->tls_server + "/director";
   config.uptane.repo_server = http->tls_server + "/repo";
   config.provision.primary_ecu_serial = "testecuserial";
-  config.pacman.type = PackageManager::kNone;
+  config.pacman.type = PACKAGE_MANAGER_NONE;
   UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
 
   auto storage = INvStorage::newStorage(config.storage);
@@ -178,7 +178,7 @@ TEST(Uptane, AssembleManifestBad) {
   config.uptane.director_server = http->tls_server + "/director";
   config.uptane.repo_server = http->tls_server + "/repo";
   config.provision.primary_ecu_serial = "testecuserial";
-  config.pacman.type = PackageManager::kNone;
+  config.pacman.type = PACKAGE_MANAGER_NONE;
   Primary::VirtualSecondaryConfig ecu_config =
       UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
 
@@ -217,7 +217,7 @@ TEST(Uptane, PutManifest) {
   config.uptane.director_server = http->tls_server + "/director";
   config.uptane.repo_server = http->tls_server + "/repo";
   config.provision.primary_ecu_serial = "testecuserial";
-  config.pacman.type = PackageManager::kNone;
+  config.pacman.type = PACKAGE_MANAGER_NONE;
   UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
 
   auto storage = INvStorage::newStorage(config.storage);
@@ -347,7 +347,7 @@ TEST(Uptane, InstallFakeGood) {
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
   conf.uptane.director_server = http->tls_server + "director";
   conf.uptane.repo_server = http->tls_server + "repo";
-  conf.pacman.type = PackageManager::kNone;
+  conf.pacman.type = PACKAGE_MANAGER_NONE;
   conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   conf.provision.primary_ecu_hardware_id = "primary_hw";
   conf.storage.path = temp_dir.Path();
@@ -411,7 +411,7 @@ TEST(Uptane, InstallFakeBad) {
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
   conf.uptane.director_server = http->tls_server + "director";
   conf.uptane.repo_server = http->tls_server + "repo";
-  conf.pacman.type = PackageManager::kNone;
+  conf.pacman.type = PACKAGE_MANAGER_NONE;
   conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   conf.provision.primary_ecu_hardware_id = "primary_hw";
   conf.storage.path = temp_dir.Path();
@@ -622,7 +622,7 @@ TEST(Uptane, UptaneSecondaryAdd) {
   config.tls.server = http->tls_server;
   config.provision.primary_ecu_serial = "testecuserial";
   config.storage.path = temp_dir.Path();
-  config.pacman.type = PackageManager::kNone;
+  config.pacman.type = PACKAGE_MANAGER_NONE;
   UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
 
   auto storage = INvStorage::newStorage(config.storage);
@@ -648,7 +648,7 @@ TEST(Uptane, UptaneSecondaryAddSameSerial) {
   Config config = config_common();
   config.provision.provision_path = temp_dir / "cred.zip";
   config.provision.mode = ProvisionMode::kSharedCred;
-  config.pacman.type = PackageManager::kNone;
+  config.pacman.type = PACKAGE_MANAGER_NONE;
   config.storage.path = temp_dir.Path();
 
   UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
@@ -673,7 +673,7 @@ TEST(Uptane, UptaneSecondaryMisconfigured) {
     Config config = config_common();
     config.provision.provision_path = temp_dir / "cred.zip";
     config.provision.mode = ProvisionMode::kSharedCred;
-    config.pacman.type = PackageManager::kNone;
+    config.pacman.type = PACKAGE_MANAGER_NONE;
     config.storage.path = temp_dir.Path();
     UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
 
@@ -689,7 +689,7 @@ TEST(Uptane, UptaneSecondaryMisconfigured) {
     Config config = config_common();
     config.provision.provision_path = temp_dir / "cred.zip";
     config.provision.mode = ProvisionMode::kSharedCred;
-    config.pacman.type = PackageManager::kNone;
+    config.pacman.type = PACKAGE_MANAGER_NONE;
     config.storage.path = temp_dir.Path();
     auto storage = INvStorage::newStorage(config.storage);
     UptaneTestCommon::addDefaultSecondary(config, temp_dir, "new_secondary_ecu_serial", "new_secondary_hardware");
@@ -715,7 +715,7 @@ TEST(Uptane, UptaneSecondaryMisconfigured) {
     Config config = config_common();
     config.provision.provision_path = temp_dir / "cred.zip";
     config.provision.mode = ProvisionMode::kSharedCred;
-    config.pacman.type = PackageManager::kNone;
+    config.pacman.type = PACKAGE_MANAGER_NONE;
     config.storage.path = temp_dir.Path();
     auto storage = INvStorage::newStorage(config.storage);
     UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
@@ -1226,7 +1226,7 @@ TEST(Uptane, restoreVerify) {
   auto http = std::make_shared<HttpFakeUnstable>(temp_dir.Path());
   Config config("tests/config/basic.toml");
   config.storage.path = temp_dir.Path();
-  config.pacman.type = PackageManager::kNone;
+  config.pacman.type = PACKAGE_MANAGER_NONE;
   config.uptane.director_server = http->tls_server + "director";
   config.uptane.repo_server = http->tls_server + "repo";
   config.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
@@ -1292,7 +1292,7 @@ TEST(Uptane, offlineIteration) {
   config.storage.path = temp_dir.Path();
   config.uptane.director_server = http->tls_server + "director";
   config.uptane.repo_server = http->tls_server + "repo";
-  config.pacman.type = PackageManager::kNone;
+  config.pacman.type = PACKAGE_MANAGER_NONE;
   config.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   config.provision.primary_ecu_hardware_id = "primary_hw";
   UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hw");
@@ -1321,7 +1321,7 @@ TEST(Uptane, IgnoreUnknownUpdate) {
   config.storage.path = temp_dir.Path();
   config.uptane.director_server = http->tls_server + "director";
   config.uptane.repo_server = http->tls_server + "repo";
-  config.pacman.type = PackageManager::kNone;
+  config.pacman.type = PACKAGE_MANAGER_NONE;
   config.provision.primary_ecu_serial = "primary_ecu";
   config.provision.primary_ecu_hardware_id = "primary_hw";
   UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hw");

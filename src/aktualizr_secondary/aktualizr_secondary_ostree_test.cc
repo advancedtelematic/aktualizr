@@ -94,7 +94,7 @@ class AktualizrSecondaryWrapper {
   AktualizrSecondaryWrapper(const OstreeRootfs& sysroot, const Treehub& treehub) {
     // ostree update
 
-    _config.pacman.type = PackageManager::kOstree;
+    _config.pacman.type = PACKAGE_MANAGER_OSTREE;
     _config.pacman.os = sysroot.getOSName();
     _config.pacman.sysroot = sysroot.getPath();
     _config.pacman.ostree_server = treehub.url();

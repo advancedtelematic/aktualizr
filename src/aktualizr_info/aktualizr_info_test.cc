@@ -13,7 +13,7 @@ constexpr char warning_no_meta_data[] = "Metadata is not available\n";
 class AktualizrInfoTest : public ::testing::Test {
  protected:
   AktualizrInfoTest() : test_conf_file_{test_dir_ / "conf.toml"}, test_db_file_{test_dir_ / "sql.db"} {
-    config_.pacman.type = PackageManager::kNone;
+    config_.pacman.type = PACKAGE_MANAGER_NONE;
     config_.storage.path = test_dir_.PathString();
     config_.storage.sqldb_path = test_db_file_;
     // set it into 'trace' to see the aktualizr-info output

@@ -20,7 +20,7 @@ static boost::filesystem::path sysroot;
 TEST(Aktualizr, DownloadNonOstreeBin) {
   TemporaryDirectory temp_dir;
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, server);
-  conf.pacman.type = PackageManager::kOstree;
+  conf.pacman.type = PACKAGE_MANAGER_OSTREE;
   conf.pacman.sysroot = sysroot.string();
   conf.pacman.ostree_server = treehub_server;
   conf.pacman.os = "dummy-os";

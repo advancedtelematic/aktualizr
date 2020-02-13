@@ -48,7 +48,7 @@ extern "C" const char *ostree_deployment_get_csum(OstreeDeployment *self) {
 TEST(Aktualizr, FullOstreeUpdate) {
   TemporaryDirectory temp_dir;
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, server);
-  conf.pacman.type = PackageManager::kOstree;
+  conf.pacman.type = PACKAGE_MANAGER_OSTREE;
   conf.pacman.sysroot = sysroot.string();
   conf.pacman.ostree_server = treehub_server;
   conf.pacman.os = "dummy-os";

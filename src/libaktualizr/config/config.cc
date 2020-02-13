@@ -207,9 +207,6 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
   if (cmd.count("director-server") != 0) {
     uptane.director_server = cmd["director-server"].as<std::string>();
   }
-  if (cmd.count("ostree-server") != 0) {
-    pacman.ostree_server = cmd["ostree-server"].as<std::string>();
-  }
   if (cmd.count("primary-ecu-serial") != 0) {
     provision.primary_ecu_serial = cmd["primary-ecu-serial"].as<std::string>();
   }

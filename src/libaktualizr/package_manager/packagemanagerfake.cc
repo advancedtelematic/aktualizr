@@ -1,6 +1,9 @@
 #include "packagemanagerfake.h"
+#include "packagemanagerfactory.h"
 
 #include "utilities/fault_injection.h"
+
+AUTO_REGISTER_PACKAGE_MANAGER(PACKAGE_MANAGER_NONE, PackageManagerFake);
 
 Json::Value PackageManagerFake::getInstalledPackages() const {
   Json::Value packages(Json::arrayValue);

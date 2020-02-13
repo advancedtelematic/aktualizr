@@ -17,7 +17,7 @@ static void log_info_target(const std::string &prefix, const Config &config, con
     name = t.custom_version();
   }
   LOG_INFO << prefix + name << "\tsha256:" << t.sha256Hash();
-  if (config.pacman.type == PackageManager::kOstreeDockerApp) {
+  if (config.pacman.type == PACKAGE_MANAGER_OSTREEDOCKERAPP) {
     bool shown = false;
     auto apps = t.custom_data()["docker_apps"];
     for (Json::ValueIterator i = apps.begin(); i != apps.end(); ++i) {
@@ -184,7 +184,6 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
       ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
       ("repo-server", bpo::value<std::string>(), "url of the uptane repo repository")
-      ("ostree-server", bpo::value<std::string>(), "url of the ostree repository")
       ("primary-ecu-hardware-id", bpo::value<std::string>(), "hardware ID of primary ecu")
       ("update-name", bpo::value<std::string>(), "optional name of the update when running \"update\". default=latest")
       ("command", bpo::value<std::string>(), subs.c_str());

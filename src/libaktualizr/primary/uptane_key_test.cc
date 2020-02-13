@@ -28,7 +28,7 @@ void initKeyTests(Config& config, Primary::VirtualSecondaryConfig& ecu_config1,
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
   config.storage.path = temp_dir.Path();
-  config.pacman.type = PackageManager::kNone;
+  config.pacman.type = PACKAGE_MANAGER_NONE;
 
   ecu_config1.partial_verifying = false;
   ecu_config1.full_client_dir = temp_dir.Path();

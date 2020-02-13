@@ -54,7 +54,7 @@ static void progress_cb(const Uptane::Target& target, const std::string& descrip
  * Resuming while not paused is ignored.
  * Resuming while not downloading is ignored
  */
-void test_pause(const Uptane::Target& target, PackageManager type = PackageManager::kNone) {
+void test_pause(const Uptane::Target& target, const std::string& type = PACKAGE_MANAGER_NONE) {
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
   config.uptane.repo_server = server;
@@ -118,7 +118,7 @@ TEST(Fetcher, PauseOstree) {
   target_json["custom"]["targetFormat"] = "OSTREE";
   target_json["length"] = 0;
   Uptane::Target target("pause", target_json);
-  test_pause(target, PackageManager::kOstree);
+  test_pause(target, PACKAGE_MANAGER_OSTREE);
 }
 #endif  // BUILD_OSTREE
 
