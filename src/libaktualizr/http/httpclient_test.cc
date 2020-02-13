@@ -115,7 +115,7 @@ TEST(Headers, update_header) {
   EXPECT_EQ(response["status"].asString(), "good");
 }
 
-// TODO: add tests for HttpClient::download
+// TODO(OTA-4546): add tests for HttpClient::download
 
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {

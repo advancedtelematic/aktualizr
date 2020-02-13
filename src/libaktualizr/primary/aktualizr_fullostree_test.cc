@@ -94,10 +94,10 @@ TEST(Aktualizr, FullOstreeUpdate) {
     // check new version
     const auto target = aktualizr.uptane_client()->package_manager_->getCurrent();
     EXPECT_EQ(target.sha256Hash(), new_rev);
-    // TODO: verify the target. It doesn't work because
+    // TODO(OTA-3659): verify the target. It doesn't work because
     // ostree_repo_list_commit_objects_starting_with() doesn't find the commit.
     // The already mocked functions are not enough to do this; it seems the
-    // commit is not written with the correct hash. See OTA-3659.
+    // commit is not written with the correct hash.
 
     // Verify a bogus target is not present.
     Uptane::EcuMap primary_ecu{{Uptane::EcuSerial(conf.provision.primary_ecu_serial),

@@ -59,7 +59,7 @@ AuthenticationResult OAuth2::Authenticate() {
       return AuthenticationResult::kFailure;
     }
   } else {
-    // TODO: , be more specfic about the failure cases
+    // TODO: be more specfic about the failure cases
     return AuthenticationResult::kFailure;
   }
 }

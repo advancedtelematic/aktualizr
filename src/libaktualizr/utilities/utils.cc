@@ -457,7 +457,7 @@ std::string Utils::randomUuid() {
   return boost::uuids::to_string(uuid_gen());
 }
 
-// TODO: Doesn't work with broken symlinks
+// Note that this doesn't work with broken symlinks.
 void Utils::copyDir(const boost::filesystem::path &from, const boost::filesystem::path &to) {
   boost::filesystem::remove_all(to);
 

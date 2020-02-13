@@ -87,7 +87,6 @@ class StorageTargetRHandle {
     file.close();
   }
 
-  // TODO: this function loads the whole image to the memory
   friend std::ostream& operator<<(std::ostream& os, StorageTargetRHandle& handle) {
     std::array<uint8_t, 256> arr{};
     size_t written = 0;

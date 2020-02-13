@@ -2,7 +2,6 @@
 #include "logging/logging.h"
 #include "uptane/manifest.h"
 
-// TODO: this is an initial version of a file update on Secondary
 bool FileUpdateAgent::isTargetSupported(const Uptane::Target& target) const { return target.type() != "OSTREE"; }
 
 bool FileUpdateAgent::getInstalledImageInfo(Uptane::InstalledImageInfo& installed_image_info) const {

@@ -12,7 +12,7 @@ set(AKTUALIZR_SECONDARY_LIB_SRC
 # do not link tests with libaktualizr
 list(REMOVE_ITEM TEST_LIBS aktualizr_lib)
 
-# TODO: a lot of these should be removed
+# TODO(OTA-4544): a lot of these should be removed
 add_library(aktualizr_secondary_lib SHARED
     ${AKTUALIZR_SECONDARY_LIB_SRC}
     $<TARGET_OBJECTS:aktualizr-posix>
