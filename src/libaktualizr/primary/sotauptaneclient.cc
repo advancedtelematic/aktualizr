@@ -24,28 +24,36 @@ static void report_progress_cb(event::Channel *channel, const Uptane::Target &ta
   (*channel)(event);
 }
 
-void SotaUptaneClient::addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec) {
+void SotaUptaneClient::addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec) {
+  Uptane::EcuSerial serial = sec->getSerial();
+
+  SecondaryInfo info;
+  if (!storage->loadSecondaryInfo(serial, &info) || info.type == "" || info.pub_key.Type() == KeyType::kUnknown) {
+    info.serial = serial;
+    info.hw_id = sec->getHwId();
+    info.type = sec->Type();
+    const PublicKey &p = sec->getPublicKey();
+    if (p.Type() != KeyType::kUnknown) {
+      info.pub_key = p;
+    }
+    storage->saveSecondaryInfo(info.serial, info.type, info.pub_key);
+  }
+
   if (storage->loadEcuRegistered()) {
     EcuSerials serials;
     storage->loadEcuSerials(&serials);
-    SerialCompare secondary_comp(sec->getSerial());
+    SerialCompare secondary_comp(serial);
     if (std::find_if(serials.cbegin(), serials.cend(), secondary_comp) == serials.cend()) {
       throw std::logic_error("Add new secondaries for provisioned device is not implemented yet");
     }
   }
-  addSecondary(sec);
-}
 
-void SotaUptaneClient::addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec) {
-  const Uptane::EcuSerial sec_serial = sec->getSerial();
-  const Uptane::HardwareIdentifier sec_hw_id = sec->getHwId();
-  std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>>::const_iterator map_it =
-      secondaries.find(sec_serial);
+  const auto map_it = secondaries.find(serial);
   if (map_it != secondaries.end()) {
-    throw std::runtime_error(std::string("Multiple secondaries found with the same serial: ") + sec_serial.ToString());
+    throw std::runtime_error(std::string("Multiple secondaries found with the same serial: ") + serial.ToString());
   }
-  secondaries.insert(std::make_pair(sec_serial, sec));
-  hw_ids.insert(std::make_pair(sec_serial, sec_hw_id));
+
+  secondaries.emplace(serial, sec);
 }
 
 bool SotaUptaneClient::isInstalledOnPrimary(const Uptane::Target &target) {
@@ -214,10 +222,27 @@ Json::Value SotaUptaneClient::AssembleManifest() {
   version_manifest[primary_ecu_serial.ToString()] = uptane_manifest->sign(primary_manifest, report_counter);
 
   for (auto it = secondaries.begin(); it != secondaries.end(); it++) {
+    const Uptane::EcuSerial &ecu_serial = it->first;
     Uptane::Manifest secmanifest = it->second->getManifest();
 
+    bool from_cache = false;
+    if (secmanifest == Json::Value()) {
+      // could not get the secondary manifest, a cached value will be provided
+      std::string cached;
+      if (storage->loadCachedEcuManifest(ecu_serial, &cached)) {
+        LOG_WARNING << "Could not reach secondary " << ecu_serial << ", sending a cached version of its manifest";
+        secmanifest = Utils::parseJSON(cached);
+        from_cache = true;
+      } else {
+        LOG_ERROR << "Could not fetch a valid secondary manifest from cache";
+      }
+    }
+
     if (secmanifest.verifySignature(it->second->getPublicKey())) {
-      version_manifest[it->first.ToString()] = secmanifest;
+      version_manifest[ecu_serial.ToString()] = secmanifest;
+      if (!from_cache) {
+        storage->storeCachedEcuManifest(ecu_serial, Utils::jsonToCanonicalStr(secmanifest));
+      }
     } else {
       // TODO: send a corresponding event/report in this case, https://saeljira.it.here.com/browse/OTA-4305
       LOG_ERROR << "Secondary manifest is corrupted or not signed, or signature is invalid manifest: " << secmanifest;
@@ -278,8 +303,8 @@ void SotaUptaneClient::initialize() {
 
   uptane_manifest = std::make_shared<Uptane::ManifestIssuer>(keys, serials[0].first);
   primary_ecu_serial_ = serials[0].first;
-  hw_ids.insert(serials[0]);
-  LOG_INFO << "Primary ECU serial: " << primary_ecu_serial_ << " with hardware ID: " << serials[0].second;
+  primary_ecu_hw_id_ = serials[0].second;
+  LOG_INFO << "Primary ECU serial: " << primary_ecu_serial_ << " with hardware ID: " << primary_ecu_hw_id_;
 
   verifySecondaries();
 
@@ -359,7 +384,9 @@ void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult 
       auto ecu_serial = r.first;
       auto installation_res = r.second;
 
-      if (hw_ids.find(ecu_serial) == hw_ids.end()) {
+      auto hw_id = ecuHwId(ecu_serial);
+
+      if (!hw_id) {
         // couldn't find any ECU with the given serial/ID
         device_installation_result = data::InstallationResult(data::ResultCode::Numeric::kInternalError,
                                                               "Unable to get installation results from ecus");
@@ -382,7 +409,7 @@ void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult 
       // format:
       // ecu1_hwid:failure1|ecu2_hwid:failure2
       if (!installation_res.isSuccess()) {
-        std::string ecu_code_str = hw_ids.at(ecu_serial).ToString() + ":" + installation_res.result_code.toString();
+        std::string ecu_code_str = (*hw_id).ToString() + ":" + installation_res.result_code.toString();
         result_code_err_str += (result_code_err_str != "" ? "|" : "") + ecu_code_str;
       }
     }
@@ -419,14 +446,14 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
       Uptane::EcuSerial ecu_serial = ecu.first;
       Uptane::HardwareIdentifier hw_id = ecu.second;
 
-      auto hwid_it = hw_ids.find(ecu_serial);
-      if (hwid_it == hw_ids.end()) {
+      auto hw_id_known = ecuHwId(ecu_serial);
+      if (!hw_id_known) {
         LOG_ERROR << "Unknown ECU ID in director targets metadata: " << ecu_serial.ToString();
         last_exception = Uptane::BadEcuId(target.filename());
         return false;
       }
 
-      if (hwid_it->second != hw_id) {
+      if (*hw_id_known != hw_id) {
         LOG_ERROR << "Wrong hardware identifier for ECU " << ecu_serial.ToString();
         last_exception = Uptane::BadHardwareId(target.filename());
         return false;
@@ -884,8 +911,18 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
     }
   }
 
+  // wait some time for secondaries to come up
+  // note: this fail after a time out but will be retried at the next install
+  // phase if the targets have not been changed. This is done to avoid being
+  // stuck in an unrecoverable state here
+  if (!waitSecondariesReachable(updates)) {
+    result.dev_report = {false, data::ResultCode::Numeric::kInternalError, ""};
+    return result;
+  }
+
   // Uptane step 5 (send time to all ECUs) is not implemented yet.
   std::vector<Uptane::Target> primary_updates = findForEcu(updates, primary_ecu_serial);
+
   //   6 - send metadata to all the ECUs
   sendMetadataToEcus(updates);
 
@@ -1045,8 +1082,7 @@ void SotaUptaneClient::verifySecondaries() {
     found[static_cast<size_t>(std::distance(serials.cbegin(), store_it))] = true;
   }
 
-  std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>>::const_iterator it;
-  for (it = secondaries.cbegin(); it != secondaries.cend(); ++it) {
+  for (auto it = secondaries.cbegin(); it != secondaries.cend(); ++it) {
     SerialCompare secondary_comp(it->second->getSerial());
     store_it = std::find_if(serials.cbegin(), serials.cend(), secondary_comp);
     if (store_it == serials.cend()) {
@@ -1071,6 +1107,55 @@ void SotaUptaneClient::verifySecondaries() {
   }
 
   storage->storeMisconfiguredEcus(misconfigured_ecus);
+}
+
+bool SotaUptaneClient::waitSecondariesReachable(const std::vector<Uptane::Target> &updates) {
+  std::map<Uptane::EcuSerial, Uptane::SecondaryInterface *> targeted_secondaries;
+  const Uptane::EcuSerial &primary_ecu_serial = primaryEcuSerial();
+  for (const auto &t : updates) {
+    for (const auto &ecu : t.ecus()) {
+      if (ecu.first == primary_ecu_serial) {
+        continue;
+      }
+      auto f = secondaries.find(ecu.first);
+      if (f == secondaries.end()) {
+        LOG_ERROR << "Target " << t << " has unknown ECU ID";
+        continue;
+      }
+
+      targeted_secondaries[ecu.first] = f->second.get();
+    }
+  }
+
+  if (targeted_secondaries.empty()) {
+    return true;
+  }
+
+  LOG_INFO << "Waiting for secondaries to connect to start installation...";
+
+  auto deadline = std::chrono::system_clock::now() + std::chrono::minutes(10);
+  while (std::chrono::system_clock::now() <= deadline) {
+    if (targeted_secondaries.empty()) {
+      return true;
+    }
+
+    for (auto sec_it = targeted_secondaries.begin(); sec_it != targeted_secondaries.end();) {
+      if (sec_it->second->ping()) {
+        sec_it = targeted_secondaries.erase(sec_it);
+      } else {
+        sec_it++;
+      }
+    }
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+  }
+
+  LOG_ERROR << "Secondaries did not connect: ";
+
+  for (const auto &sec : targeted_secondaries) {
+    LOG_ERROR << sec.second->getSerial();
+  }
+
+  return false;
 }
 
 void SotaUptaneClient::storeInstallationFailure(const data::InstallationResult &result) {
@@ -1141,7 +1226,6 @@ void SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &tar
     return;
   }
 
-  // target images should already have been downloaded to metadata_path/targets/
   for (auto targets_it = targets.cbegin(); targets_it != targets.cend(); ++targets_it) {
     for (auto ecus_it = targets_it->ecus().cbegin(); ecus_it != targets_it->ecus().cend(); ++ecus_it) {
       const Uptane::EcuSerial ecu_serial = ecus_it->first;
@@ -1152,7 +1236,7 @@ void SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &tar
         rotateSecondaryRoot(Uptane::RepositoryType::Director(), *(sec->second));
         rotateSecondaryRoot(Uptane::RepositoryType::Image(), *(sec->second));
         if (!sec->second->putMetadata(meta)) {
-          LOG_ERROR << "Sending metadata to " << sec->second->getSerial() << " failed";
+          LOG_ERROR << "Sending metadata to " << sec->first << " failed";
         }
       }
     }
@@ -1328,4 +1412,20 @@ void SotaUptaneClient::checkAndUpdatePendingSecondaries() {
       }
     }
   }
+}
+
+boost::optional<Uptane::HardwareIdentifier> SotaUptaneClient::ecuHwId(const Uptane::EcuSerial &serial) const {
+  if (serial == primary_ecu_serial_ || serial.ToString().empty()) {
+    if (primary_ecu_hw_id_ == Uptane::HardwareIdentifier::Unknown()) {
+      return boost::none;
+    }
+    return primary_ecu_hw_id_;
+  }
+
+  const auto it = secondaries.find(serial);
+  if (it != secondaries.end()) {
+    return it->second->getHwId();
+  }
+
+  return boost::none;
 }

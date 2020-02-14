@@ -30,6 +30,7 @@ class PartialVerificationSecondary : public SecondaryInterface {
  public:
   explicit PartialVerificationSecondary(Primary::PartialVerificationSecondaryConfig sconfig_in);
 
+  std::string Type() const override { return Primary::PartialVerificationSecondaryConfig::Type; }
   EcuSerial getSerial() const override {
     if (!sconfig.ecu_serial.empty()) {
       return Uptane::EcuSerial(sconfig.ecu_serial);
@@ -46,6 +47,7 @@ class PartialVerificationSecondary : public SecondaryInterface {
   bool sendFirmware(const std::string& data) override;
   data::ResultCode::Numeric install(const std::string& target_name) override;
   Uptane::Manifest getManifest() const override;
+  bool ping() const override { return true; }
 
  private:
   void storeKeys(const std::string& public_key, const std::string& private_key);

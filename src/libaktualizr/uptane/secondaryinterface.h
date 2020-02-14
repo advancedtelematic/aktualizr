@@ -14,12 +14,14 @@ class SecondaryInterface {
   using Ptr = std::shared_ptr<SecondaryInterface>;
 
  public:
+  virtual std::string Type() const = 0;
   virtual EcuSerial getSerial() const = 0;
   virtual Uptane::HardwareIdentifier getHwId() const = 0;
   virtual PublicKey getPublicKey() const = 0;
 
   virtual Uptane::Manifest getManifest() const = 0;
   virtual bool putMetadata(const RawMetaPack& meta_pack) = 0;
+  virtual bool ping() const = 0;
 
   virtual int32_t getRootVersion(bool director) const = 0;
   virtual bool putRoot(const std::string& root, bool director) = 0;

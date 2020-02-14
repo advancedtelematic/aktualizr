@@ -10,6 +10,7 @@ class IsoTpSecondary : public SecondaryInterface {
  public:
   explicit IsoTpSecondary(const std::string& can_iface, uint16_t can_id);
 
+  std::string Type() const override { return "isotp"; }
   EcuSerial getSerial() const override;
   HardwareIdentifier getHwId() const override;
   PublicKey getPublicKey() const override;

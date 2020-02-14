@@ -151,6 +151,163 @@ void SQLStorage::clearPrimaryKeys() {
   }
 }
 
+void SQLStorage::saveSecondaryInfo(const Uptane::EcuSerial& ecu_serial, const std::string& sec_type,
+                                   const PublicKey& public_key) {
+  SQLite3Guard db = dbConnection();
+
+  std::stringstream key_type_ss;
+  key_type_ss << public_key.Type();
+  std::string key_type_str;
+  key_type_str = key_type_ss.str();
+  key_type_str.erase(std::remove(key_type_str.begin(), key_type_str.end(), '"'), key_type_str.end());
+
+  if (!db.beginTransaction()) {
+    LOG_ERROR << "Can't start transaction: " << db.errmsg();
+    return;
+  }
+
+  auto statement =
+      db.prepareStatement<std::string>("SELECT count(*) FROM secondary_ecus WHERE serial = ?;", ecu_serial.ToString());
+  if (statement.step() != SQLITE_ROW) {
+    LOG_ERROR << "Can't get count of secondary_ecus table: " << db.errmsg();
+    return;
+  }
+
+  const char* req;
+  if (statement.get_result_col_int(0) != 0) {
+    req = "UPDATE secondary_ecus SET sec_type = ?, public_key_type = ?, public_key = ? WHERE serial = ?;";
+  } else {
+    req =
+        "INSERT INTO secondary_ecus (serial, sec_type, public_key_type, public_key) SELECT "
+        "serial,?,?,? FROM ecus WHERE (serial = ? AND is_primary = 0);";
+  }
+
+  statement = db.prepareStatement<std::string, std::string, std::string, std::string>(
+      req, sec_type, key_type_str, public_key.Value(), ecu_serial.ToString());
+  if (statement.step() != SQLITE_DONE || sqlite3_changes(db.get()) != 1) {
+    LOG_ERROR << "Can't save secondary key: " << db.errmsg();
+    return;
+  }
+
+  db.commitTransaction();
+}
+
+void SQLStorage::saveSecondaryData(const Uptane::EcuSerial& ecu_serial, const std::string& data) {
+  SQLite3Guard db = dbConnection();
+
+  if (!db.beginTransaction()) {
+    LOG_ERROR << "Can't start transaction: " << db.errmsg();
+    return;
+  }
+
+  auto statement =
+      db.prepareStatement<std::string>("SELECT count(*) FROM secondary_ecus WHERE serial = ?;", ecu_serial.ToString());
+  if (statement.step() != SQLITE_ROW) {
+    LOG_ERROR << "Can't get count of secondary_ecus table: " << db.errmsg();
+    return;
+  }
+
+  const char* req;
+  if (statement.get_result_col_int(0) != 0) {
+    req = "UPDATE secondary_ecus SET extra = ? WHERE serial = ?;";
+  } else {
+    req = "INSERT INTO secondary_ecus (extra, serial) VALUES (?,?);";
+  }
+
+  statement = db.prepareStatement<std::string, std::string>(req, data, ecu_serial.ToString());
+  if (statement.step() != SQLITE_DONE || sqlite3_changes(db.get()) != 1) {
+    LOG_ERROR << "Can't save secondary data: " << db.errmsg();
+    return;
+  }
+
+  db.commitTransaction();
+}
+
+bool SQLStorage::loadSecondaryInfo(const Uptane::EcuSerial& ecu_serial, SecondaryInfo* secondary) {
+  SQLite3Guard db = dbConnection();
+
+  SecondaryInfo new_sec{};
+
+  auto statement = db.prepareStatement<std::string>(
+      "SELECT serial, hardware_id, sec_type, public_key_type, public_key, extra FROM ecus LEFT JOIN secondary_ecus "
+      "USING "
+      "(serial) WHERE (serial = ? AND is_primary = 0);",
+      ecu_serial.ToString());
+  int statement_state = statement.step();
+  if (statement_state == SQLITE_DONE) {
+    LOG_TRACE << "Secondary ecu " << ecu_serial << " not found";
+    return false;
+  } else if (statement_state != SQLITE_ROW) {
+    LOG_ERROR << "Cannot load secondary info: " << db.errmsg();
+    return false;
+  }
+
+  try {
+    Uptane::EcuSerial serial = Uptane::EcuSerial(statement.get_result_col_str(0).value());
+    Uptane::HardwareIdentifier hw_id = Uptane::HardwareIdentifier(statement.get_result_col_str(1).value());
+    std::string sec_type = statement.get_result_col_str(2).value_or("");
+    std::string kt_str = statement.get_result_col_str(3).value_or("");
+    PublicKey key;
+    if (kt_str != "") {
+      KeyType key_type;
+      std::stringstream(kt_str) >> key_type;
+      key = PublicKey(statement.get_result_col_str(4).value_or(""), key_type);
+    }
+    std::string extra = statement.get_result_col_str(5).value_or("");
+    new_sec = SecondaryInfo{serial, hw_id, sec_type, key, extra};
+  } catch (const boost::bad_optional_access&) {
+    return false;
+  }
+
+  if (secondary != nullptr) {
+    *secondary = std::move(new_sec);
+  }
+
+  return true;
+}
+
+bool SQLStorage::loadSecondariesInfo(std::vector<SecondaryInfo>* secondaries) {
+  SQLite3Guard db = dbConnection();
+
+  std::vector<SecondaryInfo> new_secs;
+
+  bool empty = true;
+
+  int statement_state;
+  auto statement = db.prepareStatement(
+      "SELECT serial, hardware_id, sec_type, public_key_type, public_key, extra FROM ecus LEFT JOIN secondary_ecus "
+      "USING "
+      "(serial) WHERE is_primary = 0 ORDER BY ecus.id;");
+  while ((statement_state = statement.step()) == SQLITE_ROW) {
+    try {
+      Uptane::EcuSerial serial = Uptane::EcuSerial(statement.get_result_col_str(0).value());
+      Uptane::HardwareIdentifier hw_id = Uptane::HardwareIdentifier(statement.get_result_col_str(1).value());
+      std::string sec_type = statement.get_result_col_str(2).value_or("");
+      std::string kt_str = statement.get_result_col_str(3).value_or("");
+      PublicKey key;
+      if (kt_str != "") {
+        KeyType key_type;
+        std::stringstream(kt_str) >> key_type;
+        key = PublicKey(statement.get_result_col_str(4).value_or(""), key_type);
+      }
+      std::string extra = statement.get_result_col_str(5).value_or("");
+      new_secs.emplace_back(SecondaryInfo{serial, hw_id, sec_type, key, extra});
+      empty = false;
+    } catch (const boost::bad_optional_access&) {
+      continue;
+    }
+  }
+  if (statement_state != SQLITE_DONE) {
+    LOG_ERROR << "Can't load secondary info" << db.errmsg();
+  }
+
+  if (secondaries != nullptr) {
+    *secondaries = std::move(new_secs);
+  }
+
+  return !empty;
+}
+
 void SQLStorage::storeTlsCreds(const std::string& ca, const std::string& cert, const std::string& pkey) {
   storeTlsCa(ca);
   storeTlsCert(cert);
@@ -759,8 +916,8 @@ void SQLStorage::storeEcuSerials(const EcuSerials& serials) {
       return;
     }
 
-    if (db.exec("DELETE FROM ecu_serials;", nullptr, nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Can't clear ecu_serials: " << db.errmsg();
+    if (db.exec("DELETE FROM ecus;", nullptr, nullptr) != SQLITE_OK) {
+      LOG_ERROR << "Can't clear ecus: " << db.errmsg();
       return;
     }
 
@@ -769,7 +926,7 @@ void SQLStorage::storeEcuSerials(const EcuSerials& serials) {
     std::string hwid = serials[0].second.ToString();
     {
       auto statement = db.prepareStatement<std::string, std::string>(
-          "INSERT INTO ecu_serials(id, serial,hardware_id,is_primary) VALUES (0, ?,?,1);", serial, hwid);
+          "INSERT INTO ecus(id, serial,hardware_id,is_primary) VALUES (0, ?,?,1);", serial, hwid);
       if (statement.step() != SQLITE_DONE) {
         LOG_ERROR << "Can't set ecu_serial: " << db.errmsg();
         return;
@@ -787,7 +944,7 @@ void SQLStorage::storeEcuSerials(const EcuSerials& serials) {
 
     for (auto it = serials.cbegin() + 1; it != serials.cend(); it++) {
       auto statement = db.prepareStatement<int64_t, std::string, std::string>(
-          "INSERT INTO ecu_serials(id,serial,hardware_id) VALUES (?,?,?);", it - serials.cbegin(), it->first.ToString(),
+          "INSERT INTO ecus(id,serial,hardware_id) VALUES (?,?,?);", it - serials.cbegin(), it->first.ToString(),
           it->second.ToString());
 
       if (statement.step() != SQLITE_DONE) {
@@ -804,7 +961,7 @@ bool SQLStorage::loadEcuSerials(EcuSerials* serials) {
   SQLite3Guard db = dbConnection();
 
   // order by auto-incremented primary key so that the ecu order is kept constant
-  auto statement = db.prepareStatement("SELECT serial, hardware_id FROM ecu_serials ORDER BY id;");
+  auto statement = db.prepareStatement("SELECT serial, hardware_id FROM ecus ORDER BY id;");
   int statement_state;
 
   EcuSerials new_serials;
@@ -820,7 +977,7 @@ bool SQLStorage::loadEcuSerials(EcuSerials* serials) {
   }
 
   if (statement_state != SQLITE_DONE) {
-    LOG_ERROR << "Can't get ecu_serials: " << db.errmsg();
+    LOG_ERROR << "Can't get ecu serials: " << db.errmsg();
     return false;
   }
 
@@ -834,10 +991,59 @@ bool SQLStorage::loadEcuSerials(EcuSerials* serials) {
 void SQLStorage::clearEcuSerials() {
   SQLite3Guard db = dbConnection();
 
-  if (db.exec("DELETE FROM ecu_serials;", nullptr, nullptr) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear ecu_serials: " << db.errmsg();
+  if (!db.beginTransaction()) {
+    LOG_ERROR << "Can't start transaction: " << db.errmsg();
     return;
   }
+
+  if (db.exec("DELETE FROM ecus;", nullptr, nullptr) != SQLITE_OK) {
+    LOG_ERROR << "Can't clear ecus: " << db.errmsg();
+    return;
+  }
+
+  if (db.exec("DELETE FROM secondary_ecus;", nullptr, nullptr) != SQLITE_OK) {
+    LOG_ERROR << "Can't clear secondary ecus: " << db.errmsg();
+    return;
+  }
+
+  db.commitTransaction();
+}
+
+void SQLStorage::storeCachedEcuManifest(const Uptane::EcuSerial& ecu_serial, const std::string& manifest) {
+  SQLite3Guard db = dbConnection();
+
+  auto statement = db.prepareStatement<std::string, std::string>(
+      "UPDATE secondary_ecus SET manifest = ? WHERE (serial = ?);", manifest, ecu_serial.ToString());
+  if (statement.step() != SQLITE_DONE || sqlite3_changes(db.get()) != 1) {
+    LOG_ERROR << "Can't save secondary manifest " << db.errmsg();
+    return;
+  }
+}
+
+bool SQLStorage::loadCachedEcuManifest(const Uptane::EcuSerial& ecu_serial, std::string* manifest) {
+  SQLite3Guard db = dbConnection();
+
+  std::string stmanifest;
+
+  bool empty = false;
+
+  auto statement = db.prepareStatement<std::string>("SELECT manifest FROM secondary_ecus WHERE (serial = ?);",
+                                                    ecu_serial.ToString());
+
+  if (statement.step() != SQLITE_ROW) {
+    LOG_WARNING << "Could not find manifest for ecu " << ecu_serial;
+    return false;
+  } else {
+    stmanifest = statement.get_result_col_str(0).value_or("");
+
+    empty = stmanifest == "";
+  }
+
+  if (manifest != nullptr) {
+    *manifest = std::move(stmanifest);
+  }
+
+  return !empty;
 }
 
 void SQLStorage::storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecus) {
@@ -924,7 +1130,7 @@ void SQLStorage::saveInstalledVersion(const std::string& ecu_serial, const Uptan
   // empty serial: use primary
   std::string ecu_serial_real = ecu_serial;
   if (ecu_serial_real.empty()) {
-    auto statement = db.prepareStatement("SELECT serial FROM ecu_serials WHERE is_primary = 1;");
+    auto statement = db.prepareStatement("SELECT serial FROM ecus WHERE is_primary = 1;");
     if (statement.step() == SQLITE_ROW) {
       ecu_serial_real = statement.get_result_col_str(0).value();
     } else {
@@ -1008,7 +1214,7 @@ void SQLStorage::saveInstalledVersion(const std::string& ecu_serial, const Uptan
 
 static void loadEcuMap(SQLite3Guard& db, std::string& ecu_serial, Uptane::EcuMap& ecu_map) {
   if (ecu_serial.empty()) {
-    auto statement = db.prepareStatement("SELECT serial FROM ecu_serials WHERE is_primary = 1;");
+    auto statement = db.prepareStatement("SELECT serial FROM ecus WHERE is_primary = 1;");
     if (statement.step() == SQLITE_ROW) {
       ecu_serial = statement.get_result_col_str(0).value();
     } else {
@@ -1017,8 +1223,7 @@ static void loadEcuMap(SQLite3Guard& db, std::string& ecu_serial, Uptane::EcuMap
   }
 
   {
-    auto statement =
-        db.prepareStatement<std::string>("SELECT hardware_id FROM ecu_serials WHERE serial = ?;", ecu_serial);
+    auto statement = db.prepareStatement<std::string>("SELECT hardware_id FROM ecus WHERE serial = ?;", ecu_serial);
     if (statement.step() == SQLITE_ROW) {
       ecu_map.insert(
           {Uptane::EcuSerial(ecu_serial), Uptane::HardwareIdentifier(statement.get_result_col_str(0).value())});
@@ -1258,10 +1463,10 @@ bool SQLStorage::loadEcuInstallationResults(
 
   std::vector<std::pair<Uptane::EcuSerial, data::InstallationResult>> ecu_res;
 
-  // keep the same order as in ecu_serials (start with primary)
+  // keep the same order as in ecus (start with primary)
   auto statement = db.prepareStatement(
-      "SELECT ecu_serial, success, result_code, description FROM ecu_installation_results INNER JOIN ecu_serials ON "
-      "ecu_serials.serial = ecu_serial ORDER BY ecu_serials.id;");
+      "SELECT ecu_serial, success, result_code, description FROM ecu_installation_results INNER JOIN ecus ON "
+      "ecus.serial = ecu_serial ORDER BY ecus.id;");
   int statement_result = statement.step();
   if (statement_result != SQLITE_DONE && statement_result != SQLITE_ROW) {
     LOG_ERROR << "Can't get ecu_installation_results: " << db.errmsg();
@@ -1372,10 +1577,10 @@ bool SQLStorage::loadEcuReportCounter(std::vector<std::pair<Uptane::EcuSerial, i
 
   std::vector<std::pair<Uptane::EcuSerial, int64_t>> ecu_cnt;
 
-  // keep the same order as in ecu_serials (start with primary)
+  // keep the same order as in ecus (start with primary)
   auto statement = db.prepareStatement(
-      "SELECT ecu_serial, counter FROM ecu_report_counter INNER JOIN ecu_serials ON "
-      "ecu_serials.serial = ecu_serial ORDER BY ecu_serials.id;");
+      "SELECT ecu_serial, counter FROM ecu_report_counter INNER JOIN ecus ON "
+      "ecus.serial = ecu_serial ORDER BY ecus.id;");
   int statement_result = statement.step();
   if (statement_result != SQLITE_DONE && statement_result != SQLITE_ROW) {
     LOG_ERROR << "Can't get ecu_report_counter: " << db.errmsg();

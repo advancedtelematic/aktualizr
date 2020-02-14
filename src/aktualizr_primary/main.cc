@@ -130,11 +130,9 @@ int main(int argc, char *argv[]) {
       try {
         Primary::initSecondaries(aktualizr, config.uptane.secondary_config_file);
       } catch (const std::exception &e) {
-        LOG_ERROR << "Secondary initialization failed: " << e.what();
-        if (!aktualizr.IsRegistered()) {
-          LOG_ERROR << "Cannot provision without all secondaries present, exiting...";
-          return EXIT_FAILURE;
-        }
+        LOG_ERROR << "Failed to init secondaries :" << e.what();
+        LOG_ERROR << "Exiting...";
+        return EXIT_FAILURE;
       }
     }
 

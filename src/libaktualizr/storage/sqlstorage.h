@@ -27,6 +27,12 @@ class SQLStorage : public SQLStorageBase, public INvStorage {
   bool loadPrimaryPrivate(std::string* private_key) override;
   void clearPrimaryKeys() override;
 
+  void saveSecondaryInfo(const Uptane::EcuSerial& ecu_serial, const std::string& sec_type,
+                         const PublicKey& public_key) override;
+  void saveSecondaryData(const Uptane::EcuSerial& ecu_serial, const std::string& data) override;
+  bool loadSecondaryInfo(const Uptane::EcuSerial& ecu_serial, SecondaryInfo* secondary) override;
+  bool loadSecondariesInfo(std::vector<SecondaryInfo>* secondaries) override;
+
   void storeTlsCreds(const std::string& ca, const std::string& cert, const std::string& pkey) override;
   void storeTlsCa(const std::string& ca) override;
   void storeTlsCert(const std::string& cert) override;
@@ -55,6 +61,8 @@ class SQLStorage : public SQLStorageBase, public INvStorage {
   void storeEcuSerials(const EcuSerials& serials) override;
   bool loadEcuSerials(EcuSerials* serials) override;
   void clearEcuSerials() override;
+  void storeCachedEcuManifest(const Uptane::EcuSerial& ecu_serial, const std::string& manifest) override;
+  bool loadCachedEcuManifest(const Uptane::EcuSerial& ecu_serial, std::string* manifest) override;
   void storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecus) override;
   bool loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) override;
   void clearMisconfiguredEcus() override;

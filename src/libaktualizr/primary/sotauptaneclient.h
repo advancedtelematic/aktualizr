@@ -41,11 +41,8 @@ class SotaUptaneClient {
         uptane_fetcher(new Uptane::Fetcher(config, http)),
         report_queue(new ReportQueue(config, http)),
         events_channel(std::move(events_channel_in)),
-        primary_ecu_serial_(primary_serial) {
-    if (hwid != Uptane::HardwareIdentifier::Unknown()) {
-      hw_ids.insert({primary_ecu_serial_, hwid});
-    }
-  }
+        primary_ecu_serial_(primary_serial),
+        primary_ecu_hw_id_(hwid) {}
 
   SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in,
                    std::shared_ptr<HttpInterface> http_in)
@@ -55,7 +52,7 @@ class SotaUptaneClient {
       : SotaUptaneClient(config_in, storage_in, std::make_shared<HttpClient>()) {}
 
   void initialize();
-  void addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
+  void addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
   result::Download downloadImages(const std::vector<Uptane::Target> &targets,
                                   const api::FlowControlToken *token = nullptr);
   std::pair<bool, Uptane::Target> downloadImage(const Uptane::Target &target,
@@ -82,9 +79,6 @@ class SotaUptaneClient {
   bool checkImagesMetaOffline();
   data::InstallationResult PackageInstall(const Uptane::Target &target);
   TargetStatus VerifyTarget(const Uptane::Target &target) const { return package_manager_->verifyTarget(target); }
-
- protected:
-  void addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
 
  private:
   FRIEND_TEST(Aktualizr, FullNoUpdates);
@@ -133,6 +127,7 @@ class SotaUptaneClient {
   void reportNetworkInfo();
   void reportAktualizrConfiguration();
   void verifySecondaries();
+  bool waitSecondariesReachable(const std::vector<Uptane::Target> &updates);
   void sendMetadataToEcus(const std::vector<Uptane::Target> &targets);
   std::future<data::ResultCode::Numeric> sendFirmwareAsync(Uptane::SecondaryInterface &secondary,
                                                            const Uptane::Target &target);
@@ -151,6 +146,8 @@ class SotaUptaneClient {
                                                    bool offline);
   void checkAndUpdatePendingSecondaries();
   const Uptane::EcuSerial &primaryEcuSerial() const { return primary_ecu_serial_; }
+  boost::optional<Uptane::HardwareIdentifier> ecuHwId(const Uptane::EcuSerial &serial) const;
+
   template <class T, class... Args>
   void sendEvent(Args &&... args) {
     std::shared_ptr<event::BaseEvent> event = std::make_shared<T>(std::forward<Args>(args)...);
@@ -172,14 +169,14 @@ class SotaUptaneClient {
   std::unique_ptr<ReportQueue> report_queue;
   Json::Value last_network_info_reported;
   Json::Value last_hw_info_reported;
-  Uptane::EcuMap hw_ids;
   std::shared_ptr<event::Channel> events_channel;
   boost::signals2::scoped_connection conn;
   Uptane::Exception last_exception{"", ""};
   // ecu_serial => secondary*
-  std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>> secondaries;
+  std::map<Uptane::EcuSerial, Uptane::SecondaryInterface::Ptr> secondaries;
   std::mutex download_mutex;
   Uptane::EcuSerial primary_ecu_serial_;
+  Uptane::HardwareIdentifier primary_ecu_hw_id_;
 };
 
 class TargetCompare {

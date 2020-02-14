@@ -148,10 +148,6 @@ if(BUILD_SOTA_TOOLS)
     find_program(STRACE NAMES strace)
 endif(BUILD_SOTA_TOOLS)
 
-if(BUILD_ISOTP)
-    add_definitions(-DISOTP_SECONDARY_ENABLED)
-endif(BUILD_ISOTP)
-
 if(FAULT_INJECTION)
     find_package(Libfiu REQUIRED)
     add_definitions(-DFIU_ENABLE)
