@@ -15,7 +15,6 @@ list(REMOVE_ITEM TEST_LIBS aktualizr_lib)
 # TODO: a lot of these should be removed
 add_library(aktualizr_secondary_lib SHARED
     ${AKTUALIZR_SECONDARY_LIB_SRC}
-    $<TARGET_OBJECTS:aktualizr-posix>
     $<TARGET_OBJECTS:asn1>
     $<TARGET_OBJECTS:asn1_lib>
     $<TARGET_OBJECTS:bootstrap>
@@ -29,11 +28,7 @@ add_library(aktualizr_secondary_lib SHARED
     $<TARGET_OBJECTS:logging>
     $<TARGET_OBJECTS:uptane>
     $<TARGET_OBJECTS:campaign>)
-target_link_libraries(aktualizr_secondary_lib ${AKTUALIZR_EXTERNAL_LIBS})
-target_include_directories(aktualizr_secondary_lib PUBLIC
-    $<TARGET_PROPERTY:asn1_lib,INCLUDE_DIRECTORIES>
-    ${PROJECT_SOURCE_DIR}/src/libaktualizr-posix
-    )
+target_link_libraries(aktualizr_secondary_lib aktualizr-posix ${AKTUALIZR_EXTERNAL_LIBS})
 
 if (BUILD_ISOTP)
     target_sources(aktualizr_secondary_lib PRIVATE $<TARGET_OBJECTS:isotp_conn>)
