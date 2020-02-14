@@ -50,6 +50,8 @@ TEST(DockerAppManager, DockerAppStandalone) {
   target_json["custom"]["targetFormat"] = "OSTREE";
   target_json["length"] = 0;
   target_json["custom"]["docker_apps"]["app1"]["filename"] = "foo.dockerapp";
+  // Add a docker-app bundle entry to make sure we don't get confused
+  target_json["custom"]["docker_apps"]["app1"]["uri"] = "http://foo.com";
   Uptane::Target target("pull", target_json);
 
   TemporaryDirectory temp_dir;
@@ -118,6 +120,8 @@ TEST(DockerAppManager, DockerAppBundles) {
   target_json["custom"]["targetFormat"] = "OSTREE";
   target_json["length"] = 0;
   target_json["custom"]["docker_apps"]["app1"]["uri"] = "hub.docker.io/user/hello@sha256:deadbeef";
+  // Add a standalone entry to make sure we don't get confused
+  target_json["custom"]["docker_apps"]["app1"]["filename"] = "foo.dockerapp";
   Uptane::Target target("pull", target_json);
 
   TemporaryDirectory temp_dir;
