@@ -56,6 +56,12 @@ ifndef::env-github[:pageroot:]
 ** xref:{pageroot}add-ota-functonality-existing-yocto-project.adoc[Add OTA functionality to a Yocto project]
 ** xref:{pageroot}libaktualizr-integrate.adoc[Add libaktualizr integration to a Yocto project]
 
+* xref:{pageroot}bsp-integration.adoc[Add support for new hardware]
+** xref:{pageroot}add-board-class.adoc[Adding a board class]
+** xref:{pageroot}setup-boot-image-for-ostree.adoc[Set up boot image layout for OSTree compatibility]
+** xref:{pageroot}add-meta-updater-to-vendors-sdk.adoc[Add meta-updater features to the vendor's SDK]
+** xref:{pageroot}troubleshooting-bsp-integration.adoc[Troubleshooting BSP Integration]
+
 * xref:{pageroot}device-cred-prov-steps.adoc[Provision devices]
 ** xref:{pageroot}generate-selfsigned-root.adoc[Generate a fleet root certificate]
 ** xref:{pageroot}provide-root-cert.adoc[Register your fleet root certificate]
