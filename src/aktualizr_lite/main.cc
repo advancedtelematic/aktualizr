@@ -27,8 +27,9 @@ static void log_info_target(const std::string &prefix, const Config &config, con
       }
       if ((*i).isObject() && (*i).isMember("filename")) {
         LOG_INFO << "\t\t" << i.key().asString() << " -> " << (*i)["filename"].asString();
-      } else {
-        LOG_ERROR << "\t\tInvalid custom data for docker-app: " << i.key().asString();
+      }
+      if ((*i).isObject() && (*i).isMember("uri")) {
+        LOG_INFO << "\t\t" << i.key().asString() << " -> " << (*i)["uri"].asString();
       }
     }
   }
