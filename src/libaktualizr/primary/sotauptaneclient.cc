@@ -1132,7 +1132,7 @@ bool SotaUptaneClient::waitSecondariesReachable(const std::vector<Uptane::Target
 
   LOG_INFO << "Waiting for secondaries to connect to start installation...";
 
-  auto deadline = std::chrono::system_clock::now() + std::chrono::minutes(10);
+  auto deadline = std::chrono::system_clock::now() + std::chrono::seconds(config.uptane.secondary_preinstall_wait_sec);
   while (std::chrono::system_clock::now() <= deadline) {
     if (targeted_secondaries.empty()) {
       return true;
