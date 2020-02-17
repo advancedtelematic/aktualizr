@@ -9,7 +9,7 @@ endif::[]
 
 Adding a board class for a new target board in meta-updater involves two main steps:
 
-. adding a new `sota_\{MACHINE}.bbclass` file for the board
+. Add a new `sota_\{MACHINE}.bbclass` file for the board
 
 +
 Using an NXP board as an example, we created the bbclass `classes/sota_ls1043ardb.bbclass` and added the following to the class file:
@@ -29,7 +29,7 @@ IMAGE_BOOT_FILES = "ls1043ardb_boot.scr" <3>
 <2> Wic kickstart files tell Wic how to build and lay out an image that can be physically flashed onto the device initially. We generally need to modify the image layout for OTA; we’ll discuss how to write one in the following section.
 <3> This line adds the basic boot script to the files available to bitbake when constructing the physical image types. See xref:add-meta-updater-to-vendors-sdk.adoc#_create_u_boot_script_for_ostree_initialization[Create U-Boot script for OSTree initialization] for the script itself.
 +
-. add that class to the top-level `sota.bbclass` file.
+. Add that class to the top-level `sota.bbclass` file.
 +
 Add a line to the file `classes/sota.bbclass` that points to the new class file as in the example below:
 +

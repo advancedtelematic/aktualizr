@@ -37,7 +37,7 @@ NOTE: Even though only some of the install statements needed to be modified, the
 
 Meta-updater provides several FS types for secure OTA delivery which need to be added to the FS types for the image class being built.
 
-For the LS1043ARDB, we targeted the `fsl-image-networking-full.bb` image file, the line below specifies the image type to be built.
+For the LS1043ARDB, we targeted the `fsl-image-networking-full.bb` image file, the line below specifies the image types to be built.
 [source,bash]
 ----
 IMAGE_FSTYPES_qoriq = "tar.gz ext2.gz.u-boot ext2.gz"
