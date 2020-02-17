@@ -17,7 +17,7 @@ PartialVerificationSecondary::PartialVerificationSecondary(Primary::PartialVerif
     : sconfig(std::move(sconfig_in)), root_(Root::Policy::kAcceptAll) {
   boost::filesystem::create_directories(sconfig.metadata_path);
 
-  // FIXME Probably we need to generate keys on the secondary
+  // TODO(OTA-2484): Probably we need to generate keys on the secondary
   std::string public_key_string;
   if (!loadKeys(&public_key_string, &private_key_)) {
     if (!Crypto::generateKeyPair(sconfig.key_type, &public_key_string, &private_key_)) {
@@ -34,7 +34,7 @@ bool PartialVerificationSecondary::putMetadata(const RawMetaPack &meta) {
   TimeStamp now(TimeStamp::Now());
   detected_attack_.clear();
 
-  // TODO: check for expiration and version downgrade
+  // TODO(OTA-2484): check for expiration and version downgrade
   root_ = Uptane::Root(RepositoryType::Director(), Utils::parseJSON(meta.director_root), root_);
   Uptane::Targets targets(RepositoryType::Director(), Role::Targets(), Utils::parseJSON(meta.director_targets),
                           std::make_shared<Uptane::Root>(root_));

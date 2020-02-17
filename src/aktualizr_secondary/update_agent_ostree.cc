@@ -15,7 +15,7 @@ bool OstreeUpdateAgent::getInstalledImageInfo(Uptane::InstalledImageInfo& instal
     installed_image_info.len = 0;
     installed_image_info.hash = _ostreePackMan->getCurrentHash();
 
-    // TODO: consider more elegant way of storing currently installed target name
+    // TODO(OTA-4545): consider more elegant way of storing currently installed target name
     // usage of the SQLStorage and ostree implementions aimed for Primary is
     // a quite overhead for Secondary
     auto currently_installed_target = _ostreePackMan->getCurrent();

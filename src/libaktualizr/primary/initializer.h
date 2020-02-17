@@ -35,7 +35,7 @@ class Initializer {
   InitRetCode initTlsCreds();
   void resetTlsCreds();
   InitRetCode initEcuRegister();
-  bool loadSetTlsCreds();  // TODO -> metadownloader
+  bool loadSetTlsCreds();
   bool initEcuReportCounter();
 };
 

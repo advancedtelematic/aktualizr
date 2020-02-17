@@ -20,7 +20,7 @@ AktualizrSecondary::AktualizrSecondary(AktualizrSecondaryConfig config, std::sha
   initPendingTargetIfAny();
 
   if (hasPendingUpdate()) {
-    // TODO: refactor this to make it simpler as we don't need to persist/store
+    // TODO(OTA-4545): refactor this to make it simpler as we don't need to persist/store
     // an installation status of each ECU but store it just for a given secondary ECU
     std::vector<Uptane::Target> installed_versions;
     boost::optional<Uptane::Target> pending_target;

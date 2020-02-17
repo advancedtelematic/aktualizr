@@ -116,7 +116,7 @@ std::string Crypto::RSAPSSSign(ENGINE *engine, const std::string &private_key, c
   StructGuard<EVP_PKEY> key(nullptr, EVP_PKEY_free);
   StructGuard<RSA> rsa(nullptr, RSA_free);
   if (engine != nullptr) {
-    // FIXME: this call leaks memory somehow...
+    // TODO(OTA-2138): this call leaks memory somehow...
     key.reset(ENGINE_load_private_key(engine, private_key.c_str(), nullptr, nullptr));
 
     if (key == nullptr) {

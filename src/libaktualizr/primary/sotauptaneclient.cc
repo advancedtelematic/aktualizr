@@ -244,7 +244,7 @@ Json::Value SotaUptaneClient::AssembleManifest() {
         storage->storeCachedEcuManifest(ecu_serial, Utils::jsonToCanonicalStr(secmanifest));
       }
     } else {
-      // TODO: send a corresponding event/report in this case, https://saeljira.it.here.com/browse/OTA-4305
+      // TODO(OTA-4305): send a corresponding event/report in this case
       LOG_ERROR << "Secondary manifest is corrupted or not signed, or signature is invalid manifest: " << secmanifest;
     }
   }
@@ -430,7 +430,7 @@ void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult 
     *result = device_installation_result;
   }
 
-  // TODO: think of exception handling,  the SQLite related code can throw exceptions
+  // TODO(OTA-2178): think of exception handling; the SQLite related code can throw exceptions
   storage->storeDeviceInstallationResult(device_installation_result, raw_installation_report, correlation_id);
 }
 
@@ -944,7 +944,7 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
       if (install_res.result_code.num_code == data::ResultCode::Numeric::kNeedCompletion) {
         // update needs a reboot, send distinct EcuInstallationApplied event
         report_queue->enqueue(std_::make_unique<EcuInstallationAppliedReport>(primary_ecu_serial, correlation_id));
-        sendEvent<event::InstallTargetComplete>(primary_ecu_serial, true);  // TODO: distinguish from success here?
+        sendEvent<event::InstallTargetComplete>(primary_ecu_serial, true);
       } else if (install_res.result_code.num_code == data::ResultCode::Numeric::kOk) {
         storage->saveEcuInstallationResult(primary_ecu_serial, install_res);
         report_queue->enqueue(
@@ -967,7 +967,6 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
       sendEvent<event::InstallTargetComplete>(primaryEcuSerial(), false);
     }
     result.ecu_reports.emplace(result.ecu_reports.begin(), primary_update, primaryEcuSerial(), install_res);
-    // TODO: other updates for primary
   } else {
     LOG_INFO << "No update to install on primary";
   }
@@ -1184,7 +1183,7 @@ void SotaUptaneClient::rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::
       if (!storage->loadRoot(&root, repo, Uptane::Version(v))) {
         LOG_WARNING << "Couldn't find root meta in the storage, trying remote repo";
         if (!uptane_fetcher->fetchRole(&root, Uptane::kMaxRootSize, repo, Uptane::Role::Root(), Uptane::Version(v))) {
-          // TODO: looks problematic, robust procedure needs to be defined
+          // TODO(OTA-4552): looks problematic, robust procedure needs to be defined
           LOG_ERROR << "Root metadata could not be fetched, skipping to the next secondary";
           return;
         }
@@ -1196,8 +1195,8 @@ void SotaUptaneClient::rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::
   }
 }
 
-// TODO: the function can't currently return any errors. The problem of error reporting from secondaries should
-// be solved on a system (backend+frontend) error.
+// TODO(OTA-4342): the function can't currently return any errors. The problem of error reporting from
+// secondaries should be solved on a system (backend+frontend) error.
 // TODO: the function blocks until it updates all the secondaries. Consider non-blocking operation.
 void SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &targets) {
   Uptane::RawMetaPack meta;
