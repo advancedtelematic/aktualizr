@@ -190,12 +190,27 @@ add_test(NAME test_ip_secondary
          COMMAND ${PROJECT_SOURCE_DIR}/tests/ipsecondary_test.py
          --build-dir ${PROJECT_BINARY_DIR} --src-dir ${PROJECT_SOURCE_DIR} --ostree ${BUILD_OSTREE})
 
-add_test(NAME test_backend_failure
-         COMMAND ${PROJECT_SOURCE_DIR}/tests/test_backend_failure.py
-         --build-dir ${PROJECT_BINARY_DIR} --src-dir ${PROJECT_SOURCE_DIR} --ostree ${BUILD_OSTREE})
-set_tests_properties(test_backend_failure PROPERTIES LABELS "noptest")
+add_test(NAME test_director_failure
+        COMMAND ${PROJECT_SOURCE_DIR}/tests/test_director_failure.py
+        --build-dir ${PROJECT_BINARY_DIR} --src-dir ${PROJECT_SOURCE_DIR})
+set_tests_properties(test_director_failure PROPERTIES LABELS "noptest")
+
+add_test(NAME test_imagerepo_failure
+        COMMAND ${PROJECT_SOURCE_DIR}/tests/test_imagerepo_failure.py
+        --build-dir ${PROJECT_BINARY_DIR} --src-dir ${PROJECT_SOURCE_DIR})
+set_tests_properties(test_imagerepo_failure PROPERTIES LABELS "noptest")
+
+add_test(NAME test_customrepo_failure
+         COMMAND ${PROJECT_SOURCE_DIR}/tests/test_customrepo_failure.py
+         --build-dir ${PROJECT_BINARY_DIR} --src-dir ${PROJECT_SOURCE_DIR})
+set_tests_properties(test_customrepo_failure PROPERTIES LABELS "noptest")
 
 if(BUILD_OSTREE)
+    add_test(NAME test_treehub_failure
+             COMMAND ${PROJECT_SOURCE_DIR}/tests/test_treehub_failure.py
+             --build-dir ${PROJECT_BINARY_DIR} --src-dir ${PROJECT_SOURCE_DIR})
+    set_tests_properties(test_treehub_failure PROPERTIES LABELS "noptest")
+
     add_test(NAME test_update
              COMMAND ${PROJECT_SOURCE_DIR}/tests/test_update.py
              --build-dir ${PROJECT_BINARY_DIR} --src-dir ${PROJECT_SOURCE_DIR})

@@ -503,6 +503,7 @@ class DirectorRepo(UptaneRepo):
     def get_ecu_manifest_filepath(self, ecu_serial):
         return self.get_ecu_manifest(ecu_serial)['signed']['installed_image']['filepath']
 
+
 class ImageRepo(UptaneRepo):
     """
     This server serves signed metadata about images

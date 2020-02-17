@@ -2,7 +2,6 @@
 
 import argparse
 import logging
-import threading
 import time
 
 from os import getcwd, chdir, path
