@@ -66,7 +66,7 @@ TEST(Aktualizr, EmptyTargets) {
     EXPECT_EQ(update_result2.status, result::UpdateStatus::kUpdatesAvailable);
 
     result::Install install_result = aktualizr.Install(update_result2.updates).get();
-    EXPECT_EQ(install_result.ecu_reports.size(), 1);
+    ASSERT_EQ(install_result.ecu_reports.size(), 1);
     EXPECT_EQ(install_result.ecu_reports[0].install_res.result_code.num_code,
               data::ResultCode::Numeric::kNeedCompletion);
 
