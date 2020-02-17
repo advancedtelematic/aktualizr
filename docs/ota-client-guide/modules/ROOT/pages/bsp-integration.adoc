@@ -18,7 +18,7 @@ NOTE: You can also add support for your board by writing a separate layer--see h
 
 == Key Concepts
 
-There are two important concepts about *OSTree* and the *meta-updater* that you need to know before proceeding with the integration.
+There are two important concepts about *OSTree* and *meta-updater* that you need to know before proceeding with the integration.
 
 . *OSTree*
 +
