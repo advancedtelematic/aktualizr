@@ -105,6 +105,7 @@ ifndef::env-github[:pageroot:]
 ** xref:{pageroot}posix-secondaries.adoc[Configuration and emulation on a local host]
 * xref:{pageroot}fault-injection.adoc[Simulate installation failures for testing]
 * xref:{pageroot}uptane-generator.adoc[Simulate Uptane metadata transactions]
+* xref:{pageroot}device-monitoring-with-zabbix.adoc[Monitor aktualizr resource usage with Zabbix]
 
 .Troubleshooting
 * xref:{pageroot}troubleshooting.adoc[Troubleshooting]
