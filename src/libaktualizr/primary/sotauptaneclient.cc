@@ -917,6 +917,8 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
   // stuck in an unrecoverable state here
   if (!waitSecondariesReachable(updates)) {
     result.dev_report = {false, data::ResultCode::Numeric::kInternalError, ""};
+    storage->storeDeviceInstallationResult(result.dev_report, "Secondaries were not available", correlation_id);
+    sendEvent<event::AllInstallsComplete>(result);
     return result;
   }
 
