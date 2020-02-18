@@ -8,7 +8,7 @@ from os import getcwd, chdir
 from test_fixtures import with_aktualizr, with_uptane_backend, KeyStore, with_secondary, with_path,\
     DownloadInterruptionHandler, MalformedJsonHandler, with_director, with_imagerepo, InstallManager,\
     with_install_manager, with_images, MalformedImageHandler, with_customrepo, SlowRetrievalHandler, \
-    RedirectHandler, with_sysroot, with_treehub
+    RedirectHandler, with_sysroot, with_treehub, TestRunner
 
 
 logger = logging.getLogger(__file__)
@@ -30,8 +30,8 @@ logger = logging.getLogger(__file__)
 @with_imagerepo()
 @with_director(start=False)
 @with_aktualizr(start=False, run_mode='full')
-def test_backend_failure_sanity_customrepo_update_after_image_download_failure(uptane_repo, custom_repo, director,
-                                                                               aktualizr, **kwargs):
+def test_customrepo_update_after_image_download_failure(uptane_repo, custom_repo, director,
+                                                        aktualizr, **kwargs):
     update_hash = uptane_repo.add_image(aktualizr.id, 'primary-image.img',
                                         custom_url=custom_repo.base_url + '/' + 'primary-image.img')
 
@@ -55,8 +55,8 @@ def test_backend_failure_sanity_customrepo_update_after_image_download_failure(u
 @with_imagerepo()
 @with_director()
 @with_aktualizr(run_mode='once', output_logs=True)
-def test_backend_failure_sanity_customrepo_update_redirect(aktualizr, uptane_repo,
-                                                           custom_repo, director, **kwargs):
+def test_customrepo_update_redirect(aktualizr, uptane_repo,
+                                    custom_repo, director, **kwargs):
     update_hash = uptane_repo.add_image(aktualizr.id, 'primary-image.img',
                                         custom_url=custom_repo.base_url + '/' + 'primary-image.img')
     install_result = director.wait_for_install()
@@ -72,8 +72,8 @@ def test_backend_failure_sanity_customrepo_update_redirect(aktualizr, uptane_rep
 @with_imagerepo()
 @with_director()
 @with_aktualizr(start=False, run_mode='once', output_logs=True)
-def test_backend_failure_sanity_customrepo_unsuccessful_update_redirect(aktualizr, uptane_repo,
-                                                           custom_repo, director, **kwargs):
+def test_customrepo_unsuccessful_update_redirect(aktualizr, uptane_repo,
+                                                 custom_repo, director, **kwargs):
     update_hash = uptane_repo.add_image(aktualizr.id, 'primary-image.img',
                                         custom_url=custom_repo.base_url + '/' + 'primary-image.img')
     with aktualizr:
@@ -95,17 +95,12 @@ if __name__ == "__main__":
     chdir(input_params.build_dir)
 
     test_suite = [
-                    test_backend_failure_sanity_customrepo_update_after_image_download_failure,
-                    test_backend_failure_sanity_customrepo_update_redirect,
-                    test_backend_failure_sanity_customrepo_unsuccessful_update_redirect,
+                    test_customrepo_update_after_image_download_failure,
+                    test_customrepo_update_redirect,
+                    test_customrepo_unsuccessful_update_redirect,
     ]
 
-    test_suite_run_result = True
-    for test in test_suite:
-        logger.info('>>> Running {}...'.format(test.__name__))
-        test_run_result = test()
-        logger.info('>>> {}: {}\n'.format('OK' if test_run_result else 'FAILED', test.__name__))
-        test_suite_run_result = test_suite_run_result and test_run_result
+    test_suite_run_result = TestRunner(test_suite).run()
 
     chdir(initial_cwd)
     exit(0 if test_suite_run_result else 1)

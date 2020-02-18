@@ -3,18 +3,17 @@ import logging
 import json
 import tempfile
 import threading
-import time
 import os
 import shutil
 import signal
 import socket
 import time
 
-from os import devnull
 from os import path
 from uuid import uuid4
 from os import urandom
 from functools import wraps
+from multiprocessing import pool, cpu_count
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 
 from fake_http_server.fake_test_server import FakeTestServerBackground
@@ -1047,3 +1046,42 @@ def with_treehub(handlers=[], port=0):
         return wrapper
     return decorator
 
+
+class NonDaemonPool(pool.Pool):
+    def Process(self, *args, **kwds):
+        proc = super(NonDaemonPool, self).Process(*args, **kwds)
+
+        class NonDaemonProcess(proc.__class__):
+            """Monkey-patch process to ensure it is never daemonized"""
+
+            @property
+            def daemon(self):
+                return False
+
+            @daemon.setter
+            def daemon(self, val):
+                pass
+
+        proc.__class__ = NonDaemonProcess
+
+        return proc
+
+
+class TestRunner:
+    def __init__(self, tests):
+        self._tests = tests
+        self._test_runner_pool = NonDaemonPool(min(len(self._tests), cpu_count()))
+
+    @staticmethod
+    def test_runner(test):
+        logger.info('>>> Running {}...'.format(test.__name__))
+        test_run_result = test()
+        logger.info('>>> {}: {}\n'.format('OK' if test_run_result else 'FAILED', test.__name__))
+        return test_run_result
+
+    def run(self):
+        results = self._test_runner_pool.map(TestRunner.test_runner, self._tests)
+        total_result = True
+        for result in results:
+            total_result = total_result and result
+        return total_result

@@ -6,7 +6,7 @@ import argparse
 from os import getcwd, chdir
 from test_fixtures import KeyStore, with_uptane_backend, with_path, with_director, with_aktualizr,\
     with_install_manager, with_imagerepo, with_images, MalformedImageHandler, \
-    DownloadInterruptionHandler, MalformedJsonHandler, DownloadInterruptionHandler
+    DownloadInterruptionHandler, MalformedJsonHandler, DownloadInterruptionHandler, TestRunner
 
 
 logger = logging.getLogger(__file__)
@@ -33,8 +33,8 @@ Note: Aktualizr doesn't send any installation report in manifest in case of meta
 @with_director(start=False)
 @with_aktualizr(start=False, run_mode='full')
 @with_install_manager()
-def test_backend_failure_sanity_imagerepo_update_after_metadata_download_failure(install_mngr, director,
-                                                                                 aktualizr, **kwargs):
+def test_imagerepo_update_after_metadata_download_failure(install_mngr, director,
+                                                          aktualizr, **kwargs):
     with aktualizr:
         with director:
             install_result = director.wait_for_install()
@@ -61,8 +61,8 @@ Currently, it's tested against two types of image download failure:
 @with_director(start=False)
 @with_aktualizr(start=False, run_mode='full', id=('primary-hw-ID-001', 'primary-ecu-id'))
 @with_install_manager()
-def test_backend_failure_sanity_imagerepo_update_after_image_download_failure(install_mngr, director,
-                                                                              aktualizr, **kwargs):
+def test_imagerepo_update_after_image_download_failure(install_mngr, director,
+                                                       aktualizr, **kwargs):
     with aktualizr:
         with director:
             install_result = director.wait_for_install()
@@ -84,8 +84,8 @@ def test_backend_failure_sanity_imagerepo_update_after_image_download_failure(in
 @with_director()
 @with_aktualizr(run_mode='once')
 @with_install_manager()
-def test_backend_failure_sanity_imagerepo_unsuccessful_download(install_mngr, aktualizr,
-                                                                director, **kwargs):
+def test_imagerepo_unsuccessful_download(install_mngr, aktualizr,
+                                         director, **kwargs):
     aktualizr.wait_for_completion()
     return not (director.get_install_result() or install_mngr.are_images_installed())
 
@@ -103,17 +103,12 @@ if __name__ == "__main__":
     chdir(input_params.build_dir)
 
     test_suite = [
-        test_backend_failure_sanity_imagerepo_update_after_metadata_download_failure,
-        test_backend_failure_sanity_imagerepo_update_after_image_download_failure,
-        test_backend_failure_sanity_imagerepo_unsuccessful_download,
+        test_imagerepo_update_after_metadata_download_failure,
+        test_imagerepo_update_after_image_download_failure,
+        test_imagerepo_unsuccessful_download,
     ]
 
-    test_suite_run_result = True
-    for test in test_suite:
-        logger.info('>>> Running {}...'.format(test.__name__))
-        test_run_result = test()
-        logger.info('>>> {}: {}\n'.format('OK' if test_run_result else 'FAILED', test.__name__))
-        test_suite_run_result = test_suite_run_result and test_run_result
+    test_suite_run_result = TestRunner(test_suite).run()
 
     chdir(initial_cwd)
     exit(0 if test_suite_run_result else 1)
