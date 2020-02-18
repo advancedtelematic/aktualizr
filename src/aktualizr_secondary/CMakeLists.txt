@@ -28,6 +28,7 @@ add_library(aktualizr_secondary_lib SHARED
     $<TARGET_OBJECTS:logging>
     $<TARGET_OBJECTS:uptane>
     $<TARGET_OBJECTS:campaign>)
+set_target_properties(aktualizr_secondary_lib PROPERTIES LIBRARY_OUTPUT_NAME aktualizr_secondary)
 target_link_libraries(aktualizr_secondary_lib aktualizr-posix ${AKTUALIZR_EXTERNAL_LIBS})
 
 if (BUILD_ISOTP)

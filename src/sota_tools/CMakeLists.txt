@@ -34,6 +34,7 @@ if (BUILD_SOTA_TOOLS)
     set(GARAGE_TOOLS_VERSION "${AKTUALIZR_VERSION}")
     set_property(SOURCE garage_tools_version.cc PROPERTY COMPILE_DEFINITIONS GARAGE_TOOLS_VERSION="${GARAGE_TOOLS_VERSION}")
     add_library(sota_tools_lib SHARED ${SOTA_TOOLS_LIB_SRC})
+    set_target_properties(sota_tools_lib PROPERTIES LIBRARY_OUTPUT_NAME sota_tools)
     target_include_directories(sota_tools_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_SOURCE_DIR} ${GLIB2_INCLUDE_DIRS})
 
     # we link with aktualizr static lib here, to bundle everything in sota_tools_lib
