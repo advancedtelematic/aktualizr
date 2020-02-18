@@ -61,6 +61,10 @@ As described in the link:https://wiki.automotivelinux.org/agl-distro/agl-raspber
 
 === Additional configuration for QEMU
 
+// This has been moved upstream:
+// https://gerrit.automotivelinux.org/gerrit/c/AGL/meta-agl/+/23953
+// But it's only in master at present, not even icefish.
+
 By default, AGL for QEMU boots into an initrd before loading the root filesystem, but as of thud, meta-updater by default uses an initramfs. You will need to force the build to use an initramfs by adding this to your `local.conf`:
 
 ----
