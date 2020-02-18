@@ -5,7 +5,7 @@ import argparse
 
 from os import getcwd, chdir
 from test_fixtures import KeyStore, with_uptane_backend, with_path, with_director, with_aktualizr, \
-    with_sysroot, with_treehub, DownloadInterruptionHandler, MalformedImageHandler
+    with_sysroot, with_treehub, DownloadInterruptionHandler, MalformedImageHandler, TestRunner
 
 logger = logging.getLogger(__file__)
 
@@ -34,11 +34,11 @@ logger = logging.getLogger(__file__)
 ])
 @with_sysroot()
 @with_aktualizr(start=False, run_mode='once')
-def test_backend_failure_sanity_treehub_update_after_image_download_failure(uptane_repo,
-                                                                            aktualizr,
-                                                                            director,
-                                                                            uptane_server,
-                                                                            sysroot, treehub):
+def test_treehub_update_after_image_download_failure(uptane_repo,
+                                                     aktualizr,
+                                                     director,
+                                                     uptane_server,
+                                                     sysroot, treehub):
     target_rev = treehub.revision
     uptane_repo.add_ostree_target(aktualizr.id, target_rev)
     with aktualizr:
@@ -71,11 +71,11 @@ def test_backend_failure_sanity_treehub_update_after_image_download_failure(upta
 ])
 @with_sysroot()
 @with_aktualizr(start=False, run_mode='once', output_logs=True)
-def test_backend_failure_bad_ostree_checksum(uptane_repo,
-                                             aktualizr,
-                                             director,
-                                             uptane_server,
-                                             sysroot, treehub):
+def test_treehub_update_if_bad_ostree_checksum(uptane_repo,
+                                               aktualizr,
+                                               director,
+                                               uptane_server,
+                                               sysroot, treehub):
     target_rev = treehub.revision
     uptane_repo.add_ostree_target(aktualizr.id, target_rev)
     with aktualizr:
@@ -101,16 +101,11 @@ if __name__ == "__main__":
     chdir(input_params.build_dir)
 
     test_suite = [
-                    test_backend_failure_sanity_treehub_update_after_image_download_failure,
-                    test_backend_failure_bad_ostree_checksum
+                    test_treehub_update_after_image_download_failure,
+                    test_treehub_update_if_bad_ostree_checksum
     ]
 
-    test_suite_run_result = True
-    for test in test_suite:
-        logger.info('>>> Running {}...'.format(test.__name__))
-        test_run_result = test()
-        logger.info('>>> {}: {}\n'.format('OK' if test_run_result else 'FAILED', test.__name__))
-        test_suite_run_result = test_suite_run_result and test_run_result
+    test_suite_run_result = TestRunner(test_suite).run()
 
     chdir(initial_cwd)
     exit(0 if test_suite_run_result else 1)

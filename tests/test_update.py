@@ -7,7 +7,7 @@ import time
 from os import getcwd, chdir
 
 from test_fixtures import KeyStore, with_aktualizr, with_uptane_backend, with_secondary, with_director, with_imagerepo,\
-    with_sysroot, with_treehub
+    with_sysroot, with_treehub, TestRunner
 
 
 logger = logging.getLogger(__file__)
@@ -180,12 +180,7 @@ if __name__ == "__main__":
         test_primary_ostree_update_if_metadata_expires
     ]
 
-    test_suite_run_result = True
-    for test in test_suite:
-        logger.info('>>> Running {}...'.format(test.__name__))
-        test_run_result = test()
-        logger.info('>>> {}: {}\n'.format('OK' if test_run_result else 'FAILED', test.__name__))
-        test_suite_run_result = test_suite_run_result and test_run_result
+    test_suite_run_result = TestRunner(test_suite).run()
 
     chdir(initial_cwd)
     exit(0 if test_suite_run_result else 1)
