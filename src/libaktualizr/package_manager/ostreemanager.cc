@@ -70,6 +70,8 @@ data::InstallationResult OstreeManager::pull(const boost::filesystem::path &sysr
                                              OstreeProgressCb progress_cb) {
   const std::string refhash = target.sha256Hash();
   const char *const commit_ids[] = {refhash.c_str()};
+  const std::string branchname = target.filename().substr(0, target.filename().rfind("-"));
+  const char *const branchnames[] = {branchname.c_str()};
   GError *error = nullptr;
   GVariantBuilder builder;
   GVariant *options;
@@ -104,8 +106,8 @@ data::InstallationResult OstreeManager::pull(const boost::filesystem::path &sysr
 
   g_variant_builder_init(&builder, G_VARIANT_TYPE("a{sv}"));
   g_variant_builder_add(&builder, "{s@v}", "flags", g_variant_new_variant(g_variant_new_int32(0)));
-
-  g_variant_builder_add(&builder, "{s@v}", "refs", g_variant_new_variant(g_variant_new_strv(commit_ids, 1)));
+  g_variant_builder_add(&builder, "{s@v}", "refs", g_variant_new_variant(g_variant_new_strv(branchnames, 1)));
+  g_variant_builder_add(&builder, "{s@v}", "override-commit-ids", g_variant_new_variant(g_variant_new_strv(commit_ids, 1)));
 
   options = g_variant_builder_end(&builder);
 
