@@ -53,6 +53,7 @@ add_library(aktualizr_lib SHARED
     $<TARGET_OBJECTS:storage>
     $<TARGET_OBJECTS:uptane>)
 target_link_libraries(aktualizr_lib ${AKTUALIZR_EXTERNAL_LIBS})
+set_target_properties(aktualizr_lib PROPERTIES LIBRARY_OUTPUT_NAME aktualizr)
 install(TARGETS aktualizr_lib LIBRARY DESTINATION lib COMPONENT aktualizr)
 
 if (BUILD_ISOTP)

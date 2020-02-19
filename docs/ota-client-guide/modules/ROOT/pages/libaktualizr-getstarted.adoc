@@ -48,7 +48,7 @@ make
 
 NOTE: The `--recursive` flag in the `git clone` command is needed to recursively clone all the *git submodules*.
 
-After the build is finished, you'll find the client library at the following location: `$\{PROJECT_ROOT}/build/src/libaktualizr/libaktualizr_lib.so`.
+After the build is finished, you'll find the client library at the following location: `$\{PROJECT_ROOT}/build/src/libaktualizr/libaktualizr.so`.
 
 == Integrating libaktualizr into your application
 
