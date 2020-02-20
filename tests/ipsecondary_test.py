@@ -146,13 +146,50 @@ def test_secondary_ostree_update(uptane_repo, secondary, aktualizr, treehub, sys
 
 
 @with_uptane_backend()
+@with_director()
+@with_secondary(start=False)
+@with_aktualizr(start=False, secondary_wait_sec=1, output_logs=False)
+def test_secondary_install_timeout(uptane_repo, secondary, aktualizr, director, **kwargs):
+    '''Test that secondary install fails after a timeout if the secondary never connects'''
+
+    # run aktualizr and secondary and wait until the device/aktualizr is registered
+    with aktualizr, secondary:
+        aktualizr.wait_for_completion()
+
+    # the secondary must be registered
+    if not aktualizr.is_ecu_registered(secondary.id):
+        return False
+
+    # make sure that the secondary is not running
+    if secondary.is_running():
+        return False
+
+    # launch an update on secondary without it
+    secondary_image_filename = "secondary_image_filename_001.img"
+    uptane_repo.add_image(id=secondary.id, image_filename=secondary_image_filename)
+
+    aktualizr.update_wait_timeout(0.1)
+    with aktualizr:
+        aktualizr.wait_for_completion()
+
+    manifest = director.get_manifest()
+    result_code = manifest["signed"]["installation_report"]["report"]["result"]["code"]
+    if result_code != "INTERNAL_ERROR":
+        logger.error("Wrong result code {}".format(result_code))
+        return False
+
+    return not director.get_install_result()
+
+
+
+@with_uptane_backend()
 @with_secondary(start=False)
 @with_aktualizr(start=False, output_logs=False, wait_timeout=0.1)
 def test_primary_timeout_during_first_run(uptane_repo, secondary, aktualizr, **kwargs):
     """Test Aktualizr's timeout of waiting for Secondaries during initial boot"""
 
     secondary_image_filename = "secondary_image_filename_001.img"
-    secondary_image_hash = uptane_repo.add_image(id=secondary.id, image_filename=secondary_image_filename)
+    uptane_repo.add_image(id=secondary.id, image_filename=secondary_image_filename)
 
     logger.debug("Checking Aktualizr behaviour if it timeouts while waiting for a connection from the secondary")
 
@@ -196,7 +233,7 @@ def test_primary_wait_secondary_install(uptane_repo, secondary, aktualizr, direc
 
 
 @with_uptane_backend()
-@with_secondary(start=False)
+@with_secondary(start=False, output_logs=False)
 @with_aktualizr(start=False, output_logs=False)
 def test_primary_timeout_after_device_is_registered(uptane_repo, secondary, aktualizr, **kwargs):
     '''Test Aktualizr's timeout of waiting for Secondaries after the device/aktualizr was registered at the backend'''
@@ -280,6 +317,7 @@ if __name__ == '__main__':
                     test_secondary_update,
                     test_secondary_update_if_secondary_starts_first,
                     test_secondary_update_if_primary_starts_first,
+                    test_secondary_install_timeout,
                     test_primary_timeout_during_first_run,
                     test_primary_timeout_after_device_is_registered,
                     test_primary_multiple_secondaries,
