@@ -115,14 +115,15 @@ Options for Uptane.
 
 [options="header"]
 |==========================================================================================
-| Name                      | Default      | Description
-| `polling_sec`             | `10`         | Interval between polls (in seconds).
-| `director_server`         |              | Director server URL. If empty, set to `tls.server` with `/director` appended.
-| `repo_server`             |              | Image repository server URL. If empty, set to `tls.server` with `/repo` appended.
-| `key_source`              | `"file"`     | Where to read the device's private key from. Options: `"file"`, `"pkcs11"`.
-| `key_type`                | `"RSA2048"`  | Type of cryptographic keys to use. Options: `"ED25519"`, `"RSA2048"`, `"RSA3072"` or `"RSA4096"`.
-| `secondary_configs_dir`   | `""`         | Directory containing individual secondary json configuration files. Example here: link:{aktualizr-github-url}/config/secondary/virtualsec.json[]
-| `force_install_completion`| false        | Forces installation completion. Causes a system reboot in case of an ostree package manager. Emulates a reboot in case of a fake package manager.
+| Name                            | Default      | Description
+| `polling_sec`                   | `10`         | Interval between polls (in seconds).
+| `director_server`               |              | Director server URL. If empty, set to `tls.server` with `/director` appended.
+| `repo_server`                   |              | Image repository server URL. If empty, set to `tls.server` with `/repo` appended.
+| `key_source`                    | `"file"`     | Where to read the device's private key from. Options: `"file"`, `"pkcs11"`.
+| `key_type`                      | `"RSA2048"`  | Type of cryptographic keys to use. Options: `"ED25519"`, `"RSA2048"`, `"RSA3072"` or `"RSA4096"`.
+| `force_install_completion`      | false        | Forces installation completion. Causes a system reboot in case of an ostree package manager. Emulates a reboot in case of a fake package manager.
+| `secondary_config_file`         | `""`         | Secondary json configuration file. Example here: link:{aktualizr-github-url}/config/secondary/virtualsec.json[]
+| `secondary_preinstall_wait_sec` | `600`        | Time to wait for reachable secondaries before attempting an installation.
 |==========================================================================================
 
 === `pacman`

@@ -193,7 +193,7 @@ TEST(Aktualizr, DeviceInstallationResult) {
                                      data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, ""));
 
   data::InstallationResult result;
-  aktualizr.uptane_client()->computeDeviceInstallationResult(&result, "correlation_id");
+  aktualizr.uptane_client()->computeDeviceInstallationResult(&result, nullptr);
   auto res_json = result.toJson();
   EXPECT_EQ(res_json["code"].asString(), "primary_hw:INSTALL_FAILED");
   EXPECT_EQ(res_json["success"], false);
@@ -201,7 +201,7 @@ TEST(Aktualizr, DeviceInstallationResult) {
   storage->saveEcuInstallationResult(
       Uptane::EcuSerial("ecuserial3"),
       data::InstallationResult(data::ResultCode(data::ResultCode::Numeric::kInstallFailed, "SECOND_FAIL"), ""));
-  aktualizr.uptane_client()->computeDeviceInstallationResult(&result, "correlation_id");
+  aktualizr.uptane_client()->computeDeviceInstallationResult(&result, nullptr);
   res_json = result.toJson();
   EXPECT_EQ(res_json["code"].asString(), "primary_hw:INSTALL_FAILED|hw_id3:SECOND_FAIL");
   EXPECT_EQ(res_json["success"], false);

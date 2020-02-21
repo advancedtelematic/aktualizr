@@ -140,7 +140,7 @@ class SotaUptaneClient {
   void rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::SecondaryInterface &secondary);
   bool updateDirectorMeta();
   bool checkDirectorMetaOffline();
-  void computeDeviceInstallationResult(data::InstallationResult *result, const std::string &correlation_id);
+  void computeDeviceInstallationResult(data::InstallationResult *result, std::string *raw_installation_report) const;
   std::unique_ptr<Uptane::Target> findTargetInDelegationTree(const Uptane::Target &target, bool offline);
   std::unique_ptr<Uptane::Target> findTargetHelper(const Uptane::Targets &cur_targets,
                                                    const Uptane::Target &queried_target, int level, bool terminating,

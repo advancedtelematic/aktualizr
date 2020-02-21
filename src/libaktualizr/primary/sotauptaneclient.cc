@@ -126,7 +126,11 @@ void SotaUptaneClient::finalizeAfterReboot() {
   }
 
   director_repo.dropTargets(*storage);  // fix for OTA-2587, listen to backend again after end of install
-  computeDeviceInstallationResult(nullptr, correlation_id);
+
+  data::InstallationResult ir;
+  std::string raw_report;
+  computeDeviceInstallationResult(&ir, &raw_report);
+  storage->storeDeviceInstallationResult(ir, raw_report, correlation_id);
   putManifestSimple();
 }
 
@@ -361,10 +365,10 @@ bool SotaUptaneClient::checkImagesMetaOffline() {
 }
 
 void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult *result,
-                                                       const std::string &correlation_id) {
+                                                       std::string *raw_installation_report) const {
   data::InstallationResult device_installation_result =
       data::InstallationResult(data::ResultCode::Numeric::kOk, "Device has been successfully installed");
-  std::string raw_installation_report = "Installation succesful";
+  std::string raw_ir = "Installation succesful";
 
   do {
     std::vector<std::pair<Uptane::EcuSerial, data::InstallationResult>> ecu_results;
@@ -373,7 +377,7 @@ void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult 
       // failed to load ECUs' installation result
       device_installation_result = data::InstallationResult(data::ResultCode::Numeric::kInternalError,
                                                             "Unable to get installation results from ecus");
-      raw_installation_report = "Failed to load ECUs' installation result";
+      raw_ir = "Failed to load ECUs' installation result";
 
       break;
     }
@@ -391,7 +395,7 @@ void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult 
         device_installation_result = data::InstallationResult(data::ResultCode::Numeric::kInternalError,
                                                               "Unable to get installation results from ecus");
 
-        raw_installation_report = "Couldn't find any ECU with the given serial: " + ecu_serial.ToString();
+        raw_ir = "Couldn't find any ECU with the given serial: " + ecu_serial.ToString();
 
         break;
       }
@@ -401,7 +405,7 @@ void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult 
         device_installation_result =
             data::InstallationResult(data::ResultCode::Numeric::kNeedCompletion,
                                      "ECU needs completion/finalization to be installed: " + ecu_serial.ToString());
-        raw_installation_report = "ECU needs completion/finalization to be installed: " + ecu_serial.ToString();
+        raw_ir = "ECU needs completion/finalization to be installed: " + ecu_serial.ToString();
 
         break;
       }
@@ -419,7 +423,7 @@ void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult 
       device_installation_result =
           data::InstallationResult(data::ResultCode(data::ResultCode::Numeric::kInstallFailed, result_code_err_str),
                                    "Installation failed on at least one of ECUs");
-      raw_installation_report = "Installation failed on at least one of ECUs";
+      raw_ir = "Installation failed on at least one of ECUs";
 
       break;
     }
@@ -430,8 +434,9 @@ void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult 
     *result = device_installation_result;
   }
 
-  // TODO(OTA-2178): think of exception handling; the SQLite related code can throw exceptions
-  storage->storeDeviceInstallationResult(device_installation_result, raw_installation_report, correlation_id);
+  if (raw_installation_report != nullptr) {
+    *raw_installation_report = raw_ir;
+  }
 }
 
 bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, unsigned int *ecus_count) {
@@ -873,114 +878,127 @@ result::UpdateStatus SotaUptaneClient::checkUpdatesOffline(const std::vector<Upt
 }
 
 result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> &updates) {
-  result::Install result;
   const std::string &correlation_id = director_repo.getCorrelationId();
 
   // clear all old results first
   storage->clearInstallationResults();
 
-  // Recheck the Uptane metadata and make sure the requested updates are
-  // consistent with the stored metadata.
-  result::UpdateStatus update_status = checkUpdatesOffline(updates);
-  if (update_status != result::UpdateStatus::kUpdatesAvailable) {
-    if (update_status == result::UpdateStatus::kNoUpdatesAvailable) {
-      result.dev_report = {false, data::ResultCode::Numeric::kAlreadyProcessed, ""};
-    } else {
-      result.dev_report = {false, data::ResultCode::Numeric::kInternalError, ""};
-    }
-    storage->storeDeviceInstallationResult(result.dev_report, "Stored Uptane metadata is invalid", correlation_id);
-    sendEvent<event::AllInstallsComplete>(result);
-    return result;
-  }
+  // put most of the logic in a lambda so that we can take care of common
+  // post-operations
+  result::Install r;
+  std::string raw_report;
+  bool drop_targets = false;
 
-  Uptane::EcuSerial primary_ecu_serial = primaryEcuSerial();
-  // Recheck the downloaded update hashes.
-  for (const auto &update : updates) {
-    if (update.IsForEcu(primary_ecu_serial) || !update.IsOstree()) {
-      // download binary images for any target, for both Primary and Secondary
-      // download an ostree revision just for Primary, Secondary will do it by itself
-      // Primary cannot verify downloaded OSTree targets for Secondaries,
-      // Downloading of Secondary's ostree repo revision to the Primary's can fail
-      // if they differ signficantly as ostree has a certain cap/limit of the diff it pulls
-      if (package_manager_->verifyTarget(update) != TargetStatus::kGood) {
+  std::tie(r, raw_report, drop_targets) = [this, &updates,
+                                           &correlation_id]() -> std::tuple<result::Install, std::string, bool> {
+    result::Install result;
+
+    // Recheck the Uptane metadata and make sure the requested updates are
+    // consistent with the stored metadata.
+    result::UpdateStatus update_status = checkUpdatesOffline(updates);
+    if (update_status != result::UpdateStatus::kUpdatesAvailable) {
+      if (update_status == result::UpdateStatus::kNoUpdatesAvailable) {
+        result.dev_report = {false, data::ResultCode::Numeric::kAlreadyProcessed, ""};
+      } else {
         result.dev_report = {false, data::ResultCode::Numeric::kInternalError, ""};
-        storage->storeDeviceInstallationResult(result.dev_report, "Downloaded target is invalid", correlation_id);
-        sendEvent<event::AllInstallsComplete>(result);
-        return result;
+      }
+      return std::make_tuple(result, "Stored Uptane metadata is invalid", false);
+    }
+
+    Uptane::EcuSerial primary_ecu_serial = primaryEcuSerial();
+    // Recheck the downloaded update hashes.
+    for (const auto &update : updates) {
+      if (update.IsForEcu(primary_ecu_serial) || !update.IsOstree()) {
+        // download binary images for any target, for both Primary and Secondary
+        // download an ostree revision just for Primary, Secondary will do it by itself
+        // Primary cannot verify downloaded OSTree targets for Secondaries,
+        // Downloading of Secondary's ostree repo revision to the Primary's can fail
+        // if they differ signficantly as ostree has a certain cap/limit of the diff it pulls
+        if (package_manager_->verifyTarget(update) != TargetStatus::kGood) {
+          result.dev_report = {false, data::ResultCode::Numeric::kInternalError, ""};
+          return std::make_tuple(result, "Downloaded target is invalid", false);
+        }
       }
     }
-  }
 
-  // wait some time for secondaries to come up
-  // note: this fail after a time out but will be retried at the next install
-  // phase if the targets have not been changed. This is done to avoid being
-  // stuck in an unrecoverable state here
-  if (!waitSecondariesReachable(updates)) {
-    result.dev_report = {false, data::ResultCode::Numeric::kInternalError, ""};
-    return result;
-  }
+    // wait some time for secondaries to come up
+    // note: this fail after a time out but will be retried at the next install
+    // phase if the targets have not been changed. This is done to avoid being
+    // stuck in an unrecoverable state here
+    if (!waitSecondariesReachable(updates)) {
+      result.dev_report = {false, data::ResultCode::Numeric::kInternalError, "Unreachable secondary"};
+      return std::make_tuple(result, "Secondaries were not available", false);
+    }
 
-  // Uptane step 5 (send time to all ECUs) is not implemented yet.
-  std::vector<Uptane::Target> primary_updates = findForEcu(updates, primary_ecu_serial);
+    // Uptane step 5 (send time to all ECUs) is not implemented yet.
+    std::vector<Uptane::Target> primary_updates = findForEcu(updates, primary_ecu_serial);
 
-  //   6 - send metadata to all the ECUs
-  sendMetadataToEcus(updates);
+    //   6 - send metadata to all the ECUs
+    sendMetadataToEcus(updates);
 
-  //   7 - send images to ECUs (deploy for OSTree)
-  if (primary_updates.size() != 0u) {
-    // assuming one OSTree OS per primary => there can be only one OSTree update
-    Uptane::Target primary_update = primary_updates[0];
-    primary_update.setCorrelationId(correlation_id);
+    //   7 - send images to ECUs (deploy for OSTree)
+    if (primary_updates.size() != 0u) {
+      // assuming one OSTree OS per primary => there can be only one OSTree update
+      Uptane::Target primary_update = primary_updates[0];
+      primary_update.setCorrelationId(correlation_id);
 
-    report_queue->enqueue(std_::make_unique<EcuInstallationStartedReport>(primary_ecu_serial, correlation_id));
-    sendEvent<event::InstallStarted>(primary_ecu_serial);
+      report_queue->enqueue(std_::make_unique<EcuInstallationStartedReport>(primary_ecu_serial, correlation_id));
+      sendEvent<event::InstallStarted>(primary_ecu_serial);
 
-    data::InstallationResult install_res;
-    if (!isInstalledOnPrimary(primary_update)) {
-      // notify the bootloader before installation happens, because installation is not atomic and
-      //   a false notification doesn't hurt when rollbacks are implemented
-      package_manager_->updateNotify();
-      install_res = PackageInstallSetResult(primary_update);
-      if (install_res.result_code.num_code == data::ResultCode::Numeric::kNeedCompletion) {
-        // update needs a reboot, send distinct EcuInstallationApplied event
-        report_queue->enqueue(std_::make_unique<EcuInstallationAppliedReport>(primary_ecu_serial, correlation_id));
-        sendEvent<event::InstallTargetComplete>(primary_ecu_serial, true);
-      } else if (install_res.result_code.num_code == data::ResultCode::Numeric::kOk) {
-        storage->saveEcuInstallationResult(primary_ecu_serial, install_res);
-        report_queue->enqueue(
-            std_::make_unique<EcuInstallationCompletedReport>(primary_ecu_serial, correlation_id, true));
-        sendEvent<event::InstallTargetComplete>(primary_ecu_serial, true);
+      data::InstallationResult install_res;
+      if (!isInstalledOnPrimary(primary_update)) {
+        // notify the bootloader before installation happens, because installation is not atomic and
+        //   a false notification doesn't hurt when rollbacks are implemented
+        package_manager_->updateNotify();
+        install_res = PackageInstallSetResult(primary_update);
+        if (install_res.result_code.num_code == data::ResultCode::Numeric::kNeedCompletion) {
+          // update needs a reboot, send distinct EcuInstallationApplied event
+          report_queue->enqueue(std_::make_unique<EcuInstallationAppliedReport>(primary_ecu_serial, correlation_id));
+          sendEvent<event::InstallTargetComplete>(primary_ecu_serial, true);
+        } else if (install_res.result_code.num_code == data::ResultCode::Numeric::kOk) {
+          storage->saveEcuInstallationResult(primary_ecu_serial, install_res);
+          report_queue->enqueue(
+              std_::make_unique<EcuInstallationCompletedReport>(primary_ecu_serial, correlation_id, true));
+          sendEvent<event::InstallTargetComplete>(primary_ecu_serial, true);
+        } else {
+          // general error case
+          storage->saveEcuInstallationResult(primary_ecu_serial, install_res);
+          report_queue->enqueue(
+              std_::make_unique<EcuInstallationCompletedReport>(primary_ecu_serial, correlation_id, false));
+          sendEvent<event::InstallTargetComplete>(primary_ecu_serial, false);
+        }
       } else {
-        // general error case
+        install_res =
+            data::InstallationResult(data::ResultCode::Numeric::kAlreadyProcessed, "Package already installed");
         storage->saveEcuInstallationResult(primary_ecu_serial, install_res);
+        // TODO: distinguish this case from regular failure for local and remote event reporting
         report_queue->enqueue(
             std_::make_unique<EcuInstallationCompletedReport>(primary_ecu_serial, correlation_id, false));
         sendEvent<event::InstallTargetComplete>(primary_ecu_serial, false);
       }
+      result.ecu_reports.emplace(result.ecu_reports.begin(), primary_update, primary_ecu_serial, install_res);
     } else {
-      install_res = data::InstallationResult(data::ResultCode::Numeric::kAlreadyProcessed, "Package already installed");
-      storage->saveEcuInstallationResult(primary_ecu_serial, install_res);
-      // TODO: distinguish this case from regular failure for local and remote
-      // event reporting
-      report_queue->enqueue(
-          std_::make_unique<EcuInstallationCompletedReport>(primaryEcuSerial(), correlation_id, false));
-      sendEvent<event::InstallTargetComplete>(primaryEcuSerial(), false);
+      LOG_INFO << "No update to install on primary";
     }
-    result.ecu_reports.emplace(result.ecu_reports.begin(), primary_update, primaryEcuSerial(), install_res);
-  } else {
-    LOG_INFO << "No update to install on primary";
-  }
 
-  auto sec_reports = sendImagesToEcus(updates);
-  result.ecu_reports.insert(result.ecu_reports.end(), sec_reports.begin(), sec_reports.end());
-  computeDeviceInstallationResult(&result.dev_report, correlation_id);
-  sendEvent<event::AllInstallsComplete>(result);
+    auto sec_reports = sendImagesToEcus(updates);
+    result.ecu_reports.insert(result.ecu_reports.end(), sec_reports.begin(), sec_reports.end());
+    std::string rr;
+    computeDeviceInstallationResult(&result.dev_report, &rr);
 
-  if (!(result.dev_report.isSuccess() || result.dev_report.needCompletion())) {
+    return std::make_tuple(result, rr, !(result.dev_report.isSuccess() || result.dev_report.needCompletion()));
+  }();
+
+  // TODO(OTA-2178): think of exception handling; the SQLite related code can throw exceptions
+  storage->storeDeviceInstallationResult(r.dev_report, raw_report, correlation_id);
+
+  sendEvent<event::AllInstallsComplete>(r);
+
+  if (drop_targets) {
     director_repo.dropTargets(*storage);  // fix for OTA-2587, listen to backend again after end of install
   }
 
-  return result;
+  return r;
 }
 
 result::CampaignCheck SotaUptaneClient::campaignCheck() {
@@ -1132,7 +1150,7 @@ bool SotaUptaneClient::waitSecondariesReachable(const std::vector<Uptane::Target
 
   LOG_INFO << "Waiting for secondaries to connect to start installation...";
 
-  auto deadline = std::chrono::system_clock::now() + std::chrono::minutes(10);
+  auto deadline = std::chrono::system_clock::now() + std::chrono::seconds(config.uptane.secondary_preinstall_wait_sec);
   while (std::chrono::system_clock::now() <= deadline) {
     if (targeted_secondaries.empty()) {
       return true;
@@ -1407,7 +1425,11 @@ void SotaUptaneClient::checkAndUpdatePendingSecondaries() {
 
         report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(
             pending_ecu.first, pending_version->correlation_id(), true));
-        computeDeviceInstallationResult(nullptr, pending_version->correlation_id());
+
+        data::InstallationResult ir;
+        std::string raw_report;
+        computeDeviceInstallationResult(&ir, &raw_report);
+        storage->storeDeviceInstallationResult(ir, raw_report, pending_version->correlation_id());
       }
     }
   }

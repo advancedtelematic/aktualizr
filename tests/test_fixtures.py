@@ -27,7 +27,7 @@ class Aktualizr:
 
     def __init__(self, aktualizr_primary_exe, aktualizr_info_exe, id,
                  uptane_server, wait_port=9040, wait_timeout=60, log_level=1,
-                 primary_port=None, secondaries=None, output_logs=True,
+                 primary_port=None, secondaries=None, secondary_wait_sec=600, output_logs=True,
                  run_mode='once', director=None, image_repo=None,
                  sysroot=None, treehub=None, ostree_mock_path=None, **kwargs):
         self.id = id
@@ -46,6 +46,7 @@ class Aktualizr:
                                               timeout=wait_timeout))
             json.dump(secondary_cfg, secondary_config_file)
             self._secondary_config_file = secondary_config_file.name
+        self._secondary_wait_sec = secondary_wait_sec
 
         with open(path.join(self._storage_dir.name, 'config.toml'), 'w+') as config_file:
             config_file.write(Aktualizr.CONFIG_TEMPLATE.format(server_url=uptane_server.base_url,
@@ -55,6 +56,7 @@ class Aktualizr:
                                                                db_path=path.join(self._storage_dir.name, 'sql.db'),
                                                                log_level=self._log_level,
                                                                secondary_cfg_file=self._secondary_config_file,
+                                                               secondary_wait_sec=self._secondary_wait_sec,
                                                                director=director.base_url if director else '',
                                                                image_repo=image_repo.base_url if image_repo else '',
                                                                pacman_type='ostree' if treehub and sysroot else 'none',
@@ -102,6 +104,7 @@ class Aktualizr:
     [uptane]
     polling_sec = 0
     secondary_config_file = "{secondary_cfg_file}"
+    secondary_preinstall_wait_sec = {secondary_wait_sec}
     director_server = "{director}"
     repo_server = "{image_repo}"
 
@@ -786,7 +789,7 @@ class UptaneTestRepo:
 
 
 def with_aktualizr(start=True, output_logs=False, id=('primary-hw-ID-001', str(uuid4())), wait_timeout=60,
-                   log_level=1, aktualizr_primary_exe='src/aktualizr_primary/aktualizr',
+                   secondary_wait_sec=600, log_level=1, aktualizr_primary_exe='src/aktualizr_primary/aktualizr',
                    aktualizr_info_exe='src/aktualizr_info/aktualizr-info',
                    run_mode='once'):
     def decorator(test):
@@ -794,7 +797,9 @@ def with_aktualizr(start=True, output_logs=False, id=('primary-hw-ID-001', str(u
         def wrapper(*args, ostree_mock_path=None, **kwargs):
             aktualizr = Aktualizr(aktualizr_primary_exe=aktualizr_primary_exe,
                                   aktualizr_info_exe=aktualizr_info_exe, id=id,
-                                  wait_timeout=wait_timeout, log_level=log_level, output_logs=output_logs,
+                                  wait_timeout=wait_timeout,
+                                  secondary_wait_sec=secondary_wait_sec,
+                                  log_level=log_level, output_logs=output_logs,
                                   run_mode=run_mode, ostree_mock_path=ostree_mock_path, **kwargs)
             if start:
                 with aktualizr:
