@@ -75,10 +75,37 @@ brew tap advancedtelematic/otaconnect
 brew install aktualizr
 ----
 
+You can build and install the latest development version of aktualizr on MacOS (current head of the development branch):
+----
+brew tap advancedtelematic/otaconnect
+brew install --HEAD aktualizr
+----
+
+If any of the previous release versions of aktualizr has been installed before make sure you `unlink` it prior to installing the HEAD version:
+----
+brew unlink aktualizr
+brew install --HEAD aktualizr
+----
+
+You can switch back to the release version by unlinking and installing again:
+----
+brew unlink aktualizr
+brew install aktualizr
+----
+
 You can also build it yourself, with basic dependencies from homebrew. You can install the necessary dependencies as follows:
 
 ----
 brew install asn1c boost cmake libarchive libsodium pkgconfig python3
+----
+
+and run the following from the aktualizr project directory:
+----
+export CXXFLAGS=-w
+cmake -S . -B build -DBoost_USE_MULTITHREADED=ON
+cmake --build build --target all -- -j8
+
+./build/src/aktualizr_primary/aktualizr --version
 ----
 
 If you also want to compile the SOTA tools:
