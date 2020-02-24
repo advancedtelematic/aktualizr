@@ -244,7 +244,7 @@ NOTE: The IP address for the QEMU is the localhost (127.0.0.1). Also, use the po
 . On the **Templates** tab, in the **Link New Templates** section, click *Select*, and then select the **Aktualizr Client** template.
 . Click the **Add** hyperlink, and then click the **Add** button.
 . Go to **Monitoring** > **Graphs**.
-8. On the **Group** menu, select **All** **Host qemux86-64** and **Graph aktualizr.rss.memory.usage.graph**.
+. On the **Group** menu, select **All** **Host qemux86-64** and **Graph aktualizr.rss.memory.usage.graph**.
 
 == Zabbix agent hostname
 By default Zabbix-agent hostname is configured to `Hostname=Zabbix server`, this hostname is used in Zabbix-agent's request to the server.
