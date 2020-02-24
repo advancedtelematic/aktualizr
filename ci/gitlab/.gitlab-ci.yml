@@ -408,3 +408,12 @@ trigger-docsite-build:
   trigger:
     project: olp/edge/ota/documentation/ota-connect-docs
     branch: master
+
+trigger-osx-build:
+  stage: docker
+  trigger:
+    project: olp/edge/ota/connect/client/homebrew-otaconnect
+    branch: ci/OTA-4594/ci-gitlab-pipeline
+  only:
+    variables:
+      - $OSX_BUILD
