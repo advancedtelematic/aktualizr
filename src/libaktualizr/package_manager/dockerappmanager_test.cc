@@ -18,6 +18,26 @@ static std::string treehub_server = "http://127.0.0.1:";
 static boost::filesystem::path test_sysroot;
 static boost::filesystem::path uptane_gen;
 
+static struct {
+  int serial{0};
+  std::string rev;
+} ostree_deployment;
+static std::string new_rev;
+
+extern "C" OstreeDeployment* ostree_sysroot_get_booted_deployment(OstreeSysroot* self) {
+  (void)self;
+  static GObjectUniquePtr<OstreeDeployment> dep;
+
+  dep.reset(ostree_deployment_new(0, "dummy-os", ostree_deployment.rev.c_str(), ostree_deployment.serial,
+                                  ostree_deployment.rev.c_str(), ostree_deployment.serial));
+  return dep.get();
+}
+
+extern "C" const char* ostree_deployment_get_csum(OstreeDeployment* self) {
+  (void)self;
+  return ostree_deployment.rev.c_str();
+}
+
 static void progress_cb(const Uptane::Target& target, const std::string& description, unsigned int progress) {
   (void)description;
   LOG_INFO << "progress_cb " << target << " " << progress;
@@ -87,6 +107,9 @@ TEST(DockerAppManager, DockerAppStandalone) {
   auto repo = temp_dir.Path();
   auto repod = create_repo(repo);
 
+  ostree_deployment.serial = 1;
+  ostree_deployment.rev = sha;
+
   boost::filesystem::path apps_root = temp_dir / "docker_apps";
 
   Config config;
@@ -109,6 +132,7 @@ TEST(DockerAppManager, DockerAppStandalone) {
   boost::filesystem::create_directories(apps_root / "app2");
 
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
+  storage->savePrimaryInstalledVersion(target, InstalledVersionUpdateMode::kCurrent);
   KeyManager keys(storage, config.keymanagerConfig());
   auto client = std_::make_unique<SotaUptaneClient>(config, storage);
   ASSERT_NO_THROW(client->updateImageMeta());
@@ -153,6 +177,9 @@ TEST(DockerAppManager, DockerAppBundles) {
   // Add a standalone entry to make sure we don't get confused
   target_json["custom"]["docker_apps"]["app1"]["filename"] = "foo.dockerapp";
   Uptane::Target target("pull", target_json);
+
+  ostree_deployment.serial = 1;
+  ostree_deployment.rev = sha;
 
   TemporaryDirectory temp_dir;
 

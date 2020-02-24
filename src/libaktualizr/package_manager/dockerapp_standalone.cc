@@ -164,7 +164,19 @@ bool DockerAppStandalone::fetchTarget(const Uptane::Target &target, Uptane::Fetc
 }
 
 data::InstallationResult DockerAppStandalone::install(const Uptane::Target &target) const {
-  auto res = OstreeManager::install(target);
+  data::InstallationResult res;
+  Uptane::Target current = OstreeManager::getCurrent();
+  if (current.sha256Hash() != target.sha256Hash()) {
+    res = OstreeManager::install(target);
+    if (res.result_code.num_code == data::ResultCode::Numeric::kInstallFailed) {
+      LOG_ERROR << "Failed to install OSTree target, skipping Docker Apps";
+      return res;
+    }
+  } else {
+    LOG_INFO << "Target " << target.sha256Hash() << " is same as current";
+    res = data::InstallationResult(data::ResultCode::Numeric::kOk, "OSTree hash already installed, same as current");
+  }
+
   handleRemovedApps(target);
   auto cb = [this](const std::string &app, const Uptane::Target &app_target) {
     LOG_INFO << "Installing " << app << " -> " << app_target;
