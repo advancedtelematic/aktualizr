@@ -27,7 +27,6 @@ class DockerAppStandalone : public OstreeManager {
   bool fetchTarget(const Uptane::Target &target, Uptane::Fetcher &fetcher, const KeyManager &keys,
                    FetcherProgressCb progress_cb, const api::FlowControlToken *token) override;
   data::InstallationResult install(const Uptane::Target &target) const override;
-  TargetStatus verifyTarget(const Uptane::Target &target) const override;
   std::string name() const override { return "ostree+docker-app-standalone"; }
 
  private:

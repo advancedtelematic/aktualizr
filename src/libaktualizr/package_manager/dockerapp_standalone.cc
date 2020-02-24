@@ -67,6 +67,12 @@ struct DockerApp {
     return true;
   }
 
+  bool fetch() {
+    auto bin = boost::filesystem::canonical(compose_bin).string();
+    std::string cmd("cd " + app_root.string() + " && " + bin + " pull");
+    return std::system(cmd.c_str()) == 0;
+  }
+
   bool start() {
     // Depending on the number and size of the containers in the docker-app,
     // this command can take a bit of time to complete. Rather than using,
@@ -142,7 +148,13 @@ bool DockerAppStandalone::fetchTarget(const Uptane::Target &target, Uptane::Fetc
   LOG_INFO << "Looking for DockerApps to fetch";
   auto cb = [this, &fetcher, &keys, progress_cb, token](const std::string &app, const Uptane::Target &app_target) {
     LOG_INFO << "Fetching " << app << " -> " << app_target;
-    return PackageManagerInterface::fetchTarget(app_target, fetcher, keys, progress_cb, token);
+    if (!PackageManagerInterface::fetchTarget(app_target, fetcher, keys, progress_cb, token)) {
+      return false;
+    }
+    std::stringstream ss;
+    ss << *storage_->openTargetFile(app_target);
+    DockerApp dapp(app, config);
+    return dapp.render(ss.str(), true) && dapp.fetch();
   };
   return iterate_apps(target, cb);
 }
@@ -152,10 +164,7 @@ data::InstallationResult DockerAppStandalone::install(const Uptane::Target &targ
   handleRemovedApps(target);
   auto cb = [this](const std::string &app, const Uptane::Target &app_target) {
     LOG_INFO << "Installing " << app << " -> " << app_target;
-    std::stringstream ss;
-    ss << *storage_->openTargetFile(app_target);
-    DockerApp dapp(app, dappcfg_);
-    return dapp.render(ss.str(), true) && dapp.start();
+    return DockerApp(app, config).start();
   };
   if (!iterate_apps(target, cb)) {
     return data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, "Could not render docker app");
@@ -191,25 +200,4 @@ void DockerAppStandalone::handleRemovedApps(const Uptane::Target &target) const 
       }
     }
   }
-}
-
-TargetStatus DockerAppStandalone::verifyTarget(const Uptane::Target &target) const {
-  TargetStatus status;
-  if (target.IsOstree()) {
-    status = OstreeManager::verifyTarget(target);
-    if (status != TargetStatus::kGood) {
-      return status;
-    }
-  }
-  auto cb = [this](const std::string &app, const Uptane::Target &app_target) {
-    LOG_INFO << "Verifying " << app << " -> " << app_target;
-    std::stringstream ss;
-    ss << *storage_->openTargetFile(app_target);
-    DockerApp dapp(app, dappcfg_);
-    return dapp.render(ss.str(), false);
-  };
-  if (!iterate_apps(target, cb)) {
-    return TargetStatus::kInvalid;
-  }
-  return TargetStatus::kGood;
 }

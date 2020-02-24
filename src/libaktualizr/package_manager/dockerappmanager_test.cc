@@ -108,7 +108,8 @@ TEST(DockerAppManager, DockerAppStandalone) {
   ASSERT_TRUE(boost::filesystem::exists(apps_root / "docker-compose-down-called"));
 
   setenv("DOCKER_APP_FAIL", "1", 1);
-  ASSERT_EQ(TargetStatus::kInvalid, client->VerifyTarget(target));
+  result = client->package_manager_->fetchTarget(target, *(client->uptane_fetcher), keys, progress_cb, nullptr);
+  ASSERT_FALSE(result);
 }
 
 TEST(DockerAppManager, DockerAppBundles) {
