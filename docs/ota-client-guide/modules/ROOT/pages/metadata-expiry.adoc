@@ -35,8 +35,8 @@ include::partial$config-descriptions.adoc[tags=buildconfig-hint]
 |====================
 |Configuration  | Description
 |
-`GARAGE_TARGET_EXPIRES` 
-| 
+`GARAGE_TARGET_EXPIRES`
+|
 include::partial$config-descriptions.adoc[tags=metadata-expires]
 ----
 GARAGE_TARGET_EXPIRES = "2018-01-01T00:01:00Z"
@@ -44,7 +44,7 @@ GARAGE_TARGET_EXPIRES = "2018-01-01T00:01:00Z"
 
 |
 `GARAGE_TARGET_EXPIRE_AFTER`
-| 
+|
 include::partial$config-descriptions.adoc[tags=metadata-expireafter]
 ----
 GARAGE_TARGET_EXPIRE_AFTER = "1Y3M5D"
@@ -60,6 +60,7 @@ Command-line arguments::
 +
 --
 When you're using the `garage-sign` command to take your keys offline, you can also sign your metadata with one of the following expiry arguments.
+// tag::metadata-expiry[]
 
 .Command-line arguments for metadata expiry
 [cols="2a,4a",options="header"]
@@ -67,7 +68,7 @@ When you're using the `garage-sign` command to take your keys offline, you can a
 |Configuration  | Description
 |
 `--expires`
-| 
+|
 include::partial$config-descriptions.adoc[tags=metadata-expires]
 
 ----
@@ -76,12 +77,13 @@ garage-sign targets sign --expires 2018-01-01T00:01:00Z  --repo myimagerepo --ke
 
 |
 `--expire-after`
-| 
+|
 include::partial$config-descriptions.adoc[tags=metadata-expireafter]
 ----
 garage-sign targets sign ----expire-after 1Y3M5D  --repo myimagerepo --key-name mytargets
 ----
 |====================
-
+// end::metadata-expiry[]
 --
+
 ====

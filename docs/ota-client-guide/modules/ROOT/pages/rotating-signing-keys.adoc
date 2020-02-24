@@ -43,6 +43,7 @@ garage-sign init --repo myimagerepo --credentials /path/to/credentials.zip
 This command creates a `./tuf/myimagerepo/` directory tree in the current directory.
 This directory should be secured on an encrypted filesystem.
 
+
 === Generate new keys
 
 There are two metadata files in the repo and each file needs a new key to sign it.
