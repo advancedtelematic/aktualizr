@@ -1,0 +1,218 @@
+= garage-sign
+
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
+
+
+xref:https://github.com/advancedtelematic/ota-tuf/tree/master/cli[garage-sign] is a tool for managing your OTA Connect software repository and securely signing software versions.
+
+In OTA Connect, `garage -sign` is used to:
+
+* Generate new Uptane repo(s) and keys
+* Sign metadata in Uptane repo(s)
+* Add and remove software from repo(s)
+* Pull current metadata from OTA Connect
+* Push local, signed metadata to OTA Connect
+
+
+== Generate new Uptane repository and keys
+
+* *Generate new Uptane repo*
++
+`garage-sign` is used to generate a new repository with the command `garage-sign init`. This initiallizes a new repository, and has the format:
++
+[source,bash]
+----
+garage-sign init \
+  --repo <reponame> \ <1>
+  --credentials </path/to/credentials.zip> <2>
+----
++
+<1> The name of your Uptane repository which is to be initialized by the `init` command is provided here.
+<2> Here you provide the path of your `credentials.zip` file downloaded from your account on the https://connect.ota.here.com[OTA Connect Portal].
++
+An example of generating a new Uptane repository can be seen in the first step of xref:rotating-signing-keys.adoc#_rotate_the_keys_for_root_and_targets_metadata[rotating the keys for your `root` and `targets` metadata].
+
+
+* *Generate new keys*
++
+The `garage-sign` tool is also used to generate new `root` and `targets` keys with the command `garage-sign key generate` and has the following format:
++
+[source,bash]
+----
+garage-sign key generate \
+  --repo <reponame> \
+  --name <keyname> \ <1>
+  --type <ed25519 | rsa> <2>
+----
++
+<1> You can give any name to the key you generate. This helps to easily identify between the new `root` and `targets` keys you generate. In xref:rotating-signing-keys.adoc#_rotate_the_keys_for_root_and_targets_metadata[rotating the keys for `root` and `targets` metadata], the keys generated are given the names `myroot` and `mytargets`, which helps to identify between the new `root` and `targets` keys generated.
+<2> The key type must be specified as either ed25519 or rsa.
++
+To generate new `root` and `targets` keys as seen in  xref:rotating-signing-keys.adoc#_rotate_the_keys_for_root_and_targets_metadata[rotating the keys for `root` and `targets` metadata], the command is run twice.
+
+
+
+
+== Sign metadata in Uptane repository
+
+* *Sign metadata*
++
+The garage-sign tool is also used to sign metadata in the Uptane repository.
++
+For example, when metadata is edited, the new metadata needs to be signed by `garage-sign` to become valid. The new `targets` key generated is used to sign the new `targets.json` file and has the following format:
++
+[source,bash]
+----
+garage-sign targets sign \
+  --repo <reponame> \
+  --key-name <keyname>
+----
++
+An example of this can be seen in xref:customise-targets-metadata.adoc#_anatomy_of_targets_json_metadata[adding custom metadata fields to targets metadata].
+
+
+* *Sign metadata expiry date*
++
+You can also define an expiry date for your metadata using `garage-sign` on the command line. You can do this in two ways, but only one type of expiry argument must be used to define the metadata expiry date.
+
+** *Defining a fixed date and time for metadata expiry*
++
+Use the following format of `garage-sign` to define a specific time in UTC for metadata to expire:
++
+[source,bash]
+----
+garage-sign targets sign \
+  --expires 2018-01-01T00:01:00Z \ <1>
+  --repo <reponame> \
+  --key-name <new_targets_keyname>
+----
++
+<1> This is an example of specifying a date and time of expiry as an intance in UTC. After this fixed date and time, metadata will no longer be valid.
+
+** *Defining a period of time for metadata expiry*
++
+Use the following format of `garage-sign` to specify the period of time for metadata to be valid:
++
+[source,bash]
+----
+garage-sign targets sign \
+  --expire-after 1Y3M5D \ <1>
+  --repo <reponame> \
+  --key-name <new_targets_keyname>
+----
++
+See our guide xref:metadata-expiry.adoc[managing metadata expiry dates] for more information.
++
+<1> This is an example of specifying a period of time for expiry of metadata. The expiration period is defined in the order of years, months and days (each optional but in this specified order).
+
+
+== Add and Remove software from repositories
+
+* *Add software*
++
+OTA Connect also gives you the opportunity to add software by using the command `garage-sign targets add`.
++
+[source,bash]
+----
+garage-sign targets add \
+  --repo <reponame> \
+  --format <ostree | binary> \ <1>
+  --length <imagelength> \ <2>
+  --name <keyname> \
+  --version <version> \ <3>
+  --sha256 <imagehash> \ <4>
+  --hardwareids <hwid> \
+  --url <softwareurl> <5>
+----
++
+<1> You must specify the format of the target image to be added--either as an ostree or binary image. By convention, in OTA Connect, the `garage-sign` tool is used to upload binary images because OSTree images can be uploaded directly in the OTA Connect Portal. Thus in most cases the format of images to be uploaded to your OTA Connect account using this tool is `binary`.
+<2> The length of the image to be added must be specified in bytes.
+<3> You must also specify the version number of the target image.
+<4> The sha256 hash of the software image is specified here.
+<5> By convention, in OTA Connect, the target image must first be uploaded via a URL before it can be added. The URL must be specified here.
+
+
+* *Remove software*
++
+The `garage-sign` tool is also used to remove a software image. For example, as seen in xref:rotating-signing-keys.adoc#_rotate_the_online_keys_with_your_new_offline_keys[rotating your online keys with your new offline keys], after generating your new keys and pulling the current metadata from OTA Connect, the command `garage-sign move-offline` is used. This command moves the `root` keys to offline keys by:
+
+- deletes your old `root` key from OTA Connect
+- generates and signs a new `root.json` using the new keys generated with `garage-sign key generate`
+- uploads the new `root.json` to OTA Connect
++
+[source,bash]
+----
+garage-sign move-offline \
+  --repo <reponame> \
+  --old-root-alias originroot \ <1>
+  --new-root myroot \ <2>
+  --new-targets mytargets <3>
+----
++
+<1> This is an example of an alias given to the old `root` key. It gets saved with this name.
+<2> This is an example of the name given to your new `root` key which you previously generated using the command `garage-sign key generate`.
+<3> This is an example of the name given to your new `targets` key which you previously generated using the command `garage-sign key generate`.
+
+
+== Pull current metadata from OTA Connect
+
+You can also use `garage-sign` to pull the latest metatdata from OTA Connect in the format:
+
+[source, bash]
+----
+garage-sign targets pull --repo <reponame>
+----
+
+
+== Push local, signed metadata to OTA Connect
+
+After you xref:customise-targets-metadata.adoc[customize your targets metadata], you can upload it to OTA Connect using the command `garage-sign targets push` in the format:
+
+[source,bash]
+----
+garage-sign targets push --repo <reponame>
+----
+
+
+
+== Example use of `garage-sign`
+
+
+The example below involves uploading an image software to OTA Connect using the `garage-sign` tool. First, a target image is uploaded via a `url`, and after, `garage-sign` is used to sign the software metadata and upload it to OTA Connect.
+
+[source,bash]
+----
+!#/bin/bash
+set -ex
+file=$1
+s3_bucket=$2
+packagename=$3
+version=$4
+hwid=$5
+keyname=$6
+url="http://${s3_bucket}.s3.amazonaws.com/${file}"
+aws s3 cp "${file}" "s3://${s3_bucket}/${file}"
+garage-sign targets add \
+  --repo ${reponame} \
+  --format binary \
+  --length $(wc -c <"${file}") \
+  --name ${packagename} \
+  --version ${version} \
+  --sha256 $(sha256sum "${file}" |cut -d' ' -f-1) \
+  --hardwareids ${hwid} \
+  --url ${url}
+garage-sign targets sign \
+  --repo ${reponame} \
+  --key-name ${keyname}
+garage-sign targets push --repo ${reponame}
+----
+
+
+
