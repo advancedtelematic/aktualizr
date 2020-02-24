@@ -135,6 +135,16 @@ data::InstallationResult DockerAppBundles::install(const Uptane::Target &target)
       res = data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, "Could not install docker app");
     }
   };
+
+  if (dappcfg_.docker_prune) {
+    LOG_INFO << "Pruning unused docker images";
+    // Utils::shell which isn't interactive, we'll use std::system so that
+    // stdout/stderr is streamed while docker sets things up.
+    if (std::system("docker image prune -a -f") != 0) {
+      LOG_WARNING << "Unable to prune unused docker images";
+    }
+  }
+
   return res;
 }
 

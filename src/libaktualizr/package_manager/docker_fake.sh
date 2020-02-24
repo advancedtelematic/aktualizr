@@ -58,5 +58,10 @@ if [ "$1" = "down" ] ; then
   touch ../docker-compose-down-called
   exit 0
 fi
+if [ "$1" = "image" ] ; then
+  if [ "$2" = "prune" ] ; then
+    exit 0
+  fi
+fi
 echo "Unknown command: $*"
 exit 1
