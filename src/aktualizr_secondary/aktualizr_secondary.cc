@@ -135,6 +135,8 @@ data::ResultCode::Numeric AktualizrSecondary::install(const std::string& target_
   return install_result;
 }
 
+void AktualizrSecondary::completeInstall() { update_agent_->completeInstall(); }
+
 bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
   // 5.4.4.2. Full verification  https://uptane.github.io/uptane-standard/uptane-standard.html#metadata_verification
 

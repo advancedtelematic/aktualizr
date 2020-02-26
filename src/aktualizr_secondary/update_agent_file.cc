@@ -54,6 +54,8 @@ data::ResultCode::Numeric FileUpdateAgent::install(const Uptane::Target& target)
   return data::ResultCode::Numeric::kOk;
 }
 
+void FileUpdateAgent::completeInstall() {}
+
 data::InstallationResult FileUpdateAgent::applyPendingInstall(const Uptane::Target& target) {
   (void)target;
   return data::InstallationResult(data::ResultCode::Numeric::kInternalError,

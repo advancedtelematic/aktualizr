@@ -14,8 +14,14 @@ class SecondaryInterface;
  */
 class SecondaryTcpServer {
  public:
+  enum class ExitReason {
+    kNotApplicable,
+    kRebootNeeded,
+    kUnkown,
+  };
+
   SecondaryTcpServer(Uptane::SecondaryInterface& secondary, const std::string& primary_ip, in_port_t primary_port,
-                     in_port_t port = 0);
+                     in_port_t port = 0, bool reboot_after_install = false);
 
   SecondaryTcpServer(const SecondaryTcpServer&) = delete;
   SecondaryTcpServer& operator=(const SecondaryTcpServer&) = delete;
@@ -28,14 +34,17 @@ class SecondaryTcpServer {
   void stop();
 
   in_port_t port() const;
+  ExitReason exit_reason() const;
 
  private:
-  void HandleOneConnection(int socket);
+  bool HandleOneConnection(int socket);
 
  private:
-  std::atomic<bool> keep_running_;
   Uptane::SecondaryInterface& impl_;
   ListenSocket listen_socket_;
+  std::atomic<bool> keep_running_;
+  bool reboot_after_install_;
+  ExitReason exit_reason_{ExitReason::kNotApplicable};
 };
 
 #endif  // AKTUALIZR_SECONDARY_TCP_SERVER_H_

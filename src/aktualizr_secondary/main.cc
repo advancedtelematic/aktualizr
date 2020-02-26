@@ -88,7 +88,14 @@ int main(int argc, char *argv[]) {
     LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
 
     auto secondary = AktualizrSecondaryFactory::create(config);
-    SecondaryTcpServer(*secondary, config.network.primary_ip, config.network.primary_port, config.network.port).run();
+    SecondaryTcpServer tcp_server(*secondary, config.network.primary_ip, config.network.primary_port,
+                                  config.network.port, config.uptane.force_install_completion);
+
+    tcp_server.run();
+
+    if (tcp_server.exit_reason() == SecondaryTcpServer::ExitReason::kRebootNeeded) {
+      secondary->completeInstall();
+    }
 
   } catch (std::runtime_error &exc) {
     LOG_ERROR << "Error: " << exc.what();

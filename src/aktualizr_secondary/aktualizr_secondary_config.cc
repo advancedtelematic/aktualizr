@@ -19,6 +19,7 @@ void AktualizrSecondaryUptaneConfig::updateFromPropertyTree(const boost::propert
   CopyFromConfig(ecu_hardware_id, "ecu_hardware_id", pt);
   CopyFromConfig(key_source, "key_source", pt);
   CopyFromConfig(key_type, "key_type", pt);
+  CopyFromConfig(force_install_completion, "force_install_completion", pt);
 }
 
 void AktualizrSecondaryUptaneConfig::writeToStream(std::ostream& out_stream) const {
@@ -26,6 +27,7 @@ void AktualizrSecondaryUptaneConfig::writeToStream(std::ostream& out_stream) con
   writeOption(out_stream, ecu_hardware_id, "ecu_hardware_id");
   writeOption(out_stream, key_source, "key_source");
   writeOption(out_stream, key_type, "key_type");
+  writeOption(out_stream, force_install_completion, "force_install_completion");
 }
 
 AktualizrSecondaryConfig::AktualizrSecondaryConfig(const boost::program_options::variables_map& cmd) {
