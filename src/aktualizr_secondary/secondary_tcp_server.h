@@ -17,9 +17,6 @@ class SecondaryTcpServer {
   SecondaryTcpServer(Uptane::SecondaryInterface& secondary, const std::string& primary_ip, in_port_t primary_port,
                      in_port_t port = 0);
 
-  SecondaryTcpServer(Uptane::SecondaryInterface& secondary, in_port_t port = 0)
-      : keep_running_(true), impl_(secondary), listen_socket_(port) {}
-
   SecondaryTcpServer(const SecondaryTcpServer&) = delete;
   SecondaryTcpServer& operator=(const SecondaryTcpServer&) = delete;
 

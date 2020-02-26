@@ -10,7 +10,11 @@
 
 SecondaryTcpServer::SecondaryTcpServer(Uptane::SecondaryInterface &secondary, const std::string &primary_ip,
                                        in_port_t primary_port, in_port_t port)
-    : SecondaryTcpServer(secondary, port) {
+    : keep_running_(true), impl_(secondary), listen_socket_(port) {
+  if (primary_ip.empty()) {
+    return;
+  }
+
   ConnectionSocket conn_socket(primary_ip, primary_port, listen_socket_.port());
   if (conn_socket.connect() == 0) {
     LOG_INFO << "Connected to Primary, sending info about this secondary...";
