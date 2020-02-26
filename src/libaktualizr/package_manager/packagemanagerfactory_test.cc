@@ -11,7 +11,7 @@
 
 boost::filesystem::path sysroot;
 
-/* Support OSTree as a package manager. */
+#ifdef BUILD_OSTREE
 TEST(PackageManagerFactory, Ostree) {
   Config config;
   config.pacman.type = PACKAGE_MANAGER_OSTREE;
@@ -19,33 +19,24 @@ TEST(PackageManagerFactory, Ostree) {
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
-#ifdef BUILD_OSTREE
   std::shared_ptr<PackageManagerInterface> pacman =
       PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr);
   EXPECT_TRUE(pacman);
-#else
-  EXPECT_THROW(std::shared_ptr<PackageManagerInterface> pacman =
-                   PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr),
-               std::runtime_error);
-#endif
 }
+#endif
 
+#ifdef BUILD_DEB
 TEST(PackageManagerFactory, Debian) {
   Config config;
   config.pacman.type = PACKAGE_MANAGER_DEBIAN;
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
-#ifdef BUILD_DEB
   std::shared_ptr<PackageManagerInterface> pacman =
       PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr);
   EXPECT_TRUE(pacman);
-#else
-  EXPECT_THROW(std::shared_ptr<PackageManagerInterface> pacman =
-                   PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr),
-               std::runtime_error);
-#endif
 }
+#endif
 
 TEST(PackageManagerFactory, None) {
   Config config;
@@ -64,9 +55,8 @@ TEST(PackageManagerFactory, Bad) {
   config.storage.path = dir.Path();
   config.pacman.type = "bad";
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
-  std::shared_ptr<PackageManagerInterface> pacman =
-      PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr);
-  EXPECT_FALSE(pacman);
+  EXPECT_THROW(PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr),
+               std::runtime_error);
 }
 
 #include "package_manager/packagemanagerfake.h"

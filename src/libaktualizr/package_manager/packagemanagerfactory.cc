@@ -40,5 +40,6 @@ std::shared_ptr<PackageManagerInterface> PackageManagerFactory::makePackageManag
     }
     return ss.str();
   }();
-  return nullptr;
+
+  throw std::runtime_error(std::string("Unsupported package manager: ") + pconfig.type);
 }
