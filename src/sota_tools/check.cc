@@ -23,7 +23,8 @@ static size_t writeString(void *contents, size_t size, size_t nmemb, void *userp
   return size * nmemb;
 }
 
-int CheckRefValid(TreehubServer &treehub, const std::string &ref, RunMode mode, int max_curl_requests) {
+int CheckRefValid(TreehubServer &treehub, const std::string &ref, RunMode mode, int max_curl_requests,
+                  const boost::filesystem::path &tree_dir) {
   // Check if the ref is present on treehub. The traditional use case is that it
   // should be a commit object, but we allow walking the tree given any OSTree
   // ref.
@@ -63,7 +64,7 @@ int CheckRefValid(TreehubServer &treehub, const std::string &ref, RunMode mode, 
 
   if (mode == RunMode::kWalkTree) {
     // Walk the entire tree and check for all objects.
-    OSTreeHttpRepo dest_repo(&treehub);
+    OSTreeHttpRepo dest_repo(&treehub, tree_dir);
     OSTreeHash hash = OSTreeHash::Parse(ref);
     OSTreeObject::ptr input_object = dest_repo.GetObject(hash, type);
 

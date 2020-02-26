@@ -29,6 +29,7 @@ int main(int argc, char **argv) {
   std::string cacerts;
   int max_curl_requests;
   RunMode mode = RunMode::kDefault;
+  boost::filesystem::path tree_dir;
   po::options_description desc("garage-check command line options");
   // clang-format off
   desc.add_options()
@@ -40,7 +41,8 @@ int main(int argc, char **argv) {
     ("credentials,j", po::value<boost::filesystem::path>(&credentials_path)->required(), "credentials (json or zip containing json)")
     ("cacert", po::value<std::string>(&cacerts), "override path to CA root certificates, in the same format as curl --cacert")
     ("jobs", po::value<int>(&max_curl_requests)->default_value(30), "maximum number of parallel requests (only relevant with --walk-tree)")
-    ("walk-tree,w", "walk entire tree and check presence of all objects");
+    ("walk-tree,w", "walk entire tree and check presence of all objects")
+    ("tree-dir,t", po::value<boost::filesystem::path>(&tree_dir), "directory to which to write the tree (only used with --walk-tree)");
   // clang-format on
 
   po::variables_map vm;
@@ -99,7 +101,7 @@ int main(int argc, char **argv) {
       return EXIT_FAILURE;
     }
 
-    if (CheckRefValid(treehub, ref, mode, max_curl_requests) != EXIT_SUCCESS) {
+    if (CheckRefValid(treehub, ref, mode, max_curl_requests, tree_dir) != EXIT_SUCCESS) {
       LOG_FATAL << "Check if the ref is present on the server or in targets.json failed";
       return EXIT_FAILURE;
     }

@@ -9,8 +9,9 @@
 #include "server_credentials.h"
 
 /**
- *Check if the ref is present on the server and in targets.json
+ * Check if the ref is present on the server and in targets.json
  */
-int CheckRefValid(TreehubServer& treehub, const std::string& ref, RunMode mode, int max_curl_requests);
+int CheckRefValid(TreehubServer& treehub, const std::string& ref, RunMode mode, int max_curl_requests,
+                  const boost::filesystem::path& tree_dir = "");
 
 #endif
