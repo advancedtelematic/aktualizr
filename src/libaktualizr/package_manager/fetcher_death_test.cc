@@ -16,8 +16,8 @@
 #include "test_utils.h"
 #include "uptane/tuf.h"
 
-static const int die_after = 50;       // percent
-static const int pause_duration = 20;  // seconds
+static const int die_after = 50;      // percent
+static const int pause_duration = 2;  // seconds
 
 std::string server;
 
@@ -56,7 +56,7 @@ void resume(const Uptane::Target& target) {
   EXPECT_TRUE(res);
 }
 
-void pause_and_die(const Uptane::Target& target) {
+void try_and_die(const Uptane::Target& target, bool graceful) {
   std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
   auto http = std::make_shared<HttpClient>();
   api::FlowControlToken token;
@@ -75,12 +75,16 @@ void pause_and_die(const Uptane::Target& target) {
 
   std::unique_lock<std::mutex> lk(pause_m);
   cv.wait(lk, [] { return die; });
-  token.setPause(true);
-  std::this_thread::sleep_for(std::chrono::seconds(pause_duration));
-  std::raise(SIGKILL);
+  if (graceful) {
+    token.setPause(true);
+    std::this_thread::sleep_for(std::chrono::seconds(pause_duration));
+    std::raise(SIGTERM);
+  } else {
+    std::raise(SIGKILL);
+  }
 }
 
-TEST(FetcherDeathTest, TestResumeBinary) {
+TEST(FetcherDeathTest, TestResumeAfterPause) {
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
 
@@ -89,7 +93,25 @@ TEST(FetcherDeathTest, TestResumeBinary) {
   target_json["length"] = 100 * (1 << 20);
 
   Uptane::Target target("large_file", target_json);
-  ASSERT_DEATH(pause_and_die(target), "");
+  die = false;
+  resumed = false;
+  ASSERT_DEATH(try_and_die(target, true), "");
+  std::cout << "Fetcher died, retrying" << std::endl;
+  resume(target);
+}
+
+TEST(FetcherDeathTest, TestResumeAfterSigkill) {
+  TemporaryDirectory temp_dir;
+  config.storage.path = temp_dir.Path();
+
+  Json::Value target_json;
+  target_json["hashes"]["sha256"] = "dd7bd1c37a3226e520b8d6939c30991b1c08772d5dab62b381c3a63541dc629a";
+  target_json["length"] = 100 * (1 << 20);
+
+  Uptane::Target target("large_file", target_json);
+  die = false;
+  resumed = false;
+  ASSERT_DEATH(try_and_die(target, false), "");
   std::cout << "Fetcher died, retrying" << std::endl;
   resume(target);
 }
