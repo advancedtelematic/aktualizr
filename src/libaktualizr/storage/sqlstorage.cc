@@ -1649,7 +1649,7 @@ bool SQLStorage::checkAvailableDiskSpace(const uint64_t required_bytes) const {
   }
 }
 
-boost::optional<std::pair<size_t, std::string>> SQLStorage::checkTargetFile(const Uptane::Target& target) const {
+boost::optional<std::pair<uintmax_t, std::string>> SQLStorage::checkTargetFile(const Uptane::Target& target) const {
   SQLite3Guard db = dbConnection();
 
   auto statement = db.prepareStatement<std::string>(
@@ -1777,7 +1777,7 @@ class SQLTargetWHandle : public StorageTargetWHandle {
 
  private:
   SQLTargetWHandle(const boost::filesystem::path& db_path, Uptane::Target target,
-                   const boost::filesystem::path& image_path, const size_t& start_from = 0)
+                   const boost::filesystem::path& image_path, const uintmax_t& start_from = 0)
       : db_(db_path), target_(std::move(target)) {
     if (db_.get_rc() != SQLITE_OK) {
       LOG_ERROR << "Can't open database: " << db_.errmsg();
@@ -1823,7 +1823,7 @@ class SQLTargetRHandle : public StorageTargetRHandle {
 
   ~SQLTargetRHandle() override { SQLTargetRHandle::rclose(); }
 
-  size_t rsize() const override { return size_; }
+  uintmax_t rsize() const override { return size_; }
 
   size_t rread(uint8_t* buf, size_t size) override {
     stream_.read(reinterpret_cast<char*>(buf), static_cast<std::streamsize>(size));
@@ -1845,7 +1845,7 @@ class SQLTargetRHandle : public StorageTargetRHandle {
   boost::filesystem::path db_path_;
   SQLite3Guard db_;
   Uptane::Target target_;
-  size_t size_;
+  uintmax_t size_;
   bool partial_{false};
   boost::filesystem::path image_path_;
   std::ifstream stream_;

@@ -9,7 +9,7 @@ struct DownloadMetaStruct {
         target{std::move(target_in)},
         token{token_in},
         progress_cb{std::move(progress_cb_in)} {}
-  uint64_t downloaded_length{0};
+  uintmax_t downloaded_length{0};
   unsigned int last_progress{0};
   std::unique_ptr<StorageTargetWHandle> fhandle;
   const Uptane::Hash::Type hash_type;
