@@ -37,9 +37,8 @@ bool OfflineSignRepo(const ServerCredentials& push_credentials, const std::strin
                      const std::string& hardwareids);
 
 /**
- * Update images/targets.json by pushing the OSTree commit hash to /refs/heads/qemux86-64
+ * Update the ref on Treehub to the new commit.
  */
-bool PushRootRef(const ServerCredentials& push_credentials, const OSTreeRef& ref, const std::string& cacerts,
-                 RunMode mode);
+bool PushRootRef(const TreehubServer& push_server, const OSTreeRef& ref);
 
 #endif

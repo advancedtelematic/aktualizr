@@ -140,14 +140,14 @@ int main(int argc, char **argv) {
       return EXIT_FAILURE;
     }
 
-    if (push_credentials.CanSignOffline()) {
-      LOG_INFO << "Credentials contain offline signing keys. Use garage-sign to push root ref";
-    } else if (!is_ref) {
-      LOG_INFO << "Provided ref " << ref << " is a commit refhash. Cannot push root ref";
-    } else {
-      if (!PushRootRef(push_credentials, ostree_ref, cacerts, mode)) {
-        LOG_FATAL << "Error pushing root ref to treehub";
-        return EXIT_FAILURE;
+    if (mode != RunMode::kDryRun) {
+      if (is_ref) {
+        if (!PushRootRef(push_server, ostree_ref)) {
+          LOG_FATAL << "Error pushing root ref to treehub";
+          return EXIT_FAILURE;
+        }
+      } else {
+        LOG_INFO << "Provided ref " << ref << " is a commit refhash. Cannot push root ref";
       }
     }
 

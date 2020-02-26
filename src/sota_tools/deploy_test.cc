@@ -35,7 +35,7 @@ TEST(deploy, UploadToTreehub) {
       (std::string("diff -r ") + (temp_dir.Path() / "objects/").string() + " tests/sota_tools/repo/objects/").c_str());
   EXPECT_EQ(result, 0) << "Diff between the source repo objects and the destination repo objects is nonzero.";
 
-  bool push_root_ref_res = PushRootRef(server_creds, test_ref, cert_path.string(), run_mode);
+  bool push_root_ref_res = PushRootRef(push_server, test_ref);
   EXPECT_TRUE(push_root_ref_res);
 
   result =
