@@ -8,7 +8,7 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 endif::[]
 
 
-* https://github.com/advancedtelematic/meta-updater-raspberrypi[Raspberry Pi 2 and 3]
+* https://github.com/advancedtelematic/meta-updater-raspberrypi[Raspberry Pi 2, 3, and 4] (4 beginning with warrior)
 * https://github.com/advancedtelematic/meta-updater-minnowboard[Intel Minnowboard]
 * https://github.com/advancedtelematic/meta-updater-qemux86-64[Native QEMU emulation]
 * Renesas R-Car H3 and M3
