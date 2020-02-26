@@ -66,22 +66,20 @@ class ManagedSecondary : public Uptane::SecondaryInterface {
 
  protected:
   Primary::ManagedSecondaryConfig sconfig;
-
- private:
-  PublicKey public_key_;
-  std::string private_key;
-
   std::string detected_attack;
   std::string expected_target_name;
   std::vector<Uptane::Hash> expected_target_hashes;
   uint64_t expected_target_length{};
-
-  Uptane::MetaPack current_meta;
-  Uptane::RawMetaPack current_raw_meta;
   std::mutex install_mutex;
 
   virtual bool storeFirmware(const std::string& target_name, const std::string& content) = 0;
   virtual bool getFirmwareInfo(Uptane::InstalledImageInfo& firmware_info) const = 0;
+
+ private:
+  PublicKey public_key_;
+  std::string private_key;
+  Uptane::MetaPack current_meta;
+  Uptane::RawMetaPack current_raw_meta;
 
   void storeKeys(const std::string& pub_key, const std::string& priv_key);
   void rawToMeta();
