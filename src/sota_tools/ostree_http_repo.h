@@ -9,19 +9,25 @@
 
 class OSTreeHttpRepo : public OSTreeRepo {
  public:
-  explicit OSTreeHttpRepo(TreehubServer* server) : server_(server) {}
+  explicit OSTreeHttpRepo(TreehubServer* server, const boost::filesystem::path& root_in = "")
+      : server_(server), root_(root_in) {
+    if (root_.empty()) {
+      root_ = root_tmp_.Path();
+    }
+  }
   ~OSTreeHttpRepo() override = default;
 
   bool LooksValid() const override;
   OSTreeRef GetRef(const std::string& refname) const override;
-  const boost::filesystem::path root() const override { return root_.Path(); }
+  const boost::filesystem::path root() const override { return root_; }
 
  private:
   bool FetchObject(const boost::filesystem::path& path) const override;
   static size_t curl_handle_write(void* buffer, size_t size, size_t nmemb, void* userp);
 
   TreehubServer* server_;
-  const TemporaryDirectory root_;
+  boost::filesystem::path root_;
+  const TemporaryDirectory root_tmp_;
 };
 
 // vim: set tabstop=2 shiftwidth=2 expandtab:
