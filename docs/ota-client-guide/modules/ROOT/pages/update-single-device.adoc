@@ -8,13 +8,13 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 endif::[]
 
 
-Once you've uploaded a few different software versions, you can try to push that software to a device that doesn't yet have the version installed. 
+Once you've uploaded a few different software versions, you can try to push that software to a device that doesn't yet have the version installed.
 
-If you have more than one Raspberry Pi lying around, you could use the disk image that you created in the xref:build-raspberry.adoc[Raspberry Pi build instructions]. Flash that image to your second Raspberry Pi and boot it up. Otherwise, you could xref:build-qemu.adoc#_run_the_built_image_with_qemu[start another QEMU instance] based on the same disk image but with a different mac address. 
+If you have more than one Raspberry Pi lying around, you could use the disk image that you created in the xref:build-raspberry.adoc[Raspberry Pi build instructions]. Flash that image to your second Raspberry Pi and boot it up. Otherwise, you could xref:build-qemu.adoc#_run_the_built_image_with_qemu[start another QEMU instance] based on the same disk image but with a different mac address.
 
 After your second device boots, it should automatically provision with OTA Connect.
 
-* Log in to the xref:https://connect.ota.here.com[OTA Connect Portal] and check that second devices shows up in the last of mostly recently provision devices. 
+* Log in to the https://connect.ota.here.com[OTA Connect Portal] and check that second devices shows up in the last of mostly recently provision devices.
 +
 This list appears on the Dashboard that you see after you log in. If you see your second device, you're ready to send it an update.
 

@@ -1,0 +1,87 @@
+= Add custom metadata fields to targets metadata
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
+In some cases, you might find it useful to include extra metadata about your software inside the signed Uptane metadata that OTA Connect delivers to your device. Some reasons you might want to do this include:
+
+* to provide installation instructions or scripts for an image that can't or shouldn't be included in the image itself
+* to add extra tracking fields for internal compliance or auditing
+
+To accommodate this use case, you can manually manage your Uptane metadata and add custom fields to your `targets.json` file.
+
+[NOTE]
+====
+For more information on additional use cases which will require customization of the `targets` metadata file, please refer to the section https://uptane.github.io/papers/ieee-isto-6100.1.0.0.uptane-standard.html#rfc.section.5.2.3.1.1['Custom metadata about images' in the Uptane standard].
+====
+
+== Prerequisites
+
+For this to be useful, you will need to write a custom handler for the metadata you add, so xref:libaktualizr-why-use.adoc[building your own update client using libaktualizr] is required. (Consult the https://advancedtelematic.github.io/aktualizr/index.html[Doxygen API reference] for how to access custom metadata in-client.)
+
+You will also need to have xref:rotating-signing-keys.adoc[rotated your signing keys offline]. The following instructions assume you have already done this, and know where to find your `targets.json`.
+
+== Anatomy of `targets.json` metadata
+
+Your `targets.json` file includes:
+
+* A `signatures` block, containing key IDs and signatures generated over the `signed` block
+* A `signed` block, containing some necessary Uptane fields
+* Inside the `signed` block, a `targets` block, listing all of your software images. Each software image block (identified by its name and version) contains three objects:
+** `hashes`, which contains the sha256 hash of the software image
+** `length`, which is the size of the software image in bytes
+** `custom`, which contains other metadata that aktualizr uses. An example of the `custom` field is shown below:
++
+[source,json]
+----
+"custom": {
+  "name": "aegisub-font",
+  "version": "1",
+  "hardwareIds": [
+    "kmk-docker-debian"
+  ],
+  "targetFormat": null,
+  "uri": null,
+  "createdAt": "2018-08-20T09:28:27Z",
+  "updatedAt": "2018-08-20T09:28:27Z"
+}
+----
+
+The `custom` object is where you can add metadata of your choice. Do not modify any of the existing values. Our recommended best practice is to add a new field namespaced to your organization or some other unique identifier, and put any custom sub-keys under that field, as in the example below:
+
+[source,json]
+----
+"custom": {
+  "name": "aegisub-font",
+  "version": "1",
+  "hardwareIds": [
+    "kmk-docker-debian"
+  ],
+  "targetFormat": null,
+  "uri": null,
+  "createdAt": "2018-08-20T09:28:27Z",
+  "updatedAt": "2018-08-20T09:28:27Z",
+  "acme_inc_metadata": {
+    "application_install_handler": "com.dockerconfig.packager",
+    "build_correlation_id": "2ce4ebaf-b3ca-411b-977f-cd6b98065d88"
+  }
+}
+----
+
+Once you add your custom metadata, of course, the signatures will no longer be valid. You will need to sign the modified metadata using `garage-sign`:
+
+----
+garage-sign targets sign --repo myimagerepo --key-name mytargets
+----
+
+You can then upload your customized `targets.json` to OTA Connect as normal:
+
+----
+garage-sign targets push --repo myimagerepo
+----
+
+NOTE: You also might want to add custom metadata while bitbaking. You can do this, for example, by modifying the `IMAGE_CMD_garagesign` function in link:https://github.com/advancedtelematic/meta-updater/blob/master/classes/image_types_ostree.bbclass#L217[image_types_ostree.bbclass]. A detailed guide on how to accomplish this is out of our scope, however. Refer to http://www.yoctoproject.org/docs/2.7/dev-manual/dev-manual.html[the Yocto Reference Manual] for further details.

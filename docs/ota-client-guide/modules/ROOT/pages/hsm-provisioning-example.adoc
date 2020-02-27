@@ -27,16 +27,20 @@ export PIN=YOUR_PIN
 To continue, you will have to set up a root certificate, as described in xref:generate-selfsigned-root.adoc[Generate a self-signed root certificate]. If you chose to use an external CA, you will need to send them the certificate signing request (csr file) and obtain the certificate, instead of generating it yourself.
 
 . Install necessary dependencies
-
++
 [source,sh]
 ----
 sudo apt install opensc-pkcs11 openssl
 ----
-
-. Generate a UUID for the device, and make a directory for it:
 +
-include::generate-devicecert.adoc[tags="createdevicedir"]
+. Generate an ID for the device, and make a directory for it. This ID should be unique within your fleet, so we recommend using a UUID if you do not already have a scheme of unique identifiers.
 +
+[source,bash]
+----
+export device_id=$(uuidgen | tr "[:upper:]" "[:lower:]")
+export device_dir=${fleetname}/devices/${device_id}
+mkdir -p ${device_dir}
+----
 . Generate a key on the device with id 02
 +
 [source,sh]

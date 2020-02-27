@@ -7,6 +7,26 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 ## [??? (unreleased)]
 
 
+## [2020.3] - 2020-02-27
+
+### Added
+
+- Pluggable package managers for the Primary: [PR](https://github.com/advancedtelematic/aktualizr/pull/1518)
+- Log basic device information when starting aktualizr: [PR](https://github.com/advancedtelematic/aktualizr/pull/1555)
+
+### Changed
+
+- Wait for Secondaries to come online before attempting installation: [PR #1533](https://github.com/advancedtelematic/aktualizr/pull/1533) and [PR #1562](https://github.com/advancedtelematic/aktualizr/pull/1562)
+- Renamed shared libraries to remove the extraneous "\_lib": [PR](https://github.com/advancedtelematic/aktualizr/pull/1564)
+
+### Fixed
+
+- Apply pending updates even if their metadata expired if the installation was initiated before the expiration: [PR](https://github.com/advancedtelematic/aktualizr/pull/1548)
+- Add a mising include to fix building libaktualizr out-of-tree: [PR](https://github.com/advancedtelematic/aktualizr/pull/1572)
+- Restore interrupted downloads correctly: [PR](https://github.com/advancedtelematic/aktualizr/pull/1571)
+- Use uintmax_t for storing file length to support files greater than 4 GB: [PR](https://github.com/advancedtelematic/aktualizr/pull/1571)
+
+
 ## [2020.2] - 2020-01-30
 
 ### Changed

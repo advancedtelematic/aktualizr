@@ -33,6 +33,13 @@ This is also a good time to review the docs in general and to consider whether a
 
 The docs published as https://docs.ota.here.com/ota-client/latest/index.html[latest] in the OTA Connect Developer Guide are built from the most recent release's docs branch (`\{version}-docs`). There will very likely be changes from there that have not been pulled into master yet. Open up a PR to merge the previous release's docs into master, resolving any merge conflicts as needed. Once that PR is merged, you can move on to the next step.
 
+The cleanest way to do this (especially if there were multiple changes to the docs branch) is to merge the docs branch locally and then rebase on master to remove the merge commits:
+
+----
+git merge origin/2020.2-docs
+git rebase origin/master
+----
+
 == Create a new tag
 
 Releases are built automatically by gitlab from annotated tags of the form `major.minor`, where `major` and `minor` are numbers. We normally set `major` to the current year and `minor` to an incrementing number beginning at 1.

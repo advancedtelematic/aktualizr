@@ -96,12 +96,12 @@ You can then retry bitbaking your image.
 
 === Put the built image on an SD card for Raspberry Pi 3
 
-You can now flash the image onto an SD card using the same method as described for a xref:{pageroot}build-raspberry.adoc#_put_the_built_image_on_an_sd_card[regular Raspberry Pi build]. However, the exact image you'll need will vary depending on the architecture you're building forfootnote:[For example, building the `agl-image-minimal` target for Raspberry Pi 3 creates an image at `build/tmp/deploy/images/raspberrypi3/agl-image-minimal-raspberrypi3.wic`.], but it will be located in the `/tmp/deploy/images` directory under your build directory. You can also use https://www.balena.io/etcher/[Etcher, window="_blank"] to write the image, or follow the normal flashing procedure for your device if applicable.
+You can now flash the image onto an SD card using the same method as described for a xref:build-raspberry.adoc#_put_the_built_image_on_an_sd_card[regular Raspberry Pi build]. However, the exact image you'll need will vary depending on the architecture you're building forfootnote:[For example, building the `agl-image-minimal` target for Raspberry Pi 3 creates an image at `build/tmp/deploy/images/raspberrypi3/agl-image-minimal-raspberrypi3.wic`.], but it will be located in the `/tmp/deploy/images` directory under your build directory. You can also use https://www.balena.io/etcher/[Etcher, window="_blank"] to write the image, or follow the normal flashing procedure for your device if applicable.
 
 TIP: You can also write the image using `dd`, but since the wrong kind of typo in a dd command is so dangerous, we don't recommend it.
 
 === Run with QEMU
 
-You can now run the image in QEMU using the same method as described for a xref:{pageroot}build-qemu.adoc#_run_the_built_image_with_qemu[regular QEMU build]. However, the exact image you'll need will vary depending on the architecture you're building forfootnote:[For example, building the `agl-image-minimal` target for QEMU creates an image at `build/tmp/deploy/images/raspberrypi3/agl-image-minimal-qemux86-64.ota-ext4`.], but it will be located in the `/tmp/deploy/images` directory under your build directory.
+You can now run the image in QEMU using the same method as described for a xref:build-qemu.adoc#_run_the_built_image_with_qemu[regular QEMU build]. However, the exact image you'll need will vary depending on the architecture you're building forfootnote:[For example, building the `agl-image-minimal` target for QEMU creates an image at `build/tmp/deploy/images/raspberrypi3/agl-image-minimal-qemux86-64.ota-ext4`.], but it will be located in the `/tmp/deploy/images` directory under your build directory.
 
 include::partial$recommended-steps.adoc[tags=firstbuild-nextstep]

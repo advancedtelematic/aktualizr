@@ -1,0 +1,45 @@
+= Add a board class for new target board in meta-updater
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
+Adding a board class for a new target board in meta-updater involves two main steps:
+
+. Add a new `sota_\{MACHINE}.bbclass` file for the board
+
++
+Using an NXP board as an example, we created the bbclass `classes/sota_ls1043ardb.bbclass` and added the following to the class file:
++
+[source,bash]
+----
+KERNEL_IMAGETYPES = "fitImage" <1>
+
+OSTREE_KERNEL = "fitImage-${INITRAMFS_IMAGE}-${MACHINE}-${MACHINE}"
+OSTREE_KERNEL_ARGS = "console=ttyS0,115200 ramdisk_size=8192 root=/dev/ram0 rw rootfstype=ext4 ostree_root=/dev/mmcblk0p2"
+
+WKS_FILE_sota = "ls1043ardb-ota.wks" <2>
+IMAGE_BOOT_FILES = "ls1043ardb_boot.scr" <3>
+----
++
+<1> For most boards, especially boards that use a device tree, we recommend you use a https://elinux.org/images/f/f4/Elc2013_Fernandes.pdf[FIT (flattened image tree)] image if possible. A FIT image includes all the components of an initial boot image--like the device tree, initramfs, and kernel--in a bundle.
+<2> Wic kickstart files tell Wic how to build and lay out an image that can be physically flashed onto the device initially. We generally need to modify the image layout for OTA; we’ll discuss how to write one in the following section.
+<3> This line adds the basic boot script to the files available to bitbake when constructing the physical image types. See xref:add-meta-updater-to-vendors-sdk.adoc#_create_u_boot_script_for_ostree_initialization[Create U-Boot script for OSTree initialization] for the script itself.
++
+. Add that class to the top-level `sota.bbclass` file.
++
+Add a line to the file `classes/sota.bbclass` that points to the new class file as in the example below:
++
+[source,bash]
+----
+SOTA_MACHINE_ls1043ardb ?= "ls1043ardb"
+----
+
+Examples of these class files can be found in the https://github.com/advancedtelematic/meta-updater/tree/master/classes[meta-updater-layer].
+
+Once you have added a board class for your board in the meta-updater layer, you can xref:setup-boot-image-for-ostree.adoc[set up a boot image layout for OSTree compatibility].
+
+

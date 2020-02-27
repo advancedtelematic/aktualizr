@@ -1,0 +1,44 @@
+= Set up boot image layout for OSTree compatibility
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
+include::_partials/aktualizr-version.adoc[]
+
+This is the second step in getting a new board running after xref:add-board-class.adoc[adding a new board class for the new target board in meta-updater].
+
+This step involves getting Yocto to build a physical image with the partitions in the correct place, with the necessary modifications for OSTree. The standard approach here is to use https://www.yoctoproject.org/docs/{yocto-version}/dev-manual/dev-manual.html#creating-partitioned-images-using-wic[Wic, the OpenEmbedded Image Creator].
+
+You will need to create a Wic Kickstart file that places the necessary firmware in memory where the board needs it to be. Typically, board vendors will provide a table with the memory layout of the board’s firmware.
+
+Once you complete this step, you can proceed to the final step of xref:add-meta-updater-to-vendors-sdk.adoc[adding meta-updater features to the vendor's SDK].
+
+
+For example, using our NXP board example, the layout was provided in the https://www.nxp.com/docs/en/user-guide/LSDKUG_Rev19.06.pdf[Landscape SDK User Guide], Chapter 4.2, tables 14 and 16.
+
+.Table of NXP memory layout
+image::img::screenshot_lsdk_memory_layout.png[width=100%]
+
+.Table of NXP default layout
+image::img::screenshot_lsdk_default_layout.png[width=100%]
+
+
+The information from these tables can be translated into the following WKS file:
+[source,bash]
+----
+part BL2 --source rawcopy2 --sourceparams="file=atf/bl2_sd.pbl" --ondisk mmcblk --no-table --align 4
+part BL3 --source rawcopy2 --sourceparams="file=atf/fip_uboot.bin" --ondisk mmcblk --no-table --align 1024
+part fman-ucode --source rawcopy2 --sourceparams="file=fsl_fman_ucode_ls1043_r1.1_108_4_9.bin" --ondisk mmcblk --no-table --align 9216
+part qe-ucode --source rawcopy2 --sourceparams="file=boot/fsl_qe_ucode_1021_10_A.bin" --ondisk mmcblk --no-table --align 9472
+part uboot-scr --source bootimg-partition --ondisk mmcblk --fstype=msdos --fixed-size=100M --align 65540 <1>
+part / --source otaimage --ondisk mmcblk --fstype=ext4 --label root --align 167940 <2>
+
+bootloader --ptable msdos
+----
+
+<1> In the table from the SDK documentation, this is the partition reserved for bootloader files. In the default configuration, this partition would contain the FIT image with the kernel image, initramfs, and device tree blob—that’s why there is 100 MB allocated to it. Since we are managing the FIT image with OSTree, though, we actually only use this partition for the inital UBoot script. It would be theoretically possible to shrink this partition greatly (as the initial script is only a few dozen bytes); we elected to leave it in its manufacturer-specified configuration for ease of use and stability.
+<2> This is the only departure from the layout in the table. OSTree needs to manage `/boot`, so we pass the `otaimage` that Yocto creates to the Wic file here.

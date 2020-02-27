@@ -1,0 +1,377 @@
+= Device monitoring with Zabbix
+
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+
+:attachmentsdir: ../assets/attachments
+endif::[]
+
+This document gives a step by step guide on how to set up, build and run a Zabbix server and agent in order to monitor an Aktualizr update client running on QEMU and collect information about system resource usage, like memory usage and CPU utilization.
+
+You might want to use this guide as a template for configuring zabbix monitoring on a real device, to do performance testing on your real hardware. Or, if you are contributing to aktualizr development or developing your own client based on libaktualizr, you might want to use a setup like this to profile the performance impact of your changes.
+
+For more information about Zabbix in general, please refer to the https://www.zabbix.com/documentation/4.0/[official documentation].
+
+== Install and setup Zabbix server on Ubuntu 16/18
+
+. Install Apache, MySQL, and PHP.
++
+----
+sudo apt-get update
+sudo apt-get install apache2 libapache2-mod-php
+sudo apt-get install mysql-server
+sudo apt-get install php php-mbstring php-gd php-xml php-bcmath php-ldap php-mysql
+----
+
+.  Get the current time zone.
++
+----
+timedatectl status | grep "Time zone"
+----
+
+. In the PHP configuration file, update the time zone.
++
+Example of the configuration file: `/etc/php/7.2/apache2/php.ini`
++
+----
+...
+[Date]
+; http://php.net/date.timezone
+date.timezone = 'Europe/Berlin'
+...
+----
+
+. Depending on the Ubuntu version, enable the required repository.
+** Ubuntu 18.04 LTS (Bionic)
++
+----
+wget https://repo.zabbix.com/zabbix/4.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_4.0-3+bionic_all.deb
+sudo dpkg -i zabbix-release_4.0-3+bionic_all.deb
+----
+
+** Ubuntu 16.04 LTS (Xenial)
++
+----
+$ wget https://repo.zabbix.com/zabbix/4.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_4.0-3+xenial_all.deb
+$ sudo dpkg -i zabbix-release_4.0-3+xenial_all.deb
+----
+
+. Install Zabbix server.
++
+----
+sudo apt-get update
+sudo apt-get install zabbix-server-mysql zabbix-frontend-php zabbix-agent
+----
+
+. Update the root password.
++
+----
+sudo su
+mysql -u root
+mysql> UPDATE mysql.user SET authentication_string=PASSWORD('new-password') WHERE USER='root';
+mysql> FLUSH PRIVILEGES;
+mysql> exit;
+exit;
+----
+
+. Create a database (DB) schema for Zabbix server.
++
+----
+sudo mysql -u root -p
+mysql> CREATE DATABASE zabbixdb character set utf8 collate utf8_bin;
+mysql> CREATE USER 'zabbix'@'localhost' IDENTIFIED BY 'zabbix';
+mysql> GRANT ALL PRIVILEGES ON zabbixdb.* TO 'zabbix'@'localhost' WITH GRANT OPTION;
+mysql> FLUSH PRIVILEGES;
+cd /usr/share/doc/zabbix-server-mysql
+zcat create.sql.gz | mysql -u zabbix -p zabbixdb
+----
+
+. Edit the Zabbix configuration file.
++
+Example of the configuration file: `/etc/zabbix/zabbix_server.conf`
++
+----
+DBHost=localhost
+DBName=zabbixdb
+DBUser=zabbix
+DBPassword=zabbix
+----
+
+. Restart Apache and Zabbix.
++
+----
+sudo systemctl restart apache2
+sudo systemctl restart zabbix-server
+----
+
+. Go to the http://localhost/zabbix/[Zabbix localhost] and complete the installation wizard:
+.. On the **Welcome** page, click **Next Step**.
+.. Check if all the prerequisites are met, and then click **Next Step**.
+.. Specify the DB connection details:
+... From **Database Type**, select **MySQL**.
+... In **Database Host**, make sure that **localhost** is specified.
+... In **Database Port**, make sure that **0** is specified.
+... In **Database Name**, specify **zabbixdb**.
+... In **User**, specify **zabbix**.
+... In **Password**, specify **zabbix**.
+.. On the **Zabbix Server Details** page, click **Next Step**.
+.. Review the settings summary, and then click **Next Step**.
+.. Download the configuration file and place it in the same subdirectory to which you copied the Zabbix PHP files.
+.. Finish the installation.
++
+To sign in to Zabbix, use the following default user name and password:
++
+----
+user: Admin
+pass: zabbix
+----
+
+== Build an OTA image for QEMU
+
+. Clone the manifest file for the quickstart project and download the basic Yocto layers.
++
+For instructions, see https://docs.ota.here.com/getstarted/dev/qemuvirtualbox.html#_create_your_yocto_build_environment[the related section] in the Get Started guide.
+. To set up the Yocto environment, do one of the following:
+** Build a QEMU non-OSTree image.
++
+----
+source meta-updater/scripts/envsetup.sh qemux86-64 <path-to-build-folder> poky
+----
++
+NOTE: It is important to specify `SOTA_HARDWARE_ID` in your conf/local.conf for non-ostree case in order to separate updates for ostree and non-ostree cases.
++
+Edit your conf/local.conf file and add `SOTA_HARDWARE_ID`, provide your desired hardware id, see the example below.
++
+----
+SOTA_HARDWARE_ID="qemux86-64-non-ostree"
+----
+
+** Build a QEMU image with a default package manager OSTree.
++
+----
+source meta-updater/scripts/envsetup.sh qemux86-64 <path-to-build-folder> poky-sota-systemd
+----
+. Open your conf/local.conf file and, at the end of the file, add the following lines:
++
+----
+IMAGE_INSTALL_append += "procps"
+IMAGE_INSTALL_append += " zabbix"
+SOTA_COMM_CONF_ZABBIX_SERVER="10.0.2.2" <1>
+SOTA_COMM_CONF_ZABBIX_SERVERACTIVE="10.0.2.2" <1>
+----
+<1> Substitute the IP address of the system the Zabbix server is running on, as needed. Note that the IP address needs to be hard-coded, so if you are running this on a real device, it is recommended to run the server on something with a static IP.
++
+NOTE: The default host name of the QEMU image is `qemux86-64`.
+
+
+== Run a QEMU image
+
+. Depending on the QEMU image that you built, to make the Zabbix agent visible for the server, do one of the following:
+
+** Run the QEMU non-OSTree image.
++
+----
+../meta-updater/scripts/run-qemu-ota --uboot-enable=no --host-forward="tcp:0.0.0.0:10555-:10050"
+----
+
+** Run the QEMU image created with the default `OSTree` package manager.
++
+----
+../meta-updater/scripts/run-qemu-ota --overlay mydevice.cow --host-forward="tcp:0.0.0.0:10555-:10050"
+----
+
+. Install the `zabbix_get` util.
++
+----
+sudo apt-get install zabbix-get
+----
++
+. Check if the Zabbix agent is accessible.
++
+----
+zabbix_get -s localhost -p 10555 -k agent.ping
+----
++
+If `zabbix-agent` is accessible, the command returns `1`
+
+
+== Run a QEMU image in the background mode
+
+Follow this Systemd Unit example:
+----
+[Unit]
+Description=QEMU Zabbix Test agent
+After=network.target networkd.service ntpd.service
+[Service]
+Type=simple
+WorkingDirectory=<absolute path to your qemux86-64 build folder>
+ExecStart=<absolute path>/meta-updater/scripts/run-qemu-ota --dir <absolute path to your qemux86-64 build folder>/tmp/deploy/images --uboot-enable=no --host-forward="tcp:0.0.0.0:10555-:10050" --no-gui
+Restart=always
+RestartSec=5
+LimitNOFILE=10000
+[Install]
+WantedBy=multi-user.target
+----
+
+
+== Add a template and configure a host for Zabbix server
+
+=== Import a Zabbix template
+link:{attachmentsdir}/aktualizr-monitoring-zabbix-template.xml[Download Zabbix template]
+
+. Go to the Zabbix server dashboard (localhost/zabbix).
+. Go to **Configuration** > **Templates**.
+. Click **Import**, and then select **aktualizr-monitoring-zabbix-template.xml**.
+. Select **Crete New / Screens**.
+. Click **Import**.
+
+=== Add a host for monitoring
+
+. Go to **Configuration** > **Host**.
+. Click **Create Host**.
+. Specify the hostname.
++
+NOTE: The hostname must be the same as the one you configured in the <<Build an OTA image for QEMU>> section.
+
+. In the **Groups** section, click **Select**, and then select **Template/Applications**.
+. In the **Agent interfaces** section, provide the IP address and desired port.
++
+NOTE: The IP address for the QEMU is the localhost (127.0.0.1). Also, use the port that you provided in the <<Run a QEMU image>> section.
+. On the **Templates** tab, in the **Link New Templates** section, click *Select*, and then select the **Aktualizr Client** template.
+. Click the **Add** hyperlink, and then click the **Add** button.
+. Go to **Monitoring** > **Graphs**.
+. On the **Group** menu, select **All** **Host qemux86-64** and **Graph aktualizr.rss.memory.usage.graph**.
+
+== Zabbix agent hostname
+By default Zabbix-agent hostname is configured to `Hostname=Zabbix server`, this hostname is used in Zabbix-agent's request to the server.
+
+If you want to be able to monitor more than one device, each device must have a unique hostname in order to be
+recognized on the Zabbix server, there are two possible ways to achieve this goal:
+
+. Manually configure each individual device by setting Hostname in zabbix-agent.conf file.
+. To create simple service with the script which will make this configuration at boot time.
+
+=== Manual configuration:
+1. Connect to your device using ssh
+2. Change the value of the Hostname variable in `/etc/zabbix-agent.conf` to the desired name, for example `Hostname=my_awesome_device`
+
+=== Set Zabbix hostname at boot time applying aktualizr DEVICE_ID:
+In order to automate this process, we have to create our own recipe which will automatically install necessary files into our image.
+
+If you have your own meta-layer you can put new recipe into `recipes-extended` folder or for the testing purposes,
+you can use `meta-updater/recipes-extended` folder as well.
+
+1. Make a new directory in `recipes-extended` with the name `zabbixhostname` and create all necessary files and subfolders.
++
+----
+zabbixhostname/
+├── files
+│   ├── zabbix-hostname.service
+│   └── zabbix-hostname.sh
+└── zabbix-hostname.bb
+----
+
+2. Edit each file in the `zabbixhostname` folder and copy the content below for each individual file respectively.
++
+.zabbix-hostname.bb
+[source, bash]
+----
+LICENSE = "MIT"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
+SRC_URI = " file://zabbix-hostname.service \
+            file://zabbix-hostname.sh \
+"
+REQUIRED_DISTRO_FEATURES= "systemd"
+inherit systemd
+SYSTEMD_PACKAGES = "${PN}"
+SYSTEMD_SERVICE_${PN} = "zabbix-hostname.service"
+do_install_append() {
+   #install -d ${D}${systemd_unitdir}
+   install -d ${D}${systemd_unitdir}/system
+   install -m 0644 ${WORKDIR}/zabbix-hostname.service ${D}${systemd_unitdir}/system/zabbix-hostname.service
+   install -d ${D}${bindir}
+   install -m 0755 ${WORKDIR}/zabbix-hostname.sh ${D}${bindir}/zabbix-hostname.sh
+}
+FILES_${PN} += " ${systemd_unitdir}/system/zabbix-hostname.service \
+                 ${bindir}/zabbix-hostname.sh \
+"
+----
++
+.files/zabbix-hostname.service
+----
+[Unit]
+Description=Update Zavbbix Hostnam
+After=syslog.target network.target aktualizr.service
+[Service]
+Type=oneshot
+User=root
+ExecStart=/usr/bin/zabbix-hostname.sh /usr/bin/aktualizr-info
+RemainAfterExit=false
+StandardOutput=journal
+[Install]
+WantedBy=multi-user.target
+----
++
+.file/zabbix-hostname.sh
+[source, bash]
+----
+#!/bin/sh
+S=1
+$1 > /tmp/aktualizr-info-tmp
+while read -r line; do
+  if [[ "${line:0:10}" == "Device ID:" ]]; then
+    grep -Fxq "Hostname=${line:11}" /etc/zabbix_agentd.conf
+    if [[ $? -eq 1 ]]; then
+      sed -i "s:^Hostname=Zabbix server:Hostname=${line:11}:g" /etc/zabbix_agentd.conf
+      systemctl restart zabbix-agent.service
+    fi
+    S=0
+  fi
+done < "/tmp/aktualizr-info-tmp"
+rm /tmp/aktualizr-info-tmp
+if [[ "${S}" -ne 0 ]]; then
+ echo "ERROR: Reading aktualizr info failed. Restart service!"
+ sleep 20
+ systemctl restart zabbix-hostname.service
+ exit 1
+fi
+----
+
+3. Install `zabbixhostname` recipe, adding it into your `conf/local.conf` file
++
+----
+IMAGE_INSTALL_append += "zabbixhostname"
+----
+
+4. Bitbake an image
++
+----
+bitbake core-image-minimal
+----
+
+== Zabbix User Parameters (creating custom key)
+Please refer to the official https://www.zabbix.com/documentation/4.0/manual/config/items/userparameters[zabbix documentation] for a complete description.
+
+=== Monitoring number of threads created by the process:
+1. Connect to device using SSH
++
+QEMU:
++
+----
+ssh -o StrictHostKeyChecking=no root@localhost -p 2222
+----
+2. Add user parameter to zabbix config file
++
+----
+echo 'UserParameter=aktualizr.threads.count,ps huH p $(pgrep aktualizr) | wc -l' >> /etc/zabbix_agentd.conf
+----
+3. Restart zabbix agent service
++
+----
+systemctl restart zabbix-agent
+----
+
