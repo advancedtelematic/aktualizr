@@ -440,7 +440,7 @@ TEST(Uptane, InstallFakeBad) {
   uint8_t content[length];
   EXPECT_EQ(rhandle->rread(content, length), length);
   rhandle->rclose();
-  auto whandle = storage->allocateTargetFile(false, download_result.updates[0]);
+  auto whandle = storage->allocateTargetFile(download_result.updates[0]);
   uint8_t content_bad[length + 1];
   memset(content_bad, 0, length + 1);
   EXPECT_EQ(whandle->wfeed(content_bad, 3), 3);
@@ -451,7 +451,7 @@ TEST(Uptane, InstallFakeBad) {
   EXPECT_EQ(install_result.dev_report.result_code, data::ResultCode::Numeric::kInternalError);
 
   // Try again with oversized data.
-  whandle = storage->allocateTargetFile(false, download_result.updates[0]);
+  whandle = storage->allocateTargetFile(download_result.updates[0]);
   EXPECT_EQ(whandle->wfeed(content_bad, length + 1), length + 1);
   whandle->wcommit();
 
@@ -461,7 +461,7 @@ TEST(Uptane, InstallFakeBad) {
 
   // Try again with equally long data to make sure the hash check actually gets
   // triggered.
-  whandle = storage->allocateTargetFile(false, download_result.updates[0]);
+  whandle = storage->allocateTargetFile(download_result.updates[0]);
   EXPECT_EQ(whandle->wfeed(content_bad, length), length);
   whandle->wcommit();
 
@@ -470,7 +470,7 @@ TEST(Uptane, InstallFakeBad) {
   EXPECT_EQ(install_result.dev_report.result_code, data::ResultCode::Numeric::kInternalError);
 
   // Try with the real data, but incomplete.
-  whandle = storage->allocateTargetFile(false, download_result.updates[0]);
+  whandle = storage->allocateTargetFile(download_result.updates[0]);
   EXPECT_EQ(whandle->wfeed(reinterpret_cast<uint8_t *>(content), length - 1), length - 1);
   whandle->wcommit();
 
@@ -479,7 +479,7 @@ TEST(Uptane, InstallFakeBad) {
   EXPECT_EQ(install_result.dev_report.result_code, data::ResultCode::Numeric::kInternalError);
 
   // Restore the original data to the file so that verification succeeds.
-  whandle = storage->allocateTargetFile(false, download_result.updates[0]);
+  whandle = storage->allocateTargetFile(download_result.updates[0]);
   EXPECT_EQ(whandle->wfeed(reinterpret_cast<uint8_t *>(content), length), length);
   whandle->wcommit();
 

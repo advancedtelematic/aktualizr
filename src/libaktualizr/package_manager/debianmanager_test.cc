@@ -32,7 +32,7 @@ TEST(PackageManagerFactory, Debian_Install_Good) {
   target_json_test["length"] = 2;
   Uptane::Target target_test("test.deb", target_json_test);
   storage->savePrimaryInstalledVersion(target_test, InstalledVersionUpdateMode::kCurrent);
-  std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target);
+  std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(target);
   std::stringstream("ab") >> *fhandle;
   fhandle->wcommit();
 
@@ -55,7 +55,7 @@ TEST(PackageManagerFactory, Debian_Install_Bad) {
   target_json["custom"]["ecuIdentifiers"]["primary_serial"]["hardwareId"] = "primary_hwid";
   Uptane::Target target("bad.deb", target_json);
 
-  std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target);
+  std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(target);
   std::stringstream("ab") >> *fhandle;
   fhandle->wcommit();
 

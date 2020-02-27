@@ -43,7 +43,7 @@ class StorageTargetWHandle {
   virtual size_t wfeed(const uint8_t* buf, size_t size) = 0;
   virtual void wcommit() = 0;
   virtual void wabort() = 0;
-  size_t getWrittenSize() { return written_size_; }
+  uintmax_t getWrittenSize() { return written_size_; }
 
   friend std::istream& operator>>(std::istream& is, StorageTargetWHandle& handle) {
     std::array<uint8_t, 256> arr{};
@@ -55,7 +55,7 @@ class StorageTargetWHandle {
   }
 
  protected:
-  size_t written_size_{0};
+  uintmax_t written_size_{0};
 };
 
 class StorageTargetRHandle {
@@ -68,13 +68,13 @@ class StorageTargetRHandle {
   virtual bool isPartial() const = 0;
   virtual std::unique_ptr<StorageTargetWHandle> toWriteHandle() = 0;
 
-  virtual size_t rsize() const = 0;
+  virtual uintmax_t rsize() const = 0;
   virtual size_t rread(uint8_t* buf, size_t size) = 0;
   virtual void rclose() = 0;
 
   void writeToFile(const boost::filesystem::path& path) {
     std::array<uint8_t, 1024> arr{};
-    size_t written = 0;
+    uintmax_t written = 0;
     std::ofstream file(path.c_str());
     if (!file.good()) {
       throw std::runtime_error(std::string("Error opening file ") + path.string());
@@ -89,7 +89,7 @@ class StorageTargetRHandle {
 
   friend std::ostream& operator<<(std::ostream& os, StorageTargetRHandle& handle) {
     std::array<uint8_t, 256> arr{};
-    size_t written = 0;
+    uintmax_t written = 0;
     while (written < handle.rsize()) {
       size_t nread = handle.rread(arr.data(), arr.size());
 
@@ -212,11 +212,10 @@ class INvStorage {
   virtual bool loadEcuReportCounter(std::vector<std::pair<Uptane::EcuSerial, int64_t>>* results) = 0;
 
   virtual bool checkAvailableDiskSpace(uint64_t required_bytes) const = 0;
-  virtual boost::optional<std::pair<size_t, std::string>> checkTargetFile(const Uptane::Target& target) const = 0;
+  virtual boost::optional<std::pair<uintmax_t, std::string>> checkTargetFile(const Uptane::Target& target) const = 0;
 
   // Incremental file API
-  virtual std::unique_ptr<StorageTargetWHandle> allocateTargetFile(bool from_director,
-                                                                   const Uptane::Target& target) = 0;
+  virtual std::unique_ptr<StorageTargetWHandle> allocateTargetFile(const Uptane::Target& target) = 0;
 
   virtual std::unique_ptr<StorageTargetRHandle> openTargetFile(const Uptane::Target& target) = 0;
   virtual std::vector<Uptane::Target> getTargetFiles() = 0;

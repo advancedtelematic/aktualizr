@@ -472,7 +472,7 @@ TEST(storage, store_target) {
 
   // write
   {
-    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target);
+    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(target);
     const uint8_t wb[] = "ab";
     fhandle->wfeed(wb, 1);
     fhandle->wfeed(wb + 1, 1);
@@ -492,7 +492,7 @@ TEST(storage, store_target) {
 
   // write again
   {
-    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target);
+    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(target);
     const uint8_t wb[] = "ab";
     fhandle->wfeed(wb, 1);
     fhandle->wfeed(wb + 1, 1);
@@ -508,7 +508,7 @@ TEST(storage, store_target) {
 
   // write stream
   {
-    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target);
+    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(target);
     std::stringstream("ab") >> *fhandle;
   }
 
@@ -539,7 +539,7 @@ TEST(storage, list_remove_targets) {
 
   // write
   {
-    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target);
+    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(target);
     const uint8_t wb[] = "ab";
     fhandle->wfeed(wb, 1);
     fhandle->wfeed(wb + 1, 1);
@@ -623,7 +623,7 @@ TEST(storage, checksum) {
 
   // write target1
   {
-    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target1);
+    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(target1);
     const uint8_t wb[] = "ab";
     fhandle->wfeed(wb, 2);
     fhandle->wcommit();
@@ -654,7 +654,7 @@ TEST(storage, partial) {
 
   // write partial target
   {
-    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target);
+    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(target);
     const uint8_t wb[] = "a";
     fhandle->wfeed(wb, 1);
     fhandle->wcommit();

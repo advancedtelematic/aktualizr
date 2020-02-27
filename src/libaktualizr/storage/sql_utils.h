@@ -19,10 +19,6 @@ struct SQLBlob {
   explicit SQLBlob(const std::string& str) : content(str) {}
 };
 
-struct SQLZeroBlob {
-  size_t size;
-};
-
 class SQLException : public std::runtime_error {
  public:
   SQLException(const std::string& what = "SQL error") : std::runtime_error(what) {}
@@ -101,13 +97,6 @@ class SQLiteStatement {
 
     if (sqlite3_bind_blob(stmt_.get(), bind_cnt_, oe.c_str(), static_cast<int>(oe.size()), SQLITE_STATIC) !=
         SQLITE_OK) {
-      LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db_);
-      throw std::runtime_error("SQLite bind error");
-    }
-  }
-
-  void bindArgument(const SQLZeroBlob& blob) {
-    if (sqlite3_bind_zeroblob(stmt_.get(), bind_cnt_, static_cast<int>(blob.size)) != SQLITE_OK) {
       LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db_);
       throw std::runtime_error("SQLite bind error");
     }
