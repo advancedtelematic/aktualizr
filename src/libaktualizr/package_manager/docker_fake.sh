@@ -30,6 +30,14 @@ if [ "$1" = "render" ] ; then
   cat app1.dockerapp
   exit 0
 fi
+if [ "$1" = "pull" ] ; then
+  echo "DOCKER-COMPOSE PULL"
+  if [ ! -f docker-compose.yml ] ; then
+    echo "Missing docker-compose file!"
+    exit 1
+  fi
+  exit 0
+fi
 if [ "$1" = "up" ] ; then
   echo "DOCKER-COMPOSE UP"
   if [ ! -f docker-compose.yml ] ; then
@@ -49,6 +57,11 @@ if [ "$1" = "down" ] ; then
   echo "Fake downing the docker-app in $(pwd)"
   touch ../docker-compose-down-called
   exit 0
+fi
+if [ "$1" = "image" ] ; then
+  if [ "$2" = "prune" ] ; then
+    exit 0
+  fi
 fi
 echo "Unknown command: $*"
 exit 1

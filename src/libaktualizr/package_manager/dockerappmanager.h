@@ -15,6 +15,7 @@ class DockerAppManagerConfig {
   boost::filesystem::path docker_app_params;
   boost::filesystem::path docker_app_bin{"/usr/bin/docker-app"};
   boost::filesystem::path docker_compose_bin{"/usr/bin/docker-compose"};
+  bool docker_prune{true};
 };
 
 class DockerAppStandalone : public OstreeManager {
@@ -27,7 +28,6 @@ class DockerAppStandalone : public OstreeManager {
   bool fetchTarget(const Uptane::Target &target, Uptane::Fetcher &fetcher, const KeyManager &keys,
                    FetcherProgressCb progress_cb, const api::FlowControlToken *token) override;
   data::InstallationResult install(const Uptane::Target &target) const override;
-  TargetStatus verifyTarget(const Uptane::Target &target) const override;
   std::string name() const override { return "ostree+docker-app-standalone"; }
 
  private:

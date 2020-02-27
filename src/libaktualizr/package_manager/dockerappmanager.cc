@@ -25,4 +25,8 @@ DockerAppManagerConfig::DockerAppManagerConfig(const PackageConfig &pconfig) {
   if (raw.count("docker_compose_bin") == 1) {
     docker_compose_bin = raw.at("docker_compose_bin");
   }
+
+  if (raw.count("docker_prune") == 1) {
+    docker_compose_bin = raw.at("docker_prune");
+  }
 }
