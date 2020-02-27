@@ -13,7 +13,7 @@
 /*
  * Check that aktualizr creates provisioning data if they don't exist already.
  */
-TEST(Uptane, Initialize) {
+TEST(Initializer, Success) {
   RecordProperty("zephyr_key", "OTA-983,TST-153");
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -60,7 +60,7 @@ TEST(Uptane, Initialize) {
  * Check that aktualizr does NOT change provisioning data if they DO exist
  * already.
  */
-TEST(Uptane, InitializeTwice) {
+TEST(Initializer, InitializeTwice) {
   RecordProperty("zephyr_key", "OTA-983,TST-154");
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -119,7 +119,7 @@ TEST(Uptane, InitializeTwice) {
  * Check that aktualizr does not generate a pet name when device ID is
  * specified.
  */
-TEST(Uptane, PetNameProvided) {
+TEST(Initializer, PetNameProvided) {
   RecordProperty("zephyr_key", "OTA-985,TST-146");
   TemporaryDirectory temp_dir;
   const std::string test_name = "test-name-123";
@@ -155,7 +155,7 @@ TEST(Uptane, PetNameProvided) {
 /**
  * Check that aktualizr generates a pet name if no device ID is specified.
  */
-TEST(Uptane, PetNameCreation) {
+TEST(Initializer, PetNameCreation) {
   RecordProperty("zephyr_key", "OTA-985,TST-145");
   TemporaryDirectory temp_dir;
 
@@ -233,7 +233,7 @@ TEST(Uptane, PetNameCreation) {
 }
 
 /* Detect and recover from failed provisioning. */
-TEST(Uptane, InitializeFail) {
+TEST(Initializer, InitializeFail) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   Config conf("tests/config/basic.toml");
@@ -269,7 +269,7 @@ TEST(Uptane, InitializeFail) {
  *
  * - [x] Use the system hostname as hardware ID if one is not provided
  */
-TEST(Uptane, HostnameAsHardwareID) {
+TEST(Initializer, HostnameAsHardwareID) {
   TemporaryDirectory temp_dir;
   Config conf("tests/config/basic.toml");
   conf.storage.path = temp_dir.Path();

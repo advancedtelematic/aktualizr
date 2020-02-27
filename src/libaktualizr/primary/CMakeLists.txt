@@ -34,6 +34,8 @@ else (BUILD_OSTREE)
     aktualizr_source_file_checks(aktualizr_fullostree_test.cc download_nonostree_test.cc)
 endif (BUILD_OSTREE)
 
+add_aktualizr_test(NAME initializer SOURCES initializer_test.cc PROJECT_WORKING_DIRECTORY LIBRARIES PUBLIC uptane_generator_lib)
+
 add_aktualizr_test(NAME reportqueue SOURCES reportqueue_test.cc PROJECT_WORKING_DIRECTORY LIBRARIES PUBLIC uptane_generator_lib)
 add_aktualizr_test(NAME empty_targets SOURCES empty_targets_test.cc PROJECT_WORKING_DIRECTORY
                    ARGS "$<TARGET_FILE:uptane-generator>" LIBRARIES uptane_generator_lib)
