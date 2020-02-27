@@ -1,5 +1,6 @@
 #include "utilities/types.h"
 
+#include <sstream>
 #include <stdexcept>
 #include <utility>
 
