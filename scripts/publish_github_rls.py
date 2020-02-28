@@ -6,7 +6,23 @@ import os
 import os.path
 import re
 import sys
+import time
 import urllib.request
+
+
+def urlopen_retry(req):
+    delay = 1
+    last_exc = Exception()
+    for k in range(5):
+        try:
+            return urllib.request.urlopen(req)
+        except urllib.error.HTTPError as e:
+            if e.code < 500:
+                raise
+            last_exc = e
+        time.sleep(delay)
+        delay *= 2
+    raise last_exc
 
 
 def main():
@@ -19,15 +35,19 @@ def main():
     api_token = os.environ["GITHUB_API_TOKEN"]
     files = sys.argv[2:]
 
-    req = urllib.request.Request("https://api.github.com/repos/advancedtelematic/aktualizr/releases/tags/{}".format(rls_tag), \
-                                 headers={
-                                     "Accept": "application/vnd.github.v3+json",
-                                     "Authorization": "token {}".format(api_token),
-                                     "Content-Type": "application/json"
-                                 }, method="GET"
-                                 )
+    req = urllib.request.Request(
+        "https://api.github.com/repos/advancedtelematic/aktualizr/releases/tags/{}".format(
+            rls_tag
+        ),
+        headers={
+            "Accept": "application/vnd.github.v3+json",
+            "Authorization": "token {}".format(api_token),
+            "Content-Type": "application/json",
+        },
+        method="GET",
+    )
     try:
-        with urllib.request.urlopen(req) as f:
+        with urlopen_retry(req) as f:
             json.loads(f.read())
     except urllib.error.HTTPError as e:
         if e.code != 404:
@@ -37,21 +57,18 @@ def main():
         return 0
 
     # create release
-    c = {
-        "tag_name": rls_tag,
-        "name": rls_tag,
-        "body": "",
-        "draft": False
-    }
-    req = urllib.request.Request("https://api.github.com/repos/advancedtelematic/aktualizr/releases",
-                                 data=json.dumps(c).encode(),
-                                 headers={
-                                     "Accept": "application/vnd.github.v3+json",
-                                     "Authorization": "token {}".format(api_token),
-                                     "Content-Type": "application/json"
-                                 }, method="POST"
-                                 )
-    with urllib.request.urlopen(req) as f:
+    c = {"tag_name": rls_tag, "name": rls_tag, "body": "", "draft": False}
+    req = urllib.request.Request(
+        "https://api.github.com/repos/advancedtelematic/aktualizr/releases",
+        data=json.dumps(c).encode(),
+        headers={
+            "Accept": "application/vnd.github.v3+json",
+            "Authorization": "token {}".format(api_token),
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    with urlopen_retry(req) as f:
         resp = json.loads(f.read())
 
     upload_url = re.sub("{.*}", "", resp["upload_url"])
@@ -60,16 +77,18 @@ def main():
         bn = os.path.basename(fn)
         url = upload_url + "?name={}".format(bn)
         with open(fn, "rb") as f:
-            req = urllib.request.Request(url,
-                                         data=f,
-                                         headers={
-                                             "Accept": "application/vnd.github.v3+json",
-                                             "Authorization": "token {}".format(api_token),
-                                             "Content-Length": str(os.path.getsize(fn)),
-                                             "Content-Type": mimetypes.guess_type(bn)[0]
-                                         }, method="POST"
-                                         )
-            urllib.request.urlopen(req)
+            req = urllib.request.Request(
+                url,
+                data=f,
+                headers={
+                    "Accept": "application/vnd.github.v3+json",
+                    "Authorization": "token {}".format(api_token),
+                    "Content-Length": str(os.path.getsize(fn)),
+                    "Content-Type": mimetypes.guess_type(bn)[0],
+                },
+                method="POST",
+            )
+            urlopen_retry(req)
 
     return 0
 
