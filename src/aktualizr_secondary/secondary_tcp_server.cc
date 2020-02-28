@@ -31,17 +31,18 @@ void SecondaryTcpServer::run() {
   LOG_INFO << "Secondary TCP server listens on " << listen_socket_.toString();
 
   while (keep_running_.load()) {
-    int con_fd;
     sockaddr_storage peer_sa{};
     socklen_t peer_sa_size = sizeof(sockaddr_storage);
 
     LOG_DEBUG << "Waiting for connection from client...";
-    if ((con_fd = accept(*listen_socket_, reinterpret_cast<sockaddr *>(&peer_sa), &peer_sa_size)) == -1) {
+    int con_fd = accept(*listen_socket_, reinterpret_cast<sockaddr *>(&peer_sa), &peer_sa_size);
+    if (con_fd == -1) {
       LOG_INFO << "Socket accept failed. aborting";
       break;
     }
+    Socket con_socket(con_fd);
     LOG_DEBUG << "Connected...";
-    bool continue_serving = HandleOneConnection(con_fd);
+    bool continue_serving = HandleOneConnection(*con_socket);
     LOG_DEBUG << "Client disconnected";
     if (!continue_serving) {
       break;
