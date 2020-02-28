@@ -17,7 +17,7 @@
 #include "metafake.h"
 #include "utilities/utils.h"
 
-enum class ProvisioningResult { kOK, kFailure };
+enum class ProvisioningResult { kOK, kFailure, kOccupied };
 
 class HttpFake : public HttpInterface {
  public:

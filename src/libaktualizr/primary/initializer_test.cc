@@ -261,6 +261,63 @@ TEST(Initializer, InitializeFail) {
   }
 }
 
+class HttpFakeEcuRegistration : public HttpFake {
+ public:
+  HttpFakeEcuRegistration(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in) {}
+
+  HttpResponse post(const std::string& url, const Json::Value& data) override {
+    if (url.find("/director/ecus") != std::string::npos) {
+      if (provisioningResponse == ProvisioningResult::kOK) {
+        return HttpResponse("", 200, CURLE_OK, "");
+      } else if (provisioningResponse == ProvisioningResult::kOccupied) {
+        Json::Value response;
+        response["code"] = "ecu_already_registered";
+        return HttpResponse(Utils::jsonToStr(response), 400, CURLE_OK, "");
+      } else {
+        return HttpResponse("", 400, CURLE_OK, "");
+      }
+    } else {
+      return HttpFake::post(url, data);
+    }
+  }
+};
+
+/* Detect and recover from failed ECU registration. */
+TEST(Initializer, EcusAlreadyRegistered) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFakeEcuRegistration>(temp_dir.Path());
+  Config conf("tests/config/basic.toml");
+  conf.uptane.director_server = http->tls_server + "/director";
+  conf.uptane.repo_server = http->tls_server + "/repo";
+  conf.tls.server = http->tls_server;
+  conf.storage.path = temp_dir.Path();
+  conf.provision.primary_ecu_serial = "testecuserial";
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  KeyManager keys(storage, conf.keymanagerConfig());
+
+  // Force a failure from the fake server due to ECUs already registered.
+  {
+    http->provisioningResponse = ProvisioningResult::kOccupied;
+    Initializer initializer(conf.provision, storage, http, keys, {});
+    EXPECT_FALSE(initializer.isSuccessful());
+  }
+
+  // Force an arbitary failure from the fake server.
+  {
+    http->provisioningResponse = ProvisioningResult::kFailure;
+    Initializer initializer(conf.provision, storage, http, keys, {});
+    EXPECT_FALSE(initializer.isSuccessful());
+  }
+
+  // Don't force a failure and make sure it actually works this time.
+  {
+    http->provisioningResponse = ProvisioningResult::kOK;
+    Initializer initializer(conf.provision, storage, http, keys, {});
+    EXPECT_TRUE(initializer.isSuccessful());
+  }
+}
+
 /**
  * Verifies if the system hostname is used as a primary ECU hardware ID
  * if it's not specified in the configuration

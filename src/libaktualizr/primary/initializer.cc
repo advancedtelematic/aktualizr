@@ -199,7 +199,7 @@ InitRetCode Initializer::initEcuRegister() {
       LOG_ERROR << "One or more ECUs are unexpectedly already registered.";
       return InitRetCode::kOccupied;
     }
-    LOG_ERROR << "Error registering device on Uptane, response: " << response.body;
+    LOG_ERROR << "Error registering device. Response: " << response.body;
     return InitRetCode::kServerFailure;
   }
   // do not call storage_->storeEcuRegistered(), it will be called from the top-level Init function after the
@@ -269,17 +269,11 @@ Initializer::Initializer(const ProvisionConfig& config_in, std::shared_ptr<INvSt
       return;
     }
 
-    ret_code = initEcuRegister();
-    // if ECUs with same ID have been registered to the server, we don't have a
-    // clear remediation path right now, just ignore the error
-    if (ret_code == InitRetCode::kOccupied) {
-      LOG_INFO << "ECU serial is already registered.";
-    } else if (ret_code != InitRetCode::kOk) {
+    if (initEcuRegister() != InitRetCode::kOk) {
       LOG_ERROR << "ECU registration failed. Aborting initialization.";
       return;
     }
 
-    // TODO: acknowledge on server _before_ setting the flag
     storage_->storeEcuRegistered();
     success_ = true;
     return;
