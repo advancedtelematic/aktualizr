@@ -232,10 +232,32 @@ TEST(Initializer, PetNameCreation) {
   }
 }
 
-/* Detect and recover from failed provisioning. */
-TEST(Initializer, InitializeFail) {
+class HttpFakeDeviceRegistration : public HttpFake {
+ public:
+  HttpFakeDeviceRegistration(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in) {}
+
+  HttpResponse post(const std::string& url, const Json::Value& data) override {
+    if (url.find("/devices") != std::string::npos) {
+      if (retcode == InitRetCode::kOk) {
+        return HttpResponse(Utils::readFile("tests/test_data/cred.p12"), 200, CURLE_OK, "");
+      } else if (retcode == InitRetCode::kOccupied) {
+        Json::Value response;
+        response["code"] = "device_already_registered";
+        return HttpResponse(Utils::jsonToStr(response), 400, CURLE_OK, "");
+      } else {
+        return HttpResponse("", 400, CURLE_OK, "");
+      }
+    }
+    return HttpFake::post(url, data);
+  }
+
+  InitRetCode retcode{InitRetCode::kOk};
+};
+
+/* Detect and recover from failed device provisioning. */
+TEST(Initializer, DeviceRegistration) {
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  auto http = std::make_shared<HttpFakeDeviceRegistration>(temp_dir.Path());
   Config conf("tests/config/basic.toml");
   conf.uptane.director_server = http->tls_server + "/director";
   conf.uptane.repo_server = http->tls_server + "/repo";
@@ -246,16 +268,23 @@ TEST(Initializer, InitializeFail) {
   auto storage = INvStorage::newStorage(conf.storage);
   KeyManager keys(storage, conf.keymanagerConfig());
 
-  // Force a failure from the fake server.
+  // Force a failure from the fake server due to device already registered.
   {
-    http->provisioningResponse = ProvisioningResult::kFailure;
+    http->retcode = InitRetCode::kOccupied;
+    Initializer initializer(conf.provision, storage, http, keys, {});
+    EXPECT_FALSE(initializer.isSuccessful());
+  }
+
+  // Force an arbitrary failure from the fake server.
+  {
+    http->retcode = InitRetCode::kServerFailure;
     Initializer initializer(conf.provision, storage, http, keys, {});
     EXPECT_FALSE(initializer.isSuccessful());
   }
 
   // Don't force a failure and make sure it actually works this time.
   {
-    http->provisioningResponse = ProvisioningResult::kOK;
+    http->retcode = InitRetCode::kOk;
     Initializer initializer(conf.provision, storage, http, keys, {});
     EXPECT_TRUE(initializer.isSuccessful());
   }
@@ -267,23 +296,24 @@ class HttpFakeEcuRegistration : public HttpFake {
 
   HttpResponse post(const std::string& url, const Json::Value& data) override {
     if (url.find("/director/ecus") != std::string::npos) {
-      if (provisioningResponse == ProvisioningResult::kOK) {
+      if (retcode == InitRetCode::kOk) {
         return HttpResponse("", 200, CURLE_OK, "");
-      } else if (provisioningResponse == ProvisioningResult::kOccupied) {
+      } else if (retcode == InitRetCode::kOccupied) {
         Json::Value response;
         response["code"] = "ecu_already_registered";
         return HttpResponse(Utils::jsonToStr(response), 400, CURLE_OK, "");
       } else {
         return HttpResponse("", 400, CURLE_OK, "");
       }
-    } else {
-      return HttpFake::post(url, data);
     }
+    return HttpFake::post(url, data);
   }
+
+  InitRetCode retcode{InitRetCode::kOk};
 };
 
 /* Detect and recover from failed ECU registration. */
-TEST(Initializer, EcusAlreadyRegistered) {
+TEST(Initializer, EcuRegisteration) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFakeEcuRegistration>(temp_dir.Path());
   Config conf("tests/config/basic.toml");
@@ -298,21 +328,21 @@ TEST(Initializer, EcusAlreadyRegistered) {
 
   // Force a failure from the fake server due to ECUs already registered.
   {
-    http->provisioningResponse = ProvisioningResult::kOccupied;
+    http->retcode = InitRetCode::kOccupied;
     Initializer initializer(conf.provision, storage, http, keys, {});
     EXPECT_FALSE(initializer.isSuccessful());
   }
 
   // Force an arbitary failure from the fake server.
   {
-    http->provisioningResponse = ProvisioningResult::kFailure;
+    http->retcode = InitRetCode::kServerFailure;
     Initializer initializer(conf.provision, storage, http, keys, {});
     EXPECT_FALSE(initializer.isSuccessful());
   }
 
   // Don't force a failure and make sure it actually works this time.
   {
-    http->provisioningResponse = ProvisioningResult::kOK;
+    http->retcode = InitRetCode::kOk;
     Initializer initializer(conf.provision, storage, http, keys, {});
     EXPECT_TRUE(initializer.isSuccessful());
   }
