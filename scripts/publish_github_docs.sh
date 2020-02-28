@@ -49,7 +49,11 @@ fi
 find . \( -regex './[^/]*' -and -type f -and -not -path ./.git \) -or \( -path './search/*' \) -exec git rm -r {} +
 cp -ar "$DOX_DOCS/." .
 git add .
-gitcommit -m "Update docs to latest ($DESCRIBE)"
+if git diff --cached --quiet; then
+    echo "Docs already updated to the latest version, skipping..."
+else
+    gitcommit -m "Update docs to latest ($DESCRIBE)"
+fi
 
 if [ "$DRY_RUN" != 1 ]; then
     git config credential.${GIT_REMOTE}.username "$GITHUB_API_USER"
