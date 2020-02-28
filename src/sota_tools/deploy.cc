@@ -105,36 +105,20 @@ bool OfflineSignRepo(const ServerCredentials &push_credentials, const std::strin
   return true;
 }
 
-bool PushRootRef(const ServerCredentials &push_credentials, const OSTreeRef &ref, const std::string &cacerts,
-                 const RunMode mode) {
-  if (push_credentials.CanSignOffline()) {
-    // In general, this is the wrong thing.  We should be using offline signing
-    // if private key material is present in credentials.zip
-    LOG_WARNING << "Pushing by refname despite that credentials.zip can be used to sign offline.";
-  }
-
-  TreehubServer push_server;
-
-  if (authenticate(cacerts, push_credentials, push_server) != EXIT_SUCCESS) {
-    LOG_FATAL << "Authentication failed";
+bool PushRootRef(const TreehubServer &push_server, const OSTreeRef &ref) {
+  CurlEasyWrapper easy_handle;
+  curlEasySetoptWrapper(easy_handle.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
+  ref.PushRef(push_server, easy_handle.get());
+  CURLcode err = curl_easy_perform(easy_handle.get());
+  if (err != 0u) {
+    LOG_ERROR << "Error pushing root ref: " << curl_easy_strerror(err);
     return false;
   }
-
-  if (mode == RunMode::kDefault || mode == RunMode::kPushTree) {
-    CurlEasyWrapper easy_handle;
-    curlEasySetoptWrapper(easy_handle.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
-    ref.PushRef(push_server, easy_handle.get());
-    CURLcode err = curl_easy_perform(easy_handle.get());
-    if (err != 0u) {
-      LOG_ERROR << "Error pushing root ref: " << curl_easy_strerror(err);
-      return false;
-    }
-    long rescode;  // NOLINT(google-runtime-int)
-    curl_easy_getinfo(easy_handle.get(), CURLINFO_RESPONSE_CODE, &rescode);
-    if (rescode != 200) {
-      LOG_ERROR << "Error pushing root ref, got " << rescode << " HTTP response";
-      return false;
-    }
+  long rescode;  // NOLINT(google-runtime-int)
+  curl_easy_getinfo(easy_handle.get(), CURLINFO_RESPONSE_CODE, &rescode);
+  if (rescode < 200 || rescode >= 400) {
+    LOG_ERROR << "Error pushing root ref, got " << rescode << " HTTP response";
+    return false;
   }
 
   return true;
