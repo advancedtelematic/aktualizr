@@ -80,11 +80,11 @@ Once the release is ready on github, it should be edited to include a link to th
 
 == Update the homebrew recipe for aktualizr
 
-The https://github.com/advancedtelematic/homebrew-otaconnect/blob/master/aktualizr.rb[homebrew aktualizr recipe] should be updated with the new release.
+The https://github.com/advancedtelematic/homebrew-otaconnect/blob/master/aktualizr.rb[homebrew aktualizr formula] should be updated with the new release.
 
-There is the gitlab CI job that will automatically update the recipe, build a bottle, and upload the bottle to the github release page when a new release is created. The one thing it doesn't do is make the pull request to update the recipe in the tap.
+There is the gitlab CI job that will automatically update the formula, build a bottle, and upload the bottle to the github release page when a new release is created.
 
-You will find the new recipe attached to the gitlab CI job named `build-osx-release` that should be triggered in the scope of the latest https://main.gitlab.in.here.com/olp/edge/ota/connect/client/aktualizr/pipelines?scope=tags&page=1[release CI pipeline]. You can download the file from there, and submit the changes as a pull request to the https://github.com/advancedtelematic/homebrew-otaconnect/[homebrew-otaconnect repo].
+Also, this job will make a pull request to update the formula in the tap. The pull request should be listed https://github.com/advancedtelematic/homebrew-otaconnect/pulls/[here]. You should merge it to a master branch of the https://github.com/advancedtelematic/homebrew-otaconnect/[homebrew-otaconnect repo], so mac users can install the latest aktualizr release.
 
 === Fallback: manually build a bottle and update the homebrew recipe
 
