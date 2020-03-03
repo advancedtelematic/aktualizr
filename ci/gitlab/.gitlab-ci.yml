@@ -423,9 +423,11 @@ build-osx-release:
     - github-release
   variables:
     VERSION: "$CI_COMMIT_TAG"
+    REVISION: "$CI_COMMIT_SHA"
     RELEASE_BASE_URL: "https://github.com/advancedtelematic/aktualizr/releases/download"
     GITHUB_REPOSITORY: "advancedtelematic/aktualizr"
     GITHUB_TOKEN: "$GITHUB_API_TOKEN"
+    HOMEBREW_GITHUB_API_TOKEN: "$GITHUB_API_TOKEN"
   before_script:
     - brew uninstall -f aktualizr
     - brew install ghr
@@ -435,17 +437,14 @@ build-osx-release:
     - aktualizr --version
     - brew bottle --json --no-rebuild --force-core-tap --root-url=${RELEASE_BASE_URL}/${VERSION} aktualizr
     - brew bottle --merge --write --no-commit ./aktualizr--${VERSION}.mojave.bottle.json
-    - brew cat aktualizr | tee aktualizr.rb
     - mv aktualizr--${VERSION}.mojave.bottle.tar.gz aktualizr-${VERSION}.mojave.bottle.tar.gz
     - ls -alrt aktualizr-${VERSION}.mojave.bottle.tar.gz
     - ghr -u "${GITHUB_REPOSITORY%/*}" -r "${GITHUB_REPOSITORY#*/}" ${VERSION} aktualizr-${VERSION}.mojave.bottle.tar.gz
+    - brew bump-formula-pr -v -d -f --tag=${VERSION} --revision=${REVISION} --no-browse aktualizr
   rules:
     - if: $CI_COMMIT_TAG =~ /^20\d\d\.\d\d?-docs$/
       when: never
     - if: $OSX_RELEASE && $CI_COMMIT_TAG =~ /^\d\d\d\d\.\d+(-\w+)?$/
       when: always
-  artifacts:
-    paths:
-      - aktualizr.rb
   tags:
   - osx
