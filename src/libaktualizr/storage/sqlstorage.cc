@@ -1610,6 +1610,66 @@ bool SQLStorage::loadEcuReportCounter(std::vector<std::pair<Uptane::EcuSerial, i
   return true;
 }
 
+void SQLStorage::saveReportEvent(const Json::Value& json_value) {
+  std::string json_string = Utils::jsonToCanonicalStr(json_value);
+  SQLite3Guard db = dbConnection();
+  auto statement = db.prepareStatement<std::string>(
+      "INSERT INTO report_events SELECT MAX(id) + 1, ? FROM report_events", json_string);
+  if (statement.step() != SQLITE_DONE) {
+    LOG_ERROR << "Can't save report event: " << db.errmsg();
+    return;
+  }
+}
+
+bool SQLStorage::loadReportEvents(Json::Value* report_array, int64_t* id_max) {
+  SQLite3Guard db = dbConnection();
+  auto statement = db.prepareStatement("SELECT id, json_string FROM report_events;");
+  int statement_result = statement.step();
+  if (statement_result != SQLITE_DONE && statement_result != SQLITE_ROW) {
+    LOG_ERROR << "Can't get report_events: " << db.errmsg();
+    return false;
+  }
+  if (statement_result == SQLITE_DONE) {
+    // if there are no any record in the DB
+    return false;
+  }
+  *id_max = 0;
+  for (; statement_result != SQLITE_DONE; statement_result = statement.step()) {
+    try {
+      int64_t id = statement.get_result_col_int(0);
+      std::string json_string = statement.get_result_col_str(1).value();
+      std::istringstream jss(json_string);
+      Json::Value event_json;
+      std::string errs;
+      if (Json::parseFromStream(Json::CharReaderBuilder(), jss, &event_json, &errs)) {
+        report_array->append(event_json);
+        *id_max = (*id_max) > id ? (*id_max) : id;
+      } else {
+        LOG_ERROR << "Unable to parse event data: " << errs;
+      }
+    } catch (const boost::bad_optional_access&) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+void SQLStorage::deleteReportEvents(int64_t id_max) {
+  SQLite3Guard db = dbConnection();
+  if (!db.beginTransaction()) {
+    LOG_ERROR << "Can't start transaction: " << db.errmsg();
+    return;
+  }
+
+  auto statement = db.prepareStatement<int64_t>("DELETE FROM report_events WHERE id <= ?;", id_max);
+  if (statement.step() != SQLITE_DONE) {
+    LOG_ERROR << "Can't delete report_events";
+  }
+
+  db.commitTransaction();
+}
+
 void SQLStorage::clearInstallationResults() {
   SQLite3Guard db = dbConnection();
   if (!db.beginTransaction()) {
@@ -1700,7 +1760,7 @@ boost::optional<std::pair<uintmax_t, std::string>> SQLStorage::checkTargetFile(c
 class SQLTargetWHandle : public StorageTargetWHandle {
  public:
   SQLTargetWHandle(const SQLStorage& storage, Uptane::Target target)
-      : db_(storage.dbPath()), target_(std::move(target)) {
+      : db_path_(storage.dbPath()), target_(std::move(target)), storage_(&storage) {
     StorageTargetWHandle::WriteError exc("could not save file " + target_.filename() + " to the filesystem");
 
     std::string sha256Hash;
@@ -1713,12 +1773,13 @@ class SQLTargetWHandle : public StorageTargetWHandle {
       }
     }
     std::string filename = (storage.images_path_ / target_.hashes()[0].HashString()).string();
-    auto statement = db_.prepareStatement<std::string, std::string, std::string>(
+    SQLite3Guard db = storage_->dbConnection();
+    auto statement = db.prepareStatement<std::string, std::string, std::string>(
         "INSERT OR REPLACE INTO target_images (targetname, sha256, sha512, filename) VALUES ( ?, ?, ?, ?);",
         target_.filename(), sha256Hash, sha512Hash, target_.hashes()[0].HashString());
 
     if (statement.step() != SQLITE_DONE) {
-      LOG_ERROR << "Statement step failure: " << db_.errmsg();
+      LOG_ERROR << "Statement step failure: " << db.errmsg();
       throw exc;
     }
     boost::filesystem::create_directories(storage.images_path_);
@@ -1756,9 +1817,11 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     if (stream_) {
       stream_.close();
     }
-    if (sqlite3_changes(db_.get()) > 0) {
+
+    if (storage_ != nullptr) {
+      SQLite3Guard db = storage_->dbConnection();
       auto statement =
-          db_.prepareStatement<std::string>("DELETE FROM target_images WHERE targetname=?;", target_.filename());
+          db.prepareStatement<std::string>("DELETE FROM target_images WHERE targetname=?;", target_.filename());
       if (statement.step() != SQLITE_DONE) {
         LOG_ERROR << "could not delete " << target_.filename() << " from sql storage";
       }
@@ -1770,11 +1833,7 @@ class SQLTargetWHandle : public StorageTargetWHandle {
  private:
   SQLTargetWHandle(const boost::filesystem::path& db_path, Uptane::Target target,
                    const boost::filesystem::path& image_path, const uintmax_t& start_from = 0)
-      : db_(db_path), target_(std::move(target)) {
-    if (db_.get_rc() != SQLITE_OK) {
-      LOG_ERROR << "Can't open database: " << db_.errmsg();
-      throw StorageTargetWHandle::WriteError("could not open sql storage");
-    }
+      : db_path_(db_path), target_(std::move(target)) {
     stream_.open(image_path.string(), std::ofstream::out | std::ofstream::app);
     if (!stream_.good()) {
       LOG_ERROR << "Could not open image for write: " << image_path;
@@ -1783,9 +1842,10 @@ class SQLTargetWHandle : public StorageTargetWHandle {
 
     written_size_ = start_from;
   }
-  SQLite3Guard db_;
+  boost::filesystem::path db_path_;
   Uptane::Target target_;
   std::ofstream stream_;
+  const SQLStorage* storage_ = nullptr;
 };
 
 std::unique_ptr<StorageTargetWHandle> SQLStorage::allocateTargetFile(const Uptane::Target& target) {
@@ -1795,7 +1855,7 @@ std::unique_ptr<StorageTargetWHandle> SQLStorage::allocateTargetFile(const Uptan
 class SQLTargetRHandle : public StorageTargetRHandle {
  public:
   SQLTargetRHandle(const SQLStorage& storage, Uptane::Target target)
-      : db_path_(storage.dbPath()), db_(db_path_), target_(std::move(target)), size_(0) {
+      : db_path_(storage.dbPath()), target_(std::move(target)), size_(0) {
     StorageTargetRHandle::ReadError exc("could not read file " + target_.filename() + " from sql storage");
 
     auto exists = storage.checkTargetFile(target_);
@@ -1835,7 +1895,6 @@ class SQLTargetRHandle : public StorageTargetRHandle {
 
  private:
   boost::filesystem::path db_path_;
-  SQLite3Guard db_;
   Uptane::Target target_;
   uintmax_t size_;
   bool partial_{false};

@@ -91,6 +91,9 @@ class SQLStorage : public SQLStorageBase, public INvStorage {
                                     std::string* correlation_id) override;
   void saveEcuReportCounter(const Uptane::EcuSerial& ecu_serial, int64_t counter) override;
   bool loadEcuReportCounter(std::vector<std::pair<Uptane::EcuSerial, int64_t>>* results) override;
+  void saveReportEvent(const Json::Value& json_value) override;
+  bool loadReportEvents(Json::Value* report_array, int64_t* id_max) override;
+  void deleteReportEvents(int64_t id_max) override;
   void clearInstallationResults() override;
 
   bool checkAvailableDiskSpace(uint64_t required_bytes) const override;

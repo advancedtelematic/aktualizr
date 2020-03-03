@@ -211,6 +211,10 @@ class INvStorage {
   virtual void saveEcuReportCounter(const Uptane::EcuSerial& ecu_serial, int64_t counter) = 0;
   virtual bool loadEcuReportCounter(std::vector<std::pair<Uptane::EcuSerial, int64_t>>* results) = 0;
 
+  virtual void saveReportEvent(const Json::Value& json_value) = 0;
+  virtual bool loadReportEvents(Json::Value* report_array, int64_t* id_max) = 0;
+  virtual void deleteReportEvents(int64_t id_max) = 0;
+
   virtual bool checkAvailableDiskSpace(uint64_t required_bytes) const = 0;
   virtual boost::optional<std::pair<uintmax_t, std::string>> checkTargetFile(const Uptane::Target& target) const = 0;
 

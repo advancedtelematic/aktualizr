@@ -39,10 +39,11 @@ class SotaUptaneClient {
         http(std::move(http_in)),
         package_manager_(PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, http)),
         uptane_fetcher(new Uptane::Fetcher(config, http)),
-        report_queue(new ReportQueue(config, http)),
         events_channel(std::move(events_channel_in)),
         primary_ecu_serial_(primary_serial),
-        primary_ecu_hw_id_(hwid) {}
+        primary_ecu_hw_id_(hwid) {
+    report_queue = std_::make_unique<ReportQueue>(config, http, storage);
+  }
 
   SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in,
                    std::shared_ptr<HttpInterface> http_in)

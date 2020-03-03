@@ -2,8 +2,9 @@
 
 #include <chrono>
 
-ReportQueue::ReportQueue(const Config& config_in, std::shared_ptr<HttpInterface> http_client)
-    : config(config_in), http(std::move(http_client)) {
+ReportQueue::ReportQueue(const Config& config_in, std::shared_ptr<HttpInterface> http_client,
+                         std::shared_ptr<INvStorage> storage_in)
+    : config(config_in), http(std::move(http_client)), storage(std::move(storage_in)) {
   thread_ = std::thread(std::bind(&ReportQueue::run, this));
 }
 
@@ -33,16 +34,15 @@ void ReportQueue::run() {
 void ReportQueue::enqueue(std::unique_ptr<ReportEvent> event) {
   {
     std::lock_guard<std::mutex> lock(m_);
-    report_queue_.push(std::move(event));
+    storage->saveReportEvent(event->toJson());
   }
   cv_.notify_all();
 }
 
 void ReportQueue::flushQueue() {
-  while (!report_queue_.empty()) {
-    report_array.append(report_queue_.front()->toJson());
-    report_queue_.pop();
-  }
+  int64_t max_id = 0;
+  Json::Value report_array{Json::arrayValue};
+  storage->loadReportEvents(&report_array, &max_id);
 
   if (config.tls.server.empty()) {
     // Prevent a lot of unnecessary garbage output in uptane vector tests.
@@ -61,6 +61,7 @@ void ReportQueue::flushQueue() {
 
     if (response.isOk() || response.http_status_code == 404) {
       report_array.clear();
+      storage->deleteReportEvents(max_id);
     }
   }
 }

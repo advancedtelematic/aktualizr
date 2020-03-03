@@ -48,6 +48,7 @@ class SQLStorageBase {
   bool readonly_{false};
 
   StorageLock lock;
+  std::shared_ptr<std::mutex> mutex_;
 
   const std::vector<std::string> schema_migrations_;
   std::vector<std::string> schema_rollback_migrations_;

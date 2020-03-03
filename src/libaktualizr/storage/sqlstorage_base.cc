@@ -32,6 +32,7 @@ SQLStorageBase::SQLStorageBase(boost::filesystem::path sqldb_path, bool readonly
                                int current_schema_version)
     : sqldb_path_(std::move(sqldb_path)),
       readonly_(readonly),
+      mutex_(new std::mutex()),
       schema_migrations_(std::move(schema_migrations)),
       schema_rollback_migrations_(std::move(schema_rollback_migrations)),
       current_schema_(std::move(current_schema)),
@@ -72,7 +73,7 @@ SQLStorageBase::SQLStorageBase(boost::filesystem::path sqldb_path, bool readonly
 }
 
 SQLite3Guard SQLStorageBase::dbConnection() const {
-  SQLite3Guard db(dbPath(), readonly_);
+  SQLite3Guard db(dbPath(), readonly_, mutex_);
   if (db.get_rc() != SQLITE_OK) {
     throw SQLException(std::string("Can't open database: ") + db.errmsg());
   }
