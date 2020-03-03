@@ -74,7 +74,7 @@ uptane-generator generate <repo_dir>
 
 Then, serve the generated directory using a web server such as the link:{aktualizr-github-url}/tests/fake_http_server/fake_test_server.py[fake test server].
 
-For more information about using uptane-generator, see xref:uptane-generator.adoc[uptane-generator.adoc].
+For more information about using uptane-generator, see the xref:uptane-generator.adoc[uptane-generator article].
 
 Here is an example configuration for nginx:
 
@@ -98,7 +98,7 @@ server {
 
 == Inject faults
 
-See xref:fault-injection.adoc[fault-injection.adoc]
+See the xref:fault-injection.adoc[fault injection article] for more information.
 
 == Developing and debugging with an OpenEmbedded system
 
