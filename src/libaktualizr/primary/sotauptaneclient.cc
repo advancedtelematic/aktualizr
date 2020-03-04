@@ -648,7 +648,7 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(const Uptane::Ta
       success = package_manager_->fetchTarget(target, *uptane_fetcher, keys, prog_cb, token);
       // Skip trying to fetch the 'target' if control flow token transaction
       // was set to the 'abort' or 'pause' state, see the CommandQueue and FlowControlToken.
-      if (success || (token && !token->canContinue(false))) {
+      if (success || (token != nullptr && !token->canContinue(false))) {
         break;
       } else if (tries < max_tries - 1) {
         std::this_thread::sleep_for(wait);
