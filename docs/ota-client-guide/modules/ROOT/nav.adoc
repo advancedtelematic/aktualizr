@@ -109,6 +109,7 @@ ifndef::env-github[:pageroot:]
 
 .Troubleshooting
 * xref:{pageroot}troubleshooting.adoc[Troubleshooting]
+* xref:{pageroot}reporting-problems.adoc[Reporting problems]
 
 .For Contributors
 // Dev-authored topics
