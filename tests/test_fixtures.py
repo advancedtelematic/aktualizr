@@ -286,7 +286,8 @@ class KeyStore:
 class IPSecondary:
 
     def __init__(self, aktualizr_secondary_exe, id, port=None, primary_port=None,
-                 sysroot=None, treehub=None, output_logs=True, ostree_mock_path=None, **kwargs):
+                 sysroot=None, treehub=None, output_logs=True, force_reboot=False,
+                 ostree_mock_path=None, **kwargs):
         self.id = id
 
         self._aktualizr_secondary_exe = aktualizr_secondary_exe
@@ -297,8 +298,15 @@ class IPSecondary:
         self._output_logs = output_logs
         self.reboot_sentinel_file = os.path.join(self.storage_dir.name, self._sentinel_file)
 
+        if force_reboot:
+            reboot_command = "rm {}".format(self.reboot_sentinel_file)
+        else:
+            reboot_command = ""
+
         with open(path.join(self.storage_dir.name, 'config.toml'), 'w+') as config_file:
             config_file.write(IPSecondary.CONFIG_TEMPLATE.format(serial=id[1], hw_ID=id[0],
+                                                                 force_reboot=1 if force_reboot else 0,
+                                                                 reboot_command=reboot_command,
                                                                  port=self.port, primary_port=self.primary_port,
                                                                  storage_dir=self.storage_dir.name,
                                                                  db_path=path.join(self.storage_dir.name, 'db.sql'),
@@ -320,6 +328,7 @@ class IPSecondary:
     [uptane]
     ecu_serial = "{serial}"
     ecu_hardware_id = "{hw_ID}"
+    force_install_completion = {force_reboot}
 
     [network]
     port = {port}
@@ -340,7 +349,7 @@ class IPSecondary:
     [bootloader]
     reboot_sentinel_dir = "{sentinel_dir}"
     reboot_sentinel_name = "{sentinel_name}"
-    reboot_command = ""
+    reboot_command = "{reboot_command}"
     '''
 
     def is_running(self):
@@ -367,6 +376,9 @@ class IPSecondary:
         self._process.terminate()
         self._process.wait(timeout=60)
         logger.debug("IP Secondary {} has been stopped".format(self.id))
+
+    def wait_for_completion(self, timeout=120):
+        self._process.wait(timeout)
 
     def emulate_reboot(self):
         os.remove(self.reboot_sentinel_file)
@@ -879,7 +891,8 @@ def with_imagerepo(start=True, handlers=[]):
     return decorator
 
 
-def with_secondary(start=True, output_logs=False, id=('secondary-hw-ID-001', None), arg_name='secondary',
+def with_secondary(start=True, output_logs=False, id=('secondary-hw-ID-001', None),
+                   force_reboot=False, arg_name='secondary',
                    aktualizr_secondary_exe='src/aktualizr_secondary/aktualizr-secondary'):
     def decorator(test):
         @wraps(test)
@@ -887,7 +900,7 @@ def with_secondary(start=True, output_logs=False, id=('secondary-hw-ID-001', Non
             id1 = id
             if id1[1] is None:
                 id1 = (id1[0], str(uuid4()))
-            secondary = IPSecondary(aktualizr_secondary_exe=aktualizr_secondary_exe, output_logs=output_logs, id=id1, **kwargs)
+            secondary = IPSecondary(aktualizr_secondary_exe=aktualizr_secondary_exe, output_logs=output_logs, id=id1, force_reboot=force_reboot, **kwargs)
             sl = kwargs.get("secondaries", []) + [secondary]
             kwargs.update({arg_name: secondary, "secondaries": sl})
             if "primary_port" not in kwargs:
