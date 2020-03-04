@@ -17,8 +17,6 @@
 #include "metafake.h"
 #include "utilities/utils.h"
 
-enum class ProvisioningResult { kOK, kFailure };
-
 class HttpFake : public HttpInterface {
  public:
   // old style HttpFake with centralized multi repo and url rewriting
@@ -102,17 +100,11 @@ class HttpFake : public HttpInterface {
 
   HttpResponse post(const std::string &url, const Json::Value &data) override {
     if (url.find("/devices") != std::string::npos || url.find("/director/ecus") != std::string::npos || url.empty()) {
-      LOG_ERROR << "OK create device";
       Utils::writeFile((test_dir / "post.json").string(), data);
-      if (provisioningResponse == ProvisioningResult::kOK) {
-        return HttpResponse(Utils::readFile("tests/test_data/cred.p12"), 200, CURLE_OK, "");
-      } else {
-        return HttpResponse("", 400, CURLE_OK, "");
-      }
+      return HttpResponse(Utils::readFile("tests/test_data/cred.p12"), 200, CURLE_OK, "");
     } else if (url.find("/events") != std::string::npos) {
       return handle_event(url, data);
     }
-
     return HttpResponse("", 400, CURLE_OK, "");
   }
 
@@ -166,7 +158,6 @@ class HttpFake : public HttpInterface {
   }
 
   const std::string tls_server = "https://tlsserver.com";
-  ProvisioningResult provisioningResponse{ProvisioningResult::kOK};
   Json::Value last_manifest;
 
  protected:

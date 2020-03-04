@@ -61,8 +61,6 @@ add_aktualizr_test(NAME uptane_serial SOURCES uptane_serial_test.cc ARGS ${PROJE
                    PROJECT_WORKING_DIRECTORY LIBRARIES uptane_generator_lib)
 target_link_libraries(t_uptane_serial virtual_secondary)
 
-add_aktualizr_test(NAME uptane_init SOURCES uptane_init_test.cc PROJECT_WORKING_DIRECTORY LIBRARIES PUBLIC uptane_generator_lib)
-
 add_aktualizr_test(NAME director SOURCES director_test.cc PROJECT_WORKING_DIRECTORY
                    ARGS "$<TARGET_FILE:uptane-generator>")
 

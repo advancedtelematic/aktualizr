@@ -26,7 +26,7 @@ bool Initializer::initDeviceId() {
     } else if (config_.mode == ProvisionMode::kDeviceCred) {
       device_id = keys_.getCN();
     } else {
-      LOG_ERROR << "Unknown provisioning method";
+      LOG_ERROR << "Unknown provisioning method.";
       return false;
     }
   }
@@ -34,6 +34,7 @@ bool Initializer::initDeviceId() {
   storage_->storeDeviceId(device_id);
   return true;
 }
+
 void Initializer::resetDeviceId() { storage_->clearDeviceId(); }
 
 // Postcondition [(serial, hw_id)] is in the storage
@@ -89,7 +90,7 @@ InitRetCode Initializer::initTlsCreds() {
   }
 
   if (config_.mode != ProvisionMode::kSharedCred) {
-    LOG_ERROR << "Credentials not found";
+    LOG_ERROR << "Shared credentials expected but not found.";
     return InitRetCode::kStorageFailure;
   }
 
@@ -104,7 +105,7 @@ InitRetCode Initializer::initTlsCreds() {
   Json::Value data;
   std::string device_id;
   if (!storage_->loadDeviceId(&device_id)) {
-    LOG_ERROR << "Unknown device_id during shared credential provisioning.";
+    LOG_ERROR << "Unable to load device_id during shared credential provisioning.";
     return InitRetCode::kStorageFailure;
   }
   data["deviceId"] = device_id;
@@ -113,10 +114,10 @@ InitRetCode Initializer::initTlsCreds() {
   if (!response.isOk()) {
     Json::Value resp_code = response.getJson()["code"];
     if (resp_code.isString() && resp_code.asString() == "device_already_registered") {
-      LOG_ERROR << "Device id" << device_id << "is occupied";
+      LOG_ERROR << "Device ID " << device_id << " is already registered.";
       return InitRetCode::kOccupied;
     }
-    LOG_ERROR << "Shared credential provisioning failed, response: " << response.body;
+    LOG_ERROR << "Shared credential provisioning failed: " << response.http_status_code << " " << response.body;
     return InitRetCode::kServerFailure;
   }
 
@@ -126,18 +127,18 @@ InitRetCode Initializer::initTlsCreds() {
   StructGuard<BIO> device_p12(BIO_new_mem_buf(response.body.c_str(), static_cast<int>(response.body.size())),
                               BIO_vfree);
   if (!Crypto::parseP12(device_p12.get(), "", &pkey, &cert, &ca)) {
-    LOG_ERROR << "Received a malformed P12 package from the server";
+    LOG_ERROR << "Received malformed device credentials from the server,.";
     return InitRetCode::kBadP12;
   }
   storage_->storeTlsCreds(ca, cert, pkey);
 
   // set provisioned credentials
   if (!loadSetTlsCreds()) {
-    LOG_ERROR << "Failed to set provisioned credentials";
+    LOG_ERROR << "Failed to set provisioned device credentials.";
     return InitRetCode::kStorageFailure;
   }
 
-  LOG_INFO << "Provisioned successfully on Device Gateway";
+  LOG_INFO << "Provisioned successfully on Device Gateway.";
   return InitRetCode::kOk;
 }
 
@@ -199,12 +200,12 @@ InitRetCode Initializer::initEcuRegister() {
       LOG_ERROR << "One or more ECUs are unexpectedly already registered.";
       return InitRetCode::kOccupied;
     }
-    LOG_ERROR << "Error registering device on Uptane, response: " << response.body;
+    LOG_ERROR << "Error registering device: " << response.http_status_code << " " << response.body;
     return InitRetCode::kServerFailure;
   }
   // do not call storage_->storeEcuRegistered(), it will be called from the top-level Init function after the
   // acknowledgement
-  LOG_INFO << "ECUs have been successfully registered to the server.";
+  LOG_INFO << "ECUs have been successfully registered with the server.";
   return InitRetCode::kOk;
 }
 
@@ -246,7 +247,7 @@ Initializer::Initializer(const ProvisionConfig& config_in, std::shared_ptr<INvSt
     // generate a new one
     if (ret_code == InitRetCode::kOccupied) {
       resetDeviceId();
-      LOG_INFO << "Device name is already registered. Restarting.";
+      LOG_ERROR << "Device name is already registered. Retrying.";
       continue;
     } else if (ret_code == InitRetCode::kStorageFailure) {
       LOG_ERROR << "Error reading existing provisioning data from storage.";
@@ -269,17 +270,11 @@ Initializer::Initializer(const ProvisionConfig& config_in, std::shared_ptr<INvSt
       return;
     }
 
-    ret_code = initEcuRegister();
-    // if ECUs with same ID have been registered to the server, we don't have a
-    // clear remediation path right now, just ignore the error
-    if (ret_code == InitRetCode::kOccupied) {
-      LOG_INFO << "ECU serial is already registered.";
-    } else if (ret_code != InitRetCode::kOk) {
+    if (initEcuRegister() != InitRetCode::kOk) {
       LOG_ERROR << "ECU registration failed. Aborting initialization.";
       return;
     }
 
-    // TODO: acknowledge on server _before_ setting the flag
     storage_->storeEcuRegistered();
     success_ = true;
     return;

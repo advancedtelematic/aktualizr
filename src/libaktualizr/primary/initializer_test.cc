@@ -13,7 +13,7 @@
 /*
  * Check that aktualizr creates provisioning data if they don't exist already.
  */
-TEST(Uptane, Initialize) {
+TEST(Initializer, Success) {
   RecordProperty("zephyr_key", "OTA-983,TST-153");
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -60,7 +60,7 @@ TEST(Uptane, Initialize) {
  * Check that aktualizr does NOT change provisioning data if they DO exist
  * already.
  */
-TEST(Uptane, InitializeTwice) {
+TEST(Initializer, InitializeTwice) {
   RecordProperty("zephyr_key", "OTA-983,TST-154");
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -119,7 +119,7 @@ TEST(Uptane, InitializeTwice) {
  * Check that aktualizr does not generate a pet name when device ID is
  * specified.
  */
-TEST(Uptane, PetNameProvided) {
+TEST(Initializer, PetNameProvided) {
   RecordProperty("zephyr_key", "OTA-985,TST-146");
   TemporaryDirectory temp_dir;
   const std::string test_name = "test-name-123";
@@ -155,7 +155,7 @@ TEST(Uptane, PetNameProvided) {
 /**
  * Check that aktualizr generates a pet name if no device ID is specified.
  */
-TEST(Uptane, PetNameCreation) {
+TEST(Initializer, PetNameCreation) {
   RecordProperty("zephyr_key", "OTA-985,TST-145");
   TemporaryDirectory temp_dir;
 
@@ -232,10 +232,32 @@ TEST(Uptane, PetNameCreation) {
   }
 }
 
-/* Detect and recover from failed provisioning. */
-TEST(Uptane, InitializeFail) {
+class HttpFakeDeviceRegistration : public HttpFake {
+ public:
+  HttpFakeDeviceRegistration(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in) {}
+
+  HttpResponse post(const std::string& url, const Json::Value& data) override {
+    if (url.find("/devices") != std::string::npos) {
+      if (retcode == InitRetCode::kOk) {
+        return HttpResponse(Utils::readFile("tests/test_data/cred.p12"), 200, CURLE_OK, "");
+      } else if (retcode == InitRetCode::kOccupied) {
+        Json::Value response;
+        response["code"] = "device_already_registered";
+        return HttpResponse(Utils::jsonToStr(response), 400, CURLE_OK, "");
+      } else {
+        return HttpResponse("", 400, CURLE_OK, "");
+      }
+    }
+    return HttpFake::post(url, data);
+  }
+
+  InitRetCode retcode{InitRetCode::kOk};
+};
+
+/* Detect and recover from failed device provisioning. */
+TEST(Initializer, DeviceRegistration) {
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  auto http = std::make_shared<HttpFakeDeviceRegistration>(temp_dir.Path());
   Config conf("tests/config/basic.toml");
   conf.uptane.director_server = http->tls_server + "/director";
   conf.uptane.repo_server = http->tls_server + "/repo";
@@ -246,16 +268,81 @@ TEST(Uptane, InitializeFail) {
   auto storage = INvStorage::newStorage(conf.storage);
   KeyManager keys(storage, conf.keymanagerConfig());
 
-  // Force a failure from the fake server.
+  // Force a failure from the fake server due to device already registered.
   {
-    http->provisioningResponse = ProvisioningResult::kFailure;
+    http->retcode = InitRetCode::kOccupied;
+    Initializer initializer(conf.provision, storage, http, keys, {});
+    EXPECT_FALSE(initializer.isSuccessful());
+  }
+
+  // Force an arbitrary failure from the fake server.
+  {
+    http->retcode = InitRetCode::kServerFailure;
     Initializer initializer(conf.provision, storage, http, keys, {});
     EXPECT_FALSE(initializer.isSuccessful());
   }
 
   // Don't force a failure and make sure it actually works this time.
   {
-    http->provisioningResponse = ProvisioningResult::kOK;
+    http->retcode = InitRetCode::kOk;
+    Initializer initializer(conf.provision, storage, http, keys, {});
+    EXPECT_TRUE(initializer.isSuccessful());
+  }
+}
+
+class HttpFakeEcuRegistration : public HttpFake {
+ public:
+  HttpFakeEcuRegistration(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in) {}
+
+  HttpResponse post(const std::string& url, const Json::Value& data) override {
+    if (url.find("/director/ecus") != std::string::npos) {
+      if (retcode == InitRetCode::kOk) {
+        return HttpResponse("", 200, CURLE_OK, "");
+      } else if (retcode == InitRetCode::kOccupied) {
+        Json::Value response;
+        response["code"] = "ecu_already_registered";
+        return HttpResponse(Utils::jsonToStr(response), 400, CURLE_OK, "");
+      } else {
+        return HttpResponse("", 400, CURLE_OK, "");
+      }
+    }
+    return HttpFake::post(url, data);
+  }
+
+  InitRetCode retcode{InitRetCode::kOk};
+};
+
+/* Detect and recover from failed ECU registration. */
+TEST(Initializer, EcuRegisteration) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFakeEcuRegistration>(temp_dir.Path());
+  Config conf("tests/config/basic.toml");
+  conf.uptane.director_server = http->tls_server + "/director";
+  conf.uptane.repo_server = http->tls_server + "/repo";
+  conf.tls.server = http->tls_server;
+  conf.storage.path = temp_dir.Path();
+  conf.provision.primary_ecu_serial = "testecuserial";
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  KeyManager keys(storage, conf.keymanagerConfig());
+
+  // Force a failure from the fake server due to ECUs already registered.
+  {
+    http->retcode = InitRetCode::kOccupied;
+    Initializer initializer(conf.provision, storage, http, keys, {});
+    EXPECT_FALSE(initializer.isSuccessful());
+  }
+
+  // Force an arbitary failure from the fake server.
+  {
+    http->retcode = InitRetCode::kServerFailure;
+    Initializer initializer(conf.provision, storage, http, keys, {});
+    EXPECT_FALSE(initializer.isSuccessful());
+  }
+
+  // Don't force a failure and make sure it actually works this time.
+  {
+    http->retcode = InitRetCode::kOk;
     Initializer initializer(conf.provision, storage, http, keys, {});
     EXPECT_TRUE(initializer.isSuccessful());
   }
@@ -269,7 +356,7 @@ TEST(Uptane, InitializeFail) {
  *
  * - [x] Use the system hostname as hardware ID if one is not provided
  */
-TEST(Uptane, HostnameAsHardwareID) {
+TEST(Initializer, HostnameAsHardwareID) {
   TemporaryDirectory temp_dir;
   Config conf("tests/config/basic.toml");
   conf.storage.path = temp_dir.Path();
