@@ -51,6 +51,10 @@ unset(AKTUALIZR_CHECKED_SRCS CACHE)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# To ensure better support of large files on 32-bit systems.
+# See https://www.gnu.org/software/libc/manual/html_node/Feature-Test-Macros.html
+add_definitions("-D_FILE_OFFSET_BITS=64")
+
 if (CCACHE)
     find_program(CCACHE_PROGRAM ccache)
     if (CCACHE_PROGRAM)
