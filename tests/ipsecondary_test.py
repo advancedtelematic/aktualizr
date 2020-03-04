@@ -305,7 +305,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Test IP Secondary')
     parser.add_argument('-b', '--build-dir', help='build directory', default='build')
     parser.add_argument('-s', '--src-dir', help='source directory', default='.')
-    parser.add_argument('-o', '--ostree', help='ostree support', default='OFF')
+    parser.add_argument('-o', '--ostree', help='ostree support', action='store_true')
 
     input_params = parser.parse_args()
 
@@ -323,7 +323,7 @@ if __name__ == '__main__':
                     test_primary_multiple_secondaries,
     ]
 
-    if input_params.ostree == 'ON':
+    if input_params.ostree:
         test_suite.append(test_secondary_ostree_update)
 
     test_suite_run_result = TestRunner(test_suite).run()
