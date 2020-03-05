@@ -127,7 +127,8 @@ bool operator<(const sockaddr_storage &left, const sockaddr_storage &right);  //
 class Socket {
  public:
   Socket();
-  virtual ~Socket() = 0;
+  Socket(int fd) : socket_fd_(fd) {}
+  virtual ~Socket();
 
   Socket(const Socket &) = delete;
   Socket &operator=(const Socket &) = delete;

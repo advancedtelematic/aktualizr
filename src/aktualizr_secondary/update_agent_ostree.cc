@@ -77,6 +77,8 @@ data::ResultCode::Numeric OstreeUpdateAgent::install(const Uptane::Target& targe
   return (_ostreePackMan->install(target)).result_code.num_code;
 }
 
+void OstreeUpdateAgent::completeInstall() { _ostreePackMan->completeInstall(); }
+
 data::InstallationResult OstreeUpdateAgent::applyPendingInstall(const Uptane::Target& target) {
   return _ostreePackMan->finalizeInstall(target);
 }

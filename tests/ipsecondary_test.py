@@ -145,6 +145,46 @@ def test_secondary_ostree_update(uptane_repo, secondary, aktualizr, treehub, sys
     return True
 
 
+@with_treehub()
+@with_uptane_backend()
+@with_director()
+@with_sysroot()
+@with_secondary(start=False, output_logs=False, force_reboot=True)
+@with_aktualizr(start=False, run_mode='once', output_logs=True)
+def test_secondary_ostree_reboot(uptane_repo, secondary, aktualizr, treehub, sysroot, director, **kwargs):
+    target_rev = treehub.revision
+    expected_targetname = uptane_repo.add_ostree_target(secondary.id, target_rev, "GARAGE_TARGET_NAME")
+
+    with secondary:
+        with aktualizr:
+            aktualizr.wait_for_completion()
+        secondary.wait_for_completion()
+
+    pending_rev = aktualizr.get_current_pending_image_info(secondary.id)
+
+    if pending_rev != target_rev:
+        logger.error("Pending version {} != the target one {}".format(pending_rev, target_rev))
+        return False
+
+    sysroot.update_revision(pending_rev)
+
+    with secondary:
+        with aktualizr:
+            aktualizr.wait_for_completion()
+
+    if not director.get_install_result():
+        logger.error("Installation result is not successful")
+        return False
+
+    installed_rev = aktualizr.get_current_image_info(secondary.id)
+
+    if installed_rev != target_rev:
+        logger.error("Installed version {} != the target one {}".format(installed_rev, target_rev))
+        return False
+
+    return True
+
+
 @with_uptane_backend()
 @with_director()
 @with_secondary(start=False)
@@ -305,7 +345,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Test IP Secondary')
     parser.add_argument('-b', '--build-dir', help='build directory', default='build')
     parser.add_argument('-s', '--src-dir', help='source directory', default='.')
-    parser.add_argument('-o', '--ostree', help='ostree support', default='OFF')
+    parser.add_argument('-o', '--ostree', help='ostree support', action='store_true')
 
     input_params = parser.parse_args()
 
@@ -323,8 +363,11 @@ if __name__ == '__main__':
                     test_primary_multiple_secondaries,
     ]
 
-    if input_params.ostree == 'ON':
-        test_suite.append(test_secondary_ostree_update)
+    if input_params.ostree:
+        test_suite += [
+           test_secondary_ostree_update,
+           test_secondary_ostree_reboot,
+        ]
 
     test_suite_run_result = TestRunner(test_suite).run()
 

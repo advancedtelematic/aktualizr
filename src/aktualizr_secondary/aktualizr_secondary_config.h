@@ -31,6 +31,7 @@ struct AktualizrSecondaryUptaneConfig {
   std::string ecu_hardware_id;
   CryptoSource key_source{CryptoSource::kFile};
   KeyType key_type{KeyType::kRSA2048};
+  bool force_install_completion{false};
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;

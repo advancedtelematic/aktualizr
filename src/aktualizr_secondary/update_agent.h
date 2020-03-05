@@ -13,6 +13,7 @@ class UpdateAgent {
 
   virtual bool download(const Uptane::Target& target, const std::string& data) = 0;
   virtual data::ResultCode::Numeric install(const Uptane::Target& target) = 0;
+  virtual void completeInstall() = 0;
   virtual data::InstallationResult applyPendingInstall(const Uptane::Target& target) = 0;
 
   virtual ~UpdateAgent() = default;

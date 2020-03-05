@@ -67,7 +67,7 @@ TEST(SecondaryTcpServer, TestIpSecondaryRPC) {
                           PublicKey("pub-key", KeyType::kED25519), Uptane::Manifest());
 
   // create Secondary on Secondary ECU, and run it in a dedicated thread
-  SecondaryTcpServer secondary_server{secondary};
+  SecondaryTcpServer secondary_server(secondary, "", 0);
   std::thread secondary_server_thread{[&secondary_server]() { secondary_server.run(); }};
 
   // create Secondary on Primary ECU, try it a few times since the secondary thread

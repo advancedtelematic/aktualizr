@@ -34,6 +34,7 @@ class AktualizrSecondary : public Uptane::SecondaryInterface {
   bool sendFirmware(const std::string& firmware) override;
   data::ResultCode::Numeric install(const std::string& target_name) override;
 
+  void completeInstall();
   bool putMetadata(const Metadata& metadata);
 
  private:

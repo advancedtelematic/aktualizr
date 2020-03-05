@@ -9,8 +9,12 @@
 #include <netinet/tcp.h>
 
 SecondaryTcpServer::SecondaryTcpServer(Uptane::SecondaryInterface &secondary, const std::string &primary_ip,
-                                       in_port_t primary_port, in_port_t port)
-    : SecondaryTcpServer(secondary, port) {
+                                       in_port_t primary_port, in_port_t port, bool reboot_after_install)
+    : impl_(secondary), listen_socket_(port), keep_running_(true), reboot_after_install_(reboot_after_install) {
+  if (primary_ip.empty()) {
+    return;
+  }
+
   ConnectionSocket conn_socket(primary_ip, primary_port, listen_socket_.port());
   if (conn_socket.connect() == 0) {
     LOG_INFO << "Connected to Primary, sending info about this secondary...";
@@ -27,18 +31,22 @@ void SecondaryTcpServer::run() {
   LOG_INFO << "Secondary TCP server listens on " << listen_socket_.toString();
 
   while (keep_running_.load()) {
-    int con_fd;
     sockaddr_storage peer_sa{};
     socklen_t peer_sa_size = sizeof(sockaddr_storage);
 
     LOG_DEBUG << "Waiting for connection from client...";
-    if ((con_fd = accept(*listen_socket_, reinterpret_cast<sockaddr *>(&peer_sa), &peer_sa_size)) == -1) {
+    int con_fd = accept(*listen_socket_, reinterpret_cast<sockaddr *>(&peer_sa), &peer_sa_size);
+    if (con_fd == -1) {
       LOG_INFO << "Socket accept failed. aborting";
       break;
     }
+    Socket con_socket(con_fd);
     LOG_DEBUG << "Connected...";
-    HandleOneConnection(con_fd);
+    bool continue_serving = HandleOneConnection(*con_socket);
     LOG_DEBUG << "Client disconnected";
+    if (!continue_serving) {
+      break;
+    }
   }
   LOG_INFO << "Secondary TCP server exit";
 }
@@ -50,8 +58,9 @@ void SecondaryTcpServer::stop() {
 }
 
 in_port_t SecondaryTcpServer::port() const { return listen_socket_.port(); }
+SecondaryTcpServer::ExitReason SecondaryTcpServer::exit_reason() const { return exit_reason_; }
 
-void SecondaryTcpServer::HandleOneConnection(int socket) {
+bool SecondaryTcpServer::HandleOneConnection(int socket) {
   // Outside the message loop, because one recv() may have parts of 2 messages
   // Note that one recv() call returning 2+ messages doesn't work at the
   // moment. This shouldn't be a problem until we have messages that aren't
@@ -64,6 +73,8 @@ void SecondaryTcpServer::HandleOneConnection(int socket) {
     asn_dec_rval_t res;
     asn_codec_ctx_s context{};
     ssize_t received;
+    bool need_reboot = false;
+
     do {
       received = recv(socket, buffer.Tail(), buffer.TailSpace(), 0);
       LOG_TRACE << "Got " << received << " bytes "
@@ -76,7 +87,7 @@ void SecondaryTcpServer::HandleOneConnection(int socket) {
     Asn1Message::Ptr msg = Asn1Message::FromRaw(&m);
 
     if (res.code != RC_OK) {
-      return;  // Either an error or the client closed the socket
+      return true;  // Either an error or the client closed the socket
     }
 
     // Figure out what to do with the message
@@ -144,10 +155,14 @@ void SecondaryTcpServer::HandleOneConnection(int socket) {
         resp->present(AKIpUptaneMes_PR_installResp);
         auto response_message = resp->installResp();
         response_message->result = static_cast<AKInstallationResultCode_t>(install_result);
+
+        if (install_result == data::ResultCode::Numeric::kNeedCompletion) {
+          need_reboot = true;
+        }
       } break;
       default:
         LOG_ERROR << "Unrecognised message type:" << msg->present();
-        return;
+        return true;
     }
 
     // Send the response
@@ -157,15 +172,22 @@ void SecondaryTcpServer::HandleOneConnection(int socket) {
       asn_enc_rval_t encode_result =
           der_encode(&asn_DEF_AKIpUptaneMes, &resp->msg_, Asn1SocketWriteCallback, reinterpret_cast<void *>(&socket));
       if (encode_result.encoded == -1) {
-        return;  // write error
+        return true;  // write error
       }
       optval = 1;
       setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, &optval, sizeof(int));
     } else {
       LOG_DEBUG << "Not sending a response to message " << msg->present();
     }
+
+    if (need_reboot && reboot_after_install_) {
+      exit_reason_ = ExitReason::kRebootNeeded;
+      return false;
+    }
+
   }  // Go back round and read another message
 
+  return true;
   // Parse error => Shutdown the socket
   // write error => Shutdown the socket
   // Timeout on write => shutdown

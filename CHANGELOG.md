@@ -6,6 +6,9 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ## [??? (unreleased)]
 
+### Added
+
+- Aktualizr secondaries can now reboot automatically after triggering an update: [PR](https://github.com/advancedtelematic/aktualizr/pull/1578)
 
 ## [2020.3] - 2020-02-27
 
