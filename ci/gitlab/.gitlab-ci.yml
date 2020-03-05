@@ -416,6 +416,7 @@ trigger-osx-build:
     branch: master 
   rules:
     - if: $OSX_BUILD
+      when: always
 
 build-osx-release:
   stage: trigger
