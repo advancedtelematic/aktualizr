@@ -13,7 +13,7 @@ endif::[]
 :page-order: 3
 :icons: font
 
-Sometimes, while troubleshooting, it might be helpful to see and manipulate your local OSTree repos. You can do that using the copy of ostree that bitbake builds. For the rest of these commands, we'll assume that you've exported the executable as `$OSTREE`, and the location of your local repo as `$REPO` (for example, like so):
+Sometimes, while troubleshooting, it might be helpful to see and manipulate your local OSTree repos. You can do that using the copy of `ostree` that bitbake builds. For the rest of these commands, we'll assume that you've exported the executable as `$OSTREE`, and the location of your local repo as `$REPO` (for example, like so):
 
     export OSTREE=$(pwd)/tmp/sysroots/x86_64-linux/usr/bin/ostree
     export REPO=$(pwd)/tmp/deploy/images/raspberrypi3/ostree_repo/
@@ -24,7 +24,7 @@ You'll need a branch name for most other commands, so it's often useful to check
 
     $OSTREE refs --repo $REPO
 
-The branch name defaults to \{MACHINE}-ota, so if you were building for raspberrypi3, your branch name would be raspberrypi3-ota by default. However, you can set the branch name for your build in local.conf using the *OSTREE_BRANCHNAME* configuration option, letting you keep your different builds, projects, or branches under different names.
+The branch name defaults to \{MACHINE}, so if you were building for raspberrypi3, your branch name would be raspberrypi3 by default. However, you can set the branch name for your build in `local.conf` using the `OSTREE_BRANCHNAME` configuration option, letting you keep your different builds, projects, or branches under different names. See the xref:build-configuration.adoc[build configuration article] for more information.
 
 == Show the log for a particular branch
 
@@ -42,3 +42,22 @@ The -R option is supported, for recursive file listing.
 
 Refs can be branch names or commit hashes, much like in git. Note that this does not show the contents of the diff; it just shows files added, deleted, and modified.
 
+== Pruning unused/unwanted objects
+
+OSTree normally manages garbage collection of objects on its own, but if your OSTree repo in your build directory is too large, you can manually remove unwanted commits and objects. You can also use the `ostree` tool on your device to remove coommits and objects on your device. This may be useful if you know that a certain commit has a flaw that you do not want to let get deployed.
+
+First, you will need to find which commits and refs are currently not deployed and are no longer needed. You can use these commands to help make that determination:
+
+    ostree admin status
+    ostree refs
+    ostree log <ref>
+
+Then, for each ref that you would like to remove:
+
+    ostree refs --delete <ref>
+
+And then for each commit that you would like to remove:
+
+    ostree prune --delete-commit=<commit>
+
+Note that `ostree admin status` will still show deleted commits, but if you try to deploy a deleted commit, the operation will fail as expected.
