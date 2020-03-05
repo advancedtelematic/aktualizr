@@ -1637,7 +1637,7 @@ bool SQLStorage::checkAvailableDiskSpace(const uint64_t required_bytes) const {
     LOG_WARNING << "Unable to read filesystem statistics: error code " << stat_res;
     return true;
   }
-  const uint64_t available_bytes = (stvfsbuf.f_bsize * stvfsbuf.f_bavail);
+  const uint64_t available_bytes = (static_cast<uint64_t>(stvfsbuf.f_bsize) * stvfsbuf.f_bavail);
   const uint64_t reserved_bytes = 1 << 20;
 
   if (required_bytes + reserved_bytes < available_bytes) {
