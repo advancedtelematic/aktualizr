@@ -13,7 +13,7 @@ endif::[]
 :page-order: 3
 :icons: font
 
-Sometimes, while troubleshooting, it might be helpful to see and manipulate your local OSTree repos. You can do that using the copy of ostree that bitbake builds. For the rest of these commands, we'll assume that you've exported the executable as `$OSTREE`, and the location of your local repo as `$REPO` (for example, like so):
+Sometimes, while troubleshooting, it might be helpful to see and manipulate your local OSTree repos. You can do that using the copy of `ostree` that bitbake builds. For the rest of these commands, we'll assume that you've exported the executable as `$OSTREE`, and the location of your local repo as `$REPO` (for example, like so):
 
     export OSTREE=$(pwd)/tmp/sysroots/x86_64-linux/usr/bin/ostree
     export REPO=$(pwd)/tmp/deploy/images/raspberrypi3/ostree_repo/
@@ -24,7 +24,7 @@ You'll need a branch name for most other commands, so it's often useful to check
 
     $OSTREE refs --repo $REPO
 
-The branch name defaults to \{MACHINE}-ota, so if you were building for raspberrypi3, your branch name would be raspberrypi3-ota by default. However, you can set the branch name for your build in local.conf using the *OSTREE_BRANCHNAME* configuration option, letting you keep your different builds, projects, or branches under different names.
+The branch name defaults to \{MACHINE}, so if you were building for raspberrypi3, your branch name would be raspberrypi3 by default. However, you can set the branch name for your build in `local.conf` using the `OSTREE_BRANCHNAME` configuration option, letting you keep your different builds, projects, or branches under different names. See the xref:build-configuration.adoc[build configuration article] for more information.
 
 == Show the log for a particular branch
 
