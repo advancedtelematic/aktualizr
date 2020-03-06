@@ -3,10 +3,10 @@
 namespace Uptane {
 
 Targets getTrustedDelegation(const Role &delegate_role, const Targets &parent_targets,
-                             const ImagesRepository &images_repo, INvStorage &storage, Fetcher &fetcher,
+                             const ImageRepository &image_repo, INvStorage &storage, Fetcher &fetcher,
                              const bool offline) {
   std::string delegation_meta;
-  auto version_in_snapshot = images_repo.getRoleVersion(delegate_role);
+  auto version_in_snapshot = image_repo.getRoleVersion(delegate_role);
 
   if (storage.loadDelegation(&delegation_meta, delegate_role)) {
     auto version = extractVersionUntrusted(delegation_meta);
@@ -25,17 +25,17 @@ Targets getTrustedDelegation(const Role &delegate_role, const Targets &parent_ta
     if (offline) {
       throw Uptane::DelegationMissing(delegate_role.ToString());
     }
-    if (!fetcher.fetchLatestRole(&delegation_meta, Uptane::kMaxImagesTargetsSize, RepositoryType::Image(),
+    if (!fetcher.fetchLatestRole(&delegation_meta, Uptane::kMaxImageTargetsSize, RepositoryType::Image(),
                                  delegate_role)) {
       throw Uptane::DelegationMissing(delegate_role.ToString());
     }
   }
 
-  if (!images_repo.verifyRoleHashes(delegation_meta, delegate_role)) {
+  if (!image_repo.verifyRoleHashes(delegation_meta, delegate_role)) {
     throw Uptane::DelegationHashMismatch(delegate_role.ToString());
   }
 
-  auto delegation = ImagesRepository::verifyDelegation(delegation_meta, delegate_role, parent_targets);
+  auto delegation = ImageRepository::verifyDelegation(delegation_meta, delegate_role, parent_targets);
   if (delegation == nullptr) {
     throw SecurityException("image", "Delegation verification failed");
   }
@@ -50,7 +50,7 @@ Targets getTrustedDelegation(const Role &delegate_role, const Targets &parent_ta
   return *delegation;
 }
 
-LazyTargetsList::DelegationIterator::DelegationIterator(const ImagesRepository &repo,
+LazyTargetsList::DelegationIterator::DelegationIterator(const ImageRepository &repo,
                                                         std::shared_ptr<INvStorage> storage,
                                                         std::shared_ptr<Fetcher> fetcher, bool is_end)
     : repo_{repo}, storage_{std::move(storage)}, fetcher_{std::move(fetcher)}, is_end_{is_end} {

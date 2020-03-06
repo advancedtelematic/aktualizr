@@ -24,7 +24,7 @@
 #include "uptane/directorrepository.h"
 #include "uptane/exceptions.h"
 #include "uptane/fetcher.h"
-#include "uptane/imagesrepository.h"
+#include "uptane/imagerepository.h"
 #include "uptane/iterator.h"
 #include "uptane/secondaryinterface.h"
 
@@ -161,7 +161,7 @@ class SotaUptaneClient {
 
   Config &config;
   Uptane::DirectorRepository director_repo;
-  Uptane::ImagesRepository images_repo;
+  Uptane::ImageRepository image_repo;
   Uptane::ManifestIssuer::Ptr uptane_manifest;
   std::shared_ptr<INvStorage> storage;
   std::shared_ptr<HttpInterface> http;

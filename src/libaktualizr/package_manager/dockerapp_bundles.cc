@@ -75,7 +75,7 @@ struct AppBundle {
 
 std::vector<std::pair<std::string, std::string>> DockerAppBundles::iterate_apps(const Uptane::Target &target) const {
   auto apps = target.custom_data()["docker_apps"];
-  Uptane::ImagesRepository repo;
+  Uptane::ImageRepository repo;
   // checkMetaOffline pulls in data from INvStorage to properly initialize
   // the targets member of the instance so that we can use the LazyTargetList
   repo.checkMetaOffline(*storage_);

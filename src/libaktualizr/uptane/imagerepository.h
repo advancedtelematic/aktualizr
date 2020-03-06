@@ -1,5 +1,5 @@
-#ifndef IMAGES_REPOSITORY_H_
-#define IMAGES_REPOSITORY_H_
+#ifndef IMAGE_REPOSITORY_H_
+#define IMAGE_REPOSITORY_H_
 
 #include <map>
 #include <vector>
@@ -10,9 +10,9 @@ namespace Uptane {
 
 constexpr int kDelegationsMaxDepth = 5;
 
-class ImagesRepository : public RepositoryCommon {
+class ImageRepository : public RepositoryCommon {
  public:
-  ImagesRepository() : RepositoryCommon(RepositoryType::Image()) {}
+  ImageRepository() : RepositoryCommon(RepositoryType::Image()) {}
 
   void resetMeta();
 
@@ -52,4 +52,4 @@ class ImagesRepository : public RepositoryCommon {
 
 }  // namespace Uptane
 
-#endif  // IMAGES_REPOSITORY_H
+#endif  // IMAGE_REPOSITORY_H_

@@ -341,8 +341,8 @@ bool SotaUptaneClient::updateDirectorMeta() {
 }
 
 bool SotaUptaneClient::updateImageMeta() {
-  if (!images_repo.updateMeta(*storage, *uptane_fetcher)) {
-    last_exception = images_repo.getLastException();
+  if (!image_repo.updateMeta(*storage, *uptane_fetcher)) {
+    last_exception = image_repo.getLastException();
     return false;
   }
   return true;
@@ -357,8 +357,8 @@ bool SotaUptaneClient::checkDirectorMetaOffline() {
 }
 
 bool SotaUptaneClient::checkImageMetaOffline() {
-  if (!images_repo.checkMetaOffline(*storage)) {
-    last_exception = images_repo.getLastException();
+  if (!image_repo.checkMetaOffline(*storage)) {
+    last_exception = image_repo.getLastException();
     return false;
   }
   return true;
@@ -533,7 +533,7 @@ std::unique_ptr<Uptane::Target> SotaUptaneClient::findTargetHelper(const Uptane:
     // Target name matches one of the patterns
 
     auto delegation =
-        Uptane::getTrustedDelegation(delegate_role, cur_targets, images_repo, *storage, *uptane_fetcher, offline);
+        Uptane::getTrustedDelegation(delegate_role, cur_targets, image_repo, *storage, *uptane_fetcher, offline);
     if (delegation.isExpired(TimeStamp::Now())) {
       continue;
     }
@@ -554,7 +554,7 @@ std::unique_ptr<Uptane::Target> SotaUptaneClient::findTargetHelper(const Uptane:
 
 std::unique_ptr<Uptane::Target> SotaUptaneClient::findTargetInDelegationTree(const Uptane::Target &target,
                                                                              const bool offline) {
-  auto toplevel_targets = images_repo.getTargets();
+  auto toplevel_targets = image_repo.getTargets();
   if (toplevel_targets == nullptr) {
     return std::unique_ptr<Uptane::Target>(nullptr);
   }
@@ -1394,7 +1394,7 @@ std::string SotaUptaneClient::secondaryTreehubCredentials() const {
 }
 
 Uptane::LazyTargetsList SotaUptaneClient::allTargets() const {
-  return Uptane::LazyTargetsList(images_repo, storage, uptane_fetcher);
+  return Uptane::LazyTargetsList(image_repo, storage, uptane_fetcher);
 }
 
 void SotaUptaneClient::checkAndUpdatePendingSecondaries() {

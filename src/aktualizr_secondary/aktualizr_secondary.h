@@ -6,7 +6,7 @@
 #include "uptane/secondaryinterface.h"
 
 #include "uptane/directorrepository.h"
-#include "uptane/imagesrepository.h"
+#include "uptane/imagerepository.h"
 #include "uptane/manifest.h"
 
 class UpdateAgent;
@@ -45,7 +45,7 @@ class AktualizrSecondary : public Uptane::SecondaryInterface {
 
  private:
   Uptane::DirectorRepository director_repo_;
-  Uptane::ImagesRepository image_repo_;
+  Uptane::ImageRepository image_repo_;
 
   Uptane::Target pending_target_{Uptane::Target::Unknown()};
 
