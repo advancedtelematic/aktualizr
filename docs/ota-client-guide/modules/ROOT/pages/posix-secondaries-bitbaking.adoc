@@ -80,6 +80,8 @@ bitbake secondary-image
 |An update type to configure for Secondary, supported types: ostree, file
 |===
 
+Secondary images will also take advantage of some common configuration snippets described in xref:recommended-clientconfig.adoc[recommended client configurations], such as auto-reboot, persistent `journald` and debug logs.
+
 ==== Multiple secondaries use case
 In order to support multiple secondaries use case an user should:
 
