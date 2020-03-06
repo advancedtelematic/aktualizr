@@ -340,7 +340,7 @@ bool SotaUptaneClient::updateDirectorMeta() {
   return true;
 }
 
-bool SotaUptaneClient::updateImagesMeta() {
+bool SotaUptaneClient::updateImageMeta() {
   if (!images_repo.updateMeta(*storage, *uptane_fetcher)) {
     last_exception = images_repo.getLastException();
     return false;
@@ -356,7 +356,7 @@ bool SotaUptaneClient::checkDirectorMetaOffline() {
   return true;
 }
 
-bool SotaUptaneClient::checkImagesMetaOffline() {
+bool SotaUptaneClient::checkImageMetaOffline() {
   if (!images_repo.checkMetaOffline(*storage)) {
     last_exception = images_repo.getLastException();
     return false;
@@ -453,7 +453,7 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
 
       auto hw_id_known = ecuHwId(ecu_serial);
       if (!hw_id_known) {
-        LOG_ERROR << "Unknown ECU ID in director targets metadata: " << ecu_serial.ToString();
+        LOG_ERROR << "Unknown ECU ID in Director Targets metadata: " << ecu_serial.ToString();
         last_exception = Uptane::BadEcuId(target.filename());
         return false;
       }
@@ -540,7 +540,7 @@ std::unique_ptr<Uptane::Target> SotaUptaneClient::findTargetHelper(const Uptane:
 
     auto is_terminating = cur_targets.terminating_role_.find(delegate_role);
     if (is_terminating == cur_targets.terminating_role_.end()) {
-      throw Uptane::Exception("images", "Inconsistent delegations");
+      throw Uptane::Exception("image", "Inconsistent delegations");
     }
 
     auto found_target = findTargetHelper(delegation, queried_target, level + 1, is_terminating->second, offline);
@@ -595,7 +595,7 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
     result = result::Download(downloaded_targets, result::DownloadStatus::kSuccess, "");
   } else {
     if (downloaded_targets.size() == 0) {
-      LOG_ERROR << "None of " << targets.size() << " targets were successfully downloaded.";
+      LOG_ERROR << "0 of " << targets.size() << " targets were successfully downloaded.";
       result = result::Download(downloaded_targets, result::DownloadStatus::kError, "Each target download has failed");
     } else {
       LOG_ERROR << "Only " << downloaded_targets.size() << " of " << targets.size() << " were successfully downloaded.";
@@ -675,13 +675,13 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(const Uptane::Ta
 
 bool SotaUptaneClient::uptaneIteration(std::vector<Uptane::Target> *targets, unsigned int *ecus_count) {
   if (!updateDirectorMeta()) {
-    LOG_ERROR << "Failed to update director metadata: " << last_exception.what();
+    LOG_ERROR << "Failed to update Director metadata: " << last_exception.what();
     return false;
   }
   std::vector<Uptane::Target> tmp_targets;
   unsigned int ecus;
   if (!getNewTargets(&tmp_targets, &ecus)) {
-    LOG_ERROR << "Inconsistency between director metadata and existent ECUs";
+    LOG_ERROR << "Inconsistency between Director metadata and discovered ECUs";
     return false;
   }
 
@@ -697,8 +697,8 @@ bool SotaUptaneClient::uptaneIteration(std::vector<Uptane::Target> *targets, uns
 
   LOG_INFO << "got new updates";
 
-  if (!updateImagesMeta()) {
-    LOG_ERROR << "Failed to update images metadata: " << last_exception.what();
+  if (!updateImageMeta()) {
+    LOG_ERROR << "Failed to update Image repo metadata: " << last_exception.what();
     return false;
   }
 
@@ -713,13 +713,13 @@ bool SotaUptaneClient::uptaneIteration(std::vector<Uptane::Target> *targets, uns
 
 bool SotaUptaneClient::uptaneOfflineIteration(std::vector<Uptane::Target> *targets, unsigned int *ecus_count) {
   if (!checkDirectorMetaOffline()) {
-    LOG_ERROR << "Failed to check director metadata: " << last_exception.what();
+    LOG_ERROR << "Failed to check Director metadata: " << last_exception.what();
     return false;
   }
   std::vector<Uptane::Target> tmp_targets;
   unsigned int ecus;
   if (!getNewTargets(&tmp_targets, &ecus)) {
-    LOG_ERROR << "Inconsistency between director metadata and existent ECUs";
+    LOG_ERROR << "Inconsistency between Director metadata and existent ECUs";
     return false;
   }
 
@@ -731,8 +731,8 @@ bool SotaUptaneClient::uptaneOfflineIteration(std::vector<Uptane::Target> *targe
     return true;
   }
 
-  if (!checkImagesMetaOffline()) {
-    LOG_ERROR << "Failed to check images metadata: " << last_exception.what();
+  if (!checkImageMetaOffline()) {
+    LOG_ERROR << "Failed to check Image repo metadata: " << last_exception.what();
     return false;
   }
 
@@ -806,21 +806,21 @@ result::UpdateCheck SotaUptaneClient::checkUpdates() {
   // all images listed in the Targets metadata file from the Director
   // repository.
   for (auto &target : updates) {
-    auto images_target = findTargetInDelegationTree(target, false);
-    if (images_target == nullptr) {
+    auto image_target = findTargetInDelegationTree(target, false);
+    if (image_target == nullptr) {
       // TODO: Could also be a missing target or delegation expiration.
       last_exception = Uptane::TargetMismatch(target.filename());
-      LOG_ERROR << "No matching target in images targets metadata for " << target;
+      LOG_ERROR << "No matching target in Image repo Targets metadata for " << target;
       result = result::UpdateCheck({}, 0, result::UpdateStatus::kError, Utils::parseJSON(director_targets),
                                    "Target mismatch.");
       storeInstallationFailure(
           data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed, "Metadata verification failed."));
       return result;
     }
-    // If the URL from the Director is unset, but the URL from the Images repo
+    // If the URL from the Director is unset, but the URL from the Image repo
     // is set, use that.
-    if (target.uri().empty() && !images_target->uri().empty()) {
-      target.setUri(images_target->uri());
+    if (target.uri().empty() && !image_target->uri().empty()) {
+      target.setUri(image_target->uri());
     }
   }
 
@@ -859,19 +859,19 @@ result::UpdateStatus SotaUptaneClient::checkUpdatesOffline(const std::vector<Upt
   }
 
   // For every target in the Director Targets metadata, walk the delegation
-  // tree (if necessary) and find a matching target in the Images repo
+  // tree (if necessary) and find a matching target in the Image repo
   // metadata.
   for (const auto &target : targets) {
     TargetCompare target_comp(target);
     const auto it = std::find_if(director_targets.cbegin(), director_targets.cend(), target_comp);
     if (it == director_targets.cend()) {
-      LOG_ERROR << "No matching target in director targets metadata for " << target;
+      LOG_ERROR << "No matching target in Director Targets metadata for " << target;
       return result::UpdateStatus::kError;
     }
 
-    const auto images_target = findTargetInDelegationTree(target, true);
-    if (images_target == nullptr) {
-      LOG_ERROR << "No matching target in images targets metadata for " << target;
+    const auto image_target = findTargetInDelegationTree(target, true);
+    if (image_target == nullptr) {
+      LOG_ERROR << "No matching target in Image repo Targets metadata for " << target;
       return result::UpdateStatus::kError;
     }
   }
@@ -1190,7 +1190,7 @@ void SotaUptaneClient::rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::
   std::string latest_root;
 
   if (!storage->loadLatestRoot(&latest_root, repo)) {
-    LOG_ERROR << "No root metadata to send";
+    LOG_ERROR << "No Root metadata to send";
     return;
   }
 
@@ -1201,7 +1201,7 @@ void SotaUptaneClient::rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::
     for (int v = sec_root_version + 1; v <= last_root_version; v++) {
       std::string root;
       if (!storage->loadRoot(&root, repo, Uptane::Version(v))) {
-        LOG_WARNING << "Couldn't find root meta in the storage, trying remote repo";
+        LOG_WARNING << "Couldn't find Root metadata in the storage, trying remote repo";
         if (!uptane_fetcher->fetchRole(&root, Uptane::kMaxRootSize, repo, Uptane::Role::Root(), Uptane::Version(v))) {
           // TODO(OTA-4552): looks problematic, robust procedure needs to be defined
           LOG_ERROR << "Root metadata could not be fetched, skipping to the next secondary";
@@ -1221,27 +1221,27 @@ void SotaUptaneClient::rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::
 void SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &targets) {
   Uptane::RawMetaPack meta;
   if (!storage->loadLatestRoot(&meta.director_root, Uptane::RepositoryType::Director())) {
-    LOG_ERROR << "No director root metadata to send";
+    LOG_ERROR << "No Director Root metadata to send";
     return;
   }
   if (!storage->loadNonRoot(&meta.director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets())) {
-    LOG_ERROR << "No director targets metadata to send";
+    LOG_ERROR << "No Director Targets metadata to send";
     return;
   }
   if (!storage->loadLatestRoot(&meta.image_root, Uptane::RepositoryType::Image())) {
-    LOG_ERROR << "No images root metadata to send";
+    LOG_ERROR << "No Image repo Root metadata to send";
     return;
   }
   if (!storage->loadNonRoot(&meta.image_timestamp, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp())) {
-    LOG_ERROR << "No images timestamp metadata to send";
+    LOG_ERROR << "No Image repo Timestamp metadata to send";
     return;
   }
   if (!storage->loadNonRoot(&meta.image_snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot())) {
-    LOG_ERROR << "No images snapshot metadata to send";
+    LOG_ERROR << "No Image repo Snapshot metadata to send";
     return;
   }
   if (!storage->loadNonRoot(&meta.image_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets())) {
-    LOG_ERROR << "No images targets metadata to send";
+    LOG_ERROR << "No Image repo Targets metadata to send";
     return;
   }
 
@@ -1374,7 +1374,7 @@ std::string SotaUptaneClient::secondaryTreehubCredentials() const {
   }
   std::string ca, cert, pkey;
   if (!storage->loadTlsCreds(&ca, &cert, &pkey)) {
-    LOG_ERROR << "Could not load tls credentials from storage";
+    LOG_ERROR << "Could not load TLS credentials from storage";
     return "";
   }
 

@@ -58,8 +58,8 @@ class MetadataExpirationTest : public ::testing::Test {
     uptane_gen_.run({"signtargets", "--path", meta_dir_.PathString()});
   }
 
-  void refreshTargetMetadata() {
-    // refresh the target metadata in the repo/Director
+  void refreshTargetsMetadata() {
+    // refresh the Targets metadata in the repo/Director
     uptane_gen_.run({"refresh", "--path", meta_dir_.PathString(), "--repotype", "director", "--keyname", "targets"});
   }
 
@@ -99,7 +99,7 @@ TEST_F(MetadataExpirationTest, MetadataExpirationBeforeInstallation) {
   EXPECT_NE(target_image_hash_, currently_installed_target.sha256Hash());
   EXPECT_NE(target_filename_, currently_installed_target.filename());
 
-  refreshTargetMetadata();
+  refreshTargetsMetadata();
 
   // run the uptane cycle an try to install the target
   aktualizr_->UptaneCycle();

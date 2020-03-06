@@ -9,8 +9,8 @@ boost::filesystem::path uptane_generator_path;
 namespace Uptane {
 
 /*
- * Verify that we correctly persist non-empty targets metadata after receiving
- * subsequent targets metadata that is empty.
+ * Verify that we correctly persist non-empty Targets metadata after receiving
+ * subsequent Targets metadata that is empty.
  */
 TEST(Director, EmptyTargets) {
   TemporaryDirectory meta_dir;

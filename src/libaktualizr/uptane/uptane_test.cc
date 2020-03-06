@@ -52,7 +52,7 @@ TEST(Uptane, Verify) {
   Uptane::Root(Uptane::RepositoryType::Director(), response.getJson(), root);
 }
 
-/* Throw an exception if a TUF root is unsigned. */
+/* Throw an exception if Root metadata is unsigned. */
 TEST(Uptane, VerifyDataBad) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -69,7 +69,7 @@ TEST(Uptane, VerifyDataBad) {
   EXPECT_THROW(Uptane::Root(Uptane::RepositoryType::Director(), data_json, root), Uptane::UnmetThreshold);
 }
 
-/* Throw an exception if a TUF root has unknown signature types. */
+/* Throw an exception if Root metadata has unknown signature types. */
 TEST(Uptane, VerifyDataUnknownType) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -87,7 +87,7 @@ TEST(Uptane, VerifyDataUnknownType) {
   EXPECT_THROW(Uptane::Root(Uptane::RepositoryType::Director(), data_json, root), Uptane::SecurityException);
 }
 
-/* Throw an exception if a TUF root has invalid key IDs. */
+/* Throw an exception if Root metadata has invalid key IDs. */
 TEST(Uptane, VerifyDataBadKeyId) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -105,7 +105,7 @@ TEST(Uptane, VerifyDataBadKeyId) {
   EXPECT_THROW(Uptane::Root(Uptane::RepositoryType::Director(), data_json, root), Uptane::BadKeyId);
 }
 
-/* Throw an exception if a TUF root signature threshold is invalid. */
+/* Throw an exception if Root metadata signature threshold is invalid. */
 TEST(Uptane, VerifyDataBadThreshold) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -611,7 +611,7 @@ TEST(Uptane, SendMetadataToSeconadry) {
   EXPECT_TRUE(EcuInstallationStartedReportGot);
 }
 
-/* Register secondary ECUs with director. */
+/* Register secondary ECUs with Director. */
 TEST(Uptane, UptaneSecondaryAdd) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -754,7 +754,7 @@ class HttpFakeProv : public HttpFake {
       EXPECT_EQ(data["deviceId"].asString(), "tst149_device_id");
       return HttpResponse(Utils::readFile("tests/test_data/cred.p12"), 200, CURLE_OK, "");
     } else if (url.find("/director/ecus") != std::string::npos) {
-      /* Register primary ECU with director. */
+      /* Register primary ECU with Director. */
       ecus_count++;
       EXPECT_EQ(data["primary_ecu_serial"].asString(), "CA:FE:A6:D2:84:9D");
       EXPECT_EQ(data["ecus"][0]["hardware_identifier"].asString(), "primary_hw");
@@ -1026,17 +1026,17 @@ TEST(Uptane, FsToSqlFull) {
 
   std::string director_root;
   std::string director_targets;
-  std::string images_root;
-  std::string images_targets;
-  std::string images_timestamp;
-  std::string images_snapshot;
+  std::string image_root;
+  std::string image_targets;
+  std::string image_timestamp;
+  std::string image_snapshot;
 
   EXPECT_TRUE(fs_storage.loadLatestRoot(&director_root, Uptane::RepositoryType::Director()));
   EXPECT_TRUE(fs_storage.loadNonRoot(&director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets()));
-  EXPECT_TRUE(fs_storage.loadLatestRoot(&images_root, Uptane::RepositoryType::Image()));
-  EXPECT_TRUE(fs_storage.loadNonRoot(&images_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets()));
-  EXPECT_TRUE(fs_storage.loadNonRoot(&images_timestamp, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()));
-  EXPECT_TRUE(fs_storage.loadNonRoot(&images_snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()));
+  EXPECT_TRUE(fs_storage.loadLatestRoot(&image_root, Uptane::RepositoryType::Image()));
+  EXPECT_TRUE(fs_storage.loadNonRoot(&image_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets()));
+  EXPECT_TRUE(fs_storage.loadNonRoot(&image_timestamp, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()));
+  EXPECT_TRUE(fs_storage.loadNonRoot(&image_snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()));
 
   EXPECT_TRUE(boost::filesystem::exists(config.uptane_public_key_path.get(config.path)));
   EXPECT_TRUE(boost::filesystem::exists(config.uptane_private_key_path.get(config.path)));
@@ -1099,17 +1099,17 @@ TEST(Uptane, FsToSqlFull) {
 
   std::string sql_director_root;
   std::string sql_director_targets;
-  std::string sql_images_root;
-  std::string sql_images_targets;
-  std::string sql_images_timestamp;
-  std::string sql_images_snapshot;
+  std::string sql_image_root;
+  std::string sql_image_targets;
+  std::string sql_image_timestamp;
+  std::string sql_image_snapshot;
 
   sql_storage->loadLatestRoot(&sql_director_root, Uptane::RepositoryType::Director());
   sql_storage->loadNonRoot(&sql_director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets());
-  sql_storage->loadLatestRoot(&sql_images_root, Uptane::RepositoryType::Image());
-  sql_storage->loadNonRoot(&sql_images_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets());
-  sql_storage->loadNonRoot(&sql_images_timestamp, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp());
-  sql_storage->loadNonRoot(&sql_images_snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot());
+  sql_storage->loadLatestRoot(&sql_image_root, Uptane::RepositoryType::Image());
+  sql_storage->loadNonRoot(&sql_image_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets());
+  sql_storage->loadNonRoot(&sql_image_timestamp, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp());
+  sql_storage->loadNonRoot(&sql_image_snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot());
 
   EXPECT_EQ(sql_public_key, public_key);
   EXPECT_EQ(sql_private_key, private_key);
@@ -1123,10 +1123,10 @@ TEST(Uptane, FsToSqlFull) {
 
   EXPECT_EQ(sql_director_root, director_root);
   EXPECT_EQ(sql_director_targets, director_targets);
-  EXPECT_EQ(sql_images_root, images_root);
-  EXPECT_EQ(sql_images_targets, images_targets);
-  EXPECT_EQ(sql_images_timestamp, images_timestamp);
-  EXPECT_EQ(sql_images_snapshot, images_snapshot);
+  EXPECT_EQ(sql_image_root, image_root);
+  EXPECT_EQ(sql_image_targets, image_targets);
+  EXPECT_EQ(sql_image_timestamp, image_timestamp);
+  EXPECT_EQ(sql_image_snapshot, image_snapshot);
 }
 
 /* Import a list of installed packages into the storage. */
@@ -1219,11 +1219,11 @@ class HttpFakeUnstable : public HttpFake {
 };
 
 /* Recover from an interrupted Uptane iteration.
- * Fetch metadata from the director.
- * Check metadata from the director.
+ * Fetch metadata from the Director.
+ * Check metadata from the Director.
  * Identify targets for known ECUs.
- * Fetch metadata from the images repo.
- * Check metadata from the images repo.
+ * Fetch metadata from the Image repo.
+ * Check metadata from the Image repo.
  *
  * This is a bit fragile because it depends upon a precise number of HTTP get
  * requests being made. If that changes, this test will need to be adjusted. */
@@ -1249,48 +1249,48 @@ TEST(Uptane, restoreVerify) {
   EXPECT_FALSE(sota_client->uptaneIteration(nullptr, nullptr));
   EXPECT_FALSE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Director()));
 
-  // 2nd attempt, get director root.json
+  // 2nd attempt, get Director root.json
   http->setUnstableValidNum(1);
   EXPECT_FALSE(sota_client->uptaneIteration(nullptr, nullptr));
   EXPECT_TRUE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Director()));
   EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Director(), Uptane::Role::Targets()));
 
-  // 3rd attempt, get director targets.json
+  // 3rd attempt, get Director targets.json
   http->setUnstableValidNum(2);
   EXPECT_FALSE(sota_client->uptaneIteration(nullptr, nullptr));
   EXPECT_TRUE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Director()));
   EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Director(), Uptane::Role::Targets()));
   EXPECT_FALSE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Image()));
 
-  // 4th attempt, get images root.json
+  // 4th attempt, get Image repo root.json
   http->setUnstableValidNum(3);
   EXPECT_FALSE(sota_client->uptaneIteration(nullptr, nullptr));
   EXPECT_TRUE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Image()));
   EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()));
 
-  // 5th attempt, get images timestamp.json
+  // 5th attempt, get Image repo timestamp.json
   http->setUnstableValidNum(4);
   EXPECT_FALSE(sota_client->uptaneIteration(nullptr, nullptr));
   EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()));
   EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()));
 
-  // 6th attempt, get images snapshot.json
+  // 6th attempt, get Image repo snapshot.json
   http->setUnstableValidNum(5);
   EXPECT_FALSE(sota_client->uptaneIteration(nullptr, nullptr));
   EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()));
   EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Targets()));
 
-  // 7th attempt, get images targets.json, successful iteration
+  // 7th attempt, get Image repo targets.json, successful iteration
   http->setUnstableValidNum(6);
   EXPECT_TRUE(sota_client->uptaneIteration(nullptr, nullptr));
   EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Targets()));
 }
 
-/* Fetch metadata from the director.
- * Check metadata from the director.
+/* Fetch metadata from the Director.
+ * Check metadata from the Director.
  * Identify targets for known ECUs.
- * Fetch metadata from the images repo.
- * Check metadata from the images repo. */
+ * Fetch metadata from the Image repo.
+ * Check metadata from the Image repo. */
 TEST(Uptane, offlineIteration) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");

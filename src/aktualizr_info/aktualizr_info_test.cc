@@ -185,46 +185,46 @@ TEST_F(AktualizrInfoTest, PrintSecondaryNotRegisteredOrRemoved) {
 }
 
 /**
- * Verifies aktualizr-info output of a root metadata from the images repository
+ * Verifies aktualizr-info output of a Root metadata from the Image repository
  *
  * Checks actions:
  *
- *  - [x] Print root metadata from images repository
+ *  - [x] Print Root metadata from Image repository
  */
 TEST_F(AktualizrInfoTest, PrintImageRootMetadata) {
   db_storage_->storeEcuSerials({{primary_ecu_serial, primary_hw_id}});
   db_storage_->storeEcuRegistered();
 
-  Json::Value images_root_json;
-  images_root_json["key-001"] = "value-002";
+  Json::Value image_root_json;
+  image_root_json["key-001"] = "value-002";
 
-  std::string images_root = Utils::jsonToStr(images_root_json);
-  db_storage_->storeRoot(images_root, Uptane::RepositoryType::Image(), Uptane::Version(1));
-  db_storage_->storeRoot(images_root, Uptane::RepositoryType::Director(), Uptane::Version(1));
+  std::string image_root = Utils::jsonToStr(image_root_json);
+  db_storage_->storeRoot(image_root, Uptane::RepositoryType::Image(), Uptane::Version(1));
+  db_storage_->storeRoot(image_root, Uptane::RepositoryType::Director(), Uptane::Version(1));
 
   aktualizr_info_process_.run(std::vector<std::string>{"--images-root"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
-  EXPECT_NE(aktualizr_info_output.find(images_root), std::string::npos);
+  EXPECT_NE(aktualizr_info_output.find(image_root), std::string::npos);
 }
 
 /**
- * Verifies aktualizr-info output of targets metadata from the image repository
+ * Verifies aktualizr-info output of Targets metadata from the Image repository
  *
  * Checks actions:
  *
- *  - [x] Print targets metadata from images repository
+ *  - [x] Print Targets metadata from Image repository
  */
 TEST_F(AktualizrInfoTest, PrintImageTargetsMetadata) {
   db_storage_->storeEcuSerials({{primary_ecu_serial, primary_hw_id}});
   db_storage_->storeEcuRegistered();
 
-  Json::Value images_root_json;
-  images_root_json["key-001"] = "value-002";
+  Json::Value image_root_json;
+  image_root_json["key-001"] = "value-002";
 
-  std::string images_root = Utils::jsonToStr(images_root_json);
-  db_storage_->storeRoot(images_root, Uptane::RepositoryType::Image(), Uptane::Version(1));
-  db_storage_->storeRoot(images_root, Uptane::RepositoryType::Director(), Uptane::Version(1));
+  std::string image_root = Utils::jsonToStr(image_root_json);
+  db_storage_->storeRoot(image_root, Uptane::RepositoryType::Image(), Uptane::Version(1));
+  db_storage_->storeRoot(image_root, Uptane::RepositoryType::Director(), Uptane::Version(1));
 
   Json::Value image_targets_json;
   image_targets_json["key-004"] = "value-005";
@@ -238,11 +238,11 @@ TEST_F(AktualizrInfoTest, PrintImageTargetsMetadata) {
 }
 
 /**
- * Verifies aktualizr-info output of a root metadata from the director repository
+ * Verifies aktualizr-info output of a Root metadata from the Director repository
  *
  * Checks actions:
  *
- *  - [x] Print root metadata from director repository
+ *  - [x] Print Root metadata from Director repository
  */
 TEST_F(AktualizrInfoTest, PrintDirectorRootMetadata) {
   db_storage_->storeEcuSerials({{primary_ecu_serial, primary_hw_id}});
@@ -261,11 +261,11 @@ TEST_F(AktualizrInfoTest, PrintDirectorRootMetadata) {
 }
 
 /**
- * Verifies aktualizr-info output of targets' metadata from the director repository
+ * Verifies aktualizr-info output of Targets metadata from the Director repository
  *
  * Checks actions:
  *
- *  - [x] Print targets metadata from director repository
+ *  - [x] Print Targets metadata from Director repository
  */
 TEST_F(AktualizrInfoTest, PrintDirectorTargetsMetadata) {
   db_storage_->storeEcuSerials({{primary_ecu_serial, primary_hw_id}});
@@ -544,7 +544,7 @@ TEST_F(AktualizrInfoTest, PrintDelegations) {
     }
   };
 
-  // aktualizer-info won't print anything if a director root metadata are not stored in the DB
+  // aktualizr-info won't print anything if Director Root metadata are not stored in the DB
   db_storage_->storeRoot(Utils::jsonToStr(Json::Value()), Uptane::RepositoryType::Director(), Uptane::Version(1));
 
   // case 0: no delegations in the DB
@@ -580,11 +580,11 @@ TEST_F(AktualizrInfoTest, PrintDelegations) {
 }
 
 /**
- * Verifies aktualizr-info output of snapshot metadata from image repository
+ * Verifies aktualizr-info output of Snapshot metadata from Image repository
  *
  * Checks actions:
  *
- *  - [x] Print snapshot metadata from image repository
+ *  - [x] Print Snapshot metadata from Image repository
  */
 TEST_F(AktualizrInfoTest, PrintImageSnapshotMetadata) {
   Json::Value director_root_json;
@@ -596,21 +596,21 @@ TEST_F(AktualizrInfoTest, PrintImageSnapshotMetadata) {
   meta_snapshot["signed"]["_type"] = "Snapshot";
   meta_snapshot["signed"]["expires"] = "2038-01-19T03:14:06Z";
   meta_snapshot["signed"]["version"] = "2";
-  std::string images_snapshot = Utils::jsonToStr(meta_snapshot);
-  db_storage_->storeNonRoot(images_snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot());
+  std::string image_snapshot = Utils::jsonToStr(meta_snapshot);
+  db_storage_->storeNonRoot(image_snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot());
 
   aktualizr_info_process_.run({"--images-snapshot"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
-  EXPECT_NE(aktualizr_info_output.find(images_snapshot), std::string::npos);
+  EXPECT_NE(aktualizr_info_output.find(image_snapshot), std::string::npos);
 }
 
 /**
- * Verifies aktualizr-info output of a timestamp metadata from the image repository
+ * Verifies aktualizr-info output of Timestamp metadata from the Image repository
  *
  * Checks actions:
  *
- *  - [x] Print timestamp metadata from image repository
+ *  - [x] Print Timestamp metadata from Image repository
  */
 TEST_F(AktualizrInfoTest, PrintImageTimestampMetadata) {
   Json::Value director_root_json;
@@ -621,13 +621,13 @@ TEST_F(AktualizrInfoTest, PrintImageTimestampMetadata) {
   Json::Value meta_timestamp;
   meta_timestamp["signed"]["_type"] = "Timestamp";
   meta_timestamp["signed"]["expires"] = "2038-01-19T03:14:06Z";
-  std::string images_timestamp = Utils::jsonToStr(meta_timestamp);
-  db_storage_->storeNonRoot(images_timestamp, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp());
+  std::string image_timestamp = Utils::jsonToStr(meta_timestamp);
+  db_storage_->storeNonRoot(image_timestamp, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp());
 
   aktualizr_info_process_.run({"--images-timestamp"});
   ASSERT_FALSE(aktualizr_info_output.empty());
 
-  EXPECT_NE(aktualizr_info_output.find(images_timestamp), std::string::npos);
+  EXPECT_NE(aktualizr_info_output.find(image_timestamp), std::string::npos);
 }
 
 /**

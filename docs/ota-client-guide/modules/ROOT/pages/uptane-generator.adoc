@@ -49,7 +49,7 @@ Make sure that the repository path doesn't already exist and the machine where `
 uptane-generator --path <repo path> --command generate
 ```
 
-2. Add a target to the images metadata:
+2. Add a target to the Image repo metadata:
 +
 ```
 uptane-generator --path <repo path> --command image --filename <image name> --targetname <target name> --hwid <hardware ID>
@@ -57,7 +57,7 @@ uptane-generator --path <repo path> --command image --filename <image name> --ta
 +
 This step can be repeated as many times as necessary for each target. `--targetname` is optional. If it is not provided, it is assumed to be the same as the image name provided to `--filename`.
 
-3. Prepare director targets metadata for a given device:
+3. Prepare Director Targets metadata for a given device:
 +
 ```
 uptane-generator --path <repo path> --command addtarget --targetname <image name> --hwid <hardware ID> --serial <ECU serial>
@@ -65,7 +65,7 @@ uptane-generator --path <repo path> --command addtarget --targetname <image name
 +
 This step can be repeated as many times as necessary for each target and ECU.
 
-4. Sign the director targets metadata and schedule the prepared update:
+4. Sign the Director Targets metadata and schedule the prepared update:
 +
 ```
 uptane-generator --path <repo path> --command signtargets
@@ -87,19 +87,19 @@ uptane-generator --path <repo path> --command image --filename <image name> --ta
 
 ==== Generating metadata without a real file
 
-To add a target to the images metadata without providing an actual file, you can supply alternative parameters to the `image` command:
+To add a target to the Image repo metadata without providing an actual file, you can supply alternative parameters to the `image` command:
 ```
 uptane-generator --path <repo path> --command image --targetname <target name> --targetsha256 <target SHA256 hash> --targetsha512 <target SHA512 hash> --targetlength <target length> --hwid <hardware ID>
 ```
 
-==== Advanced director metadata control
+==== Advanced Director metadata control
 
-To reset the director targets metadata or to prepare empty targets metadata, use the `emptytargets` command. If you then sign this metadata with `signtargets`, it will schedule an empty update.
+To reset the Director Targets metadata or to prepare empty Targets metadata, use the `emptytargets` command. If you then sign this metadata with `signtargets`, it will schedule an empty update.
 ```
 uptane-generator --path <repo path> --command emptytargets
 ```
 
-To populate the director targets metadata with the currently signed metadata (with the previous signature removed), use the `oldtargets` command. You can then add more targets with `addtarget` and re-sign with `signtargets`.
+To populate the Director Targets metadata with the currently signed metadata (with the previous signature removed), use the `oldtargets` command. You can then add more targets with `addtarget` and re-sign with `signtargets`.
 ```
 uptane-generator --path <repo path> --command oldtargets
 ```
@@ -113,7 +113,7 @@ uptane-generator --path <repo path> --command sign --repotype <director|image> -
 
 ==== Add custom URLs
 
-To add a custom URL to an image in the Targets metadata of the Images repository:
+To add a custom URL to an image in the Targets metadata of the Image repository:
 ```
 uptane-generator --path <repo path> --command image --filename <image name> --targetname <target name> --hwid <hardware ID> --url <URL>
 ```

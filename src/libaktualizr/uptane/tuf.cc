@@ -138,7 +138,7 @@ Target::Target(std::string filename, const Json::Value &content) : filename_(std
   if (content.isMember("custom")) {
     custom_ = content["custom"];
 
-    // Images repo provides an array of hardware IDs.
+    // Image repo provides an array of hardware IDs.
     if (custom_.isMember("hardwareIds")) {
       Json::Value hwids = custom_["hardwareIds"];
       for (auto i = hwids.begin(); i != hwids.end(); ++i) {
@@ -233,8 +233,8 @@ bool Target::IsOstree() const {
 }
 
 bool Target::MatchTarget(const Target &t2) const {
-  // type_ (targetFormat) is only provided by the Images repo.
-  // ecus_ is only provided by the Images repo.
+  // type_ (targetFormat) is only provided by the Image repo.
+  // ecus_ is only provided by the Image repo.
   // correlation_id_ is only provided by the Director.
   // uri_ is not matched. If the Director provides it, we use that. If not, but
   // the Image repository does, use that. Otherwise, leave it empty and use the
@@ -248,7 +248,7 @@ bool Target::MatchTarget(const Target &t2) const {
 
   // If the HWID vector and ECU->HWID map match, we're good. Otherwise, assume
   // we have a Target from the Director (ECU->HWID map populated, HWID vector
-  // empty) and a Target from the Images repo (HWID vector populated,
+  // empty) and a Target from the Image repo (HWID vector populated,
   // ECU->HWID map empty). Figure out which Target has the map, and then for
   // every item in the map, make sure it's in the other Target's HWID vector.
   if (hwids_ != t2.hwids_ || ecus_ != t2.ecus_) {

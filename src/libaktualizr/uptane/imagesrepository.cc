@@ -15,7 +15,7 @@ bool ImagesRepository::verifyTimestamp(const std::string& timestamp_raw) {
     timestamp =
         TimestampMeta(RepositoryType::Image(), Utils::parseJSON(timestamp_raw), std::make_shared<MetaWithKeys>(root));
   } catch (const Exception& e) {
-    LOG_ERROR << "Signature verification for timestamp metadata failed";
+    LOG_ERROR << "Signature verification for Timestamp metadata failed";
     last_exception = e;
     return false;
   }
@@ -56,14 +56,14 @@ bool ImagesRepository::verifySnapshot(const std::string& snapshot_raw) {
       switch (it.type()) {
         case Hash::Type::kSha256:
           if (Hash(Hash::Type::kSha256, boost::algorithm::hex(Crypto::sha256digest(canonical))) != it) {
-            LOG_ERROR << "Hash verification for snapshot metadata failed";
+            LOG_ERROR << "Hash verification for Snapshot metadata failed";
             return false;
           }
           hash_exists = true;
           break;
         case Hash::Type::kSha512:
           if (Hash(Hash::Type::kSha512, boost::algorithm::hex(Crypto::sha512digest(canonical))) != it) {
-            LOG_ERROR << "Hash verification for snapshot metadata failed";
+            LOG_ERROR << "Hash verification for Snapshot metadata failed";
             return false;
           }
           hash_exists = true;
@@ -82,7 +82,7 @@ bool ImagesRepository::verifySnapshot(const std::string& snapshot_raw) {
       return false;
     }
   } catch (const Exception& e) {
-    LOG_ERROR << "Signature verification for snapshot metadata failed";
+    LOG_ERROR << "Signature verification for Snapshot metadata failed";
     last_exception = e;
     return false;
   }
@@ -162,7 +162,7 @@ bool ImagesRepository::verifyTargets(const std::string& targets_raw) {
       return false;
     }
   } catch (const Exception& e) {
-    LOG_ERROR << "Signature verification for images targets metadata failed";
+    LOG_ERROR << "Signature verification for Image repo Targets metadata failed";
     last_exception = e;
     return false;
   }
@@ -180,7 +180,7 @@ std::shared_ptr<Uptane::Targets> ImagesRepository::verifyDelegation(const std::s
     auto signer = std::make_shared<MetaWithKeys>(parent_target);
     return std::make_shared<Uptane::Targets>(Targets(RepositoryType::Image(), role, delegation_json, signer));
   } catch (const Exception& e) {
-    LOG_ERROR << "Signature verification for images delegated targets metadata failed";
+    LOG_ERROR << "Signature verification for Image repo delegated Targets metadata failed";
     throw e;
   }
 

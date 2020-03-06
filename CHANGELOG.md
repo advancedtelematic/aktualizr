@@ -51,7 +51,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 ### Changed
 
 - Increased Targets metadata file size limit: [PR](https://github.com/advancedtelematic/aktualizr/pull/1476)
-- Check and fetch root metadata according to the Uptane standard: [PR](https://github.com/advancedtelematic/aktualizr/pull/1501)
+- Check and fetch Root metadata according to the Uptane standard: [PR](https://github.com/advancedtelematic/aktualizr/pull/1501)
 - Don't fetch Snapshot or Targets metadata if we already have the latest: [PR](https://github.com/advancedtelematic/aktualizr/pull/1503)
 - Dynamically link aktualizr and the tests with libaktualizr as shared library: [PR](https://github.com/advancedtelematic/aktualizr/pull/1512)
 - Reject all targets if one doesn't match: [PR](https://github.com/advancedtelematic/aktualizr/pull/1510)
@@ -215,7 +215,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 - Campaigns can be declined and postponed via the API: [PR](https://github.com/advancedtelematic/aktualizr/pull/1225)
 - Warn when running two libaktualizr instances simultaneously: [PR #1217](https://github.com/advancedtelematic/aktualizr/pull/1217) and [PR #1229](https://github.com/advancedtelematic/aktualizr/pull/1229)
-- aktualizr-info can output the Snapshot and Timestamp metadata from the Images repository: [PR](https://github.com/advancedtelematic/aktualizr/pull/1207)
+- aktualizr-info can output the Snapshot and Timestamp metadata from the Image repository: [PR](https://github.com/advancedtelematic/aktualizr/pull/1207)
 - aktualizr-info can output the current and pending image versions for secondaries: [PR](https://github.com/advancedtelematic/aktualizr/pull/1201)
 - [Support for docker-app package management on top of OSTree](src/libaktualizr/package_manager/dockerappmanager.h): [PR](https://github.com/advancedtelematic/aktualizr/pull/1189)
 
@@ -256,7 +256,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 ### Fixed
 
 - Check for updates even if sending the manifest fails: [PR](https://github.com/advancedtelematic/aktualizr/pull/1186)
-- Correctly handle empty targets metadata: [PR #1186](https://github.com/advancedtelematic/aktualizr/pull/1186) and [PR #1192](https://github.com/advancedtelematic/aktualizr/pull/1192)
+- Correctly handle empty Targets metadata: [PR #1186](https://github.com/advancedtelematic/aktualizr/pull/1186) and [PR #1192](https://github.com/advancedtelematic/aktualizr/pull/1192)
 - Various OSTree-related memory leaks and suppressions: [PR #1114](https://github.com/advancedtelematic/aktualizr/pull/1114), [PR #1120](https://github.com/advancedtelematic/aktualizr/pull/1120), and [PR #1179](https://github.com/advancedtelematic/aktualizr/pull/1179)
 - Various spurious and/or confusing log messages, e.g.: [PR #1112](https://github.com/advancedtelematic/aktualizr/pull/1112), [PR #1137](https://github.com/advancedtelematic/aktualizr/pull/1137), and [PR #1180](https://github.com/advancedtelematic/aktualizr/pull/1180)
 

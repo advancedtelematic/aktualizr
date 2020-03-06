@@ -12,7 +12,7 @@ Targets getTrustedDelegation(const Role &delegate_role, const Targets &parent_ta
     auto version = extractVersionUntrusted(delegation_meta);
 
     if (version > version_in_snapshot) {
-      throw SecurityException("images", "Rollback attempt on delegated targets");
+      throw SecurityException("image", "Rollback attempt on delegated targets");
     } else if (version < version_in_snapshot) {
       delegation_meta.clear();
       storage.deleteDelegation(delegate_role);
@@ -37,12 +37,12 @@ Targets getTrustedDelegation(const Role &delegate_role, const Targets &parent_ta
 
   auto delegation = ImagesRepository::verifyDelegation(delegation_meta, delegate_role, parent_targets);
   if (delegation == nullptr) {
-    throw SecurityException("images", "Delegation verification failed");
+    throw SecurityException("image", "Delegation verification failed");
   }
 
   if (delegation_remote) {
     if (delegation->version() != version_in_snapshot) {
-      throw VersionMismatch("images", delegate_role.ToString());
+      throw VersionMismatch("image", delegate_role.ToString());
     }
     storage.storeDelegation(delegation_meta, delegate_role);
   }

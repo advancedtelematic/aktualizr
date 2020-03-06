@@ -64,7 +64,7 @@ class VectorWrapper {
       std::cout << "exception from image_repo: '" << vector_["image_repo"]["update"]["err"]
                 << " with message: " << vector_["image_repo"]["update"]["err_msg"] << "\n";
     } else {
-      std::cout << "an exception while fetching targets metadata.\n";
+      std::cout << "an exception while fetching Targets metadata.\n";
     }
   }
 
@@ -118,11 +118,11 @@ TEST_P(UptaneVector, Test) {
     bool should_fail = vector.shouldFail();
 
     try {
-      /* Fetch metadata from the director.
-       * Check metadata from the director.
+      /* Fetch metadata from the Director.
+       * Check metadata from the Director.
        * Identify targets for known ECUs.
-       * Fetch metadata from the images repo.
-       * Check metadata from the images repo.
+       * Fetch metadata from the Image repo.
+       * Check metadata from the Image repo.
        *
        * It would be simpler to just call fetchMeta() here, but that calls
        * putManifestSimple(), which will fail here. */

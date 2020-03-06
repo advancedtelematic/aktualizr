@@ -15,12 +15,12 @@
 #include "utilities/utils.h"
 
 FSStorageRead::FSStorageRead(const StorageConfig& config) : config_(config) {
-  boost::filesystem::path images_path = config_.uptane_metadata_path.get(config_.path) / "repo";
+  boost::filesystem::path image_path = config_.uptane_metadata_path.get(config_.path) / "repo";
   boost::filesystem::path director_path = config_.uptane_metadata_path.get(config_.path) / "director";
-  // migrate from old unversioned Uptane root meta
+  // migrate from old unversioned Uptane Root metadata
   {
     for (auto repo : {Uptane::RepositoryType::Director(), Uptane::RepositoryType::Image()}) {
-      boost::filesystem::path& meta_dir = repo == (Uptane::RepositoryType::Director()) ? director_path : images_path;
+      boost::filesystem::path& meta_dir = repo == (Uptane::RepositoryType::Director()) ? director_path : image_path;
       boost::filesystem::path meta_path = meta_dir / Uptane::Version().RoleFileName(Uptane::Role::Root());
       if (boost::filesystem::exists(meta_path)) {
         std::string data = Utils::readFile(meta_path);
@@ -34,7 +34,7 @@ FSStorageRead::FSStorageRead(const StorageConfig& config) : config_(config) {
   }
 
   latest_director_root = findMaxVersion(director_path, Uptane::Role::Root());
-  latest_images_root = findMaxVersion(images_path, Uptane::Role::Root());
+  latest_image_root = findMaxVersion(image_path, Uptane::Role::Root());
 }
 
 bool FSStorageRead::loadPrimaryKeys(std::string* public_key, std::string* private_key) {

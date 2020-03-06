@@ -74,7 +74,7 @@ class InvalidMetadata : public Exception {
 class TargetMismatch : public Exception {
  public:
   explicit TargetMismatch(const std::string& targetname)
-      : Exception(targetname, "The target metadata in image and director do not match.") {}
+      : Exception(targetname, "The target metadata in the Image and Director repos do not match.") {}
   ~TargetMismatch() noexcept override = default;
 };
 
@@ -115,15 +115,15 @@ class VersionMismatch : public Exception {
 class DelegationHashMismatch : public Exception {
  public:
   explicit DelegationHashMismatch(const std::string& delegation_name)
-      : Exception("images", "The calculated hash of delegated role " + delegation_name +
-                                " did not match the hash in the metadata.") {}
+      : Exception("image", "The calculated hash of delegated role " + delegation_name +
+                               " did not match the hash in the metadata.") {}
   ~DelegationHashMismatch() noexcept override = default;
 };
 
 class DelegationMissing : public Exception {
  public:
   explicit DelegationMissing(const std::string& delegation_name)
-      : Exception("images", "The delegated role " + delegation_name + " is missing.") {}
+      : Exception("image", "The delegated role " + delegation_name + " is missing.") {}
   ~DelegationMissing() noexcept override = default;
 };
 

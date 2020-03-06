@@ -10,7 +10,7 @@
 #include "uptane/tuf.h"
 #include "utilities/utils.h"
 
-/* Validate a TUF root. */
+/* Validate Root metadata. */
 TEST(Root, RootValidates) {
   Json::Value initial_root = Utils::parseJSONFile("tests/tuf/sample1/root.json");
   LOG_INFO << "Root is:" << initial_root;
@@ -21,7 +21,7 @@ TEST(Root, RootValidates) {
   EXPECT_NO_THROW(Uptane::Root(Uptane::RepositoryType::Director(), initial_root, root));
 }
 
-/* Throw an exception if a TUF root is unsigned. */
+/* Throw an exception if Root metadata is unsigned. */
 TEST(Root, RootJsonNoKeys) {
   Uptane::Root root1(Uptane::Root::Policy::kAcceptAll);
   Json::Value initial_root = Utils::parseJSONFile("tests/tuf/sample1/root.json");
@@ -29,7 +29,7 @@ TEST(Root, RootJsonNoKeys) {
   EXPECT_THROW(Uptane::Root(Uptane::RepositoryType::Director(), initial_root, root1), Uptane::InvalidMetadata);
 }
 
-/* Throw an exception if a TUF root has no roles. */
+/* Throw an exception if Root metadata has no roles. */
 TEST(Root, RootJsonNoRoles) {
   Uptane::Root root1(Uptane::Root::Policy::kAcceptAll);
   Json::Value initial_root = Utils::parseJSONFile("tests/tuf/sample1/root.json");
@@ -110,8 +110,8 @@ Json::Value generateDirectorTarget(const std::string& hash, const int length, co
   return target;
 }
 
-Json::Value generateImagesTarget(const std::string& hash, const int length,
-                                 const std::vector<Uptane::HardwareIdentifier>& hardwareIds) {
+Json::Value generateImageTarget(const std::string& hash, const int length,
+                                const std::vector<Uptane::HardwareIdentifier>& hardwareIds) {
   Json::Value target = generateTarget(hash, length);
   Json::Value custom;
   Json::Value hwids;
@@ -131,7 +131,7 @@ TEST(Target, Match) {
   hardwareIds.emplace_back(hwid);
   ecu_map.insert({Uptane::EcuSerial("serial"), hwid});
   Uptane::Target target1("abc", generateDirectorTarget("hash_good", 739, ecu_map));
-  Uptane::Target target2("abc", generateImagesTarget("hash_good", 739, hardwareIds));
+  Uptane::Target target2("abc", generateImageTarget("hash_good", 739, hardwareIds));
   EXPECT_TRUE(target1.MatchTarget(target2));
   EXPECT_TRUE(target2.MatchTarget(target1));
 }
@@ -149,20 +149,20 @@ TEST(Target, MatchDirector) {
   EXPECT_TRUE(target2.MatchTarget(target1));
 }
 
-/* Two Target objects created by the Images repo should match. */
+/* Two Target objects created by the Image repo should match. */
 TEST(Target, MatchImages) {
   Uptane::HardwareIdentifier hwid("first-test");
   Uptane::HardwareIdentifier hwid2("second-test");
   std::vector<Uptane::HardwareIdentifier> hardwareIds;
   hardwareIds.emplace_back(hwid);
   hardwareIds.emplace_back(hwid2);
-  Uptane::Target target1("abc", generateImagesTarget("hash_good", 739, hardwareIds));
-  Uptane::Target target2("abc", generateImagesTarget("hash_good", 739, hardwareIds));
+  Uptane::Target target1("abc", generateImageTarget("hash_good", 739, hardwareIds));
+  Uptane::Target target2("abc", generateImageTarget("hash_good", 739, hardwareIds));
   EXPECT_TRUE(target1.MatchTarget(target2));
   EXPECT_TRUE(target2.MatchTarget(target1));
 }
 
-/* Extra hardware IDs in the Images Target metadata should still match. */
+/* Extra hardware IDs in the Image Target metadata should still match. */
 TEST(Target, MatchExtraHwId) {
   Uptane::HardwareIdentifier hwid("fake-test");
   std::vector<Uptane::HardwareIdentifier> hardwareIds;
@@ -171,7 +171,7 @@ TEST(Target, MatchExtraHwId) {
   ecu_map.insert({Uptane::EcuSerial("serial"), hwid});
   Uptane::Target target1("abc", generateDirectorTarget("hash_good", 739, ecu_map));
   hardwareIds.emplace_back(Uptane::HardwareIdentifier("extra"));
-  Uptane::Target target2("abc", generateImagesTarget("hash_good", 739, hardwareIds));
+  Uptane::Target target2("abc", generateImageTarget("hash_good", 739, hardwareIds));
   EXPECT_TRUE(target1.MatchTarget(target2));
   EXPECT_TRUE(target2.MatchTarget(target1));
 }
@@ -187,7 +187,7 @@ TEST(Target, MatchTwo) {
   ecu_map.insert({Uptane::EcuSerial("serial"), hwid});
   ecu_map.insert({Uptane::EcuSerial("serial2"), hwid2});
   Uptane::Target target1("abc", generateDirectorTarget("hash_good", 739, ecu_map));
-  Uptane::Target target2("abc", generateImagesTarget("hash_good", 739, hardwareIds));
+  Uptane::Target target2("abc", generateImageTarget("hash_good", 739, hardwareIds));
   EXPECT_TRUE(target1.MatchTarget(target2));
   EXPECT_TRUE(target2.MatchTarget(target1));
 }
@@ -198,9 +198,9 @@ TEST(Target, MultipleHwIdMismatch) {
   std::vector<Uptane::HardwareIdentifier> hardwareIds;
   hardwareIds.emplace_back(hwid);
   hardwareIds.emplace_back(Uptane::HardwareIdentifier("extra"));
-  Uptane::Target target1("abc", generateImagesTarget("hash_good", 739, hardwareIds));
+  Uptane::Target target1("abc", generateImageTarget("hash_good", 739, hardwareIds));
   hardwareIds.emplace_back(Uptane::HardwareIdentifier("extra2"));
-  Uptane::Target target2("abc", generateImagesTarget("hash_good", 739, hardwareIds));
+  Uptane::Target target2("abc", generateImageTarget("hash_good", 739, hardwareIds));
   EXPECT_FALSE(target1.MatchTarget(target2));
   EXPECT_FALSE(target2.MatchTarget(target1));
 }
@@ -214,7 +214,7 @@ TEST(Target, MissingHwId) {
   ecu_map.insert({Uptane::EcuSerial("serial"), hwid});
   Uptane::Target target1("abc", generateDirectorTarget("hash_good", 739, ecu_map));
   hardwareIds.clear();
-  Uptane::Target target2("abc", generateImagesTarget("hash_good", 739, hardwareIds));
+  Uptane::Target target2("abc", generateImageTarget("hash_good", 739, hardwareIds));
   EXPECT_FALSE(target1.MatchTarget(target2));
   EXPECT_FALSE(target2.MatchTarget(target1));
 }
@@ -227,7 +227,7 @@ TEST(Target, FilenameMismatch) {
   hardwareIds.emplace_back(hwid);
   ecu_map.insert({Uptane::EcuSerial("serial"), hwid});
   Uptane::Target target1("abc", generateDirectorTarget("hash_good", 739, ecu_map));
-  Uptane::Target target2("xyz", generateImagesTarget("hash_good", 739, hardwareIds));
+  Uptane::Target target2("xyz", generateImageTarget("hash_good", 739, hardwareIds));
   EXPECT_FALSE(target1.MatchTarget(target2));
   EXPECT_FALSE(target2.MatchTarget(target1));
 }
@@ -240,7 +240,7 @@ TEST(Target, LengthMismatch) {
   hardwareIds.emplace_back(hwid);
   ecu_map.insert({Uptane::EcuSerial("serial"), hwid});
   Uptane::Target target1("abc", generateDirectorTarget("hash_good", 739, ecu_map));
-  Uptane::Target target2("abc", generateImagesTarget("hash_good", 1, hardwareIds));
+  Uptane::Target target2("abc", generateImageTarget("hash_good", 1, hardwareIds));
   EXPECT_FALSE(target1.MatchTarget(target2));
   EXPECT_FALSE(target2.MatchTarget(target1));
 }
@@ -254,7 +254,7 @@ TEST(Target, HardwareIdMismatch) {
   ecu_map.insert({Uptane::EcuSerial("serial"), hwid});
   Uptane::Target target1("abc", generateDirectorTarget("hash_good", 739, ecu_map));
   hardwareIds[0] = Uptane::HardwareIdentifier("alt-test");
-  Uptane::Target target2("abc", generateImagesTarget("hash_good", 739, hardwareIds));
+  Uptane::Target target2("abc", generateImageTarget("hash_good", 739, hardwareIds));
   EXPECT_FALSE(target1.MatchTarget(target2));
   EXPECT_FALSE(target2.MatchTarget(target1));
 }
@@ -267,7 +267,7 @@ TEST(Target, HashMismatch) {
   hardwareIds.emplace_back(hwid);
   ecu_map.insert({Uptane::EcuSerial("serial"), hwid});
   Uptane::Target target1("abc", generateDirectorTarget("hash_good", 739, ecu_map));
-  Uptane::Target target2("abc", generateImagesTarget("hash_bad", 739, hardwareIds));
+  Uptane::Target target2("abc", generateImageTarget("hash_bad", 739, hardwareIds));
   EXPECT_FALSE(target1.MatchTarget(target2));
   EXPECT_FALSE(target2.MatchTarget(target1));
 }

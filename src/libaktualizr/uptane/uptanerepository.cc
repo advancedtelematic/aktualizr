@@ -24,7 +24,7 @@ bool RepositoryCommon::initRoot(const std::string& root_raw) {
     root = Root(type, Utils::parseJSON(root_raw));        // initialization and format check
     root = Root(type, Utils::parseJSON(root_raw), root);  // signature verification against itself
   } catch (const std::exception& e) {
-    LOG_ERROR << "Loading initial root failed: " << e.what();
+    LOG_ERROR << "Loading initial Root metadata failed: " << e.what();
     return false;
   }
   return true;
@@ -43,11 +43,11 @@ bool RepositoryCommon::verifyRoot(const std::string& root_raw) {
     // metadata file (version N+1). NOTE: we do not accept an equal version
     // number. It must increment.
     if (root.version() != prev_version + 1) {
-      LOG_ERROR << "Version in root metadata doesn't match the expected value";
+      LOG_ERROR << "Version in Root metadata doesn't match the expected value";
       return false;
     }
   } catch (const std::exception& e) {
-    LOG_ERROR << "Signature verification for root metadata failed: " << e.what();
+    LOG_ERROR << "Signature verification for Root metadata failed: " << e.what();
     return false;
   }
   return true;

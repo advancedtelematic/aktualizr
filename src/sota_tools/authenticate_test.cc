@@ -26,7 +26,7 @@ TEST(authenticate, good_zip) {
 }
 
 /* Authenticate with TLS credentials.
- * Parse images repository URL from a provided archive. */
+ * Parse Image repository URL from a provided archive. */
 TEST(authenticate, good_cert_zip) {
   // Authenticates with tls_server on port 1443.
   boost::filesystem::path filepath = certs_dir / "good.zip";
@@ -44,7 +44,7 @@ TEST(authenticate, good_cert_zip) {
 
 /* Authenticate with nothing (no auth).
  * Parse authentication information from treehub.json.
- * Parse images repository URL from a provided archive. */
+ * Parse Image repository URL from a provided archive. */
 TEST(authenticate, good_cert_noauth_zip) {
   // Authenticates with tls_noauth_server on port 2443.
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_noauth_good.zip";

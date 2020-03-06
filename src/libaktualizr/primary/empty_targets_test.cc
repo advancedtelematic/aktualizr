@@ -30,7 +30,7 @@ class HttpRejectEmptyCorrId : public HttpFake {
 
 /*
  * Verify that we can successfully install an update after receiving
- * subsequent targets metadata that is empty.
+ * subsequent Targets metadata that is empty.
  */
 TEST(Aktualizr, EmptyTargets) {
   TemporaryDirectory temp_dir;

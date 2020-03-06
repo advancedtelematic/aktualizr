@@ -292,7 +292,7 @@ class Target {
   std::string type_;
   EcuMap ecus_;  // Director only
   std::vector<Hash> hashes_;
-  std::vector<HardwareIdentifier> hwids_;  // Images repo only
+  std::vector<HardwareIdentifier> hwids_;  // Image repo only
   Json::Value custom_;
   uint64_t length_{0};
   std::string correlation_id_;
@@ -334,7 +334,7 @@ class MetaWithKeys : public BaseMeta {
    */
   MetaWithKeys() { version_ = 0; }
   /**
-   * A 'real' metadata object that can contain keys (root or targets with
+   * A 'real' metadata object that can contain keys (Root or Targets with
    * delegations) and that implements TUF signature validation.
    * @param json - The contents of the 'signed' portion
    */
@@ -388,7 +388,7 @@ class Root : public MetaWithKeys {
    */
   explicit Root(Policy policy = Policy::kRejectAll) : policy_(policy) { version_ = 0; }
   /**
-   * A 'real' root that implements TUF signature validation
+   * A 'real' Root that implements TUF signature validation
    * @param repo - Repository type (only used to improve the error messages)
    * @param json - The contents of the 'signed' portion
    */

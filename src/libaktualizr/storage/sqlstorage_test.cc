@@ -453,14 +453,14 @@ TEST(sqlstorage, migrate_root_works) {
 
   EXPECT_TRUE(director.verifyTargets(raw_director_targets));
 
-  // Images
-  std::string raw_images_root;
-  storage.loadRoot(&raw_images_root, Uptane::RepositoryType::Image(), Uptane::Version());
+  // Image repo
+  std::string raw_image_root;
+  storage.loadRoot(&raw_image_root, Uptane::RepositoryType::Image(), Uptane::Version());
   Uptane::ImagesRepository imagesrepository;
-  EXPECT_TRUE(imagesrepository.initRoot(raw_images_root));
+  EXPECT_TRUE(imagesrepository.initRoot(raw_image_root));
 
   // Check that the roots are different and haven't been swapped
-  EXPECT_NE(raw_director_root, raw_images_root);
+  EXPECT_NE(raw_director_root, raw_image_root);
   Json::Value director_json = Utils::parseJSON(raw_director_root);
   Json::Value sign = director_json["signed"];
   EXPECT_EQ(sign["_type"], "Root");
