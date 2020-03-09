@@ -695,7 +695,7 @@ bool SotaUptaneClient::uptaneIteration(std::vector<Uptane::Target> *targets, uns
     return true;
   }
 
-  LOG_INFO << "got new updates";
+  LOG_INFO << "New updates found in Director metadata. Checking Image repo metadata...";
 
   if (!updateImageMeta()) {
     LOG_ERROR << "Failed to update Image repo metadata: " << last_exception.what();
@@ -827,9 +827,9 @@ result::UpdateCheck SotaUptaneClient::checkUpdates() {
   result = result::UpdateCheck(updates, ecus_count, result::UpdateStatus::kUpdatesAvailable,
                                Utils::parseJSON(director_targets), "");
   if (updates.size() == 1) {
-    LOG_INFO << "1 new update found in Uptane metadata.";
+    LOG_INFO << "1 new update found in both Director and Image repo metadata.";
   } else {
-    LOG_INFO << updates.size() << " new updates found in Uptane metadata.";
+    LOG_INFO << updates.size() << " new updates found in both Director and Image repo metadata.";
   }
   return result;
 }
