@@ -321,6 +321,7 @@ TEST(storage, load_store_installed_versions) {
   {
     boost::optional<Uptane::Target> current;
     EXPECT_TRUE(storage->loadInstalledVersions("primary", &current, nullptr));
+    EXPECT_FALSE(storage->hasPendingInstall());
     EXPECT_TRUE(!!current);
     EXPECT_EQ(current->filename(), "update.bin");
     EXPECT_EQ(current->sha256Hash(), "2561");
@@ -340,6 +341,7 @@ TEST(storage, load_store_installed_versions) {
     boost::optional<Uptane::Target> pending;
     EXPECT_TRUE(storage->loadInstalledVersions("primary", nullptr, &pending));
     EXPECT_TRUE(!!pending);
+    EXPECT_TRUE(storage->hasPendingInstall());
     EXPECT_EQ(pending->filename(), "update2.bin");
   }
 
@@ -351,6 +353,7 @@ TEST(storage, load_store_installed_versions) {
     boost::optional<Uptane::Target> pending;
     EXPECT_TRUE(storage->loadInstalledVersions("primary", nullptr, &pending));
     EXPECT_TRUE(!!pending);
+    EXPECT_TRUE(storage->hasPendingInstall());
     EXPECT_EQ(pending->filename(), "update3.bin");
   }
 
@@ -364,6 +367,7 @@ TEST(storage, load_store_installed_versions) {
     EXPECT_TRUE(!!current);
     EXPECT_EQ(current->filename(), "update3.bin");
     EXPECT_FALSE(!!pending);
+    EXPECT_FALSE(storage->hasPendingInstall());
 
     std::vector<Uptane::Target> log;
     storage->loadInstallationLog("primary", &log, true);
@@ -378,6 +382,7 @@ TEST(storage, load_store_installed_versions) {
     storage->loadInstallationLog("primary", &log, true);
     EXPECT_EQ(log.size(), 3);
     EXPECT_EQ(log.back().filename(), "update.bin");
+    EXPECT_FALSE(storage->hasPendingInstall());
   }
 
   // Set t2 as the new pending and t3 as current afterwards: the pending flag
@@ -392,6 +397,7 @@ TEST(storage, load_store_installed_versions) {
     EXPECT_TRUE(!!current);
     EXPECT_EQ(current->filename(), "update3.bin");
     EXPECT_FALSE(!!pending);
+    EXPECT_FALSE(storage->hasPendingInstall());
 
     std::vector<Uptane::Target> log;
     storage->loadInstallationLog("primary", &log, true);
