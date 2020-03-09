@@ -31,7 +31,7 @@ Targets getTrustedDelegation(const Role &delegate_role, const Targets &parent_ta
     }
   }
 
-  if (!image_repo.verifyRoleHashes(delegation_meta, delegate_role)) {
+  if (!image_repo.verifyRoleHashes(delegation_meta, delegate_role, false)) {
     throw Uptane::DelegationHashMismatch(delegate_role.ToString());
   }
 
