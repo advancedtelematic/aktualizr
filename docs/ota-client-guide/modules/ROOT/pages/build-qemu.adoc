@@ -33,6 +33,8 @@ The build process creates disk images as an artefact. You can then directly run 
 
 Both arguments are optional; image name defaults to `core-image-minimal`, and if a mac address isn't specified, a random one is generated.
 
+TIP: Depending on your build, the `meta-updater` directory might be in a slightly different location. For example, if you're building an xref:build-agl.adoc[AGL image], the meta-updater layer would be at `../external/meta-updater`.
+
 .Persistent storage
 ****
 By default, QEMU will run your image in snapshot mode, *discarding any changes you made* to the disk image as soon as it exits. If you want to have a persistent VM, you need to create an link:https://wiki.archlinux.org/index.php/QEMU#Overlay_storage_images[overlay storage image] in qcow2 format. The helper script can also manage this for you, making it easy to create an emulated fleet of devices:
