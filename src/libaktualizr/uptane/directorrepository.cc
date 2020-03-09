@@ -25,7 +25,7 @@ bool DirectorRepository::verifyTargets(const std::string& targets_raw) {
       targets = latest_targets;
     }
   } catch (const Uptane::Exception& e) {
-    LOG_ERROR << "Signature verification for director targets metadata failed";
+    LOG_ERROR << "Signature verification for Director Targets metadata failed";
     last_exception = e;
     return false;
   }
@@ -101,7 +101,7 @@ bool DirectorRepository::updateMeta(INvStorage& storage, const IMetadataFetcher&
     if (storage.loadNonRoot(&director_targets_stored, RepositoryType::Director(), Role::Targets())) {
       local_version = extractVersionUntrusted(director_targets_stored);
       if (!verifyTargets(director_targets_stored)) {
-        LOG_WARNING << "Unable to verify stored director targets metadata.";
+        LOG_WARNING << "Unable to verify stored Director Targets metadata.";
       }
     } else {
       local_version = -1;
@@ -111,7 +111,7 @@ bool DirectorRepository::updateMeta(INvStorage& storage, const IMetadataFetcher&
     // metadata from the Director repository doesn’t contain any ECU identifiers for ECUs not actually present in the
     // vehicle.
 
-    // Not supported: The followin steps of the Director's target metadata verification are missing in
+    // Not supported: The following steps of the Director's Targets metadata verification are missing in
     // DirectorRepository::updateMeta()
     //  6. If checking Targets metadata from the Director repository, verify that there are no delegations.
     //  7. If checking Targets metadata from the Director repository, check that no ECU identifier is represented more

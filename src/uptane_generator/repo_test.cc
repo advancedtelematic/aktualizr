@@ -35,7 +35,7 @@ void check_repo(const TemporaryDirectory &temp_dir) {
   check_repo(temp_dir.Path() / DirectorRepo::dir);
 }
 /*
- * Generate images and director repos.
+ * Generate Image and Director repos.
  */
 TEST(uptane_generator, generate_repo) {
   TemporaryDirectory temp_dir;
@@ -99,7 +99,7 @@ TEST(uptane_generator, generate_repo) {
 }
 
 /*
- * Add an image to the images repo.
+ * Add an image to the Image repo.
  */
 TEST(uptane_generator, add_image) {
   TemporaryDirectory temp_dir;
@@ -117,7 +117,7 @@ TEST(uptane_generator, add_image) {
 }
 
 /*
- * Copy an image to the director repo.
+ * Copy an image to the Director repo.
  */
 TEST(uptane_generator, copy_image) {
   TemporaryDirectory temp_dir;
@@ -136,7 +136,7 @@ TEST(uptane_generator, copy_image) {
 }
 
 /*
- * Add an image to the images repo with a custom URL.
+ * Add an image to the Image repo with a custom URL.
  */
 TEST(uptane_generator, image_custom_url) {
   TemporaryDirectory temp_dir;
@@ -155,8 +155,8 @@ TEST(uptane_generator, image_custom_url) {
 }
 
 /*
- * Add an image to the images repo with a custom URL.
- * Copy an image to the director repo with a custom URL.
+ * Add an image to the Image repo with a custom URL.
+ * Copy an image to the Director repo with a custom URL.
  */
 TEST(uptane_generator, both_custom_url) {
   TemporaryDirectory temp_dir;
@@ -386,7 +386,7 @@ TEST(uptane_generator, image_custom) {
 }
 
 /*
- * Clear the staged director targets metadata.
+ * Clear the staged Director Targets metadata.
  */
 TEST(uptane_generator, emptytargets) {
   TemporaryDirectory temp_dir;
@@ -432,7 +432,7 @@ TEST(uptane_generator, emptytargets) {
 }
 
 /*
- * Populate the director targets metadata with the currently signed metadata.
+ * Populate the Director Targets metadata with the currently signed metadata.
  */
 TEST(uptane_generator, oldtargets) {
   TemporaryDirectory temp_dir;

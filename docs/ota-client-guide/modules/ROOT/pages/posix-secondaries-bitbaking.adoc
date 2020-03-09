@@ -9,7 +9,7 @@ endif::[]
 
 :build-qemu-link: xref:build-qemu.adoc[How to build 'core-image-minimal' image for QEMU]]
 
-The goal of this doc is to guide a reader on bitbaking of two type of images `primary` and `secondary` that are targeted for QEMU or RPi
+The goal of this doc is to guide a reader on bitbaking of two type of images, `primary` and `secondary`, that are targeted for QEMU or Raspberry Pi
 and running of which on the target makes it act as `Primary` and `Secondary` ECU of a single device.
 
 Refer to link:https://uptane.github.io/uptane-standard/uptane-standard.html[the Uptane standard] in order to grok the meaning of the `Primary` and `Secondary` terms in the given context from a theoretical standpoint.
@@ -18,8 +18,7 @@ It is highly advisable to follow the doc instructions and play with emulated `Pr
 
 == Bitbaking
 
-It is assumed that a reader is familiar with Yocto and bitbaking in general as well as bitbaking of Aktualizr images in particular,
-details of which are out of scope of this doc and can be found in the following guides:
+It is assumed that the reader is familiar with Yocto, bitbaking, and meta-updater. If not, please consult the following links:
 
 * link:https://github.com/advancedtelematic/meta-updater/blob/master/README.adoc[meta-updater README]
 * xref:build-qemu.adoc[How to build 'core-image-minimal' image for QEMU]
@@ -99,7 +98,7 @@ For example,
 
 It is assumed that a reader is a familiar with bitbaking for Raspberry Pi in general, see xref:build-raspberry.adoc[Build a Raspberry Pi image].
 
-The aforementioned/above guide is relevant and applicable to building a Raspberry images of Primay and Secondary.
+The aforementioned/above guide is relevant and applicable to building Raspberry Pi images for Primary and Secondary ECUs.
 The following is specifics of building such images targeting RPi.
 
 * run `source meta-updater/scripts/envsetup.sh raspberrypi3` to get the build environment set up from a root of the yocto project (updater-repo)

@@ -1990,7 +1990,7 @@ class HttpFakeNoCorrelationId : public HttpFake {
   unsigned int events_seen{0};
 };
 
-/* Correlation ID is empty if none was provided in targets metadata. */
+/* Correlation ID is empty if none was provided in Targets metadata. */
 TEST(Aktualizr, FullNoCorrelationId) {
   TemporaryDirectory temp_dir;
   TemporaryDirectory meta_dir;

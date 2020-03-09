@@ -2,12 +2,12 @@
 #define AKTUALIZR_UPTANE_ITERATOR_H_
 
 #include "fetcher.h"
-#include "imagesrepository.h"
+#include "imagerepository.h"
 
 namespace Uptane {
 
 Targets getTrustedDelegation(const Role &delegate_role, const Targets &parent_targets,
-                             const ImagesRepository &images_repo, INvStorage &storage, Fetcher &fetcher, bool offline);
+                             const ImageRepository &image_repo, INvStorage &storage, Fetcher &fetcher, bool offline);
 
 class LazyTargetsList {
  public:
@@ -26,7 +26,7 @@ class LazyTargetsList {
     using reference = Uptane::Target &;
 
    public:
-    explicit DelegationIterator(const ImagesRepository &repo, std::shared_ptr<INvStorage> storage,
+    explicit DelegationIterator(const ImageRepository &repo, std::shared_ptr<INvStorage> storage,
                                 std::shared_ptr<Uptane::Fetcher> fetcher, bool is_end = false);
     DelegationIterator operator++();
     bool operator==(const DelegationIterator &other) const;
@@ -36,7 +36,7 @@ class LazyTargetsList {
    private:
     std::shared_ptr<DelegatedTargetTreeNode> tree_;
     DelegatedTargetTreeNode *tree_node_;
-    const ImagesRepository &repo_;
+    const ImageRepository &repo_;
     std::shared_ptr<INvStorage> storage_;
     std::shared_ptr<Fetcher> fetcher_;
     std::shared_ptr<const Targets> cur_targets_;
@@ -49,14 +49,14 @@ class LazyTargetsList {
     void renewTargetsData();
   };
 
-  explicit LazyTargetsList(const ImagesRepository &repo, std::shared_ptr<INvStorage> storage,
+  explicit LazyTargetsList(const ImageRepository &repo, std::shared_ptr<INvStorage> storage,
                            std::shared_ptr<Fetcher> fetcher)
       : repo_{repo}, storage_{std::move(storage)}, fetcher_{std::move(fetcher)} {}
   DelegationIterator begin() { return DelegationIterator(repo_, storage_, fetcher_); }
   DelegationIterator end() { return DelegationIterator(repo_, storage_, fetcher_, true); }
 
  private:
-  const ImagesRepository &repo_;
+  const ImageRepository &repo_;
   std::shared_ptr<INvStorage> storage_;
   std::shared_ptr<Uptane::Fetcher> fetcher_;
 };

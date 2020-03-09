@@ -255,7 +255,7 @@ This data includes network status, installed packages and hardware information.
 ----
 std::future<result::UpdateCheck> Aktualizr::CheckUpdates()
 ----
-Fetches Uptane metadata and check for updates. This collects a client manifest, PUTs it to the director, updates the Uptane metadata (including root and targets), and then checks the metadata for updates to the target software.
+Fetches Uptane metadata and check for updates. This collects a client manifest, PUTs it to the Director, updates the Uptane metadata (including Root and Targets), and then checks the metadata for updates to the target software.
 
 * *Download target files*
 +

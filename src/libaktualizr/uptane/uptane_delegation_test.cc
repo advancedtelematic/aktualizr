@@ -54,7 +54,7 @@ class HttpFakeDelegation : public HttpFake {
 
 /* Validate first-order target delegations.
  * Search first-order delegations.
- * Correlation ID is empty if none was provided in targets metadata. */
+ * Correlation ID is empty if none was provided in Targets metadata. */
 TEST(Delegation, Basic) {
   for (auto generate_fun : {delegation_basic, delegation_nested}) {
     TemporaryDirectory temp_dir;

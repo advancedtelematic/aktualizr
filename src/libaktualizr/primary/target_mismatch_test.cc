@@ -10,7 +10,7 @@
 boost::filesystem::path uptane_generator_path;
 
 /*
- * Detect a mismatch in the Targets metadata from Director and Images repo.
+ * Detect a mismatch in the Targets metadata from Director and Image repo.
  */
 TEST(Aktualizr, HardwareMismatch) {
   TemporaryDirectory temp_dir;

@@ -45,7 +45,9 @@ void checkInfoOptions(const bpo::options_description &description, const bpo::va
 }
 
 int main(int argc, char **argv) {
+  bpo::options_description all("aktualizr-info command line options");
   bpo::options_description description("aktualizr-info command line options");
+  bpo::options_description hidden("deprecated options");
   // clang-format off
   description.add_options()
     ("help,h", "print usage")
@@ -60,25 +62,35 @@ int main(int argc, char **argv) {
     ("ecu-keys",  "Outputs UPTANE keys")
     ("ecu-pub-key", "Outputs UPTANE public key")
     ("ecu-prv-key", "Outputs UPTANE private key")
-    ("images-root",  "Outputs root.json from images repo")
-    ("images-timestamp", "Outputs timestamp.json from images repo")
-    ("images-snapshot", "Outputs snapshot.json from images repo")
-    ("images-target",  "Outputs targets.json from images repo")
-    ("delegation",  "Outputs metadata of image repo targets' delegations")
-    ("director-root",  "Outputs root.json from director repo")
-    ("director-target",  "Outputs targets.json from director repo")
+    ("image-root",  "Outputs root.json from Image repo")
+    ("image-timestamp", "Outputs timestamp.json from Image repo")
+    ("image-snapshot", "Outputs snapshot.json from Image repo")
+    ("image-targets",  "Outputs targets.json from Image repo")
+    ("delegation",  "Outputs metadata of Image repo Targets' delegations")
+    ("director-root",  "Outputs root.json from Director repo")
+    ("director-targets",  "Outputs targets.json from Director repo")
     ("allow-migrate", "Opens database in read/write mode to make possible to migrate database if needed")
     ("wait-until-provisioned", "Outputs metadata when device already provisioned");
+  // Support old names and variations due to common typos.
+  hidden.add_options()
+    ("images-root",  "Outputs root.json from Image repo")
+    ("images-timestamp", "Outputs timestamp.json from Image repo")
+    ("images-snapshot", "Outputs snapshot.json from Image repo")
+    ("images-target",  "Outputs targets.json from Image repo")
+    ("images-targets",  "Outputs targets.json from Image repo")
+    ("image-target",  "Outputs targets.json from Image repo")
+    ("director-target",  "Outputs targets.json from Director repo");
   // clang-format on
 
   try {
+    all.add(description).add(hidden);
     bpo::variables_map vm;
-    std::vector<std::string> unregistered_options;
-    bpo::basic_parsed_options<char> parsed_options = bpo::command_line_parser(argc, argv).options(description).run();
+    bpo::basic_parsed_options<char> parsed_options = bpo::command_line_parser(argc, argv).options(all).run();
     bpo::store(parsed_options, vm);
     checkInfoOptions(description, vm);
     bpo::notify(vm);
-    unregistered_options = bpo::collect_unrecognized(parsed_options.options, bpo::include_positional);
+    std::vector<std::string> unregistered_options =
+        bpo::collect_unrecognized(parsed_options.options, bpo::include_positional);
     if (vm.count("help") == 0 && !unregistered_options.empty()) {
       std::cout << description << "\n";
       exit(EXIT_FAILURE);
@@ -198,7 +210,7 @@ int main(int argc, char **argv) {
 
     // An arguments which depend on metadata.
     std::string msg_metadata_fail = "Metadata is not available";
-    if (vm.count("images-root") != 0u) {
+    if (vm.count("image-root") != 0u || vm.count("images-root") != 0u) {
       if (!has_metadata) {
         std::cout << msg_metadata_fail << std::endl;
       } else {
@@ -209,7 +221,8 @@ int main(int argc, char **argv) {
       cmd_trigger = true;
     }
 
-    if (vm.count("images-target") != 0u) {
+    if (vm.count("image-targets") != 0u || vm.count("image-target") != 0u || vm.count("images-targets") != 0u ||
+        vm.count("images-target") != 0u) {
       if (!has_metadata) {
         std::cout << msg_metadata_fail << std::endl;
       } else {
@@ -238,7 +251,7 @@ int main(int argc, char **argv) {
       cmd_trigger = true;
     }
 
-    if (vm.count("director-target") != 0u) {
+    if (vm.count("director-targets") != 0u || vm.count("director-target") != 0u) {
       if (!has_metadata) {
         std::cout << msg_metadata_fail << std::endl;
       } else {
@@ -249,7 +262,7 @@ int main(int argc, char **argv) {
       cmd_trigger = true;
     }
 
-    if (vm.count("images-snapshot") != 0u) {
+    if (vm.count("image-snapshot") != 0u || vm.count("images-snapshot") != 0u) {
       if (!has_metadata) {
         std::cout << msg_metadata_fail << std::endl;
       } else {
@@ -260,7 +273,7 @@ int main(int argc, char **argv) {
       cmd_trigger = true;
     }
 
-    if (vm.count("images-timestamp") != 0u) {
+    if (vm.count("image-timestamp") != 0u || vm.count("images-timestamp") != 0u) {
       if (!has_metadata) {
         std::cout << msg_metadata_fail << std::endl;
       } else {
@@ -348,8 +361,7 @@ int main(int argc, char **argv) {
       std::cout << "Pending primary ecu version: " << pending->sha256Hash() << std::endl;
     }
   } catch (const bpo::error &o) {
-    std::cout << o.what() << std::endl;
-    std::cout << description;
+    std::cout << o.what() << std::endl << description;
     return EXIT_FAILURE;
 
   } catch (const std::exception &exc) {

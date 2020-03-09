@@ -25,13 +25,13 @@ int main(int argc, char **argv) {
   desc.add_options()
     ("help,h", "print usage")
     ("command", po::value<std::string>(), "generate: \tgenerate a new repository\n"
-                                          "adddelegation: \tadd a delegated role to the images metadata\n"
-                                          "revokedelegation: \tremove delegated role from the images metadata and all signed targets of this role\n"
-                                          "image: \tadd a target to the images metadata\n"
-                                          "addtarget: \tprepare director targets metadata for a given device\n"
-                                          "signtargets: \tsign the staged director targets metadata\n"
-                                          "emptytargets: \tclear the staged director targets metadata\n"
-                                          "oldtargets: \tfill the staged director targets metadata with what is currently signed\n"
+                                          "adddelegation: \tadd a delegated role to the Image repo metadata\n"
+                                          "revokedelegation: \tremove delegated role from the Image repo metadata and all signed targets of this role\n"
+                                          "image: \tadd a target to the Image repo metadata\n"
+                                          "addtarget: \tprepare Director Targets metadata for a given device\n"
+                                          "signtargets: \tsign the staged Director Targets metadata\n"
+                                          "emptytargets: \tclear the staged Director Targets metadata\n"
+                                          "oldtargets: \tfill the staged Director Targets metadata with what is currently signed\n"
                                           "sign: \tsign arbitrary metadata with repo keys\n"
                                           "addcampaigns: \tgenerate campaigns json\n"
                                           "refresh: \trefresh a metadata object (bump the version)")
@@ -124,7 +124,7 @@ int main(int argc, char **argv) {
         }
         if (vm.count("filename") > 0) {
           repo.addImage(vm["filename"].as<boost::filesystem::path>(), targetname, hwid, url, delegation);
-          std::cout << "Added a target " << targetname << " to the images metadata" << std::endl;
+          std::cout << "Added a target " << targetname << " to the Image repo metadata" << std::endl;
         } else {
           if ((vm.count("targetsha256") == 0 && vm.count("targetsha512") == 0) || vm.count("targetlength") == 0) {
             std::cerr << "image command requires --targetsha256 or --targetsha512, and --targetlength when --filename "
@@ -166,7 +166,7 @@ int main(int argc, char **argv) {
           url = vm["url"].as<std::string>();
         }
         repo.addTarget(targetname, hwid, serial, url, expiration_time);
-        std::cout << "Added target " << targetname << " to director targets metadata for ECU with serial " << serial
+        std::cout << "Added target " << targetname << " to Director Targets metadata for ECU with serial " << serial
                   << " and hardware ID " << hwid << std::endl;
       } else if (command == "adddelegation") {
         if (vm.count("dname") == 0 || vm.count("dpattern") == 0) {
@@ -178,8 +178,8 @@ int main(int argc, char **argv) {
         KeyType key_type = parseKeyType(vm);
         repo.addDelegation(Uptane::Role(dname, true), Uptane::Role(dparent, dparent != "targets"),
                            vm["dpattern"].as<std::string>(), vm["dterm"].as<bool>(), key_type);
-        std::cout << "Added a delegated role " << dname << " with dpattern " << dpattern << " to the images metadata"
-                  << std::endl;
+        std::cout << "Added a delegated role " << dname << " with dpattern " << dpattern
+                  << " to the Image repo metadata" << std::endl;
       } else if (command == "revokedelegation") {
         if (vm.count("dname") == 0) {
           std::cerr << "revokedelegation command requires --dname\n";
@@ -189,13 +189,13 @@ int main(int argc, char **argv) {
         std::cout << "Revoked the delegation " << dname << std::endl;
       } else if (command == "signtargets") {
         repo.signTargets();
-        std::cout << "Signed the staged director targets metadata" << std::endl;
+        std::cout << "Signed the staged Director Targets metadata" << std::endl;
       } else if (command == "emptytargets") {
         repo.emptyTargets();
-        std::cout << "Cleared the staged director targets metadata" << std::endl;
+        std::cout << "Cleared the staged Director Targets metadata" << std::endl;
       } else if (command == "oldtargets") {
         repo.oldTargets();
-        std::cout << "Populated the director targets metadata with the currently signed metadata" << std::endl;
+        std::cout << "Populated the Director Targets metadata with the currently signed metadata" << std::endl;
       } else if (command == "sign") {
         if (vm.count("repotype") == 0 || vm.count("keyname") == 0) {
           std::cerr << "sign command requires --repotype and --keyname\n";

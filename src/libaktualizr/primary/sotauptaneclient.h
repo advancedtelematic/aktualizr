@@ -24,7 +24,7 @@
 #include "uptane/directorrepository.h"
 #include "uptane/exceptions.h"
 #include "uptane/fetcher.h"
-#include "uptane/imagesrepository.h"
+#include "uptane/imagerepository.h"
 #include "uptane/iterator.h"
 #include "uptane/secondaryinterface.h"
 
@@ -75,8 +75,8 @@ class SotaUptaneClient {
   Uptane::LazyTargetsList allTargets() const;
   Uptane::Target getCurrent() const { return package_manager_->getCurrent(); }
 
-  bool updateImagesMeta();  // TODO: make private once aktualizr has a proper TUF API
-  bool checkImagesMetaOffline();
+  bool updateImageMeta();  // TODO: make private once aktualizr has a proper TUF API
+  bool checkImageMetaOffline();
   data::InstallationResult PackageInstall(const Uptane::Target &target);
   TargetStatus VerifyTarget(const Uptane::Target &target) const { return package_manager_->verifyTarget(target); }
 
@@ -161,7 +161,7 @@ class SotaUptaneClient {
 
   Config &config;
   Uptane::DirectorRepository director_repo;
-  Uptane::ImagesRepository images_repo;
+  Uptane::ImageRepository image_repo;
   Uptane::ManifestIssuer::Ptr uptane_manifest;
   std::shared_ptr<INvStorage> storage;
   std::shared_ptr<HttpInterface> http;

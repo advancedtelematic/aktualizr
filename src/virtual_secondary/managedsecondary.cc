@@ -128,7 +128,7 @@ bool ManagedSecondary::putRoot(const std::string &root, const bool director) {
     prev_root = new_root;
     prev_raw_root = root;
   } else {
-    detected_attack = "Tried to update root version " + std::to_string(prev_root.version()) + " with version " +
+    detected_attack = "Tried to update Root version " + std::to_string(prev_root.version()) + " with version " +
                       std::to_string(new_root.version());
   }
 

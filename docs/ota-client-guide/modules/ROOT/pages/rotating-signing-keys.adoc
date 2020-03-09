@@ -30,7 +30,7 @@ Before you start, make sure that you've installed the https://github.com/advance
 
 TIP: `garage-sign` is also packaged with the xref:install-garage-sign-deploy.adoc[`garage-deploy`] packaged releases, so if you're on a Debian-based Linux distro, you can install it that way.
 
-== Rotate the keys for `root` and `targets` metadata
+== Rotate the keys for Root and Targets metadata
 
 === Create a local image repository
 

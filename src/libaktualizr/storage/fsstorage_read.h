@@ -37,7 +37,7 @@ class FSStorageRead {
   const StorageConfig& config_;
 
   Uptane::Version latest_director_root;
-  Uptane::Version latest_images_root;
+  Uptane::Version latest_image_root;
 
   bool loadTlsCommon(std::string* data, const BasedPath& path_in);
 

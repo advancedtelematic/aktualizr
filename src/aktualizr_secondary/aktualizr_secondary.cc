@@ -73,7 +73,7 @@ int32_t AktualizrSecondary::getRootVersion(bool director) const {
   std::string root_meta;
   if (!storage_->loadLatestRoot(&root_meta,
                                 (director) ? Uptane::RepositoryType::Director() : Uptane::RepositoryType::Image())) {
-    LOG_ERROR << "Could not load root metadata";
+    LOG_ERROR << "Could not load Root metadata";
     return -1;
   }
 
@@ -157,12 +157,12 @@ bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
   // 5. Download and check the Targets metadata file from the Director repository, following the procedure in
   // Section 5.4.4.6. DirectorRepository::updateMeta() method implements this verification step
   //
-  // The followin steps of the Director's target metadata verification are missing in DirectorRepository::updateMeta()
+  // The following steps of the Director's Targets metadata verification are missing in DirectorRepository::updateMeta()
   //  6. If checking Targets metadata from the Director repository, verify that there are no delegations.
   //  7. If checking Targets metadata from the Director repository, check that no ECU identifier is represented more
   //  than once.
   if (!director_repo_.updateMeta(*storage_, metadata)) {
-    LOG_ERROR << "Failed to update director metadata: " << director_repo_.getLastException().what();
+    LOG_ERROR << "Failed to update Director metadata: " << director_repo_.getLastException().what();
     return false;
   }
 
@@ -174,7 +174,7 @@ bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
   // 9. Download and check the top-level Targets metadata file from the Image repository, following the procedure in
   // Section 5.4.4.6.
   if (!image_repo_.updateMeta(*storage_, metadata)) {
-    LOG_ERROR << "Failed to update image metadata: " << image_repo_.getLastException().what();
+    LOG_ERROR << "Failed to update Image repo metadata: " << image_repo_.getLastException().what();
     return false;
   }
 
@@ -246,7 +246,7 @@ void AktualizrSecondary::uptaneInitialize() {
 
 void AktualizrSecondary::initPendingTargetIfAny() {
   if (!director_repo_.checkMetaOffline(*storage_)) {
-    LOG_INFO << "No any valid and pending director's targets to be applied";
+    LOG_INFO << "No valid and pending Director targets to be applied";
     return;
   }
 
@@ -262,6 +262,6 @@ void AktualizrSecondary::initPendingTargetIfAny() {
     return;
   }
 
-  LOG_INFO << "There is a valid and pending director's target to be applied";
+  LOG_INFO << "There is a valid and pending Director target to be applied";
   pending_target_ = targetsForThisEcu[0];
 }

@@ -28,10 +28,10 @@ class HttpCheckUrl : public HttpFake {
 };
 
 /*
- * If the URL from the Director is unset, but the URL from the Images repo is
+ * If the URL from the Director is unset, but the URL from the Image repo is
  * set, use that.
  */
-TEST(Aktualizr, ImagesCustomUrl) {
+TEST(Aktualizr, ImageCustomUrl) {
   TemporaryDirectory temp_dir;
   TemporaryDirectory meta_dir;
   auto http = std::make_shared<HttpCheckUrl>(temp_dir.Path(), meta_dir.Path() / "repo");
@@ -59,7 +59,7 @@ TEST(Aktualizr, ImagesCustomUrl) {
 }
 
 /*
- * If the URL is set by both the Director and Images repo, use the version from
+ * If the URL is set by both the Director and Image repo, use the version from
  * the Director.
  */
 TEST(Aktualizr, BothCustomUrl) {

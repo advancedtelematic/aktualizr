@@ -44,9 +44,9 @@ These are the primary actions that a user of libaktualizr can perform through th
     - [x] Use a provided hardware ID (uptane_test.cc)
     - [x] Use the system hostname as hardware ID if one is not provided (uptane_init_test.cc)
       - [x] Read the hostname from the system (utils_test.cc)
-  - [x] Register ECUs with director
-    - [x] Register primary ECU with director (uptane_test.cc)
-    - [x] Register secondary ECUs with director (uptane_test.cc)
+  - [x] Register ECUs with Director
+    - [x] Register primary ECU with Director (uptane_test.cc)
+    - [x] Register secondary ECUs with Director (uptane_test.cc)
   - [x] Abort if initialization fails
     - [x] Recover from partial provisioning and network loss (OTA-991, uptane_network_test.cc, uptane_key_test.cc)
     - [x] Detect and recover from failed provisioning (uptane_init_test.cc)
@@ -82,20 +82,20 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Send CampaignPostponeComplete event
 - [x] Fetch metadata from server
   - [x] Generate and send manifest (see below)
-  - [x] Fetch metadata from the director (uptane_test.cc, uptane_vector_tests.cc)
-  - [x] Check metadata from the director (uptane_test.cc, uptane_vector_tests.cc)
+  - [x] Fetch metadata from the Director (uptane_test.cc, uptane_vector_tests.cc)
+  - [x] Check metadata from the Director (uptane_test.cc, uptane_vector_tests.cc)
     - [x] Validate Uptane metadata (see below)
   - [x] Identify targets for known ECUs (uptane_test.cc, uptane_vector_tests.cc)
   - [x] Ignore updates for unrecognized ECUs (uptane_test.cc uptane_vector_tests.cc)
-  - [x] Fetch metadata from the images repo (uptane_test.cc, uptane_vector_tests.cc)
-  - [x] Check metadata from the images repo (uptane_test.cc, uptane_vector_tests.cc)
+  - [x] Fetch metadata from the Image repo (uptane_test.cc, uptane_vector_tests.cc)
+  - [x] Check metadata from the Image repo (uptane_test.cc, uptane_vector_tests.cc)
     - [x] Validate Uptane metadata (see below)
 - [x] Check for updates
-  - [x] Check metadata from the director (uptane_test.cc, uptane_vector_tests.cc)
+  - [x] Check metadata from the Director (uptane_test.cc, uptane_vector_tests.cc)
     - [x] Validate Uptane metadata (see below)
   - [x] Identify updates for known ECUs (uptane_test.cc, uptane_vector_tests.cc)
   - [x] Ignore updates for unrecognized ECUs (uptane_test.cc uptane_vector_tests.cc)
-  - [x] Check metadata from the images repo (uptane_test.cc, uptane_vector_tests.cc)
+  - [x] Check metadata from the Image repo (uptane_test.cc, uptane_vector_tests.cc)
     - [x] Validate Uptane metadata (see below)
   - [x] Send UpdateCheckComplete event with available updates (aktualizr_test.cc)
   - [x] Send UpdateCheckComplete event after successful check with no available updates (aktualizr_test.cc)
@@ -200,13 +200,13 @@ These are internal requirements that are relatively opaque to the user and/or co
   - [x] Validate TUF roles (tuf_test.cc)
     - [x] Delegated roles have custom names (tuf_test.cc)
     - [x] Reject delegated role names that are identical to reserved role names (tuf_test.cc)
-  - [x] Validate a TUF root (tuf_test.cc, uptane_test.cc)
-    - [x] Throw an exception if a TUF root is invalid
-      - [x] Throw an exception if a TUF root is unsigned (tuf_test.cc, uptane_test.cc)
-      - [x] Throw an exception if a TUF root has no roles (tuf_test.cc)
-      - [x] Throw an exception if a TUF root has unknown signature types (uptane_test.cc)
-      - [x] Throw an exception if a TUF root has invalid key IDs (uptane_test.cc)
-      - [x] Throw an exception if a TUF root signature threshold is invalid (uptane_test.cc)
+  - [x] Validate Root metadata (tuf_test.cc, uptane_test.cc)
+    - [x] Throw an exception if Root metadata is invalid
+      - [x] Throw an exception if Root metadata is unsigned (tuf_test.cc, uptane_test.cc)
+      - [x] Throw an exception if Root metadata has no roles (tuf_test.cc)
+      - [x] Throw an exception if Root metadata has unknown signature types (uptane_test.cc)
+      - [x] Throw an exception if Root metadata has invalid key IDs (uptane_test.cc)
+      - [x] Throw an exception if Root metadata signature threshold is invalid (uptane_test.cc)
   - [x] Parse Uptane timestamps (types_test.cc)
     - [x] Throw an exception if an Uptane timestamp is invalid (types_test.cc)
     - [x] Get current time (types_test.cc)
@@ -224,7 +224,7 @@ These are internal requirements that are relatively opaque to the user and/or co
   - [x] Accept update with rotated Uptane roots (uptane_vector_tests.cc)
   - [x] Abort update with incorrectly rotated Uptane roots (uptane_vector_tests.cc)
   - [x] Abort update if any metadata has an invalid hardware ID (uptane_vector_tests.cc)
-  - [x] Abort update if the director targets metadata has an invalid ECU ID (uptane_vector_tests.cc)
+  - [x] Abort update if the Director Targets metadata has an invalid ECU ID (uptane_vector_tests.cc)
   - [x] Recover from an interrupted Uptane iteration (uptane_test.cc)
 - [x] Generate and send manifest
   - [x] Get manifest from primary (uptane_test.cc)
@@ -234,8 +234,8 @@ These are internal requirements that are relatively opaque to the user and/or co
   - [x] Send manifest to the server (uptane_test.cc)
 - [x] Send an event report
   - [x] Generate a random UUID (utils_test.cc)
-  - [x] Include correlation ID from targets metadata (aktualizr_test.cc)
-    - [x] Correlation ID is empty if none was provided in targets metadata (aktualizr_test.cc)
+  - [x] Include correlation ID from Targets metadata (aktualizr_test.cc)
+    - [x] Correlation ID is empty if none was provided in Targets metadata (aktualizr_test.cc)
   - [x] Report an event to the server (reportqueue_test.cc)
     - [x] Report a series of events to the server (reportqueue_test.cc)
     - [x] Recover from errors while sending event reports (reportqueue_test.cc)
@@ -346,30 +346,30 @@ These tools all link with libaktualizr, although they do not necessary use the A
   - [x] Print secondary ECUs registered after provisioning (not registered) (aktualizr_info_test.cc)
   - [x] Print provisioning status (aktualizr_info_test.cc)
   - [x] Print whether metadata has been fetched from the server (aktualizr_info_test.cc)
-  - [x] Print root metadata from images repository (aktualizr_info_test.cc)
-  - [x] Print targets metadata from images repository (aktualizr_info_test.cc)
-  - [x] Print root metadata from director repository (aktualizr_info_test.cc)
-  - [x] Print targets metadata from director repository (aktualizr_info_test.cc)
+  - [x] Print Root metadata from Image repository (aktualizr_info_test.cc)
+  - [x] Print Targets metadata from Image repository (aktualizr_info_test.cc)
+  - [x] Print Root metadata from Director repository (aktualizr_info_test.cc)
+  - [x] Print Targets metadata from Director repository (aktualizr_info_test.cc)
   - [x] Print TLS credentials (aktualizr_info_test.cc)
   - [x] Print primary ECU keys (aktualizr_info_test.cc)
   - [x] Print primary ECU current and pending versions (aktualizr_info_test.cc)
   - [x] Print secondary ECU current and pending versions (aktualizr_info_test.cc)
   - [x] Print device name only for scripting purposes (aktualizr_info_test.cc)
   - [x] Print delegations (aktualizr_info_test.cc)
-  - [x] Print snapshot (aktualizr_info_test.cc)
-  - [x] Print timestamp (aktualizr_info_test.cc)
+  - [x] Print Snapshot metadata (aktualizr_info_test.cc)
+  - [x] Print Timestamp metadata (aktualizr_info_test.cc)
 
 ### uptane-generator
 
 `uptane-generator` is used in testing to simulate the generation of Uptane repositories.
 
-- [x] Generate images and director repos (repo_test.cc)
-- [x] Add an image to the images repo (repo_test.cc)
+- [x] Generate Image and Director repos (repo_test.cc)
+- [x] Add an image to the Image repo (repo_test.cc)
   - [x] Add custom image metadata without an actual file (repo_test.cc)
-- [x] Copy an image to the director repo (repo_test.cc)
-  - [x] Clear the staged director targets metadata (repo_test.cc)
-  - [x] Populate the director targets metadata with the currently signed metadata (repo_test.cc)
-- [x] Sign director repo targets (repo_test.cc)
+- [x] Copy an image to the Director repo (repo_test.cc)
+  - [x] Clear the staged Director Targets metadata (repo_test.cc)
+  - [x] Populate the Director Targets metadata with the currently signed metadata (repo_test.cc)
+- [x] Sign Director repo Targets metadata (repo_test.cc)
 - [x] Add simple delegation (repo_test.cc)
 - [x] Add image with delegation (repo_test.cc)
 - [x] Sign arbitrary metadata (repo_test.cc)
@@ -434,7 +434,7 @@ These tools also use libaktualizr, but only for common utility functions. They a
 - [x] Authenticate with treehub server (see below)
 - [x] Fetch OSTree objects from source repository and push to destination repository (see below)
 - [x] Check if credentials support offline signing (authenticate_test.cc)
-- [ ] Upload root ref to images repository if credentials do not support offline signing
+- [ ] Upload root ref to Image repository if credentials do not support offline signing
 - [x] Abort when given bogus command line options (sota_tools/CMakeLists.txt, test-bad-option)
 - [x] Support debug logging (sota_tools/CMakeLists.txt, test-verbose-logging)
 
@@ -459,12 +459,12 @@ These tools also use libaktualizr, but only for common utility functions. They a
 
 ### garage-check
 
-`garage-check` simply verifies that a given OSTree commit exists on a remote Treehub server and is present in the targets.json from the images repository.
+`garage-check` simply verifies that a given OSTree commit exists on a remote Treehub server and is present in the targets.json from the Image repository.
 
 - [x] Parse credentials (see below)
 - [x] Authenticate with treehub server (see below)
 - [x] Verify that a commit exists in a remote repo (sota_tools/CMakeLists.txt, run_expired_test.sh)
-- [x] Get targets.json from images repository (sota_tools/CMakeLists.txt, run_expired_test.sh)
+- [x] Get targets.json from Image repository (sota_tools/CMakeLists.txt, run_expired_test.sh)
   - [x] Abort if targets.json has expired (sota_tools/CMakeLists.txt, run_expired_test.sh)
 - [x] Find specified OSTree ref in targets.json (sota_tools/CMakeLists.txt, run_expired_test.sh)
 
@@ -480,7 +480,7 @@ These tools also use libaktualizr, but only for common utility functions. They a
   - [x] Extract credentials from a provided JSON file (authenticate_test.cc)
     - [x] Reject a bogus provided JSON file (authenticate_test.cc)
   - [x] Parse authentication information from treehub.json (authenticate_test.cc)
-  - [x] Parse images repository URL from a provided archive (authenticate_test.cc)
+  - [x] Parse Image repository URL from a provided archive (authenticate_test.cc)
   - [ ] Parse treehub URL from a provided archive
 - [x] Authenticate with treehub server
   - [x] Authenticate with username and password (basic auth) (treehub_server_test.cc)

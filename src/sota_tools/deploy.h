@@ -30,8 +30,8 @@ bool UploadToTreehub(const OSTreeRepo::ptr& src_repo, TreehubServer& push_server
                      RunMode mode, int max_curl_requests);
 
 /**
- * Use the garage-sign tool and the images targets.json keys in credentials.zip
- * to add an entry to images/targets.json
+ * Use the garage-sign tool and the Image repo targets.json keys in credentials.zip
+ * to add an entry to the Image repo's targets.json
  */
 bool OfflineSignRepo(const ServerCredentials& push_credentials, const std::string& name, const OSTreeHash& hash,
                      const std::string& hardwareids);

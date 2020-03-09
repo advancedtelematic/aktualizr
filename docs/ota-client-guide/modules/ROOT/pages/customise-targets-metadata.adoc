@@ -1,4 +1,4 @@
-= Add custom metadata fields to targets metadata
+= Add custom metadata fields to Targets metadata
 ifdef::env-github[]
 
 [NOTE]
@@ -16,7 +16,7 @@ To accommodate this use case, you can manually manage your Uptane metadata and a
 
 [NOTE]
 ====
-For more information on additional use cases which will require customization of the `targets` metadata file, please refer to the section https://uptane.github.io/papers/ieee-isto-6100.1.0.0.uptane-standard.html#rfc.section.5.2.3.1.1['Custom metadata about images' in the Uptane standard].
+For more information on additional use cases which will require customization of the Targets metadata, please refer to the section https://uptane.github.io/papers/ieee-isto-6100.1.0.0.uptane-standard.html#rfc.section.5.2.3.1.1['Custom metadata about images' in the Uptane standard].
 ====
 
 == Prerequisites

@@ -55,10 +55,10 @@ static int list_main(LiteClient &client, const bpo::variables_map &unused) {
   (void)unused;
   Uptane::HardwareIdentifier hwid(client.config.provision.primary_ecu_hardware_id);
 
-  LOG_INFO << "Refreshing target metadata";
-  if (!client.primary->updateImagesMeta()) {
+  LOG_INFO << "Refreshing Targets metadata";
+  if (!client.primary->updateImageMeta()) {
     LOG_WARNING << "Unable to update latest metadata, using local copy";
-    if (!client.primary->checkImagesMetaOffline()) {
+    if (!client.primary->checkImageMetaOffline()) {
       LOG_ERROR << "Unable to use local copy of TUF data";
       return 1;
     }
@@ -79,9 +79,9 @@ static int list_main(LiteClient &client, const bpo::variables_map &unused) {
 static std::unique_ptr<Uptane::Target> find_target(const std::shared_ptr<SotaUptaneClient> &client,
                                                    Uptane::HardwareIdentifier &hwid, const std::string &version) {
   std::unique_ptr<Uptane::Target> rv;
-  if (!client->updateImagesMeta()) {
+  if (!client->updateImageMeta()) {
     LOG_WARNING << "Unable to update latest metadata, using local copy";
-    if (!client->checkImagesMetaOffline()) {
+    if (!client->checkImageMetaOffline()) {
       LOG_ERROR << "Unable to use local copy of TUF data";
       throw std::runtime_error("Unable to find update");
     }

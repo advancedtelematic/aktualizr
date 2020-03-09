@@ -7,7 +7,7 @@ set(SOURCES
     tuf.cc
     uptanerepository.cc
     directorrepository.cc
-    imagesrepository.cc
+    imagerepository.cc
     manifest.cc)
 
 set(HEADERS
@@ -18,7 +18,7 @@ set(HEADERS
     tuf.h
     uptanerepository.h
     directorrepository.h
-    imagesrepository.h
+    imagerepository.h
     manifest.h)
 
 

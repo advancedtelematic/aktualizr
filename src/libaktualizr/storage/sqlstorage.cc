@@ -545,7 +545,7 @@ void SQLStorage::storeRoot(const std::string& data, Uptane::RepositoryType repo,
                                          static_cast<int>(repo), Uptane::Role::Root().ToInt(), version.version());
 
   if (del_statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't clear root metadata: " << db.errmsg();
+    LOG_ERROR << "Can't clear Root metadata: " << db.errmsg();
     return;
   }
 
@@ -573,7 +573,7 @@ void SQLStorage::storeNonRoot(const std::string& data, Uptane::RepositoryType re
                                                      static_cast<int>(repo), role.ToInt());
 
   if (del_statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't clear metadata: " << db.errmsg();
+    LOG_ERROR << "Can't clear " << role.ToString() << " metadata: " << db.errmsg();
     return;
   }
 
@@ -582,7 +582,7 @@ void SQLStorage::storeNonRoot(const std::string& data, Uptane::RepositoryType re
                                                   static_cast<int>(repo), role.ToInt(), Uptane::Version().version());
 
   if (ins_statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't add metadata: " << db.errmsg();
+    LOG_ERROR << "Can't add " << role.ToString() << "metadata: " << db.errmsg();
     return;
   }
 
@@ -600,10 +600,10 @@ bool SQLStorage::loadRoot(std::string* data, Uptane::RepositoryType repo, Uptane
     int result = statement.step();
 
     if (result == SQLITE_DONE) {
-      LOG_TRACE << "Meta not present";
+      LOG_TRACE << "Root metadata not present";
       return false;
     } else if (result != SQLITE_ROW) {
-      LOG_ERROR << "Can't get meta: " << db.errmsg();
+      LOG_ERROR << "Can't get Root metadata: " << db.errmsg();
       return false;
     }
     if (data != nullptr) {
@@ -617,16 +617,16 @@ bool SQLStorage::loadRoot(std::string* data, Uptane::RepositoryType repo, Uptane
     int result = statement.step();
 
     if (result == SQLITE_DONE) {
-      LOG_TRACE << "Meta not present";
+      LOG_TRACE << "Root metadata not present";
       return false;
     } else if (result != SQLITE_ROW) {
-      LOG_ERROR << "Can't get meta: " << db.errmsg();
+      LOG_ERROR << "Can't get Root metadata: " << db.errmsg();
       return false;
     }
 
     const auto blob = reinterpret_cast<const char*>(sqlite3_column_blob(statement.get(), 0));
     if (blob == nullptr) {
-      LOG_ERROR << "Can't get meta: " << db.errmsg();
+      LOG_ERROR << "Can't get Root metadata: " << db.errmsg();
       return false;
     }
 
@@ -647,10 +647,10 @@ bool SQLStorage::loadNonRoot(std::string* data, Uptane::RepositoryType repo, con
   int result = statement.step();
 
   if (result == SQLITE_DONE) {
-    LOG_TRACE << "Meta not present";
+    LOG_TRACE << role.ToString() << " metadata not present";
     return false;
   } else if (result != SQLITE_ROW) {
-    LOG_ERROR << "Can't get meta: " << db.errmsg();
+    LOG_ERROR << "Can't get " << role.ToString() << " metadata: " << db.errmsg();
     return false;
   }
   if (data != nullptr) {

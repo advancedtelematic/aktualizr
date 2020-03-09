@@ -177,14 +177,14 @@ if (BUILD_SOTA_TOOLS)
 
     ### garage-check tests
     # Verify that a commit exists in a remote repo.
-    # Get targets.json from images repository.
+    # Get targets.json from Image repository.
     # Find specified OSTree ref in targets.json.
     add_test(NAME check_not_expired_targets
         COMMAND ${PROJECT_SOURCE_DIR}/tests/run_expired_test.sh 2031-11-17T23:58:40Z ${CMAKE_BINARY_DIR}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
     # Verify that a commit exists in a remote repo.
-    # Get targets.json from images repository.
+    # Get targets.json from Image repository.
     # Abort if targets.json has expired.
     add_test(NAME check_expired_targets
         COMMAND ${PROJECT_SOURCE_DIR}/tests/run_expired_test.sh 2017-11-17T23:58:40Z ${CMAKE_BINARY_DIR}

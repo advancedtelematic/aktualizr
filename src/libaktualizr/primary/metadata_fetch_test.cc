@@ -25,19 +25,19 @@ class HttpFakeMetaCounter : public HttpFake {
       ++director_targets_count;
     }
     if (url.find("repo/1.root.json") != std::string::npos) {
-      ++images_1root_count;
+      ++image_1root_count;
     }
     if (url.find("repo/2.root.json") != std::string::npos) {
-      ++images_2root_count;
+      ++image_2root_count;
     }
     if (url.find("repo/timestamp.json") != std::string::npos) {
-      ++images_timestamp_count;
+      ++image_timestamp_count;
     }
     if (url.find("repo/snapshot.json") != std::string::npos) {
-      ++images_snapshot_count;
+      ++image_snapshot_count;
     }
     if (url.find("repo/targets.json") != std::string::npos) {
-      ++images_targets_count;
+      ++image_targets_count;
     }
 
     return HttpFake::get(url, maxsize);
@@ -46,11 +46,11 @@ class HttpFakeMetaCounter : public HttpFake {
   int director_1root_count{0};
   int director_2root_count{0};
   int director_targets_count{0};
-  int images_1root_count{0};
-  int images_2root_count{0};
-  int images_timestamp_count{0};
-  int images_snapshot_count{0};
-  int images_targets_count{0};
+  int image_1root_count{0};
+  int image_2root_count{0};
+  int image_timestamp_count{0};
+  int image_snapshot_count{0};
+  int image_targets_count{0};
 };
 
 /*
@@ -78,11 +78,11 @@ TEST(Aktualizr, MetadataFetch) {
   EXPECT_EQ(http->director_1root_count, 1);
   EXPECT_EQ(http->director_2root_count, 1);
   EXPECT_EQ(http->director_targets_count, 1);
-  EXPECT_EQ(http->images_1root_count, 0);
-  EXPECT_EQ(http->images_2root_count, 0);
-  EXPECT_EQ(http->images_timestamp_count, 0);
-  EXPECT_EQ(http->images_snapshot_count, 0);
-  EXPECT_EQ(http->images_targets_count, 0);
+  EXPECT_EQ(http->image_1root_count, 0);
+  EXPECT_EQ(http->image_2root_count, 0);
+  EXPECT_EQ(http->image_timestamp_count, 0);
+  EXPECT_EQ(http->image_snapshot_count, 0);
+  EXPECT_EQ(http->image_targets_count, 0);
 
   // Two images added, but only one update scheduled: all metadata objects
   // should be fetched once.
@@ -100,11 +100,11 @@ TEST(Aktualizr, MetadataFetch) {
   EXPECT_EQ(http->director_1root_count, 1);
   EXPECT_EQ(http->director_2root_count, 2);
   EXPECT_EQ(http->director_targets_count, 2);
-  EXPECT_EQ(http->images_1root_count, 1);
-  EXPECT_EQ(http->images_2root_count, 1);
-  EXPECT_EQ(http->images_timestamp_count, 1);
-  EXPECT_EQ(http->images_snapshot_count, 1);
-  EXPECT_EQ(http->images_targets_count, 1);
+  EXPECT_EQ(http->image_1root_count, 1);
+  EXPECT_EQ(http->image_2root_count, 1);
+  EXPECT_EQ(http->image_timestamp_count, 1);
+  EXPECT_EQ(http->image_snapshot_count, 1);
+  EXPECT_EQ(http->image_targets_count, 1);
 
   // Update scheduled with pre-existing image: no need to refetch Image repo
   // Snapshot or Targets metadata.
@@ -117,11 +117,11 @@ TEST(Aktualizr, MetadataFetch) {
   EXPECT_EQ(http->director_1root_count, 1);
   EXPECT_EQ(http->director_2root_count, 3);
   EXPECT_EQ(http->director_targets_count, 3);
-  EXPECT_EQ(http->images_1root_count, 1);
-  EXPECT_EQ(http->images_2root_count, 2);
-  EXPECT_EQ(http->images_timestamp_count, 2);
-  EXPECT_EQ(http->images_snapshot_count, 1);
-  EXPECT_EQ(http->images_targets_count, 1);
+  EXPECT_EQ(http->image_1root_count, 1);
+  EXPECT_EQ(http->image_2root_count, 2);
+  EXPECT_EQ(http->image_timestamp_count, 2);
+  EXPECT_EQ(http->image_snapshot_count, 1);
+  EXPECT_EQ(http->image_targets_count, 1);
 
   // Delegation added to an existing delegation; update scheduled with
   // pre-existing image: Snapshot must be refetched, but Targets are unchanged.
@@ -136,11 +136,11 @@ TEST(Aktualizr, MetadataFetch) {
   EXPECT_EQ(http->director_1root_count, 1);
   EXPECT_EQ(http->director_2root_count, 4);
   EXPECT_EQ(http->director_targets_count, 4);
-  EXPECT_EQ(http->images_1root_count, 1);
-  EXPECT_EQ(http->images_2root_count, 3);
-  EXPECT_EQ(http->images_timestamp_count, 3);
-  EXPECT_EQ(http->images_snapshot_count, 2);
-  EXPECT_EQ(http->images_targets_count, 1);
+  EXPECT_EQ(http->image_1root_count, 1);
+  EXPECT_EQ(http->image_2root_count, 3);
+  EXPECT_EQ(http->image_timestamp_count, 3);
+  EXPECT_EQ(http->image_snapshot_count, 2);
+  EXPECT_EQ(http->image_targets_count, 1);
 }
 
 #ifndef __NO_MAIN__

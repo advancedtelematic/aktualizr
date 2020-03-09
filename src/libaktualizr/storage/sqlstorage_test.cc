@@ -6,7 +6,7 @@
 #include "storage/sql_utils.h"
 #include "storage/sqlstorage.h"
 #include "uptane/directorrepository.h"
-#include "uptane/imagesrepository.h"
+#include "uptane/imagerepository.h"
 #include "utilities/utils.h"
 
 boost::filesystem::path test_data_dir;
@@ -453,14 +453,14 @@ TEST(sqlstorage, migrate_root_works) {
 
   EXPECT_TRUE(director.verifyTargets(raw_director_targets));
 
-  // Images
-  std::string raw_images_root;
-  storage.loadRoot(&raw_images_root, Uptane::RepositoryType::Image(), Uptane::Version());
-  Uptane::ImagesRepository imagesrepository;
-  EXPECT_TRUE(imagesrepository.initRoot(raw_images_root));
+  // Image repo
+  std::string raw_image_root;
+  storage.loadRoot(&raw_image_root, Uptane::RepositoryType::Image(), Uptane::Version());
+  Uptane::ImageRepository imagerepository;
+  EXPECT_TRUE(imagerepository.initRoot(raw_image_root));
 
   // Check that the roots are different and haven't been swapped
-  EXPECT_NE(raw_director_root, raw_images_root);
+  EXPECT_NE(raw_director_root, raw_image_root);
   Json::Value director_json = Utils::parseJSON(raw_director_root);
   Json::Value sign = director_json["signed"];
   EXPECT_EQ(sign["_type"], "Root");
