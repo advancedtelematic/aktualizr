@@ -22,7 +22,7 @@ At the end, you should have an empty HSM. The SO-PIN should be kept in a safe pl
 export PIN=YOUR_PIN
 ----
 
-== Generating the certificate and uptane key
+== Generating the certificate and Uptane keys
 
 To continue, you will have to set up a root certificate, as described in xref:generate-selfsigned-root.adoc[Generate a self-signed root certificate]. If you chose to use an external CA, you will need to send them the certificate signing request (csr file) and obtain the certificate, instead of generating it yourself.
 
@@ -116,7 +116,7 @@ openssl x509 -in "$device_dir/client.pem" -out "$device_dir/client.der" -outform
 pkcs11-tool -l --pin $PIN --write-object "$device_dir/client.der" --type cert --id 01 --label devicecert
 ----
 +
-. Generate an RSA key to sign uptane metadata
+. Generate an RSA key to sign Uptane metadata
 +
 [source,sh]
 ----
@@ -192,7 +192,7 @@ Note: on Ubuntu Bionic, the OpenSC pkcs11 module lies in `/usr/lib/x86_64-linux-
 
 == Provisioning the device
 
-If all these steps have been followed, the device will establish a TLS connection to the backend using the HSM and will sign its manifests with the uptane key.
+If all these steps have been followed, the device will establish a TLS connection to the backend using the HSM and will sign its manifests with the Uptane private key.
 
 == Yocto integration
 

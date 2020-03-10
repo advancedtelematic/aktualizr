@@ -35,7 +35,7 @@ class ManagedSecondaryConfig : public SecondaryConfig {
 };
 
 // Managed secondary is an abstraction over virtual and other types of legacy
-// (non-UPTANE) secondaries. They require all the UPTANE-related functionality
+// (non-Uptane) secondaries. They require all the Uptane-related functionality
 // to be implemented in aktualizr itself, so there's some shared code.
 
 class ManagedSecondary : public Uptane::SecondaryInterface {

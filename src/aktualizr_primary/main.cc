@@ -38,13 +38,13 @@ bpo::variables_map parseOptions(int argc, char *argv[]) {
       ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
       ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
       ("run-mode", bpo::value<std::string>(), "run mode of aktualizr: full, once, campaign_check, campaign_accept, campaign_decline, campaign_postpone, check, download, or install")
-      ("tls-server", bpo::value<std::string>(), "url of device gateway")
-      ("repo-server", bpo::value<std::string>(), "url of the uptane repo repository")
-      ("director-server", bpo::value<std::string>(), "url of the uptane director repository")
-      ("primary-ecu-serial", bpo::value<std::string>(), "serial number of primary ecu")
-      ("primary-ecu-hardware-id", bpo::value<std::string>(), "hardware ID of primary ecu")
+      ("tls-server", bpo::value<std::string>(), "URL of device gateway")
+      ("repo-server", bpo::value<std::string>(), "URL of the Uptane Image repository")
+      ("director-server", bpo::value<std::string>(), "URL of the Uptane Director repository")
+      ("primary-ecu-serial", bpo::value<std::string>(), "serial number of Primary ECU")
+      ("primary-ecu-hardware-id", bpo::value<std::string>(), "hardware ID of Primary ECU")
       ("secondary-config-file", bpo::value<boost::filesystem::path>(), "secondary ECUs configuration file")
-      ("campaign-id", bpo::value<std::string>(), "id of the campaign to act on");
+      ("campaign-id", bpo::value<std::string>(), "ID of the campaign to act on");
   // clang-format on
 
   // consider the first positional argument as the aktualizr run mode

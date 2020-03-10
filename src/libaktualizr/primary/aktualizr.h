@@ -177,7 +177,7 @@ class Aktualizr {
   void Abort();
 
   /**
-   * Synchronously run an uptane cycle: check for updates, download any new
+   * Synchronously run an Uptane cycle: check for updates, download any new
    * targets, install them, and send a manifest back to the server.
    *
    * @return `false`, if the restart is required to continue, `true` otherwise

@@ -184,7 +184,7 @@ TEST_F(MetadataExpirationTest, MetadataExpirationAfterInstallationAndBeforeAppli
   ASSERT_TRUE(client->isInstallCompletionRequired());
 
   // wait until the target metadata are expired
-  // emulate the target metadata expiration while the uptane cycle is running
+  // emulate the target metadata expiration while the Uptane cycle is running
   std::this_thread::sleep_for(std::chrono::seconds(expiration_in_sec) -
                               (std::chrono::system_clock::now() - target_init_time));
 
