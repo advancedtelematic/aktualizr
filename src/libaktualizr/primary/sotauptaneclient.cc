@@ -1033,8 +1033,14 @@ void SotaUptaneClient::campaignPostpone(const std::string &campaign_id) {
 }
 
 bool SotaUptaneClient::isInstallCompletionRequired() const {
-  bool force_install_completion = (hasPendingUpdates() && config.uptane.force_install_completion);
-  return force_install_completion;
+  std::vector<std::pair<Uptane::EcuSerial, Uptane::Hash>> pending_ecus;
+  storage->getPendingEcus(&pending_ecus);
+  bool pending_for_ecu = std::find_if(pending_ecus.begin(), pending_ecus.end(),
+                                      [this](const std::pair<Uptane::EcuSerial, Uptane::Hash> &ecu) -> bool {
+                                        return ecu.first == primary_ecu_serial_;
+                                      }) != pending_ecus.end();
+
+  return pending_for_ecu && config.uptane.force_install_completion;
 }
 
 void SotaUptaneClient::completeInstall() const {
