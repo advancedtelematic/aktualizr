@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
 
   if (argc != 3) {
     std::cerr << "Error: " << argv[0] << " requires the path to the uptane-generator utility "
-              << "and an OStree sysroot\n";
+              << "and an OSTree sysroot\n";
     return EXIT_FAILURE;
   }
 

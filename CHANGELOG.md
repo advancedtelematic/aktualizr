@@ -82,7 +82,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ### Fixed
 
-- Removed bogus warning at boot when using OStree: [PR](https://github.com/advancedtelematic/aktualizr/pull/1466)
+- Removed bogus warning at boot when using OSTree: [PR](https://github.com/advancedtelematic/aktualizr/pull/1466)
 - Updated the docker-app package manager to work with docker-app v0.8: [PR](https://github.com/advancedtelematic/aktualizr/pull/1468)
 - Overriding of log level when using the docker-app package manager: [PR](https://github.com/advancedtelematic/aktualizr/pull/1478)
 - Report correct hash of the currently installed version on IP Secondary:: [PR](https://github.com/advancedtelematic/aktualizr/pull/1485)
@@ -281,7 +281,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 ### Changed
 
 - [Most API calls refactored to return immediately with a future](src/libaktualizr/primary/aktualizr.h)
-- With an OStree primary, an installation is now considered successful when the device reboots with the new file system version. Before that, the installation is still considered in progress.
+- With an OSTree primary, an installation is now considered successful when the device reboots with the new file system version. Before that, the installation is still considered in progress.
 - [Running modes in libaktualizr have been replaced by simpler logic in the aktualizr wrapper](src/aktualizr_primary/main.cc): [PR](https://github.com/advancedtelematic/aktualizr/pull/1039)
 - Tests now use ed25519 as the default key type: [PR](https://github.com/advancedtelematic/aktualizr/pull/1038)
 - Improved performance of garage-deploy: [PR](https://github.com/advancedtelematic/aktualizr/pull/1020)

@@ -600,7 +600,7 @@ class HttpFakePutCounter : public HttpFake {
  * Initialize -> UptaneCycle -> updates downloaded and installed for primary
  * (after reboot) and secondary (aktualizr_test.cc)
  *
- * It simulates closely the OStree case which needs a reboot after applying an
+ * It simulates closely the OSTree case which needs a reboot after applying an
  * update, but uses `PackageManagerFake`.
  *
  * Checks actions:

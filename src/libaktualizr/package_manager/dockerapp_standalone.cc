@@ -14,7 +14,7 @@
  *
  * Docker Apps are very analogous to docker-compose. In fact, this module
  * currently "renders" the docker-app file into a docker-compose file. Each
- * Docker App appears as a Target in the TUF targets list. Each OStree target
+ * Docker App appears as a Target in the TUF targets list. Each OSTree target
  * can then reference these docker apps in its custom data section. eg:
  *
  *   "targets": {
