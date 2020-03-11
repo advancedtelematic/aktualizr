@@ -96,6 +96,7 @@ int main(int argc, char **argv) {
       exit(EXIT_FAILURE);
     }
 
+    logger_init();
     if (vm.count("loglevel") == 0u) {
       logger_set_enable(false);
     }
