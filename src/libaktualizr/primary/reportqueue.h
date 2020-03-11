@@ -12,6 +12,7 @@
 #include "config/config.h"
 #include "http/httpclient.h"
 #include "logging/logging.h"
+#include "storage/invstorage.h"
 #include "uptane/tuf.h"
 
 class ReportEvent {
@@ -84,7 +85,8 @@ class EcuInstallationCompletedReport : public ReportEvent {
 
 class ReportQueue {
  public:
-  ReportQueue(const Config& config_in, std::shared_ptr<HttpInterface> http_client);
+  ReportQueue(const Config& config_in, std::shared_ptr<HttpInterface> http_client,
+              std::shared_ptr<INvStorage> storage_in);
   ~ReportQueue();
   void run();
   void enqueue(std::unique_ptr<ReportEvent> event);
@@ -98,8 +100,8 @@ class ReportQueue {
   std::condition_variable cv_;
   std::mutex m_;
   std::queue<std::unique_ptr<ReportEvent>> report_queue_;
-  Json::Value report_array{Json::arrayValue};
   bool shutdown_{false};
+  std::shared_ptr<INvStorage> storage;
 };
 
 #endif  // REPORTQUEUE_H_

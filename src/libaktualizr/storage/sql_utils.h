@@ -127,7 +127,11 @@ class SQLite3Guard {
   sqlite3* get() { return handle_.get(); }
   int get_rc() { return rc_; }
 
-  explicit SQLite3Guard(const char* path, bool readonly) : handle_(nullptr, sqlite3_close), rc_(0) {
+  explicit SQLite3Guard(const char* path, bool readonly, std::shared_ptr<std::mutex> mutex = nullptr)
+      : handle_(nullptr, sqlite3_close), rc_(0), m_(std::move(mutex)) {
+    if (m_) {
+      m_->lock();
+    }
     if (sqlite3_threadsafe() == 0) {
       throw std::runtime_error("sqlite3 has been compiled without multitheading support");
     }
@@ -140,9 +144,15 @@ class SQLite3Guard {
     handle_.reset(h);
   }
 
-  explicit SQLite3Guard(const boost::filesystem::path& path, bool readonly = false)
-      : SQLite3Guard(path.c_str(), readonly) {}
+  explicit SQLite3Guard(const boost::filesystem::path& path, bool readonly = false,
+                        std::shared_ptr<std::mutex> mutex = nullptr)
+      : SQLite3Guard(path.c_str(), readonly, std::move(mutex)) {}
   SQLite3Guard(SQLite3Guard&& guard) noexcept : handle_(std::move(guard.handle_)), rc_(guard.rc_) {}
+  ~SQLite3Guard() {
+    if (m_) {
+      m_->unlock();
+    }
+  }
   SQLite3Guard(const SQLite3Guard& guard) = delete;
   SQLite3Guard operator=(const SQLite3Guard& guard) = delete;
 
@@ -198,6 +208,7 @@ class SQLite3Guard {
  private:
   std::unique_ptr<sqlite3, int (*)(sqlite3*)> handle_;
   int rc_;
+  std::shared_ptr<std::mutex> m_ = nullptr;
 };
 
 #endif  // SQL_UTILS_H_
