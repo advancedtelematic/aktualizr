@@ -36,13 +36,13 @@ def test_aktualizr_kill(director, aktualizr, **kwargs):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
+    initial_cwd = getcwd()
     parser = argparse.ArgumentParser(description='Test aktualizr kill')
-    parser.add_argument('-b', '--build-dir', help='build directory', default='build')
-    parser.add_argument('-s', '--src-dir', help='source directory', default='.')
+    parser.add_argument('-b', '--build-dir', help='build directory', default=initial_cwd + '/build')
+    parser.add_argument('-s', '--src-dir', help='source directory', default=initial_cwd)
     input_params = parser.parse_args()
 
     KeyStore.base_dir = input_params.src_dir
-    initial_cwd = getcwd()
     chdir(input_params.build_dir)
 
     test_suite = [
