@@ -8,7 +8,13 @@ void DirectorRepository::resetMeta() {
   latest_targets = Targets();
 }
 
-bool DirectorRepository::targetsExpired() const { return latest_targets.isExpired(TimeStamp::Now()); }
+bool DirectorRepository::targetsExpired() {
+  if (latest_targets.isExpired(TimeStamp::Now())) {
+    last_exception = Uptane::ExpiredMetadata(type.toString(), Role::Targets().ToString());
+    return true;
+  }
+  return false;
+}
 
 bool DirectorRepository::usePreviousTargets() const {
   // Don't store the new targets if they are empty and we've previously received
@@ -63,7 +69,6 @@ bool DirectorRepository::checkMetaOffline(INvStorage& storage) {
     }
 
     if (targetsExpired()) {
-      last_exception = Uptane::ExpiredMetadata(type.toString(), Role::Targets().ToString());
       return false;
     }
   }
@@ -128,7 +133,6 @@ bool DirectorRepository::updateMeta(INvStorage& storage, const IMetadataFetcher&
     }
 
     if (targetsExpired()) {
-      last_exception = Uptane::ExpiredMetadata(type.toString(), Role::Targets().ToString());
       return false;
     }
   }

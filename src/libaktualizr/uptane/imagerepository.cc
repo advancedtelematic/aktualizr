@@ -22,6 +22,14 @@ bool ImageRepository::verifyTimestamp(const std::string& timestamp_raw) {
   return true;
 }
 
+bool ImageRepository::timestampExpired() {
+  if (timestamp.isExpired(TimeStamp::Now())) {
+    last_exception = Uptane::ExpiredMetadata(type.toString(), Role::Timestamp().ToString());
+    return true;
+  }
+  return false;
+}
+
 bool ImageRepository::fetchSnapshot(INvStorage& storage, const IMetadataFetcher& fetcher, const int local_version) {
   std::string image_snapshot;
   const int64_t snapshot_size = (snapshotSize() > 0) ? snapshotSize() : kMaxSnapshotSize;
@@ -92,6 +100,14 @@ bool ImageRepository::verifySnapshot(const std::string& snapshot_raw, bool prefe
     return false;
   }
   return true;
+}
+
+bool ImageRepository::snapshotExpired() {
+  if (snapshot.isExpired(TimeStamp::Now())) {
+    last_exception = Uptane::ExpiredMetadata(type.toString(), Role::Snapshot().ToString());
+    return true;
+  }
+  return false;
 }
 
 bool ImageRepository::fetchTargets(INvStorage& storage, const IMetadataFetcher& fetcher, const int local_version) {
@@ -194,6 +210,14 @@ std::shared_ptr<Uptane::Targets> ImageRepository::verifyDelegation(const std::st
   }
 
   return std::shared_ptr<Uptane::Targets>(nullptr);
+}
+
+bool ImageRepository::targetsExpired() {
+  if (targets->isExpired(TimeStamp::Now())) {
+    last_exception = Uptane::ExpiredMetadata(type.toString(), Role::Targets().ToString());
+    return true;
+  }
+  return false;
 }
 
 bool ImageRepository::updateMeta(INvStorage& storage, const IMetadataFetcher& fetcher) {
