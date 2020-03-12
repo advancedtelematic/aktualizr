@@ -110,7 +110,7 @@ TEST(PrimarySecondaryReg, SecondariesMigration) {
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   if (argc != 2) {
-    std::cerr << "Error: " << argv[0] << " requires the path to the base directory of uptane repos.\n";
+    std::cerr << "Error: " << argv[0] << " requires the path to the base directory of Uptane repos.\n";
     return EXIT_FAILURE;
   }
   uptane_repos_dir = argv[1];

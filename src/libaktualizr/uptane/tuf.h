@@ -2,7 +2,7 @@
 #define AKTUALIZR_UPTANE_TUF_H_
 
 /**
- * Base data types that are used in The Update Framework (TUF), part of UPTANE.
+ * Base data types that are used in The Update Framework (TUF), part of Uptane.
  */
 
 #include <functional>

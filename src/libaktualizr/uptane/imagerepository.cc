@@ -33,7 +33,8 @@ bool ImageRepository::fetchSnapshot(INvStorage& storage, const IMetadataFetcher&
   // 6. Check that each Targets metadata filename listed in the previous Snapshot metadata file is also listed in this
   // Snapshot metadata file. If this condition is not met, discard the new Snapshot metadata file, abort the update
   // cycle, and report the failure. (Checks for a rollback attack.)
-  // Let's wait for this ticket resolution https://github.com/uptane/uptane-standard/issues/149
+  // See also https://github.com/uptane/deployment-considerations/pull/39/files.
+  // If the Snapshot is rotated, delegations may be safely removed.
   // https://saeljira.it.here.com/browse/OTA-4121
   if (!verifySnapshot(image_snapshot, false)) {
     return false;

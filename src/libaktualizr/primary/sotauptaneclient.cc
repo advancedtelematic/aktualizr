@@ -120,7 +120,7 @@ void SotaUptaneClient::finalizeAfterReboot() {
 
     report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(primary_ecu_serial, correlation_id, true));
   } else {
-    // finalize failed, unset pending flag so that the rest of the uptane process can go forward again
+    // finalize failed, unset pending flag so that the rest of the Uptane process can go forward again
     storage->saveInstalledVersion(primary_ecu_serial.ToString(), *pending_target, InstalledVersionUpdateMode::kNone);
     report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(primary_ecu_serial, correlation_id, false));
   }

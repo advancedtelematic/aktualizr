@@ -600,7 +600,7 @@ class HttpFakePutCounter : public HttpFake {
  * Initialize -> UptaneCycle -> updates downloaded and installed for primary
  * (after reboot) and secondary (aktualizr_test.cc)
  *
- * It simulates closely the OStree case which needs a reboot after applying an
+ * It simulates closely the OSTree case which needs a reboot after applying an
  * update, but uses `PackageManagerFake`.
  *
  * Checks actions:
@@ -794,7 +794,7 @@ class EventHandler {
  * Initialize -> UptaneCycle -> download updates and install them ->
  * -> reboot emulated -> Initialize -> Fail installation finalization
  *
- * Verifies whether the uptane client is not at pending state after installation finalization failure
+ * Verifies whether the Uptane client is not at pending state after installation finalization failure
  *
  * Checks actions:
  *
@@ -920,7 +920,7 @@ TEST(Aktualizr, FinalizationFailure) {
     EXPECT_FALSE(storage->loadDeviceInstallationResult(&dev_installation_res, &report, &correlation_id));
 
     // it's used to return `true` even if there is no any record in DB
-    // of the uptane cycle just after sending manifest
+    // of the Uptane cycle just after sending manifest
     // made it consistent with loadDeviceInstallationResult
     std::vector<std::pair<Uptane::EcuSerial, data::InstallationResult>> ecu_installation_res;
     EXPECT_FALSE(storage->loadEcuInstallationResults(&ecu_installation_res));
@@ -945,7 +945,7 @@ TEST(Aktualizr, FinalizationFailure) {
 /*
  * Initialize -> UptaneCycle -> download updates -> fail installation
  *
- * Verifies whether the uptane client is not at pending state after installation failure
+ * Verifies whether the Uptane client is not at pending state after installation failure
  *
  * Checks actions:
  *
@@ -2242,7 +2242,7 @@ TEST(Aktualizr, PauseResumeQueue) {
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   if (argc != 2) {
-    std::cerr << "Error: " << argv[0] << " requires the path to the base directory of uptane repos.\n";
+    std::cerr << "Error: " << argv[0] << " requires the path to the base directory of Uptane repos.\n";
     return EXIT_FAILURE;
   }
   uptane_repos_dir = argv[1];

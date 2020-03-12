@@ -75,7 +75,7 @@ bool DirectorRepository::updateMeta(INvStorage& storage, const IMetadataFetcher&
   // Uptane step 2 (download time) is not implemented yet.
   // Uptane step 3 (download metadata)
 
-  // reset director repo to initial state before starting UPTANE iteration
+  // reset Director repo to initial state before starting Uptane iteration
   resetMeta();
 
   if (!updateRoot(storage, fetcher, RepositoryType::Director())) {
