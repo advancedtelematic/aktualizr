@@ -30,6 +30,7 @@ class DirectorRepository : public RepositoryCommon {
  private:
   void resetMeta();
   bool targetsExpired();
+  bool targetsSanityCheck();
   bool usePreviousTargets() const;
 
  private:

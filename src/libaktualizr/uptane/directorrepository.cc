@@ -16,6 +16,18 @@ bool DirectorRepository::targetsExpired() {
   return false;
 }
 
+bool DirectorRepository::targetsSanityCheck() {
+  //  5.4.4.6.6. If checking Targets metadata from the Director repository,
+  //  verify that there are no delegations.
+  if (!latest_targets.delegated_role_names_.empty()) {
+    last_exception =
+        Uptane::InvalidMetadata(type.toString(), Role::Targets().ToString(), "Found unexpected delegation.");
+    return false;
+  }
+
+  return true;
+}
+
 bool DirectorRepository::usePreviousTargets() const {
   // Don't store the new targets if they are empty and we've previously received
   // a non-empty list.
@@ -71,6 +83,10 @@ bool DirectorRepository::checkMetaOffline(INvStorage& storage) {
     if (targetsExpired()) {
       return false;
     }
+
+    if (!targetsSanityCheck()) {
+      return false;
+    }
   }
 
   return true;
@@ -118,7 +134,6 @@ bool DirectorRepository::updateMeta(INvStorage& storage, const IMetadataFetcher&
 
     // Not supported: The following steps of the Director's Targets metadata verification are missing in
     // DirectorRepository::updateMeta()
-    //  6. If checking Targets metadata from the Director repository, verify that there are no delegations.
     //  7. If checking Targets metadata from the Director repository, check that no ECU identifier is represented more
     //  than once.
     // TODO: https://saeljira.it.here.com/browse/OTA-4118
@@ -133,6 +148,10 @@ bool DirectorRepository::updateMeta(INvStorage& storage, const IMetadataFetcher&
     }
 
     if (targetsExpired()) {
+      return false;
+    }
+
+    if (!targetsSanityCheck()) {
       return false;
     }
   }
