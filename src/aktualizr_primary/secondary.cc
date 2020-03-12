@@ -49,7 +49,7 @@ void initSecondaries(Aktualizr& aktualizr, const boost::filesystem::path& config
 
   for (auto& config : secondary_configs) {
     try {
-      LOG_INFO << "Creating " << config->type() << " secondaries...";
+      LOG_INFO << "Registering " << config->type() << " Secondaries...";
       Secondaries secondaries = createSecondaries(*config, aktualizr);
 
       for (const auto& secondary : secondaries) {
@@ -58,7 +58,7 @@ void initSecondaries(Aktualizr& aktualizr, const boost::filesystem::path& config
         aktualizr.AddSecondary(secondary);
       }
     } catch (const std::exception& exc) {
-      LOG_ERROR << "Failed to initialize a secondary: " << exc.what();
+      LOG_ERROR << "Failed to initialize a Secondary: " << exc.what();
       throw exc;
     }
   }
@@ -82,11 +82,11 @@ class SecondaryWaiter {
     timer_.expires_from_now(timeout_);
     timer_.async_wait([&](const boost::system::error_code& error_code) {
       if (!!error_code) {
-        LOG_ERROR << "Wait for secondaries has failed: " << error_code;
-        throw std::runtime_error("Error while waiting for secondary");
+        LOG_ERROR << "Wait for Secondaries has failed: " << error_code;
+        throw std::runtime_error("Error while waiting for Secondaries");
       } else {
-        LOG_ERROR << "Timeout while waiting for secondary: " << error_code;
-        throw std::runtime_error("Timeout while waiting for secondary");
+        LOG_ERROR << "Timeout while waiting for Secondaries: " << error_code;
+        throw std::runtime_error("Timeout while waiting for Secondaries");
       }
       io_context_.stop();
     });
@@ -96,7 +96,7 @@ class SecondaryWaiter {
 
  private:
   void accept() {
-    LOG_INFO << "Waiting for connection from " << secondaries_to_wait_for_.size() << " secondaries...";
+    LOG_INFO << "Waiting for connection from " << secondaries_to_wait_for_.size() << " Secondaries...";
     acceptor_.async_accept(con_socket_,
                            boost::bind(&SecondaryWaiter::connectionHdlr, this, boost::asio::placeholders::error));
   }
@@ -106,14 +106,14 @@ class SecondaryWaiter {
       auto sec_ip = con_socket_.remote_endpoint().address().to_string();
       auto sec_port = con_socket_.remote_endpoint().port();
 
-      LOG_INFO << "Accepted connection from a secondary: (" << sec_ip << ":" << sec_port << ")";
+      LOG_INFO << "Accepted connection from a Secondary: (" << sec_ip << ":" << sec_port << ")";
       try {
         auto secondary = Uptane::IpUptaneSecondary::create(sec_ip, sec_port, con_socket_.native_handle());
         if (secondary) {
           connected_secondaries_.push_back(secondary);
         }
       } catch (const std::exception& exc) {
-        LOG_ERROR << "Failed to initialize a secondary: " << exc.what();
+        LOG_ERROR << "Failed to initialize a Secondary: " << exc.what();
       }
       con_socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
       con_socket_.close();
@@ -125,7 +125,7 @@ class SecondaryWaiter {
         io_context_.stop();
       }
     } else {
-      LOG_ERROR << "Failed to accept connection from a secondary";
+      LOG_ERROR << "Failed to accept connection from a Secondary";
     }
   }
 
@@ -190,19 +190,19 @@ static Secondaries createIPSecondaries(const IPSecondariesConfig& config, Aktual
         d["ip"] = cfg.ip;
         d["port"] = cfg.port;
         aktualizr.SetSecondaryData(info->serial, Utils::jsonToCanonicalStr(d));
-        LOG_INFO << "Migrated single IP secondary to new storage format";
+        LOG_INFO << "Migrated single IP Secondary to new storage format";
       } else if (f == secondaries_info.cend()) {
         // Match the other way if we can
         secondary = Uptane::IpUptaneSecondary::connectAndCreate(cfg.ip, cfg.port);
         if (secondary == nullptr) {
-          LOG_ERROR << "Could not instantiate secondary " << cfg.ip << ":" << cfg.port;
+          LOG_ERROR << "Could not instantiate Secondary " << cfg.ip << ":" << cfg.port;
           continue;
         }
         auto f_serial =
             std::find_if(secondaries_info.cbegin(), secondaries_info.cend(),
                          [&secondary](const SecondaryInfo& i) { return i.serial == secondary->getSerial(); });
         if (f_serial == secondaries_info.cend()) {
-          LOG_ERROR << "Could not instantiate secondary " << cfg.ip << ":" << cfg.port;
+          LOG_ERROR << "Could not instantiate Secondary " << cfg.ip << ":" << cfg.port;
           continue;
         }
         info = &(*f_serial);
@@ -218,7 +218,7 @@ static Secondaries createIPSecondaries(const IPSecondariesConfig& config, Aktual
       if (secondary != nullptr) {
         result.push_back(secondary);
       } else {
-        LOG_ERROR << "Could not instantiate secondary " << info->serial;
+        LOG_ERROR << "Could not instantiate Secondary " << info->serial;
       }
     }
   }

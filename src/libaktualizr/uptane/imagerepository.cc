@@ -35,7 +35,7 @@ bool ImageRepository::fetchSnapshot(INvStorage& storage, const IMetadataFetcher&
   // cycle, and report the failure. (Checks for a rollback attack.)
   // Let's wait for this ticket resolution https://github.com/uptane/uptane-standard/issues/149
   // https://saeljira.it.here.com/browse/OTA-4121
-  if (!verifySnapshot(image_snapshot)) {
+  if (!verifySnapshot(image_snapshot, false)) {
     return false;
   }
 
@@ -48,7 +48,7 @@ bool ImageRepository::fetchSnapshot(INvStorage& storage, const IMetadataFetcher&
   return true;
 }
 
-bool ImageRepository::verifySnapshot(const std::string& snapshot_raw) {
+bool ImageRepository::verifySnapshot(const std::string& snapshot_raw, bool prefetch) {
   try {
     const std::string canonical = Utils::jsonToCanonicalStr(Utils::parseJSON(snapshot_raw));
     bool hash_exists = false;
@@ -56,14 +56,18 @@ bool ImageRepository::verifySnapshot(const std::string& snapshot_raw) {
       switch (it.type()) {
         case Hash::Type::kSha256:
           if (Hash(Hash::Type::kSha256, boost::algorithm::hex(Crypto::sha256digest(canonical))) != it) {
-            LOG_ERROR << "Hash verification for Snapshot metadata failed";
+            if (!prefetch) {
+              LOG_ERROR << "Hash verification for Snapshot metadata failed";
+            }
             return false;
           }
           hash_exists = true;
           break;
         case Hash::Type::kSha512:
           if (Hash(Hash::Type::kSha512, boost::algorithm::hex(Crypto::sha512digest(canonical))) != it) {
-            LOG_ERROR << "Hash verification for Snapshot metadata failed";
+            if (!prefetch) {
+              LOG_ERROR << "Hash verification for Snapshot metadata failed";
+            }
             return false;
           }
           hash_exists = true;
@@ -102,7 +106,7 @@ bool ImageRepository::fetchTargets(INvStorage& storage, const IMetadataFetcher& 
   }
   const int remote_version = extractVersionUntrusted(image_targets);
 
-  if (!verifyTargets(image_targets)) {
+  if (!verifyTargets(image_targets, false)) {
     return false;
   }
 
@@ -115,7 +119,7 @@ bool ImageRepository::fetchTargets(INvStorage& storage, const IMetadataFetcher& 
   return true;
 }
 
-bool ImageRepository::verifyRoleHashes(const std::string& role_data, const Uptane::Role& role) const {
+bool ImageRepository::verifyRoleHashes(const std::string& role_data, const Uptane::Role& role, bool prefetch) const {
   const std::string canonical = Utils::jsonToCanonicalStr(Utils::parseJSON(role_data));
   // Hashes are not required. If present, however, we may as well check them.
   // This provides no security benefit, but may help with fault detection.
@@ -123,13 +127,17 @@ bool ImageRepository::verifyRoleHashes(const std::string& role_data, const Uptan
     switch (it.type()) {
       case Hash::Type::kSha256:
         if (Hash(Hash::Type::kSha256, boost::algorithm::hex(Crypto::sha256digest(canonical))) != it) {
-          LOG_ERROR << "Hash verification for " << role.ToString() << " metadata failed";
+          if (!prefetch) {
+            LOG_ERROR << "Hash verification for " << role.ToString() << " metadata failed";
+          }
           return false;
         }
         break;
       case Hash::Type::kSha512:
         if (Hash(Hash::Type::kSha512, boost::algorithm::hex(Crypto::sha512digest(canonical))) != it) {
-          LOG_ERROR << "Hash verification for " << role.ToString() << " metadata failed";
+          if (!prefetch) {
+            LOG_ERROR << "Hash verification for " << role.ToString() << " metadata failed";
+          }
           return false;
         }
         break;
@@ -145,9 +153,9 @@ int ImageRepository::getRoleVersion(const Uptane::Role& role) const { return sna
 
 int64_t ImageRepository::getRoleSize(const Uptane::Role& role) const { return snapshot.role_size(role); }
 
-bool ImageRepository::verifyTargets(const std::string& targets_raw) {
+bool ImageRepository::verifyTargets(const std::string& targets_raw, bool prefetch) {
   try {
-    if (!verifyRoleHashes(targets_raw, Uptane::Role::Targets())) {
+    if (!verifyRoleHashes(targets_raw, Uptane::Role::Targets(), prefetch)) {
       return false;
     }
 
@@ -234,7 +242,7 @@ bool ImageRepository::updateMeta(INvStorage& storage, const IMetadataFetcher& fe
     int local_version;
     std::string image_snapshot_stored;
     if (storage.loadNonRoot(&image_snapshot_stored, RepositoryType::Image(), Role::Snapshot())) {
-      if (verifySnapshot(image_snapshot_stored)) {
+      if (verifySnapshot(image_snapshot_stored, true)) {
         fetch_snapshot = false;
         LOG_DEBUG << "Skipping Image repo Snapshot download; stored version is still current.";
       }
@@ -263,7 +271,7 @@ bool ImageRepository::updateMeta(INvStorage& storage, const IMetadataFetcher& fe
     int local_version = -1;
     std::string image_targets_stored;
     if (storage.loadNonRoot(&image_targets_stored, RepositoryType::Image(), Role::Targets())) {
-      if (verifyTargets(image_targets_stored)) {
+      if (verifyTargets(image_targets_stored, true)) {
         fetch_targets = false;
         LOG_DEBUG << "Skipping Image repo Targets download; stored version is still current.";
       }
@@ -329,7 +337,7 @@ bool ImageRepository::checkMetaOffline(INvStorage& storage) {
       return false;
     }
 
-    if (!verifySnapshot(image_snapshot)) {
+    if (!verifySnapshot(image_snapshot, false)) {
       return false;
     }
 
@@ -346,7 +354,7 @@ bool ImageRepository::checkMetaOffline(INvStorage& storage) {
       return false;
     }
 
-    if (!verifyTargets(image_targets)) {
+    if (!verifyTargets(image_targets, false)) {
       return false;
     }
 
