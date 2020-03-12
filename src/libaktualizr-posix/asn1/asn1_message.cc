@@ -84,10 +84,11 @@ Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, int con_fd) {
   return msg;
 }
 
-Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, const std::pair<std::string, uint16_t>& addr) {
+Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, const std::pair<std::string, uint16_t>& addr,
+                         uint16_t max_attempt_number) {
   ConnectionSocket connection(addr.first, addr.second);
 
-  if (connection.connect() < 0) {
+  if (connection.connect(max_attempt_number) < 0) {
     LOG_ERROR << "Failed to connect to the secondary ( " << addr.first << ":" << addr.second
               << "): " << std::strerror(errno);
     return Asn1Message::Empty();

@@ -149,7 +149,7 @@ class ConnectionSocket : public Socket {
   ~ConnectionSocket() override;
 
  public:
-  int connect();
+  int connect(uint16_t max_attempt_number = 1);
 
  private:
   struct sockaddr_in remote_sock_address_;

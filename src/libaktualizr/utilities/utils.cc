@@ -908,9 +908,16 @@ ConnectionSocket::ConnectionSocket(const std::string &ip, in_port_t port, in_por
 
 ConnectionSocket::~ConnectionSocket() { ::shutdown(socket_fd_, SHUT_RDWR); }
 
-int ConnectionSocket::connect() {
-  return ::connect(socket_fd_, reinterpret_cast<const struct sockaddr *>(&remote_sock_address_),
-                   sizeof(remote_sock_address_));
+int ConnectionSocket::connect(uint16_t max_attempt_number) {
+  uint16_t attempt_number = 1;
+  int connection_attempt_result = -1;
+
+  do {
+    connection_attempt_result = ::connect(socket_fd_, reinterpret_cast<const struct sockaddr *>(&remote_sock_address_),
+                                          sizeof(remote_sock_address_));
+  } while (connection_attempt_result < 0 && attempt_number++ < max_attempt_number);
+
+  return connection_attempt_result;
 }
 
 CurlEasyWrapper::CurlEasyWrapper() {

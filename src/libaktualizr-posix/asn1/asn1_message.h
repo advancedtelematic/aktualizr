@@ -123,5 +123,6 @@ void SetString(OCTET_STRING_t* dest, const std::string& str);
  * response.
  */
 Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, int con_fd);
-Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, const std::pair<std::string, uint16_t>& addr);
+Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, const std::pair<std::string, uint16_t>& addr,
+                         uint16_t max_attempt_number = 1);
 #endif  // ASN1_MESSAGE_H_

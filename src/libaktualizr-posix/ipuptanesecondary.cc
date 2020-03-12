@@ -15,7 +15,7 @@ Uptane::SecondaryInterface::Ptr IpUptaneSecondary::connectAndCreate(const std::s
 
   ConnectionSocket con_sock{address, port};
 
-  if (con_sock.connect() == 0) {
+  if (con_sock.connect(3) == 0) {
     LOG_INFO << "Connected to IP Secondary: "
              << "(" << address << ":" << port << ")";
   } else {
@@ -169,7 +169,7 @@ Manifest IpUptaneSecondary::getManifest() const {
 
   req->present(AKIpUptaneMes_PR_manifestReq);
 
-  auto resp = Asn1Rpc(req, getAddr());
+  auto resp = Asn1Rpc(req, getAddr(), 3);
 
   if (resp->present() != AKIpUptaneMes_PR_manifestResp) {
     LOG_ERROR << "Failed to get public key response message from secondary";

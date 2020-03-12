@@ -20,7 +20,7 @@ SecondaryTcpServer::SecondaryTcpServer(Uptane::SecondaryInterface &secondary, co
     LOG_INFO << "Connected to Primary, sending info about this secondary...";
     HandleOneConnection(*conn_socket);
   } else {
-    LOG_INFO << "Failed to connect to Primary";
+    LOG_INFO << "Failed to connect to Primary: " << std::strerror(errno);
   }
 }
 
