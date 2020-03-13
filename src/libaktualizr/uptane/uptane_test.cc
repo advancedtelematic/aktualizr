@@ -1340,17 +1340,17 @@ TEST(Uptane, IgnoreUnknownUpdate) {
   auto result = sota_client->fetchMeta();
   EXPECT_EQ(result.status, result::UpdateStatus::kError);
   EXPECT_STREQ(sota_client->getLastException().what(),
-               "The target had an ECU ID that did not match the client's configured ECU id.");
+               "The target had an ECU ID that did not match the client's configured ECU ID.");
   sota_client->last_exception = Uptane::Exception{"", ""};
   result = sota_client->checkUpdates();
   EXPECT_EQ(result.status, result::UpdateStatus::kError);
   EXPECT_STREQ(sota_client->getLastException().what(),
-               "The target had an ECU ID that did not match the client's configured ECU id.");
+               "The target had an ECU ID that did not match the client's configured ECU ID.");
   std::vector<Uptane::Target> packages_to_install = UptaneTestCommon::makePackage("testecuserial", "testecuhwid");
   sota_client->last_exception = Uptane::Exception{"", ""};
   auto report = sota_client->uptaneInstall(packages_to_install);
   EXPECT_STREQ(sota_client->getLastException().what(),
-               "The target had an ECU ID that did not match the client's configured ECU id.");
+               "The target had an ECU ID that did not match the client's configured ECU ID.");
   EXPECT_EQ(report.ecu_reports.size(), 0);
 }
 

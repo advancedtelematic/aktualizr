@@ -341,7 +341,7 @@ void Uptane::BaseMeta::init(const Json::Value &json) {
   try {
     expiry_ = TimeStamp(json["signed"]["expires"].asString());
   } catch (const TimeStamp::InvalidTimeStamp &exc) {
-    throw Uptane::InvalidMetadata("", "", "Invalid timestamp");
+    throw Uptane::InvalidMetadata("", "", "invalid timestamp");
   }
   original_object_ = json;
 }

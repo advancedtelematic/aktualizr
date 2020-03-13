@@ -67,7 +67,7 @@ class ExpiredMetadata : public Exception {
 class InvalidMetadata : public Exception {
  public:
   InvalidMetadata(const std::string& reponame, const std::string& role, const std::string& reason)
-      : Exception(reponame, "The " + role + " metadata failed to parse:" + reason) {}
+      : Exception(reponame, "The " + role + " metadata failed to parse: " + reason) {}
   ~InvalidMetadata() noexcept override = default;
 };
 
@@ -94,14 +94,14 @@ class BadKeyId : public Exception {
 class BadEcuId : public Exception {
  public:
   BadEcuId(const std::string& reponame)
-      : Exception(reponame, "The target had an ECU ID that did not match the client's configured ECU id.") {}
+      : Exception(reponame, "The target had an ECU ID that did not match the client's configured ECU ID.") {}
   ~BadEcuId() noexcept override = default;
 };
 
 class BadHardwareId : public Exception {
  public:
   BadHardwareId(const std::string& reponame)
-      : Exception(reponame, "The target had a hardware ID that did not match the client's configured hardware id.") {}
+      : Exception(reponame, "The target had a hardware ID that did not match the client's configured hardware ID.") {}
   ~BadHardwareId() noexcept override = default;
 };
 
