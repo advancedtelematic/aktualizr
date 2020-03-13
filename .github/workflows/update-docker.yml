@@ -1,0 +1,36 @@
+name: Aktualizr CI docker images update
+on:
+  push:
+    branches: [ master ]
+jobs:
+  update-bionic:
+    name: Update Ubuntu Bionic Image
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_TAG: docker.pkg.github.com/advancedtelematic/aktualizr/aktualizr-ci:bionic-master
+      DOCKERFILE: docker/Dockerfile.ubuntu.bionic
+    steps:
+      - uses: actions/checkout@master
+      - name: Docker login
+        run: echo ${{ github.token }} | docker login docker.pkg.github.com -u advancedtelematic --password-stdin
+      - name: Docker build and push
+        run: |
+          docker pull "$DOCKER_TAG"
+          docker build --cache-from "$DOCKER_TAG" --pull -t "$DOCKER_TAG" -f "$DOCKERFILE" .
+          docker push "$DOCKER_TAG"
+
+  update-debian-testing:
+    name: Update Debian Testing Image
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_TAG: docker.pkg.github.com/advancedtelematic/aktualizr/aktualizr-ci:debian-testing-master
+      DOCKERFILE: docker/Dockerfile.debian.testing
+    steps:
+      - uses: actions/checkout@master
+      - name: Docker login
+        run: echo ${{ github.token }} | docker login docker.pkg.github.com -u advancedtelematic --password-stdin
+      - name: Docker build and push
+        run: |
+          docker pull "$DOCKER_TAG"
+          docker build --cache-from "$DOCKER_TAG" --pull -t "$DOCKER_TAG" -f "$DOCKERFILE" .
+          docker push "$DOCKER_TAG"

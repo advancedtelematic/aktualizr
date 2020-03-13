@@ -1,0 +1,82 @@
+name: Aktualizr CI
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+env:
+  CCACHE_DIR: ${{ github.workspace }}/.ccache
+jobs:
+  coverage:
+    name: Coverage on Ubuntu Bionic
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_TAG: docker.pkg.github.com/advancedtelematic/aktualizr/aktualizr-ci:bionic-master
+      DOCKERFILE: docker/Dockerfile.ubuntu.bionic
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      DARGS: >-
+        -eCCACHE_DIR
+        -eCODECOV_TOKEN
+        -eTEST_CMAKE_BUILD_TYPE=Valgrind
+        -eTEST_WITH_COVERAGE=1
+        -eTEST_WITH_P11=1
+        -eTEST_WITH_DOCKERAPP=1
+        -eTEST_WITH_FAULT_INJECTION=1
+        -eTEST_TESTSUITE_EXCLUDE=credentials
+        -eTEST_SOTA_PACKED_CREDENTIALS=dummy-credentials
+    steps:
+      - uses: actions/checkout@master
+        with:
+          submodules: recursive
+      - run: git fetch --prune --unshallow
+      - name: Docker login
+        if: github.token
+        run: echo ${{ github.token }} | docker login docker.pkg.github.com -u advancedtelematic --password-stdin
+      - name: Docker build
+        run: |
+          docker pull "$DOCKER_TAG" || true
+          docker build --cache-from "$DOCKER_TAG" --pull -t "$DOCKER_TAG" -f "$DOCKERFILE" .
+      - uses: actions/cache@v1.1.0
+        with:
+          path: ${{ github.workspace }}/.ccache
+          key: ubuntu-bionic-${{ github.run_id }}
+          restore-keys: |
+            ubuntu-bionic-${{ github.run_id }}
+            ubuntu-bionic-
+      - name: Test
+        run: docker run -v "$PWD:$PWD" -w "$PWD" $DARGS -t "$DOCKER_TAG" ./scripts/test.sh
+
+  static-checks:
+    name: Static checks on Debian Testing
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_TAG: docker.pkg.github.com/advancedtelematic/aktualizr/aktualizr-ci:debian-testing-master
+      DOCKERFILE: docker/Dockerfile.debian.testing
+      DARGS: >-
+        -eCCACHE_DIR
+        -eTEST_CC=clang
+        -eTEST_WITH_LOAD_TESTS=1
+        -eTEST_WITH_TESTSUITE=0
+        -eTEST_WITH_STATICTESTS=1
+        -eTEST_WITH_DOCS=1
+    steps:
+      - uses: actions/checkout@master
+        with:
+          submodules: recursive
+      - run: git fetch --prune --unshallow
+      - name: Docker login
+        if: github.token
+        run: echo ${{ github.token }} | docker login docker.pkg.github.com -u advancedtelematic --password-stdin
+      - name: Docker build
+        run: |
+          docker pull "$DOCKER_TAG" || true
+          docker build --cache-from "$DOCKER_TAG" --pull -t "$DOCKER_TAG" -f "$DOCKERFILE" .
+      - uses: actions/cache@v1.1.0
+        with:
+          path: ${{ github.workspace }}/.ccache
+          key: debian-testing-${{ github.run_id }}
+          restore-keys: |
+            debian-testing-${{ github.run_id }}
+            debian-testing-
+      - name: Test
+        run: docker run -v "$PWD:$PWD" -w "$PWD" $DARGS -t "$DOCKER_TAG" ./scripts/test.sh
