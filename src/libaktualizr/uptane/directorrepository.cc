@@ -140,9 +140,6 @@ bool DirectorRepository::updateMeta(INvStorage& storage, const IMetadataFetcher&
       local_version = -1;
     }
 
-    // Not supported: If the ECU performing the verification is the Primary ECU, it SHOULD also ensure that the Targets
-    // metadata from the Director repository doesn’t contain any ECU identifiers for ECUs not actually present in the
-    // vehicle.
     if (!verifyTargets(director_targets)) {
       return false;
     }
