@@ -4,6 +4,8 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+env:
+  CCACHE_DIR: ${{ github.workspace }}/.ccache
 jobs:
   coverage:
     name: Coverage on Ubuntu Bionic
@@ -11,7 +13,10 @@ jobs:
     env:
       DOCKER_TAG: docker.pkg.github.com/advancedtelematic/aktualizr/aktualizr-ci:bionic-master
       DOCKERFILE: docker/Dockerfile.ubuntu.bionic
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       DARGS: >-
+        -eCCACHE_DIR
+        -eCODECOV_TOKEN
         -eTEST_CMAKE_BUILD_TYPE=Valgrind
         -eTEST_WITH_COVERAGE=1
         -eTEST_WITH_P11=1
@@ -19,7 +24,6 @@ jobs:
         -eTEST_WITH_FAULT_INJECTION=1
         -eTEST_TESTSUITE_EXCLUDE=credentials
         -eTEST_SOTA_PACKED_CREDENTIALS=dummy-credentials
-        -eCCACHE_DIR=${{ github.workspace }}/.ccache
     steps:
       - uses: actions/checkout@master
         with:
@@ -49,12 +53,12 @@ jobs:
       DOCKER_TAG: docker.pkg.github.com/advancedtelematic/aktualizr/aktualizr-ci:debian-testing-master
       DOCKERFILE: docker/Dockerfile.debian.testing
       DARGS: >-
+        -eCCACHE_DIR
         -eTEST_CC=clang
         -eTEST_WITH_LOAD_TESTS=1
         -eTEST_WITH_TESTSUITE=0
         -eTEST_WITH_STATICTESTS=1
         -eTEST_WITH_DOCS=1
-        -eCCACHE_DIR=${{ github.workspace }}/.ccache
     steps:
       - uses: actions/checkout@master
         with:
