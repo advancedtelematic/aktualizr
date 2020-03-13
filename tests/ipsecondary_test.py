@@ -122,9 +122,10 @@ def test_secondary_ostree_update(uptane_repo, secondary, aktualizr, treehub, sys
     sysroot.update_revision(pending_rev)
     secondary.emulate_reboot()
 
-    with secondary:
-        with aktualizr:
-            aktualizr.wait_for_completion()
+    aktualizr.set_mode('full')
+    with aktualizr:
+        with secondary:
+            director.wait_for_install()
 
     if not director.get_install_result():
         logger.error("Installation result is not successful")
@@ -153,7 +154,7 @@ def test_secondary_ostree_update(uptane_repo, secondary, aktualizr, treehub, sys
 @with_aktualizr(start=False, run_mode='once', output_logs=True)
 def test_secondary_ostree_reboot(uptane_repo, secondary, aktualizr, treehub, sysroot, director, **kwargs):
     target_rev = treehub.revision
-    expected_targetname = uptane_repo.add_ostree_target(secondary.id, target_rev, "GARAGE_TARGET_NAME")
+    uptane_repo.add_ostree_target(secondary.id, target_rev, "GARAGE_TARGET_NAME")
 
     with secondary:
         with aktualizr:
@@ -168,9 +169,10 @@ def test_secondary_ostree_reboot(uptane_repo, secondary, aktualizr, treehub, sys
 
     sysroot.update_revision(pending_rev)
 
-    with secondary:
-        with aktualizr:
-            aktualizr.wait_for_completion()
+    aktualizr.set_mode('full')
+    with aktualizr:
+        with secondary:
+            director.wait_for_install()
 
     if not director.get_install_result():
         logger.error("Installation result is not successful")

@@ -128,6 +128,9 @@ class Aktualizr:
     }}
     '''
 
+    def set_mode(self, mode):
+        self._run_mode = mode
+
     def add_secondary(self, secondary):
         with open(self._secondary_config_file, "r+") as config_file:
             sec_cfg = json.load(config_file)

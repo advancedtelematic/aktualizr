@@ -1418,6 +1418,10 @@ void SotaUptaneClient::checkAndUpdatePendingSecondaries() {
     }
     auto &sec = secondaries[pending_ecu.first];
     const auto &manifest = sec->getManifest();
+    if (manifest == Json::nullValue) {
+      LOG_DEBUG << "Failed to get a manifest from Secondary: " << sec->getSerial();
+      continue;
+    }
     if (!manifest.verifySignature(sec->getPublicKey())) {
       LOG_ERROR << "Invalid signature of the manifest reported by secondary: "
                 << " serial: " << pending_ecu.first << " manifest: " << manifest;

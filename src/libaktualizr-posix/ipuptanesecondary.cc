@@ -172,7 +172,7 @@ Manifest IpUptaneSecondary::getManifest() const {
   auto resp = Asn1Rpc(req, getAddr());
 
   if (resp->present() != AKIpUptaneMes_PR_manifestResp) {
-    LOG_ERROR << "Failed to get public key response message from secondary";
+    LOG_ERROR << "Failed to get a response to a get manifest request to secondary";
     return Json::Value();
   }
   auto r = resp->manifestResp();
