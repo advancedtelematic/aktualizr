@@ -1748,7 +1748,6 @@ boost::optional<std::pair<uintmax_t, std::string>> SQLStorage::checkTargetFile(c
   }
 
   if (statement_state == SQLITE_DONE) {
-    LOG_INFO << "No file '" + target.filename() << "' with matched hash in the database";
     return boost::none;
   }
   assert(statement_state != SQLITE_ROW);  // from the previous loop precondition
@@ -1860,6 +1859,7 @@ class SQLTargetRHandle : public StorageTargetRHandle {
 
     auto exists = storage.checkTargetFile(target_);
     if (!exists) {
+      LOG_ERROR << "File " << target_.filename() << " with expected hash not found in the database!";
       throw exc;
     }
 

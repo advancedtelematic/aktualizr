@@ -98,6 +98,7 @@ bool PackageManagerInterface::fetchTarget(const Uptane::Target& target, Uptane::
     }
     std::unique_ptr<DownloadMetaStruct> ds = std_::make_unique<DownloadMetaStruct>(target, progress_cb, token);
     if (exists == TargetStatus::kIncomplete) {
+      LOG_INFO << "Continuing incomplete download of file " << target.filename();
       auto target_check = storage_->checkTargetFile(target);
       ds->downloaded_length = target_check->first;
       auto target_handle = storage_->openTargetFile(target);
@@ -107,6 +108,7 @@ bool PackageManagerInterface::fetchTarget(const Uptane::Target& target, Uptane::
     } else {
       // If the target was found, but is oversized or the hash doesn't match,
       // just start over.
+      LOG_DEBUG << "Initiating download of file " << target.filename();
       ds->fhandle = storage_->allocateTargetFile(target);
     }
 
@@ -166,10 +168,13 @@ bool PackageManagerInterface::fetchTarget(const Uptane::Target& target, Uptane::
 TargetStatus PackageManagerInterface::verifyTarget(const Uptane::Target& target) const {
   auto target_exists = storage_->checkTargetFile(target);
   if (!target_exists) {
+    LOG_DEBUG << "File " << target.filename() << " with expected hash not found in the database.";
     return TargetStatus::kNotFound;
   } else if (target_exists->first < target.length()) {
+    LOG_DEBUG << "File " << target.filename() << " was found in the database, but is incomplete.";
     return TargetStatus::kIncomplete;
   } else if (target_exists->first > target.length()) {
+    LOG_DEBUG << "File " << target.filename() << " was found in the database, but is oversized.";
     return TargetStatus::kOversized;
   }
 
