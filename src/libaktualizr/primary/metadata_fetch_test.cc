@@ -108,6 +108,7 @@ TEST(Aktualizr, MetadataFetch) {
 
   // Update scheduled with pre-existing image: no need to refetch Image repo
   // Snapshot or Targets metadata.
+  uptane_gen.run({"emptytargets", "--path", meta_dir.PathString()});
   uptane_gen.run({"addtarget", "--path", meta_dir.PathString(), "--targetname", "firmware_name.txt", "--hwid",
                   "primary_hw", "--serial", "CA:FE:A6:D2:84:9D"});
   uptane_gen.run({"signtargets", "--path", meta_dir.PathString()});
@@ -125,6 +126,7 @@ TEST(Aktualizr, MetadataFetch) {
 
   // Delegation added to an existing delegation; update scheduled with
   // pre-existing image: Snapshot must be refetched, but Targets are unchanged.
+  uptane_gen.run({"emptytargets", "--path", meta_dir.PathString()});
   uptane_gen.run({"addtarget", "--path", meta_dir.PathString(), "--targetname", "firmware.txt", "--hwid", "primary_hw",
                   "--serial", "CA:FE:A6:D2:84:9D"});
   uptane_gen.run({"adddelegation", "--path", meta_dir.PathString(), "--dname", "role-def", "--dpattern", "def/*",

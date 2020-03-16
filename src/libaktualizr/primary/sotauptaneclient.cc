@@ -451,6 +451,10 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
       Uptane::EcuSerial ecu_serial = ecu.first;
       Uptane::HardwareIdentifier hw_id = ecu.second;
 
+      // 5.4.4.6.8. If checking Targets metadata from the Director repository,
+      // and the ECU performing the verification is the Primary ECU, check that
+      // all listed ECU identifiers correspond to ECUs that are actually present
+      // in the vehicle.
       auto hw_id_known = ecuHwId(ecu_serial);
       if (!hw_id_known) {
         LOG_ERROR << "Unknown ECU ID in Director Targets metadata: " << ecu_serial.ToString();

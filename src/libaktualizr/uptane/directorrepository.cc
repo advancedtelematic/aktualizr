@@ -8,7 +8,37 @@ void DirectorRepository::resetMeta() {
   latest_targets = Targets();
 }
 
-bool DirectorRepository::targetsExpired() const { return latest_targets.isExpired(TimeStamp::Now()); }
+bool DirectorRepository::targetsExpired() {
+  if (latest_targets.isExpired(TimeStamp::Now())) {
+    last_exception = Uptane::ExpiredMetadata(type.toString(), Role::Targets().ToString());
+    return true;
+  }
+  return false;
+}
+
+bool DirectorRepository::targetsSanityCheck() {
+  //  5.4.4.6.6. If checking Targets metadata from the Director repository,
+  //  verify that there are no delegations.
+  if (!latest_targets.delegated_role_names_.empty()) {
+    last_exception =
+        Uptane::InvalidMetadata(type.toString(), Role::Targets().ToString(), "Found unexpected delegation.");
+    return false;
+  }
+  //  5.4.4.6.7. If checking Targets metadata from the Director repository,
+  //  check that no ECU identifier is represented more than once.
+  std::set<Uptane::EcuSerial> ecu_ids;
+  for (const auto& target : targets.targets) {
+    for (const auto& ecu : target.ecus()) {
+      if (ecu_ids.find(ecu.first) == ecu_ids.end()) {
+        ecu_ids.insert(ecu.first);
+      } else {
+        last_exception = Uptane::InvalidMetadata(type.toString(), Role::Targets().ToString(), "Found repeated ECU ID.");
+        return false;
+      }
+    }
+  }
+  return true;
+}
 
 bool DirectorRepository::usePreviousTargets() const {
   // Don't store the new targets if they are empty and we've previously received
@@ -63,7 +93,10 @@ bool DirectorRepository::checkMetaOffline(INvStorage& storage) {
     }
 
     if (targetsExpired()) {
-      last_exception = Uptane::ExpiredMetadata(type.toString(), Role::Targets().ToString());
+      return false;
+    }
+
+    if (!targetsSanityCheck()) {
       return false;
     }
   }
@@ -107,16 +140,6 @@ bool DirectorRepository::updateMeta(INvStorage& storage, const IMetadataFetcher&
       local_version = -1;
     }
 
-    // Not supported: If the ECU performing the verification is the Primary ECU, it SHOULD also ensure that the Targets
-    // metadata from the Director repository doesn’t contain any ECU identifiers for ECUs not actually present in the
-    // vehicle.
-
-    // Not supported: The following steps of the Director's Targets metadata verification are missing in
-    // DirectorRepository::updateMeta()
-    //  6. If checking Targets metadata from the Director repository, verify that there are no delegations.
-    //  7. If checking Targets metadata from the Director repository, check that no ECU identifier is represented more
-    //  than once.
-    // TODO: https://saeljira.it.here.com/browse/OTA-4118
     if (!verifyTargets(director_targets)) {
       return false;
     }
@@ -128,7 +151,10 @@ bool DirectorRepository::updateMeta(INvStorage& storage, const IMetadataFetcher&
     }
 
     if (targetsExpired()) {
-      last_exception = Uptane::ExpiredMetadata(type.toString(), Role::Targets().ToString());
+      return false;
+    }
+
+    if (!targetsSanityCheck()) {
       return false;
     }
   }
