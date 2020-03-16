@@ -15,7 +15,7 @@ jobs:
         run: echo ${{ github.token }} | docker login docker.pkg.github.com -u advancedtelematic --password-stdin
       - name: Docker build and push
         run: |
-          docker pull "$DOCKER_TAG"
+          docker pull "$DOCKER_TAG" || true
           docker build --cache-from "$DOCKER_TAG" --pull -t "$DOCKER_TAG" -f "$DOCKERFILE" .
           docker push "$DOCKER_TAG"
 
@@ -31,6 +31,6 @@ jobs:
         run: echo ${{ github.token }} | docker login docker.pkg.github.com -u advancedtelematic --password-stdin
       - name: Docker build and push
         run: |
-          docker pull "$DOCKER_TAG"
+          docker pull "$DOCKER_TAG" || true
           docker build --cache-from "$DOCKER_TAG" --pull -t "$DOCKER_TAG" -f "$DOCKERFILE" .
           docker push "$DOCKER_TAG"
