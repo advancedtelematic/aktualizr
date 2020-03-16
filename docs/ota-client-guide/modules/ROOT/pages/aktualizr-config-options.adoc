@@ -38,7 +38,7 @@ For examples of configuration files, see the following resources:
 
 * link:{aktualizr-github-url}/config/[Config files used by unit tests]
 * link:{aktualizr-github-url}/tests/config/[Config files used by continuous integration tests]
-* link:https://github.com/advancedtelematic/meta-updater/tree/thud/recipes-sota/config/files[Configuration fragments used in meta-updater recipes].
+* link:https://github.com/advancedtelematic/meta-updater/tree/zeus/recipes-sota/config/files[Configuration fragments used in meta-updater recipes].
 
 All fields are optional, and most have reasonable defaults that should be used unless you have a particular need to do otherwise.
 
