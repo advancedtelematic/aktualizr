@@ -37,7 +37,7 @@ class RepositoryType {
     }
   }
   operator int() const { return static_cast<int>(type_); }
-  operator const std::string() const { return toString(); }
+  operator std::string() const { return toString(); }
   Type type_;
   std::string toString() const {
     if (type_ == RepositoryType::Type::kDirector) {
@@ -130,11 +130,11 @@ class Version {
 };
 
 struct InstalledImageInfo {
-  InstalledImageInfo() : name{""}, len{0} {}
+  InstalledImageInfo() : name{""} {}
   InstalledImageInfo(std::string name_in, uint64_t len_in, std::string hash_in)
       : name(std::move(name_in)), len(len_in), hash(std::move(hash_in)) {}
   std::string name;
-  uint64_t len;
+  uint64_t len{0};
   std::string hash;
 };
 
@@ -265,9 +265,10 @@ class Target {
   void InsertEcu(const std::pair<EcuSerial, HardwareIdentifier> &pair) { ecus_.insert(pair); }
 
   bool IsForEcu(const EcuSerial &ecuIdentifier) const {
-    return (std::find_if(ecus_.cbegin(), ecus_.cend(), [&ecuIdentifier](std::pair<EcuSerial, HardwareIdentifier> pair) {
-              return pair.first == ecuIdentifier;
-            }) != ecus_.cend());
+    return (std::find_if(ecus_.cbegin(), ecus_.cend(),
+                         [&ecuIdentifier](const std::pair<EcuSerial, HardwareIdentifier> &pair) {
+                           return pair.first == ecuIdentifier;
+                         }) != ecus_.cend());
   };
 
   /**

@@ -12,14 +12,17 @@ SigHandler& SigHandler::get() {
 }
 
 SigHandler::~SigHandler() {
-  {
-    std::lock_guard<std::mutex> g(exit_m_);
-    exit_flag_ = true;
-  }
-  exit_cv_.notify_all();
+  try {
+    {
+      std::lock_guard<std::mutex> g(exit_m_);
+      exit_flag_ = true;
+    }
+    exit_cv_.notify_all();
 
-  if (polling_thread_.joinable()) {
-    polling_thread_.join();
+    if (polling_thread_.joinable()) {
+      polling_thread_.join();
+    }
+  } catch (...) {
   }
 }
 

@@ -69,7 +69,7 @@ void LazyTargetsList::DelegationIterator::renewTargetsData() {
   } else {
     // go to the top of the delegation tree
     std::stack<std::vector<std::shared_ptr<DelegatedTargetTreeNode>>::size_type> indices;
-    auto node = tree_node_->parent;
+    auto *node = tree_node_->parent;
     while (node->parent != nullptr) {
       indices.push(node->parent_idx);
       node = node->parent;
@@ -152,7 +152,7 @@ LazyTargetsList::DelegationIterator LazyTargetsList::DelegationIterator::operato
   }
 
   if (children_idx_ < tree_node_->children.size()) {
-    auto new_tree_node = tree_node_->children[children_idx_].get();
+    auto *new_tree_node = tree_node_->children[children_idx_].get();
     target_idx_ = 0;
     children_idx_ = 0;
     ++level_;
@@ -170,7 +170,7 @@ LazyTargetsList::DelegationIterator LazyTargetsList::DelegationIterator::operato
 
   // then go to the parent delegation
   if (tree_node_->parent != nullptr) {
-    auto new_tree_node = tree_node_->parent;
+    auto *new_tree_node = tree_node_->parent;
     children_idx_ = tree_node_->parent_idx + 1;
     --level_;
     terminating_ = false;

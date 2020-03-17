@@ -34,7 +34,7 @@ struct DownloadMetaStruct {
 
 static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* userp) {
   assert(userp);
-  auto ds = static_cast<DownloadMetaStruct*>(userp);
+  auto* ds = static_cast<DownloadMetaStruct*>(userp);
   uint64_t downloaded = size * nmemb;
   uint64_t expected = ds->target.length();
   if ((ds->downloaded_length + downloaded) > expected) {
@@ -54,7 +54,7 @@ static int ProgressHandler(void* clientp, curl_off_t dltotal, curl_off_t dlnow, 
   (void)dlnow;
   (void)ultotal;
   (void)ulnow;
-  auto ds = static_cast<DownloadMetaStruct*>(clientp);
+  auto* ds = static_cast<DownloadMetaStruct*>(clientp);
 
   uint64_t expected = ds->target.length();
   auto progress = static_cast<unsigned int>((ds->downloaded_length * 100) / expected);

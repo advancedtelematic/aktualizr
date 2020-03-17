@@ -11,7 +11,7 @@
 #include "packagemanagerinterface.h"
 #include "utilities/apiqueue.h"
 
-const char *remote = "aktualizr-remote";
+constexpr const char *remote = "aktualizr-remote";
 
 template <typename T>
 struct GObjectFinalizer {

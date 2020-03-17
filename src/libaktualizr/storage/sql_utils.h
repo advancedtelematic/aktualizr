@@ -46,7 +46,7 @@ class SQLiteStatement {
 
   // get results
   inline boost::optional<std::string> get_result_col_blob(int iCol) {
-    auto b = reinterpret_cast<const char*>(sqlite3_column_blob(stmt_.get(), iCol));
+    const auto* b = reinterpret_cast<const char*>(sqlite3_column_blob(stmt_.get(), iCol));
     if (b == nullptr) {
       return boost::none;
     }
@@ -55,7 +55,7 @@ class SQLiteStatement {
   }
 
   inline boost::optional<std::string> get_result_col_str(int iCol) {
-    auto b = reinterpret_cast<const char*>(sqlite3_column_text(stmt_.get(), iCol));
+    const auto* b = reinterpret_cast<const char*>(sqlite3_column_text(stmt_.get(), iCol));
     if (b == nullptr) {
       return boost::none;
     }

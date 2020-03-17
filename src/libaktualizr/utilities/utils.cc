@@ -302,7 +302,7 @@ struct archive_state {
 };
 
 static ssize_t read_cb(struct archive *a, void *client_data, const void **buffer) {
-  auto s = reinterpret_cast<archive_state *>(client_data);
+  auto *s = reinterpret_cast<archive_state *>(client_data);
   if (s->is.fail()) {
     archive_set_error(a, -1, "unable to read from stream");
     return 0;
@@ -536,7 +536,7 @@ std::string Utils::readFileFromArchive(std::istream &as, const std::string &file
 }
 
 static ssize_t write_cb(struct archive *a, void *client_data, const void *buffer, size_t length) {
-  auto s = reinterpret_cast<std::ostream *>(client_data);
+  auto *s = reinterpret_cast<std::ostream *>(client_data);
   s->write(reinterpret_cast<const char *>(buffer), static_cast<ssize_t>(length));
   if (s->fail()) {
     archive_set_error(a, -1, "unable to write in stream");
@@ -667,7 +667,7 @@ std::vector<boost::filesystem::path> Utils::getDirEntriesByExt(const boost::file
   std::vector<boost::filesystem::path> entries;
   boost::filesystem::directory_iterator entryItEnd, entryIt(dir_path);
   for (; entryIt != entryItEnd; ++entryIt) {
-    auto &entry_path = entryIt->path();
+    const auto &entry_path = entryIt->path();
     if (!boost::filesystem::is_directory(*entryIt) && entry_path.extension().string() == ext) {
       entries.push_back(entry_path);
     }

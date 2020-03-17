@@ -193,7 +193,7 @@ std::string KeyManager::getCN() const {
   }
   boost::scoped_array<char> buf(new char[len + 1]);
   X509_NAME_get_text_by_NID(X509_get_subject_name(x.get()), NID_commonName, buf.get(), len + 1);
-  const std::string cn(buf.get());
+  std::string cn(buf.get());
   return cn;
 }
 
