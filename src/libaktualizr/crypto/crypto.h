@@ -30,7 +30,7 @@ class PublicKey {
 
   explicit PublicKey(Json::Value uptane_json);
 
-  PublicKey(std::string value, KeyType type);
+  PublicKey(const std::string &value, KeyType type);
 
   std::string Value() const { return value_; }
 
