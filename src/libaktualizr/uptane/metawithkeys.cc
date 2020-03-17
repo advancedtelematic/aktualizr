@@ -90,12 +90,12 @@ void Uptane::MetaWithKeys::UnpackSignedObject(const RepositoryType repo, const R
       throw SecurityException(repository, std::string("Unsupported sign method: ") + (*sig)["method"].asString());
     }
 
-    if (keys_.count(keyid) == 0u) {
+    if (keys_.count(keyid) == 0U) {
       LOG_DEBUG << "Signed by unknown KeyId: " << keyid << ". Skipping.";
       continue;
     }
 
-    if (keys_for_role_.count(std::make_pair(role, keyid)) == 0u) {
+    if (keys_for_role_.count(std::make_pair(role, keyid)) == 0U) {
       LOG_WARNING << "KeyId " << keyid << " is not valid to sign for this role (" << role.ToString() << ").";
       continue;
     }

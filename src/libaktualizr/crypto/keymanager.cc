@@ -266,7 +266,7 @@ void KeyManager::copyCertsToCurl(HttpInterface &http) {
   std::string cert = getCert();
   std::string ca = getCa();
 
-  if ((pkey.size() != 0u) && (cert.size() != 0u) && (ca.size() != 0u)) {
+  if ((pkey.size() != 0U) && (cert.size() != 0U) && (ca.size() != 0U)) {
     http.setCerts(ca, config_.tls_ca_source, cert, config_.tls_cert_source, pkey, config_.tls_pkey_source);
   }
 }

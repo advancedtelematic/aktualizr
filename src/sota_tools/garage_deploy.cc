@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
   try {
     po::store(po::parse_command_line(argc, reinterpret_cast<const char *const *>(argv), desc), vm);
 
-    if (vm.count("help") != 0u) {
+    if (vm.count("help") != 0U) {
       LOG_INFO << desc;
       return EXIT_SUCCESS;
     }
@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
 
   Utils::setUserAgent(std::string("garage-deploy/") + garage_tools_version());
 
-  if (vm.count("dry-run") != 0u) {
+  if (vm.count("dry-run") != 0U) {
     mode = RunMode::kDryRun;
   }
 
