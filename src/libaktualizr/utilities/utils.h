@@ -191,12 +191,12 @@ struct _Unique_if {
 };
 
 template <class T>
-struct _Unique_if<T[]> {
-  using _Unknown_bound = std::unique_ptr<T[]>;
+struct _Unique_if<T[]> {                        // NOLINT: modernize-avoid-c-arrays
+  using _Unknown_bound = std::unique_ptr<T[]>;  // NOLINT: modernize-avoid-c-arrays
 };
 
 template <class T, size_t N>
-struct _Unique_if<T[N]> {
+struct _Unique_if<T[N]> {  // NOLINT: modernize-avoid-c-arrays
   using _Known_bound = void;
 };
 

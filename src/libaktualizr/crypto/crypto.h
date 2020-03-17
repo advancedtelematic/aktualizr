@@ -71,9 +71,9 @@ class MultiPartSHA512Hasher : public MultiPartHasher {
   ~MultiPartSHA512Hasher() override = default;
   void update(const unsigned char *part, uint64_t size) override { crypto_hash_sha512_update(&state_, part, size); }
   std::string getHexDigest() override {
-    unsigned char sha512_hash[crypto_hash_sha512_BYTES];
-    crypto_hash_sha512_final(&state_, static_cast<unsigned char *>(sha512_hash));
-    return boost::algorithm::hex(std::string(reinterpret_cast<char *>(sha512_hash), crypto_hash_sha512_BYTES));
+    std::array<unsigned char, crypto_hash_sha512_BYTES> sha512_hash{};
+    crypto_hash_sha512_final(&state_, sha512_hash.data());
+    return boost::algorithm::hex(std::string(reinterpret_cast<char *>(sha512_hash.data()), crypto_hash_sha512_BYTES));
   }
 
  private:
@@ -86,9 +86,9 @@ class MultiPartSHA256Hasher : public MultiPartHasher {
   ~MultiPartSHA256Hasher() override = default;
   void update(const unsigned char *part, uint64_t size) override { crypto_hash_sha256_update(&state_, part, size); }
   std::string getHexDigest() override {
-    unsigned char sha256_hash[crypto_hash_sha256_BYTES];
-    crypto_hash_sha256_final(&state_, static_cast<unsigned char *>(sha256_hash));
-    return boost::algorithm::hex(std::string(reinterpret_cast<char *>(sha256_hash), crypto_hash_sha256_BYTES));
+    std::array<unsigned char, crypto_hash_sha256_BYTES> sha256_hash{};
+    crypto_hash_sha256_final(&state_, sha256_hash.data());
+    return boost::algorithm::hex(std::string(reinterpret_cast<char *>(sha256_hash.data()), crypto_hash_sha256_BYTES));
   }
 
  private:

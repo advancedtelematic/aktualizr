@@ -23,8 +23,8 @@ void DequeueBuffer::Consume(size_t bytes) {
     throw std::logic_error("Attempt to DequeueBuffer::Consume() more bytes than are valid");
   }
   // Shuffle up the buffer
-  auto next_unconsumed_byte = buffer_.begin() + bytes;
-  auto end_of_written_area = buffer_.begin() + written_bytes_;
+  auto* next_unconsumed_byte = buffer_.begin() + bytes;
+  auto* end_of_written_area = buffer_.begin() + written_bytes_;
   std::copy(next_unconsumed_byte, end_of_written_area, buffer_.begin());
   written_bytes_ -= bytes;
 }

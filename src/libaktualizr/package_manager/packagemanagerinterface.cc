@@ -70,11 +70,11 @@ static int ProgressHandler(void* clientp, curl_off_t dltotal, curl_off_t dlnow, 
 
 static void restoreHasherState(MultiPartHasher& hasher, StorageTargetRHandle* data) {
   size_t data_len;
-  size_t buf_len = 1024;
-  uint8_t buf[buf_len];
+  static constexpr size_t buf_len = 1024;
+  std::array<uint8_t, buf_len> buf{};
   do {
-    data_len = data->rread(buf, buf_len);
-    hasher.update(buf, data_len);
+    data_len = data->rread(buf.data(), buf.size());
+    hasher.update(buf.data(), data_len);
   } while (data_len != 0);
 }
 

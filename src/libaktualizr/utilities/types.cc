@@ -1,13 +1,14 @@
 #include "utilities/types.h"
 
+#include <array>
 #include <sstream>
 #include <stdexcept>
 #include <utility>
 
 std::string TimeToString(struct tm time) {
-  char formatted[22];
-  strftime(formatted, 22, "%Y-%m-%dT%H:%M:%SZ", &time);
-  return formatted;
+  std::array<char, 22> formatted{};
+  strftime(formatted.data(), 22, "%Y-%m-%dT%H:%M:%SZ", &time);
+  return std::string(formatted.data());
 }
 
 TimeStamp TimeStamp::Now() { return TimeStamp(CurrentTime()); }
