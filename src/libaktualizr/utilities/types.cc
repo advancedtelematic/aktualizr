@@ -53,7 +53,7 @@ std::ostream &operator<<(std::ostream &os, const TimeStamp &t) {
 }
 
 namespace data {
-Json::Value Package::toJson() {
+Json::Value Package::toJson() const {
   Json::Value json;
   json["name"] = name;
   json["version"] = version;

@@ -71,7 +71,7 @@ class TemporaryFile {
   TemporaryFile(const TemporaryFile &) = delete;
   TemporaryFile operator=(const TemporaryFile &) = delete;
   ~TemporaryFile();
-  void PutContents(const std::string &contents);
+  void PutContents(const std::string &contents) const;
   boost::filesystem::path Path() const;
   std::string PathString() const;
 
@@ -134,10 +134,10 @@ class Socket {
   Socket &operator=(const Socket &) = delete;
 
   int &operator*() { return socket_fd_; }
-  std::string toString();
+  std::string toString() const;
 
  protected:
-  void bind(in_port_t port, bool reuse = true);
+  void bind(in_port_t port, bool reuse = true) const;
 
  protected:
   int socket_fd_;

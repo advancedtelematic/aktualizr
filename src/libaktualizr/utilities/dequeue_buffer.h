@@ -18,7 +18,7 @@ class DequeueBuffer {
   /**
    * The number of elements that are valid (have been written) after Head()
    */
-  size_t Size();
+  size_t Size() const;
 
   /**
    * Called after bytes have been read from Head(). Remove them from the head

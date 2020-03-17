@@ -8,7 +8,7 @@ char* DequeueBuffer::Head() {
   return buffer_.data();
 }
 
-size_t DequeueBuffer::Size() {
+size_t DequeueBuffer::Size() const {
   assert(sentinel_ == kSentinel);
   return written_bytes_;
 }

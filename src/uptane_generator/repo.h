@@ -19,7 +19,7 @@ struct KeyPair {
 struct Delegation {
   Delegation() = default;
   Delegation(const boost::filesystem::path &repo_path, std::string delegation_name);
-  bool isMatched(const boost::filesystem::path &image_path) {
+  bool isMatched(const boost::filesystem::path &image_path) const {
     return (fnmatch(pattern.c_str(), image_path.c_str(), 0) == 0);
   }
   operator bool() const { return (!name.empty() && !pattern.empty()); }

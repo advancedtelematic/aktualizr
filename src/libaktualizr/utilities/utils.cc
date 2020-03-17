@@ -799,7 +799,7 @@ TemporaryFile::TemporaryFile(const std::string &hint)
 
 TemporaryFile::~TemporaryFile() { boost::filesystem::remove(tmp_name_); }
 
-void TemporaryFile::PutContents(const std::string &contents) {
+void TemporaryFile::PutContents(const std::string &contents) const {
   mode_t mode = S_IRUSR | S_IWUSR;
   int fd = open(Path().c_str(), O_WRONLY | O_CREAT | O_TRUNC, mode);
   if (fd < 0) {
@@ -860,12 +860,12 @@ Socket::Socket() {
 
 Socket::~Socket() { ::close(socket_fd_); }
 
-std::string Socket::toString() {
+std::string Socket::toString() const {
   auto saddr = Utils::ipGetSockaddr(socket_fd_);
   return Utils::ipDisplayName(saddr) + ":" + std::to_string(Utils::ipPort(saddr));
 }
 
-void Socket::bind(in_port_t port, bool reuse) {
+void Socket::bind(in_port_t port, bool reuse) const {
   sockaddr_in sa{};
   memset(&sa, 0, sizeof(sa));
   sa.sin_family = AF_INET;

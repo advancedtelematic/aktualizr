@@ -261,7 +261,7 @@ void KeyManager::getCertInfo(std::string *subject, std::string *issuer, std::str
   *not_after = std::string(na_buf, static_cast<size_t>(na_len));
 }
 
-void KeyManager::copyCertsToCurl(HttpInterface &http) {
+void KeyManager::copyCertsToCurl(HttpInterface &http) const {
   std::string pkey = getPkey();
   std::string cert = getCert();
   std::string ca = getCa();

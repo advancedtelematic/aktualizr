@@ -43,7 +43,7 @@ class StorageTargetWHandle {
   virtual size_t wfeed(const uint8_t* buf, size_t size) = 0;
   virtual void wcommit() = 0;
   virtual void wabort() = 0;
-  uintmax_t getWrittenSize() { return written_size_; }
+  uintmax_t getWrittenSize() const { return written_size_; }
 
   friend std::istream& operator>>(std::istream& is, StorageTargetWHandle& handle) {
     std::array<uint8_t, 256> arr{};
