@@ -156,7 +156,7 @@ class BaseConfig {
     }
   }
 
-  void checkDirs(const std::vector<boost::filesystem::path>& configs) {
+  static void checkDirs(const std::vector<boost::filesystem::path>& configs) {
     for (const auto& config : configs) {
       if (!boost::filesystem::exists(config)) {
         throw std::runtime_error("Config directory " + config.string() + " does not exist.");

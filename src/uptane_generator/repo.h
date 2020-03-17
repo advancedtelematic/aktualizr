@@ -44,7 +44,7 @@ class Repo {
  protected:
   void generateRepoKeys(KeyType key_type);
   void generateKeyPair(KeyType key_type, const Uptane::Role &key_name);
-  std::string getExpirationTime(const std::string &expires);
+  static std::string getExpirationTime(const std::string &expires);
   void readKeys();
   void updateRepo();
   Uptane::RepositoryType repo_type_;

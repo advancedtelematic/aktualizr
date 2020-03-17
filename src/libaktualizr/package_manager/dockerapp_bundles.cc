@@ -42,7 +42,7 @@ struct AppBundle {
 
   // Utils::shell isn't interactive. The docker app commands can take a few
   // seconds to run, so we use std::system to stream it to stdout/sterr
-  bool cmd_streaming(const std::string &cmd) { return std::system(cmd.c_str()) == 0; }
+  static bool cmd_streaming(const std::string &cmd) { return std::system(cmd.c_str()) == 0; }
 
   bool fetch(const std::string &app_uri) { return cmd_streaming("docker app pull " + app_uri); }
 
