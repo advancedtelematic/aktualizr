@@ -46,6 +46,7 @@ set(HEADERS ${proto_hdrs} ${grpc_hdrs})
 
 aktualizr_source_file_checks(main.cc)
 
+add_definitions("-Wno-array-bounds")
 add_executable(${TARGET_NAME} ${SOURCES})
 
 target_link_libraries(${TARGET_NAME} aktualizr_lib ${_GRPC_GRPCPP_UNSECURE} ${_PROTOBUF_LIBPROTOBUF})
