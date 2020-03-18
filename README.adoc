@@ -229,22 +229,8 @@ Alternatively, link:scripts/run_docker_test.sh[] can directly run the test scrip
 
 === Building (with) gRPC
 
-Building the aktualizr branch with gRPC support will require you to install gRPC binaries and supporting development headers on your machine. The binary distribution lacks the necessary CMake macros, so a source build is required. Furthermore, the binary install from the sourcebuild that links to host binaries needs to be bootstrapped by a build which uses dependencies shipped as git submodules in the tree. Hence:
-
-----
-git clone --recursive git@github.com:grpc/grpc.git && cd grpc
-mkdir build && cd build
-cmake ..
-make && sudo make install
-----
-
-----
-cd .. && rm -rf build
-mkdir build && cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release -DgRPC_ZLIB_PROVIDER=package -DgRPC_CARES_PROVIDER=package -DgRPC_SSL_PROVIDER=package -DgRPC_PROTOBUF_PROVIDER=package -DgRPC_INSTALL=ON
-make && sudo make install
-----
-
+Building the aktualizr branch with gRPC support will require you to install gRPC binaries and supporting development headers on your machine. The binary distribution lacks the necessary CMake macros, so a source build is required.
+See how to build and install gRPC here: https://github.com/grpc/grpc/blob/master/BUILDING.md
 You should then be able to build aktualizr against the gRPC library and headers that are now installed in the host. Currently, only Ninja builds are working, so from the aktualizr source folder:
 
 ----
