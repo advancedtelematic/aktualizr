@@ -50,7 +50,7 @@ aktualizr_source_file_checks(main.cc)
 
 add_executable(${TARGET_NAME} ${SOURCES})
 
-target_link_libraries(${TARGET_NAME} aktualizr_static_lib ${AKTUALIZR_EXTERNAL_LIBS} ${_GRPC_GRPCPP_UNSECURE} ${_PROTOBUF_LIBPROTOBUF})
+target_link_libraries(${TARGET_NAME} aktualizr_lib ${_GRPC_GRPCPP_UNSECURE} ${_PROTOBUF_LIBPROTOBUF})
 
 install(TARGETS ${TARGET_NAME} RUNTIME DESTINATION bin COMPONENT ${TARGET_NAME})
 

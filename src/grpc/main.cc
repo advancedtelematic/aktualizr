@@ -20,7 +20,7 @@
 #include "config/config.h"
 #include "logging/logging.h"
 #include "primary/aktualizr.h"
-#include "uptane/secondaryfactory.h"
+#include "utilities/aktualizr_version.h"
 #include "utilities/utils.h"
 
 using grpc::Server;
@@ -48,7 +48,7 @@ void check_info_options(const bpo::options_description &description, const bpo::
     exit(EXIT_SUCCESS);
   }
   if (vm.count("version") != 0) {
-    std::cout << "Current aktualizr-grpc-srv version is: " << AKTUALIZR_VERSION << "\n";
+    std::cout << "Current aktualizr-grpc-srv version is: " << aktualizr_version() << "\n";
     exit(EXIT_SUCCESS);
   }
 }
@@ -92,18 +92,14 @@ class HmiServerImpl final : public HmiServer::Service {
     explicit HmiServerImpl(Config& config) :
       aktualizr_(config) { aktualizr_.Initialize(); }
 
-    ~HmiServerImpl() {
-      aktualizr_.Shutdown();
-    }
-
     Status Check(ServerContext* context,
         const CheckRequest* request,
         CheckResponse* response) override {
       (void)request;
       (void)context;
       try {
-        aktualizr_.SendDeviceData();
-        auto campaigns = aktualizr_.CampaignCheck().campaigns;
+        aktualizr_.SendDeviceData().get();
+        auto campaigns = aktualizr_.CampaignCheck().get().campaigns;
         for (const auto& campaign : campaigns) {
           auto c = response->add_campaigns();
           c->set_id(campaign.id);
@@ -125,9 +121,9 @@ class HmiServerImpl final : public HmiServer::Service {
         ServerWriter<DownloadResponse>* writer) {
       (void)context;
       try {
-        aktualizr_.CampaignAccept(request->campaign_id());
-        auto updates = aktualizr_.CheckUpdates();
-        if (updates.status != UpdateStatus::kUpdatesAvailable)
+        aktualizr_.CampaignControl(request->campaign_id(), campaign::Cmd::Accept).get();
+        auto updates = aktualizr_.CheckUpdates().get();
+        if (updates.status != result::UpdateStatus::kUpdatesAvailable)
           throw(std::runtime_error("No updates found for the campaign"));
 
         std::function<void(std::shared_ptr<event::BaseEvent>)> handler = 
@@ -142,9 +138,9 @@ class HmiServerImpl final : public HmiServer::Service {
           };
         auto conn = aktualizr_.SetSignalHandler(handler);
 
-        auto download = aktualizr_.Download(updates.updates);
+        auto download = aktualizr_.Download(updates.updates).get();
         conn.disconnect(); // TODO no disconnect on exception in Download
-        if (download.status != DownloadStatus::kSuccess)
+        if (download.status != result::DownloadStatus::kSuccess)
           throw(std::runtime_error("Download failed"));
 
         install_targets_ = download.updates;
@@ -162,12 +158,12 @@ class HmiServerImpl final : public HmiServer::Service {
       (void)request;
       (void)response;
       try {
-        auto result = aktualizr_.Install(install_targets_);
-        for (const auto& target : result.reports) {
-          if (!target.status.isSuccess())
+        auto result = aktualizr_.Install(install_targets_).get();
+        for (const auto& target : result.ecu_reports) {
+          if (!target.install_res.isSuccess())
             throw(std::runtime_error("Installation failed"));
         }
-        aktualizr_.SendDeviceData();
+        aktualizr_.SendDeviceData().get();
       } catch (const std::exception &ex) {
         LOG_ERROR << "RPC Install error: " << ex.what();
         return Status(StatusCode::INTERNAL, ex.what(), "");
@@ -184,13 +180,10 @@ int main(int argc, char *argv[]) {
   try {
     logger_init();
     logger_set_threshold(boost::log::trivial::trace);
-    LOG_INFO << "Aktualizr gRPC server version " AKTUALIZR_VERSION " starting";
+    LOG_INFO << "Aktualizr gRPC server version " << aktualizr_version() << " starting";
 
     bpo::variables_map commandline_map = parse_options(argc, argv);
     Config config(commandline_map);
-    if (config.logger.loglevel <= boost::log::trivial::debug) {
-      SSL_load_error_strings();
-    }
     LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
 
     HmiServerImpl service(config);
