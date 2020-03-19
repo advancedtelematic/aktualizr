@@ -118,7 +118,7 @@ using UpdateRequestId = std::string;
 struct Package {
   std::string name;
   std::string version;
-  Json::Value toJson();
+  Json::Value toJson() const;
   static Package fromJson(const std::string& /*json_str*/);
 };
 

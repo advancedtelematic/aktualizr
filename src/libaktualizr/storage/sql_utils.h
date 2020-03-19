@@ -46,7 +46,7 @@ class SQLiteStatement {
 
   // get results
   inline boost::optional<std::string> get_result_col_blob(int iCol) {
-    auto b = reinterpret_cast<const char*>(sqlite3_column_blob(stmt_.get(), iCol));
+    const auto* b = reinterpret_cast<const char*>(sqlite3_column_blob(stmt_.get(), iCol));
     if (b == nullptr) {
       return boost::none;
     }
@@ -55,7 +55,7 @@ class SQLiteStatement {
   }
 
   inline boost::optional<std::string> get_result_col_str(int iCol) {
-    auto b = reinterpret_cast<const char*>(sqlite3_column_text(stmt_.get(), iCol));
+    const auto* b = reinterpret_cast<const char*>(sqlite3_column_text(stmt_.get(), iCol));
     if (b == nullptr) {
       return boost::none;
     }
@@ -125,7 +125,7 @@ extern std::mutex sql_mutex;
 class SQLite3Guard {
  public:
   sqlite3* get() { return handle_.get(); }
-  int get_rc() { return rc_; }
+  int get_rc() const { return rc_; }
 
   explicit SQLite3Guard(const char* path, bool readonly, std::shared_ptr<std::mutex> mutex = nullptr)
       : handle_(nullptr, sqlite3_close), rc_(0), m_(std::move(mutex)) {

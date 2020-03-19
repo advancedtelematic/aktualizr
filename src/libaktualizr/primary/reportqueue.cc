@@ -73,7 +73,7 @@ void ReportEvent::setCorrelationId(const std::string& correlation_id) {
   }
 }
 
-Json::Value ReportEvent::toJson() {
+Json::Value ReportEvent::toJson() const {
   Json::Value out;
 
   out["id"] = id;

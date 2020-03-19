@@ -23,7 +23,7 @@ class ReportEvent {
   Json::Value custom;
   TimeStamp timestamp;
 
-  Json::Value toJson();
+  Json::Value toJson() const;
 
  protected:
   ReportEvent(std::string event_type, int event_version)

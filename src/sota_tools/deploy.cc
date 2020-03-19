@@ -110,7 +110,7 @@ bool PushRootRef(const TreehubServer &push_server, const OSTreeRef &ref) {
   curlEasySetoptWrapper(easy_handle.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
   ref.PushRef(push_server, easy_handle.get());
   CURLcode err = curl_easy_perform(easy_handle.get());
-  if (err != 0u) {
+  if (err != 0U) {
     LOG_ERROR << "Error pushing root ref: " << curl_easy_strerror(err);
     return false;
   }

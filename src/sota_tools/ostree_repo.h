@@ -23,7 +23,7 @@ class OSTreeRepo {
 
   virtual ~OSTreeRepo() = default;
   virtual bool LooksValid() const = 0;
-  virtual const boost::filesystem::path root() const = 0;
+  virtual boost::filesystem::path root() const = 0;
   virtual OSTreeRef GetRef(const std::string& refname) const = 0;
 
   OSTreeObject::ptr GetObject(OSTreeHash hash, OstreeObjectType type) const;

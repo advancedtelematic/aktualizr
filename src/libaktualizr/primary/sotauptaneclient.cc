@@ -635,7 +635,7 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(const Uptane::Ta
 
   KeyManager keys(storage, config.keymanagerConfig());
   keys.loadKeys();
-  auto prog_cb = [this](const Uptane::Target &t, const std::string description, unsigned int progress) {
+  auto prog_cb = [this](const Uptane::Target &t, const std::string &description, unsigned int progress) {
     report_progress_cb(events_channel.get(), t, description, progress);
   };
 

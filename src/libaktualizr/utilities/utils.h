@@ -71,7 +71,7 @@ class TemporaryFile {
   TemporaryFile(const TemporaryFile &) = delete;
   TemporaryFile operator=(const TemporaryFile &) = delete;
   ~TemporaryFile();
-  void PutContents(const std::string &contents);
+  void PutContents(const std::string &contents) const;
   boost::filesystem::path Path() const;
   std::string PathString() const;
 
@@ -134,10 +134,10 @@ class Socket {
   Socket &operator=(const Socket &) = delete;
 
   int &operator*() { return socket_fd_; }
-  std::string toString();
+  std::string toString() const;
 
  protected:
-  void bind(in_port_t port, bool reuse = true);
+  void bind(in_port_t port, bool reuse = true) const;
 
  protected:
   int socket_fd_;
@@ -178,7 +178,7 @@ class CurlEasyWrapper {
 template <typename... T>
 static void curlEasySetoptWrapper(CURL *curl_handle, CURLoption option, T &&... args) {
   const CURLcode retval = curl_easy_setopt(curl_handle, option, std::forward<T>(args)...);
-  if (retval != 0u) {
+  if (retval != 0U) {
     throw std::runtime_error(std::string("curl_easy_setopt error: ") + curl_easy_strerror(retval));
   }
 }
@@ -191,12 +191,12 @@ struct _Unique_if {
 };
 
 template <class T>
-struct _Unique_if<T[]> {
-  using _Unknown_bound = std::unique_ptr<T[]>;
+struct _Unique_if<T[]> {                        // NOLINT: modernize-avoid-c-arrays
+  using _Unknown_bound = std::unique_ptr<T[]>;  // NOLINT: modernize-avoid-c-arrays
 };
 
 template <class T, size_t N>
-struct _Unique_if<T[N]> {
+struct _Unique_if<T[N]> {  // NOLINT: modernize-avoid-c-arrays
   using _Known_bound = void;
 };
 

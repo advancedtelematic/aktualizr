@@ -26,13 +26,13 @@ struct HttpResponse {
   long http_status_code{0};  // NOLINT(google-runtime-int)
   CURLcode curl_code{CURLE_OK};
   std::string error_message;
-  bool isOk() { return (curl_code == CURLE_OK && http_status_code >= 200 && http_status_code < 400); }
-  bool wasInterrupted() { return curl_code == CURLE_ABORTED_BY_CALLBACK; };
-  std::string getStatusStr() {
+  bool isOk() const { return (curl_code == CURLE_OK && http_status_code >= 200 && http_status_code < 400); }
+  bool wasInterrupted() const { return curl_code == CURLE_ABORTED_BY_CALLBACK; };
+  std::string getStatusStr() const {
     return std::to_string(curl_code) + " " + error_message + " HTTP " + std::to_string(http_status_code);
   }
 
-  Json::Value getJson() { return Utils::parseJSON(body); }
+  Json::Value getJson() const { return Utils::parseJSON(body); }
 };
 
 class HttpInterface {

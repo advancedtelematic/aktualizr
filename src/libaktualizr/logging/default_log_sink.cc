@@ -30,7 +30,7 @@ static void color_fmt(boost::log::record_view const& rec, boost::log::formatting
 }
 
 void logger_init_sink(bool use_colors = false) {
-  auto stream = &std::cerr;
+  auto* stream = &std::cerr;
   if (getenv("LOG_STDERR") == nullptr) {
     stream = &std::cout;
   }

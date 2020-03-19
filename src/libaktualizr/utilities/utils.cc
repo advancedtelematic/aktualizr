@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <algorithm>
+#include <array>
 #include <cstdlib>
 #include <fstream>
 #include <iomanip>
@@ -33,7 +34,7 @@
 #include "aktualizr_version.h"
 #include "logging/logging.h"
 
-const char *adverbs[] = {
+static const std::array<const char *, 132> adverbs = {
     "adorable", "acidic",     "ample",        "aromatic",   "artistic", "attractive", "basic",    "beautiful",
     "best",     "blissful",   "bubbly",       "celebrated", "cheap",    "chilly",     "cloudy",   "colorful",
     "colossal", "complete",   "conventional", "costly",     "creamy",   "crisp",      "dense",    "double",
@@ -52,134 +53,134 @@ const char *adverbs[] = {
     "uniform",  "unusual",    "valuable",     "vast",       "warm",     "wavy",       "wet",      "whole",
     "wide",     "wild",       "wooden",       "young"};
 
-const char *names[] = {"Allerlei",
-                       "Apfelkuchen",
-                       "Backerbsen",
-                       "Baumkuchen",
-                       "Beetenbartsch",
-                       "Berliner",
-                       "Bethmaennchen",
-                       "Biersuppe",
-                       "Birnenfladen",
-                       "Bohnen",
-                       "Bratapfel",
-                       "Bratkartoffeln",
-                       "Brezel",
-                       "Broetchen",
-                       "Butterkuchen",
-                       "Currywurst",
-                       "Dampfnudel",
-                       "Dibbelabbes",
-                       "Eierkuchen",
-                       "Eintopf",
-                       "Erbsensuppe",
-                       "Flaedlesuppe",
-                       "Flammkuchen",
-                       "Fliederbeersuppe",
-                       "Franzbroetchen",
-                       "Funkenkuechlein",
-                       "Gedadschde",
-                       "Gemueseschnitzel",
-                       "Germknoedel",
-                       "Gerstensuppe",
-                       "Griessbrei",
-                       "Gruenkohl",
-                       "Gruetze",
-                       "Gummibaerchen",
-                       "Gurkensalat",
-                       "Habermus",
-                       "Haddekuche",
-                       "Hagebuttenmark",
-                       "Handkaese",
-                       "Herrencreme",
-                       "Hoorische",
-                       "Kaesekuchen",
-                       "Kaiserschmarrn",
-                       "Kartoffelpueree",
-                       "Kartoffelpuffer",
-                       "Kartoffelsalat",
-                       "Kastanien",
-                       "Kichererbsen",
-                       "Kirschenmichel",
-                       "Kirschtorte",
-                       "Klaben",
-                       "Kloesse",
-                       "Kluntjes",
-                       "Knaeckebrot",
-                       "Kniekuechle",
-                       "Knoedel",
-                       "Kohlroulade",
-                       "Krautfleckerl",
-                       "Kuerbiskernbrot",
-                       "Kuerbissuppe",
-                       "Lebkuchen",
-                       "Linsen",
-                       "Loeffelerbsen",
-                       "Magenbrot",
-                       "Marillenknoedel",
-                       "Maroni",
-                       "Marsch",
-                       "Marzipan",
-                       "Maultaschen",
-                       "Milliramstrudel",
-                       "Mischbrot",
-                       "Mohnnudeln",
-                       "Mohnpielen",
-                       "Mohnzelten",
-                       "Muesli",
-                       "Nussecke",
-                       "Nusstorte",
-                       "Palatschinke",
-                       "Pellkartoffeln",
-                       "Pfannkuchen",
-                       "Pfefferkuchen",
-                       "Pillekuchen",
-                       "Pommes",
-                       "Poschweck",
-                       "Powidltascherl",
-                       "Printen",
-                       "Prinzregententorte",
-                       "Pumpernickel",
-                       "Punschkrapfen",
-                       "Quarkkeulchen",
-                       "Quetschkartoffeln",
-                       "Raclette",
-                       "Radi",
-                       "Reibekuchen",
-                       "Reinling",
-                       "Riebel",
-                       "Roeggelchen",
-                       "Roesti",
-                       "Sauerkraut",
-                       "Schmalzkuchen",
-                       "Schmorgurken",
-                       "Schnippelbohnen",
-                       "Schoeberl",
-                       "Schrippe",
-                       "Schupfnudel",
-                       "Schuxen",
-                       "Schwammerlsuppe",
-                       "Schweineohren",
-                       "Sonnenblumenkernbrot",
-                       "Spaetzle",
-                       "Spaghettieis",
-                       "Spargel",
-                       "Spekulatius",
-                       "Springerle",
-                       "Spritzkuchen",
-                       "Stampfkartoffeln",
-                       "Sterz",
-                       "Stollen",
-                       "Streuselkuchen",
-                       "Tilsit",
-                       "Toastbrot",
-                       "Topfenstrudel",
-                       "Vollkornbrot",
-                       "Wibele",
-                       "Wickelkloesse",
-                       "Zimtwaffeln",
-                       "Zwetschkenroester",
-                       "Zwiebelkuchen"};
+static const std::array<const char *, 128> names = {"Allerlei",
+                                                    "Apfelkuchen",
+                                                    "Backerbsen",
+                                                    "Baumkuchen",
+                                                    "Beetenbartsch",
+                                                    "Berliner",
+                                                    "Bethmaennchen",
+                                                    "Biersuppe",
+                                                    "Birnenfladen",
+                                                    "Bohnen",
+                                                    "Bratapfel",
+                                                    "Bratkartoffeln",
+                                                    "Brezel",
+                                                    "Broetchen",
+                                                    "Butterkuchen",
+                                                    "Currywurst",
+                                                    "Dampfnudel",
+                                                    "Dibbelabbes",
+                                                    "Eierkuchen",
+                                                    "Eintopf",
+                                                    "Erbsensuppe",
+                                                    "Flaedlesuppe",
+                                                    "Flammkuchen",
+                                                    "Fliederbeersuppe",
+                                                    "Franzbroetchen",
+                                                    "Funkenkuechlein",
+                                                    "Gedadschde",
+                                                    "Gemueseschnitzel",
+                                                    "Germknoedel",
+                                                    "Gerstensuppe",
+                                                    "Griessbrei",
+                                                    "Gruenkohl",
+                                                    "Gruetze",
+                                                    "Gummibaerchen",
+                                                    "Gurkensalat",
+                                                    "Habermus",
+                                                    "Haddekuche",
+                                                    "Hagebuttenmark",
+                                                    "Handkaese",
+                                                    "Herrencreme",
+                                                    "Hoorische",
+                                                    "Kaesekuchen",
+                                                    "Kaiserschmarrn",
+                                                    "Kartoffelpueree",
+                                                    "Kartoffelpuffer",
+                                                    "Kartoffelsalat",
+                                                    "Kastanien",
+                                                    "Kichererbsen",
+                                                    "Kirschenmichel",
+                                                    "Kirschtorte",
+                                                    "Klaben",
+                                                    "Kloesse",
+                                                    "Kluntjes",
+                                                    "Knaeckebrot",
+                                                    "Kniekuechle",
+                                                    "Knoedel",
+                                                    "Kohlroulade",
+                                                    "Krautfleckerl",
+                                                    "Kuerbiskernbrot",
+                                                    "Kuerbissuppe",
+                                                    "Lebkuchen",
+                                                    "Linsen",
+                                                    "Loeffelerbsen",
+                                                    "Magenbrot",
+                                                    "Marillenknoedel",
+                                                    "Maroni",
+                                                    "Marsch",
+                                                    "Marzipan",
+                                                    "Maultaschen",
+                                                    "Milliramstrudel",
+                                                    "Mischbrot",
+                                                    "Mohnnudeln",
+                                                    "Mohnpielen",
+                                                    "Mohnzelten",
+                                                    "Muesli",
+                                                    "Nussecke",
+                                                    "Nusstorte",
+                                                    "Palatschinke",
+                                                    "Pellkartoffeln",
+                                                    "Pfannkuchen",
+                                                    "Pfefferkuchen",
+                                                    "Pillekuchen",
+                                                    "Pommes",
+                                                    "Poschweck",
+                                                    "Powidltascherl",
+                                                    "Printen",
+                                                    "Prinzregententorte",
+                                                    "Pumpernickel",
+                                                    "Punschkrapfen",
+                                                    "Quarkkeulchen",
+                                                    "Quetschkartoffeln",
+                                                    "Raclette",
+                                                    "Radi",
+                                                    "Reibekuchen",
+                                                    "Reinling",
+                                                    "Riebel",
+                                                    "Roeggelchen",
+                                                    "Roesti",
+                                                    "Sauerkraut",
+                                                    "Schmalzkuchen",
+                                                    "Schmorgurken",
+                                                    "Schnippelbohnen",
+                                                    "Schoeberl",
+                                                    "Schrippe",
+                                                    "Schupfnudel",
+                                                    "Schuxen",
+                                                    "Schwammerlsuppe",
+                                                    "Schweineohren",
+                                                    "Sonnenblumenkernbrot",
+                                                    "Spaetzle",
+                                                    "Spaghettieis",
+                                                    "Spargel",
+                                                    "Spekulatius",
+                                                    "Springerle",
+                                                    "Spritzkuchen",
+                                                    "Stampfkartoffeln",
+                                                    "Sterz",
+                                                    "Stollen",
+                                                    "Streuselkuchen",
+                                                    "Tilsit",
+                                                    "Toastbrot",
+                                                    "Topfenstrudel",
+                                                    "Vollkornbrot",
+                                                    "Wibele",
+                                                    "Wickelkloesse",
+                                                    "Zimtwaffeln",
+                                                    "Zwetschkenroester",
+                                                    "Zwiebelkuchen"};
 
 typedef boost::archive::iterators::base64_from_binary<
     boost::archive::iterators::transform_width<std::string::const_iterator, 6, 8> >
@@ -258,9 +259,9 @@ Json::Value Utils::parseJSONFile(const boost::filesystem::path &filename) {
 std::string Utils::genPrettyName() {
   std::random_device urandom;
 
-  std::uniform_int_distribution<> adverbs_dist(0, (sizeof(adverbs) / sizeof(char *)) - 1);
-  std::uniform_int_distribution<> nouns_dist(0, (sizeof(names) / sizeof(char *)) - 1);
-  std::uniform_int_distribution<> digits(0, 999);
+  std::uniform_int_distribution<size_t> adverbs_dist(0, adverbs.size() - 1);
+  std::uniform_int_distribution<size_t> nouns_dist(0, names.size() - 1);
+  std::uniform_int_distribution<size_t> digits(0, 999);
   std::stringstream pretty_name;
   pretty_name << adverbs[adverbs_dist(urandom)];
   pretty_name << "-";
@@ -301,7 +302,7 @@ struct archive_state {
 };
 
 static ssize_t read_cb(struct archive *a, void *client_data, const void **buffer) {
-  auto s = reinterpret_cast<archive_state *>(client_data);
+  auto *s = reinterpret_cast<archive_state *>(client_data);
   if (s->is.fail()) {
     archive_set_error(a, -1, "unable to read from stream");
     return 0;
@@ -444,11 +445,11 @@ Json::Value Utils::getNetworkInfo() {
 }
 
 std::string Utils::getHostname() {
-  char hostname[200];
-  if (gethostname(hostname, 200) < 0) {
+  std::array<char, 200> hostname{};
+  if (gethostname(hostname.data(), hostname.size()) < 0) {
     return "";
   }
-  return hostname;
+  return std::string(hostname.data());
 }
 
 std::string Utils::randomUuid() {
@@ -535,7 +536,7 @@ std::string Utils::readFileFromArchive(std::istream &as, const std::string &file
 }
 
 static ssize_t write_cb(struct archive *a, void *client_data, const void *buffer, size_t length) {
-  auto s = reinterpret_cast<std::ostream *>(client_data);
+  auto *s = reinterpret_cast<std::ostream *>(client_data);
   s->write(reinterpret_cast<const char *>(buffer), static_cast<ssize_t>(length));
   if (s->fail()) {
     archive_set_error(a, -1, "unable to write in stream");
@@ -599,18 +600,18 @@ sockaddr_storage Utils::ipGetSockaddr(int fd) {
 }
 
 std::string Utils::ipDisplayName(const sockaddr_storage &saddr) {
-  char ipstr[INET6_ADDRSTRLEN];
+  std::array<char, INET6_ADDRSTRLEN> ipstr{};
 
   switch (saddr.ss_family) {
     case AF_INET: {
       const auto *sa = reinterpret_cast<const sockaddr_in *>(&saddr);
-      inet_ntop(AF_INET, &sa->sin_addr, ipstr, sizeof(ipstr));
-      return std::string(ipstr);
+      inet_ntop(AF_INET, &sa->sin_addr, ipstr.data(), ipstr.size());
+      return std::string(ipstr.data());
     }
     case AF_INET6: {
       const auto *sa = reinterpret_cast<const sockaddr_in6 *>(&saddr);
-      inet_ntop(AF_INET6, &sa->sin6_addr, ipstr, sizeof(ipstr));
-      return std::string(ipstr);
+      inet_ntop(AF_INET6, &sa->sin6_addr, ipstr.data(), ipstr.size());
+      return std::string(ipstr.data());
     }
     default:
       return "unknown";
@@ -666,7 +667,7 @@ std::vector<boost::filesystem::path> Utils::getDirEntriesByExt(const boost::file
   std::vector<boost::filesystem::path> entries;
   boost::filesystem::directory_iterator entryItEnd, entryIt(dir_path);
   for (; entryIt != entryItEnd; ++entryIt) {
-    auto &entry_path = entryIt->path();
+    const auto &entry_path = entryIt->path();
     if (!boost::filesystem::is_directory(*entryIt) && entry_path.extension().string() == ext) {
       entries.push_back(entry_path);
     }
@@ -798,7 +799,7 @@ TemporaryFile::TemporaryFile(const std::string &hint)
 
 TemporaryFile::~TemporaryFile() { boost::filesystem::remove(tmp_name_); }
 
-void TemporaryFile::PutContents(const std::string &contents) {
+void TemporaryFile::PutContents(const std::string &contents) const {
   mode_t mode = S_IRUSR | S_IWUSR;
   int fd = open(Path().c_str(), O_WRONLY | O_CREAT | O_TRUNC, mode);
   if (fd < 0) {
@@ -859,12 +860,12 @@ Socket::Socket() {
 
 Socket::~Socket() { ::close(socket_fd_); }
 
-std::string Socket::toString() {
+std::string Socket::toString() const {
   auto saddr = Utils::ipGetSockaddr(socket_fd_);
   return Utils::ipDisplayName(saddr) + ":" + std::to_string(Utils::ipPort(saddr));
 }
 
-void Socket::bind(in_port_t port, bool reuse) {
+void Socket::bind(in_port_t port, bool reuse) const {
   sockaddr_in sa{};
   memset(&sa, 0, sizeof(sa));
   sa.sin_family = AF_INET;

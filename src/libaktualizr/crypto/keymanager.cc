@@ -193,7 +193,7 @@ std::string KeyManager::getCN() const {
   }
   boost::scoped_array<char> buf(new char[len + 1]);
   X509_NAME_get_text_by_NID(X509_get_subject_name(x.get()), NID_commonName, buf.get(), len + 1);
-  const std::string cn(buf.get());
+  std::string cn(buf.get());
   return cn;
 }
 
@@ -261,12 +261,12 @@ void KeyManager::getCertInfo(std::string *subject, std::string *issuer, std::str
   *not_after = std::string(na_buf, static_cast<size_t>(na_len));
 }
 
-void KeyManager::copyCertsToCurl(HttpInterface &http) {
+void KeyManager::copyCertsToCurl(HttpInterface &http) const {
   std::string pkey = getPkey();
   std::string cert = getCert();
   std::string ca = getCa();
 
-  if ((pkey.size() != 0u) && (cert.size() != 0u) && (ca.size() != 0u)) {
+  if ((pkey.size() != 0U) && (cert.size() != 0U) && (ca.size() != 0U)) {
     http.setCerts(ca, config_.tls_ca_source, cert, config_.tls_cert_source, pkey, config_.tls_pkey_source);
   }
 }

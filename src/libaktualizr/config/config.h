@@ -51,14 +51,14 @@ struct ProvisionConfig {
 };
 
 struct UptaneConfig {
-  uint64_t polling_sec{10u};
+  uint64_t polling_sec{10U};
   std::string director_server;
   std::string repo_server;
   CryptoSource key_source{CryptoSource::kFile};
   KeyType key_type{KeyType::kRSA2048};
   bool force_install_completion{false};
   boost::filesystem::path secondary_config_file;
-  uint64_t secondary_preinstall_wait_sec{600u};
+  uint64_t secondary_preinstall_wait_sec{600U};
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;
