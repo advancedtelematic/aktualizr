@@ -103,6 +103,8 @@ int main(int argc, char **argv) {
 
     AktualizrInfoConfig config(vm);
 
+    bool secondary_db = false;
+
     bool readonly = true;
     if (vm.count("allow-migrate") != 0u) {
       readonly = false;
@@ -137,9 +139,9 @@ int main(int argc, char **argv) {
       storage = INvStorage::newStorage(config.storage, readonly);
     }
 
-    if (!storage->loadDeviceId(&device_id)) {
-      std::cout << "Couldn't load device ID" << std::endl;
-    } else {
+    bool deviceid_loaded = false;
+    if (storage->loadDeviceId(&device_id)) {
+      deviceid_loaded = true;
       // Early return if only printing device ID.
       if (vm.count("name-only") != 0u) {
         std::cout << device_id << std::endl;
@@ -150,17 +152,23 @@ int main(int argc, char **argv) {
     registered = registered || storage->loadEcuRegistered();
     has_metadata = has_metadata || storage->loadLatestRoot(&director_root, Uptane::RepositoryType::Director());
 
-    // TLS credentials
-    if (vm.count("tls-creds") != 0u) {
+    bool tlscred_loaded = false;
+    {
       std::string ca;
       std::string cert;
       std::string pkey;
 
       storage->loadTlsCreds(&ca, &cert, &pkey);
-      std::cout << "Root CA certificate:" << std::endl << ca << std::endl;
-      std::cout << "Client certificate:" << std::endl << cert << std::endl;
-      std::cout << "Client private key:" << std::endl << pkey << std::endl;
-      cmd_trigger = true;
+      if (!ca.empty() || !cert.empty() || !pkey.empty()) {
+        tlscred_loaded = true;
+      }
+      // TLS credentials
+      if (vm.count("tls-creds") != 0u) {
+        std::cout << "Root CA certificate:" << std::endl << ca << std::endl;
+        std::cout << "Client certificate:" << std::endl << cert << std::endl;
+        std::cout << "Client private key:" << std::endl << pkey << std::endl;
+        cmd_trigger = true;
+      }
     }
 
     if (vm.count("tls-root-ca") != 0u) {
@@ -185,11 +193,15 @@ int main(int argc, char **argv) {
     }
 
     // ECU credentials
-    if (vm.count("ecu-keys") != 0u) {
-      std::string priv;
-      std::string pub;
+    bool ecukeys_loaded = false;
+    std::string priv;
+    std::string pub;
 
-      storage->loadPrimaryKeys(&pub, &priv);
+    storage->loadPrimaryKeys(&pub, &priv);
+    if (!pub.empty() && !priv.empty()) {
+      ecukeys_loaded = true;
+    }
+    if (vm.count("ecu-keys") != 0u) {
       std::cout << "Public key:" << std::endl << pub << std::endl;
       std::cout << "Private key:" << std::endl << priv << std::endl;
       cmd_trigger = true;
@@ -289,16 +301,28 @@ int main(int argc, char **argv) {
       return EXIT_SUCCESS;
     }
 
+    if (!deviceid_loaded && !tlscred_loaded && ecukeys_loaded) {
+      secondary_db = true;
+    }
+
     // Print general information if user does not provide any argument.
-    std::cout << "Device ID: " << device_id << std::endl;
+    if (!secondary_db) {
+      if (!deviceid_loaded) {
+        std::cout << "Couldn't load device ID" << std::endl;
+      } else {
+        std::cout << "Device ID: " << device_id << std::endl;
+      }
+    }
+
+    std::string ecu_name = secondary_db ? "Secondary" : "Primary";
     EcuSerials serials;
     if (!storage->loadEcuSerials(&serials)) {
       std::cout << "Couldn't load ECU serials" << std::endl;
     } else if (serials.size() == 0) {
-      std::cout << "Primary serial is not found" << std::endl;
+      std::cout << ecu_name << " serial is not found" << std::endl;
     } else {
-      std::cout << "Primary ecu serial ID: " << serials[0].first << std::endl;
-      std::cout << "Primary ecu hardware ID: " << serials[0].second << std::endl;
+      std::cout << ecu_name << " ECU serial ID: " << serials[0].first << std::endl;
+      std::cout << ecu_name << " ECU hardware ID: " << serials[0].second << std::endl;
     }
 
     if (serials.size() > 1) {
@@ -333,7 +357,7 @@ int main(int argc, char **argv) {
     std::vector<MisconfiguredEcu> misconfigured_ecus;
     storage->loadMisconfiguredEcus(&misconfigured_ecus);
     if (misconfigured_ecus.size() != 0u) {
-      std::cout << "Removed or not registered ecus:" << std::endl;
+      std::cout << "Removed or not registered ECUs:" << std::endl;
       std::vector<MisconfiguredEcu>::const_iterator it;
       for (it = misconfigured_ecus.begin(); it != misconfigured_ecus.end(); ++it) {
         std::cout << "   '" << it->serial << "' with hardware_id '" << it->hardware_id << "' "
@@ -341,7 +365,9 @@ int main(int argc, char **argv) {
       }
     }
 
-    std::cout << "Provisioned on server: " << (registered ? "yes" : "no") << std::endl;
+    if (!secondary_db) {
+      std::cout << "Provisioned on server: " << (registered ? "yes" : "no") << std::endl;
+    }
     std::cout << "Fetched metadata: " << (has_metadata ? "yes" : "no") << std::endl;
 
     auto pacman = PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr);
@@ -349,9 +375,9 @@ int main(int argc, char **argv) {
     Uptane::Target current_target = pacman->getCurrent();
 
     if (current_target.IsValid()) {
-      std::cout << "Current primary ecu running version: " << current_target.sha256Hash() << std::endl;
+      std::cout << "Current " << ecu_name << " ECU running version: " << current_target.sha256Hash() << std::endl;
     } else {
-      std::cout << "No currently running version on primary ecu" << std::endl;
+      std::cout << "No currently running version on " << ecu_name << " ECU" << std::endl;
     }
 
     std::vector<Uptane::Target> installed_versions;
@@ -359,7 +385,7 @@ int main(int argc, char **argv) {
     storage->loadPrimaryInstalledVersions(nullptr, &pending);
 
     if (!!pending) {
-      std::cout << "Pending primary ecu version: " << pending->sha256Hash() << std::endl;
+      std::cout << "Pending " << ecu_name << " ECU version: " << pending->sha256Hash() << std::endl;
     }
   } catch (const bpo::error &o) {
     std::cout << o.what() << std::endl << description;

@@ -158,7 +158,7 @@ class Aktualizr:
                                           timeout=60, stdout=subprocess.PIPE, env=self._run_env)
             if info_exe_res.returncode == 0 and \
                     str(info_exe_res.stdout).find('Provisioned on server: yes') != -1 and \
-                    str(info_exe_res.stdout).find('Current primary ecu running version:') != -1:
+                    str(info_exe_res.stdout).find('Current Primary ECU running version:') != -1:
                 break
 
         if info_exe_res and info_exe_res.returncode == 0:
@@ -212,7 +212,7 @@ class Aktualizr:
     # ugly stuff that could be removed if Aktualizr had exposed API to check status
     # or aktializr-info had output status/info in a structured way (e.g. json)
     def get_current_primary_image_info(self):
-        primary_hash_field = 'Current primary ecu running version: '
+        primary_hash_field = 'Current Primary ECU running version: '
         aktualizr_status = self.get_info()
         if aktualizr_status:
             start = aktualizr_status.find(primary_hash_field)
@@ -225,7 +225,7 @@ class Aktualizr:
     # ugly stuff that could be removed if Aktualizr had exposed API to check status
     # or aktializr-info had output status/info in a structured way (e.g. json)
     def get_primary_pending_version(self):
-        primary_hash_field = 'Pending primary ecu version: '
+        primary_hash_field = 'Pending Primary ECU version: '
         aktualizr_status = self.get_info()
         start = aktualizr_status.find(primary_hash_field)
         end = aktualizr_status.find('\\n', start)

@@ -393,9 +393,9 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersions) {
   aktualizr_info_process_.run();
   ASSERT_FALSE(aktualizr_info_output.empty());
 
-  EXPECT_NE(aktualizr_info_output.find("Current primary ecu running version: " + current_ecu_version),
+  EXPECT_NE(aktualizr_info_output.find("Current Primary ECU running version: " + current_ecu_version),
             std::string::npos);
-  EXPECT_NE(aktualizr_info_output.find("Pending primary ecu version: " + pending_ecu_version), std::string::npos);
+  EXPECT_NE(aktualizr_info_output.find("Pending Primary ECU version: " + pending_ecu_version), std::string::npos);
 }
 
 /**
@@ -418,8 +418,8 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
   EXPECT_NE(aktualizr_info_output.find(primary_ecu_serial.ToString()), std::string::npos);
   EXPECT_NE(aktualizr_info_output.find(primary_hw_id.ToString()), std::string::npos);
 
-  EXPECT_NE(aktualizr_info_output.find("No currently running version on primary ecu"), std::string::npos);
-  EXPECT_EQ(aktualizr_info_output.find("Pending primary ecu version:"), std::string::npos);
+  EXPECT_NE(aktualizr_info_output.find("No currently running version on Primary ECU"), std::string::npos);
+  EXPECT_EQ(aktualizr_info_output.find("Pending Primary ECU version:"), std::string::npos);
 
   Uptane::EcuMap ecu_map{{primary_ecu_serial, primary_hw_id}};
   db_storage_->savePrimaryInstalledVersion(
@@ -429,8 +429,8 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
   aktualizr_info_process_.run();
   ASSERT_FALSE(aktualizr_info_output.empty());
 
-  EXPECT_NE(aktualizr_info_output.find("No currently running version on primary ecu"), std::string::npos);
-  EXPECT_NE(aktualizr_info_output.find("Pending primary ecu version: " + pending_ecu_version), std::string::npos);
+  EXPECT_NE(aktualizr_info_output.find("No currently running version on Primary ECU"), std::string::npos);
+  EXPECT_NE(aktualizr_info_output.find("Pending Primary ECU version: " + pending_ecu_version), std::string::npos);
 
   db_storage_->savePrimaryInstalledVersion(
       {"update-01.bin", ecu_map, {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
@@ -440,9 +440,9 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
   ASSERT_FALSE(aktualizr_info_output.empty());
 
   // pending ecu version became the current now
-  EXPECT_NE(aktualizr_info_output.find("Current primary ecu running version: " + pending_ecu_version),
+  EXPECT_NE(aktualizr_info_output.find("Current Primary ECU running version: " + pending_ecu_version),
             std::string::npos);
-  EXPECT_EQ(aktualizr_info_output.find("Pending primary ecu version:"), std::string::npos);
+  EXPECT_EQ(aktualizr_info_output.find("Pending Primary ECU version:"), std::string::npos);
 }
 
 /**
