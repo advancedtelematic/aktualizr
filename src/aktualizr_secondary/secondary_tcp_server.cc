@@ -77,8 +77,6 @@ bool SecondaryTcpServer::HandleOneConnection(int socket) {
 
     do {
       received = recv(socket, buffer.Tail(), buffer.TailSpace(), 0);
-      LOG_TRACE << "Got " << received << " bytes "
-                << Utils::toBase64(std::string(buffer.Tail(), static_cast<size_t>(received)));
       buffer.HaveEnqueued(static_cast<size_t>(received));
       res = ber_decode(&context, &asn_DEF_AKIpUptaneMes, reinterpret_cast<void **>(&m), buffer.Head(), buffer.Size());
       buffer.Consume(res.consumed);
@@ -110,6 +108,7 @@ bool SecondaryTcpServer::HandleOneConnection(int socket) {
         auto r = resp->manifestResp();
         r->manifest.present = manifest_PR_json;
         SetString(&r->manifest.choice.json, manifest);  // NOLINT
+        LOG_TRACE << "Manifest : \n" << manifest;
       } break;
       case AKIpUptaneMes_PR_putMetaReq: {
         auto md = msg->putMetaReq();
@@ -119,6 +118,10 @@ bool SecondaryTcpServer::HandleOneConnection(int socket) {
           meta_pack.image_targets = ToString(md->image.choice.json.targets);      // NOLINT
           meta_pack.image_snapshot = ToString(md->image.choice.json.snapshot);    // NOLINT
           meta_pack.image_timestamp = ToString(md->image.choice.json.timestamp);  // NOLINT
+          LOG_DEBUG << "Received Image repo Root metadata:\n" << meta_pack.image_root;
+          LOG_DEBUG << "Received Image repo Targets metadata:\n" << meta_pack.image_targets;
+          LOG_DEBUG << "Received Image repo Snapshot metadata:\n" << meta_pack.image_snapshot;
+          LOG_DEBUG << "Received Image repo Timestamp metadata:\n" << meta_pack.image_timestamp;
         } else {
           LOG_WARNING << "Images metadata in unknown format:" << md->image.present;
         }
@@ -126,6 +129,8 @@ bool SecondaryTcpServer::HandleOneConnection(int socket) {
         if (md->director.present == director_PR_json) {
           meta_pack.director_root = ToString(md->director.choice.json.root);        // NOLINT
           meta_pack.director_targets = ToString(md->director.choice.json.targets);  // NOLINT
+          LOG_DEBUG << "Received Director repo Root metadata:\n" << meta_pack.director_root;
+          LOG_DEBUG << "Received Director repo Targets metadata:\n" << meta_pack.director_targets;
         } else {
           LOG_WARNING << "Director metadata in unknown format:" << md->director.present;
         }
@@ -146,6 +151,7 @@ bool SecondaryTcpServer::HandleOneConnection(int socket) {
         resp->present(AKIpUptaneMes_PR_sendFirmwareResp);
         auto r = resp->sendFirmwareResp();
         r->result = send_firmware_result ? AKInstallationResult_success : AKInstallationResult_failure;
+        LOG_INFO << "Download " << (send_firmware_result ? "successful" : "failed") << ".";
       } break;
       case AKIpUptaneMes_PR_installReq: {
         auto request = msg->installReq();

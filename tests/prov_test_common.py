@@ -8,7 +8,7 @@ def verify_provisioned(akt_info, conf):
     stdout, stderr, retcode = run_subprocess([str(akt_info), '--config', str(conf), '--wait-until-provisioned'])
     machine = platform.node()
     if (b'Device ID: ' not in stdout or
-            b'Primary ecu hardware ID: ' + machine.encode() not in stdout or
+            b'Primary ECU hardware ID: ' + machine.encode() not in stdout or
             b'Fetched metadata: yes' not in stdout):
         print('Provisioning failed: ' + stderr.decode() + stdout.decode())
         return 1
