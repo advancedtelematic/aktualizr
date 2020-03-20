@@ -1,4 +1,4 @@
-= Set up multiple accounts
+= Set up additional environments
 ifdef::env-github[]
 
 [NOTE]
@@ -8,24 +8,25 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 endif::[]
 
 
-If you do not want to mix up test and production software, you may use separate user logins or create additional environments.
+An environment is your working space in your https://connect.ota.here.com[OTA Connect account], where you can create and manage software update projects.
 
-== Separate user logins
+If you do not want to mix up test and production software xref:evaluation-to-prod.adoc#_integrate_ota_connect[during integration with OTA Connect], you may create additional environments. You can xref:ota-web::create-environment.adoc[create] up to 10 additional environments in one https://connect.ota.here.com[OTA Connect account].
 
-To manage the different stages of production workflow, you can create separate user logins:
+For example, you may need to have different environments for development, QA, and production.
+
+IMPORTANT: The limit of 10 additional environments applies even if you leave the environments that you have created. There is currently no way to delete environments.
+
+== Additional environments
+
+To manage the different stages of production workflow, you can create additional environments for the following:
 
 * A developer user such as _\dev@acme.com_
 * A QA user such as _\qa@acme.com_
 * A production user such as _\prod@acme.com_
 
-These logins provide you with a convenient way to separate your development, QA, and production resources.
+These environments provide you with a convenient way to separate your development, QA, and production resources.
 
-== Additional environments image:img::beta-icon.svg[Beta]
-
-NOTE: This feature is in beta and is only visible to users who are part of our beta program. If you would like to join the beta program, contact us at link:mailto:otaconnect.support@here.com[otaconnect.support@here.com] to request access.
-
-Instead of creating multiple accounts for each environment, you can now xref:ota-web::create-environment.adoc[create] additional environments using only one account. For example, you may need to have different environments for development, QA, and production.
 
 After you create an environment, you can xref:ota-web::manage-members.adoc[add] your colleagues to work together on device provisioning, device groups, software versions, software updates, and campaigns.
 
-To get more information on the environments feature, see the xref:ota-web::environments-intro.adoc[*Environments*] section in the OTA Connect User Guide.
+To get more information on the *Environments* feature, see the xref:ota-web::environments-intro.adoc[Environments] section in the OTA Connect User Guide.
