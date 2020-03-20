@@ -940,7 +940,10 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
     std::vector<Uptane::Target> primary_updates = findForEcu(updates, primary_ecu_serial);
 
     //   6 - send metadata to all the ECUs
-    sendMetadataToEcus(updates);
+    if (!sendMetadataToEcus(updates)) {
+      result.dev_report = {false, data::ResultCode::Numeric::kInternalError, "Metadata verification failed"};
+      return std::make_tuple(result, "Secondary metadata verification failed", true);
+    }
 
     //   7 - send images to ECUs (deploy for OSTree)
     if (primary_updates.size() != 0u) {
@@ -1225,51 +1228,54 @@ void SotaUptaneClient::rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::
   }
 }
 
-// TODO(OTA-4342): the function can't currently return any errors. The problem of error reporting from
-// secondaries should be solved on a system (backend+frontend) error.
 // TODO: the function blocks until it updates all the secondaries. Consider non-blocking operation.
-void SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &targets) {
+bool SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &targets) {
   Uptane::RawMetaPack meta;
   if (!storage->loadLatestRoot(&meta.director_root, Uptane::RepositoryType::Director())) {
     LOG_ERROR << "No Director Root metadata to send";
-    return;
+    return false;
   }
   if (!storage->loadNonRoot(&meta.director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets())) {
     LOG_ERROR << "No Director Targets metadata to send";
-    return;
+    return false;
   }
   if (!storage->loadLatestRoot(&meta.image_root, Uptane::RepositoryType::Image())) {
     LOG_ERROR << "No Image repo Root metadata to send";
-    return;
+    return false;
   }
   if (!storage->loadNonRoot(&meta.image_timestamp, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp())) {
     LOG_ERROR << "No Image repo Timestamp metadata to send";
-    return;
+    return false;
   }
   if (!storage->loadNonRoot(&meta.image_snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot())) {
     LOG_ERROR << "No Image repo Snapshot metadata to send";
-    return;
+    return false;
   }
   if (!storage->loadNonRoot(&meta.image_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets())) {
     LOG_ERROR << "No Image repo Targets metadata to send";
-    return;
+    return false;
   }
 
-  for (auto targets_it = targets.cbegin(); targets_it != targets.cend(); ++targets_it) {
-    for (auto ecus_it = targets_it->ecus().cbegin(); ecus_it != targets_it->ecus().cend(); ++ecus_it) {
-      const Uptane::EcuSerial ecu_serial = ecus_it->first;
-
+  bool put_meta_succeed = true;
+  for (const auto &target : targets) {
+    for (const auto &ecu : target.ecus()) {
+      const Uptane::EcuSerial ecu_serial = ecu.first;
       auto sec = secondaries.find(ecu_serial);
-      if (sec != secondaries.end()) {
-        /* Root rotation if necessary */
-        rotateSecondaryRoot(Uptane::RepositoryType::Director(), *(sec->second));
-        rotateSecondaryRoot(Uptane::RepositoryType::Image(), *(sec->second));
-        if (!sec->second->putMetadata(meta)) {
-          LOG_ERROR << "Sending metadata to " << sec->first << " failed";
-        }
+      if (sec == secondaries.end()) {
+        continue;
+      }
+
+      /* Root rotation if necessary */
+      rotateSecondaryRoot(Uptane::RepositoryType::Director(), *(sec->second));
+      rotateSecondaryRoot(Uptane::RepositoryType::Image(), *(sec->second));
+      if (!sec->second->putMetadata(meta)) {
+        LOG_ERROR << "Sending metadata to " << sec->first << " failed";
+        put_meta_succeed = false;
       }
     }
   }
+
+  return put_meta_succeed;
 }
 
 std::future<data::ResultCode::Numeric> SotaUptaneClient::sendFirmwareAsync(Uptane::SecondaryInterface &secondary,
