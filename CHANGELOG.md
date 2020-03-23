@@ -6,9 +6,28 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ## [??? (unreleased)]
 
+
+## [2020.4] - 2020-03-24
+
 ### Added
 
-- Aktualizr secondaries can now reboot automatically after triggering an update: [PR](https://github.com/advancedtelematic/aktualizr/pull/1578)
+- aktualizr-secondary can now reboot automatically after triggering an update: [PR](https://github.com/advancedtelematic/aktualizr/pull/1578)
+- Reports are now stored in the SQL database so they persist through unexpected shutdown: [PR](https://github.com/advancedtelematic/aktualizr/pull/1559)
+
+### Changed
+
+- garage-push now always pushes the OSTree ref to Treehub: [PR](https://github.com/advancedtelematic/aktualizr/pull/1575)
+- Consistently follow the [Uptane standard's style guide](https://github.com/uptane/uptane-standard#style-guide) when using Uptane concepts, including the metadata output options of aktualizr-info: [PR](https://github.com/advancedtelematic/aktualizr/pull/1591)
+- Public contributions now are tested with Github Actions instead of Travis CI: [PR](https://github.com/advancedtelematic/aktualizr/pull/1597)
+- Default/recommended Yocto branch is zeus (3.0): [PR](https://github.com/advancedtelematic/aktualizr/pull/1603)
+- Improved logging for aktualizr-secondary: [PR](https://github.com/advancedtelematic/aktualizr/pull/1609)
+
+### Fixed
+
+- Abort initialization if ECUs are already registered: [PR](https://github.com/advancedtelematic/aktualizr/pull/1579)
+- Always use 64-bit integers for disk space arithmetic: [PR](https://github.com/advancedtelematic/aktualizr/pull/1588)
+- Reject Director Targets metadata with delegations or repeated ECU IDs: [PR](https://github.com/advancedtelematic/aktualizr/pull/1600)
+
 
 ## [2020.3] - 2020-02-27
 
