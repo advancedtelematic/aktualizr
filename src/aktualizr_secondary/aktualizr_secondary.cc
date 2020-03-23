@@ -101,6 +101,7 @@ bool AktualizrSecondary::sendFirmware(const std::string& firmware) {
     return false;
   }
 
+  LOG_INFO << "Download firmware " << pending_target_.filename() << " successful.";
   return true;
 }
 
@@ -198,6 +199,7 @@ bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
 
   pending_target_ = targetsForThisEcu[0];
 
+  LOG_DEBUG << "Metadata verified, new update found.";
   return true;
 }
 
@@ -246,7 +248,7 @@ void AktualizrSecondary::uptaneInitialize() {
 
 void AktualizrSecondary::initPendingTargetIfAny() {
   if (!director_repo_.checkMetaOffline(*storage_)) {
-    LOG_INFO << "No valid and pending Director targets to be applied";
+    LOG_INFO << "No valid metadata found in storage.";
     return;
   }
 

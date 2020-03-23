@@ -17,7 +17,7 @@ SecondaryTcpServer::SecondaryTcpServer(Uptane::SecondaryInterface &secondary, co
 
   ConnectionSocket conn_socket(primary_ip, primary_port, listen_socket_.port());
   if (conn_socket.connect() == 0) {
-    LOG_INFO << "Connected to Primary, sending info about this secondary...";
+    LOG_INFO << "Connected to Primary, sending info about this Secondary...";
     HandleOneConnection(*conn_socket);
   } else {
     LOG_INFO << "Failed to connect to Primary";
@@ -34,7 +34,7 @@ void SecondaryTcpServer::run() {
     sockaddr_storage peer_sa{};
     socklen_t peer_sa_size = sizeof(sockaddr_storage);
 
-    LOG_DEBUG << "Waiting for connection from client...";
+    LOG_DEBUG << "Waiting for connection from Primary...";
     int con_fd = accept(*listen_socket_, reinterpret_cast<sockaddr *>(&peer_sa), &peer_sa_size);
     if (con_fd == -1) {
       LOG_INFO << "Socket accept failed. aborting";
@@ -146,14 +146,15 @@ bool SecondaryTcpServer::HandleOneConnection(int socket) {
         r->result = ok ? AKInstallationResult_success : AKInstallationResult_failure;
       } break;
       case AKIpUptaneMes_PR_sendFirmwareReq: {
+        LOG_INFO << "Received sendFirmwareReq from Primary.";
         auto fw = msg->sendFirmwareReq();
         auto send_firmware_result = impl_.sendFirmware(ToString(fw->firmware));
         resp->present(AKIpUptaneMes_PR_sendFirmwareResp);
         auto r = resp->sendFirmwareResp();
         r->result = send_firmware_result ? AKInstallationResult_success : AKInstallationResult_failure;
-        LOG_INFO << "Download " << (send_firmware_result ? "successful" : "failed") << ".";
       } break;
       case AKIpUptaneMes_PR_installReq: {
+        LOG_INFO << "Received installReq from Primary.";
         auto request = msg->installReq();
 
         auto install_result = impl_.install(ToString(request->hash));
