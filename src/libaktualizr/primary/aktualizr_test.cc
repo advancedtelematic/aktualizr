@@ -1082,6 +1082,48 @@ TEST(Aktualizr, InstallationFailure) {
   }
 }
 
+/*
+ * Verifies that updates fail after metadata verification failure reported by secondaries
+ */
+TEST(Aktualizr, SecondaryMetaFailure) {
+  TemporaryDirectory temp_dir;
+  auto http_server_mock = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates", fake_meta_dir);
+  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http_server_mock->tls_server);
+  auto storage = INvStorage::newStorage(conf.storage);
+
+  fault_injection_init();
+  fiu_enable("secondary_putmetadata", 1, nullptr, 0);
+
+  UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http_server_mock);
+
+  struct {
+    result::Install result;
+    std::promise<void> promise;
+  } ev_state;
+
+  auto f_cb = [&ev_state](const std::shared_ptr<event::BaseEvent>& event) {
+    if (event->variant != "AllInstallsComplete") {
+      return;
+    }
+    const auto installs_complete = dynamic_cast<event::AllInstallsComplete*>(event.get());
+    ev_state.result = installs_complete->result;
+
+    ev_state.promise.set_value();
+  };
+  boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
+  aktualizr.Initialize();
+  aktualizr.UptaneCycle();
+
+  auto status = ev_state.promise.get_future().wait_for(std::chrono::seconds(20));
+  if (status != std::future_status::ready) {
+    FAIL() << "Timed out waiting for installation to complete.";
+  }
+
+  ASSERT_FALSE(ev_state.result.dev_report.isSuccess());
+
+  fiu_disable("secondary_putmetadata");
+}
+
 #endif  // FIU_ENABLE
 
 /*

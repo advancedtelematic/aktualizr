@@ -105,4 +105,12 @@ bool VirtualSecondary::getFirmwareInfo(Uptane::InstalledImageInfo& firmware_info
   return true;
 }
 
+bool VirtualSecondary::putMetadata(const Uptane::RawMetaPack& meta_pack) {
+  if (fiu_fail("secondary_putmetadata") != 0) {
+    return false;
+  }
+
+  return ManagedSecondary::putMetadata(meta_pack);
+}
+
 }  // namespace Primary
