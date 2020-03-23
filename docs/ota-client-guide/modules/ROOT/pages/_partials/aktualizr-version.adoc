@@ -5,4 +5,4 @@
 // latest version.
 :aktualizr-version: 2020.3
 
-:yocto-version: 2.6
+:yocto-version: 3.0

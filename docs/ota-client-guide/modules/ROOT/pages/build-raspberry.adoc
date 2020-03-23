@@ -8,6 +8,7 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
+include::_partials/aktualizr-version.adoc[]
 
 :page-layout: page
 :page-categories: [quickstarts]
@@ -30,7 +31,7 @@ endif::[]
 
 You'll need a build machine with the following:
 
-* A x86-64 Linux distro link:https://www.yoctoproject.org/docs/2.6/ref-manual/ref-manual.html#detailed-supported-distros[supported by the Yocto project] with the link:https://www.yoctoproject.org/docs/2.6/ref-manual/ref-manual.html#required-packages-for-the-build-host[required packages] installed.
+* A x86-64 Linux distro link:https://www.yoctoproject.org/docs/{yocto-version}/ref-manual/ref-manual.html#detailed-supported-distros[supported by the Yocto project] with the link:https://www.yoctoproject.org/docs/{yocto-version}/ref-manual/ref-manual.html#required-packages-for-the-build-host[required packages] installed.
 ** On a Debian-based system, you should be able to install all the required packages with the following command:
 +
 ----

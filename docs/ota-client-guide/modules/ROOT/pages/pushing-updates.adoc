@@ -8,6 +8,8 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
+include::_partials/aktualizr-version.adoc[]
+
 Every time you bitbake a new image, it is automatically pushed to {product-name}. You can then send the updated image out to any of your devices. In this guide, you learn a few ways to push updated system images from your build machine or workstation to {product-name-short}.
 
 == Add a new package from an existing recipe
@@ -102,7 +104,7 @@ The screen sessions will be named `pianobar` and `patiobar` respectively; use `s
 
 == Make your own recipe or layer
 
-A complete guide to writing Yocto recipes is out of scope here, but http://www.yoctoproject.org/docs/2.6/dev-manual/dev-manual.html#new-recipe-writing-a-new-recipe[the Yocto Reference Manual] is a great resource. You can also take a look at the recipes in https://github.com/advancedtelematic/meta-jukebox[`meta-jukebox`] to use as examples: they're all fairly simple, and there are examples of four different types of recipe:
+A complete guide to writing Yocto recipes is out of scope here, but http://www.yoctoproject.org/docs/{yocto-version}/dev-manual/dev-manual.html#new-recipe-writing-a-new-recipe[the Yocto Reference Manual] is a great resource. You can also take a look at the recipes in https://github.com/advancedtelematic/meta-jukebox[`meta-jukebox`] to use as examples: they're all fairly simple, and there are examples of four different types of recipe:
 
 * https://github.com/advancedtelematic/meta-jukebox/tree/master/recipes-multimedia/pianobar[Pianobar] itself is a fully manual recipe, though it's a pretty simple one; it has specific instructions for the compile and install steps, though they're essentially just `make` and `make install` with a couple of config options.
 * https://github.com/advancedtelematic/meta-jukebox/tree/master/recipes-multimedia/libao[libao] and https://github.com/advancedtelematic/meta-jukebox/tree/master/recipes-multimedia/faad2[faad2] make use of https://en.wikipedia.org/wiki/GNU_Build_System[Autotools] to build. They include the line `inherit autotools` in the recipe, which automatically generates configure, compile, and install instructions based on Autotools.
