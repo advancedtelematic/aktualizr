@@ -1213,22 +1213,28 @@ void SQLStorage::saveInstalledVersion(const std::string& ecu_serial, const Uptan
 }
 
 static void loadEcuMap(SQLite3Guard& db, std::string& ecu_serial, Uptane::EcuMap& ecu_map) {
+  // The Secondary only knows about itself and in its database it is considered
+  // a Primary, for better or worse.
   if (ecu_serial.empty()) {
     auto statement = db.prepareStatement("SELECT serial FROM ecus WHERE is_primary = 1;");
     if (statement.step() == SQLITE_ROW) {
       ecu_serial = statement.get_result_col_str(0).value();
+    } else if (statement.step() == SQLITE_DONE) {
+      LOG_DEBUG << "No serial found in database for this ECU, defaulting to empty serial";
     } else {
-      LOG_WARNING << "Could not find primary ecu serial, defaulting to empty serial: " << db.errmsg();
+      LOG_ERROR << "Error getting serial for this ECU, defaulting to empty serial: " << db.errmsg();
     }
   }
 
-  {
+  if (!ecu_serial.empty()) {
     auto statement = db.prepareStatement<std::string>("SELECT hardware_id FROM ecus WHERE serial = ?;", ecu_serial);
     if (statement.step() == SQLITE_ROW) {
       ecu_map.insert(
           {Uptane::EcuSerial(ecu_serial), Uptane::HardwareIdentifier(statement.get_result_col_str(0).value())});
+    } else if (statement.step() == SQLITE_DONE) {
+      LOG_DEBUG << "No hardware ID found in database for ECU serial " << ecu_serial;
     } else {
-      LOG_WARNING << "Could not find hardware_id for serial " << ecu_serial << ": " << db.errmsg();
+      LOG_ERROR << "Error getting hardware ID for ECU serial " << ecu_serial << ": " << db.errmsg();
     }
   }
 }
