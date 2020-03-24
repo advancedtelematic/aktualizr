@@ -20,6 +20,7 @@ AktualizrSecondary::AktualizrSecondary(AktualizrSecondaryConfig config, std::sha
   initPendingTargetIfAny();
 
   if (hasPendingUpdate()) {
+    LOG_INFO << "Found a pending target to be applied.";
     // TODO(OTA-4545): refactor this to make it simpler as we don't need to persist/store
     // an installation status of each ECU but store it just for a given secondary ECU
     std::vector<Uptane::Target> installed_versions;
@@ -101,6 +102,7 @@ bool AktualizrSecondary::sendFirmware(const std::string& firmware) {
     return false;
   }
 
+  LOG_INFO << "Download firmware " << pending_target_.filename() << " successful.";
   return true;
 }
 
@@ -198,6 +200,7 @@ bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
 
   pending_target_ = targetsForThisEcu[0];
 
+  LOG_DEBUG << "Metadata verified, new update found.";
   return true;
 }
 
@@ -246,7 +249,7 @@ void AktualizrSecondary::uptaneInitialize() {
 
 void AktualizrSecondary::initPendingTargetIfAny() {
   if (!director_repo_.checkMetaOffline(*storage_)) {
-    LOG_INFO << "No valid and pending Director targets to be applied";
+    LOG_INFO << "No valid metadata found in storage.";
     return;
   }
 
@@ -262,6 +265,5 @@ void AktualizrSecondary::initPendingTargetIfAny() {
     return;
   }
 
-  LOG_INFO << "There is a valid and pending Director target to be applied";
   pending_target_ = targetsForThisEcu[0];
 }
