@@ -130,8 +130,8 @@ $(function() {
 <div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;    uptane_gen_.run({<span class="stringliteral">&quot;signtargets&quot;</span>, <span class="stringliteral">&quot;--path&quot;</span>, meta_dir_.PathString()});</div>
 <div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;  }</div>
 <div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160; </div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;  <span class="keywordtype">void</span> refreshTargetMetadata() {</div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;    <span class="comment">// refresh the target metadata in the repo/Director</span></div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;  <span class="keywordtype">void</span> refreshTargetsMetadata() {</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;    <span class="comment">// refresh the Targets metadata in the repo/Director</span></div>
 <div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    uptane_gen_.run({<span class="stringliteral">&quot;refresh&quot;</span>, <span class="stringliteral">&quot;--path&quot;</span>, meta_dir_.PathString(), <span class="stringliteral">&quot;--repotype&quot;</span>, <span class="stringliteral">&quot;director&quot;</span>, <span class="stringliteral">&quot;--keyname&quot;</span>, <span class="stringliteral">&quot;targets&quot;</span>});</div>
 <div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;  }</div>
 <div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160; </div>
@@ -171,7 +171,7 @@ $(function() {
 <div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;  EXPECT_NE(target_image_hash_, currently_installed_target.sha256Hash());</div>
 <div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;  EXPECT_NE(target_filename_, currently_installed_target.filename());</div>
 <div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160; </div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;  refreshTargetMetadata();</div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;  refreshTargetsMetadata();</div>
 <div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160; </div>
 <div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;  <span class="comment">// run the uptane cycle an try to install the target</span></div>
 <div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;  aktualizr_-&gt;UptaneCycle();</div>
@@ -256,7 +256,7 @@ $(function() {
 <div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;  ASSERT_TRUE(client-&gt;isInstallCompletionRequired());</div>
 <div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160; </div>
 <div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;  <span class="comment">// wait until the target metadata are expired</span></div>
-<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;  <span class="comment">// emulate the target metadata expiration while the uptane cycle is running</span></div>
+<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;  <span class="comment">// emulate the target metadata expiration while the Uptane cycle is running</span></div>
 <div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;  std::this_thread::sleep_for(std::chrono::seconds(expiration_in_sec) -</div>
 <div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;                              (std::chrono::system_clock::now() - target_init_time));</div>
 <div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160; </div>

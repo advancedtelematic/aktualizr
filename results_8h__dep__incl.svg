@@ -46,7 +46,7 @@ if (edges && edges.length) {
         </defs>
 
 <script type="text/javascript">
-var viewWidth = 2828;
+var viewWidth = 2833;
 var viewHeight = 396;
 var sectionId = 'dynsection-1';
 </script>
@@ -54,7 +54,7 @@ var sectionId = 'dynsection-1';
 <svg id="graph" class="graph">
 <g id="viewport">
 <title>src/libaktualizr/primary/results.h</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-392 2823.5,-392 2823.5,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-392 2828.5,-392 2828.5,4 -4,4"/>
 <!-- Node1 -->
 <g id="node1" class="node">
 <title>Node1</title>
@@ -218,7 +218,7 @@ var sectionId = 'dynsection-1';
 </g>
 </g>
 <!-- Node2&#45;&gt;Node29 -->
-<g id="edge50" class="edge">
+<g id="edge51" class="edge">
 <title>Node2&#45;&gt;Node29</title>
 <path fill="none" stroke="midnightblue" d="M2021.51,-238.25C2103.48,-236.74 2236.98,-227.38 2344,-187 2375.14,-175.25 2376.62,-160.65 2406,-145 2495.57,-97.29 2607.8,-56.54 2668.04,-36.08"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="2021.23,-234.76 2011.29,-238.41 2021.34,-241.76 2021.23,-234.76"/>
@@ -234,7 +234,7 @@ var sectionId = 'dynsection-1';
 </g>
 </g>
 <!-- Node2&#45;&gt;Node30 -->
-<g id="edge51" class="edge">
+<g id="edge52" class="edge">
 <title>Node2&#45;&gt;Node30</title>
 <path fill="none" stroke="midnightblue" d="M1929.49,-214.91C1907.3,-181.54 1874.1,-118.65 1906,-78 1947.52,-25.08 1987.95,-59.12 2053,-42 2060.06,-40.14 2067.49,-38.12 2074.79,-36.1"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="1926.85,-217.24 1935.4,-223.5 1932.61,-213.27 1926.85,-217.24"/>
@@ -306,10 +306,10 @@ var sectionId = 'dynsection-1';
 <!-- Node35 -->
 <g id="node35" class="node">
 <title>Node35</title>
-<g id="a_node35"><a xlink:href="sotauptaneclient_8cc_source.html" target="_top" xlink:title=" ">
+<g id="a_node35"><a xlink:href="initializer__test_8cc_source.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="2415,-151 2415,-181 2545,-181 2545,-151 2415,-151"/>
 <text text-anchor="start" x="2423" y="-169" font-family="Helvetica,sans-Serif" font-size="10.00">src/libaktualizr/primary</text>
-<text text-anchor="middle" x="2480" y="-158" font-family="Helvetica,sans-Serif" font-size="10.00">/sotauptaneclient.cc</text>
+<text text-anchor="middle" x="2480" y="-158" font-family="Helvetica,sans-Serif" font-size="10.00">/initializer_test.cc</text>
 </a>
 </g>
 </g>
@@ -322,34 +322,34 @@ var sectionId = 'dynsection-1';
 <!-- Node36 -->
 <g id="node36" class="node">
 <title>Node36</title>
-<g id="a_node36"><a xlink:href="uptane__init__test_8cc_source.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="2563.5,-151 2563.5,-181 2688.5,-181 2688.5,-151 2563.5,-151"/>
-<text text-anchor="start" x="2571.5" y="-169" font-family="Helvetica,sans-Serif" font-size="10.00">src/libaktualizr/uptane</text>
-<text text-anchor="middle" x="2626" y="-158" font-family="Helvetica,sans-Serif" font-size="10.00">/uptane_init_test.cc</text>
+<g id="a_node36"><a xlink:href="sotauptaneclient_8cc_source.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="2563,-151 2563,-181 2693,-181 2693,-151 2563,-151"/>
+<text text-anchor="start" x="2571" y="-169" font-family="Helvetica,sans-Serif" font-size="10.00">src/libaktualizr/primary</text>
+<text text-anchor="middle" x="2628" y="-158" font-family="Helvetica,sans-Serif" font-size="10.00">/sotauptaneclient.cc</text>
 </a>
 </g>
 </g>
 <!-- Node2&#45;&gt;Node36 -->
-<g id="edge52" class="edge">
+<g id="edge50" class="edge">
 <title>Node2&#45;&gt;Node36</title>
-<path fill="none" stroke="midnightblue" d="M2021.46,-235.79C2136.97,-232.14 2364.23,-220.93 2554,-187 2562.68,-185.45 2571.83,-183.31 2580.59,-181"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="2021.2,-232.29 2011.31,-236.1 2021.41,-239.29 2021.2,-232.29"/>
+<path fill="none" stroke="midnightblue" d="M2021.43,-235.62C2136.91,-231.76 2364.11,-220.26 2554,-187 2562.78,-185.46 2572.04,-183.36 2580.91,-181.09"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="2021.16,-232.13 2011.28,-235.95 2021.39,-239.12 2021.16,-232.13"/>
 </g>
 <!-- Node37 -->
 <g id="node37" class="node">
 <title>Node37</title>
 <g id="a_node37"><a xlink:href="uptane__vector__tests_8cc_source.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="2706.5,-151 2706.5,-181 2819.5,-181 2819.5,-151 2706.5,-151"/>
-<text text-anchor="start" x="2714.5" y="-169" font-family="Helvetica,sans-Serif" font-size="10.00">tests/uptane_vector</text>
-<text text-anchor="middle" x="2763" y="-158" font-family="Helvetica,sans-Serif" font-size="10.00">_tests.cc</text>
+<polygon fill="white" stroke="black" points="2711.5,-151 2711.5,-181 2824.5,-181 2824.5,-151 2711.5,-151"/>
+<text text-anchor="start" x="2719.5" y="-169" font-family="Helvetica,sans-Serif" font-size="10.00">tests/uptane_vector</text>
+<text text-anchor="middle" x="2768" y="-158" font-family="Helvetica,sans-Serif" font-size="10.00">_tests.cc</text>
 </a>
 </g>
 </g>
 <!-- Node2&#45;&gt;Node37 -->
 <g id="edge59" class="edge">
 <title>Node2&#45;&gt;Node37</title>
-<path fill="none" stroke="midnightblue" d="M2021.32,-238.17C2157.56,-238.12 2453.46,-232.2 2698,-187 2706.01,-185.52 2714.43,-183.38 2722.44,-181.05"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="2021.01,-234.67 2011.01,-238.16 2021,-241.67 2021.01,-234.67"/>
+<path fill="none" stroke="midnightblue" d="M2021.44,-238.11C2158.25,-237.96 2455.91,-231.9 2702,-187 2710.13,-185.52 2718.67,-183.38 2726.81,-181.05"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="2021.08,-234.61 2011.08,-238.11 2021.08,-241.61 2021.08,-234.61"/>
 </g>
 <!-- Node4 -->
 <g id="node4" class="node">

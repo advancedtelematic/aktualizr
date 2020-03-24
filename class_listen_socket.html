@@ -91,6 +91,9 @@ Public Member Functions</h2></td></tr>
 in_port_t&#160;</td><td class="memItemRight" valign="bottom"><b>port</b> () const</td></tr>
 <tr class="separator:ae4d456245aeb078299f40dc0164bc33a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_socket"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_socket')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_socket.html">Socket</a></td></tr>
+<tr class="memitem:a5390f8264f7872c9a8e695e01184e929 inherit pub_methods_class_socket"><td class="memItemLeft" align="right" valign="top"><a id="a5390f8264f7872c9a8e695e01184e929"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Socket</b> (int fd)</td></tr>
+<tr class="separator:a5390f8264f7872c9a8e695e01184e929 inherit pub_methods_class_socket"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aae1f09b930bb7118172baa0abb15543e inherit pub_methods_class_socket"><td class="memItemLeft" align="right" valign="top"><a id="aae1f09b930bb7118172baa0abb15543e"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>Socket</b> (const <a class="el" href="class_socket.html">Socket</a> &amp;)=delete</td></tr>
 <tr class="separator:aae1f09b930bb7118172baa0abb15543e inherit pub_methods_class_socket"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -100,16 +103,16 @@ in_port_t&#160;</td><td class="memItemRight" valign="bottom"><b>port</b> () cons
 <tr class="memitem:af3064f8d8654fe24427563b517b8b865 inherit pub_methods_class_socket"><td class="memItemLeft" align="right" valign="top"><a id="af3064f8d8654fe24427563b517b8b865"></a>
 int &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator*</b> ()</td></tr>
 <tr class="separator:af3064f8d8654fe24427563b517b8b865 inherit pub_methods_class_socket"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a377ac3bcbf52e36dc08bca6ad0c8a97f inherit pub_methods_class_socket"><td class="memItemLeft" align="right" valign="top"><a id="a377ac3bcbf52e36dc08bca6ad0c8a97f"></a>
-std::string&#160;</td><td class="memItemRight" valign="bottom"><b>toString</b> ()</td></tr>
-<tr class="separator:a377ac3bcbf52e36dc08bca6ad0c8a97f inherit pub_methods_class_socket"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a12c585b7472e1411f91d5029713ed3fc inherit pub_methods_class_socket"><td class="memItemLeft" align="right" valign="top"><a id="a12c585b7472e1411f91d5029713ed3fc"></a>
+std::string&#160;</td><td class="memItemRight" valign="bottom"><b>toString</b> () const</td></tr>
+<tr class="separator:a12c585b7472e1411f91d5029713ed3fc inherit pub_methods_class_socket"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
 <tr class="inherit_header pro_methods_class_socket"><td colspan="2" onclick="javascript:toggleInherit('pro_methods_class_socket')"><img src="closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="class_socket.html">Socket</a></td></tr>
-<tr class="memitem:a18bb70ba7f47d8b1b7225561fbb10b36 inherit pro_methods_class_socket"><td class="memItemLeft" align="right" valign="top"><a id="a18bb70ba7f47d8b1b7225561fbb10b36"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>bind</b> (in_port_t port, bool reuse=true)</td></tr>
-<tr class="separator:a18bb70ba7f47d8b1b7225561fbb10b36 inherit pro_methods_class_socket"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af61367fe0aecad49d90142cbc055a2b8 inherit pro_methods_class_socket"><td class="memItemLeft" align="right" valign="top"><a id="af61367fe0aecad49d90142cbc055a2b8"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>bind</b> (in_port_t port, bool reuse=true) const</td></tr>
+<tr class="separator:af61367fe0aecad49d90142cbc055a2b8 inherit pro_methods_class_socket"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pro_attribs_class_socket"><td colspan="2" onclick="javascript:toggleInherit('pro_attribs_class_socket')"><img src="closed.png" alt="-"/>&#160;Protected Attributes inherited from <a class="el" href="class_socket.html">Socket</a></td></tr>
 <tr class="memitem:af1f52b554dfe4dc107a73c7860f47cf5 inherit pro_attribs_class_socket"><td class="memItemLeft" align="right" valign="top"><a id="af1f52b554dfe4dc107a73c7860f47cf5"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>socket_fd_</b></td></tr>
@@ -117,7 +120,7 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>socket_fd_</b></td></t
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p class="definition">Definition at line <a class="el" href="utils_8h_source.html#l00157">157</a> of file <a class="el" href="utils_8h_source.html">utils.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="utils_8h_source.html#l00158">158</a> of file <a class="el" href="utils_8h_source.html">utils.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>src/libaktualizr/utilities/<a class="el" href="utils_8h_source.html">utils.h</a></li>
 <li>src/libaktualizr/utilities/<a class="el" href="utils_8cc_source.html">utils.cc</a></li>

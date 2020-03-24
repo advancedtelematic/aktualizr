@@ -141,7 +141,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <tr class="memdesc:a665cd221bdf39c1b6e1e7f292ab5ef8a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send local device data to the server.  <a href="class_aktualizr.html#a665cd221bdf39c1b6e1e7f292ab5ef8a">More...</a><br /></td></tr>
 <tr class="separator:a665cd221bdf39c1b6e1e7f292ab5ef8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adf876d93967a1dc30a362f5482693405"><td class="memItemLeft" align="right" valign="top">std::future&lt; <a class="el" href="classresult_1_1_update_check.html">result::UpdateCheck</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_aktualizr.html#adf876d93967a1dc30a362f5482693405">CheckUpdates</a> ()</td></tr>
-<tr class="memdesc:adf876d93967a1dc30a362f5482693405"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fetch <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of UPTANE.">Uptane</a> metadata and check for updates.  <a href="class_aktualizr.html#adf876d93967a1dc30a362f5482693405">More...</a><br /></td></tr>
+<tr class="memdesc:adf876d93967a1dc30a362f5482693405"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fetch <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of Uptane.">Uptane</a> metadata and check for updates.  <a href="class_aktualizr.html#adf876d93967a1dc30a362f5482693405">More...</a><br /></td></tr>
 <tr class="separator:adf876d93967a1dc30a362f5482693405"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acc53674dc24f676e72526ac270c91cdb"><td class="memItemLeft" align="right" valign="top">std::future&lt; <a class="el" href="classresult_1_1_download.html">result::Download</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_aktualizr.html#acc53674dc24f676e72526ac270c91cdb">Download</a> (const std::vector&lt; <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &gt; &amp;updates)</td></tr>
 <tr class="memdesc:acc53674dc24f676e72526ac270c91cdb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Download targets.  <a href="class_aktualizr.html#acc53674dc24f676e72526ac270c91cdb">More...</a><br /></td></tr>
@@ -174,7 +174,7 @@ InstallationLog&#160;</td><td class="memItemRight" valign="bottom"><b>GetInstall
 <tr class="memdesc:a29efa69f4904b62353b2268e1a2d8e85"><td class="mdescLeft">&#160;</td><td class="mdescRight">Aborts the currently running command, if it can be aborted, or waits for it to finish; then removes all other queued calls.  <a href="class_aktualizr.html#a29efa69f4904b62353b2268e1a2d8e85">More...</a><br /></td></tr>
 <tr class="separator:a29efa69f4904b62353b2268e1a2d8e85"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a77aa070899448a7589c5e66befc41d6a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_aktualizr.html#a77aa070899448a7589c5e66befc41d6a">UptaneCycle</a> ()</td></tr>
-<tr class="memdesc:a77aa070899448a7589c5e66befc41d6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Synchronously run an uptane cycle: check for updates, download any new targets, install them, and send a manifest back to the server.  <a href="class_aktualizr.html#a77aa070899448a7589c5e66befc41d6a">More...</a><br /></td></tr>
+<tr class="memdesc:a77aa070899448a7589c5e66befc41d6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Synchronously run an <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of Uptane.">Uptane</a> cycle: check for updates, download any new targets, install them, and send a manifest back to the server.  <a href="class_aktualizr.html#a77aa070899448a7589c5e66befc41d6a">More...</a><br /></td></tr>
 <tr class="separator:a77aa070899448a7589c5e66befc41d6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad433bb3340ec534e1557289f0399e518"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_aktualizr.html#ad433bb3340ec534e1557289f0399e518">AddSecondary</a> (const std::shared_ptr&lt; <a class="el" href="class_uptane_1_1_secondary_interface.html">Uptane::SecondaryInterface</a> &gt; &amp;secondary)</td></tr>
 <tr class="memdesc:ad433bb3340ec534e1557289f0399e518"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add new secondary to aktualizr.  <a href="class_aktualizr.html#ad433bb3340ec534e1557289f0399e518">More...</a><br /></td></tr>
@@ -305,7 +305,7 @@ std::shared_ptr&lt; <a class="el" href="class_sota_uptane_client.html">SotaUptan
 </div><div class="memdoc">
 
 <p>Check for campaigns. </p>
-<p>Campaigns are a concept outside of <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of UPTANE.">Uptane</a>, and allow for user approval of updates before the contents of the update are known. </p><dl class="section return"><dt>Returns</dt><dd>std::future object with data about available campaigns. </dd></dl>
+<p>Campaigns are a concept outside of <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of Uptane.">Uptane</a>, and allow for user approval of updates before the contents of the update are known. </p><dl class="section return"><dt>Returns</dt><dd>std::future object with data about available campaigns. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="aktualizr_8cc_source.html#l00115">115</a> of file <a class="el" href="aktualizr_8cc_source.html">aktualizr.cc</a>.</p>
 
@@ -366,8 +366,8 @@ std::shared_ptr&lt; <a class="el" href="class_sota_uptane_client.html">SotaUptan
       </table>
 </div><div class="memdoc">
 
-<p>Fetch <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of UPTANE.">Uptane</a> metadata and check for updates. </p>
-<p>This collects a client manifest, PUTs it to the director, updates the <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of UPTANE.">Uptane</a> metadata (including root and targets), and then checks the metadata for target updates. </p><dl class="section return"><dt>Returns</dt><dd>Information about available updates. </dd></dl>
+<p>Fetch <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of Uptane.">Uptane</a> metadata and check for updates. </p>
+<p>This collects a client manifest, PUTs it to the director, updates the <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of Uptane.">Uptane</a> metadata (including root and targets), and then checks the metadata for target updates. </p><dl class="section return"><dt>Returns</dt><dd>Information about available updates. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="aktualizr_8cc_source.html#l00144">144</a> of file <a class="el" href="aktualizr_8cc_source.html">aktualizr.cc</a>.</p>
 
@@ -543,7 +543,7 @@ std::shared_ptr&lt; <a class="el" href="class_sota_uptane_client.html">SotaUptan
 </div><div class="memdoc">
 
 <p>Get target downloaded in Download call. </p>
-<p>Returned target is guaranteed to be verified and up-to-date according to the <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of UPTANE.">Uptane</a> metadata downloaded in CheckUpdates call. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Returned target is guaranteed to be verified and up-to-date according to the <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of Uptane.">Uptane</a> metadata downloaded in CheckUpdates call. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">target</td><td>Target object matching the desired target in the storage. </td></tr>
   </table>
@@ -665,7 +665,7 @@ std::shared_ptr&lt; <a class="el" href="class_sota_uptane_client.html">SotaUptan
 <p>Note that the device manifest is also sent as a part of CheckUpdates and SendDeviceData calls, as well as after a reboot if it was initiated by <a class="el" href="class_aktualizr.html" title="This class provides the main APIs necessary for launching and controlling libaktualizr.">Aktualizr</a> as a part of an installation process. All these manifests will not include the custom data provided in this call.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">custom</td><td>Project-specific data to put in the custom field of <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of UPTANE.">Uptane</a> manifest </td></tr>
+    <tr><td class="paramname">custom</td><td>Project-specific data to put in the custom field of <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of Uptane.">Uptane</a> manifest </td></tr>
   </table>
   </dd>
 </dl>
@@ -719,7 +719,7 @@ std::shared_ptr&lt; <a class="el" href="class_sota_uptane_client.html">SotaUptan
       </table>
 </div><div class="memdoc">
 
-<p>Synchronously run an uptane cycle: check for updates, download any new targets, install them, and send a manifest back to the server. </p>
+<p>Synchronously run an <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of Uptane.">Uptane</a> cycle: check for updates, download any new targets, install them, and send a manifest back to the server. </p>
 <dl class="section return"><dt>Returns</dt><dd><code>false</code>, if the restart is required to continue, <code>true</code> otherwise </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="aktualizr_8cc_source.html#l00035">35</a> of file <a class="el" href="aktualizr_8cc_source.html">aktualizr.cc</a>.</p>

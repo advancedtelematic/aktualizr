@@ -79,7 +79,7 @@ Inheritance diagram for EphemeralStorage:</div>
 <div class="dynheader">
 Collaboration diagram for EphemeralStorage:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="class_ephemeral_storage__coll__graph.svg" width="487" height="486"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+<div class="center"><iframe scrolling="no" frameborder="0" src="class_ephemeral_storage__coll__graph.svg" width="659" height="500"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
 </div>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -266,6 +266,15 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>saveEcuReportCounter<
 <tr class="memitem:aae6e90facfe26baae40853dfac63e6ab inherit pub_methods_class_s_q_l_storage"><td class="memItemLeft" align="right" valign="top"><a id="aae6e90facfe26baae40853dfac63e6ab"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>loadEcuReportCounter</b> (std::vector&lt; std::pair&lt; <a class="el" href="class_uptane_1_1_ecu_serial.html">Uptane::EcuSerial</a>, int64_t &gt;&gt; *results) override</td></tr>
 <tr class="separator:aae6e90facfe26baae40853dfac63e6ab inherit pub_methods_class_s_q_l_storage"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a60fd776c5801b814c0b79ecfb20b9d4b inherit pub_methods_class_s_q_l_storage"><td class="memItemLeft" align="right" valign="top"><a id="a60fd776c5801b814c0b79ecfb20b9d4b"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>saveReportEvent</b> (const Json::Value &amp;json_value) override</td></tr>
+<tr class="separator:a60fd776c5801b814c0b79ecfb20b9d4b inherit pub_methods_class_s_q_l_storage"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7f671750b487689feab2c44f6e9bad7f inherit pub_methods_class_s_q_l_storage"><td class="memItemLeft" align="right" valign="top"><a id="a7f671750b487689feab2c44f6e9bad7f"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>loadReportEvents</b> (Json::Value *report_array, int64_t *id_max) override</td></tr>
+<tr class="separator:a7f671750b487689feab2c44f6e9bad7f inherit pub_methods_class_s_q_l_storage"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adccf34462c7e40fb0b6636e7d3ab6949 inherit pub_methods_class_s_q_l_storage"><td class="memItemLeft" align="right" valign="top"><a id="adccf34462c7e40fb0b6636e7d3ab6949"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>deleteReportEvents</b> (int64_t id_max) override</td></tr>
+<tr class="separator:adccf34462c7e40fb0b6636e7d3ab6949 inherit pub_methods_class_s_q_l_storage"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a74609dd5d9f8dd12b761331fb1fb134d inherit pub_methods_class_s_q_l_storage"><td class="memItemLeft" align="right" valign="top"><a id="a74609dd5d9f8dd12b761331fb1fb134d"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>clearInstallationResults</b> () override</td></tr>
 <tr class="separator:a74609dd5d9f8dd12b761331fb1fb134d inherit pub_methods_class_s_q_l_storage"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -373,6 +382,9 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>readonly_</b> {false}
 <tr class="memitem:af6470ae7a935518b07d1e78139f33345 inherit pro_attribs_class_s_q_l_storage_base"><td class="memItemLeft" align="right" valign="top"><a id="af6470ae7a935518b07d1e78139f33345"></a>
 <a class="el" href="class_storage_lock.html">StorageLock</a>&#160;</td><td class="memItemRight" valign="bottom"><b>lock</b></td></tr>
 <tr class="separator:af6470ae7a935518b07d1e78139f33345 inherit pro_attribs_class_s_q_l_storage_base"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0fef6ccab10ee2b44744e50a8156f5dd inherit pro_attribs_class_s_q_l_storage_base"><td class="memItemLeft" align="right" valign="top"><a id="a0fef6ccab10ee2b44744e50a8156f5dd"></a>
+std::shared_ptr&lt; std::mutex &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>mutex_</b></td></tr>
+<tr class="separator:a0fef6ccab10ee2b44744e50a8156f5dd inherit pro_attribs_class_s_q_l_storage_base"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aca37d9c7dcc799f75eab1e5ad46859b5 inherit pro_attribs_class_s_q_l_storage_base"><td class="memItemLeft" align="right" valign="top"><a id="aca37d9c7dcc799f75eab1e5ad46859b5"></a>
 const std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>schema_migrations_</b></td></tr>
 <tr class="separator:aca37d9c7dcc799f75eab1e5ad46859b5 inherit pro_attribs_class_s_q_l_storage_base"><td class="memSeparator" colspan="2">&#160;</td></tr>

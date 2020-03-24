@@ -272,6 +272,15 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>saveEcuReport
 <tr class="memitem:ad80898877b95d4c2d6beff1d516449af"><td class="memItemLeft" align="right" valign="top"><a id="ad80898877b95d4c2d6beff1d516449af"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>loadEcuReportCounter</b> (std::vector&lt; std::pair&lt; <a class="el" href="class_uptane_1_1_ecu_serial.html">Uptane::EcuSerial</a>, int64_t &gt;&gt; *results)=0</td></tr>
 <tr class="separator:ad80898877b95d4c2d6beff1d516449af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8e3cf6d9f41fd93e6bc11c882dd8ec46"><td class="memItemLeft" align="right" valign="top"><a id="a8e3cf6d9f41fd93e6bc11c882dd8ec46"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>saveReportEvent</b> (const Json::Value &amp;json_value)=0</td></tr>
+<tr class="separator:a8e3cf6d9f41fd93e6bc11c882dd8ec46"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af749f49ea5caedddaec8fe30a9b189c2"><td class="memItemLeft" align="right" valign="top"><a id="af749f49ea5caedddaec8fe30a9b189c2"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>loadReportEvents</b> (Json::Value *report_array, int64_t *id_max)=0</td></tr>
+<tr class="separator:af749f49ea5caedddaec8fe30a9b189c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aecc5198420d72f41b4cf04eea2a0aa4d"><td class="memItemLeft" align="right" valign="top"><a id="aecc5198420d72f41b4cf04eea2a0aa4d"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>deleteReportEvents</b> (int64_t id_max)=0</td></tr>
+<tr class="separator:aecc5198420d72f41b4cf04eea2a0aa4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a21e240e8c172f952aca2b314f289bd83"><td class="memItemLeft" align="right" valign="top"><a id="a21e240e8c172f952aca2b314f289bd83"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>checkAvailableDiskSpace</b> (uint64_t required_bytes) const =0</td></tr>
 <tr class="separator:a21e240e8c172f952aca2b314f289bd83"><td class="memSeparator" colspan="2">&#160;</td></tr>

@@ -63,6 +63,7 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="class_secondary_tcp_server-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -70,19 +71,24 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Listens on a socket, decodes calls (ASN.1) and forwards them to an <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of UPTANE.">Uptane</a> Secondary implementation.  
+<p>Listens on a socket, decodes calls (ASN.1) and forwards them to an <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of Uptane.">Uptane</a> Secondary implementation.  
  <a href="class_secondary_tcp_server.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="secondary__tcp__server_8h_source.html">secondary_tcp_server.h</a>&gt;</code></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:ad23210f91e20dec1ca4cab4e95cfc2da"><td class="memItemLeft" align="right" valign="top"><a id="ad23210f91e20dec1ca4cab4e95cfc2da"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><b>ExitReason</b> { <b>kNotApplicable</b>, 
+<b>kRebootNeeded</b>, 
+<b>kUnkown</b>
+ }</td></tr>
+<tr class="separator:ad23210f91e20dec1ca4cab4e95cfc2da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a2b9925b1324975b2017f0bb90e5525a9"><td class="memItemLeft" align="right" valign="top"><a id="a2b9925b1324975b2017f0bb90e5525a9"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>SecondaryTcpServer</b> (<a class="el" href="class_uptane_1_1_secondary_interface.html">Uptane::SecondaryInterface</a> &amp;secondary, const std::string &amp;primary_ip, in_port_t primary_port, in_port_t port=0)</td></tr>
-<tr class="separator:a2b9925b1324975b2017f0bb90e5525a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7b33b45edf9c00e006f33761702565f1"><td class="memItemLeft" align="right" valign="top"><a id="a7b33b45edf9c00e006f33761702565f1"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>SecondaryTcpServer</b> (<a class="el" href="class_uptane_1_1_secondary_interface.html">Uptane::SecondaryInterface</a> &amp;secondary, in_port_t port=0)</td></tr>
-<tr class="separator:a7b33b45edf9c00e006f33761702565f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a37744dee04ab83f1a9964b4e3c5a766d"><td class="memItemLeft" align="right" valign="top"><a id="a37744dee04ab83f1a9964b4e3c5a766d"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>SecondaryTcpServer</b> (<a class="el" href="class_uptane_1_1_secondary_interface.html">Uptane::SecondaryInterface</a> &amp;secondary, const std::string &amp;primary_ip, in_port_t primary_port, in_port_t port=0, bool reboot_after_install=false)</td></tr>
+<tr class="separator:a37744dee04ab83f1a9964b4e3c5a766d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aecdb50479099fdd1056c915ab7e813d1"><td class="memItemLeft" align="right" valign="top"><a id="aecdb50479099fdd1056c915ab7e813d1"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>SecondaryTcpServer</b> (const <a class="el" href="class_secondary_tcp_server.html">SecondaryTcpServer</a> &amp;)=delete</td></tr>
 <tr class="separator:aecdb50479099fdd1056c915ab7e813d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -99,9 +105,12 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>stop</b> ()</td></tr>
 <tr class="memitem:a40ea22f1daa19c3e7a8884ecd572b972"><td class="memItemLeft" align="right" valign="top"><a id="a40ea22f1daa19c3e7a8884ecd572b972"></a>
 in_port_t&#160;</td><td class="memItemRight" valign="bottom"><b>port</b> () const</td></tr>
 <tr class="separator:a40ea22f1daa19c3e7a8884ecd572b972"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9607727bb7b907befa760f60a5b7818b"><td class="memItemLeft" align="right" valign="top"><a id="a9607727bb7b907befa760f60a5b7818b"></a>
+ExitReason&#160;</td><td class="memItemRight" valign="bottom"><b>exit_reason</b> () const</td></tr>
+<tr class="separator:a9607727bb7b907befa760f60a5b7818b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Listens on a socket, decodes calls (ASN.1) and forwards them to an <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of UPTANE.">Uptane</a> Secondary implementation. </p>
+<div class="textblock"><p>Listens on a socket, decodes calls (ASN.1) and forwards them to an <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of Uptane.">Uptane</a> Secondary implementation. </p>
 
 <p class="definition">Definition at line <a class="el" href="secondary__tcp__server_8h_source.html#l00015">15</a> of file <a class="el" href="secondary__tcp__server_8h_source.html">secondary_tcp_server.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>

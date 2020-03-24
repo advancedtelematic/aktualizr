@@ -98,13 +98,13 @@ $(function() {
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;  <span class="keywordtype">long</span> http_status_code{0};  <span class="comment">// NOLINT(google-runtime-int)</span></div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;  CURLcode curl_code{CURLE_OK};</div>
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;  std::string error_message;</div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;  <span class="keywordtype">bool</span> isOk() { <span class="keywordflow">return</span> (curl_code == CURLE_OK &amp;&amp; http_status_code &gt;= 200 &amp;&amp; http_status_code &lt; 400); }</div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;  <span class="keywordtype">bool</span> wasInterrupted() { <span class="keywordflow">return</span> curl_code == CURLE_ABORTED_BY_CALLBACK; };</div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;  std::string getStatusStr() {</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;  <span class="keywordtype">bool</span> isOk()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> (curl_code == CURLE_OK &amp;&amp; http_status_code &gt;= 200 &amp;&amp; http_status_code &lt; 400); }</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;  <span class="keywordtype">bool</span> wasInterrupted()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> curl_code == CURLE_ABORTED_BY_CALLBACK; };</div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;  std::string getStatusStr()<span class="keyword"> const </span>{</div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;    <span class="keywordflow">return</span> std::to_string(curl_code) + <span class="stringliteral">&quot; &quot;</span> + error_message + <span class="stringliteral">&quot; HTTP &quot;</span> + std::to_string(http_status_code);</div>
 <div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;  }</div>
 <div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160; </div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;  Json::Value getJson() { <span class="keywordflow">return</span> Utils::parseJSON(body); }</div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;  Json::Value getJson()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> Utils::parseJSON(body); }</div>
 <div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;};</div>
 <div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160; </div>
 <div class="line"><a name="l00038"></a><span class="lineno"><a class="line" href="class_http_interface.html">   38</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_http_interface.html">HttpInterface</a> {</div>
@@ -133,7 +133,7 @@ $(function() {
 </div><!-- fragment --></div><!-- contents -->
 <div class="ttc" id="atypes_8h_html"><div class="ttname"><a href="types_8h.html">types.h</a></div></div>
 <div class="ttc" id="aclass_http_interface_html"><div class="ttname"><a href="class_http_interface.html">HttpInterface</a></div><div class="ttdef"><b>Definition:</b> <a href="httpinterface_8h_source.html#l00038">httpinterface.h:38</a></div></div>
-<div class="ttc" id="anamespacedata_html"><div class="ttname"><a href="namespacedata.html">data</a></div><div class="ttdoc">General data structures.</div><div class="ttdef"><b>Definition:</b> <a href="types_8cc_source.html#l00054">types.cc:54</a></div></div>
+<div class="ttc" id="anamespacedata_html"><div class="ttname"><a href="namespacedata.html">data</a></div><div class="ttdoc">General data structures.</div><div class="ttdef"><b>Definition:</b> <a href="types_8cc_source.html#l00055">types.cc:55</a></div></div>
 <div class="ttc" id="astruct_http_response_html"><div class="ttname"><a href="struct_http_response.html">HttpResponse</a></div><div class="ttdef"><b>Definition:</b> <a href="httpinterface_8h_source.html#l00017">httpinterface.h:17</a></div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

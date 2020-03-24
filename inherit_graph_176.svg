@@ -36,16 +36,16 @@
 <!-- Node2 -->
 <g id="node3" class="node">
 <title>Node2</title>
-<g id="a_node3"><a xlink:href="class_uptane_1_1_images_repository.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="191.5,-0.5 191.5,-19.5 337.5,-19.5 337.5,-0.5 191.5,-0.5"/>
-<text text-anchor="middle" x="264.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">Uptane::ImagesRepository</text>
+<g id="a_node3"><a xlink:href="class_uptane_1_1_image_repository.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="194.5,-0.5 194.5,-19.5 334.5,-19.5 334.5,-0.5 194.5,-0.5"/>
+<text text-anchor="middle" x="264.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">Uptane::ImageRepository</text>
 </a>
 </g>
 </g>
 <!-- Node0&#45;&gt;Node2 -->
 <g id="edge2" class="edge">
 <title>Node0&#45;&gt;Node2</title>
-<path fill="none" stroke="midnightblue" d="M164.41,-20.15C173.45,-19.22 182.57,-18.29 191.42,-17.38"/>
+<path fill="none" stroke="midnightblue" d="M164.29,-20.16C174.38,-19.13 184.57,-18.08 194.39,-17.08"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="163.84,-16.69 154.25,-21.19 164.56,-23.65 163.84,-16.69"/>
 </g>
 </g>

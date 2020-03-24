@@ -121,7 +121,7 @@ $(function() {
 <div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160; </div>
 <div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;  <span class="keywordflow">for</span> (<span class="keyword">auto</span>&amp; config : secondary_configs) {</div>
 <div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;    <span class="keywordflow">try</span> {</div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;      LOG_INFO &lt;&lt; <span class="stringliteral">&quot;Creating &quot;</span> &lt;&lt; config-&gt;type() &lt;&lt; <span class="stringliteral">&quot; secondaries...&quot;</span>;</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;      LOG_INFO &lt;&lt; <span class="stringliteral">&quot;Registering &quot;</span> &lt;&lt; config-&gt;type() &lt;&lt; <span class="stringliteral">&quot; Secondaries...&quot;</span>;</div>
 <div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;      Secondaries secondaries = createSecondaries(*config, aktualizr);</div>
 <div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160; </div>
 <div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;      <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; secondary : secondaries) {</div>
@@ -130,7 +130,7 @@ $(function() {
 <div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;        aktualizr.<a class="code" href="class_aktualizr.html#ad433bb3340ec534e1557289f0399e518">AddSecondary</a>(secondary);</div>
 <div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;      }</div>
 <div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;    } <span class="keywordflow">catch</span> (<span class="keyword">const</span> std::exception&amp; exc) {</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;      LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Failed to initialize a secondary: &quot;</span> &lt;&lt; exc.what();</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;      LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Failed to initialize a Secondary: &quot;</span> &lt;&lt; exc.what();</div>
 <div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;      <span class="keywordflow">throw</span> exc;</div>
 <div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    }</div>
 <div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;  }</div>
@@ -154,11 +154,11 @@ $(function() {
 <div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;    timer_.expires_from_now(timeout_);</div>
 <div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;    timer_.async_wait([&amp;](<span class="keyword">const</span> boost::system::error_code&amp; error_code) {</div>
 <div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;      <span class="keywordflow">if</span> (!!error_code) {</div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;        LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Wait for secondaries has failed: &quot;</span> &lt;&lt; error_code;</div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;        <span class="keywordflow">throw</span> std::runtime_error(<span class="stringliteral">&quot;Error while waiting for secondary&quot;</span>);</div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;        LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Wait for Secondaries has failed: &quot;</span> &lt;&lt; error_code;</div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;        <span class="keywordflow">throw</span> std::runtime_error(<span class="stringliteral">&quot;Error while waiting for Secondaries&quot;</span>);</div>
 <div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;      } <span class="keywordflow">else</span> {</div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;        LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Timeout while waiting for secondary: &quot;</span> &lt;&lt; error_code;</div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;        <span class="keywordflow">throw</span> std::runtime_error(<span class="stringliteral">&quot;Timeout while waiting for secondary&quot;</span>);</div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;        LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Timeout while waiting for Secondaries: &quot;</span> &lt;&lt; error_code;</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;        <span class="keywordflow">throw</span> std::runtime_error(<span class="stringliteral">&quot;Timeout while waiting for Secondaries&quot;</span>);</div>
 <div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;      }</div>
 <div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;      io_context_.stop();</div>
 <div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;    });</div>
@@ -168,7 +168,7 @@ $(function() {
 <div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160; </div>
 <div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160; <span class="keyword">private</span>:</div>
 <div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;  <span class="keywordtype">void</span> accept() {</div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;    LOG_INFO &lt;&lt; <span class="stringliteral">&quot;Waiting for connection from &quot;</span> &lt;&lt; secondaries_to_wait_for_.size() &lt;&lt; <span class="stringliteral">&quot; secondaries...&quot;</span>;</div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;    LOG_INFO &lt;&lt; <span class="stringliteral">&quot;Waiting for connection from &quot;</span> &lt;&lt; secondaries_to_wait_for_.size() &lt;&lt; <span class="stringliteral">&quot; Secondaries...&quot;</span>;</div>
 <div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;    acceptor_.async_accept(con_socket_,</div>
 <div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;                           boost::bind(&amp;SecondaryWaiter::connectionHdlr, <span class="keyword">this</span>, boost::asio::placeholders::error));</div>
 <div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;  }</div>
@@ -178,14 +178,14 @@ $(function() {
 <div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;      <span class="keyword">auto</span> sec_ip = con_socket_.remote_endpoint().address().to_string();</div>
 <div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;      <span class="keyword">auto</span> sec_port = con_socket_.remote_endpoint().port();</div>
 <div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160; </div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;      LOG_INFO &lt;&lt; <span class="stringliteral">&quot;Accepted connection from a secondary: (&quot;</span> &lt;&lt; sec_ip &lt;&lt; <span class="stringliteral">&quot;:&quot;</span> &lt;&lt; sec_port &lt;&lt; <span class="stringliteral">&quot;)&quot;</span>;</div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;      LOG_INFO &lt;&lt; <span class="stringliteral">&quot;Accepted connection from a Secondary: (&quot;</span> &lt;&lt; sec_ip &lt;&lt; <span class="stringliteral">&quot;:&quot;</span> &lt;&lt; sec_port &lt;&lt; <span class="stringliteral">&quot;)&quot;</span>;</div>
 <div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;      <span class="keywordflow">try</span> {</div>
 <div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;        <span class="keyword">auto</span> secondary = Uptane::IpUptaneSecondary::create(sec_ip, sec_port, con_socket_.native_handle());</div>
 <div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;        <span class="keywordflow">if</span> (secondary) {</div>
 <div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;          connected_secondaries_.push_back(secondary);</div>
 <div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;        }</div>
 <div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;      } <span class="keywordflow">catch</span> (<span class="keyword">const</span> std::exception&amp; exc) {</div>
-<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;        LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Failed to initialize a secondary: &quot;</span> &lt;&lt; exc.what();</div>
+<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;        LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Failed to initialize a Secondary: &quot;</span> &lt;&lt; exc.what();</div>
 <div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;      }</div>
 <div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;      con_socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both);</div>
 <div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;      con_socket_.close();</div>
@@ -197,7 +197,7 @@ $(function() {
 <div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;        io_context_.stop();</div>
 <div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;      }</div>
 <div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;    } <span class="keywordflow">else</span> {</div>
-<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;      LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Failed to accept connection from a secondary&quot;</span>;</div>
+<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;      LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Failed to accept connection from a Secondary&quot;</span>;</div>
 <div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;    }</div>
 <div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;  }</div>
 <div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160; </div>
@@ -262,19 +262,19 @@ $(function() {
 <div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;        d[<span class="stringliteral">&quot;ip&quot;</span>] = cfg.ip;</div>
 <div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;        d[<span class="stringliteral">&quot;port&quot;</span>] = cfg.port;</div>
 <div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;        aktualizr.<a class="code" href="class_aktualizr.html#a22e051b83a4d0dc2ac9b8e0cf730aca6">SetSecondaryData</a>(info-&gt;serial, Utils::jsonToCanonicalStr(d));</div>
-<div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;        LOG_INFO &lt;&lt; <span class="stringliteral">&quot;Migrated single IP secondary to new storage format&quot;</span>;</div>
+<div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;        LOG_INFO &lt;&lt; <span class="stringliteral">&quot;Migrated single IP Secondary to new storage format&quot;</span>;</div>
 <div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;      } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (f == secondaries_info.cend()) {</div>
 <div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;        <span class="comment">// Match the other way if we can</span></div>
 <div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;        secondary = Uptane::IpUptaneSecondary::connectAndCreate(cfg.ip, cfg.port);</div>
 <div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160;        <span class="keywordflow">if</span> (secondary == <span class="keyword">nullptr</span>) {</div>
-<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;          LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Could not instantiate secondary &quot;</span> &lt;&lt; cfg.ip &lt;&lt; <span class="stringliteral">&quot;:&quot;</span> &lt;&lt; cfg.port;</div>
+<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;          LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Could not instantiate Secondary &quot;</span> &lt;&lt; cfg.ip &lt;&lt; <span class="stringliteral">&quot;:&quot;</span> &lt;&lt; cfg.port;</div>
 <div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;          <span class="keywordflow">continue</span>;</div>
 <div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;        }</div>
 <div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;        <span class="keyword">auto</span> f_serial =</div>
 <div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;            std::find_if(secondaries_info.cbegin(), secondaries_info.cend(),</div>
 <div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160;                         [&amp;secondary](<span class="keyword">const</span> <a class="code" href="struct_secondary_info.html">SecondaryInfo</a>&amp; i) { <span class="keywordflow">return</span> i.serial == secondary-&gt;getSerial(); });</div>
 <div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;        <span class="keywordflow">if</span> (f_serial == secondaries_info.cend()) {</div>
-<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160;          LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Could not instantiate secondary &quot;</span> &lt;&lt; cfg.ip &lt;&lt; <span class="stringliteral">&quot;:&quot;</span> &lt;&lt; cfg.port;</div>
+<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160;          LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Could not instantiate Secondary &quot;</span> &lt;&lt; cfg.ip &lt;&lt; <span class="stringliteral">&quot;:&quot;</span> &lt;&lt; cfg.port;</div>
 <div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160;          <span class="keywordflow">continue</span>;</div>
 <div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;        }</div>
 <div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160;        info = &amp;(*f_serial);</div>
@@ -290,7 +290,7 @@ $(function() {
 <div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;      <span class="keywordflow">if</span> (secondary != <span class="keyword">nullptr</span>) {</div>
 <div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;        <a class="code" href="namespaceresult.html">result</a>.push_back(secondary);</div>
 <div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;      } <span class="keywordflow">else</span> {</div>
-<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;        LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Could not instantiate secondary &quot;</span> &lt;&lt; info-&gt;serial;</div>
+<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;        LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Could not instantiate Secondary &quot;</span> &lt;&lt; info-&gt;serial;</div>
 <div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;      }</div>
 <div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;    }</div>
 <div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;  }</div>

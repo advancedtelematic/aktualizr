@@ -124,7 +124,7 @@ $(function() {
 <div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;  <a class="code" href="class_uptane_1_1_root.html">Uptane::Root</a>(Uptane::RepositoryType::Director(), response.getJson(), root);</div>
 <div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;}</div>
 <div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160; </div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;<span class="comment">/* Throw an exception if a TUF root is unsigned. */</span></div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;<span class="comment">/* Throw an exception if Root metadata is unsigned. */</span></div>
 <div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;TEST(<a class="code" href="namespace_uptane.html">Uptane</a>, VerifyDataBad) {</div>
 <div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;  <a class="code" href="class_temporary_directory.html">TemporaryDirectory</a> temp_dir;</div>
 <div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;  <span class="keyword">auto</span> http = std::make_shared&lt;HttpFake&gt;(temp_dir.Path());</div>
@@ -141,7 +141,7 @@ $(function() {
 <div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;  EXPECT_THROW(<a class="code" href="class_uptane_1_1_root.html">Uptane::Root</a>(Uptane::RepositoryType::Director(), data_json, root), <a class="code" href="class_uptane_1_1_unmet_threshold.html">Uptane::UnmetThreshold</a>);</div>
 <div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;}</div>
 <div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160; </div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;<span class="comment">/* Throw an exception if a TUF root has unknown signature types. */</span></div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;<span class="comment">/* Throw an exception if Root metadata has unknown signature types. */</span></div>
 <div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;TEST(<a class="code" href="namespace_uptane.html">Uptane</a>, VerifyDataUnknownType) {</div>
 <div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;  <a class="code" href="class_temporary_directory.html">TemporaryDirectory</a> temp_dir;</div>
 <div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;  <span class="keyword">auto</span> http = std::make_shared&lt;HttpFake&gt;(temp_dir.Path());</div>
@@ -159,7 +159,7 @@ $(function() {
 <div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;  EXPECT_THROW(<a class="code" href="class_uptane_1_1_root.html">Uptane::Root</a>(Uptane::RepositoryType::Director(), data_json, root), <a class="code" href="class_uptane_1_1_security_exception.html">Uptane::SecurityException</a>);</div>
 <div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;}</div>
 <div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160; </div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;<span class="comment">/* Throw an exception if a TUF root has invalid key IDs. */</span></div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;<span class="comment">/* Throw an exception if Root metadata has invalid key IDs. */</span></div>
 <div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;TEST(<a class="code" href="namespace_uptane.html">Uptane</a>, VerifyDataBadKeyId) {</div>
 <div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;  <a class="code" href="class_temporary_directory.html">TemporaryDirectory</a> temp_dir;</div>
 <div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;  <span class="keyword">auto</span> http = std::make_shared&lt;HttpFake&gt;(temp_dir.Path());</div>
@@ -177,7 +177,7 @@ $(function() {
 <div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;  EXPECT_THROW(<a class="code" href="class_uptane_1_1_root.html">Uptane::Root</a>(Uptane::RepositoryType::Director(), data_json, root), <a class="code" href="class_uptane_1_1_bad_key_id.html">Uptane::BadKeyId</a>);</div>
 <div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;}</div>
 <div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160; </div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;<span class="comment">/* Throw an exception if a TUF root signature threshold is invalid. */</span></div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;<span class="comment">/* Throw an exception if Root metadata signature threshold is invalid. */</span></div>
 <div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;TEST(<a class="code" href="namespace_uptane.html">Uptane</a>, VerifyDataBadThreshold) {</div>
 <div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;  <a class="code" href="class_temporary_directory.html">TemporaryDirectory</a> temp_dir;</div>
 <div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;  <span class="keyword">auto</span> http = std::make_shared&lt;HttpFake&gt;(temp_dir.Path());</div>
@@ -683,7 +683,7 @@ $(function() {
 <div class="line"><a name="l00611"></a><span class="lineno">  611</span>&#160;  EXPECT_TRUE(EcuInstallationStartedReportGot);</div>
 <div class="line"><a name="l00612"></a><span class="lineno">  612</span>&#160;}</div>
 <div class="line"><a name="l00613"></a><span class="lineno">  613</span>&#160; </div>
-<div class="line"><a name="l00614"></a><span class="lineno">  614</span>&#160;<span class="comment">/* Register secondary ECUs with director. */</span></div>
+<div class="line"><a name="l00614"></a><span class="lineno">  614</span>&#160;<span class="comment">/* Register secondary ECUs with Director. */</span></div>
 <div class="line"><a name="l00615"></a><span class="lineno">  615</span>&#160;TEST(<a class="code" href="namespace_uptane.html">Uptane</a>, UptaneSecondaryAdd) {</div>
 <div class="line"><a name="l00616"></a><span class="lineno">  616</span>&#160;  <a class="code" href="class_temporary_directory.html">TemporaryDirectory</a> temp_dir;</div>
 <div class="line"><a name="l00617"></a><span class="lineno">  617</span>&#160;  <span class="keyword">auto</span> http = std::make_shared&lt;HttpFake&gt;(temp_dir.Path());</div>
@@ -826,7 +826,7 @@ $(function() {
 <div class="line"><a name="l00754"></a><span class="lineno">  754</span>&#160;      EXPECT_EQ(<a class="code" href="namespacedata.html">data</a>[<span class="stringliteral">&quot;deviceId&quot;</span>].asString(), <span class="stringliteral">&quot;tst149_device_id&quot;</span>);</div>
 <div class="line"><a name="l00755"></a><span class="lineno">  755</span>&#160;      <span class="keywordflow">return</span> <a class="code" href="struct_http_response.html">HttpResponse</a>(Utils::readFile(<span class="stringliteral">&quot;tests/test_data/cred.p12&quot;</span>), 200, CURLE_OK, <span class="stringliteral">&quot;&quot;</span>);</div>
 <div class="line"><a name="l00756"></a><span class="lineno">  756</span>&#160;    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (url.find(<span class="stringliteral">&quot;/director/ecus&quot;</span>) != std::string::npos) {</div>
-<div class="line"><a name="l00757"></a><span class="lineno">  757</span>&#160;      <span class="comment">/* Register primary ECU with director. */</span></div>
+<div class="line"><a name="l00757"></a><span class="lineno">  757</span>&#160;      <span class="comment">/* Register primary ECU with Director. */</span></div>
 <div class="line"><a name="l00758"></a><span class="lineno">  758</span>&#160;      ecus_count++;</div>
 <div class="line"><a name="l00759"></a><span class="lineno">  759</span>&#160;      EXPECT_EQ(<a class="code" href="namespacedata.html">data</a>[<span class="stringliteral">&quot;primary_ecu_serial&quot;</span>].asString(), <span class="stringliteral">&quot;CA:FE:A6:D2:84:9D&quot;</span>);</div>
 <div class="line"><a name="l00760"></a><span class="lineno">  760</span>&#160;      EXPECT_EQ(<a class="code" href="namespacedata.html">data</a>[<span class="stringliteral">&quot;ecus&quot;</span>][0][<span class="stringliteral">&quot;hardware_identifier&quot;</span>].asString(), <span class="stringliteral">&quot;primary_hw&quot;</span>);</div>
@@ -1098,17 +1098,17 @@ $(function() {
 <div class="line"><a name="l01026"></a><span class="lineno"> 1026</span>&#160; </div>
 <div class="line"><a name="l01027"></a><span class="lineno"> 1027</span>&#160;  std::string director_root;</div>
 <div class="line"><a name="l01028"></a><span class="lineno"> 1028</span>&#160;  std::string director_targets;</div>
-<div class="line"><a name="l01029"></a><span class="lineno"> 1029</span>&#160;  std::string images_root;</div>
-<div class="line"><a name="l01030"></a><span class="lineno"> 1030</span>&#160;  std::string images_targets;</div>
-<div class="line"><a name="l01031"></a><span class="lineno"> 1031</span>&#160;  std::string images_timestamp;</div>
-<div class="line"><a name="l01032"></a><span class="lineno"> 1032</span>&#160;  std::string images_snapshot;</div>
+<div class="line"><a name="l01029"></a><span class="lineno"> 1029</span>&#160;  std::string image_root;</div>
+<div class="line"><a name="l01030"></a><span class="lineno"> 1030</span>&#160;  std::string image_targets;</div>
+<div class="line"><a name="l01031"></a><span class="lineno"> 1031</span>&#160;  std::string image_timestamp;</div>
+<div class="line"><a name="l01032"></a><span class="lineno"> 1032</span>&#160;  std::string image_snapshot;</div>
 <div class="line"><a name="l01033"></a><span class="lineno"> 1033</span>&#160; </div>
 <div class="line"><a name="l01034"></a><span class="lineno"> 1034</span>&#160;  EXPECT_TRUE(fs_storage.loadLatestRoot(&amp;director_root, Uptane::RepositoryType::Director()));</div>
 <div class="line"><a name="l01035"></a><span class="lineno"> 1035</span>&#160;  EXPECT_TRUE(fs_storage.loadNonRoot(&amp;director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets()));</div>
-<div class="line"><a name="l01036"></a><span class="lineno"> 1036</span>&#160;  EXPECT_TRUE(fs_storage.loadLatestRoot(&amp;images_root, Uptane::RepositoryType::Image()));</div>
-<div class="line"><a name="l01037"></a><span class="lineno"> 1037</span>&#160;  EXPECT_TRUE(fs_storage.loadNonRoot(&amp;images_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets()));</div>
-<div class="line"><a name="l01038"></a><span class="lineno"> 1038</span>&#160;  EXPECT_TRUE(fs_storage.loadNonRoot(&amp;images_timestamp, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()));</div>
-<div class="line"><a name="l01039"></a><span class="lineno"> 1039</span>&#160;  EXPECT_TRUE(fs_storage.loadNonRoot(&amp;images_snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()));</div>
+<div class="line"><a name="l01036"></a><span class="lineno"> 1036</span>&#160;  EXPECT_TRUE(fs_storage.loadLatestRoot(&amp;image_root, Uptane::RepositoryType::Image()));</div>
+<div class="line"><a name="l01037"></a><span class="lineno"> 1037</span>&#160;  EXPECT_TRUE(fs_storage.loadNonRoot(&amp;image_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets()));</div>
+<div class="line"><a name="l01038"></a><span class="lineno"> 1038</span>&#160;  EXPECT_TRUE(fs_storage.loadNonRoot(&amp;image_timestamp, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()));</div>
+<div class="line"><a name="l01039"></a><span class="lineno"> 1039</span>&#160;  EXPECT_TRUE(fs_storage.loadNonRoot(&amp;image_snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()));</div>
 <div class="line"><a name="l01040"></a><span class="lineno"> 1040</span>&#160; </div>
 <div class="line"><a name="l01041"></a><span class="lineno"> 1041</span>&#160;  EXPECT_TRUE(boost::filesystem::exists(config.uptane_public_key_path.get(config.path)));</div>
 <div class="line"><a name="l01042"></a><span class="lineno"> 1042</span>&#160;  EXPECT_TRUE(boost::filesystem::exists(config.uptane_private_key_path.get(config.path)));</div>
@@ -1171,17 +1171,17 @@ $(function() {
 <div class="line"><a name="l01099"></a><span class="lineno"> 1099</span>&#160; </div>
 <div class="line"><a name="l01100"></a><span class="lineno"> 1100</span>&#160;  std::string sql_director_root;</div>
 <div class="line"><a name="l01101"></a><span class="lineno"> 1101</span>&#160;  std::string sql_director_targets;</div>
-<div class="line"><a name="l01102"></a><span class="lineno"> 1102</span>&#160;  std::string sql_images_root;</div>
-<div class="line"><a name="l01103"></a><span class="lineno"> 1103</span>&#160;  std::string sql_images_targets;</div>
-<div class="line"><a name="l01104"></a><span class="lineno"> 1104</span>&#160;  std::string sql_images_timestamp;</div>
-<div class="line"><a name="l01105"></a><span class="lineno"> 1105</span>&#160;  std::string sql_images_snapshot;</div>
+<div class="line"><a name="l01102"></a><span class="lineno"> 1102</span>&#160;  std::string sql_image_root;</div>
+<div class="line"><a name="l01103"></a><span class="lineno"> 1103</span>&#160;  std::string sql_image_targets;</div>
+<div class="line"><a name="l01104"></a><span class="lineno"> 1104</span>&#160;  std::string sql_image_timestamp;</div>
+<div class="line"><a name="l01105"></a><span class="lineno"> 1105</span>&#160;  std::string sql_image_snapshot;</div>
 <div class="line"><a name="l01106"></a><span class="lineno"> 1106</span>&#160; </div>
 <div class="line"><a name="l01107"></a><span class="lineno"> 1107</span>&#160;  sql_storage-&gt;loadLatestRoot(&amp;sql_director_root, Uptane::RepositoryType::Director());</div>
 <div class="line"><a name="l01108"></a><span class="lineno"> 1108</span>&#160;  sql_storage-&gt;loadNonRoot(&amp;sql_director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets());</div>
-<div class="line"><a name="l01109"></a><span class="lineno"> 1109</span>&#160;  sql_storage-&gt;loadLatestRoot(&amp;sql_images_root, Uptane::RepositoryType::Image());</div>
-<div class="line"><a name="l01110"></a><span class="lineno"> 1110</span>&#160;  sql_storage-&gt;loadNonRoot(&amp;sql_images_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets());</div>
-<div class="line"><a name="l01111"></a><span class="lineno"> 1111</span>&#160;  sql_storage-&gt;loadNonRoot(&amp;sql_images_timestamp, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp());</div>
-<div class="line"><a name="l01112"></a><span class="lineno"> 1112</span>&#160;  sql_storage-&gt;loadNonRoot(&amp;sql_images_snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot());</div>
+<div class="line"><a name="l01109"></a><span class="lineno"> 1109</span>&#160;  sql_storage-&gt;loadLatestRoot(&amp;sql_image_root, Uptane::RepositoryType::Image());</div>
+<div class="line"><a name="l01110"></a><span class="lineno"> 1110</span>&#160;  sql_storage-&gt;loadNonRoot(&amp;sql_image_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets());</div>
+<div class="line"><a name="l01111"></a><span class="lineno"> 1111</span>&#160;  sql_storage-&gt;loadNonRoot(&amp;sql_image_timestamp, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp());</div>
+<div class="line"><a name="l01112"></a><span class="lineno"> 1112</span>&#160;  sql_storage-&gt;loadNonRoot(&amp;sql_image_snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot());</div>
 <div class="line"><a name="l01113"></a><span class="lineno"> 1113</span>&#160; </div>
 <div class="line"><a name="l01114"></a><span class="lineno"> 1114</span>&#160;  EXPECT_EQ(sql_public_key, public_key);</div>
 <div class="line"><a name="l01115"></a><span class="lineno"> 1115</span>&#160;  EXPECT_EQ(sql_private_key, private_key);</div>
@@ -1195,10 +1195,10 @@ $(function() {
 <div class="line"><a name="l01123"></a><span class="lineno"> 1123</span>&#160; </div>
 <div class="line"><a name="l01124"></a><span class="lineno"> 1124</span>&#160;  EXPECT_EQ(sql_director_root, director_root);</div>
 <div class="line"><a name="l01125"></a><span class="lineno"> 1125</span>&#160;  EXPECT_EQ(sql_director_targets, director_targets);</div>
-<div class="line"><a name="l01126"></a><span class="lineno"> 1126</span>&#160;  EXPECT_EQ(sql_images_root, images_root);</div>
-<div class="line"><a name="l01127"></a><span class="lineno"> 1127</span>&#160;  EXPECT_EQ(sql_images_targets, images_targets);</div>
-<div class="line"><a name="l01128"></a><span class="lineno"> 1128</span>&#160;  EXPECT_EQ(sql_images_timestamp, images_timestamp);</div>
-<div class="line"><a name="l01129"></a><span class="lineno"> 1129</span>&#160;  EXPECT_EQ(sql_images_snapshot, images_snapshot);</div>
+<div class="line"><a name="l01126"></a><span class="lineno"> 1126</span>&#160;  EXPECT_EQ(sql_image_root, image_root);</div>
+<div class="line"><a name="l01127"></a><span class="lineno"> 1127</span>&#160;  EXPECT_EQ(sql_image_targets, image_targets);</div>
+<div class="line"><a name="l01128"></a><span class="lineno"> 1128</span>&#160;  EXPECT_EQ(sql_image_timestamp, image_timestamp);</div>
+<div class="line"><a name="l01129"></a><span class="lineno"> 1129</span>&#160;  EXPECT_EQ(sql_image_snapshot, image_snapshot);</div>
 <div class="line"><a name="l01130"></a><span class="lineno"> 1130</span>&#160;}</div>
 <div class="line"><a name="l01131"></a><span class="lineno"> 1131</span>&#160; </div>
 <div class="line"><a name="l01132"></a><span class="lineno"> 1132</span>&#160;<span class="comment">/* Import a list of installed packages into the storage. */</span></div>
@@ -1291,11 +1291,11 @@ $(function() {
 <div class="line"><a name="l01219"></a><span class="lineno"> 1219</span>&#160;};</div>
 <div class="line"><a name="l01220"></a><span class="lineno"> 1220</span>&#160; </div>
 <div class="line"><a name="l01221"></a><span class="lineno"> 1221</span>&#160;<span class="comment">/* Recover from an interrupted Uptane iteration.</span></div>
-<div class="line"><a name="l01222"></a><span class="lineno"> 1222</span>&#160;<span class="comment"> * Fetch metadata from the director.</span></div>
-<div class="line"><a name="l01223"></a><span class="lineno"> 1223</span>&#160;<span class="comment"> * Check metadata from the director.</span></div>
+<div class="line"><a name="l01222"></a><span class="lineno"> 1222</span>&#160;<span class="comment"> * Fetch metadata from the Director.</span></div>
+<div class="line"><a name="l01223"></a><span class="lineno"> 1223</span>&#160;<span class="comment"> * Check metadata from the Director.</span></div>
 <div class="line"><a name="l01224"></a><span class="lineno"> 1224</span>&#160;<span class="comment"> * Identify targets for known ECUs.</span></div>
-<div class="line"><a name="l01225"></a><span class="lineno"> 1225</span>&#160;<span class="comment"> * Fetch metadata from the images repo.</span></div>
-<div class="line"><a name="l01226"></a><span class="lineno"> 1226</span>&#160;<span class="comment"> * Check metadata from the images repo.</span></div>
+<div class="line"><a name="l01225"></a><span class="lineno"> 1225</span>&#160;<span class="comment"> * Fetch metadata from the Image repo.</span></div>
+<div class="line"><a name="l01226"></a><span class="lineno"> 1226</span>&#160;<span class="comment"> * Check metadata from the Image repo.</span></div>
 <div class="line"><a name="l01227"></a><span class="lineno"> 1227</span>&#160;<span class="comment"> *</span></div>
 <div class="line"><a name="l01228"></a><span class="lineno"> 1228</span>&#160;<span class="comment"> * This is a bit fragile because it depends upon a precise number of HTTP get</span></div>
 <div class="line"><a name="l01229"></a><span class="lineno"> 1229</span>&#160;<span class="comment"> * requests being made. If that changes, this test will need to be adjusted. */</span></div>
@@ -1321,48 +1321,48 @@ $(function() {
 <div class="line"><a name="l01249"></a><span class="lineno"> 1249</span>&#160;  EXPECT_FALSE(sota_client-&gt;uptaneIteration(<span class="keyword">nullptr</span>, <span class="keyword">nullptr</span>));</div>
 <div class="line"><a name="l01250"></a><span class="lineno"> 1250</span>&#160;  EXPECT_FALSE(storage-&gt;loadLatestRoot(<span class="keyword">nullptr</span>, Uptane::RepositoryType::Director()));</div>
 <div class="line"><a name="l01251"></a><span class="lineno"> 1251</span>&#160; </div>
-<div class="line"><a name="l01252"></a><span class="lineno"> 1252</span>&#160;  <span class="comment">// 2nd attempt, get director root.json</span></div>
+<div class="line"><a name="l01252"></a><span class="lineno"> 1252</span>&#160;  <span class="comment">// 2nd attempt, get Director root.json</span></div>
 <div class="line"><a name="l01253"></a><span class="lineno"> 1253</span>&#160;  http-&gt;setUnstableValidNum(1);</div>
 <div class="line"><a name="l01254"></a><span class="lineno"> 1254</span>&#160;  EXPECT_FALSE(sota_client-&gt;uptaneIteration(<span class="keyword">nullptr</span>, <span class="keyword">nullptr</span>));</div>
 <div class="line"><a name="l01255"></a><span class="lineno"> 1255</span>&#160;  EXPECT_TRUE(storage-&gt;loadLatestRoot(<span class="keyword">nullptr</span>, Uptane::RepositoryType::Director()));</div>
 <div class="line"><a name="l01256"></a><span class="lineno"> 1256</span>&#160;  EXPECT_FALSE(storage-&gt;loadNonRoot(<span class="keyword">nullptr</span>, Uptane::RepositoryType::Director(), Uptane::Role::Targets()));</div>
 <div class="line"><a name="l01257"></a><span class="lineno"> 1257</span>&#160; </div>
-<div class="line"><a name="l01258"></a><span class="lineno"> 1258</span>&#160;  <span class="comment">// 3rd attempt, get director targets.json</span></div>
+<div class="line"><a name="l01258"></a><span class="lineno"> 1258</span>&#160;  <span class="comment">// 3rd attempt, get Director targets.json</span></div>
 <div class="line"><a name="l01259"></a><span class="lineno"> 1259</span>&#160;  http-&gt;setUnstableValidNum(2);</div>
 <div class="line"><a name="l01260"></a><span class="lineno"> 1260</span>&#160;  EXPECT_FALSE(sota_client-&gt;uptaneIteration(<span class="keyword">nullptr</span>, <span class="keyword">nullptr</span>));</div>
 <div class="line"><a name="l01261"></a><span class="lineno"> 1261</span>&#160;  EXPECT_TRUE(storage-&gt;loadLatestRoot(<span class="keyword">nullptr</span>, Uptane::RepositoryType::Director()));</div>
 <div class="line"><a name="l01262"></a><span class="lineno"> 1262</span>&#160;  EXPECT_TRUE(storage-&gt;loadNonRoot(<span class="keyword">nullptr</span>, Uptane::RepositoryType::Director(), Uptane::Role::Targets()));</div>
 <div class="line"><a name="l01263"></a><span class="lineno"> 1263</span>&#160;  EXPECT_FALSE(storage-&gt;loadLatestRoot(<span class="keyword">nullptr</span>, Uptane::RepositoryType::Image()));</div>
 <div class="line"><a name="l01264"></a><span class="lineno"> 1264</span>&#160; </div>
-<div class="line"><a name="l01265"></a><span class="lineno"> 1265</span>&#160;  <span class="comment">// 4th attempt, get images root.json</span></div>
+<div class="line"><a name="l01265"></a><span class="lineno"> 1265</span>&#160;  <span class="comment">// 4th attempt, get Image repo root.json</span></div>
 <div class="line"><a name="l01266"></a><span class="lineno"> 1266</span>&#160;  http-&gt;setUnstableValidNum(3);</div>
 <div class="line"><a name="l01267"></a><span class="lineno"> 1267</span>&#160;  EXPECT_FALSE(sota_client-&gt;uptaneIteration(<span class="keyword">nullptr</span>, <span class="keyword">nullptr</span>));</div>
 <div class="line"><a name="l01268"></a><span class="lineno"> 1268</span>&#160;  EXPECT_TRUE(storage-&gt;loadLatestRoot(<span class="keyword">nullptr</span>, Uptane::RepositoryType::Image()));</div>
 <div class="line"><a name="l01269"></a><span class="lineno"> 1269</span>&#160;  EXPECT_FALSE(storage-&gt;loadNonRoot(<span class="keyword">nullptr</span>, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()));</div>
 <div class="line"><a name="l01270"></a><span class="lineno"> 1270</span>&#160; </div>
-<div class="line"><a name="l01271"></a><span class="lineno"> 1271</span>&#160;  <span class="comment">// 5th attempt, get images timestamp.json</span></div>
+<div class="line"><a name="l01271"></a><span class="lineno"> 1271</span>&#160;  <span class="comment">// 5th attempt, get Image repo timestamp.json</span></div>
 <div class="line"><a name="l01272"></a><span class="lineno"> 1272</span>&#160;  http-&gt;setUnstableValidNum(4);</div>
 <div class="line"><a name="l01273"></a><span class="lineno"> 1273</span>&#160;  EXPECT_FALSE(sota_client-&gt;uptaneIteration(<span class="keyword">nullptr</span>, <span class="keyword">nullptr</span>));</div>
 <div class="line"><a name="l01274"></a><span class="lineno"> 1274</span>&#160;  EXPECT_TRUE(storage-&gt;loadNonRoot(<span class="keyword">nullptr</span>, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()));</div>
 <div class="line"><a name="l01275"></a><span class="lineno"> 1275</span>&#160;  EXPECT_FALSE(storage-&gt;loadNonRoot(<span class="keyword">nullptr</span>, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()));</div>
 <div class="line"><a name="l01276"></a><span class="lineno"> 1276</span>&#160; </div>
-<div class="line"><a name="l01277"></a><span class="lineno"> 1277</span>&#160;  <span class="comment">// 6th attempt, get images snapshot.json</span></div>
+<div class="line"><a name="l01277"></a><span class="lineno"> 1277</span>&#160;  <span class="comment">// 6th attempt, get Image repo snapshot.json</span></div>
 <div class="line"><a name="l01278"></a><span class="lineno"> 1278</span>&#160;  http-&gt;setUnstableValidNum(5);</div>
 <div class="line"><a name="l01279"></a><span class="lineno"> 1279</span>&#160;  EXPECT_FALSE(sota_client-&gt;uptaneIteration(<span class="keyword">nullptr</span>, <span class="keyword">nullptr</span>));</div>
 <div class="line"><a name="l01280"></a><span class="lineno"> 1280</span>&#160;  EXPECT_TRUE(storage-&gt;loadNonRoot(<span class="keyword">nullptr</span>, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()));</div>
 <div class="line"><a name="l01281"></a><span class="lineno"> 1281</span>&#160;  EXPECT_FALSE(storage-&gt;loadNonRoot(<span class="keyword">nullptr</span>, Uptane::RepositoryType::Image(), Uptane::Role::Targets()));</div>
 <div class="line"><a name="l01282"></a><span class="lineno"> 1282</span>&#160; </div>
-<div class="line"><a name="l01283"></a><span class="lineno"> 1283</span>&#160;  <span class="comment">// 7th attempt, get images targets.json, successful iteration</span></div>
+<div class="line"><a name="l01283"></a><span class="lineno"> 1283</span>&#160;  <span class="comment">// 7th attempt, get Image repo targets.json, successful iteration</span></div>
 <div class="line"><a name="l01284"></a><span class="lineno"> 1284</span>&#160;  http-&gt;setUnstableValidNum(6);</div>
 <div class="line"><a name="l01285"></a><span class="lineno"> 1285</span>&#160;  EXPECT_TRUE(sota_client-&gt;uptaneIteration(<span class="keyword">nullptr</span>, <span class="keyword">nullptr</span>));</div>
 <div class="line"><a name="l01286"></a><span class="lineno"> 1286</span>&#160;  EXPECT_TRUE(storage-&gt;loadNonRoot(<span class="keyword">nullptr</span>, Uptane::RepositoryType::Image(), Uptane::Role::Targets()));</div>
 <div class="line"><a name="l01287"></a><span class="lineno"> 1287</span>&#160;}</div>
 <div class="line"><a name="l01288"></a><span class="lineno"> 1288</span>&#160; </div>
-<div class="line"><a name="l01289"></a><span class="lineno"> 1289</span>&#160;<span class="comment">/* Fetch metadata from the director.</span></div>
-<div class="line"><a name="l01290"></a><span class="lineno"> 1290</span>&#160;<span class="comment"> * Check metadata from the director.</span></div>
+<div class="line"><a name="l01289"></a><span class="lineno"> 1289</span>&#160;<span class="comment">/* Fetch metadata from the Director.</span></div>
+<div class="line"><a name="l01290"></a><span class="lineno"> 1290</span>&#160;<span class="comment"> * Check metadata from the Director.</span></div>
 <div class="line"><a name="l01291"></a><span class="lineno"> 1291</span>&#160;<span class="comment"> * Identify targets for known ECUs.</span></div>
-<div class="line"><a name="l01292"></a><span class="lineno"> 1292</span>&#160;<span class="comment"> * Fetch metadata from the images repo.</span></div>
-<div class="line"><a name="l01293"></a><span class="lineno"> 1293</span>&#160;<span class="comment"> * Check metadata from the images repo. */</span></div>
+<div class="line"><a name="l01292"></a><span class="lineno"> 1292</span>&#160;<span class="comment"> * Fetch metadata from the Image repo.</span></div>
+<div class="line"><a name="l01293"></a><span class="lineno"> 1293</span>&#160;<span class="comment"> * Check metadata from the Image repo. */</span></div>
 <div class="line"><a name="l01294"></a><span class="lineno"> 1294</span>&#160;TEST(<a class="code" href="namespace_uptane.html">Uptane</a>, offlineIteration) {</div>
 <div class="line"><a name="l01295"></a><span class="lineno"> 1295</span>&#160;  <a class="code" href="class_temporary_directory.html">TemporaryDirectory</a> temp_dir;</div>
 <div class="line"><a name="l01296"></a><span class="lineno"> 1296</span>&#160;  <span class="keyword">auto</span> http = std::make_shared&lt;HttpFake&gt;(temp_dir.Path(), <span class="stringliteral">&quot;hasupdates&quot;</span>);</div>
@@ -1412,17 +1412,17 @@ $(function() {
 <div class="line"><a name="l01340"></a><span class="lineno"> 1340</span>&#160;  <span class="keyword">auto</span> <a class="code" href="namespaceresult.html">result</a> = sota_client-&gt;fetchMeta();</div>
 <div class="line"><a name="l01341"></a><span class="lineno"> 1341</span>&#160;  EXPECT_EQ(<a class="code" href="namespaceresult.html">result</a>.status, result::UpdateStatus::kError);</div>
 <div class="line"><a name="l01342"></a><span class="lineno"> 1342</span>&#160;  EXPECT_STREQ(sota_client-&gt;getLastException().what(),</div>
-<div class="line"><a name="l01343"></a><span class="lineno"> 1343</span>&#160;               <span class="stringliteral">&quot;The target had an ECU ID that did not match the client&#39;s configured ECU id.&quot;</span>);</div>
+<div class="line"><a name="l01343"></a><span class="lineno"> 1343</span>&#160;               <span class="stringliteral">&quot;The target had an ECU ID that did not match the client&#39;s configured ECU ID.&quot;</span>);</div>
 <div class="line"><a name="l01344"></a><span class="lineno"> 1344</span>&#160;  sota_client-&gt;last_exception = <a class="code" href="class_uptane_1_1_exception.html">Uptane::Exception</a>{<span class="stringliteral">&quot;&quot;</span>, <span class="stringliteral">&quot;&quot;</span>};</div>
 <div class="line"><a name="l01345"></a><span class="lineno"> 1345</span>&#160;  <a class="code" href="namespaceresult.html">result</a> = sota_client-&gt;checkUpdates();</div>
 <div class="line"><a name="l01346"></a><span class="lineno"> 1346</span>&#160;  EXPECT_EQ(<a class="code" href="namespaceresult.html">result</a>.status, result::UpdateStatus::kError);</div>
 <div class="line"><a name="l01347"></a><span class="lineno"> 1347</span>&#160;  EXPECT_STREQ(sota_client-&gt;getLastException().what(),</div>
-<div class="line"><a name="l01348"></a><span class="lineno"> 1348</span>&#160;               <span class="stringliteral">&quot;The target had an ECU ID that did not match the client&#39;s configured ECU id.&quot;</span>);</div>
+<div class="line"><a name="l01348"></a><span class="lineno"> 1348</span>&#160;               <span class="stringliteral">&quot;The target had an ECU ID that did not match the client&#39;s configured ECU ID.&quot;</span>);</div>
 <div class="line"><a name="l01349"></a><span class="lineno"> 1349</span>&#160;  std::vector&lt;Uptane::Target&gt; packages_to_install = UptaneTestCommon::makePackage(<span class="stringliteral">&quot;testecuserial&quot;</span>, <span class="stringliteral">&quot;testecuhwid&quot;</span>);</div>
 <div class="line"><a name="l01350"></a><span class="lineno"> 1350</span>&#160;  sota_client-&gt;last_exception = <a class="code" href="class_uptane_1_1_exception.html">Uptane::Exception</a>{<span class="stringliteral">&quot;&quot;</span>, <span class="stringliteral">&quot;&quot;</span>};</div>
 <div class="line"><a name="l01351"></a><span class="lineno"> 1351</span>&#160;  <span class="keyword">auto</span> report = sota_client-&gt;uptaneInstall(packages_to_install);</div>
 <div class="line"><a name="l01352"></a><span class="lineno"> 1352</span>&#160;  EXPECT_STREQ(sota_client-&gt;getLastException().what(),</div>
-<div class="line"><a name="l01353"></a><span class="lineno"> 1353</span>&#160;               <span class="stringliteral">&quot;The target had an ECU ID that did not match the client&#39;s configured ECU id.&quot;</span>);</div>
+<div class="line"><a name="l01353"></a><span class="lineno"> 1353</span>&#160;               <span class="stringliteral">&quot;The target had an ECU ID that did not match the client&#39;s configured ECU ID.&quot;</span>);</div>
 <div class="line"><a name="l01354"></a><span class="lineno"> 1354</span>&#160;  EXPECT_EQ(report.ecu_reports.size(), 0);</div>
 <div class="line"><a name="l01355"></a><span class="lineno"> 1355</span>&#160;}</div>
 <div class="line"><a name="l01356"></a><span class="lineno"> 1356</span>&#160; </div>
@@ -1468,7 +1468,7 @@ $(function() {
 <div class="line"><a name="l01396"></a><span class="lineno"> 1396</span>&#160;<span class="comment">// vim: set tabstop=2 shiftwidth=2 expandtab:</span></div>
 </div><!-- fragment --></div><!-- contents -->
 <div class="ttc" id="aclass_uptane_1_1_unmet_threshold_html"><div class="ttname"><a href="class_uptane_1_1_unmet_threshold.html">Uptane::UnmetThreshold</a></div><div class="ttdef"><b>Definition:</b> <a href="uptane_2exceptions_8h_source.html#l00053">exceptions.h:53</a></div></div>
-<div class="ttc" id="aclass_http_fake_html"><div class="ttname"><a href="class_http_fake.html">HttpFake</a></div><div class="ttdef"><b>Definition:</b> <a href="httpfake_8h_source.html#l00022">httpfake.h:22</a></div></div>
+<div class="ttc" id="aclass_http_fake_html"><div class="ttname"><a href="class_http_fake.html">HttpFake</a></div><div class="ttdef"><b>Definition:</b> <a href="httpfake_8h_source.html#l00020">httpfake.h:20</a></div></div>
 <div class="ttc" id="aclass_key_manager_html"><div class="ttname"><a href="class_key_manager.html">KeyManager</a></div><div class="ttdef"><b>Definition:</b> <a href="keymanager_8h_source.html#l00013">keymanager.h:13</a></div></div>
 <div class="ttc" id="astructdata_1_1_result_code_html_a1217cbd9c97e19df1ade7b0384cd5aaeaed7fff9f920b183cd434b831bff0d2c8"><div class="ttname"><a href="structdata_1_1_result_code.html#a1217cbd9c97e19df1ade7b0384cd5aaeaed7fff9f920b183cd434b831bff0d2c8">data::ResultCode::Numeric::kAlreadyProcessed</a></div><div class="ttdoc">Operation has already been processed.</div></div>
 <div class="ttc" id="aclass_secondary_interface_mock_html"><div class="ttname"><a href="class_secondary_interface_mock.html">SecondaryInterfaceMock</a></div><div class="ttdef"><b>Definition:</b> <a href="uptane__test_8cc_source.html#l00509">uptane_test.cc:509</a></div></div>
@@ -1477,11 +1477,11 @@ $(function() {
 <div class="ttc" id="aclass_http_fake_events_html"><div class="ttname"><a href="class_http_fake_events.html">HttpFakeEvents</a></div><div class="ttdef"><b>Definition:</b> <a href="uptane__test_8cc_source.html#l00492">uptane_test.cc:492</a></div></div>
 <div class="ttc" id="astruct_storage_config_html"><div class="ttname"><a href="struct_storage_config.html">StorageConfig</a></div><div class="ttdef"><b>Definition:</b> <a href="storage__config_8h_source.html#l00015">storage_config.h:15</a></div></div>
 <div class="ttc" id="aclassresult_1_1_update_check_html"><div class="ttname"><a href="classresult_1_1_update_check.html">result::UpdateCheck</a></div><div class="ttdoc">Container for information about available updates.</div><div class="ttdef"><b>Definition:</b> <a href="results_8h_source.html#l00038">results.h:38</a></div></div>
-<div class="ttc" id="anamespacedata_html"><div class="ttname"><a href="namespacedata.html">data</a></div><div class="ttdoc">General data structures.</div><div class="ttdef"><b>Definition:</b> <a href="types_8cc_source.html#l00054">types.cc:54</a></div></div>
+<div class="ttc" id="anamespacedata_html"><div class="ttname"><a href="namespacedata.html">data</a></div><div class="ttdoc">General data structures.</div><div class="ttdef"><b>Definition:</b> <a href="types_8cc_source.html#l00055">types.cc:55</a></div></div>
 <div class="ttc" id="aclass_uptane_1_1_hardware_identifier_html"><div class="ttname"><a href="class_uptane_1_1_hardware_identifier.html">Uptane::HardwareIdentifier</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00143">tuf.h:143</a></div></div>
 <div class="ttc" id="astruct_http_response_html"><div class="ttname"><a href="struct_http_response.html">HttpResponse</a></div><div class="ttdef"><b>Definition:</b> <a href="httpinterface_8h_source.html#l00017">httpinterface.h:17</a></div></div>
 <div class="ttc" id="aclass_config_html"><div class="ttname"><a href="class_config.html">Config</a></div><div class="ttdoc">Configuration object for an aktualizr instance running on a primary ECU.</div><div class="ttdef"><b>Definition:</b> <a href="config_8h_source.html#l00074">config.h:74</a></div></div>
-<div class="ttc" id="astruct_uptane_1_1_raw_meta_pack_html"><div class="ttname"><a href="struct_uptane_1_1_raw_meta_pack.html">Uptane::RawMetaPack</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00534">tuf.h:534</a></div></div>
+<div class="ttc" id="astruct_uptane_1_1_raw_meta_pack_html"><div class="ttname"><a href="struct_uptane_1_1_raw_meta_pack.html">Uptane::RawMetaPack</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00535">tuf.h:535</a></div></div>
 <div class="ttc" id="aclass_uptane_1_1_ecu_serial_html"><div class="ttname"><a href="class_uptane_1_1_ecu_serial.html">Uptane::EcuSerial</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00174">tuf.h:174</a></div></div>
 <div class="ttc" id="aclassresult_1_1_download_html"><div class="ttname"><a href="classresult_1_1_download.html">result::Download</a></div><div class="ttdoc">Container for information about downloading an update.</div><div class="ttdef"><b>Definition:</b> <a href="results_8h_source.html#l00117">results.h:117</a></div></div>
 <div class="ttc" id="aclass_public_key_html"><div class="ttname"><a href="class_public_key.html">PublicKey</a></div><div class="ttdef"><b>Definition:</b> <a href="crypto_8h_source.html#l00026">crypto.h:26</a></div></div>
@@ -1497,8 +1497,8 @@ $(function() {
 <div class="ttc" id="astructdata_1_1_result_code_html_a1217cbd9c97e19df1ade7b0384cd5aaeafcd417a134c251034b0d61b07c826394"><div class="ttname"><a href="structdata_1_1_result_code.html#a1217cbd9c97e19df1ade7b0384cd5aaeafcd417a134c251034b0d61b07c826394">data::ResultCode::Numeric::kInternalError</a></div><div class="ttdoc">SWM Internal integrity error.</div></div>
 <div class="ttc" id="aclass_uptane_1_1_target_html"><div class="ttname"><a href="class_uptane_1_1_target.html">Uptane::Target</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00238">tuf.h:238</a></div></div>
 <div class="ttc" id="astructdata_1_1_result_code_html_a1217cbd9c97e19df1ade7b0384cd5aae"><div class="ttname"><a href="structdata_1_1_result_code.html#a1217cbd9c97e19df1ade7b0384cd5aae">data::ResultCode::Numeric</a></div><div class="ttdeci">Numeric</div><div class="ttdef"><b>Definition:</b> <a href="types_8h_source.html#l00128">types.h:128</a></div></div>
-<div class="ttc" id="aclass_uptane_1_1_root_html"><div class="ttname"><a href="class_uptane_1_1_root.html">Uptane::Root</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00384">tuf.h:384</a></div></div>
-<div class="ttc" id="anamespace_uptane_html"><div class="ttname"><a href="namespace_uptane.html">Uptane</a></div><div class="ttdoc">Base data types that are used in The Update Framework (TUF), part of UPTANE.</div><div class="ttdef"><b>Definition:</b> <a href="secondary__tcp__server_8h_source.html#l00008">secondary_tcp_server.h:8</a></div></div>
+<div class="ttc" id="aclass_uptane_1_1_root_html"><div class="ttname"><a href="class_uptane_1_1_root.html">Uptane::Root</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00385">tuf.h:385</a></div></div>
+<div class="ttc" id="anamespace_uptane_html"><div class="ttname"><a href="namespace_uptane.html">Uptane</a></div><div class="ttdoc">Base data types that are used in The Update Framework (TUF), part of Uptane.</div><div class="ttdef"><b>Definition:</b> <a href="secondary__tcp__server_8h_source.html#l00008">secondary_tcp_server.h:8</a></div></div>
 <div class="ttc" id="aclass_http_put_manifest_fail_html"><div class="ttname"><a href="class_http_put_manifest_fail.html">HttpPutManifestFail</a></div><div class="ttdef"><b>Definition:</b> <a href="aktualizr__test_8cc_source.html#l02114">aktualizr_test.cc:2114</a></div></div>
 <div class="ttc" id="aclass_uptane_1_1_secondary_interface_html"><div class="ttname"><a href="class_uptane_1_1_secondary_interface.html">Uptane::SecondaryInterface</a></div><div class="ttdef"><b>Definition:</b> <a href="secondaryinterface_8h_source.html#l00012">secondaryinterface.h:12</a></div></div>
 <div class="ttc" id="aclass_uptane_1_1_manifest_html"><div class="ttname"><a href="class_uptane_1_1_manifest.html">Uptane::Manifest</a></div><div class="ttdef"><b>Definition:</b> <a href="manifest_8h_source.html#l00013">manifest.h:13</a></div></div>

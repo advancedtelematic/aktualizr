@@ -120,17 +120,18 @@ $(function() {
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;  <span class="keywordtype">bool</span> readonly_{<span class="keyword">false</span>};</div>
 <div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160; </div>
 <div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;  <a class="code" href="class_storage_lock.html">StorageLock</a> lock;</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160; </div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;  <span class="keyword">const</span> std::vector&lt;std::string&gt; schema_migrations_;</div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;  std::vector&lt;std::string&gt; schema_rollback_migrations_;</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;  <span class="keyword">const</span> std::string current_schema_;</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">int</span> current_schema_version_;</div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160; </div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;  <a class="code" href="class_s_q_lite3_guard.html">SQLite3Guard</a> dbConnection() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;  <span class="keywordtype">bool</span> dbInsertBackMigrations(<a class="code" href="class_s_q_lite3_guard.html">SQLite3Guard</a> &amp;db, <span class="keywordtype">int</span> version_latest);</div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;};</div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160; </div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;<span class="preprocessor">#endif  // SQLSTORAGE_BASE_H_</span></div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;  std::shared_ptr&lt;std::mutex&gt; mutex_;</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160; </div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;  <span class="keyword">const</span> std::vector&lt;std::string&gt; schema_migrations_;</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;  std::vector&lt;std::string&gt; schema_rollback_migrations_;</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;  <span class="keyword">const</span> std::string current_schema_;</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">int</span> current_schema_version_;</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160; </div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;  <a class="code" href="class_s_q_lite3_guard.html">SQLite3Guard</a> dbConnection() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;  <span class="keywordtype">bool</span> dbInsertBackMigrations(<a class="code" href="class_s_q_lite3_guard.html">SQLite3Guard</a> &amp;db, <span class="keywordtype">int</span> version_latest);</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;};</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160; </div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;<span class="preprocessor">#endif  // SQLSTORAGE_BASE_H_</span></div>
 </div><!-- fragment --></div><!-- contents -->
 <div class="ttc" id="aclass_storage_lock_html"><div class="ttname"><a href="class_storage_lock.html">StorageLock</a></div><div class="ttdef"><b>Definition:</b> <a href="sqlstorage__base_8h_source.html#l00013">sqlstorage_base.h:13</a></div></div>
 <div class="ttc" id="aclass_storage_lock_1_1locked__exception_html"><div class="ttname"><a href="class_storage_lock_1_1locked__exception.html">StorageLock::locked_exception</a></div><div class="ttdef"><b>Definition:</b> <a href="sqlstorage__base_8h_source.html#l00023">sqlstorage_base.h:23</a></div></div>

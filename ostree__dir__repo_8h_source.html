@@ -85,7 +85,7 @@ $(function() {
 <div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160; </div>
 <div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;  <span class="keywordtype">bool</span> LooksValid() <span class="keyword">const override</span>;</div>
 <div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;  <a class="code" href="class_o_s_tree_ref.html">OSTreeRef</a> GetRef(<span class="keyword">const</span> std::string&amp; refname) <span class="keyword">const override</span>;</div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;  <span class="keyword">const</span> boost::filesystem::path root()<span class="keyword"> const override </span>{ <span class="keywordflow">return</span> root_; }</div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;  boost::filesystem::path root()<span class="keyword"> const override </span>{ <span class="keywordflow">return</span> root_; }</div>
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160; </div>
 <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160; <span class="keyword">private</span>:</div>
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;  <span class="keywordtype">bool</span> FetchObject(<span class="keyword">const</span> boost::filesystem::path&amp; path) <span class="keyword">const override</span>;</div>

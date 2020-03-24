@@ -265,7 +265,7 @@ $(function() {
 <div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;  }</div>
 <div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;  boost::scoped_array&lt;char&gt; buf(<span class="keyword">new</span> <span class="keywordtype">char</span>[len + 1]);</div>
 <div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;  X509_NAME_get_text_by_NID(X509_get_subject_name(x.get()), NID_commonName, buf.get(), len + 1);</div>
-<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;  <span class="keyword">const</span> std::string cn(buf.get());</div>
+<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;  std::string cn(buf.get());</div>
 <div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160;  <span class="keywordflow">return</span> cn;</div>
 <div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;}</div>
 <div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160; </div>
@@ -333,12 +333,12 @@ $(function() {
 <div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;  *not_after = std::string(na_buf, static_cast&lt;size_t&gt;(na_len));</div>
 <div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;}</div>
 <div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160; </div>
-<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;<span class="keywordtype">void</span> KeyManager::copyCertsToCurl(<a class="code" href="class_http_interface.html">HttpInterface</a> &amp;http) {</div>
+<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;<span class="keywordtype">void</span> KeyManager::copyCertsToCurl(<a class="code" href="class_http_interface.html">HttpInterface</a> &amp;http)<span class="keyword"> const </span>{</div>
 <div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;  std::string pkey = getPkey();</div>
 <div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;  std::string cert = getCert();</div>
 <div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;  std::string ca = getCa();</div>
 <div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160; </div>
-<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;  <span class="keywordflow">if</span> ((pkey.size() != 0u) &amp;&amp; (cert.size() != 0u) &amp;&amp; (ca.size() != 0u)) {</div>
+<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;  <span class="keywordflow">if</span> ((pkey.size() != 0U) &amp;&amp; (cert.size() != 0U) &amp;&amp; (ca.size() != 0U)) {</div>
 <div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;    http.setCerts(ca, config_.tls_ca_source, cert, config_.tls_cert_source, pkey, config_.tls_pkey_source);</div>
 <div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;  }</div>
 <div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;}</div>

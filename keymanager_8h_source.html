@@ -86,7 +86,7 @@ $(function() {
 <div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160; <span class="keyword">public</span>:</div>
 <div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;  <span class="comment">// std::string RSAPSSSign(const std::string &amp;message);</span></div>
 <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;  <span class="comment">// Contains the logic from HttpClient::setCerts()</span></div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;  <span class="keywordtype">void</span> copyCertsToCurl(<a class="code" href="class_http_interface.html">HttpInterface</a> &amp;http);</div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;  <span class="keywordtype">void</span> copyCertsToCurl(<a class="code" href="class_http_interface.html">HttpInterface</a> &amp;http) <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;  <a class="code" href="class_key_manager.html">KeyManager</a>(std::shared_ptr&lt;INvStorage&gt; backend, <a class="code" href="struct_key_manager_config.html">KeyManagerConfig</a> config);</div>
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;  <span class="keywordtype">void</span> loadKeys(<span class="keyword">const</span> std::string *pkey_content = <span class="keyword">nullptr</span>, <span class="keyword">const</span> std::string *cert_content = <span class="keyword">nullptr</span>,</div>
 <div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;                <span class="keyword">const</span> std::string *ca_content = <span class="keyword">nullptr</span>);</div>
@@ -98,7 +98,7 @@ $(function() {
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;  std::string getCa() <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;  std::string getCN() <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;  <span class="keywordtype">void</span> getCertInfo(std::string *subject, std::string *issuer, std::string *not_before, std::string *not_after) <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;  <span class="keywordtype">bool</span> isOk()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> ((getPkey().size() != 0u) &amp;&amp; (getCert().size() != 0u) &amp;&amp; (getCa().size() != 0u)); }</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;  <span class="keywordtype">bool</span> isOk()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> ((getPkey().size() != 0U) &amp;&amp; (getCert().size() != 0U) &amp;&amp; (getCa().size() != 0U)); }</div>
 <div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;  std::string generateUptaneKeyPair();</div>
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;  KeyType getUptaneKeyType()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> config_.uptane_key_type; }</div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;  Json::Value signTuf(<span class="keyword">const</span> Json::Value &amp;in_data) <span class="keyword">const</span>;</div>

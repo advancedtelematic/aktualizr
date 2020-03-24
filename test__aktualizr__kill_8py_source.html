@@ -108,13 +108,13 @@ $(function() {
 <div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="keywordflow">if</span> __name__ == <span class="stringliteral">&quot;__main__&quot;</span>:</div>
 <div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    logging.basicConfig(level=logging.INFO)</div>
 <div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160; </div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;    parser = argparse.ArgumentParser(description=<span class="stringliteral">&#39;Test aktualizr kill&#39;</span>)</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;    parser.add_argument(<span class="stringliteral">&#39;-b&#39;</span>, <span class="stringliteral">&#39;--build-dir&#39;</span>, help=<span class="stringliteral">&#39;build directory&#39;</span>, default=<span class="stringliteral">&#39;build&#39;</span>)</div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;    parser.add_argument(<span class="stringliteral">&#39;-s&#39;</span>, <span class="stringliteral">&#39;--src-dir&#39;</span>, help=<span class="stringliteral">&#39;source directory&#39;</span>, default=<span class="stringliteral">&#39;.&#39;</span>)</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;    input_params = parser.parse_args()</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160; </div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;    KeyStore.base_dir = input_params.src_dir</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;    initial_cwd = getcwd()</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;    initial_cwd = getcwd()</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;    parser = argparse.ArgumentParser(description=<span class="stringliteral">&#39;Test aktualizr kill&#39;</span>)</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;    parser.add_argument(<span class="stringliteral">&#39;-b&#39;</span>, <span class="stringliteral">&#39;--build-dir&#39;</span>, help=<span class="stringliteral">&#39;build directory&#39;</span>, default=initial_cwd + <span class="stringliteral">&#39;/build&#39;</span>)</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;    parser.add_argument(<span class="stringliteral">&#39;-s&#39;</span>, <span class="stringliteral">&#39;--src-dir&#39;</span>, help=<span class="stringliteral">&#39;source directory&#39;</span>, default=initial_cwd)</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;    input_params = parser.parse_args()</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160; </div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;    KeyStore.base_dir = input_params.src_dir</div>
 <div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;    chdir(input_params.build_dir)</div>
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160; </div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    test_suite = [</div>

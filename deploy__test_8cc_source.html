@@ -107,7 +107,7 @@ $(function() {
 <div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;      (std::string(<span class="stringliteral">&quot;diff -r &quot;</span>) + (temp_dir.Path() / <span class="stringliteral">&quot;objects/&quot;</span>).<span class="keywordtype">string</span>() + <span class="stringliteral">&quot; tests/sota_tools/repo/objects/&quot;</span>).c_str());</div>
 <div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;  EXPECT_EQ(<a class="code" href="namespaceresult.html">result</a>, 0) &lt;&lt; <span class="stringliteral">&quot;Diff between the source repo objects and the destination repo objects is nonzero.&quot;</span>;</div>
 <div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160; </div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;  <span class="keywordtype">bool</span> push_root_ref_res = PushRootRef(server_creds, test_ref, cert_path.string(), run_mode);</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;  <span class="keywordtype">bool</span> push_root_ref_res = PushRootRef(push_server, test_ref);</div>
 <div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;  EXPECT_TRUE(push_root_ref_res);</div>
 <div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160; </div>
 <div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;  <a class="code" href="namespaceresult.html">result</a> =</div>

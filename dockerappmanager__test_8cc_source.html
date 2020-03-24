@@ -154,7 +154,7 @@ $(function() {
 <div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;  std::shared_ptr&lt;INvStorage&gt; storage = INvStorage::newStorage(config.storage);</div>
 <div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;  <a class="code" href="class_key_manager.html">KeyManager</a> keys(storage, config.keymanagerConfig());</div>
 <div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;  <span class="keyword">auto</span> client = std_::make_unique&lt;SotaUptaneClient&gt;(config, storage);</div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;  ASSERT_TRUE(client-&gt;updateImagesMeta());</div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;  ASSERT_TRUE(client-&gt;updateImageMeta());</div>
 <div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160; </div>
 <div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;  std::string targets = Utils::readFile(repo / <span class="stringliteral">&quot;repo/repo/targets.json&quot;</span>);</div>
 <div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;  LOG_INFO &lt;&lt; <span class="stringliteral">&quot;Repo targets &quot;</span> &lt;&lt; targets;</div>

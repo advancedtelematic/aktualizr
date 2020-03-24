@@ -1,24 +1,26 @@
 <map id="HttpFake" name="HttpFake">
-<area shape="rect" id="node1" title=" " alt="" coords="161,512,241,539"/>
-<area shape="rect" id="node3" href="$class_http_check_url.html" title=" " alt="" coords="326,5,435,32"/>
-<area shape="rect" id="node4" href="$class_http_custom_uri.html" title=" " alt="" coords="321,56,440,83"/>
-<area shape="rect" id="node5" href="$class_http_default_uri.html" title=" " alt="" coords="322,107,439,133"/>
-<area shape="rect" id="node6" href="$class_http_download_failure.html" title=" " alt="" coords="301,157,460,184"/>
-<area shape="rect" id="node7" href="$class_http_fake_campaign.html" title=" " alt="" coords="307,208,454,235"/>
-<area shape="rect" id="node8" href="$class_http_fake_delegation.html" title=" " alt="" coords="305,259,456,285"/>
-<area shape="rect" id="node9" href="$class_http_fake_event_counter.html" title=" " alt="" coords="297,309,465,336"/>
-<area shape="rect" id="node10" href="$class_http_fake_events.html" title=" " alt="" coords="319,360,443,387"/>
-<area shape="rect" id="node11" href="$class_http_fake_meta_counter.html" title=" " alt="" coords="299,411,462,437"/>
-<area shape="rect" id="node12" href="$class_http_fake_no_correlation_id.html" title=" " alt="" coords="289,461,472,488"/>
-<area shape="rect" id="node13" href="$class_http_fake_pause_counter.html" title=" " alt="" coords="296,512,465,539"/>
-<area shape="rect" id="node14" href="$class_http_fake_prov.html" title="Check that basic device info sent by aktualizr during provisioning matches our expectations." alt="" coords="326,563,435,589"/>
-<area shape="rect" id="node15" href="$class_http_fake_put_counter.html" title=" " alt="" coords="305,613,457,640"/>
-<area shape="rect" id="node16" href="$class_http_fake_rq.html" title=" " alt="" coords="332,664,429,691"/>
-<area shape="rect" id="node17" href="$class_http_fake_split.html" title=" " alt="" coords="326,715,435,741"/>
-<area shape="rect" id="node18" href="$class_http_fake_unstable.html" title=" " alt="" coords="311,765,450,792"/>
-<area shape="rect" id="node19" href="$class_http_put_manifest_fail.html" title=" " alt="" coords="306,816,455,843"/>
-<area shape="rect" id="node20" href="$class_http_reject_empty_corr_id.html" title=" " alt="" coords="295,867,466,893"/>
-<area shape="rect" id="node21" href="$class_http_unstable.html" title=" " alt="" coords="327,917,435,944"/>
-<area shape="rect" id="node22" href="$class_http_zero_length.html" title=" " alt="" coords="319,968,443,995"/>
-<area shape="rect" id="node2" href="$class_http_interface.html" title=" " alt="" coords="5,512,113,539"/>
+<area shape="rect" id="node1" title=" " alt="" coords="161,563,241,589"/>
+<area shape="rect" id="node3" href="$class_http_check_url.html" title=" " alt="" coords="336,5,445,32"/>
+<area shape="rect" id="node4" href="$class_http_custom_uri.html" title=" " alt="" coords="331,56,450,83"/>
+<area shape="rect" id="node5" href="$class_http_default_uri.html" title=" " alt="" coords="332,107,449,133"/>
+<area shape="rect" id="node6" href="$class_http_download_failure.html" title=" " alt="" coords="311,157,470,184"/>
+<area shape="rect" id="node7" href="$class_http_fake_campaign.html" title=" " alt="" coords="317,208,464,235"/>
+<area shape="rect" id="node8" href="$class_http_fake_delegation.html" title=" " alt="" coords="315,259,466,285"/>
+<area shape="rect" id="node9" href="$class_http_fake_device_registration.html" title=" " alt="" coords="289,309,492,336"/>
+<area shape="rect" id="node10" href="$class_http_fake_ecu_registration.html" title=" " alt="" coords="300,360,481,387"/>
+<area shape="rect" id="node11" href="$class_http_fake_event_counter.html" title=" " alt="" coords="307,411,475,437"/>
+<area shape="rect" id="node12" href="$class_http_fake_events.html" title=" " alt="" coords="329,461,453,488"/>
+<area shape="rect" id="node13" href="$class_http_fake_meta_counter.html" title=" " alt="" coords="309,512,472,539"/>
+<area shape="rect" id="node14" href="$class_http_fake_no_correlation_id.html" title=" " alt="" coords="299,563,482,589"/>
+<area shape="rect" id="node15" href="$class_http_fake_pause_counter.html" title=" " alt="" coords="306,613,475,640"/>
+<area shape="rect" id="node16" href="$class_http_fake_prov.html" title="Check that basic device info sent by aktualizr during provisioning matches our expectations." alt="" coords="336,664,445,691"/>
+<area shape="rect" id="node17" href="$class_http_fake_put_counter.html" title=" " alt="" coords="315,715,467,741"/>
+<area shape="rect" id="node18" href="$class_http_fake_rq.html" title=" " alt="" coords="342,765,439,792"/>
+<area shape="rect" id="node19" href="$class_http_fake_split.html" title=" " alt="" coords="336,816,445,843"/>
+<area shape="rect" id="node20" href="$class_http_fake_unstable.html" title=" " alt="" coords="321,867,460,893"/>
+<area shape="rect" id="node21" href="$class_http_put_manifest_fail.html" title=" " alt="" coords="316,917,465,944"/>
+<area shape="rect" id="node22" href="$class_http_reject_empty_corr_id.html" title=" " alt="" coords="305,968,476,995"/>
+<area shape="rect" id="node23" href="$class_http_unstable.html" title=" " alt="" coords="337,1019,445,1045"/>
+<area shape="rect" id="node24" href="$class_http_zero_length.html" title=" " alt="" coords="329,1069,453,1096"/>
+<area shape="rect" id="node2" href="$class_http_interface.html" title=" " alt="" coords="5,563,113,589"/>
 </map>

@@ -72,7 +72,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Base data types that are used in The Update Framework (TUF), part of UPTANE.  
+<p>Base data types that are used in The Update Framework (TUF), part of <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of Uptane.">Uptane</a>.  
 <a href="namespace_uptane.html#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
@@ -106,7 +106,7 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uptane_1_1_illegal_threshold.html">IllegalThreshold</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uptane_1_1_images_repository.html">ImagesRepository</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uptane_1_1_image_repository.html">ImageRepository</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uptane_1_1_i_metadata_fetcher.html">IMetadataFetcher</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -187,9 +187,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ae2a92537669081f196022d18654a26fb"><td class="memItemLeft" align="right" valign="top"><a id="ae2a92537669081f196022d18654a26fb"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>TEST</b> (Director, EmptyTargets)</td></tr>
 <tr class="separator:ae2a92537669081f196022d18654a26fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aadc1711f6fb136203f60f66334b8397b"><td class="memItemLeft" align="right" valign="top"><a id="aadc1711f6fb136203f60f66334b8397b"></a>
-<a class="el" href="class_uptane_1_1_targets.html">Targets</a>&#160;</td><td class="memItemRight" valign="bottom"><b>getTrustedDelegation</b> (const <a class="el" href="class_uptane_1_1_role.html">Role</a> &amp;delegate_role, const <a class="el" href="class_uptane_1_1_targets.html">Targets</a> &amp;parent_targets, const <a class="el" href="class_uptane_1_1_images_repository.html">ImagesRepository</a> &amp;images_repo, <a class="el" href="class_i_nv_storage.html">INvStorage</a> &amp;storage, <a class="el" href="class_uptane_1_1_fetcher.html">Fetcher</a> &amp;fetcher, const bool offline)</td></tr>
-<tr class="separator:aadc1711f6fb136203f60f66334b8397b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae15d1e27b7aca0fd7212b593ca544b22"><td class="memItemLeft" align="right" valign="top"><a id="ae15d1e27b7aca0fd7212b593ca544b22"></a>
+<a class="el" href="class_uptane_1_1_targets.html">Targets</a>&#160;</td><td class="memItemRight" valign="bottom"><b>getTrustedDelegation</b> (const <a class="el" href="class_uptane_1_1_role.html">Role</a> &amp;delegate_role, const <a class="el" href="class_uptane_1_1_targets.html">Targets</a> &amp;parent_targets, const <a class="el" href="class_uptane_1_1_image_repository.html">ImageRepository</a> &amp;image_repo, <a class="el" href="class_i_nv_storage.html">INvStorage</a> &amp;storage, <a class="el" href="class_uptane_1_1_fetcher.html">Fetcher</a> &amp;fetcher, const bool offline)</td></tr>
+<tr class="separator:ae15d1e27b7aca0fd7212b593ca544b22"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1b9eb9f87922e062af209b1c3b655c21"><td class="memItemLeft" align="right" valign="top"><a id="a1b9eb9f87922e062af209b1c3b655c21"></a>
 std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator&lt;&lt;</b> (std::ostream &amp;os, const <a class="el" href="class_uptane_1_1_role.html">Role</a> &amp;role)</td></tr>
 <tr class="separator:a1b9eb9f87922e062af209b1c3b655c21"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -226,15 +226,15 @@ constexpr int64_t&#160;</td><td class="memItemRight" valign="bottom"><b>kMaxTime
 <tr class="memitem:a2a0594166fc464b4237402acefad2519"><td class="memItemLeft" align="right" valign="top"><a id="a2a0594166fc464b4237402acefad2519"></a>
 constexpr int64_t&#160;</td><td class="memItemRight" valign="bottom"><b>kMaxSnapshotSize</b> = 64 * 1024</td></tr>
 <tr class="separator:a2a0594166fc464b4237402acefad2519"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a40c6b9246efb4971f72f047317207184"><td class="memItemLeft" align="right" valign="top"><a id="a40c6b9246efb4971f72f047317207184"></a>
-constexpr int64_t&#160;</td><td class="memItemRight" valign="bottom"><b>kMaxImagesTargetsSize</b> = 8 * 1024 * 1024</td></tr>
-<tr class="separator:a40c6b9246efb4971f72f047317207184"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a54f102b5bc3cd2ff8b29e375d5c1f43b"><td class="memItemLeft" align="right" valign="top"><a id="a54f102b5bc3cd2ff8b29e375d5c1f43b"></a>
+constexpr int64_t&#160;</td><td class="memItemRight" valign="bottom"><b>kMaxImageTargetsSize</b> = 8 * 1024 * 1024</td></tr>
+<tr class="separator:a54f102b5bc3cd2ff8b29e375d5c1f43b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a047516c2d591c5b6281e1c9ee2caea3b"><td class="memItemLeft" align="right" valign="top"><a id="a047516c2d591c5b6281e1c9ee2caea3b"></a>
 constexpr int&#160;</td><td class="memItemRight" valign="bottom"><b>kDelegationsMaxDepth</b> = 5</td></tr>
 <tr class="separator:a047516c2d591c5b6281e1c9ee2caea3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Base data types that are used in The Update Framework (TUF), part of UPTANE. </p>
+<div class="textblock"><p>Base data types that are used in The Update Framework (TUF), part of <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of Uptane.">Uptane</a>. </p>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

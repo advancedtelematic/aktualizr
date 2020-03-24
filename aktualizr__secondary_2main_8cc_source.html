@@ -160,18 +160,24 @@ $(function() {
 <div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;    LOG_DEBUG &lt;&lt; <span class="stringliteral">&quot;Current directory: &quot;</span> &lt;&lt; boost::filesystem::current_path().string();</div>
 <div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160; </div>
 <div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;    <span class="keyword">auto</span> secondary = AktualizrSecondaryFactory::create(config);</div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;    <a class="code" href="class_secondary_tcp_server.html">SecondaryTcpServer</a>(*secondary, config.network.primary_ip, config.network.primary_port, config.network.port).<a class="code" href="class_secondary_tcp_server.html#a5cd3f9fba56bd6bcd7fc2afa9605f083">run</a>();</div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160; </div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;  } <span class="keywordflow">catch</span> (std::runtime_error &amp;exc) {</div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;    LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Error: &quot;</span> &lt;&lt; exc.what();</div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;    ret = EXIT_FAILURE;</div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;  }</div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;  <span class="keywordflow">return</span> ret;</div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;}</div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;    <a class="code" href="class_secondary_tcp_server.html">SecondaryTcpServer</a> tcp_server(*secondary, config.network.primary_ip, config.network.primary_port,</div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;                                  config.network.port, config.uptane.force_install_completion);</div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160; </div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;    tcp_server.run();</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160; </div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;    <span class="keywordflow">if</span> (tcp_server.exit_reason() == SecondaryTcpServer::ExitReason::kRebootNeeded) {</div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;      secondary-&gt;completeInstall();</div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;    }</div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160; </div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;  } <span class="keywordflow">catch</span> (std::runtime_error &amp;exc) {</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;    LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Error: &quot;</span> &lt;&lt; exc.what();</div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;    ret = EXIT_FAILURE;</div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;  }</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;  <span class="keywordflow">return</span> ret;</div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;}</div>
 </div><!-- fragment --></div><!-- contents -->
-<div class="ttc" id="aclass_aktualizr_secondary_config_html"><div class="ttname"><a href="class_aktualizr_secondary_config.html">AktualizrSecondaryConfig</a></div><div class="ttdef"><b>Definition:</b> <a href="aktualizr__secondary__config_8h_source.html#l00039">aktualizr_secondary_config.h:39</a></div></div>
+<div class="ttc" id="aclass_aktualizr_secondary_config_html"><div class="ttname"><a href="class_aktualizr_secondary_config.html">AktualizrSecondaryConfig</a></div><div class="ttdef"><b>Definition:</b> <a href="aktualizr__secondary__config_8h_source.html#l00040">aktualizr_secondary_config.h:40</a></div></div>
 <div class="ttc" id="aclass_secondary_tcp_server_html"><div class="ttname"><a href="class_secondary_tcp_server.html">SecondaryTcpServer</a></div><div class="ttdoc">Listens on a socket, decodes calls (ASN.1) and forwards them to an Uptane Secondary implementation.</div><div class="ttdef"><b>Definition:</b> <a href="secondary__tcp__server_8h_source.html#l00015">secondary_tcp_server.h:15</a></div></div>
-<div class="ttc" id="aclass_secondary_tcp_server_html_a5cd3f9fba56bd6bcd7fc2afa9605f083"><div class="ttname"><a href="class_secondary_tcp_server.html#a5cd3f9fba56bd6bcd7fc2afa9605f083">SecondaryTcpServer::run</a></div><div class="ttdeci">void run()</div><div class="ttdoc">Accept connections on the socket, decode requests and respond using the secondary implementation.</div><div class="ttdef"><b>Definition:</b> <a href="secondary__tcp__server_8cc_source.html#l00023">secondary_tcp_server.cc:23</a></div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">

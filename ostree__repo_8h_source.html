@@ -95,7 +95,7 @@ $(function() {
 <div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160; </div>
 <div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;  <span class="keyword">virtual</span> ~<a class="code" href="class_o_s_tree_repo.html">OSTreeRepo</a>() = <span class="keywordflow">default</span>;</div>
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;  <span class="keyword">virtual</span> <span class="keywordtype">bool</span> LooksValid() <span class="keyword">const</span> = 0;</div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;  <span class="keyword">virtual</span> <span class="keyword">const</span> boost::filesystem::path root() <span class="keyword">const</span> = 0;</div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;  <span class="keyword">virtual</span> boost::filesystem::path root() <span class="keyword">const</span> = 0;</div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;  <span class="keyword">virtual</span> <a class="code" href="class_o_s_tree_ref.html">OSTreeRef</a> GetRef(<span class="keyword">const</span> std::string&amp; refname) <span class="keyword">const</span> = 0;</div>
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160; </div>
 <div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;  OSTreeObject::ptr GetObject(<a class="code" href="class_o_s_tree_hash.html">OSTreeHash</a> hash, <a class="code" href="garage__common_8h.html#abcc3630a1cc262100acc11b53cbc87c1">OstreeObjectType</a> type) <span class="keyword">const</span>;</div>

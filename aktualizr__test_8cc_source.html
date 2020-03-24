@@ -672,7 +672,7 @@ $(function() {
 <div class="line"><a name="l00600"></a><span class="lineno">  600</span>&#160;<span class="comment"> * Initialize -&gt; UptaneCycle -&gt; updates downloaded and installed for primary</span></div>
 <div class="line"><a name="l00601"></a><span class="lineno">  601</span>&#160;<span class="comment"> * (after reboot) and secondary (aktualizr_test.cc)</span></div>
 <div class="line"><a name="l00602"></a><span class="lineno">  602</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00603"></a><span class="lineno">  603</span>&#160;<span class="comment"> * It simulates closely the OStree case which needs a reboot after applying an</span></div>
+<div class="line"><a name="l00603"></a><span class="lineno">  603</span>&#160;<span class="comment"> * It simulates closely the OSTree case which needs a reboot after applying an</span></div>
 <div class="line"><a name="l00604"></a><span class="lineno">  604</span>&#160;<span class="comment"> * update, but uses `PackageManagerFake`.</span></div>
 <div class="line"><a name="l00605"></a><span class="lineno">  605</span>&#160;<span class="comment"> *</span></div>
 <div class="line"><a name="l00606"></a><span class="lineno">  606</span>&#160;<span class="comment"> * Checks actions:</span></div>
@@ -866,7 +866,7 @@ $(function() {
 <div class="line"><a name="l00794"></a><span class="lineno">  794</span>&#160;<span class="comment"> * Initialize -&gt; UptaneCycle -&gt; download updates and install them -&gt;</span></div>
 <div class="line"><a name="l00795"></a><span class="lineno">  795</span>&#160;<span class="comment"> * -&gt; reboot emulated -&gt; Initialize -&gt; Fail installation finalization</span></div>
 <div class="line"><a name="l00796"></a><span class="lineno">  796</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00797"></a><span class="lineno">  797</span>&#160;<span class="comment"> * Verifies whether the uptane client is not at pending state after installation finalization failure</span></div>
+<div class="line"><a name="l00797"></a><span class="lineno">  797</span>&#160;<span class="comment"> * Verifies whether the Uptane client is not at pending state after installation finalization failure</span></div>
 <div class="line"><a name="l00798"></a><span class="lineno">  798</span>&#160;<span class="comment"> *</span></div>
 <div class="line"><a name="l00799"></a><span class="lineno">  799</span>&#160;<span class="comment"> * Checks actions:</span></div>
 <div class="line"><a name="l00800"></a><span class="lineno">  800</span>&#160;<span class="comment"> *</span></div>
@@ -992,7 +992,7 @@ $(function() {
 <div class="line"><a name="l00920"></a><span class="lineno">  920</span>&#160;    EXPECT_FALSE(storage-&gt;loadDeviceInstallationResult(&amp;dev_installation_res, &amp;report, &amp;correlation_id));</div>
 <div class="line"><a name="l00921"></a><span class="lineno">  921</span>&#160; </div>
 <div class="line"><a name="l00922"></a><span class="lineno">  922</span>&#160;    <span class="comment">// it&#39;s used to return `true` even if there is no any record in DB</span></div>
-<div class="line"><a name="l00923"></a><span class="lineno">  923</span>&#160;    <span class="comment">// of the uptane cycle just after sending manifest</span></div>
+<div class="line"><a name="l00923"></a><span class="lineno">  923</span>&#160;    <span class="comment">// of the Uptane cycle just after sending manifest</span></div>
 <div class="line"><a name="l00924"></a><span class="lineno">  924</span>&#160;    <span class="comment">// made it consistent with loadDeviceInstallationResult</span></div>
 <div class="line"><a name="l00925"></a><span class="lineno">  925</span>&#160;    std::vector&lt;std::pair&lt;Uptane::EcuSerial, data::InstallationResult&gt;&gt; ecu_installation_res;</div>
 <div class="line"><a name="l00926"></a><span class="lineno">  926</span>&#160;    EXPECT_FALSE(storage-&gt;loadEcuInstallationResults(&amp;ecu_installation_res));</div>
@@ -1017,7 +1017,7 @@ $(function() {
 <div class="line"><a name="l00945"></a><span class="lineno">  945</span>&#160;<span class="comment">/*</span></div>
 <div class="line"><a name="l00946"></a><span class="lineno">  946</span>&#160;<span class="comment"> * Initialize -&gt; UptaneCycle -&gt; download updates -&gt; fail installation</span></div>
 <div class="line"><a name="l00947"></a><span class="lineno">  947</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00948"></a><span class="lineno">  948</span>&#160;<span class="comment"> * Verifies whether the uptane client is not at pending state after installation failure</span></div>
+<div class="line"><a name="l00948"></a><span class="lineno">  948</span>&#160;<span class="comment"> * Verifies whether the Uptane client is not at pending state after installation failure</span></div>
 <div class="line"><a name="l00949"></a><span class="lineno">  949</span>&#160;<span class="comment"> *</span></div>
 <div class="line"><a name="l00950"></a><span class="lineno">  950</span>&#160;<span class="comment"> * Checks actions:</span></div>
 <div class="line"><a name="l00951"></a><span class="lineno">  951</span>&#160;<span class="comment"> *</span></div>
@@ -2062,7 +2062,7 @@ $(function() {
 <div class="line"><a name="l01990"></a><span class="lineno"> 1990</span>&#160;  <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> events_seen{0};</div>
 <div class="line"><a name="l01991"></a><span class="lineno"> 1991</span>&#160;};</div>
 <div class="line"><a name="l01992"></a><span class="lineno"> 1992</span>&#160; </div>
-<div class="line"><a name="l01993"></a><span class="lineno"> 1993</span>&#160;<span class="comment">/* Correlation ID is empty if none was provided in targets metadata. */</span></div>
+<div class="line"><a name="l01993"></a><span class="lineno"> 1993</span>&#160;<span class="comment">/* Correlation ID is empty if none was provided in Targets metadata. */</span></div>
 <div class="line"><a name="l01994"></a><span class="lineno"> 1994</span>&#160;TEST(<a class="code" href="class_aktualizr.html">Aktualizr</a>, FullNoCorrelationId) {</div>
 <div class="line"><a name="l01995"></a><span class="lineno"> 1995</span>&#160;  <a class="code" href="class_temporary_directory.html">TemporaryDirectory</a> temp_dir;</div>
 <div class="line"><a name="l01996"></a><span class="lineno"> 1996</span>&#160;  <a class="code" href="class_temporary_directory.html">TemporaryDirectory</a> meta_dir;</div>
@@ -2314,7 +2314,7 @@ $(function() {
 <div class="line"><a name="l02242"></a><span class="lineno"> 2242</span>&#160;<span class="keywordtype">int</span> main(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span>** argv) {</div>
 <div class="line"><a name="l02243"></a><span class="lineno"> 2243</span>&#160;  ::testing::InitGoogleTest(&amp;argc, argv);</div>
 <div class="line"><a name="l02244"></a><span class="lineno"> 2244</span>&#160;  <span class="keywordflow">if</span> (argc != 2) {</div>
-<div class="line"><a name="l02245"></a><span class="lineno"> 2245</span>&#160;    std::cerr &lt;&lt; <span class="stringliteral">&quot;Error: &quot;</span> &lt;&lt; argv[0] &lt;&lt; <span class="stringliteral">&quot; requires the path to the base directory of uptane repos.\n&quot;</span>;</div>
+<div class="line"><a name="l02245"></a><span class="lineno"> 2245</span>&#160;    std::cerr &lt;&lt; <span class="stringliteral">&quot;Error: &quot;</span> &lt;&lt; argv[0] &lt;&lt; <span class="stringliteral">&quot; requires the path to the base directory of Uptane repos.\n&quot;</span>;</div>
 <div class="line"><a name="l02246"></a><span class="lineno"> 2246</span>&#160;    <span class="keywordflow">return</span> EXIT_FAILURE;</div>
 <div class="line"><a name="l02247"></a><span class="lineno"> 2247</span>&#160;  }</div>
 <div class="line"><a name="l02248"></a><span class="lineno"> 2248</span>&#160;  uptane_repos_dir = argv[1];</div>
@@ -2337,7 +2337,7 @@ $(function() {
 <div class="ttc" id="aclass_http_fake_pause_counter_html"><div class="ttname"><a href="class_http_fake_pause_counter.html">HttpFakePauseCounter</a></div><div class="ttdef"><b>Definition:</b> <a href="aktualizr__test_8cc_source.html#l02147">aktualizr_test.cc:2147</a></div></div>
 <div class="ttc" id="astructdata_1_1_result_code_html"><div class="ttname"><a href="structdata_1_1_result_code.html">data::ResultCode</a></div><div class="ttdef"><b>Definition:</b> <a href="types_8h_source.html#l00125">types.h:125</a></div></div>
 <div class="ttc" id="aclass_aktualizr_html_a3bad025e8c846f7e46949141c6097c67"><div class="ttname"><a href="class_aktualizr.html#a3bad025e8c846f7e46949141c6097c67">Aktualizr::Install</a></div><div class="ttdeci">std::future&lt; result::Install &gt; Install(const std::vector&lt; Uptane::Target &gt; &amp;updates)</div><div class="ttdoc">Install targets.</div><div class="ttdef"><b>Definition:</b> <a href="aktualizr_8cc_source.html#l00155">aktualizr.cc:155</a></div></div>
-<div class="ttc" id="aclass_http_fake_html"><div class="ttname"><a href="class_http_fake.html">HttpFake</a></div><div class="ttdef"><b>Definition:</b> <a href="httpfake_8h_source.html#l00022">httpfake.h:22</a></div></div>
+<div class="ttc" id="aclass_http_fake_html"><div class="ttname"><a href="class_http_fake.html">HttpFake</a></div><div class="ttdef"><b>Definition:</b> <a href="httpfake_8h_source.html#l00020">httpfake.h:20</a></div></div>
 <div class="ttc" id="aclass_uptane_test_common_1_1_test_aktualizr_html"><div class="ttname"><a href="class_uptane_test_common_1_1_test_aktualizr.html">UptaneTestCommon::TestAktualizr</a></div><div class="ttdef"><b>Definition:</b> <a href="uptane__test__common_8h_source.html#l00021">uptane_test_common.h:21</a></div></div>
 <div class="ttc" id="aclassevent_1_1_all_downloads_complete_html"><div class="ttname"><a href="classevent_1_1_all_downloads_complete.html">event::AllDownloadsComplete</a></div><div class="ttdoc">All targets for an update have been downloaded.</div><div class="ttdef"><b>Definition:</b> <a href="events_8h_source.html#l00112">events.h:112</a></div></div>
 <div class="ttc" id="aclass_aktualizr_html_a83345a22980888e720df8fc03383a146"><div class="ttname"><a href="class_aktualizr.html#a83345a22980888e720df8fc03383a146">Aktualizr::DeleteStoredTarget</a></div><div class="ttdeci">void DeleteStoredTarget(const Uptane::Target &amp;target)</div><div class="ttdoc">Delete a stored target from storage.</div><div class="ttdef"><b>Definition:</b> <a href="aktualizr_8cc_source.html#l00214">aktualizr.cc:214</a></div></div>
@@ -2351,7 +2351,7 @@ $(function() {
 <div class="ttc" id="aclassresult_1_1_update_check_html"><div class="ttname"><a href="classresult_1_1_update_check.html">result::UpdateCheck</a></div><div class="ttdoc">Container for information about available updates.</div><div class="ttdef"><b>Definition:</b> <a href="results_8h_source.html#l00038">results.h:38</a></div></div>
 <div class="ttc" id="aclass_aktualizr_html_a5b21e74b235a298edb0aa7950a50d804"><div class="ttname"><a href="class_aktualizr.html#a5b21e74b235a298edb0aa7950a50d804">Aktualizr::Initialize</a></div><div class="ttdeci">void Initialize()</div><div class="ttdoc">Initialize aktualizr.</div><div class="ttdef"><b>Definition:</b> <a href="aktualizr_8cc_source.html#l00028">aktualizr.cc:28</a></div></div>
 <div class="ttc" id="aclass_aktualizr_html_adf876d93967a1dc30a362f5482693405"><div class="ttname"><a href="class_aktualizr.html#adf876d93967a1dc30a362f5482693405">Aktualizr::CheckUpdates</a></div><div class="ttdeci">std::future&lt; result::UpdateCheck &gt; CheckUpdates()</div><div class="ttdoc">Fetch Uptane metadata and check for updates.</div><div class="ttdef"><b>Definition:</b> <a href="aktualizr_8cc_source.html#l00144">aktualizr.cc:144</a></div></div>
-<div class="ttc" id="anamespacedata_html"><div class="ttname"><a href="namespacedata.html">data</a></div><div class="ttdoc">General data structures.</div><div class="ttdef"><b>Definition:</b> <a href="types_8cc_source.html#l00054">types.cc:54</a></div></div>
+<div class="ttc" id="anamespacedata_html"><div class="ttname"><a href="namespacedata.html">data</a></div><div class="ttdoc">General data structures.</div><div class="ttdef"><b>Definition:</b> <a href="types_8cc_source.html#l00055">types.cc:55</a></div></div>
 <div class="ttc" id="aclass_uptane_1_1_hardware_identifier_html"><div class="ttname"><a href="class_uptane_1_1_hardware_identifier.html">Uptane::HardwareIdentifier</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00143">tuf.h:143</a></div></div>
 <div class="ttc" id="astruct_http_response_html"><div class="ttname"><a href="struct_http_response.html">HttpResponse</a></div><div class="ttdef"><b>Definition:</b> <a href="httpinterface_8h_source.html#l00017">httpinterface.h:17</a></div></div>
 <div class="ttc" id="aclass_campaign_events_html"><div class="ttname"><a href="class_campaign_events.html">CampaignEvents</a></div><div class="ttdef"><b>Definition:</b> <a href="aktualizr__test_8cc_source.html#l01900">aktualizr_test.cc:1900</a></div></div>
@@ -2369,7 +2369,7 @@ $(function() {
 <div class="ttc" id="anamespaceresult_html"><div class="ttname"><a href="namespaceresult.html">result</a></div><div class="ttdoc">Results of libaktualizr API calls.</div><div class="ttdef"><b>Definition:</b> <a href="results_8h_source.html#l00013">results.h:13</a></div></div>
 <div class="ttc" id="aclass_aktualizr_html_a1fe519afc409b471990d85736f04bf2d"><div class="ttname"><a href="class_aktualizr.html#a1fe519afc409b471990d85736f04bf2d">Aktualizr::OpenStoredTarget</a></div><div class="ttdeci">std::unique_ptr&lt; StorageTargetRHandle &gt; OpenStoredTarget(const Uptane::Target &amp;target)</div><div class="ttdoc">Get target downloaded in Download call.</div><div class="ttdef"><b>Definition:</b> <a href="aktualizr_8cc_source.html#l00216">aktualizr.cc:216</a></div></div>
 <div class="ttc" id="aclassresult_1_1_install_html"><div class="ttname"><a href="classresult_1_1_install.html">result::Install</a></div><div class="ttdoc">Container for information about installing an update.</div><div class="ttdef"><b>Definition:</b> <a href="results_8h_source.html#l00130">results.h:130</a></div></div>
-<div class="ttc" id="aclass_aktualizr_html_a77aa070899448a7589c5e66befc41d6a"><div class="ttname"><a href="class_aktualizr.html#a77aa070899448a7589c5e66befc41d6a">Aktualizr::UptaneCycle</a></div><div class="ttdeci">bool UptaneCycle()</div><div class="ttdoc">Synchronously run an uptane cycle: check for updates, download any new targets, install them,...</div><div class="ttdef"><b>Definition:</b> <a href="aktualizr_8cc_source.html#l00035">aktualizr.cc:35</a></div></div>
+<div class="ttc" id="aclass_aktualizr_html_a77aa070899448a7589c5e66befc41d6a"><div class="ttname"><a href="class_aktualizr.html#a77aa070899448a7589c5e66befc41d6a">Aktualizr::UptaneCycle</a></div><div class="ttdeci">bool UptaneCycle()</div><div class="ttdoc">Synchronously run an Uptane cycle: check for updates, download any new targets, install them,...</div><div class="ttdef"><b>Definition:</b> <a href="aktualizr_8cc_source.html#l00035">aktualizr.cc:35</a></div></div>
 <div class="ttc" id="aclass_http_fake_put_counter_html"><div class="ttname"><a href="class_http_fake_put_counter.html">HttpFakePutCounter</a></div><div class="ttdef"><b>Definition:</b> <a href="aktualizr__test_8cc_source.html#l00567">aktualizr_test.cc:567</a></div></div>
 <div class="ttc" id="aclass_http_fake_no_correlation_id_html"><div class="ttname"><a href="class_http_fake_no_correlation_id.html">HttpFakeNoCorrelationId</a></div><div class="ttdef"><b>Definition:</b> <a href="aktualizr__test_8cc_source.html#l01976">aktualizr_test.cc:1976</a></div></div>
 <div class="ttc" id="aclassevent_1_1_download_progress_report_html"><div class="ttname"><a href="classevent_1_1_download_progress_report.html">event::DownloadProgressReport</a></div><div class="ttdoc">A report for a download in progress.</div><div class="ttdef"><b>Definition:</b> <a href="events_8h_source.html#l00071">events.h:71</a></div></div>

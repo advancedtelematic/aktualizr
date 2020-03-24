@@ -9,9 +9,9 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 73.5)">
 <title>Graphical Class Hierarchy</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-73.5 532,-73.5 532,4 -4,4"/>
-<!-- Node344 -->
+<!-- Node346 -->
 <g id="node1" class="node">
-<title>Node344</title>
+<title>Node346</title>
 <g id="a_node1"><a xlink:title=" ">
 <polygon fill="white" stroke="#bfbfbf" points="0,-22.5 0,-41.5 153,-41.5 153,-22.5 0,-22.5"/>
 <text text-anchor="middle" x="76.5" y="-29.5" font-family="Helvetica,sans-Serif" font-size="10.00">SimpleHTTPRequestHandler</text>
@@ -28,9 +28,9 @@
 </a>
 </g>
 </g>
-<!-- Node344&#45;&gt;Node0 -->
+<!-- Node346&#45;&gt;Node0 -->
 <g id="edge1" class="edge">
-<title>Node344&#45;&gt;Node0</title>
+<title>Node346&#45;&gt;Node0</title>
 <path fill="none" stroke="midnightblue" d="M163.14,-32C171.73,-32 180.39,-32 188.8,-32"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="163.1,-28.5 153.1,-32 163.1,-35.5 163.1,-28.5"/>
 </g>

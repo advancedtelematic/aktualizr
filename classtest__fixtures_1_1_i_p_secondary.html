@@ -79,9 +79,9 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a70074730610ce06b333afa6ee1853d7f"><td class="memItemLeft" align="right" valign="top"><a id="a70074730610ce06b333afa6ee1853d7f"></a>
-def&#160;</td><td class="memItemRight" valign="bottom"><b>__init__</b> (self, aktualizr_secondary_exe, id, port=None, primary_port=None, sysroot=None, treehub=None, output_logs=True, ostree_mock_path=None, **kwargs)</td></tr>
-<tr class="separator:a70074730610ce06b333afa6ee1853d7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6e93e2e89f1e76e032a1e84f26bb0169"><td class="memItemLeft" align="right" valign="top"><a id="a6e93e2e89f1e76e032a1e84f26bb0169"></a>
+def&#160;</td><td class="memItemRight" valign="bottom"><b>__init__</b> (self, aktualizr_secondary_exe, id, port=None, primary_port=None, sysroot=None, treehub=None, output_logs=True, force_reboot=False, ostree_mock_path=None, **kwargs)</td></tr>
+<tr class="separator:a6e93e2e89f1e76e032a1e84f26bb0169"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1ed8ed1d7ecf5ba05bdde9dfafd9a015"><td class="memItemLeft" align="right" valign="top"><a id="a1ed8ed1d7ecf5ba05bdde9dfafd9a015"></a>
 def&#160;</td><td class="memItemRight" valign="bottom"><b>is_running</b> (self)</td></tr>
 <tr class="separator:a1ed8ed1d7ecf5ba05bdde9dfafd9a015"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -91,6 +91,9 @@ def&#160;</td><td class="memItemRight" valign="bottom"><b>__enter__</b> (self)</
 <tr class="memitem:a75e893937c7a1829ff9257a95312c6a7"><td class="memItemLeft" align="right" valign="top"><a id="a75e893937c7a1829ff9257a95312c6a7"></a>
 def&#160;</td><td class="memItemRight" valign="bottom"><b>__exit__</b> (self, exc_type, exc_val, exc_tb)</td></tr>
 <tr class="separator:a75e893937c7a1829ff9257a95312c6a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9309572f68450de77d70b122ab3bb60d"><td class="memItemLeft" align="right" valign="top"><a id="a9309572f68450de77d70b122ab3bb60d"></a>
+def&#160;</td><td class="memItemRight" valign="bottom"><b>wait_for_completion</b> (self, timeout=120)</td></tr>
+<tr class="separator:a9309572f68450de77d70b122ab3bb60d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad46b5fcddc4eb4997e21ea56883047cf"><td class="memItemLeft" align="right" valign="top"><a id="ad46b5fcddc4eb4997e21ea56883047cf"></a>
 def&#160;</td><td class="memItemRight" valign="bottom"><b>emulate_reboot</b> (self)</td></tr>
 <tr class="separator:ad46b5fcddc4eb4997e21ea56883047cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -126,7 +129,7 @@ Static Public Attributes</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p class="definition">Definition at line <a class="el" href="test__fixtures_8py_source.html#l00286">286</a> of file <a class="el" href="test__fixtures_8py_source.html">test_fixtures.py</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__fixtures_8py_source.html#l00293">293</a> of file <a class="el" href="test__fixtures_8py_source.html">test_fixtures.py</a>.</p>
 </div><h2 class="groupheader">Member Data Documentation</h2>
 <a id="a057b741b4ac097018f7b82a2f2281459"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a057b741b4ac097018f7b82a2f2281459">&#9670;&nbsp;</a></span>CONFIG_TEMPLATE</h2>
@@ -151,6 +154,7 @@ Static Public Attributes</h2></td></tr>
 <div class="line"><span class="stringliteral">[uptane]</span></div>
 <div class="line"><span class="stringliteral">ecu_serial = &quot;{serial}&quot;</span></div>
 <div class="line"><span class="stringliteral">ecu_hardware_id = &quot;{hw_ID}&quot;</span></div>
+<div class="line"><span class="stringliteral">force_install_completion = {force_reboot}</span></div>
 <div class="line"><span class="stringliteral"></span> </div>
 <div class="line"><span class="stringliteral">[network]</span></div>
 <div class="line"><span class="stringliteral">port = {port}</span></div>
@@ -171,10 +175,10 @@ Static Public Attributes</h2></td></tr>
 <div class="line"><span class="stringliteral">[bootloader]</span></div>
 <div class="line"><span class="stringliteral">reboot_sentinel_dir = &quot;{sentinel_dir}&quot;</span></div>
 <div class="line"><span class="stringliteral">reboot_sentinel_name = &quot;{sentinel_name}&quot;</span></div>
-<div class="line"><span class="stringliteral">reboot_command = &quot;&quot;</span></div>
+<div class="line"><span class="stringliteral">reboot_command = &quot;{reboot_command}&quot;</span></div>
 <div class="line"><span class="stringliteral">&#39;&#39;&#39;</span></div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="test__fixtures_8py_source.html#l00319">319</a> of file <a class="el" href="test__fixtures_8py_source.html">test_fixtures.py</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__fixtures_8py_source.html#l00334">334</a> of file <a class="el" href="test__fixtures_8py_source.html">test_fixtures.py</a>.</p>
 
 </div>
 </div>

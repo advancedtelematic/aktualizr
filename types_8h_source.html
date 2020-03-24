@@ -190,7 +190,7 @@ $(function() {
 <div class="line"><a name="l00118"></a><span class="lineno"><a class="line" href="structdata_1_1_package.html">  118</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structdata_1_1_package.html">Package</a> {</div>
 <div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;  std::string name;</div>
 <div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;  std::string version;</div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;  Json::Value toJson();</div>
+<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;  Json::Value toJson() <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;  <span class="keyword">static</span> <a class="code" href="structdata_1_1_package.html">Package</a> fromJson(<span class="keyword">const</span> std::string&amp; <span class="comment">/*json_str*/</span>);</div>
 <div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;};</div>
 <div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160; </div>
@@ -280,7 +280,7 @@ $(function() {
 <div class="ttc" id="astructdata_1_1_installation_result_html"><div class="ttname"><a href="structdata_1_1_installation_result.html">data::InstallationResult</a></div><div class="ttdef"><b>Definition:</b> <a href="types_8h_source.html#l00182">types.h:182</a></div></div>
 <div class="ttc" id="aclass_time_stamp_1_1_invalid_time_stamp_html"><div class="ttname"><a href="class_time_stamp_1_1_invalid_time_stamp.html">TimeStamp::InvalidTimeStamp</a></div><div class="ttdef"><b>Definition:</b> <a href="types_8h_source.html#l00102">types.h:102</a></div></div>
 <div class="ttc" id="aclass_time_stamp_html_a130d6c5230be88ae97c3db1ca9362b97"><div class="ttname"><a href="class_time_stamp.html#a130d6c5230be88ae97c3db1ca9362b97">TimeStamp::TimeStamp</a></div><div class="ttdeci">TimeStamp()</div><div class="ttdoc">An invalid TimeStamp.</div><div class="ttdef"><b>Definition:</b> <a href="types_8h_source.html#l00091">types.h:91</a></div></div>
-<div class="ttc" id="anamespacedata_html"><div class="ttname"><a href="namespacedata.html">data</a></div><div class="ttdoc">General data structures.</div><div class="ttdef"><b>Definition:</b> <a href="types_8cc_source.html#l00054">types.cc:54</a></div></div>
+<div class="ttc" id="anamespacedata_html"><div class="ttname"><a href="namespacedata.html">data</a></div><div class="ttdoc">General data structures.</div><div class="ttdef"><b>Definition:</b> <a href="types_8cc_source.html#l00055">types.cc:55</a></div></div>
 <div class="ttc" id="astructdata_1_1_package_html"><div class="ttname"><a href="structdata_1_1_package.html">data::Package</a></div><div class="ttdef"><b>Definition:</b> <a href="types_8h_source.html#l00118">types.h:118</a></div></div>
 <div class="ttc" id="aclass_time_stamp_html"><div class="ttname"><a href="class_time_stamp.html">TimeStamp</a></div><div class="ttdef"><b>Definition:</b> <a href="types_8h_source.html#l00086">types.h:86</a></div></div>
 <div class="ttc" id="astructdata_1_1_result_code_html_a1217cbd9c97e19df1ade7b0384cd5aaeafcd417a134c251034b0d61b07c826394"><div class="ttname"><a href="structdata_1_1_result_code.html#a1217cbd9c97e19df1ade7b0384cd5aaeafcd417a134c251034b0d61b07c826394">data::ResultCode::Numeric::kInternalError</a></div><div class="ttdoc">SWM Internal integrity error.</div></div>

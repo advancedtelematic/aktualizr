@@ -104,7 +104,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a5b3d25b02a42b89505e48ad8f68271b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">An empty metadata object that could contain keys. <br /></td></tr>
 <tr class="separator:a5b3d25b02a42b89505e48ad8f68271b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1425a1db9088fb3af95d9b8f64f76d2f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uptane_1_1_meta_with_keys.html#a1425a1db9088fb3af95d9b8f64f76d2f">MetaWithKeys</a> (const Json::Value &amp;json)</td></tr>
-<tr class="memdesc:a1425a1db9088fb3af95d9b8f64f76d2f"><td class="mdescLeft">&#160;</td><td class="mdescRight">A 'real' metadata object that can contain keys (root or targets with delegations) and that implements TUF signature validation.  <a href="class_uptane_1_1_meta_with_keys.html#a1425a1db9088fb3af95d9b8f64f76d2f">More...</a><br /></td></tr>
+<tr class="memdesc:a1425a1db9088fb3af95d9b8f64f76d2f"><td class="mdescLeft">&#160;</td><td class="mdescRight">A 'real' metadata object that can contain keys (<a class="el" href="class_uptane_1_1_root.html">Root</a> or <a class="el" href="class_uptane_1_1_targets.html">Targets</a> with delegations) and that implements TUF signature validation.  <a href="class_uptane_1_1_meta_with_keys.html#a1425a1db9088fb3af95d9b8f64f76d2f">More...</a><br /></td></tr>
 <tr class="separator:a1425a1db9088fb3af95d9b8f64f76d2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7027b71d2c70b2678db06f9e761213f8"><td class="memItemLeft" align="right" valign="top"><a id="a7027b71d2c70b2678db06f9e761213f8"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>MetaWithKeys</b> (<a class="el" href="class_uptane_1_1_repository_type.html">RepositoryType</a> repo, const <a class="el" href="class_uptane_1_1_role.html">Role</a> &amp;role, const Json::Value &amp;json, const std::shared_ptr&lt; <a class="el" href="class_uptane_1_1_meta_with_keys.html">MetaWithKeys</a> &gt; &amp;signer)</td></tr>
@@ -177,7 +177,7 @@ static const int64_t&#160;</td><td class="memItemRight" valign="bottom"><b>kMaxS
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p class="definition">Definition at line <a class="el" href="tuf_8h_source.html#l00329">329</a> of file <a class="el" href="tuf_8h_source.html">tuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tuf_8h_source.html#l00330">330</a> of file <a class="el" href="tuf_8h_source.html">tuf.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a1425a1db9088fb3af95d9b8f64f76d2f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1425a1db9088fb3af95d9b8f64f76d2f">&#9670;&nbsp;</a></span>MetaWithKeys()</h2>
@@ -195,7 +195,7 @@ static const int64_t&#160;</td><td class="memItemRight" valign="bottom"><b>kMaxS
       </table>
 </div><div class="memdoc">
 
-<p>A 'real' metadata object that can contain keys (root or targets with delegations) and that implements TUF signature validation. </p>
+<p>A 'real' metadata object that can contain keys (<a class="el" href="class_uptane_1_1_root.html">Root</a> or <a class="el" href="class_uptane_1_1_targets.html">Targets</a> with delegations) and that implements TUF signature validation. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">json</td><td>- The contents of the 'signed' portion </td></tr>
@@ -256,7 +256,7 @@ static const int64_t&#160;</td><td class="memItemRight" valign="bottom"><b>kMaxS
 <li>The blob has valid signatures from enough keys to cross the threshold for this role <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">repo</td><td>- Repository type (only used to improve the error messages) </td></tr>
-    <tr><td class="paramname">role</td><td>- The <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of UPTANE.">Uptane</a> role of the signed metadata object </td></tr>
+    <tr><td class="paramname">role</td><td>- The <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of Uptane.">Uptane</a> role of the signed metadata object </td></tr>
     <tr><td class="paramname">signed_object</td><td></td></tr>
   </table>
   </dd>

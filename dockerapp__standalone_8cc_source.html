@@ -86,7 +86,7 @@ $(function() {
 <div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="comment"> *</span></div>
 <div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="comment"> * Docker Apps are very analogous to docker-compose. In fact, this module</span></div>
 <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="comment"> * currently &quot;renders&quot; the docker-app file into a docker-compose file. Each</span></div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="comment"> * Docker App appears as a Target in the TUF targets list. Each OStree target</span></div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="comment"> * Docker App appears as a Target in the TUF targets list. Each OSTree target</span></div>
 <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="comment"> * can then reference these docker apps in its custom data section. eg:</span></div>
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="comment"> *</span></div>
 <div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="comment"> *   &quot;targets&quot;: {</span></div>
@@ -175,7 +175,7 @@ $(function() {
 <div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;<span class="keywordtype">bool</span> DockerAppStandalone::iterate_apps(<span class="keyword">const</span> <a class="code" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target, <span class="keyword">const</span> DockerAppCb &amp;cb)<span class="keyword"> const </span>{</div>
 <div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;  <span class="keyword">auto</span> apps = target.custom_data()[<span class="stringliteral">&quot;docker_apps&quot;</span>];</div>
 <div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;  <span class="keywordtype">bool</span> res = <span class="keyword">true</span>;</div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;  <a class="code" href="class_uptane_1_1_images_repository.html">Uptane::ImagesRepository</a> repo;</div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;  <a class="code" href="class_uptane_1_1_image_repository.html">Uptane::ImageRepository</a> repo;</div>
 <div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;  <span class="comment">// checkMetaOffline pulls in data from INvStorage to properly initialize</span></div>
 <div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;  <span class="comment">// the targets member of the instance so that we can use the LazyTargetList</span></div>
 <div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;  repo.checkMetaOffline(*storage_);</div>
@@ -246,7 +246,7 @@ $(function() {
 <div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;    LOG_INFO &lt;&lt; <span class="stringliteral">&quot;Pruning unused docker images&quot;</span>;</div>
 <div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;    <span class="comment">// Utils::shell which isn&#39;t interactive, we&#39;ll use std::system so that</span></div>
 <div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;    <span class="comment">// stdout/stderr is streamed while docker sets things up.</span></div>
-<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;    <span class="keywordflow">if</span> (std::system(<span class="stringliteral">&quot;docker image prune -a -f&quot;</span>) != 0) {</div>
+<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;    <span class="keywordflow">if</span> (std::system(<span class="stringliteral">&quot;docker image prune -a -f --filter=\&quot;label!=aktualizr-no-prune\&quot;&quot;</span>) != 0) {</div>
 <div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;      LOG_WARNING &lt;&lt; <span class="stringliteral">&quot;Unable to prune unused docker images&quot;</span>;</div>
 <div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;    }</div>
 <div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;  }</div>
@@ -288,11 +288,11 @@ $(function() {
 <div class="ttc" id="aclass_key_manager_html"><div class="ttname"><a href="class_key_manager.html">KeyManager</a></div><div class="ttdef"><b>Definition:</b> <a href="keymanager_8h_source.html#l00013">keymanager.h:13</a></div></div>
 <div class="ttc" id="astruct_docker_app_html"><div class="ttname"><a href="struct_docker_app.html">DockerApp</a></div><div class="ttdoc">This package manager compliments the OSTreePackageManager by also including optional Docker Apps.</div><div class="ttdef"><b>Definition:</b> <a href="dockerapp__standalone_8cc_source.html#l00044">dockerapp_standalone.cc:44</a></div></div>
 <div class="ttc" id="astructdata_1_1_installation_result_html"><div class="ttname"><a href="structdata_1_1_installation_result.html">data::InstallationResult</a></div><div class="ttdef"><b>Definition:</b> <a href="types_8h_source.html#l00182">types.h:182</a></div></div>
+<div class="ttc" id="aclass_uptane_1_1_image_repository_html"><div class="ttname"><a href="class_uptane_1_1_image_repository.html">Uptane::ImageRepository</a></div><div class="ttdef"><b>Definition:</b> <a href="imagerepository_8h_source.html#l00013">imagerepository.h:13</a></div></div>
 <div class="ttc" id="aclass_uptane_1_1_lazy_targets_list_html"><div class="ttname"><a href="class_uptane_1_1_lazy_targets_list.html">Uptane::LazyTargetsList</a></div><div class="ttdef"><b>Definition:</b> <a href="iterator_8h_source.html#l00012">iterator.h:12</a></div></div>
 <div class="ttc" id="aclassapi_1_1_flow_control_token_html"><div class="ttname"><a href="classapi_1_1_flow_control_token.html">api::FlowControlToken</a></div><div class="ttdoc">Provides a thread-safe way to pause and terminate task execution.</div><div class="ttdef"><b>Definition:</b> <a href="apiqueue_8h_source.html#l00019">apiqueue.h:19</a></div></div>
 <div class="ttc" id="aclass_uptane_1_1_target_html"><div class="ttname"><a href="class_uptane_1_1_target.html">Uptane::Target</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00238">tuf.h:238</a></div></div>
 <div class="ttc" id="astructdata_1_1_result_code_html_a1217cbd9c97e19df1ade7b0384cd5aaea6280293ae10368e4f5f25cc91c8d4af5"><div class="ttname"><a href="structdata_1_1_result_code.html#a1217cbd9c97e19df1ade7b0384cd5aaea6280293ae10368e4f5f25cc91c8d4af5">data::ResultCode::Numeric::kInstallFailed</a></div><div class="ttdoc">Package installation failed.</div></div>
-<div class="ttc" id="aclass_uptane_1_1_images_repository_html"><div class="ttname"><a href="class_uptane_1_1_images_repository.html">Uptane::ImagesRepository</a></div><div class="ttdef"><b>Definition:</b> <a href="imagesrepository_8h_source.html#l00013">imagesrepository.h:13</a></div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">

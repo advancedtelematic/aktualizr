@@ -1,6 +1,7 @@
 <map id="SQLStorageBase" name="SQLStorageBase">
-<area shape="rect" id="node1" title=" " alt="" coords="37,185,167,212"/>
-<area shape="rect" id="node2" href="$class_storage_lock.html" title=" " alt="" coords="5,96,108,123"/>
-<area shape="rect" id="node3" title="STL class." alt="" coords="132,96,219,123"/>
-<area shape="rect" id="node4" title="STL class." alt="" coords="106,5,245,47"/>
+<area shape="rect" id="node1" title=" " alt="" coords="145,200,275,227"/>
+<area shape="rect" id="node2" href="$class_storage_lock.html" title=" " alt="" coords="5,103,108,130"/>
+<area shape="rect" id="node3" title=" " alt="" coords="133,96,287,137"/>
+<area shape="rect" id="node4" title="STL class." alt="" coords="312,103,399,130"/>
+<area shape="rect" id="node5" title="STL class." alt="" coords="286,5,425,47"/>
 </map>

@@ -75,16 +75,16 @@ $(function() {
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespace_uptane.html">Uptane</a> {</div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160; </div>
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;Targets getTrustedDelegation(<span class="keyword">const</span> Role &amp;delegate_role, <span class="keyword">const</span> Targets &amp;parent_targets,</div>
-<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;                             <span class="keyword">const</span> ImagesRepository &amp;images_repo, <a class="code" href="class_i_nv_storage.html">INvStorage</a> &amp;storage, Fetcher &amp;fetcher,</div>
+<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;                             <span class="keyword">const</span> ImageRepository &amp;image_repo, <a class="code" href="class_i_nv_storage.html">INvStorage</a> &amp;storage, Fetcher &amp;fetcher,</div>
 <div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;                             <span class="keyword">const</span> <span class="keywordtype">bool</span> offline) {</div>
 <div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;  std::string delegation_meta;</div>
-<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;  <span class="keyword">auto</span> version_in_snapshot = images_repo.getRoleVersion(delegate_role);</div>
+<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;  <span class="keyword">auto</span> version_in_snapshot = image_repo.getRoleVersion(delegate_role);</div>
 <div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160; </div>
 <div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;  <span class="keywordflow">if</span> (storage.loadDelegation(&amp;delegation_meta, delegate_role)) {</div>
 <div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;    <span class="keyword">auto</span> version = extractVersionUntrusted(delegation_meta);</div>
 <div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160; </div>
 <div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;    <span class="keywordflow">if</span> (version &gt; version_in_snapshot) {</div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;      <span class="keywordflow">throw</span> SecurityException(<span class="stringliteral">&quot;images&quot;</span>, <span class="stringliteral">&quot;Rollback attempt on delegated targets&quot;</span>);</div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;      <span class="keywordflow">throw</span> SecurityException(<span class="stringliteral">&quot;image&quot;</span>, <span class="stringliteral">&quot;Rollback attempt on delegated targets&quot;</span>);</div>
 <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (version &lt; version_in_snapshot) {</div>
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;      delegation_meta.clear();</div>
 <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;      storage.deleteDelegation(delegate_role);</div>
@@ -97,24 +97,24 @@ $(function() {
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;    <span class="keywordflow">if</span> (offline) {</div>
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;      <span class="keywordflow">throw</span> <a class="code" href="class_uptane_1_1_delegation_missing.html">Uptane::DelegationMissing</a>(delegate_role.ToString());</div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;    }</div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;    <span class="keywordflow">if</span> (!fetcher.fetchLatestRole(&amp;delegation_meta, Uptane::kMaxImagesTargetsSize, RepositoryType::Image(),</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;    <span class="keywordflow">if</span> (!fetcher.fetchLatestRole(&amp;delegation_meta, Uptane::kMaxImageTargetsSize, RepositoryType::Image(),</div>
 <div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;                                 delegate_role)) {</div>
 <div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;      <span class="keywordflow">throw</span> <a class="code" href="class_uptane_1_1_delegation_missing.html">Uptane::DelegationMissing</a>(delegate_role.ToString());</div>
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;    }</div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;  }</div>
 <div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160; </div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;  <span class="keywordflow">if</span> (!images_repo.verifyRoleHashes(delegation_meta, delegate_role)) {</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;  <span class="keywordflow">if</span> (!image_repo.verifyRoleHashes(delegation_meta, delegate_role, <span class="keyword">false</span>)) {</div>
 <div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;    <span class="keywordflow">throw</span> <a class="code" href="class_uptane_1_1_delegation_hash_mismatch.html">Uptane::DelegationHashMismatch</a>(delegate_role.ToString());</div>
 <div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;  }</div>
 <div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160; </div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;  <span class="keyword">auto</span> delegation = ImagesRepository::verifyDelegation(delegation_meta, delegate_role, parent_targets);</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;  <span class="keyword">auto</span> delegation = ImageRepository::verifyDelegation(delegation_meta, delegate_role, parent_targets);</div>
 <div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;  <span class="keywordflow">if</span> (delegation == <span class="keyword">nullptr</span>) {</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;    <span class="keywordflow">throw</span> SecurityException(<span class="stringliteral">&quot;images&quot;</span>, <span class="stringliteral">&quot;Delegation verification failed&quot;</span>);</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;    <span class="keywordflow">throw</span> SecurityException(<span class="stringliteral">&quot;image&quot;</span>, <span class="stringliteral">&quot;Delegation verification failed&quot;</span>);</div>
 <div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;  }</div>
 <div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160; </div>
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;  <span class="keywordflow">if</span> (delegation_remote) {</div>
 <div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;    <span class="keywordflow">if</span> (delegation-&gt;version() != version_in_snapshot) {</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;      <span class="keywordflow">throw</span> VersionMismatch(<span class="stringliteral">&quot;images&quot;</span>, delegate_role.ToString());</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;      <span class="keywordflow">throw</span> VersionMismatch(<span class="stringliteral">&quot;image&quot;</span>, delegate_role.ToString());</div>
 <div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;    }</div>
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    storage.storeDelegation(delegation_meta, delegate_role);</div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;  }</div>
@@ -122,7 +122,7 @@ $(function() {
 <div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;  <span class="keywordflow">return</span> *delegation;</div>
 <div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;}</div>
 <div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160; </div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;LazyTargetsList::DelegationIterator::DelegationIterator(<span class="keyword">const</span> ImagesRepository &amp;repo,</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;LazyTargetsList::DelegationIterator::DelegationIterator(<span class="keyword">const</span> ImageRepository &amp;repo,</div>
 <div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;                                                        std::shared_ptr&lt;INvStorage&gt; storage,</div>
 <div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;                                                        std::shared_ptr&lt;Fetcher&gt; fetcher, <span class="keywordtype">bool</span> is_end)</div>
 <div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;    : repo_{repo}, storage_{std::move(storage)}, fetcher_{std::move(fetcher)}, is_end_{is_end} {</div>
@@ -141,7 +141,7 @@ $(function() {
 <div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;  } <span class="keywordflow">else</span> {</div>
 <div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;    <span class="comment">// go to the top of the delegation tree</span></div>
 <div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;    std::stack&lt;std::vector&lt;std::shared_ptr&lt;DelegatedTargetTreeNode&gt;&gt;::size_type&gt; indices;</div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;    <span class="keyword">auto</span> node = tree_node_-&gt;parent;</div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;    <span class="keyword">auto</span> *node = tree_node_-&gt;parent;</div>
 <div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;    <span class="keywordflow">while</span> (node-&gt;parent != <span class="keyword">nullptr</span>) {</div>
 <div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;      indices.push(node-&gt;parent_idx);</div>
 <div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;      node = node-&gt;parent;</div>
@@ -224,7 +224,7 @@ $(function() {
 <div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;  }</div>
 <div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160; </div>
 <div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;  <span class="keywordflow">if</span> (children_idx_ &lt; tree_node_-&gt;children.size()) {</div>
-<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;    <span class="keyword">auto</span> new_tree_node = tree_node_-&gt;children[children_idx_].get();</div>
+<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;    <span class="keyword">auto</span> *new_tree_node = tree_node_-&gt;children[children_idx_].get();</div>
 <div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;    target_idx_ = 0;</div>
 <div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;    children_idx_ = 0;</div>
 <div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;    ++level_;</div>
@@ -242,7 +242,7 @@ $(function() {
 <div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160; </div>
 <div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;  <span class="comment">// then go to the parent delegation</span></div>
 <div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;  <span class="keywordflow">if</span> (tree_node_-&gt;parent != <span class="keyword">nullptr</span>) {</div>
-<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;    <span class="keyword">auto</span> new_tree_node = tree_node_-&gt;parent;</div>
+<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;    <span class="keyword">auto</span> *new_tree_node = tree_node_-&gt;parent;</div>
 <div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;    children_idx_ = tree_node_-&gt;parent_idx + 1;</div>
 <div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;    --level_;</div>
 <div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;    terminating_ = <span class="keyword">false</span>;</div>
@@ -263,7 +263,7 @@ $(function() {
 </div><!-- fragment --></div><!-- contents -->
 <div class="ttc" id="aclass_uptane_1_1_delegation_missing_html"><div class="ttname"><a href="class_uptane_1_1_delegation_missing.html">Uptane::DelegationMissing</a></div><div class="ttdef"><b>Definition:</b> <a href="uptane_2exceptions_8h_source.html#l00123">exceptions.h:123</a></div></div>
 <div class="ttc" id="aclass_uptane_1_1_delegation_hash_mismatch_html"><div class="ttname"><a href="class_uptane_1_1_delegation_hash_mismatch.html">Uptane::DelegationHashMismatch</a></div><div class="ttdef"><b>Definition:</b> <a href="uptane_2exceptions_8h_source.html#l00115">exceptions.h:115</a></div></div>
-<div class="ttc" id="anamespace_uptane_html"><div class="ttname"><a href="namespace_uptane.html">Uptane</a></div><div class="ttdoc">Base data types that are used in The Update Framework (TUF), part of UPTANE.</div><div class="ttdef"><b>Definition:</b> <a href="secondary__tcp__server_8h_source.html#l00008">secondary_tcp_server.h:8</a></div></div>
+<div class="ttc" id="anamespace_uptane_html"><div class="ttname"><a href="namespace_uptane.html">Uptane</a></div><div class="ttdoc">Base data types that are used in The Update Framework (TUF), part of Uptane.</div><div class="ttdef"><b>Definition:</b> <a href="secondary__tcp__server_8h_source.html#l00008">secondary_tcp_server.h:8</a></div></div>
 <div class="ttc" id="aclass_i_nv_storage_html"><div class="ttname"><a href="class_i_nv_storage.html">INvStorage</a></div><div class="ttdef"><b>Definition:</b> <a href="invstorage_8h_source.html#l00126">invstorage.h:126</a></div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

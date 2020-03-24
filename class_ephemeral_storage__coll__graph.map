@@ -1,11 +1,12 @@
 <map id="EphemeralStorage" name="EphemeralStorage">
-<area shape="rect" id="node1" title=" " alt="" coords="167,453,309,480"/>
-<area shape="rect" id="node2" href="$class_s_q_l_storage.html" title=" " alt="" coords="189,377,287,404"/>
-<area shape="rect" id="node3" href="$class_s_q_l_storage_base.html" title=" " alt="" coords="107,301,236,328"/>
-<area shape="rect" id="node4" href="$class_storage_lock.html" title=" " alt="" coords="5,212,108,239"/>
-<area shape="rect" id="node5" title="STL class." alt="" coords="132,212,219,239"/>
-<area shape="rect" id="node6" title="STL class." alt="" coords="106,5,245,47"/>
-<area shape="rect" id="node7" href="$class_i_nv_storage.html" title=" " alt="" coords="265,301,360,328"/>
-<area shape="rect" id="node8" href="$struct_storage_config.html" title=" " alt="" coords="261,212,375,239"/>
-<area shape="rect" id="node9" href="$class_based_path.html" title=" " alt="" coords="273,13,363,39"/>
+<area shape="rect" id="node1" title=" " alt="" coords="260,468,403,495"/>
+<area shape="rect" id="node2" href="$class_s_q_l_storage.html" title=" " alt="" coords="283,392,380,419"/>
+<area shape="rect" id="node3" href="$class_s_q_l_storage_base.html" title=" " alt="" coords="200,316,329,343"/>
+<area shape="rect" id="node4" href="$class_storage_lock.html" title=" " alt="" coords="5,219,108,246"/>
+<area shape="rect" id="node5" title=" " alt="" coords="133,212,287,253"/>
+<area shape="rect" id="node6" title="STL class." alt="" coords="312,219,399,246"/>
+<area shape="rect" id="node7" title="STL class." alt="" coords="283,5,422,47"/>
+<area shape="rect" id="node8" href="$class_i_nv_storage.html" title=" " alt="" coords="393,316,488,343"/>
+<area shape="rect" id="node9" href="$struct_storage_config.html" title=" " alt="" coords="428,219,541,246"/>
+<area shape="rect" id="node10" href="$class_based_path.html" title=" " alt="" coords="446,13,537,39"/>
 </map>

@@ -69,6 +69,26 @@ $(function() {
 <div class="textblock"><p>This file summarizes notable changes introduced in aktualizr version. It roughly follows the guidelines from <a href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a>.</p>
 <p>Our versioning scheme is <code>YEAR.N</code> where <code>N</code> is incremented whenever a new release is issued. Thus <code>N</code> does not necessarily map to months of the year.</p>
 <h1>[??? (unreleased)]</h1>
+<h1>[2020.4] - 2020-03-24</h1>
+<h2>Added</h2>
+<ul>
+<li>aktualizr-secondary can now reboot automatically after triggering an update: <a href="https://github.com/advancedtelematic/aktualizr/pull/1578">PR</a></li>
+<li>Reports are now stored in the SQL database so they persist through unexpected shutdown: <a href="https://github.com/advancedtelematic/aktualizr/pull/1559">PR</a></li>
+</ul>
+<h2>Changed</h2>
+<ul>
+<li>garage-push now always pushes the OSTree ref to <a class="el" href="class_treehub.html">Treehub</a>: <a href="https://github.com/advancedtelematic/aktualizr/pull/1575">PR</a></li>
+<li>Consistently follow the <a href="https://github.com/uptane/uptane-standard#style-guide">Uptane standard's style guide</a> when using <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of Uptane.">Uptane</a> concepts, including the metadata output options of aktualizr-info: <a href="https://github.com/advancedtelematic/aktualizr/pull/1591">PR</a></li>
+<li>Public contributions now are tested with Github Actions instead of Travis CI: <a href="https://github.com/advancedtelematic/aktualizr/pull/1597">PR</a></li>
+<li>Default/recommended Yocto branch is zeus (3.0): <a href="https://github.com/advancedtelematic/aktualizr/pull/1603">PR</a></li>
+<li>Improved logging for aktualizr-secondary: <a href="https://github.com/advancedtelematic/aktualizr/pull/1609">PR</a></li>
+</ul>
+<h2>Fixed</h2>
+<ul>
+<li>Abort initialization if ECUs are already registered: <a href="https://github.com/advancedtelematic/aktualizr/pull/1579">PR</a></li>
+<li>Always use 64-bit integers for disk space arithmetic: <a href="https://github.com/advancedtelematic/aktualizr/pull/1588">PR</a></li>
+<li>Reject Director Targets metadata with delegations or repeated ECU IDs: <a href="https://github.com/advancedtelematic/aktualizr/pull/1600">PR</a></li>
+</ul>
 <h1>[2020.3] - 2020-02-27</h1>
 <h2>Added</h2>
 <ul>
@@ -105,7 +125,7 @@ $(function() {
 <h2>Changed</h2>
 <ul>
 <li>Increased Targets metadata file size limit: <a href="https://github.com/advancedtelematic/aktualizr/pull/1476">PR</a></li>
-<li>Check and fetch root metadata according to the <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of UPTANE.">Uptane</a> standard: <a href="https://github.com/advancedtelematic/aktualizr/pull/1501">PR</a></li>
+<li>Check and fetch Root metadata according to the <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of Uptane.">Uptane</a> standard: <a href="https://github.com/advancedtelematic/aktualizr/pull/1501">PR</a></li>
 <li>Don't fetch Snapshot or Targets metadata if we already have the latest: <a href="https://github.com/advancedtelematic/aktualizr/pull/1503">PR</a></li>
 <li>Dynamically link aktualizr and the tests with libaktualizr as shared library: <a href="https://github.com/advancedtelematic/aktualizr/pull/1512">PR</a></li>
 <li>Reject all targets if one doesn't match: <a href="https://github.com/advancedtelematic/aktualizr/pull/1510">PR</a></li>
@@ -134,7 +154,7 @@ $(function() {
 </ul>
 <h2>Fixed</h2>
 <ul>
-<li>Removed bogus warning at boot when using OStree: <a href="https://github.com/advancedtelematic/aktualizr/pull/1466">PR</a></li>
+<li>Removed bogus warning at boot when using OSTree: <a href="https://github.com/advancedtelematic/aktualizr/pull/1466">PR</a></li>
 <li>Updated the docker-app package manager to work with docker-app v0.8: <a href="https://github.com/advancedtelematic/aktualizr/pull/1468">PR</a></li>
 <li>Overriding of log level when using the docker-app package manager: <a href="https://github.com/advancedtelematic/aktualizr/pull/1478">PR</a></li>
 <li>Report correct hash of the currently installed version on IP Secondary:: <a href="https://github.com/advancedtelematic/aktualizr/pull/1485">PR</a></li>
@@ -195,7 +215,7 @@ $(function() {
 </ul>
 <h2>Fixed</h2>
 <ul>
-<li><a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of UPTANE.">Uptane</a> metadata is now rechecked (offline) before downloading and installing: <a href="https://github.com/advancedtelematic/aktualizr/pull/1296">PR</a></li>
+<li><a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of Uptane.">Uptane</a> metadata is now rechecked (offline) before downloading and installing: <a href="https://github.com/advancedtelematic/aktualizr/pull/1296">PR</a></li>
 <li>Downloaded target hashes are rechecked before installation: <a href="https://github.com/advancedtelematic/aktualizr/pull/1296">PR</a></li>
 <li>Failed downloads are now reported to the backend in the installation report: <a href="https://github.com/advancedtelematic/aktualizr/pull/1301">PR</a></li>
 <li>Binary targets for an OSTree-based primary are now rejected immediately: <a href="https://github.com/advancedtelematic/aktualizr/pull/1282">PR</a></li>
@@ -254,7 +274,7 @@ $(function() {
 <ul>
 <li>Campaigns can be declined and postponed via the API: <a href="https://github.com/advancedtelematic/aktualizr/pull/1225">PR</a></li>
 <li>Warn when running two libaktualizr instances simultaneously: <a href="https://github.com/advancedtelematic/aktualizr/pull/1217">PR #1217</a> and <a href="https://github.com/advancedtelematic/aktualizr/pull/1229">PR #1229</a></li>
-<li>aktualizr-info can output the Snapshot and Timestamp metadata from the Images repository: <a href="https://github.com/advancedtelematic/aktualizr/pull/1207">PR</a></li>
+<li>aktualizr-info can output the Snapshot and Timestamp metadata from the Image repository: <a href="https://github.com/advancedtelematic/aktualizr/pull/1207">PR</a></li>
 <li>aktualizr-info can output the current and pending image versions for secondaries: <a href="https://github.com/advancedtelematic/aktualizr/pull/1201">PR</a></li>
 <li><a href="src/libaktualizr/package_manager/dockerappmanager.h">Support for docker-app package management on top of OSTree</a>: <a href="https://github.com/advancedtelematic/aktualizr/pull/1189">PR</a></li>
 </ul>
@@ -293,14 +313,14 @@ $(function() {
 <h2>Fixed</h2>
 <ul>
 <li>Check for updates even if sending the manifest fails: <a href="https://github.com/advancedtelematic/aktualizr/pull/1186">PR</a></li>
-<li>Correctly handle empty targets metadata: <a href="https://github.com/advancedtelematic/aktualizr/pull/1186">PR #1186</a> and <a href="https://github.com/advancedtelematic/aktualizr/pull/1192">PR #1192</a></li>
+<li>Correctly handle empty Targets metadata: <a href="https://github.com/advancedtelematic/aktualizr/pull/1186">PR #1186</a> and <a href="https://github.com/advancedtelematic/aktualizr/pull/1192">PR #1192</a></li>
 <li>Various OSTree-related memory leaks and suppressions: <a href="https://github.com/advancedtelematic/aktualizr/pull/1114">PR #1114</a>, <a href="https://github.com/advancedtelematic/aktualizr/pull/1120">PR #1120</a>, and <a href="https://github.com/advancedtelematic/aktualizr/pull/1179">PR #1179</a></li>
 <li>Various spurious and/or confusing log messages, e.g.: <a href="https://github.com/advancedtelematic/aktualizr/pull/1112">PR #1112</a>, <a href="https://github.com/advancedtelematic/aktualizr/pull/1137">PR #1137</a>, and <a href="https://github.com/advancedtelematic/aktualizr/pull/1180">PR #1180</a></li>
 </ul>
 <h1>[2019.2] - 2019-02-21</h1>
 <h2>Added</h2>
 <ul>
-<li>A new uptane configuration parameter <code>force_install_completion</code> that triggers a system reboot at the end of the installation process for update mechanisms that need one to complete (e.g. OSTree package manager)</li>
+<li>A new configuration parameter <code>force_install_completion</code> that triggers a system reboot at the end of the installation process for update mechanisms that need one to complete (e.g. OSTree package manager)</li>
 <li>Support for delegations: <a href="https://github.com/advancedtelematic/aktualizr/pull/1074">PR #1074</a> and <a href="https://github.com/advancedtelematic/aktualizr/pull/1089">PR #1089</a></li>
 <li>Backward migrations of the SQL storage is now supported. It should allow rollbacking updates up to versions containing the feature: <a href="https://github.com/advancedtelematic/aktualizr/pull/1072">PR</a></li>
 </ul>
@@ -314,7 +334,7 @@ $(function() {
 <h2>Changed</h2>
 <ul>
 <li><a href="src/libaktualizr/primary/aktualizr.h">Most API calls refactored to return immediately with a future</a></li>
-<li>With an OStree primary, an installation is now considered successful when the device reboots with the new file system version. Before that, the installation is still considered in progress.</li>
+<li>With an OSTree primary, an installation is now considered successful when the device reboots with the new file system version. Before that, the installation is still considered in progress.</li>
 <li><a href="src/aktualizr_primary/main.cc">Running modes in libaktualizr have been replaced by simpler logic in the aktualizr wrapper</a>: <a href="https://github.com/advancedtelematic/aktualizr/pull/1039">PR</a></li>
 <li>Tests now use ed25519 as the default key type: <a href="https://github.com/advancedtelematic/aktualizr/pull/1038">PR</a></li>
 <li>Improved performance of garage-deploy: <a href="https://github.com/advancedtelematic/aktualizr/pull/1020">PR</a></li>

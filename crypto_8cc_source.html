@@ -121,7 +121,7 @@ $(function() {
 <div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;  value_ = keyvalue;</div>
 <div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;}</div>
 <div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160; </div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;PublicKey::PublicKey(std::string value, KeyType type) : value_(std::move(value)), type_(type) {</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;PublicKey::PublicKey(<span class="keyword">const</span> std::string &amp;value, KeyType type) : value_(value), type_(type) {</div>
 <div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;  <span class="keywordflow">if</span> (Crypto::IsRsaKeyType(type)) {</div>
 <div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    <span class="keywordflow">if</span> (type != Crypto::IdentifyRSAKeyType(value)) {</div>
 <div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;      std::logic_error(<span class="stringliteral">&quot;RSA key length is incorrect&quot;</span>);</div>
