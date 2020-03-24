@@ -7,6 +7,8 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
+include::_partials/aktualizr-version.adoc[]
+
 In some cases, you might find it useful to include extra metadata about your software inside the signed Uptane metadata that OTA Connect delivers to your device. Some reasons you might want to do this include:
 
 * to provide installation instructions or scripts for an image that can't or shouldn't be included in the image itself
@@ -84,4 +86,4 @@ You can then upload your customized `targets.json` to OTA Connect as normal:
 garage-sign targets push --repo myimagerepo
 ----
 
-NOTE: You also might want to add custom metadata while bitbaking. You can do this, for example, by modifying the `IMAGE_CMD_garagesign` function in link:https://github.com/advancedtelematic/meta-updater/blob/master/classes/image_types_ostree.bbclass#L217[image_types_ostree.bbclass]. A detailed guide on how to accomplish this is out of our scope, however. Refer to http://www.yoctoproject.org/docs/2.7/dev-manual/dev-manual.html[the Yocto Reference Manual] for further details.
+NOTE: You also might want to add custom metadata while bitbaking. You can do this, for example, by modifying the `IMAGE_CMD_garagesign` function in link:https://github.com/advancedtelematic/meta-updater/blob/master/classes/image_types_ostree.bbclass#L217[image_types_ostree.bbclass]. A detailed guide on how to accomplish this is out of our scope, however. Refer to http://www.yoctoproject.org/docs/{yocto-version}/dev-manual/dev-manual.html[the Yocto Reference Manual] for further details.

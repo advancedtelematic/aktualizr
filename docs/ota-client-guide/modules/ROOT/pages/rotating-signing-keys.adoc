@@ -108,7 +108,7 @@ After rotating keys, you will no longer be able to upload packages through the O
 Export the new offline `targets` into a new credentials file that you can use with `bitbake`:
 
 ----
-garage-sign export-credentials --repo myimagerepo --target-key-name mytargets --to offline-credentials.zip
+garage-sign export-credentials --repo myimagerepo --key-name mytargets --output offline-credentials.zip
 ----
 
 Update your `local.conf` to use the new `offline-credentials.zip` file and run `bitbake` as before.

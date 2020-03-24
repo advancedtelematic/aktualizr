@@ -1,0 +1,59 @@
+= Reporting problems
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
+:page-layout: page
+:page-categories: [tips]
+:icons: font
+
+== Contacting HERE OTA Connect support
+
+If you encounter a problem with {product-name} and the xref:troubleshooting.adoc[Troubleshooting article] doesn't address it, please contact link:mailto:otaconnect.support@here.com[otaconnect.support@here.com] and we'll do our best to help! To help us diagnose your issue, please provide us with as much information as possible. What follows are some useful artifacts as well as how to retrieve them.
+
+=== aktualizr logs with debug logging
+
+By default, aktualizr writes logs to the systemd logger, which you can read with `journalctl -u aktualizr`. If you run aktualizr manually on the commandline, the logging is printed on stdout. The default loglevel is 2 (info). Lower loglevels are more verbose. To change the loglevel, there are two options:
+
+* To build a new image with debug logging enabled, add `IMAGE_INSTALL_append = " aktualizr-log-debug "` to your `local.conf` and bitbake a new image. See the xref:meta-updater-usage.adoc#_aktualizr_configuration[meta-updater usage article] for more details.
+* To enable debug logging on a device accessible via the commandline without building a new image, stop the aktualizr service on the device (`systemctl stop aktualizr`) and manually start aktualizr on the commandline, e.g. `aktualizr --loglevel 0`.
+
+See also the xref:aktualizr-config-options.adoc#_logger[aktualizr configuration options article].
+
+=== Output of aktualizr-info
+
+See the xref:debugging-tips.adoc#_inspect_stored_info_with_aktualizr_info[debugging tips] for more information.
+
+=== aktualizr version
+
+On an active device accessible via the commandline, enter `aktualizr --version`. Otherwise, you can examine the aktualizr recipe in meta-updater in your build environment and look for the `SRCREV` variable. This recipe will normally be located (relative to your Yocto build directory) at `../meta-updater/recipes-sota/aktualizr/aktualizr_git.bb`.
+
+=== aktualizr configuration
+
+If you are able to run aktualizr with loglevel 0, the final configuration will be printed to the log when aktualizr starts. See the xref:aktualizr-config-options.adoc#_logger[aktualizr configuration options article] for more information.
+
+If you are having problems with Secondaries, please also send us the Secondary JSON configuration file for the Primary (`secondary_config_file`) described in xref:aktualizr-config-options.adoc#_uptane[the same article].
+
+=== Yocto release branch and layers used to build the image
+
+If you have the link:https://source.android.com/setup/build/downloading[Android repo] tool available and initialized your build environment with it (such as via the link:https://github.com/advancedtelematic/updater-repo/[updater-repo]), you can run `repo manifest -r` to print out all of the layers you are using and the revisions that are checked out.
+
+If Android repo is not available or was not used, please send us your `bblayers.conf` file, which normally can be found in the `conf` subdirectory of your bitbake build directory. Please also let us know which Yocto release branch you are using.
+
+See the xref:yocto-release-branches.adoc[Yocto release branches article] for more information.
+
+=== Yocto configuration
+
+For problems with bitbaking, please send us your `local.conf` file, which normally can be found in the `conf` subdirectory of your bitbake build directory.
+
+=== aktualizr-secondary logs
+
+If you are using aktualizr-secondary and having a problem with it, its logs may be helpful as well. aktualizr-secondary logs in the same way as aktualizr on the Primary, except for the name of the application.
+
+=== aktualizr-secondary configuration
+
+The aktualizr-secondary configuration may be helpful if applicable. aktualizr-secondary is configured similarly to aktualizr on the Primary, and it also prints the entire final configuration to the log if loglevel 0 is used.

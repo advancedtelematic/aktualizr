@@ -7,6 +7,8 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
+include::_partials/aktualizr-version.adoc[]
+
 :page-layout: page
 :page-categories: [tips]
 :page-date: 2017-06-13 10:51:53
@@ -78,7 +80,7 @@ This is required if you have a service that does all of the following:
 * Runs as an account that is not one of the 'standard' accounts (`root`, `floppy`, `man`, `tape`, etc)
 * The recipe for the service creates the user (using `useradd`)
 
-In this case, you should set `useradd`. The link:https://www.yoctoproject.org/docs/2.6/mega-manual/mega-manual.html#ref-classes-useradd[useradd] section of the Yocto Mega Manual describes this process in more detail.
+In this case, you should set `useradd`. The link:https://www.yoctoproject.org/docs/{yocto-version}/mega-manual/mega-manual.html#ref-classes-useradd[useradd] section of the Yocto Mega Manual describes this process in more detail.
 
 
 .Don't see your problem here?
