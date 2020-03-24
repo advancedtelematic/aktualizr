@@ -20,6 +20,7 @@ AktualizrSecondary::AktualizrSecondary(AktualizrSecondaryConfig config, std::sha
   initPendingTargetIfAny();
 
   if (hasPendingUpdate()) {
+    LOG_INFO << "Found a pending target to be applied.";
     // TODO(OTA-4545): refactor this to make it simpler as we don't need to persist/store
     // an installation status of each ECU but store it just for a given secondary ECU
     std::vector<Uptane::Target> installed_versions;
@@ -264,6 +265,5 @@ void AktualizrSecondary::initPendingTargetIfAny() {
     return;
   }
 
-  LOG_INFO << "There is a valid and pending Director target to be applied";
   pending_target_ = targetsForThisEcu[0];
 }

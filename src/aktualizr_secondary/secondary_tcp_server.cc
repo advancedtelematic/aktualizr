@@ -17,10 +17,10 @@ SecondaryTcpServer::SecondaryTcpServer(Uptane::SecondaryInterface &secondary, co
 
   ConnectionSocket conn_socket(primary_ip, primary_port, listen_socket_.port());
   if (conn_socket.connect() == 0) {
-    LOG_INFO << "Connected to Primary, sending info about this Secondary...";
+    LOG_INFO << "Connected to Primary, sending info about this Secondary.";
     HandleOneConnection(*conn_socket);
   } else {
-    LOG_INFO << "Failed to connect to Primary";
+    LOG_INFO << "Failed to connect to Primary.";
   }
 }
 
@@ -28,7 +28,7 @@ void SecondaryTcpServer::run() {
   if (listen(*listen_socket_, SOMAXCONN) < 0) {
     throw std::system_error(errno, std::system_category(), "listen");
   }
-  LOG_INFO << "Secondary TCP server listens on " << listen_socket_.toString();
+  LOG_INFO << "Secondary TCP server listening on " << listen_socket_.toString();
 
   while (keep_running_.load()) {
     sockaddr_storage peer_sa{};
@@ -37,18 +37,18 @@ void SecondaryTcpServer::run() {
     LOG_DEBUG << "Waiting for connection from Primary...";
     int con_fd = accept(*listen_socket_, reinterpret_cast<sockaddr *>(&peer_sa), &peer_sa_size);
     if (con_fd == -1) {
-      LOG_INFO << "Socket accept failed. aborting";
+      LOG_INFO << "Socket accept failed, aborting.";
       break;
     }
     Socket con_socket(con_fd);
-    LOG_DEBUG << "Connected...";
+    LOG_DEBUG << "Connected to Primary.";
     bool continue_serving = HandleOneConnection(*con_socket);
-    LOG_DEBUG << "Client disconnected";
+    LOG_DEBUG << "Primary disconnected.";
     if (!continue_serving) {
       break;
     }
   }
-  LOG_INFO << "Secondary TCP server exit";
+  LOG_INFO << "Secondary TCP server exiting.";
 }
 
 void SecondaryTcpServer::stop() {
@@ -113,18 +113,6 @@ bool SecondaryTcpServer::HandleOneConnection(int socket) {
       case AKIpUptaneMes_PR_putMetaReq: {
         auto md = msg->putMetaReq();
         Uptane::RawMetaPack meta_pack;
-        if (md->image.present == image_PR_json) {
-          meta_pack.image_root = ToString(md->image.choice.json.root);            // NOLINT
-          meta_pack.image_targets = ToString(md->image.choice.json.targets);      // NOLINT
-          meta_pack.image_snapshot = ToString(md->image.choice.json.snapshot);    // NOLINT
-          meta_pack.image_timestamp = ToString(md->image.choice.json.timestamp);  // NOLINT
-          LOG_DEBUG << "Received Image repo Root metadata:\n" << meta_pack.image_root;
-          LOG_DEBUG << "Received Image repo Targets metadata:\n" << meta_pack.image_targets;
-          LOG_DEBUG << "Received Image repo Snapshot metadata:\n" << meta_pack.image_snapshot;
-          LOG_DEBUG << "Received Image repo Timestamp metadata:\n" << meta_pack.image_timestamp;
-        } else {
-          LOG_WARNING << "Images metadata in unknown format:" << md->image.present;
-        }
 
         if (md->director.present == director_PR_json) {
           meta_pack.director_root = ToString(md->director.choice.json.root);        // NOLINT
@@ -134,6 +122,20 @@ bool SecondaryTcpServer::HandleOneConnection(int socket) {
         } else {
           LOG_WARNING << "Director metadata in unknown format:" << md->director.present;
         }
+
+        if (md->image.present == image_PR_json) {
+          meta_pack.image_root = ToString(md->image.choice.json.root);            // NOLINT
+          meta_pack.image_timestamp = ToString(md->image.choice.json.timestamp);  // NOLINT
+          meta_pack.image_snapshot = ToString(md->image.choice.json.snapshot);    // NOLINT
+          meta_pack.image_targets = ToString(md->image.choice.json.targets);      // NOLINT
+          LOG_DEBUG << "Received Image repo Root metadata:\n" << meta_pack.image_root;
+          LOG_DEBUG << "Received Image repo Timestamp metadata:\n" << meta_pack.image_timestamp;
+          LOG_DEBUG << "Received Image repo Snapshot metadata:\n" << meta_pack.image_snapshot;
+          LOG_DEBUG << "Received Image repo Targets metadata:\n" << meta_pack.image_targets;
+        } else {
+          LOG_WARNING << "Image repo metadata in unknown format:" << md->image.present;
+        }
+
         bool ok;
         try {
           ok = impl_.putMetadata(meta_pack);
