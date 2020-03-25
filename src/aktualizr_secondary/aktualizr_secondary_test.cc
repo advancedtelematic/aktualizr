@@ -1,11 +1,33 @@
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <boost/process.hpp>
 
 #include "aktualizr_secondary.h"
 #include "aktualizr_secondary_factory.h"
+#include "crypto/keymanager.h"
 #include "test_utils.h"
+#include "update_agent.h"
+#include "update_agent_file.h"
 #include "uptane_repo.h"
+
+using ::testing::NiceMock;
+
+class UpdateAgentMock : public FileUpdateAgent {
+ public:
+  UpdateAgentMock(boost::filesystem::path target_filepath, std::string target_name)
+      : FileUpdateAgent(std::move(target_filepath), std::move(target_name)) {
+    ON_CALL(*this, download).WillByDefault([this](const Uptane::Target& target, const std::string& data) {
+      return FileUpdateAgent::download(target, data);
+    });
+    ON_CALL(*this, install).WillByDefault([this](const Uptane::Target& target) {
+      return FileUpdateAgent::install(target);
+    });
+  }
+
+  MOCK_METHOD(bool, download, (const Uptane::Target& target, const std::string& data));
+  MOCK_METHOD(data::ResultCode::Numeric, install, (const Uptane::Target& target));
+};
 
 class AktualizrSecondaryWrapper {
  public:
@@ -17,10 +39,12 @@ class AktualizrSecondaryWrapper {
     config.storage.type = StorageType::kSqlite;
 
     _storage = INvStorage::newStorage(config.storage);
-    _secondary = AktualizrSecondaryFactory::create(config, _storage);
+    auto key_mngr = std::make_shared<KeyManager>(_storage, config.keymanagerConfig());
+    update_agent = std::make_shared<NiceMock<UpdateAgentMock>>(config.storage.path / "firmware.txt", "");
+
+    _secondary = std::make_shared<AktualizrSecondary>(config, _storage, key_mngr, update_agent);
   }
 
- public:
   std::shared_ptr<AktualizrSecondary>& operator->() { return _secondary; }
 
   Uptane::Target getPendingVersion() const {
@@ -37,6 +61,8 @@ class AktualizrSecondaryWrapper {
   boost::filesystem::path targetFilepath() const {
     return _storage_dir.Path() / AktualizrSecondaryFactory::BinaryUpdateDefaultFile;
   }
+
+  std::shared_ptr<NiceMock<UpdateAgentMock>> update_agent;
 
  private:
   TemporaryDirectory _storage_dir;
@@ -94,7 +120,7 @@ class UptaneRepoWrapper {
 
 class SecondaryTest : public ::testing::Test {
  protected:
-  SecondaryTest() {
+  SecondaryTest() : _update_agent(*(_secondary.update_agent)) {
     _uptane_repo.addImageFile(_default_target, _secondary->getHwId().ToString(), _secondary->getSerial().ToString());
   }
 
@@ -121,10 +147,14 @@ class SecondaryTest : public ::testing::Test {
   static constexpr const char* const _default_target{"default-target"};
   AktualizrSecondaryWrapper _secondary;
   UptaneRepoWrapper _uptane_repo;
+  NiceMock<UpdateAgentMock>& _update_agent;
 };
 
 class SecondaryTestNegative : public ::testing::Test,
                               public ::testing::WithParamInterface<std::pair<Uptane::RepositoryType, Uptane::Role>> {
+ public:
+  SecondaryTestNegative() : _update_agent(*(_secondary.update_agent)) {}
+
  protected:
   class MetadataInvalidator : public Metadata {
    public:
@@ -147,18 +177,14 @@ class SecondaryTestNegative : public ::testing::Test,
     Uptane::Role _role;
   };
 
- protected:
   MetadataInvalidator currentMetadata() const {
     return MetadataInvalidator(_uptane_repo.getCurrentMetadata(), GetParam().first, GetParam().second);
   }
 
- protected:
-  static AktualizrSecondaryWrapper _secondary;
-  static UptaneRepoWrapper _uptane_repo;
+  AktualizrSecondaryWrapper _secondary;
+  UptaneRepoWrapper _uptane_repo;
+  NiceMock<UpdateAgentMock>& _update_agent;
 };
-
-AktualizrSecondaryWrapper SecondaryTestNegative::_secondary;
-UptaneRepoWrapper SecondaryTestNegative::_uptane_repo;
 
 /**
  * Parameterized test,
@@ -166,7 +192,16 @@ UptaneRepoWrapper SecondaryTestNegative::_uptane_repo;
  *
  * see INSTANTIATE_TEST_SUITE_P for the test instantiations with concrete parameter values
  */
-TEST_P(SecondaryTestNegative, MalformedMetadaJson) { EXPECT_FALSE(_secondary->putMetadata(currentMetadata())); }
+TEST_P(SecondaryTestNegative, MalformedMetadaJson) {
+  EXPECT_FALSE(_secondary->putMetadata(currentMetadata()));
+
+  EXPECT_CALL(_update_agent, download).Times(0);
+  EXPECT_CALL(_update_agent, install).Times(0);
+
+  EXPECT_FALSE(_secondary->sendFirmware("firmware"));
+
+  EXPECT_NE(_secondary->install("target"), data::ResultCode::Numeric::kOk);
+}
 
 /**
  * Instantiates the parameterized test for each specified value of std::pair<Uptane::RepositoryType, Uptane::Role>
@@ -181,6 +216,9 @@ INSTANTIATE_TEST_SUITE_P(SecondaryTestMalformedMetadata, SecondaryTestNegative,
                                            std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Targets())));
 
 TEST_F(SecondaryTest, fullUptaneVerificationPositive) {
+  EXPECT_CALL(_update_agent, download).Times(1);
+  EXPECT_CALL(_update_agent, install).Times(1);
+
   ASSERT_TRUE(_secondary->putMetadata(_uptane_repo.getCurrentMetadata()));
   ASSERT_TRUE(_secondary->sendFirmware(getImageData()));
   ASSERT_EQ(_secondary->install(_default_target), data::ResultCode::Numeric::kOk);
@@ -245,17 +283,25 @@ TEST_F(SecondaryTest, ImageRootVersionIncremented) {
 }
 
 TEST_F(SecondaryTest, InvalidImageFileSize) {
+  EXPECT_CALL(_update_agent, download).Times(1);
+  EXPECT_CALL(_update_agent, install).Times(0);
+
   EXPECT_TRUE(_secondary->putMetadata(_uptane_repo.getCurrentMetadata()));
   auto image_data = getImageData();
   image_data.append("\n");
   EXPECT_FALSE(_secondary->sendFirmware(image_data));
+  EXPECT_NE(_secondary->install(_default_target), data::ResultCode::Numeric::kOk);
 }
 
 TEST_F(SecondaryTest, InvalidImageData) {
+  EXPECT_CALL(_update_agent, download).Times(1);
+  EXPECT_CALL(_update_agent, install).Times(0);
+
   EXPECT_TRUE(_secondary->putMetadata(_uptane_repo.getCurrentMetadata()));
   auto image_data = getImageData();
   image_data.operator[](3) = '0';
   EXPECT_FALSE(_secondary->sendFirmware(image_data));
+  EXPECT_NE(_secondary->install(_default_target), data::ResultCode::Numeric::kOk);
 }
 
 int main(int argc, char** argv) {
