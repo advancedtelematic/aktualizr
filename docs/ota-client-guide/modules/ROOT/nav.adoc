@@ -44,7 +44,7 @@ ifndef::env-github[:pageroot:]
 .Integrate OTA Connect
 * xref:{pageroot}intro-prep.adoc[Recommended steps]
 * xref:{pageroot}recommended-clientconfig.adoc[Recommended configurations]
-* xref:{pageroot}account-setup.adoc[Set up additional environments]
+* xref:{pageroot}add-environments.adoc[Set up additional environments]
 
 * xref:{pageroot}libaktualizr-why-use.adoc[Integrate libaktualizr into your solution]
 ** xref:{pageroot}libaktualizr-getstarted.adoc[Get started with libaktualizr]
