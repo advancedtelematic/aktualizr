@@ -434,6 +434,7 @@ build-osx-release:
     - brew install ghr
   script:
     - brew tap advancedtelematic/otaconnect
+    - brew bump-formula-pr -v -d -f --tag=${VERSION} --revision=${REVISION} --no-browse aktualizr
     - brew install -v --build-bottle aktualizr
     - aktualizr --version
     - brew bottle --json --no-rebuild --force-core-tap --root-url=${RELEASE_BASE_URL}/${VERSION} aktualizr
@@ -441,7 +442,6 @@ build-osx-release:
     - mv aktualizr--${VERSION}.mojave.bottle.tar.gz aktualizr-${VERSION}.mojave.bottle.tar.gz
     - ls -alrt aktualizr-${VERSION}.mojave.bottle.tar.gz
     - ghr -u "${GITHUB_REPOSITORY%/*}" -r "${GITHUB_REPOSITORY#*/}" ${VERSION} aktualizr-${VERSION}.mojave.bottle.tar.gz
-    - brew bump-formula-pr -v -d -f --tag=${VERSION} --revision=${REVISION} --no-browse aktualizr
   rules:
     - if: $CI_COMMIT_TAG =~ /^20\d\d\.\d\d?-docs$/
       when: never
