@@ -79,11 +79,11 @@ The executable will be available in `build/src/sota_tools/garage-deploy`.
 
 == Usage
 
-Once you've installed `garage-deploy` tool, you're ready to perform the following tasks:
+Once you've installed the `garage-deploy` tool, you're ready to perform the following tasks:
 
-* Move device images from one account to another--for example, to send a development build to the QA team, or to send a release candidate to the deployment team.
+* Move device images from one environment to another--for example, to send a development build to the QA team, or to send a release candidate to the deployment team.
 +
-For more information, see "xref:cross-deploy-images.adoc[Cross-deploy device images to a different account]".
+For more information, see "xref:cross-deploy-images.adoc[Cross-deploy device images to a different environment]".
 
 * Create offline signing keys that you manage yourself and rotate out the installed online keys.
 +

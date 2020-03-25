@@ -1,4 +1,5 @@
 = Set up additional environments
+:page-aliases: account-setup.adoc
 ifdef::env-github[]
 
 [NOTE]
@@ -8,21 +9,21 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 endif::[]
 
 
-An environment is your working space in your https://connect.ota.here.com[OTA Connect account], where you can create and manage software update projects.
+An xref:ota-web::environments-intro.adoc[environment] is your working space in your https://connect.ota.here.com[OTA Connect account], where you can create and manage software update projects.
 
-If you do not want to mix up test and production software xref:evaluation-to-prod.adoc#_integrate_ota_connect[during integration with OTA Connect], you may create additional environments. You can xref:ota-web::create-environment.adoc[create] up to 10 additional environments in one https://connect.ota.here.com[OTA Connect account].
+If you do not want to mix up test and production software during xref:evaluation-to-prod.adoc#_integrate_ota_connect[integration with OTA Connect], you may create additional environments. You can xref:ota-web::create-environment.adoc[create] up to 10 additional environments in one OTA Connect account.
 
 For example, you may need to have different environments for development, QA, and production.
 
 IMPORTANT: The limit of 10 additional environments applies even if you leave the environments that you have created. There is currently no way to delete environments.
 
-== Additional environments
+== Environments for production workflow
 
-To manage the different stages of production workflow, you can create additional environments for the following:
+To manage the different stages of production workflow, you should create the following additional environments:
 
-* A developer user such as _\dev@acme.com_
-* A QA user such as _\qa@acme.com_
-* A production user such as _\prod@acme.com_
+* A developer environment
+* A QA environment
+* A production environment
 
 These environments provide you with a convenient way to separate your development, QA, and production resources.
 
@@ -30,3 +31,4 @@ These environments provide you with a convenient way to separate your developmen
 After you create an environment, you can xref:ota-web::manage-members.adoc[add] your colleagues to work together on device provisioning, device groups, software versions, software updates, and campaigns.
 
 To get more information on the *Environments* feature, see the xref:ota-web::environments-intro.adoc[Environments] section in the OTA Connect User Guide.
+
