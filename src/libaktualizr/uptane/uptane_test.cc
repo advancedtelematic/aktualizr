@@ -538,10 +538,13 @@ class SecondaryInterfaceMock : public Uptane::SecondaryInterface {
   }
   Uptane::Manifest getManifest() const override { return manifest_; }
   bool ping() const override { return true; }
-  MOCK_METHOD1(putMetadataMock, bool(const Uptane::RawMetaPack &));
-  MOCK_CONST_METHOD1(getRootVersionMock, int32_t(bool));
+  MOCK_METHOD(bool, putMetadataMock, (const Uptane::RawMetaPack &));
+  MOCK_METHOD(int32_t, getRootVersionMock, (bool), (const));
 
-  bool putMetadata(const Uptane::RawMetaPack &meta_pack) override { return putMetadataMock(meta_pack); }
+  bool putMetadata(const Uptane::RawMetaPack &meta_pack) override {
+    putMetadataMock(meta_pack);
+    return true;
+  }
   int32_t getRootVersion(bool director) const override { return getRootVersionMock(director); }
 
   bool putRoot(const std::string &, bool) override { return true; }
@@ -564,7 +567,7 @@ MATCHER_P(matchMeta, meta, "") {
  * Send metadata to secondary ECUs
  * Send EcuInstallationStartedReport to server for secondaries
  */
-TEST(Uptane, SendMetadataToSeconadry) {
+TEST(Uptane, SendMetadataToSecondary) {
   Config conf("tests/config/basic.toml");
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFakeEvents>(temp_dir.Path(), "hasupdates");

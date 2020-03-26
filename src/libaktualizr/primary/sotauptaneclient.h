@@ -130,7 +130,7 @@ class SotaUptaneClient {
   void reportAktualizrConfiguration();
   void verifySecondaries();
   bool waitSecondariesReachable(const std::vector<Uptane::Target> &updates);
-  void sendMetadataToEcus(const std::vector<Uptane::Target> &targets);
+  bool sendMetadataToEcus(const std::vector<Uptane::Target> &targets);
   std::future<data::ResultCode::Numeric> sendFirmwareAsync(Uptane::SecondaryInterface &secondary,
                                                            const Uptane::Target &target);
   std::vector<result::Install::EcuReport> sendImagesToEcus(const std::vector<Uptane::Target> &targets);
