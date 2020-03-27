@@ -63,7 +63,7 @@ Create (and push to github) a new branch with the commit you just tagged as the 
 
 ----
 git checkout -b <tag>-docs # e.g. git checkout -b 2019.63-docs
-git push github <tag>-docs
+git push github --set-upstream <tag>-docs
 ----
 
 === Update version strings in antora.yml for old and new branch
