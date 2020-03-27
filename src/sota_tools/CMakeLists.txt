@@ -88,7 +88,7 @@ if (BUILD_SOTA_TOOLS)
     endif()
 
     add_custom_target(garage-sign
-                    COMMAND ${PROJECT_SOURCE_DIR}/scripts/get_garage_sign.py
+                    COMMAND ${PROJECT_SOURCE_DIR}/scripts/get-garage-sign.py
                     --output ${CMAKE_CURRENT_BINARY_DIR}
                     ${GARAGE_SIGN_ARGS})
     add_dependencies(garage-deploy garage-sign)
