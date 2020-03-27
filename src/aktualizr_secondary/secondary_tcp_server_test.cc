@@ -4,41 +4,40 @@
 #include "logging/logging.h"
 #include "secondary_tcp_server.h"
 #include "test_utils.h"
-#include "uptane/secondaryinterface.h"
 
-class SecondaryMock : public Uptane::SecondaryInterface {
+class AktualizrSecondary {
  public:
-  SecondaryMock(const Uptane::EcuSerial& serial, const Uptane::HardwareIdentifier& hdw_id, const PublicKey& pub_key,
-                const Uptane::Manifest& manifest)
+  AktualizrSecondary(const Uptane::EcuSerial& serial, const Uptane::HardwareIdentifier& hdw_id,
+                     const PublicKey& pub_key, const Uptane::Manifest& manifest)
       : _serial(serial), _hdw_id(hdw_id), _pub_key(pub_key), _manifest(manifest) {}
 
  public:
-  virtual std::string Type() const { return "mock"; }
-  virtual Uptane::EcuSerial getSerial() const { return _serial; }
-  virtual Uptane::HardwareIdentifier getHwId() const { return _hdw_id; }
-  virtual PublicKey getPublicKey() const { return _pub_key; }
-  virtual Uptane::Manifest getManifest() const { return _manifest; }
-  virtual bool ping() const { return true; }
-  virtual bool putMetadata(const Uptane::RawMetaPack& meta_pack) {
+  std::string Type() const { return "mock"; }
+  Uptane::EcuSerial getSerial() const { return _serial; }
+  Uptane::HardwareIdentifier getHwId() const { return _hdw_id; }
+  PublicKey getPublicKey() const { return _pub_key; }
+  Uptane::Manifest getManifest() const { return _manifest; }
+  bool ping() const { return true; }
+  bool putMetadata(const Uptane::RawMetaPack& meta_pack) {
     _metapack = meta_pack;
     return true;
   }
-  virtual int32_t getRootVersion(bool director) const {
+  int32_t getRootVersion(bool director) const {
     (void)director;
     return 0;
   }
-  virtual bool putRoot(const std::string& root, bool director) {
+  bool putRoot(const std::string& root, bool director) {
     (void)root;
     (void)director;
     return true;
   }
 
-  virtual bool sendFirmware(const std::string& data) {
+  bool sendFirmware(const std::string& data) {
     _data = data;
     return true;
   }
 
-  virtual data::ResultCode::Numeric install(const std::string& target_name) {
+  data::ResultCode::Numeric install(const std::string& target_name) {
     (void)target_name;
     return data::ResultCode::Numeric::kOk;
   }
@@ -63,8 +62,8 @@ bool operator==(const Uptane::RawMetaPack& lhs, const Uptane::RawMetaPack& rhs) 
 // that occurs during communication between Primary and IP Secondary
 TEST(SecondaryTcpServer, TestIpSecondaryRPC) {
   // secondary object on Secondary ECU
-  SecondaryMock secondary(Uptane::EcuSerial("serial"), Uptane::HardwareIdentifier("hardware-id"),
-                          PublicKey("pub-key", KeyType::kED25519), Uptane::Manifest());
+  AktualizrSecondary secondary(Uptane::EcuSerial("serial"), Uptane::HardwareIdentifier("hardware-id"),
+                               PublicKey("pub-key", KeyType::kED25519), Uptane::Manifest());
 
   // create Secondary on Secondary ECU, and run it in a dedicated thread
   SecondaryTcpServer secondary_server(secondary, "", 0);

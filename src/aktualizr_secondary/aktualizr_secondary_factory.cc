@@ -10,7 +10,6 @@
 
 const std::string AktualizrSecondaryFactory::BinaryUpdateDefaultFile{"firmware.txt"};
 
-// TODO: consider implementation of a proper registry/builder/factory
 AktualizrSecondary::Ptr AktualizrSecondaryFactory::create(const AktualizrSecondaryConfig& config) {
   auto storage = INvStorage::newStorage(config.storage);
   return AktualizrSecondaryFactory::create(config, storage);

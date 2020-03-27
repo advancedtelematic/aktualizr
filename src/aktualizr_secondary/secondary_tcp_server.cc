@@ -1,14 +1,14 @@
 #include "secondary_tcp_server.h"
 
 #include "AKIpUptaneMes.h"
+#include "aktualizr_secondary.h"
 #include "asn1/asn1_message.h"
 #include "logging/logging.h"
-#include "uptane/secondaryinterface.h"
 #include "utilities/dequeue_buffer.h"
 
 #include <netinet/tcp.h>
 
-SecondaryTcpServer::SecondaryTcpServer(Uptane::SecondaryInterface &secondary, const std::string &primary_ip,
+SecondaryTcpServer::SecondaryTcpServer(AktualizrSecondary &secondary, const std::string &primary_ip,
                                        in_port_t primary_port, in_port_t port, bool reboot_after_install)
     : impl_(secondary), listen_socket_(port), keep_running_(true), reboot_after_install_(reboot_after_install) {
   if (primary_ip.empty()) {
