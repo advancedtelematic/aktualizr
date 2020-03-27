@@ -12,6 +12,9 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 
+aws_bucket_url = 'https://ota-tuf-cli-releases.s3-eu-west-1.amazonaws.com/'
+
+
 def main():
     parser = argparse.ArgumentParser(description='Download a specific or the latest version of garage-sign')
     parser.add_argument('-a', '--archive', help='static local archive')
@@ -48,7 +51,7 @@ def find_version(version_name, sha256_hash, output):
     if version_name and not sha256_hash:
         print('Warning: specific version requested without specifying the sha256 hash.')
 
-    r = urllib.request.urlopen('https://ats-tuf-cli-releases.s3-eu-central-1.amazonaws.com')
+    r = urllib.request.urlopen(aws_bucket_url)
     if r.status != 200:
         print('Error: unable to request index!')
         return None
@@ -89,7 +92,7 @@ def find_version(version_name, sha256_hash, output):
 
 
 def download(name, path, md5_hash, sha256_hash):
-    r = urllib.request.urlopen('https://ats-tuf-cli-releases.s3-eu-central-1.amazonaws.com/' + name)
+    r = urllib.request.urlopen(aws_bucket_url + name)
     if r.status != 200:
         print('Error: unable to request file!')
         return False
