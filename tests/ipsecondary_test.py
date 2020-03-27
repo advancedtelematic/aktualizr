@@ -101,7 +101,7 @@ def test_secondary_update(uptane_repo, secondary, aktualizr, director, **kwargs)
 @with_uptane_backend()
 @with_director()
 @with_sysroot()
-@with_secondary(start=False)
+@with_secondary(start=False, output_logs=True)
 @with_aktualizr(start=False, run_mode='once', output_logs=True)
 def test_secondary_ostree_update(uptane_repo, secondary, aktualizr, treehub, sysroot, director, **kwargs):
     """Test Secondary ostree update if a boot order of Secondary and Primary is undefined"""

@@ -2,10 +2,12 @@
 #define AKTUALIZR_SECONDARY_TCP_SERVER_H_
 
 #include <atomic>
+#include <condition_variable>
+#include <mutex>
 
 #include "utilities/utils.h"
 
-class AktualizrSecondary;
+class MsgDispatcher;
 
 /**
  * Listens on a socket, decodes calls (ASN.1) and forwards them to an Uptane Secondary
@@ -19,7 +21,7 @@ class SecondaryTcpServer {
     kUnkown,
   };
 
-  SecondaryTcpServer(AktualizrSecondary& secondary, const std::string& primary_ip, in_port_t primary_port,
+  SecondaryTcpServer(MsgDispatcher& msg_dispatcher, const std::string& primary_ip, in_port_t primary_port,
                      in_port_t port = 0, bool reboot_after_install = false);
 
   SecondaryTcpServer(const SecondaryTcpServer&) = delete;
@@ -32,6 +34,8 @@ class SecondaryTcpServer {
   void run();
   void stop();
 
+  void wait_until_running(int timeout = 10);
+
   in_port_t port() const;
   ExitReason exit_reason() const;
 
@@ -39,11 +43,15 @@ class SecondaryTcpServer {
   bool HandleOneConnection(int socket);
 
  private:
-  AktualizrSecondary& impl_;
+  MsgDispatcher& msg_dispatcher_;
   ListenSocket listen_socket_;
   std::atomic<bool> keep_running_;
   bool reboot_after_install_;
   ExitReason exit_reason_{ExitReason::kNotApplicable};
+
+  bool is_running_;
+  std::mutex running_condition_mutex_;
+  std::condition_variable running_condition_;
 };
 
 #endif  // AKTUALIZR_SECONDARY_TCP_SERVER_H_

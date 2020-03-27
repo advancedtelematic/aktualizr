@@ -4,15 +4,17 @@
 #include "aktualizr_secondary_config.h"
 #include "aktualizr_secondary_metadata.h"
 
+#include "aktualizr_secondary_interface.h"
+#include "msg_dispatcher.h"
+
 #include "uptane/directorrepository.h"
 #include "uptane/imagerepository.h"
-#include "uptane/manifest.h"
 
 class UpdateAgent;
 class INvStorage;
 class KeyManager;
 
-class AktualizrSecondary {
+class AktualizrSecondary : public IAktualizrSecondary {
  public:
   using Ptr = std::shared_ptr<AktualizrSecondary>;
 
@@ -20,33 +22,25 @@ class AktualizrSecondary {
   AktualizrSecondary(AktualizrSecondaryConfig config, std::shared_ptr<INvStorage> storage,
                      std::shared_ptr<KeyManager> key_mngr, std::shared_ptr<UpdateAgent> update_agent);
 
+  std::tuple<Uptane::EcuSerial, Uptane::HardwareIdentifier, PublicKey> getInfo() const override;
+  Uptane::Manifest getManifest() const override;
+  bool putMetadata(const Uptane::RawMetaPack& meta_pack) override { return putMetadata(Metadata(meta_pack)); }
+  bool sendFirmware(const std::string& firmware) override;
+  data::ResultCode::Numeric install(const std::string& target_name) override;
+
+  MsgDispatcher& getDispatcher() { return dispatcher_; }
+
   Uptane::EcuSerial getSerial() const;
   Uptane::HardwareIdentifier getHwId() const;
   PublicKey getPublicKey() const;
-
-  Uptane::Manifest getManifest() const;
-
-  bool putMetadata(const Uptane::RawMetaPack& meta_pack) { return putMetadata(Metadata(meta_pack)); }
-  int32_t getRootVersion(bool director) const;
-  bool putRoot(const std::string& root, bool director);
-  bool sendFirmware(const std::string& firmware);
-  data::ResultCode::Numeric install(const std::string& target_name);
-
-  void completeInstall();
   bool putMetadata(const Metadata& metadata);
+  void completeInstall();
 
  private:
   bool hasPendingUpdate() { return storage_->hasPendingInstall(); }
   bool doFullVerification(const Metadata& metadata);
   void uptaneInitialize();
   void initPendingTargetIfAny();
-
- private:
-  AktualizrSecondary(const AktualizrSecondary&) = delete;
-  AktualizrSecondary(const AktualizrSecondary&&) = delete;
-
-  AktualizrSecondary& operator=(const AktualizrSecondary&) = delete;
-  AktualizrSecondary& operator=(const AktualizrSecondary&&) = delete;
 
  private:
   Uptane::DirectorRepository director_repo_;
@@ -63,6 +57,8 @@ class AktualizrSecondary {
   Uptane::HardwareIdentifier hardware_id_{Uptane::HardwareIdentifier::Unknown()};
 
   std::shared_ptr<UpdateAgent> update_agent_;
+
+  AktualizrSecondaryMsgDispatcher dispatcher_;
 };
 
 #endif  // AKTUALIZR_SECONDARY_H
