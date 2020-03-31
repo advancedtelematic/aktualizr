@@ -12,7 +12,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 
-aws_bucket_url = 'https://ota-tuf-cli-releases.s3-eu-west-1.amazonaws.com/'
+aws_bucket_url = 'https://tuf-cli-releases.ota.here.com/'
 
 
 def main():
