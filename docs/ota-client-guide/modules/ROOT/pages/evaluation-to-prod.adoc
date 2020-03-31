@@ -18,16 +18,16 @@ That's why it's better to work in phases when setting up OTA Connect in your org
 
 No matter which phase you're in, there are 4 basic tasks you'll need to do:
 
-* Build device images with an aktualizr-based client on it
-* Sign and upload the device images
-* Provision devices with authentication credentials for your account
-* Send updated images to some or all of your devices
+. Build device images with an aktualizr-based client on it.
+. Sign and upload the device images.
+. Provision devices with authentication credentials for your account.
+. Send updated images to some or all of your devices.
 
-This guide contains chapters to guide you through each phase and the following sections give you an introduction the phased approach:
+This guide contains chapters to guide you through each phase. The sections below give you an introduction to the phased approach.
 
 == Evaluate OTA Connect
 
-During evaluation, you should focus on testing the basic update functionality to make sure that you understand how it works. At this stage you don't need to think about customization or production-level security. You'll use basic, minimal device images for test boards, or even just simulate devices, and OTA Connect will handle the software signing on the server. For provisioning, you'll use a shared registration key for all your devices.
+During the evaluation phase, you should focus on testing the basic update functionality to make sure that you understand how it works. At this stage, you don't need to think about customization or production-level security. You'll use basic, minimal device images for test boards, or even just simulate devices, and OTA Connect will handle the software signing on the server. For provisioning, you'll use a shared registration key for all your devices.
 
 === Recommendations
 

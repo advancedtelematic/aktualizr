@@ -14,9 +14,9 @@ You will also start thinking about production-ready security, making sure that y
 
 Here are our recommended steps for integration:
 
-* xref:account-setup.adoc[*Set up different user accounts*]
+* xref:add-environments.adoc[*Set up different environments*]
 +
-Avoid mixing up test software and production software by uploading software under different user accounts.
+To avoid mixing up test software and production software upload the software to different environments.
 
 * xref:libaktualizr-why-use.adoc[*Integrate libaktualizr with the client software on your board*]
 +
@@ -28,7 +28,7 @@ Once have a working version of your integration, you'll want to build a disk ima
 
 * xref:cross-deploy-images.adoc[*Transfer disk images to a QA repository*]
 +
-After you've build your images, you'll want to hand them over to your QA team, who are ideally testing the software under a QA account with its own software repository.
+After you've built your images, you'll want to hand them over to your QA team, who are ideally testing the software in a QA environment with its own software repository.
 
 * xref:device-cred-prov-steps.adoc[*Set up provisioning with device credentials*]
 +
