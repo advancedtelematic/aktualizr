@@ -16,7 +16,7 @@ Here are our recommended steps for integration:
 
 * xref:add-environments.adoc[*Set up different environments*]
 +
-Avoid mixing up test software and production software by uploading the software under different environments.
+To avoid mixing up test software and production software upload the software to different environments.
 
 * xref:libaktualizr-why-use.adoc[*Integrate libaktualizr with the client software on your board*]
 +

@@ -35,11 +35,11 @@ You can then automate the process of either generating the device certificates o
 * xref:generate-devicecert.adoc[Generate a device certificate]
 * xref:enable-device-cred-provisioning.adoc[Enable device-credential provisioning and install device certificates]
 |**Rotate production keys**  |
-* In line with our security concept, we recommend that you sign software version with secure, offline keys.
+* In line with our security concept, we recommend that you sign the software version with secure, offline keys.
 
-* Even if you've done this already in a test environment, you need to do it again with a `credentials.zip` from your production environment.
+* Even if you've done this already in a test environment, you need to do it again with a `credentials.zip` file from your production environment.
 
-* You should keep these keys on a secure storage medium such as a link:https://www.yubico.com/[YubiKey]. You would only plug in your YubiKey when you need to sign metadata on your local computer.|  xref:rotating-signing-keys.adoc[Manage keys for software metadata]
+* You should keep these keys on a secure storage medium such as a link:https://www.yubico.com/[YubiKey]. Only plug in your YubiKey when you need to sign metadata on your local computer.|  xref:rotating-signing-keys.adoc[Manage keys for software metadata]
 
 |**Transfer disk images to your production repository**  |
 * When you're ready to deploy your software to production, you'll need to move all approved disk images from the software repository in your testing environment to the one in your production environment.  |  xref:cross-deploy-images.adoc[Transfer software to another repository]

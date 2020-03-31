@@ -23,11 +23,11 @@ To transfer disk images to a different environment, follow these steps: ::
 +
 We'll assume that you named them `source-credentials.zip` and `dest-credentials.zip`.
 +
-. Select an image and commit ID to deploy, and the hardware ID(s) to deploy it to
+. Select an image and commit ID to deploy, and the hardware ID(s) to deploy them to.
 +
-The image name is the one that appears in your {product-name} account--it will be the same as the `MACHINE` setting in Yocto by default, or the `OSTREE_BRANCHNAME` option if you set it. The commit ID is the hash of the OSTree commit, visible in the package details. The hardware IDs are for the destination environment, and are equivalent to the `MACHINE` setting in your Yocto build.
+The image name is the one that appears in your {product-name} account--it is the same as the `MACHINE` setting in Yocto by default, or the `OSTREE_BRANCHNAME` option if you set it. The commit ID is the hash of the OSTree commit, visible in the package details. The hardware IDs are for the destination environment, and are equivalent to the `MACHINE` setting in your Yocto build.
 +
-. Run `garage-deploy`
+. Run `garage-deploy`.
 +
 You can see the available options with `--help`:
 +
@@ -48,11 +48,11 @@ garage-deploy command line options:
                                  same format as curl --cacert
 ----
 +
-For example, to deploy an image called `acme-modelB` with SHA `001ee11a28e3e08f3e93e31425f0721a7fb44946919284b629ca85a1cc3073cb` and make it installable on all Raspberry Pi devices on your target environment, the command would be:
+For example, to deploy an image called `acme-modelB` with SHA `001ee11a28e3e08f3e93e31425f0721a7fb44946919284b629ca85a1cc3073cb` and make it installable on all Raspberry Pi devices in your target environment, use the following command:
 +
 ----
 garage-deploy --commit 001ee11a28e3e08f3e93e31425f0721a7fb44946919284b629ca85a1cc3073cb \
   --name acme-modelB -f source-credentials.zip -p dest-credentials.zip -h raspberrypi3
 ----
 +
-. Go to your destination environment, and verify that your image has been deployed.
+. Go to your destination environment and verify that your image is deployed.
