@@ -31,10 +31,6 @@ add_library(aktualizr_secondary_lib SHARED
 set_target_properties(aktualizr_secondary_lib PROPERTIES LIBRARY_OUTPUT_NAME aktualizr_secondary)
 target_link_libraries(aktualizr_secondary_lib aktualizr-posix ${AKTUALIZR_EXTERNAL_LIBS})
 
-if (BUILD_ISOTP)
-    target_sources(aktualizr_secondary_lib PRIVATE $<TARGET_OBJECTS:isotp_conn>)
-endif (BUILD_ISOTP)
-
 add_executable(aktualizr-secondary ${AKTUALIZR_SECONDARY_SRC})
 target_link_libraries(aktualizr-secondary aktualizr_secondary_lib)
 install(TARGETS aktualizr_secondary_lib LIBRARY DESTINATION lib COMPONENT aktualizr)

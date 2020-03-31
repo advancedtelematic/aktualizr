@@ -24,11 +24,6 @@ set(HEADERS
 
 add_library(uptane OBJECT ${SOURCES})
 
-if (BUILD_ISOTP)
-    target_sources(uptane PRIVATE isotpsecondary.cc)
-    target_include_directories(uptane PRIVATE ${PROJECT_SOURCE_DIR}/third_party/isotp-c/src)
-endif (BUILD_ISOTP)
-
 add_aktualizr_test(NAME tuf SOURCES tuf_test.cc PROJECT_WORKING_DIRECTORY)
 add_aktualizr_test(NAME tuf_hash SOURCES tuf_hash_test.cc PROJECT_WORKING_DIRECTORY)
 
@@ -64,4 +59,4 @@ target_link_libraries(t_uptane_serial virtual_secondary)
 add_aktualizr_test(NAME director SOURCES director_test.cc PROJECT_WORKING_DIRECTORY
                    ARGS "$<TARGET_FILE:uptane-generator>")
 
-aktualizr_source_file_checks(${SOURCES} ${HEADERS} isotpsecondary.cc isotpsecondary.h ${TEST_SOURCES})
+aktualizr_source_file_checks(${SOURCES} ${HEADERS} ${TEST_SOURCES})

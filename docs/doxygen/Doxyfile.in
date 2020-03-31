@@ -854,7 +854,6 @@ INPUT                  = @CMAKE_SOURCE_DIR@/docs \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/config \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/crypto \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/http \
-                         @CMAKE_SOURCE_DIR@/src/libaktualizr/isotp_conn \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/logging \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/package_manager \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/primary \
@@ -862,6 +861,7 @@ INPUT                  = @CMAKE_SOURCE_DIR@/docs \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/telemetry \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/uptane \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/utilities \
+                         @CMAKE_SOURCE_DIR@/src/libaktualizr-isotp \
                          @CMAKE_SOURCE_DIR@/src/load_tests \
                          @CMAKE_SOURCE_DIR@/src/sota_tools \
                          @CMAKE_SOURCE_DIR@/src/uptane_generator \
