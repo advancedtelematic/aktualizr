@@ -2280,6 +2280,55 @@ TEST(Aktualizr, PauseResumeQueue) {
   }
 }
 
+const std::string custom_hwinfo =
+    R"([{"description":"ECU1","ECU P/N":"AAA","HW P/N":"BBB","HW Version":"1.234",
+  "SW P/N":"CCC","SW Version":"4.321","ECU Serial":"AAA-BBB-CCC"},
+  {"description":"ECU2","ECU P/N":"ZZZ","HW P/N":"XXX","HW Version":"9.876",
+  "SW P/N":"YYY","SW Version":"6.789","ECU Serial":"VVV-NNN-MMM"}])";
+
+class HttpSystemInfo : public HttpFake {
+ public:
+  HttpSystemInfo(const boost::filesystem::path& test_dir_in, const boost::filesystem::path& meta_dir_in)
+      : HttpFake(test_dir_in, "", meta_dir_in) {}
+
+  HttpResponse put(const std::string& url, const Json::Value& data) override {
+    if (url.find(hwinfo_ep_) == url.length() - hwinfo_ep_.length()) {
+      if (info_count_ == 0) {  // expect lshw data
+        EXPECT_TRUE(data.isObject());
+        EXPECT_TRUE(data.isMember("description"));
+      } else if (info_count_ == 1) {  // expect custom data
+        auto hwinfo = Utils::parseJSON(custom_hwinfo);
+        EXPECT_EQ(hwinfo, data);
+      }
+      info_count_++;
+      return HttpResponse("", 200, CURLE_OK, "");
+    } else if (url.find("/manifest") != std::string::npos) {
+      return HttpResponse("", 200, CURLE_OK, "");
+    }
+    return HttpResponse("", 404, CURLE_HTTP_RETURNED_ERROR, "Not found");
+  }
+
+  ~HttpSystemInfo() { EXPECT_EQ(info_count_, 2); }
+
+  int info_count_{0};
+  std::string hwinfo_ep_{"/system_info"};
+};
+
+TEST(Aktualizr, CustomHwInfo) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpSystemInfo>(temp_dir.Path(), fake_meta_dir);
+  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
+  aktualizr.Initialize();
+
+  aktualizr.SendDeviceData().get();
+
+  auto hwinfo = Utils::parseJSON(custom_hwinfo);
+  aktualizr.SendDeviceData(hwinfo).get();
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);

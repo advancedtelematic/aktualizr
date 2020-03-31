@@ -136,8 +136,8 @@ std::future<void> Aktualizr::CampaignControl(const std::string &campaign_id, cam
   return api_queue_.enqueue(task);
 }
 
-std::future<void> Aktualizr::SendDeviceData() {
-  std::function<void()> task([this] { uptane_client_->sendDeviceData(); });
+std::future<void> Aktualizr::SendDeviceData(const Json::Value &custom_hwinfo) {
+  std::function<void()> task([this, custom_hwinfo] { uptane_client_->sendDeviceData(custom_hwinfo); });
   return api_queue_.enqueue(task);
 }
 

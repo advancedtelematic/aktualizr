@@ -71,9 +71,10 @@ class Aktualizr {
   /**
    * Send local device data to the server.
    * This includes network status, installed packages, hardware etc.
+   * @param custom_hwinfo if not empty will be sent to the backend instead of `lshw` output
    * @return Empty std::future object
    */
-  std::future<void> SendDeviceData();
+  std::future<void> SendDeviceData(const Json::Value& custom_hwinfo = Json::nullValue);
 
   /**
    * Fetch Uptane metadata and check for updates.

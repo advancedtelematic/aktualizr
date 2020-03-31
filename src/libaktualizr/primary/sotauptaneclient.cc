@@ -160,16 +160,22 @@ data::InstallationResult SotaUptaneClient::PackageInstallSetResult(const Uptane:
   return result;
 }
 
-void SotaUptaneClient::reportHwInfo() {
-  Json::Value hw_info = Utils::getHardwareInfo();
-  if (!hw_info.empty()) {
-    if (hw_info != last_hw_info_reported) {
-      if (http->put(config.tls.server + "/system_info", hw_info).isOk()) {
-        last_hw_info_reported = hw_info;
-      }
+void SotaUptaneClient::reportHwInfo(const Json::Value &custom_hwinfo) {
+  Json::Value system_info;
+  
+  if (custom_hwinfo.empty()) {
+    system_info = Utils::getHardwareInfo();
+    if (system_info.empty()) {
+      LOG_WARNING << "Unable to fetch hardware information from host system.";
+      return;
     }
-  } else {
-    LOG_WARNING << "Unable to fetch hardware information from host system.";
+  }
+
+  const Json::Value &hw_info = custom_hwinfo.empty() ? system_info : custom_hwinfo;
+  if (hw_info != last_hw_info_reported) {
+    if (http->put(config.tls.server + "/system_info", hw_info).isOk()) {
+      last_hw_info_reported = hw_info;
+    }
   }
 }
 
@@ -747,8 +753,8 @@ bool SotaUptaneClient::uptaneOfflineIteration(std::vector<Uptane::Target> *targe
   return true;
 }
 
-void SotaUptaneClient::sendDeviceData() {
-  reportHwInfo();
+void SotaUptaneClient::sendDeviceData(const Json::Value &custom_hwinfo) {
+  reportHwInfo(custom_hwinfo);
   reportInstalledPackages();
   reportNetworkInfo();
   reportAktualizrConfiguration();
