@@ -18,10 +18,10 @@ That's why it's better to work in phases when setting up OTA Connect in your org
 
 No matter which phase you're in, there are 4 basic tasks you'll need to do:
 
-. Build device images with an aktualizr-based client on it
-. Sign and upload the device images
-. Provision devices with authentication credentials for your account
-. Send updated images to some or all of your devices
+. Build device images with an aktualizr-based client on it.
+. Sign and upload the device images.
+. Provision devices with authentication credentials for your account.
+. Send updated images to some or all of your devices.
 
 This guide contains chapters to guide you through each phase. The sections below give you an introduction to the phased approach.
 
