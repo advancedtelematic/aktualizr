@@ -80,12 +80,12 @@ image::img::device-cred-provisioning.png[width=100%]
 
 If you want to use "shared credential" provisioning, you don't have to do anything at all. When your account was created, we already generated a Fleet Root CA and keypair for you, and stored them on the OTA Connect server. We take the security of these keys extremely seriously: following industry best practices, they are kept in a Vault instance and only taken out when you request them.
 
-If you want to use "device credential" provisioning, you'll need to provide us with your own Fleet Root CA so that the OTA Connect server can verify devices.
+If you want to use "device credential" provisioning, provide us with your Fleet Root CA so that the OTA Connect server can verify devices.
 Of course, you can use both methods, but in that case, we recommend that you maintain separate xref:ota-web::environments-intro.adoc[environments]:
 
-* one environment for testing with "shared credential" provisioning
-* one environment for production with "device credential" provisioning
+* one for testing with "shared credential" provisioning
+* one for production with "device credential" provisioning
 
-It is not possible to migrate from a test environment to a production environment. Therefore we recommend that you test with devices that will not go into production or devices that can be completely wiped and reset once they are ready to deploy.
+It is not possible to migrate from a test environment to a production environment. Therefore, we recommend that you test with devices that do not go into production or devices that can be completely wiped and reset once they are ready to deploy.
 Once you are ready for production, you should use your production environment, your own Fleet Root certificate, and production devices that have their device certificates preinstalled.
 

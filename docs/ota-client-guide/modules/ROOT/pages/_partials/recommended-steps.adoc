@@ -31,7 +31,7 @@ We support a couple of demo boards "out of the box". You don't need to worry abo
 
 * *Set up different environments*
 +
-When you first create an account on the https://connect.ota.here.com[OTA Connect Portal], you get a home xref:ota-web::environments-intro.adoc[environment]--where you can create and manage software update projects. You become the owner of your home environment and can create up to 10 additional environments within your OTA Connect account. This helps because you don't want to mix up test software and production software.
+When you first create an account on the https://connect.ota.here.com[OTA Connect Portal], you get a home xref:ota-web::environments-intro.adoc[environment]--where you can create and manage software update projects. You can also create up to 10 additional environments within your OTA Connect account. This helps because you don't want to mix up test software and production software.
 +
 In a proper production workflow, you'll need separate environments to manage the different stages:
 +
@@ -39,9 +39,9 @@ In a proper production workflow, you'll need separate environments to manage the
 . A QA environment.
 . A production environment.
 +
-With one login to your OTA Connect account, you can easily switch between the different environments and also add your colleagues as members in each of the environments. Please refer to xref:ota-web::manage-members.adoc[managing members in an environment] to know how to achieve this.
+In your OTA Connect account, you can easily switch between the different environments and also add your colleagues as members in each of the environments. For instructions on how to manage members, see the xref:ota-web::manage-members.adoc[related] section in the User Guide.
 +
-Creating seperate environments provides you with a convenient way of separating your development, QA and production resources.
+Seperate environments provide you with a convenient way of separating your development, QA, and production resources.
 
 
 ////
