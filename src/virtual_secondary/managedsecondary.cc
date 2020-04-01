@@ -139,43 +139,7 @@ bool ManagedSecondary::putRoot(const std::string &root, const bool director) {
   return true;
 }
 
-bool ManagedSecondary::sendFirmware(const std::string &data) {
-  std::lock_guard<std::mutex> l(install_mutex);
-
-  if (expected_target_name.empty()) {
-    return false;
-  }
-  if (!detected_attack.empty()) {
-    return false;
-  }
-
-  if (data.size() > static_cast<size_t>(expected_target_length)) {
-    detected_attack = "overflow";
-    return false;
-  }
-
-  std::vector<Hash>::const_iterator it;
-  for (it = expected_target_hashes.begin(); it != expected_target_hashes.end(); it++) {
-    if (it->TypeString() == "sha256") {
-      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(data))) !=
-          boost::algorithm::to_lower_copy(it->HashString())) {
-        detected_attack = "wrong_hash";
-        return false;
-      }
-    } else if (it->TypeString() == "sha512") {
-      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(data))) !=
-          boost::algorithm::to_lower_copy(it->HashString())) {
-        detected_attack = "wrong_hash";
-        return false;
-      }
-    }
-  }
-  detected_attack = "";
-  const bool result = storeFirmware(expected_target_name, data);
-  return result;
-}
-
-data::ResultCode::Numeric ManagedSecondary::install(const std::string &target_name) {
+data::ResultCode::Numeric ManagedSecondary::install(const Uptane::Target &target_name) {
   (void)target_name;
   return data::ResultCode::Numeric::kOk;
 }

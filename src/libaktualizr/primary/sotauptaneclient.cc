@@ -1305,14 +1305,14 @@ std::future<data::ResultCode::Numeric> SotaUptaneClient::sendFirmwareAsync(Uptan
     }
 
     if (!data_to_send.empty()) {
-      send_firmware_result = secondary.sendFirmware(data_to_send);
+      // send_firmware_result = secondary.sendFirmware(data_to_send);
     }
 
     data::ResultCode::Numeric result =
         send_firmware_result ? data::ResultCode::Numeric::kOk : data::ResultCode::Numeric::kInstallFailed;
 
     if (send_firmware_result) {
-      result = secondary.install(target.filename());
+      result = secondary.install(target);
     }
 
     if (result == data::ResultCode::Numeric::kNeedCompletion) {

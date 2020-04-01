@@ -548,8 +548,8 @@ class SecondaryInterfaceMock : public Uptane::SecondaryInterface {
   int32_t getRootVersion(bool director) const override { return getRootVersionMock(director); }
 
   bool putRoot(const std::string &, bool) override { return true; }
-  bool sendFirmware(const std::string &) override { return true; }
-  virtual data::ResultCode::Numeric install(const std::string &) override { return data::ResultCode::Numeric::kOk; }
+  // bool sendFirmware(const std::string &) override { return true; }
+  virtual data::ResultCode::Numeric install(const Uptane::Target &) override { return data::ResultCode::Numeric::kOk; }
 
   PublicKey public_key_;
   Json::Value manifest_;

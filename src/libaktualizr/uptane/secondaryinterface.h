@@ -26,15 +26,18 @@ class SecondaryInterface {
   virtual int32_t getRootVersion(bool director) const = 0;
   virtual bool putRoot(const std::string& root, bool director) = 0;
 
-  virtual bool sendFirmware(const std::string& data) = 0;
-  virtual data::ResultCode::Numeric install(const std::string& target_name) = 0;
+  // virtual bool sendFirmware(const std::string& data) = 0;
+
+  virtual data::ResultCode::Numeric install(const Target& target) = 0;
 
   virtual ~SecondaryInterface() = default;
 
  public:
-  // make children non-copyable
+  // make children non-copyable and non-movable
   SecondaryInterface(const SecondaryInterface&) = delete;
+  SecondaryInterface(const SecondaryInterface&&) = delete;
   SecondaryInterface& operator=(const SecondaryInterface&) = delete;
+  SecondaryInterface& operator=(const SecondaryInterface&&) = delete;
 
  protected:
   SecondaryInterface() = default;
