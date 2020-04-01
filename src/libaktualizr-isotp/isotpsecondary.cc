@@ -137,6 +137,12 @@ bool IsoTpSecondary::putMetadata(const RawMetaPack& meta_pack) {
   return conn.Send(out);
 }
 
+data::ResultCode::Numeric install(const Target& target) {
+  (void)target;
+  // TODO: implement an image sending data by using ImageReader and IsoTpSecondary::sendFirmware
+  return data::ResultCode::Numeric::kOk;
+}
+
 bool IsoTpSecondary::sendFirmware(const std::string& data) {
   size_t num_chunks = 1 + (data.length() - 1) / kChunkSize;
 
@@ -168,4 +174,5 @@ bool IsoTpSecondary::sendFirmware(const std::string& data) {
   }
   return true;
 }
+
 }  // namespace Uptane
