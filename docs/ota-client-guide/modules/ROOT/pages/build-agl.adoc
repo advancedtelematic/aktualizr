@@ -28,12 +28,12 @@ include::build-raspberry.adoc[tags=prereqs]
 
 === Get the AGL code
 
-First, use the manifest file for AGL's Happy Halibut release to download the required repositories:
+First, use the manifest file for AGL's Itchy Icefish release to download the required repositories:
 
 ----
 mkdir myproject
 cd myproject
-repo init -b halibut -m halibut_8.0.2.xml -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo
+repo init -b icefish -m icefish_9.0.0.xml -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo
 repo sync
 ----
 
@@ -57,13 +57,14 @@ IMPORTANT: Only `raspberrypi3` and `qemux86-64` will work out of the box. If you
 
 === Additional configuration for Raspberry Pi 3
 
-As described in the link:https://wiki.automotivelinux.org/agl-distro/agl-raspberrypi#sota[AGL wiki], you will need to edit your `bblayers.conf` to replace `meta-updater-qemux86-64` with `meta-updater-raspberrypi`.
+As described in the link:https://docs.automotivelinux.org/docs/en/master/getting_started/reference/getting-started/machines/raspberrypi.html#sota[AGL documentation], you will need to edit your `bblayers.conf` to add `meta-updater-raspberrypi`.
 
 === Additional configuration for QEMU
 
 // This has been moved upstream:
 // https://gerrit.automotivelinux.org/gerrit/c/AGL/meta-agl/+/23953
-// But it's only in master at present, not even icefish.
+// But it's only in master at present, not even the initial icefish release.
+// See 99c55be1635a8ff30317417093da54fbcd8eb250 in the icefish branch of meta-agl.
 
 By default, AGL for QEMU boots into an initrd before loading the root filesystem, but as of thud, meta-updater by default uses an initramfs. You will need to force the build to use an initramfs by adding this to your `local.conf`:
 
