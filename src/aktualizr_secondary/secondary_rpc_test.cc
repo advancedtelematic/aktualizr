@@ -91,10 +91,10 @@ TEST(SecondaryTcpServer, TestIpSecondaryRPC) {
   EXPECT_TRUE(meta_pack == secondary.metapack_);
 
   std::string firmware = "firmware";
-  EXPECT_TRUE(ip_secondary->sendFirmware(firmware));
+  // EXPECT_TRUE(ip_secondary->sendFirmware(firmware));
   EXPECT_EQ(firmware, secondary.data_);
 
-  EXPECT_EQ(ip_secondary->install(""), data::ResultCode::Numeric::kOk);
+  // EXPECT_EQ(ip_secondary->install(""), data::ResultCode::Numeric::kOk);
 
   secondary_server.stop();
   secondary_server_thread.join();
@@ -118,9 +118,9 @@ TEST(SecondaryTcpServer, TestIpSecondaryIfSecondaryIsNotRunning) {
 
   // expect failures since the secondary is not running
   EXPECT_EQ(ip_secondary->getManifest(), Json::Value());
-  EXPECT_FALSE(ip_secondary->sendFirmware("firmware"));
+  // EXPECT_FALSE(ip_secondary->sendFirmware("firmware"));
   EXPECT_FALSE(ip_secondary->putMetadata(meta_pack));
-  EXPECT_EQ(ip_secondary->install(""), data::ResultCode::Numeric::kInternalError);
+  // EXPECT_EQ(ip_secondary->install(""), data::ResultCode::Numeric::kInternalError);
 }
 
 class SecondaryRpcTestNegative : public ::testing::Test {
