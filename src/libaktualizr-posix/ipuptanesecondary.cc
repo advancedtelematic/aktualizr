@@ -120,26 +120,26 @@ bool IpUptaneSecondary::putMetadata(const RawMetaPack& meta_pack) {
   return r->result == AKInstallationResult_success;
 }
 
-bool IpUptaneSecondary::sendFirmware(const std::string& data) {
-  std::lock_guard<std::mutex> l(install_mutex);
-  LOG_INFO << "Sending firmware to the Secondary";
-  Asn1Message::Ptr req(Asn1Message::Empty());
-  req->present(AKIpUptaneMes_PR_sendFirmwareReq);
+// bool IpUptaneSecondary::sendFirmware(const std::string& data) {
+//  std::lock_guard<std::mutex> l(install_mutex);
+//  LOG_INFO << "Sending firmware to the Secondary";
+//  Asn1Message::Ptr req(Asn1Message::Empty());
+//  req->present(AKIpUptaneMes_PR_sendFirmwareReq);
 
-  auto m = req->sendFirmwareReq();
-  SetString(&m->firmware, data);
-  auto resp = Asn1Rpc(req, getAddr());
+//  auto m = req->sendFirmwareReq();
+//  SetString(&m->firmware, data);
+//  auto resp = Asn1Rpc(req, getAddr());
 
-  if (resp->present() != AKIpUptaneMes_PR_sendFirmwareResp) {
-    LOG_ERROR << "Failed to get response to sending firmware to Secondary";
-    return false;
-  }
+//  if (resp->present() != AKIpUptaneMes_PR_sendFirmwareResp) {
+//    LOG_ERROR << "Failed to get response to sending firmware to Secondary";
+//    return false;
+//  }
 
-  auto r = resp->sendFirmwareResp();
-  return r->result == AKInstallationResult_success;
-}
+//  auto r = resp->sendFirmwareResp();
+//  return r->result == AKInstallationResult_success;
+//}
 
-data::ResultCode::Numeric IpUptaneSecondary::install(const std::string& target_name) {
+data::ResultCode::Numeric IpUptaneSecondary::install(const Uptane::Target& target_name) {
   LOG_INFO << "Invoking an installation of the target on the Secondary: " << target_name;
 
   Asn1Message::Ptr req(Asn1Message::Empty());
@@ -147,7 +147,7 @@ data::ResultCode::Numeric IpUptaneSecondary::install(const std::string& target_n
 
   // prepare request message
   auto req_mes = req->installReq();
-  SetString(&req_mes->hash, target_name);
+  SetString(&req_mes->hash, target_name.filename());
   // send request and receive response, a request-response type of RPC
   auto resp = Asn1Rpc(req, getAddr());
 
