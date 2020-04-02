@@ -29,17 +29,20 @@ We support a couple of demo boards "out of the box". You don't need to worry abo
 
 //  tag::integrate-steps[]
 
-* *Set up different user logins*
+* *Set up different environments*
 +
-In OTA Connect, each user account gets its own personal software repositories and device inventory. However, you don't want to mix up test software and production software by putting all of your builds and devices on the same account.
+When you first create an account on the https://connect.ota.here.com[OTA Connect Portal], you get a home xref:ota-web::environments-intro.adoc[environment]--where you can create and manage software update projects. You can also create up to 10 additional environments within your OTA Connect account. This helps because you don't want to mix up test software and production software.
 +
-A better strategy for production is to create separate user logins to manage the different stages. For example, you might want a three-step process:
+In a proper production workflow, you'll need separate environments to manage the different stages:
 +
-. A developer user such as "\dev@acme.com".
-. A QA user such as "\qa@acme.com".
-. A production user such as "\prod@acme.com".
+. A developer environment.
+. A QA environment.
+. A production environment.
 +
-These logins provide you with a way of clearly separating your development, QA and production resources.
+In your OTA Connect account, you can easily switch between the different environments and also add your colleagues as members in each of the environments. For instructions on how to manage members, see the xref:ota-web::manage-members.adoc[related] section in the User Guide.
++
+Seperate environments provide you with a convenient way of separating your development, QA, and production resources.
+
 
 ////
 COMMENTING OUT UNTIL ORGANIZATIONS STOPS BEING "ALPHA"

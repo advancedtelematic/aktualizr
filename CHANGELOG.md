@@ -7,6 +7,17 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 ## [??? (unreleased)]
 
 
+## [2020.5] - 2020-04-01
+
+### Changed
+
+- Fetch garage-sign from new AWS bucket via CNAME: [PR #1619](https://github.com/advancedtelematic/aktualizr/pull/1619) and [PR #1622](https://github.com/advancedtelematic/aktualizr/pull/1622)
+
+### Fixed
+
+- Abort update immediately if Secondary metadata verification fails: [PR](https://github.com/advancedtelematic/aktualizr/pull/1612)
+
+
 ## [2020.4] - 2020-03-24
 
 ### Added
