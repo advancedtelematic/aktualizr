@@ -434,6 +434,7 @@ build-osx-release:
   before_script:
     - brew uninstall -f aktualizr
     - brew untap advancedtelematic/otaconnect
+    - rm -rf $(brew --cache)/aktualizr--git
     - brew install ghr
   script:
     # clone a repo that contains the aktualizr formula
