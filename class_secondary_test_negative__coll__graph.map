@@ -1,7 +1,8 @@
 <map id="SecondaryTestNegative" name="SecondaryTestNegative">
-<area shape="rect" id="node1" title=" " alt="" coords="376,104,551,131"/>
-<area shape="rect" id="node2" title=" " alt="" coords="96,5,144,32"/>
-<area shape="rect" id="node3" title=" " alt="" coords="5,56,235,112"/>
-<area shape="rect" id="node4" href="$class_aktualizr_secondary_wrapper.html" title=" " alt="" coords="19,136,221,163"/>
-<area shape="rect" id="node5" href="$class_uptane_repo_wrapper.html" title=" " alt="" coords="43,187,197,213"/>
+<area shape="rect" id="node1" title=" " alt="" coords="715,89,889,116"/>
+<area shape="rect" id="node2" title=" " alt="" coords="435,5,483,32"/>
+<area shape="rect" id="node3" title=" " alt="" coords="344,56,573,112"/>
+<area shape="rect" id="node4" href="$class_aktualizr_secondary_wrapper.html" title=" " alt="" coords="357,136,560,163"/>
+<area shape="rect" id="node5" title=" " alt="" coords="5,129,203,170"/>
+<area shape="rect" id="node6" href="$class_uptane_repo_wrapper.html" title=" " alt="" coords="381,187,536,213"/>
 </map>

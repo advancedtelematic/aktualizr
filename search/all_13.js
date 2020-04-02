@@ -26,7 +26,7 @@ var searchData=
   ['token_381',['Token',['../classasn1_1_1_token.html',1,'asn1']]],
   ['total_5frequests_5fmade_382',['total_requests_made',['../class_request_pool.html#a974b7007d9648c565e5983da3def1952',1,'RequestPool']]],
   ['touptane_383',['ToUptane',['../class_public_key.html#a4baff8ec5e3e2a7acabe7d6cf5b3e3aa',1,'PublicKey']]],
-  ['treehub_384',['Treehub',['../classtest__fixtures_1_1_treehub.html',1,'test_fixtures.Treehub'],['../class_treehub.html',1,'Treehub']]],
+  ['treehub_384',['Treehub',['../class_treehub.html',1,'Treehub'],['../classtest__fixtures_1_1_treehub.html',1,'test_fixtures.Treehub']]],
   ['treehubserver_385',['TreehubServer',['../class_treehub_server.html',1,'']]],
   ['types_2eh_386',['types.h',['../types_8h.html',1,'']]]
 ];

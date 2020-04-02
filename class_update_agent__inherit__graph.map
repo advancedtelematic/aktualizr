@@ -1,5 +1,6 @@
 <map id="UpdateAgent" name="UpdateAgent">
-<area shape="rect" id="node1" title=" " alt="" coords="98,5,205,32"/>
-<area shape="rect" id="node2" href="$class_file_update_agent.html" title=" " alt="" coords="5,80,135,107"/>
-<area shape="rect" id="node3" href="$class_ostree_update_agent.html" title=" " alt="" coords="159,80,309,107"/>
+<area shape="rect" id="node1" title=" " alt="" coords="104,5,211,32"/>
+<area shape="rect" id="node2" href="$class_file_update_agent.html" title=" " alt="" coords="11,80,141,107"/>
+<area shape="rect" id="node4" href="$class_ostree_update_agent.html" title=" " alt="" coords="165,80,315,107"/>
+<area shape="rect" id="node3" href="$class_update_agent_mock.html" title=" " alt="" coords="5,155,147,181"/>
 </map>

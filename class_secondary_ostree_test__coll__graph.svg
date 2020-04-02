@@ -46,7 +46,7 @@ if (edges && edges.length) {
         </defs>
 
 <script type="text/javascript">
-var viewWidth = 618;
+var viewWidth = 715;
 var viewHeight = 218;
 var sectionId = 'dynsection-1';
 </script>
@@ -54,13 +54,13 @@ var sectionId = 'dynsection-1';
 <svg id="graph" class="graph">
 <g id="viewport">
 <title>SecondaryOstreeTest</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-214 614,-214 614,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-214 711,-214 711,4 -4,4"/>
 <!-- Node1 -->
 <g id="node1" class="node">
 <title>Node1</title>
 <g id="a_node1"><a xlink:title=" ">
-<polygon fill="#bfbfbf" stroke="black" points="491,-95.5 491,-114.5 610,-114.5 610,-95.5 491,-95.5"/>
-<text text-anchor="middle" x="550.5" y="-102.5" font-family="Helvetica,sans-Serif" font-size="10.00">SecondaryOstreeTest</text>
+<polygon fill="#bfbfbf" stroke="black" points="588,-96.5 588,-115.5 707,-115.5 707,-96.5 588,-96.5"/>
+<text text-anchor="middle" x="647.5" y="-103.5" font-family="Helvetica,sans-Serif" font-size="10.00">SecondaryOstreeTest</text>
 </a>
 </g>
 </g>
@@ -68,144 +68,161 @@ var sectionId = 'dynsection-1';
 <g id="node2" class="node">
 <title>Node2</title>
 <g id="a_node2"><a xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="226.5,-190.5 226.5,-209.5 262.5,-209.5 262.5,-190.5 226.5,-190.5"/>
-<text text-anchor="middle" x="244.5" y="-197.5" font-family="Helvetica,sans-Serif" font-size="10.00">Test</text>
+<polygon fill="white" stroke="#bfbfbf" points="323.5,-190.5 323.5,-209.5 359.5,-209.5 359.5,-190.5 323.5,-190.5"/>
+<text text-anchor="middle" x="341.5" y="-197.5" font-family="Helvetica,sans-Serif" font-size="10.00">Test</text>
 </a>
 </g>
 </g>
 <!-- Node2&#45;&gt;Node1 -->
 <g id="edge1" class="edge">
 <title>Node2&#45;&gt;Node1</title>
-<path fill="none" stroke="midnightblue" d="M272.8,-200.62C316.83,-200.65 405.42,-196.58 473,-167 501.19,-154.66 527.56,-129.02 540.73,-114.89"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="272.63,-197.12 262.61,-200.54 272.58,-204.12 272.63,-197.12"/>
+<path fill="none" stroke="midnightblue" d="M369.77,-200.56C413.77,-200.5 502.3,-196.31 570,-167 598.06,-154.85 624.48,-129.63 637.7,-115.72"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="369.61,-197.06 359.59,-200.5 369.57,-204.06 369.61,-197.06"/>
 </g>
 <!-- Node3 -->
 <g id="node3" class="node">
 <title>Node3</title>
 <g id="a_node3"><a xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="157,-152.5 157,-171.5 332,-171.5 332,-152.5 157,-152.5"/>
-<text text-anchor="middle" x="244.5" y="-159.5" font-family="Helvetica,sans-Serif" font-size="10.00">std::shared_ptr&lt; OstreeRootfs &gt;</text>
+<polygon fill="white" stroke="#bfbfbf" points="254,-152.5 254,-171.5 429,-171.5 429,-152.5 254,-152.5"/>
+<text text-anchor="middle" x="341.5" y="-159.5" font-family="Helvetica,sans-Serif" font-size="10.00">std::shared_ptr&lt; OstreeRootfs &gt;</text>
 </a>
 </g>
 </g>
 <!-- Node3&#45;&gt;Node1 -->
 <g id="edge2" class="edge">
 <title>Node3&#45;&gt;Node1</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M342.35,-153.73C383.05,-149.09 430.68,-142.14 473,-132 491.35,-127.6 511.45,-120.41 526.44,-114.55"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="341.71,-150.27 332.16,-154.85 342.48,-157.23 341.71,-150.27"/>
-<text text-anchor="middle" x="411.5" y="-155" font-family="Helvetica,sans-Serif" font-size="10.00"> _sysroot</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M439.29,-153.48C479.98,-148.81 527.62,-141.89 570,-132 587.89,-127.82 607.51,-121.11 622.39,-115.55"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="438.65,-150.03 429.1,-154.62 439.43,-156.99 438.65,-150.03"/>
+<text text-anchor="middle" x="508.5" y="-155" font-family="Helvetica,sans-Serif" font-size="10.00"> _sysroot</text>
 </g>
 <!-- Node4 -->
 <g id="node4" class="node">
 <title>Node4</title>
 <g id="a_node4"><a xlink:href="class_ostree_rootfs.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="12,-152.5 12,-171.5 92,-171.5 92,-152.5 12,-152.5"/>
-<text text-anchor="middle" x="52" y="-159.5" font-family="Helvetica,sans-Serif" font-size="10.00">OstreeRootfs</text>
+<polygon fill="white" stroke="black" points="34,-155.5 34,-174.5 114,-174.5 114,-155.5 34,-155.5"/>
+<text text-anchor="middle" x="74" y="-162.5" font-family="Helvetica,sans-Serif" font-size="10.00">OstreeRootfs</text>
 </a>
 </g>
 </g>
 <!-- Node4&#45;&gt;Node3 -->
 <g id="edge3" class="edge">
 <title>Node4&#45;&gt;Node3</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M102.1,-162C118.87,-162 138.15,-162 156.98,-162"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="102.01,-158.5 92.01,-162 102.01,-165.5 102.01,-158.5"/>
-<text text-anchor="middle" x="130.5" y="-165" font-family="Helvetica,sans-Serif" font-size="10.00"> ptr</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M124.5,-164.44C160.8,-164.03 211.03,-163.46 253.92,-162.98"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="124.14,-160.94 114.18,-164.56 124.21,-167.94 124.14,-160.94"/>
+<text text-anchor="middle" x="201" y="-166" font-family="Helvetica,sans-Serif" font-size="10.00"> ptr</text>
 </g>
 <!-- Node5 -->
 <g id="node5" class="node">
 <title>Node5</title>
 <g id="a_node5"><a xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="169.5,-114.5 169.5,-133.5 319.5,-133.5 319.5,-114.5 169.5,-114.5"/>
-<text text-anchor="middle" x="244.5" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">std::shared_ptr&lt; Treehub &gt;</text>
+<polygon fill="white" stroke="#bfbfbf" points="266.5,-114.5 266.5,-133.5 416.5,-133.5 416.5,-114.5 266.5,-114.5"/>
+<text text-anchor="middle" x="341.5" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">std::shared_ptr&lt; Treehub &gt;</text>
 </a>
 </g>
 </g>
 <!-- Node5&#45;&gt;Node1 -->
 <g id="edge4" class="edge">
 <title>Node5&#45;&gt;Node1</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M329.91,-118.72C381.03,-115.53 444.96,-111.53 490.63,-108.68"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="329.63,-115.24 319.87,-119.35 330.07,-122.22 329.63,-115.24"/>
-<text text-anchor="middle" x="411.5" y="-120" font-family="Helvetica,sans-Serif" font-size="10.00"> _treehub</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M426.91,-119C478.03,-115.98 541.96,-112.19 587.63,-109.49"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="426.64,-115.51 416.87,-119.6 427.06,-122.5 426.64,-115.51"/>
+<text text-anchor="middle" x="508.5" y="-120" font-family="Helvetica,sans-Serif" font-size="10.00"> _treehub</text>
 </g>
 <!-- Node6 -->
 <g id="node6" class="node">
 <title>Node6</title>
 <g id="a_node6"><a xlink:href="class_treehub.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="24.5,-114.5 24.5,-133.5 79.5,-133.5 79.5,-114.5 24.5,-114.5"/>
-<text text-anchor="middle" x="52" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">Treehub</text>
+<polygon fill="white" stroke="black" points="46.5,-117.5 46.5,-136.5 101.5,-136.5 101.5,-117.5 46.5,-117.5"/>
+<text text-anchor="middle" x="74" y="-124.5" font-family="Helvetica,sans-Serif" font-size="10.00">Treehub</text>
 </a>
 </g>
 </g>
 <!-- Node6&#45;&gt;Node5 -->
 <g id="edge5" class="edge">
 <title>Node6&#45;&gt;Node5</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M90.05,-124C112.63,-124 142.28,-124 169.5,-124"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="89.89,-120.5 79.89,-124 89.89,-127.5 89.89,-120.5"/>
-<text text-anchor="middle" x="130.5" y="-127" font-family="Helvetica,sans-Serif" font-size="10.00"> ptr</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M111.97,-126.58C151.76,-126.13 216.11,-125.41 266.4,-124.84"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="111.88,-123.08 101.92,-126.7 111.96,-130.08 111.88,-123.08"/>
+<text text-anchor="middle" x="201" y="-128" font-family="Helvetica,sans-Serif" font-size="10.00"> ptr</text>
 </g>
 <!-- Node7 -->
 <g id="node7" class="node">
 <title>Node7</title>
 <g id="a_node7"><a xlink:href="class_aktualizr_secondary_wrapper.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="168.5,-76.5 168.5,-95.5 320.5,-95.5 320.5,-76.5 168.5,-76.5"/>
-<text text-anchor="middle" x="244.5" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">AktualizrSecondaryWrapper</text>
+<polygon fill="white" stroke="black" points="265.5,-76.5 265.5,-95.5 417.5,-95.5 417.5,-76.5 265.5,-76.5"/>
+<text text-anchor="middle" x="341.5" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">AktualizrSecondaryWrapper</text>
 </a>
 </g>
 </g>
 <!-- Node7&#45;&gt;Node1 -->
 <g id="edge6" class="edge">
 <title>Node7&#45;&gt;Node1</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M330.75,-87.55C373.51,-88.79 426.05,-91.01 473,-95 478.74,-95.49 484.71,-96.09 490.67,-96.76"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="330.76,-84.05 320.66,-87.27 330.56,-91.04 330.76,-84.05"/>
-<text text-anchor="middle" x="411.5" y="-98" font-family="Helvetica,sans-Serif" font-size="10.00"> _secondary</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M427.77,-87.29C470.53,-88.46 523.08,-90.71 570,-95 575.75,-95.53 581.72,-96.18 587.68,-96.92"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="427.77,-83.79 417.68,-87.03 427.59,-90.78 427.77,-83.79"/>
+<text text-anchor="middle" x="508.5" y="-98" font-family="Helvetica,sans-Serif" font-size="10.00"> _secondary</text>
 </g>
 <!-- Node8 -->
 <g id="node8" class="node">
 <title>Node8</title>
-<g id="a_node8"><a xlink:title="STL class.">
-<polygon fill="white" stroke="#bfbfbf" points="212,-38.5 212,-57.5 277,-57.5 277,-38.5 212,-38.5"/>
-<text text-anchor="middle" x="244.5" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">std::string</text>
+<g id="a_node8"><a xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="0,-68 0,-98 148,-98 148,-68 0,-68"/>
+<text text-anchor="start" x="8" y="-86" font-family="Helvetica,sans-Serif" font-size="10.00">std::shared_ptr&lt; NiceMock</text>
+<text text-anchor="middle" x="74" y="-75" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; UpdateAgentMock &gt; &gt;</text>
 </a>
 </g>
 </g>
-<!-- Node8&#45;&gt;Node1 -->
+<!-- Node8&#45;&gt;Node7 -->
 <g id="edge7" class="edge">
-<title>Node8&#45;&gt;Node1</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M287.51,-49.03C333.67,-50.98 409.65,-56.63 473,-73 493.49,-78.29 515.67,-88.06 530.85,-95.42"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="287.42,-45.52 277.29,-48.63 287.15,-52.51 287.42,-45.52"/>
-<text text-anchor="middle" x="411.5" y="-76" font-family="Helvetica,sans-Serif" font-size="10.00"> _ostree_rootfs_template</text>
+<title>Node8&#45;&gt;Node7</title>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M158.67,-83.95C192.8,-84.33 231.96,-84.77 265.18,-85.15"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="158.29,-80.44 148.25,-83.83 158.21,-87.44 158.29,-80.44"/>
+<text text-anchor="middle" x="201" y="-87" font-family="Helvetica,sans-Serif" font-size="10.00"> update_agent</text>
 </g>
 <!-- Node9 -->
 <g id="node9" class="node">
 <title>Node9</title>
 <g id="a_node9"><a xlink:title="STL class.">
-<polygon fill="white" stroke="#bfbfbf" points="0,-33 0,-63 104,-63 104,-33 0,-33"/>
-<text text-anchor="start" x="8" y="-51" font-family="Helvetica,sans-Serif" font-size="10.00">std::basic_string&lt;</text>
-<text text-anchor="middle" x="52" y="-40" font-family="Helvetica,sans-Serif" font-size="10.00"> char &gt;</text>
+<polygon fill="white" stroke="#bfbfbf" points="309,-38.5 309,-57.5 374,-57.5 374,-38.5 309,-38.5"/>
+<text text-anchor="middle" x="341.5" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">std::string</text>
 </a>
 </g>
 </g>
-<!-- Node9&#45;&gt;Node8 -->
+<!-- Node9&#45;&gt;Node1 -->
 <g id="edge8" class="edge">
-<title>Node9&#45;&gt;Node8</title>
-<path fill="none" stroke="midnightblue" d="M114.35,-48C146.8,-48 185.28,-48 211.75,-48"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="114.05,-44.5 104.05,-48 114.05,-51.5 114.05,-44.5"/>
+<title>Node9&#45;&gt;Node1</title>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M384.55,-48.89C430.73,-50.73 506.74,-56.28 570,-73 590.84,-78.51 613.33,-88.78 628.5,-96.41"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="384.44,-45.39 374.32,-48.53 384.19,-52.38 384.44,-45.39"/>
+<text text-anchor="middle" x="508.5" y="-76" font-family="Helvetica,sans-Serif" font-size="10.00"> _ostree_rootfs_template</text>
 </g>
 <!-- Node10 -->
 <g id="node10" class="node">
 <title>Node10</title>
-<g id="a_node10"><a xlink:href="class_uptane_repo_wrapper.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="186.5,-0.5 186.5,-19.5 302.5,-19.5 302.5,-0.5 186.5,-0.5"/>
-<text text-anchor="middle" x="244.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">UptaneRepoWrapper</text>
+<g id="a_node10"><a xlink:title="STL class.">
+<polygon fill="white" stroke="#bfbfbf" points="22,-19 22,-49 126,-49 126,-19 22,-19"/>
+<text text-anchor="start" x="30" y="-37" font-family="Helvetica,sans-Serif" font-size="10.00">std::basic_string&lt;</text>
+<text text-anchor="middle" x="74" y="-26" font-family="Helvetica,sans-Serif" font-size="10.00"> char &gt;</text>
 </a>
 </g>
 </g>
-<!-- Node10&#45;&gt;Node1 -->
+<!-- Node10&#45;&gt;Node9 -->
 <g id="edge9" class="edge">
-<title>Node10&#45;&gt;Node1</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M312.7,-8.03C359.53,-9.06 422.41,-15.36 473,-38 502.65,-51.27 529.2,-80.08 541.79,-95.23"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="312.72,-4.53 302.67,-7.89 312.61,-11.53 312.72,-4.53"/>
-<text text-anchor="middle" x="411.5" y="-41" font-family="Helvetica,sans-Serif" font-size="10.00"> _uptane_repo</text>
+<title>Node10&#45;&gt;Node9</title>
+<path fill="none" stroke="midnightblue" d="M136.3,-37.23C190.08,-40.07 266.16,-44.08 308.64,-46.32"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="136.36,-33.73 126.19,-36.7 135.99,-40.72 136.36,-33.73"/>
+</g>
+<!-- Node11 -->
+<g id="node11" class="node">
+<title>Node11</title>
+<g id="a_node11"><a xlink:href="class_uptane_repo_wrapper.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="283.5,-0.5 283.5,-19.5 399.5,-19.5 399.5,-0.5 283.5,-0.5"/>
+<text text-anchor="middle" x="341.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">UptaneRepoWrapper</text>
+</a>
+</g>
+</g>
+<!-- Node11&#45;&gt;Node1 -->
+<g id="edge10" class="edge">
+<title>Node11&#45;&gt;Node1</title>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M409.79,-7.44C456.66,-8.13 519.55,-14.11 570,-37 600.29,-50.75 626.95,-80.94 639.26,-96.43"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="409.77,-3.94 399.75,-7.37 409.72,-10.94 409.77,-3.94"/>
+<text text-anchor="middle" x="508.5" y="-40" font-family="Helvetica,sans-Serif" font-size="10.00"> _uptane_repo</text>
 </g>
 </g>
 </svg>

@@ -177,8 +177,17 @@ $(function() {
 <div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;  <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
 <div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;}</div>
 <div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160; </div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;}  <span class="comment">// namespace Primary</span></div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;<span class="keywordtype">bool</span> VirtualSecondary::putMetadata(<span class="keyword">const</span> <a class="code" href="struct_uptane_1_1_raw_meta_pack.html">Uptane::RawMetaPack</a>&amp; meta_pack) {</div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;  <span class="keywordflow">if</span> (fiu_fail(<span class="stringliteral">&quot;secondary_putmetadata&quot;</span>) != 0) {</div>
+<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;  }</div>
+<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160; </div>
+<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;  <span class="keywordflow">return</span> ManagedSecondary::putMetadata(meta_pack);</div>
+<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;}</div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160; </div>
+<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;}  <span class="comment">// namespace Primary</span></div>
 </div><!-- fragment --></div><!-- contents -->
+<div class="ttc" id="astruct_uptane_1_1_raw_meta_pack_html"><div class="ttname"><a href="struct_uptane_1_1_raw_meta_pack.html">Uptane::RawMetaPack</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00535">tuf.h:535</a></div></div>
 <div class="ttc" id="astruct_uptane_1_1_installed_image_info_html"><div class="ttname"><a href="struct_uptane_1_1_installed_image_info.html">Uptane::InstalledImageInfo</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00132">tuf.h:132</a></div></div>
 <div class="ttc" id="aclass_primary_1_1_virtual_secondary_config_html"><div class="ttname"><a href="class_primary_1_1_virtual_secondary_config.html">Primary::VirtualSecondaryConfig</a></div><div class="ttdef"><b>Definition:</b> <a href="virtualsecondary_8h_source.html#l00011">virtualsecondary.h:11</a></div></div>
 <!-- start footer part -->
