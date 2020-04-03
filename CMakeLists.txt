@@ -426,9 +426,9 @@ add_subdirectory("docs/doxygen")
 file(GLOB_RECURSE ALL_SOURCE_FILES RELATIVE ${CMAKE_SOURCE_DIR}
     src/*.cc src/*.c src/*.h)
 foreach(FILE ${ALL_SOURCE_FILES})
-    string (FIND ${FILE} "/isotp_conn/" EXCLUDE_DIR_FOUND)
+    string (FIND ${FILE} "/libaktualizr-isotp/" EXCLUDE_DIR_FOUND)
     if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
-      continue()
+        continue()
     endif()
 
     list(FIND AKTUALIZR_CHECKED_SRCS ${FILE} INDEX)
