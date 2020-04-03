@@ -29,7 +29,10 @@ struct UptaneTestCommon {
 
       if (boost::filesystem::exists(config.uptane.secondary_config_file)) {
         for (const auto& item : Primary::VirtualSecondaryConfig::create_from_file(config.uptane.secondary_config_file)) {
-          AddSecondary(std::make_shared<Primary::VirtualSecondary>(item));
+
+          ImageReader image_reader = std::bind(&Aktualizr::OpenStoredTarget, static_cast<Aktualizr*>(this), std::placeholders::_1);
+
+          AddSecondary(std::make_shared<Primary::VirtualSecondary>(item, image_reader));
         }
       }
     }
@@ -48,7 +51,8 @@ struct UptaneTestCommon {
 
       if (boost::filesystem::exists(config_in.uptane.secondary_config_file)) {
           for (const auto& item : Primary::VirtualSecondaryConfig::create_from_file(config_in.uptane.secondary_config_file)) {
-            addSecondary(std::make_shared<Primary::VirtualSecondary>(item));
+            ImageReader image_reader = std::bind(&INvStorage::openTargetFile, storage_in.get(), std::placeholders::_1);
+            addSecondary(std::make_shared<Primary::VirtualSecondary>(item, image_reader));
           }
       }
     }

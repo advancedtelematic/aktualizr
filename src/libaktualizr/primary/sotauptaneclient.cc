@@ -1292,28 +1292,30 @@ std::future<data::ResultCode::Numeric> SotaUptaneClient::sendFirmwareAsync(Uptan
     sendEvent<event::InstallStarted>(secondary.getSerial());
     report_queue->enqueue(std_::make_unique<EcuInstallationStartedReport>(secondary.getSerial(), correlation_id));
 
-    std::string data_to_send;
-    bool send_firmware_result = false;
+    //    std::string data_to_send;
+    //    bool send_firmware_result = false;
 
-    if (target.IsOstree()) {
-      // empty firmware means OSTree Secondaries: pack credentials instead
-      data_to_send = secondaryTreehubCredentials();
-    } else {
-      std::stringstream sstr;
-      sstr << *storage->openTargetFile(target);
-      data_to_send = sstr.str();
-    }
+    //    if (target.IsOstree()) {
+    //      // empty firmware means OSTree Secondaries: pack credentials instead
+    //      data_to_send = secondaryTreehubCredentials();
+    //    } else {
+    //      std::stringstream sstr;
+    //      sstr << *storage->openTargetFile(target);
+    //      data_to_send = sstr.str();
+    //    }
 
-    if (!data_to_send.empty()) {
-      // send_firmware_result = secondary.sendFirmware(data_to_send);
-    }
+    //    if (!data_to_send.empty()) {
+    //      //send_firmware_result = secondary.sendFirmware(data_to_send);
+    //    }
 
-    data::ResultCode::Numeric result =
-        send_firmware_result ? data::ResultCode::Numeric::kOk : data::ResultCode::Numeric::kInstallFailed;
+    //    data::ResultCode::Numeric result =
+    //        send_firmware_result ? data::ResultCode::Numeric::kOk : data::ResultCode::Numeric::kInstallFailed;
 
-    if (send_firmware_result) {
-      result = secondary.install(target);
-    }
+    //    if (send_firmware_result) {
+    //      result = secondary.install(target);
+    //    }
+
+    data::ResultCode::Numeric result = secondary.install(target);
 
     if (result == data::ResultCode::Numeric::kNeedCompletion) {
       report_queue->enqueue(std_::make_unique<EcuInstallationAppliedReport>(secondary.getSerial(), correlation_id));
@@ -1388,7 +1390,7 @@ std::vector<result::Install::EcuReport> SotaUptaneClient::sendImagesToEcus(const
   return reports;
 }
 
-std::string SotaUptaneClient::secondaryTreehubCredentials() const {
+std::string SotaUptaneClient::treehubCredentials() const {
   if (config.tls.pkey_source != CryptoSource::kFile || config.tls.cert_source != CryptoSource::kFile ||
       config.tls.ca_source != CryptoSource::kFile) {
     LOG_ERROR << "Cannot send OSTree update to a Secondary when not using file as credential sources";

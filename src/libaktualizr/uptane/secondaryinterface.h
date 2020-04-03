@@ -1,11 +1,21 @@
 #ifndef UPTANE_SECONDARYINTERFACE_H
 #define UPTANE_SECONDARYINTERFACE_H
 
+#include <functional>
+#include <memory>
 #include <string>
 
 #include "json/json.h"
 #include "uptane/manifest.h"
 #include "uptane/tuf.h"
+
+class StorageTargetRHandle;
+
+// This is kind of hack, TODO: consider moving it some common/shared place for Virtual and IP Secondary
+// and/or consider the storage interface restructuring and providing a part of it to Secondaries' ctor
+// basically Secondary implementation on Primary needs access to some data persisted in the DB
+using ImageReader = std::function<std::unique_ptr<StorageTargetRHandle>(const Uptane::Target& target)>;
+using TlsCredsProvider = std::function<std::string()>;
 
 namespace Uptane {
 
