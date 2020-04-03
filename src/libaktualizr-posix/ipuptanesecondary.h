@@ -10,14 +10,18 @@ namespace Uptane {
 
 class IpUptaneSecondary : public SecondaryInterface {
  public:
-  static SecondaryInterface::Ptr connectAndCreate(const std::string& address, unsigned short port);
-  static SecondaryInterface::Ptr create(const std::string& address, unsigned short port, int con_fd);
+  static SecondaryInterface::Ptr connectAndCreate(const std::string& address, unsigned short port,
+                                                  ImageReader image_reader, TlsCredsProvider treehub_cred_provider);
+  static SecondaryInterface::Ptr create(const std::string& address, unsigned short port, int con_fd,
+                                        ImageReader image_reader, TlsCredsProvider treehub_cred_provider);
 
   static SecondaryInterface::Ptr connectAndCheck(const std::string& address, unsigned short port, EcuSerial serial,
-                                                 HardwareIdentifier hw_id, PublicKey pub_key);
+                                                 HardwareIdentifier hw_id, PublicKey pub_key, ImageReader image_reader,
+                                                 TlsCredsProvider treehub_cred_provider);
 
   explicit IpUptaneSecondary(const std::string& address, unsigned short port, EcuSerial serial,
-                             HardwareIdentifier hw_id, PublicKey pub_key);
+                             HardwareIdentifier hw_id, PublicKey pub_key, ImageReader image_reader,
+                             TlsCredsProvider treehub_cred_provider);
 
   std::string Type() const override { return "IP"; }
   EcuSerial getSerial() const override { return serial_; };
@@ -34,6 +38,9 @@ class IpUptaneSecondary : public SecondaryInterface {
 
  private:
   const std::pair<std::string, uint16_t>& getAddr() const { return addr_; }
+  data::ResultCode::Numeric install_v1(const Uptane::Target& target);
+  data::ResultCode::Numeric install_v2(const Uptane::Target& target);
+  bool sendFirmware(const std::string& data);
 
  private:
   std::mutex install_mutex;
@@ -42,6 +49,9 @@ class IpUptaneSecondary : public SecondaryInterface {
   const EcuSerial serial_;
   const HardwareIdentifier hw_id_;
   const PublicKey pub_key_;
+
+  ImageReader image_reader_;
+  TlsCredsProvider treehub_cred_provider_;
 };
 
 }  // namespace Uptane
