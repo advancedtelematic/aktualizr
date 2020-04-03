@@ -7,6 +7,7 @@
 #include "logging/logging.h"
 #include "msg_dispatcher.h"
 #include "secondary_tcp_server.h"
+#include "storage/invstorage.h"
 #include "test_utils.h"
 
 class SecondaryMock : public IAktualizrSecondary {
@@ -61,6 +62,55 @@ bool operator==(const Uptane::RawMetaPack& lhs, const Uptane::RawMetaPack& rhs) 
          (lhs.image_timestamp == rhs.image_timestamp) && (lhs.image_targets == rhs.image_targets);
 }
 
+class TargetFile {
+ public:
+  TargetFile(const std::string filename) : image_filepath_{target_dir_ / filename} {
+    boost::filesystem::ofstream(image_filepath_) << image_content_;
+  }
+
+  const std::string& content() const { return image_content_; }
+
+  std::string path() const { return image_filepath_.string(); }
+
+  static ImageReader getImageReader() {
+    return [](const Uptane::Target& target) { return std_::make_unique<ImageReaderMock>(target.filename()); };
+  }
+
+ private:
+  class ImageReaderMock : public StorageTargetRHandle {
+   public:
+    ImageReaderMock(boost::filesystem::path image_filename) : image_filename_{image_filename} {
+      image_file_.open(image_filename_);
+    }
+
+    ~ImageReaderMock() override {
+      if (image_file_.is_open()) {
+        image_file_.close();
+      }
+    }
+
+    bool isPartial() const override { return false; }
+    std::unique_ptr<StorageTargetWHandle> toWriteHandle() override { return nullptr; }
+
+    uintmax_t rsize() const override { return boost::filesystem::file_size(image_filename_); }
+
+    size_t rread(uint8_t* buf, size_t size) override {
+      return image_file_.readsome(reinterpret_cast<char*>(buf), size);
+    }
+
+    void rclose() override { image_file_.close(); }
+
+   private:
+    boost::filesystem::path image_filename_;
+    boost::filesystem::ifstream image_file_;
+  };
+
+ private:
+  const std::string image_content_ = "image file content";
+  TemporaryDirectory target_dir_;
+  boost::filesystem::path image_filepath_;
+};
+
 // Test the serialization/deserialization and the TCP/IP communication implementation
 // that occurs during communication between Primary and IP Secondary
 TEST(SecondaryTcpServer, TestIpSecondaryRPC) {
@@ -73,10 +123,12 @@ TEST(SecondaryTcpServer, TestIpSecondaryRPC) {
   std::thread secondary_server_thread{[&secondary_server]() { secondary_server.run(); }};
 
   secondary_server.wait_until_running();
+
+  TargetFile target_file("mytarget_image.img");
   // create Secondary on Primary ECU, try it a few times since the secondary thread
   // might not be ready at the moment of the first try
-  Uptane::SecondaryInterface::Ptr ip_secondary =
-      Uptane::IpUptaneSecondary::connectAndCreate("localhost", secondary_server.port());
+  Uptane::SecondaryInterface::Ptr ip_secondary = Uptane::IpUptaneSecondary::connectAndCreate(
+      "localhost", secondary_server.port(), target_file.getImageReader(), nullptr);
 
   ASSERT_TRUE(ip_secondary != nullptr) << "Failed to create IP Secondary";
   EXPECT_EQ(ip_secondary->getSerial(), secondary.getSerial());
@@ -89,12 +141,11 @@ TEST(SecondaryTcpServer, TestIpSecondaryRPC) {
 
   EXPECT_TRUE(ip_secondary->putMetadata(meta_pack));
   EXPECT_TRUE(meta_pack == secondary.metapack_);
+  Json::Value target_json;
+  target_json["custom"]["targetFormat"] = "BINARY";
+  EXPECT_EQ(ip_secondary->install(Uptane::Target(target_file.path(), target_json)), data::ResultCode::Numeric::kOk);
 
-  std::string firmware = "firmware";
-  // EXPECT_TRUE(ip_secondary->sendFirmware(firmware));
-  EXPECT_EQ(firmware, secondary.data_);
-
-  // EXPECT_EQ(ip_secondary->install(""), data::ResultCode::Numeric::kOk);
+  EXPECT_EQ(target_file.content(), secondary.data_);
 
   secondary_server.stop();
   secondary_server_thread.join();
@@ -105,22 +156,25 @@ TEST(SecondaryTcpServer, TestIpSecondaryIfSecondaryIsNotRunning) {
   Uptane::SecondaryInterface::Ptr ip_secondary;
 
   // trying to connect to a non-running Secondary and create a corresponding instance on Primary
-  ip_secondary = Uptane::IpUptaneSecondary::connectAndCreate("localhost", secondary_port);
+  ip_secondary = Uptane::IpUptaneSecondary::connectAndCreate("localhost", secondary_port, nullptr, nullptr);
   EXPECT_EQ(ip_secondary, nullptr);
 
+  TargetFile target_file("mytarget_image.img");
   // create Primary's secondary without connecting to Secondary
-  ip_secondary = std::make_shared<Uptane::IpUptaneSecondary>("localhost", secondary_port, Uptane::EcuSerial("serial"),
-                                                             Uptane::HardwareIdentifier("hwid"),
-                                                             PublicKey("key", KeyType::kED25519));
+  ip_secondary = std::make_shared<Uptane::IpUptaneSecondary>(
+      "localhost", secondary_port, Uptane::EcuSerial("serial"), Uptane::HardwareIdentifier("hwid"),
+      PublicKey("key", KeyType::kED25519), target_file.getImageReader(), nullptr);
 
   Uptane::RawMetaPack meta_pack{"director-root", "director-target", "image_root",
                                 "image_targets", "image_timestamp", "image_snapshot"};
 
   // expect failures since the secondary is not running
   EXPECT_EQ(ip_secondary->getManifest(), Json::Value());
-  // EXPECT_FALSE(ip_secondary->sendFirmware("firmware"));
   EXPECT_FALSE(ip_secondary->putMetadata(meta_pack));
-  // EXPECT_EQ(ip_secondary->install(""), data::ResultCode::Numeric::kInternalError);
+  Json::Value target_json;
+  target_json["custom"]["targetFormat"] = "BINARY";
+  EXPECT_EQ(ip_secondary->install(Uptane::Target(target_file.path(), target_json)),
+            data::ResultCode::Numeric::kInstallFailed);
 }
 
 class SecondaryRpcTestNegative : public ::testing::Test {
@@ -130,7 +184,6 @@ class SecondaryRpcTestNegative : public ::testing::Test {
     msg_dispatcher_.registerHandler(AKIpUptaneMes_PR_installReq, [](Asn1Message& in_msg, Asn1Message& out_msg) {
       (void)in_msg;
       out_msg.present(AKIpUptaneMes_PR_installResp).installResp()->result = AKInstallationResultCode_ok;
-      // out_msg.installResp()->result = AKInstallationResultCode_ok;
       return MsgDispatcher::HandleStatusCode::kOk;
     });
     secondary_server_.wait_until_running();

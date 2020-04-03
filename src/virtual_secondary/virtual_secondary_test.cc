@@ -50,7 +50,10 @@ class PartialVerificationSecondaryTest : public ::testing::Test {
 };
 
 /* Create a virtual secondary for testing. */
-TEST_F(VirtualSecondaryTest, Instantiation) { EXPECT_NO_THROW(Primary::VirtualSecondary virtual_sec(config_)); }
+
+TEST_F(VirtualSecondaryTest, Instantiation) {
+  EXPECT_NO_THROW(Primary::VirtualSecondary virtual_sec(config_, nullptr));
+}
 
 /* Partial verification secondaries generate and store public keys. */
 TEST_F(PartialVerificationSecondaryTest, Uptane_get_key) {

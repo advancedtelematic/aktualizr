@@ -12,10 +12,13 @@
 #include "uptane/manifest.h"
 #include "uptane/uptanerepository.h"
 #include "utilities/exceptions.h"
+#include "utilities/fault_injection.h"
+#include "utilities/utils.h"
 
 namespace Primary {
 
-ManagedSecondary::ManagedSecondary(Primary::ManagedSecondaryConfig sconfig_in) : sconfig(std::move(sconfig_in)) {
+ManagedSecondary::ManagedSecondary(Primary::ManagedSecondaryConfig sconfig_in, ImageReader image_reader_in)
+    : sconfig(std::move(sconfig_in)), image_reader(image_reader_in) {
   // TODO: FIX
   // loadMetadata(meta_pack);
   std::string public_key_string;
@@ -140,7 +143,18 @@ bool ManagedSecondary::putRoot(const std::string &root, const bool director) {
 }
 
 data::ResultCode::Numeric ManagedSecondary::install(const Uptane::Target &target_name) {
-  (void)target_name;
+  if (fiu_fail((std::string("secondary_install_") + getSerial().ToString()).c_str()) != 0) {
+    // consider changing this approach of the fault injection, since the current approach impacts the non-test code flow
+    // here as well as it doesn't test the installation failure on secondary from an end-to-end perspective as it
+    // injects an error on the middle of the control flow that would have happened if an installation error had happened
+    // in case of the virtual or the ip-secondary or any other secondary, e.g. add a mock secondary that returns an
+    // error to sendFirmware/install request we might consider passing the installation description message from
+    // Secondary, not just bool and/or data::ResultCode::Numeric
+    return data::ResultCode::Numeric::kInstallFailed;
+  }
+
+  image_reader(target_name)->writeToFile(sconfig.firmware_path);
+  Utils::writeFile(sconfig.target_name_path, expected_target_name);
   return data::ResultCode::Numeric::kOk;
 }
 

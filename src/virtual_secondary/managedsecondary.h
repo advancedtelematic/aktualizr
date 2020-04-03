@@ -40,7 +40,7 @@ class ManagedSecondaryConfig : public SecondaryConfig {
 
 class ManagedSecondary : public Uptane::SecondaryInterface {
  public:
-  explicit ManagedSecondary(Primary::ManagedSecondaryConfig sconfig_in);
+  explicit ManagedSecondary(Primary::ManagedSecondaryConfig sconfig_in, ImageReader image_reader_in);
   ~ManagedSecondary() override = default;
 
   void Initialize();
@@ -71,6 +71,7 @@ class ManagedSecondary : public Uptane::SecondaryInterface {
   std::vector<Hash> expected_target_hashes;
   uint64_t expected_target_length{};
   std::mutex install_mutex;
+  ImageReader image_reader;
 
   virtual bool storeFirmware(const std::string& target_name, const std::string& content) = 0;
   virtual bool getFirmwareInfo(Uptane::InstalledImageInfo& firmware_info) const = 0;
