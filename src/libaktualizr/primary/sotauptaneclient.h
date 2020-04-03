@@ -91,6 +91,7 @@ class SotaUptaneClient {
   void checkImageMetaOffline();
   data::InstallationResult PackageInstall(const Uptane::Target &target);
   TargetStatus VerifyTarget(const Uptane::Target &target) const { return package_manager_->verifyTarget(target); }
+  std::string treehubCredentials() const;
 
  private:
   FRIEND_TEST(Aktualizr, FullNoUpdates);
@@ -128,7 +129,6 @@ class SotaUptaneClient {
   void uptaneOfflineIteration(std::vector<Uptane::Target> *targets, unsigned int *ecus_count);
   result::UpdateStatus checkUpdatesOffline(const std::vector<Uptane::Target> &targets);
   Json::Value AssembleManifest();
-  std::string secondaryTreehubCredentials() const;
   std::exception_ptr getLastException() const { return last_exception; }
   static std::vector<Uptane::Target> findForEcu(const std::vector<Uptane::Target> &targets,
                                                 const Uptane::EcuSerial &ecu_id);

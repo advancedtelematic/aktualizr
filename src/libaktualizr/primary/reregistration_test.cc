@@ -54,7 +54,8 @@ TEST(Aktualizr, AddSecondary) {
 
   UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
   Primary::VirtualSecondaryConfig ecu_config = UptaneTestCommon::altVirtualConfiguration(temp_dir.Path());
-  aktualizr.AddSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config));
+  ImageReader image_reader = std::bind(&INvStorage::openTargetFile, storage.get(), std::placeholders::_1);
+  aktualizr.AddSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config, image_reader));
   aktualizr.Initialize();
 
   std::vector<std::string> expected_ecus = {"CA:FE:A6:D2:84:9D", "ecuserial3", "secondary_ecu_serial"};

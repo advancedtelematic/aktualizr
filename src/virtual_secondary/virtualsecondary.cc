@@ -65,8 +65,8 @@ void VirtualSecondaryConfig::dump(const boost::filesystem::path& file_full_path)
   json_file.close();
 }
 
-VirtualSecondary::VirtualSecondary(Primary::VirtualSecondaryConfig sconfig_in)
-    : ManagedSecondary(std::move(sconfig_in)) {}
+VirtualSecondary::VirtualSecondary(Primary::VirtualSecondaryConfig sconfig_in, ImageReader image_reader_in)
+    : ManagedSecondary(std::move(sconfig_in), image_reader_in) {}
 
 bool VirtualSecondary::storeFirmware(const std::string& target_name, const std::string& content) {
   if (fiu_fail((std::string("secondary_install_") + getSerial().ToString()).c_str()) != 0) {

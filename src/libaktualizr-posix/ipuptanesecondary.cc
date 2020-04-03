@@ -5,12 +5,15 @@
 #include "der_encoder.h"
 #include "ipuptanesecondary.h"
 #include "logging/logging.h"
+#include "storage/invstorage.h"
 
 #include <memory>
 
 namespace Uptane {
 
-Uptane::SecondaryInterface::Ptr IpUptaneSecondary::connectAndCreate(const std::string& address, unsigned short port) {
+Uptane::SecondaryInterface::Ptr IpUptaneSecondary::connectAndCreate(const std::string& address, unsigned short port,
+                                                                    ImageReader image_reader,
+                                                                    TlsCredsProvider treehub_cred_provider) {
   LOG_INFO << "Connecting to and getting info about IP Secondary: " << address << ":" << port << "...";
 
   ConnectionSocket con_sock{address, port};
@@ -23,10 +26,12 @@ Uptane::SecondaryInterface::Ptr IpUptaneSecondary::connectAndCreate(const std::s
     return nullptr;
   }
 
-  return create(address, port, *con_sock);
+  return create(address, port, *con_sock, image_reader, treehub_cred_provider);
 }
 
-Uptane::SecondaryInterface::Ptr IpUptaneSecondary::create(const std::string& address, unsigned short port, int con_fd) {
+Uptane::SecondaryInterface::Ptr IpUptaneSecondary::create(const std::string& address, unsigned short port, int con_fd,
+                                                          ImageReader image_reader,
+                                                          TlsCredsProvider treehub_cred_provider) {
   Asn1Message::Ptr req(Asn1Message::Empty());
   req->present(AKIpUptaneMes_PR_getInfoReq);
 
@@ -49,17 +54,19 @@ Uptane::SecondaryInterface::Ptr IpUptaneSecondary::create(const std::string& add
   LOG_INFO << "Got ECU information from IP Secondary: "
            << "hardware ID: " << hw_id << " serial: " << serial;
 
-  return std::make_shared<IpUptaneSecondary>(address, port, serial, hw_id, pub_key);
+  return std::make_shared<IpUptaneSecondary>(address, port, serial, hw_id, pub_key, image_reader,
+                                             treehub_cred_provider);
 }
 
 SecondaryInterface::Ptr IpUptaneSecondary::connectAndCheck(const std::string& address, unsigned short port,
                                                            EcuSerial serial, HardwareIdentifier hw_id,
-                                                           PublicKey pub_key) {
+                                                           PublicKey pub_key, ImageReader image_reader,
+                                                           TlsCredsProvider treehub_cred_provider) {
   // try to connect:
   // - if it succeeds compare with what we expect
   // - otherwise, keep using what we know
   try {
-    auto sec = IpUptaneSecondary::connectAndCreate(address, port);
+    auto sec = IpUptaneSecondary::connectAndCreate(address, port, image_reader, treehub_cred_provider);
     if (sec != nullptr) {
       auto s = sec->getSerial();
       if (s != serial && serial != EcuSerial::Unknown()) {
@@ -86,12 +93,19 @@ SecondaryInterface::Ptr IpUptaneSecondary::connectAndCheck(const std::string& ad
     LOG_WARNING << "Could not connect to IP Secondary at " << address << ":" << port << " with serial " << serial;
   }
 
-  return std::make_shared<IpUptaneSecondary>(address, port, std::move(serial), std::move(hw_id), std::move(pub_key));
+  return std::make_shared<IpUptaneSecondary>(address, port, std::move(serial), std::move(hw_id), std::move(pub_key),
+                                             image_reader, treehub_cred_provider);
 }
 
 IpUptaneSecondary::IpUptaneSecondary(const std::string& address, unsigned short port, EcuSerial serial,
-                                     HardwareIdentifier hw_id, PublicKey pub_key)
-    : addr_{address, port}, serial_{std::move(serial)}, hw_id_{std::move(hw_id)}, pub_key_{std::move(pub_key)} {}
+                                     HardwareIdentifier hw_id, PublicKey pub_key, ImageReader image_reader,
+                                     TlsCredsProvider treehub_cred_provider)
+    : addr_{address, port},
+      serial_{std::move(serial)},
+      hw_id_{std::move(hw_id)},
+      pub_key_{std::move(pub_key)},
+      image_reader_{image_reader},
+      treehub_cred_provider_{treehub_cred_provider} {}
 
 bool IpUptaneSecondary::putMetadata(const RawMetaPack& meta_pack) {
   LOG_INFO << "Sending Uptane metadata to the Secondary";
@@ -120,48 +134,7 @@ bool IpUptaneSecondary::putMetadata(const RawMetaPack& meta_pack) {
   return r->result == AKInstallationResult_success;
 }
 
-// bool IpUptaneSecondary::sendFirmware(const std::string& data) {
-//  std::lock_guard<std::mutex> l(install_mutex);
-//  LOG_INFO << "Sending firmware to the Secondary";
-//  Asn1Message::Ptr req(Asn1Message::Empty());
-//  req->present(AKIpUptaneMes_PR_sendFirmwareReq);
-
-//  auto m = req->sendFirmwareReq();
-//  SetString(&m->firmware, data);
-//  auto resp = Asn1Rpc(req, getAddr());
-
-//  if (resp->present() != AKIpUptaneMes_PR_sendFirmwareResp) {
-//    LOG_ERROR << "Failed to get response to sending firmware to Secondary";
-//    return false;
-//  }
-
-//  auto r = resp->sendFirmwareResp();
-//  return r->result == AKInstallationResult_success;
-//}
-
-data::ResultCode::Numeric IpUptaneSecondary::install(const Uptane::Target& target_name) {
-  LOG_INFO << "Invoking an installation of the target on the Secondary: " << target_name;
-
-  Asn1Message::Ptr req(Asn1Message::Empty());
-  req->present(AKIpUptaneMes_PR_installReq);
-
-  // prepare request message
-  auto req_mes = req->installReq();
-  SetString(&req_mes->hash, target_name.filename());
-  // send request and receive response, a request-response type of RPC
-  auto resp = Asn1Rpc(req, getAddr());
-
-  // invalid type of an response message
-  if (resp->present() != AKIpUptaneMes_PR_installResp) {
-    LOG_ERROR << "Failed to get response to an installation request to Secondary";
-    return data::ResultCode::Numeric::kInternalError;
-  }
-
-  // deserialize the response message
-  auto r = resp->installResp();
-
-  return static_cast<data::ResultCode::Numeric>(r->result);
-}
+data::ResultCode::Numeric IpUptaneSecondary::install(const Uptane::Target& target) { return install_v1(target); }
 
 Manifest IpUptaneSecondary::getManifest() const {
   LOG_DEBUG << "Getting the manifest from Secondary with serial " << getSerial();
@@ -194,6 +167,70 @@ bool IpUptaneSecondary::ping() const {
   auto resp = Asn1Rpc(req, getAddr());
 
   return resp->present() == AKIpUptaneMes_PR_getInfoResp;
+}
+
+data::ResultCode::Numeric IpUptaneSecondary::install_v1(const Uptane::Target& target) {
+  std::string data_to_send;
+
+  if (target.IsOstree()) {
+    // empty firmware means OSTree secondaries: pack credentials instead
+    data_to_send = treehub_cred_provider_();
+  } else {
+    std::stringstream sstr;
+    sstr << *image_reader_(target);
+    data_to_send = sstr.str();
+  }
+
+  bool send_frimware_result = sendFirmware(data_to_send);
+  if (!send_frimware_result) {
+    return data::ResultCode::Numeric::kInstallFailed;
+  }
+
+  LOG_INFO << "Invoking an installation of the target on the secondary: " << target;
+
+  Asn1Message::Ptr req(Asn1Message::Empty());
+  req->present(AKIpUptaneMes_PR_installReq);
+
+  // prepare request message
+  auto req_mes = req->installReq();
+  SetString(&req_mes->hash, target.filename());
+  // send request and receive response, a request-response type of RPC
+  auto resp = Asn1Rpc(req, getAddr());
+
+  // invalid type of an response message
+  if (resp->present() != AKIpUptaneMes_PR_installResp) {
+    LOG_ERROR << "Failed to get response to an installation request to secondary";
+    return data::ResultCode::Numeric::kInternalError;
+  }
+
+  // deserialize the response message
+  auto r = resp->installResp();
+
+  return static_cast<data::ResultCode::Numeric>(r->result);
+}
+
+data::ResultCode::Numeric IpUptaneSecondary::install_v2(const Uptane::Target& target) {
+  (void)target;
+  return data::ResultCode::Numeric::kOk;
+}
+
+bool IpUptaneSecondary::sendFirmware(const std::string& data) {
+  std::lock_guard<std::mutex> l(install_mutex);
+  LOG_INFO << "Sending firmware to the secondary";
+  Asn1Message::Ptr req(Asn1Message::Empty());
+  req->present(AKIpUptaneMes_PR_sendFirmwareReq);
+
+  auto m = req->sendFirmwareReq();
+  SetString(&m->firmware, data);
+  auto resp = Asn1Rpc(req, getAddr());
+
+  if (resp->present() != AKIpUptaneMes_PR_sendFirmwareResp) {
+    LOG_ERROR << "Failed to get response to sending firmware to secondary";
+    return false;
+  }
+
+  auto r = resp->sendFirmwareResp();
+  return r->result == AKInstallationResult_success;
 }
 
 }  // namespace Uptane

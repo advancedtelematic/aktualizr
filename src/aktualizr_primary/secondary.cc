@@ -27,9 +27,10 @@ static SecondaryFactoryRegistry sec_factory_registry = {
        return createIPSecondaries(ip_sec_cgf, aktualizr);
      }},
     {VirtualSecondaryConfig::Type,
-     [](const SecondaryConfig& config, Aktualizr& /* unused */) {
+     [](const SecondaryConfig& config, Aktualizr& aktualizr) {
        auto virtual_sec_cgf = dynamic_cast<const VirtualSecondaryConfig&>(config);
-       return Secondaries({std::make_shared<VirtualSecondary>(virtual_sec_cgf)});
+       ImageReader image_reader = std::bind(&Aktualizr::OpenStoredTarget, &aktualizr, std::placeholders::_1);
+       return Secondaries({std::make_shared<VirtualSecondary>(virtual_sec_cgf, image_reader)});
      }},
     //  {
     //     Add another secondary factory here
@@ -66,12 +67,15 @@ void initSecondaries(Aktualizr& aktualizr, const boost::filesystem::path& config
 
 class SecondaryWaiter {
  public:
-  SecondaryWaiter(Aktualizr& aktualizr, uint16_t wait_port, int timeout_s, Secondaries& secondaries)
+  SecondaryWaiter(Aktualizr& aktualizr, uint16_t wait_port, int timeout_s, Secondaries& secondaries,
+                  ImageReader image_reader, TlsCredsProvider treehub_cred_provider)
       : aktualizr_(aktualizr),
         endpoint_{boost::asio::ip::tcp::v4(), wait_port},
         timeout_{static_cast<boost::posix_time::seconds>(timeout_s)},
         timer_{io_context_},
-        connected_secondaries_(secondaries) {}
+        connected_secondaries_{secondaries},
+        image_reader_{image_reader},
+        treehub_cred_provider_{treehub_cred_provider} {}
 
   void addSecondary(const std::string& ip, uint16_t port) { secondaries_to_wait_for_.insert(key(ip, port)); }
 
@@ -109,7 +113,8 @@ class SecondaryWaiter {
 
       LOG_INFO << "Accepted connection from a Secondary: (" << sec_ip << ":" << sec_port << ")";
       try {
-        auto secondary = Uptane::IpUptaneSecondary::create(sec_ip, sec_port, con_socket_.native_handle());
+        auto secondary = Uptane::IpUptaneSecondary::create(sec_ip, sec_port, con_socket_.native_handle(), image_reader_,
+                                                           treehub_cred_provider_);
         if (secondary) {
           connected_secondaries_.push_back(secondary);
           // set ip/port in the db so that we can match everything later
@@ -149,6 +154,8 @@ class SecondaryWaiter {
 
   Secondaries& connected_secondaries_;
   std::unordered_set<std::string> secondaries_to_wait_for_;
+  ImageReader image_reader_;
+  TlsCredsProvider treehub_cred_provider_;
 };
 
 // Four options for each Secondary:
@@ -160,7 +167,10 @@ class SecondaryWaiter {
 static Secondaries createIPSecondaries(const IPSecondariesConfig& config, Aktualizr& aktualizr) {
   Secondaries result;
   Secondaries new_secondaries;
-  SecondaryWaiter sec_waiter{aktualizr, config.secondaries_wait_port, config.secondaries_timeout_s, result};
+  auto image_reader = std::bind(&Aktualizr::OpenStoredTarget, &aktualizr, std::placeholders::_1);
+  auto treehub_creds_provider = std::bind(&Aktualizr::GetTreehubTlsCreds, &aktualizr);
+  SecondaryWaiter sec_waiter{aktualizr,    config.secondaries_wait_port, config.secondaries_timeout_s, result,
+                             image_reader, treehub_creds_provider};
   auto secondaries_info = aktualizr.GetSecondaries();
 
   for (const auto& cfg : config.secondaries_cfg) {
@@ -186,7 +196,7 @@ static Secondaries createIPSecondaries(const IPSecondariesConfig& config, Aktual
       LOG_INFO << "Migrated a single IP Secondary to new storage format.";
     } else if (f == secondaries_info.cend()) {
       // Secondary was not found in storage; it must be new.
-      secondary = Uptane::IpUptaneSecondary::connectAndCreate(cfg.ip, cfg.port);
+      secondary = Uptane::IpUptaneSecondary::connectAndCreate(cfg.ip, cfg.port, image_reader, treehub_creds_provider);
       if (secondary == nullptr) {
         LOG_DEBUG << "Could not connect to IP Secondary at " << cfg.ip << ":" << cfg.port
                   << "; now trying to wait for it.";
@@ -206,8 +216,8 @@ static Secondaries createIPSecondaries(const IPSecondariesConfig& config, Aktual
     }
 
     if (secondary == nullptr) {
-      secondary =
-          Uptane::IpUptaneSecondary::connectAndCheck(cfg.ip, cfg.port, info->serial, info->hw_id, info->pub_key);
+      secondary = Uptane::IpUptaneSecondary::connectAndCheck(cfg.ip, cfg.port, info->serial, info->hw_id, info->pub_key,
+                                                             image_reader, treehub_creds_provider);
       if (secondary == nullptr) {
         throw std::runtime_error("Unable to connect to or verify IP Secondary at " + cfg.ip + ":" +
                                  std::to_string(cfg.port));
