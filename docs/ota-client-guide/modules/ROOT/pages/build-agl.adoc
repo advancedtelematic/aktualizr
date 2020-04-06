@@ -8,7 +8,7 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
-include::_partials/aktualizr-version.adoc[]
+include::ota-client::partial$aktualizr-version.adoc[]
 
 
 :page-layout: page
@@ -24,7 +24,7 @@ include::_partials/aktualizr-version.adoc[]
 
 // Most of the content here is the same as the Raspberry Pi instructions, so we re-use the chunks we can.
 
-include::build-raspberry.adoc[tags=prereqs]
+include::ota-client::page$build-raspberry.adoc[tags=prereqs]
 
 == Create your AGL Yocto build environment
 
@@ -74,7 +74,7 @@ By default, AGL for QEMU boots into an initrd before loading the root filesystem
 AGL_DEFAULT_INITRAMFS_FSTYPES = "cpio.gz"
 ----
 
-include::build-raspberry.adoc[tags=config]
+include::ota-client::page$build-raspberry.adoc[tags=config]
 
 == Bitbake
 
@@ -107,4 +107,4 @@ TIP: You can also write the image using `dd`, but since the wrong kind of typo i
 
 You can now run the image in QEMU using the same method as described for a xref:build-qemu.adoc#_run_the_built_image_with_qemu[regular QEMU build]. However, the exact image you'll need will vary depending on the architecture you're building forfootnote:[For example, building the `agl-image-minimal` target for QEMU creates an image at `build/tmp/deploy/images/qemux86-64/agl-image-minimal-qemux86-64.ota-ext4`.], but it will be located in the `/tmp/deploy/images` directory under your build directory.
 
-include::partial$recommended-steps.adoc[tags=firstbuild-nextstep]
+include::ota-client::partial$recommended-steps.adoc[tags=firstbuild-nextstep]

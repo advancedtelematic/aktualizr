@@ -7,6 +7,8 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
+include::partial$aktualizr-version.adoc[]
+
 :page-layout: page
 :page-categories: [client-config]
 :page-date: 2018-07-05 11:14:01
@@ -21,9 +23,9 @@ Here, we provide reference documentation on aktualizr's usage and configuration.
 
 == How .toml files are processed
 
-Aktualizr is configured via `.toml` config files. One or more files or directories can be passed to the application via the `--config` flag (one per file or directory). 
+Aktualizr is configured via `.toml` config files. One or more files or directories can be passed to the application via the `--config` flag (one per file or directory).
 
-* If `--config` is not specified on the command line, aktualizr searches the following directories for files with a `.toml` extension: 
+* If `--config` is not specified on the command line, aktualizr searches the following directories for files with a `.toml` extension:
 ** `/usr/lib/sota/conf.d`
 ** `/etc/sota/conf.d/`
 
@@ -31,7 +33,7 @@ Aktualizr searches for and processes these config files in systemd style using t
 
 * If multiple files are found with the same name, the last detected file overrules and hides the others.
 * Files are then processed in alphabetical order with the following conditions:
-** If a config option is specified in multiple files, the last entry **overrules** the previous entries. 
+** If a config option is specified in multiple files, the last entry **overrules** the previous entries.
 ** But if a config option is specified in the first file but *unspecified* in the last file, the last entry **does not** overrule the previous entry.
 
 For examples of configuration files, see the following resources:
