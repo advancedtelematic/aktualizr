@@ -26,6 +26,8 @@ class AktualizrSecondary : public IAktualizrSecondary {
   Uptane::Manifest getManifest() const override;
   bool putMetadata(const Uptane::RawMetaPack& meta_pack) override { return putMetadata(Metadata(meta_pack)); }
   bool sendFirmware(const std::string& firmware) override;
+  data::ResultCode::Numeric sendFirmware(const uint8_t* data, size_t size) override;
+
   data::ResultCode::Numeric install(const std::string& target_name) override;
 
   MsgDispatcher& getDispatcher() { return dispatcher_; }

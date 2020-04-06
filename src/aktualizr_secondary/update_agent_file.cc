@@ -1,4 +1,5 @@
 #include "update_agent_file.h"
+#include "crypto/crypto.h"
 #include "logging/logging.h"
 #include "uptane/manifest.h"
 
@@ -25,34 +26,61 @@ bool FileUpdateAgent::getInstalledImageInfo(Uptane::InstalledImageInfo& installe
 }
 
 bool FileUpdateAgent::download(const Uptane::Target& target, const std::string& data) {
-  auto target_hashes = target.hashes();
-  if (target_hashes.size() == 0) {
-    LOG_ERROR << "No hash found in the target metadata: " << target.filename();
+  Utils::writeFile(new_target_filepath_, data);
+  auto received_target_image_size = boost::filesystem::file_size(new_target_filepath_);
+  if (received_target_image_size != target.length()) {
+    LOG_ERROR << "Received target image size does not match the size specified in metadata: "
+              << received_target_image_size << " != " << target.length();
+    boost::filesystem::remove(new_target_filepath_);
     return false;
   }
 
-  try {
-    auto received_image_data_hash = Uptane::ManifestIssuer::generateVersionHash(data);
+  new_target_hasher_ = MultiPartHasher::create(getTargetHash(target).type());
 
-    if (!target.MatchHash(received_image_data_hash)) {
-      LOG_ERROR << "The received image data hash doesn't match the hash specified in the target metadata,"
-                   " hash type: "
-                << target_hashes[0].TypeString();
-      return false;
-    }
+  new_target_hasher_->update(reinterpret_cast<const unsigned char*>(data.c_str()), data.length());
 
-    Utils::writeFile(target_filepath_, data);
-    current_target_name_ = target.filename();
-
-  } catch (const std::exception& exc) {
-    LOG_ERROR << "Failed to generate a hash of the received image data: " << exc.what();
+  if (!target.MatchHash(new_target_hasher_->getHash())) {
+    LOG_ERROR << "The received target image hash does not match the hash specified in metadata: "
+              << new_target_hasher_->getHash() << " != " << getTargetHash(target).HashString();
     return false;
   }
+
   return true;
 }
 
 data::ResultCode::Numeric FileUpdateAgent::install(const Uptane::Target& target) {
-  (void)target;
+  if (!boost::filesystem::exists(new_target_filepath_)) {
+    LOG_ERROR << "The target image has not been received";
+    return data::ResultCode::Numeric::kDownloadFailed;
+  }
+
+  auto received_target_image_size = boost::filesystem::file_size(new_target_filepath_);
+  if (received_target_image_size != target.length()) {
+    LOG_ERROR << "Received target image size does not match the size specified in metadata: "
+              << received_target_image_size << " != " << target.length();
+    boost::filesystem::remove(new_target_filepath_);
+    return data::ResultCode::Numeric::kDownloadFailed;
+  }
+
+  if (!target.MatchHash(new_target_hasher_->getHash())) {
+    LOG_ERROR << "The received target image hash does not match the hash specified in metadata: "
+              << new_target_hasher_->getHash() << " != " << getTargetHash(target).HashString();
+    return data::ResultCode::Numeric::kDownloadFailed;
+  }
+
+  boost::filesystem::rename(new_target_filepath_, target_filepath_);
+
+  if (boost::filesystem::exists(new_target_filepath_)) {
+    return data::ResultCode::Numeric::kInstallFailed;
+  }
+
+  if (!boost::filesystem::exists(target_filepath_)) {
+    LOG_ERROR << "The target image has not been installed";
+    return data::ResultCode::Numeric::kInstallFailed;
+  }
+
+  current_target_name_ = target.filename();
+  new_target_hasher_.reset();
   return data::ResultCode::Numeric::kOk;
 }
 
@@ -62,4 +90,53 @@ data::InstallationResult FileUpdateAgent::applyPendingInstall(const Uptane::Targ
   (void)target;
   return data::InstallationResult(data::ResultCode::Numeric::kInternalError,
                                   "Applying of the pending updates are not supported by the file update agent");
+}
+
+data::ResultCode::Numeric FileUpdateAgent::receiveData(const Uptane::Target& target, const uint8_t* data, size_t size) {
+  std::ofstream target_file(new_target_filepath_.c_str(),
+                            std::ofstream::out | std::ofstream::binary | std::ofstream::app);
+
+  if (!target_file.good()) {
+    LOG_ERROR << "Failed to open a new target image file";
+    return data::ResultCode::Numeric::kDownloadFailed;
+  }
+
+  auto current_new_image_size = target_file.tellp();
+  if (-1 == current_new_image_size) {
+    LOG_ERROR << "Failed to obtain a size of the new target image that is being uploaded";
+    target_file.close();
+    return data::ResultCode::Numeric::kDownloadFailed;
+  }
+
+  if (static_cast<uint64_t>(current_new_image_size) >= target.length()) {
+    LOG_ERROR << "The size of the received new target image data exceeds the target image size: "
+              << current_new_image_size << " != " << target.length();
+    target_file.close();
+    return data::ResultCode::Numeric::kDownloadFailed;
+  }
+
+  if (current_new_image_size == 0) {
+    new_target_hasher_ = MultiPartHasher::create(getTargetHash(target).type());
+  }
+
+  target_file.write(reinterpret_cast<const char*>(data), size);
+  auto written_data_size = target_file.tellp() - current_new_image_size;
+
+  if (written_data_size < 0 || static_cast<size_t>(written_data_size) != size) {
+    LOG_ERROR << "The amount of written data is not equal to amount of received data: " << written_data_size
+              << " != " << size;
+    target_file.close();
+    return data::ResultCode::Numeric::kDownloadFailed;
+  }
+
+  target_file.close();
+
+  new_target_hasher_->update(data, size);
+
+  return data::ResultCode::Numeric::kOk;
+}
+
+Hash FileUpdateAgent::getTargetHash(const Uptane::Target& target) {
+  // TODO check target.hashes() size
+  return target.hashes()[0];
 }
