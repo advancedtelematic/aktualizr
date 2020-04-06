@@ -254,3 +254,12 @@ void AktualizrSecondary::initPendingTargetIfAny() {
 
   pending_target_ = targetsForThisEcu[0];
 }
+
+data::ResultCode::Numeric AktualizrSecondary::sendFirmware(const uint8_t* data, size_t size) {
+  if (!pending_target_.IsValid()) {
+    LOG_ERROR << "Aborting image download/receiving; no valid target found.";
+    return data::ResultCode::Numeric::kGeneralError;
+  }
+
+  return update_agent_->receiveData(pending_target_, data, size);
+}

@@ -37,6 +37,10 @@ AktualizrSecondaryMsgDispatcher::AktualizrSecondaryMsgDispatcher(IAktualizrSecon
   registerHandler(AKIpUptaneMes_PR_sendFirmwareReq, std::bind(&AktualizrSecondaryMsgDispatcher::sendFirmwareHdlr, this,
                                                               std::placeholders::_1, std::placeholders::_2));
 
+  registerHandler(AKIpUptaneMes_PR_sendFirmwareDataReq,
+                  std::bind(&AktualizrSecondaryMsgDispatcher::sendFirmwareDataHdlr, this, std::placeholders::_1,
+                            std::placeholders::_2));
+
   registerHandler(AKIpUptaneMes_PR_installReq, std::bind(&AktualizrSecondaryMsgDispatcher::installHdlr, this,
                                                          std::placeholders::_1, std::placeholders::_2));
 }
@@ -118,6 +122,19 @@ MsgDispatcher::HandleStatusCode AktualizrSecondaryMsgDispatcher::sendFirmwareHdl
   out_msg.present(AKIpUptaneMes_PR_sendFirmwareResp).sendFirmwareResp()->result =
       send_firmware_result ? AKInstallationResult_success : AKInstallationResult_failure;
   ;
+
+  return HandleStatusCode::kOk;
+}
+
+MsgDispatcher::HandleStatusCode AktualizrSecondaryMsgDispatcher::sendFirmwareDataHdlr(Asn1Message& in_msg,
+                                                                                      Asn1Message& out_msg) {
+  auto fw = in_msg.sendFirmwareDataReq();
+  auto send_firmware_result =
+      secondary_.sendFirmware(in_msg.sendFirmwareDataReq()->data.buf, in_msg.sendFirmwareDataReq()->size);
+
+  out_msg.present(AKIpUptaneMes_PR_sendFirmwareResp).sendFirmwareResp()->result =
+      (send_firmware_result == data::ResultCode::Numeric::kOk) ? AKInstallationResult_success
+                                                               : AKInstallationResult_failure;
 
   return HandleStatusCode::kOk;
 }

@@ -10,6 +10,7 @@
 #include "update_agent.h"
 #include "update_agent_file.h"
 #include "uptane_repo.h"
+#include "utilities/utils.h"
 
 using ::testing::NiceMock;
 
@@ -20,12 +21,16 @@ class UpdateAgentMock : public FileUpdateAgent {
     ON_CALL(*this, download).WillByDefault([this](const Uptane::Target& target, const std::string& data) {
       return FileUpdateAgent::download(target, data);
     });
+    ON_CALL(*this, receiveData).WillByDefault([this](const Uptane::Target& target, const uint8_t* data, size_t size) {
+      return FileUpdateAgent::receiveData(target, data, size);
+    });
     ON_CALL(*this, install).WillByDefault([this](const Uptane::Target& target) {
       return FileUpdateAgent::install(target);
     });
   }
 
   MOCK_METHOD(bool, download, (const Uptane::Target& target, const std::string& data));
+  MOCK_METHOD(data::ResultCode::Numeric, receiveData, (const Uptane::Target& target, const uint8_t* data, size_t size));
   MOCK_METHOD(data::ResultCode::Numeric, install, (const Uptane::Target& target));
 };
 
@@ -75,14 +80,39 @@ class UptaneRepoWrapper {
   UptaneRepoWrapper() { uptane_repo_.generateRepo(KeyType::kED25519); }
 
   Metadata addImageFile(const std::string& targetname, const std::string& hardware_id, const std::string& serial,
-                        bool add_and_sign_target = true) {
+                        size_t size = 2049, bool add_and_sign_target = true, bool add_invalid_images = false,
+                        size_t delta = 2) {
     const auto image_file_path = root_dir_ / targetname;
-    boost::filesystem::ofstream(image_file_path) << "some data";
+    generateRandomFile(image_file_path, size);
 
     uptane_repo_.addImage(image_file_path, targetname, hardware_id, "", Delegation());
     if (add_and_sign_target) {
       uptane_repo_.addTarget(targetname, hardware_id, serial, "");
       uptane_repo_.signTargets();
+    }
+
+    if (add_and_sign_target && add_invalid_images) {
+      const auto smaller_image_file_path = image_file_path.string() + ".smaller";
+      const auto bigger_image_file_path = image_file_path.string() + ".bigger";
+      const auto broken_image_file_path = image_file_path.string() + ".broken";
+
+      boost::filesystem::copy(image_file_path, smaller_image_file_path);
+      boost::filesystem::copy(image_file_path, bigger_image_file_path);
+      boost::filesystem::copy(image_file_path, broken_image_file_path);
+
+      if (!boost::filesystem::exists(smaller_image_file_path)) {
+        LOG_ERROR << "File does not exists: " << smaller_image_file_path;
+      }
+
+      boost::filesystem::resize_file(smaller_image_file_path, size - delta);
+      boost::filesystem::resize_file(bigger_image_file_path, size + delta);
+
+      std::ofstream broken_image{broken_image_file_path,
+                                 std::ios_base::in | std::ios_base::out | std::ios_base::ate | std::ios_base::binary};
+      unsigned char data_to_inject[]{0xFF};
+      broken_image.seekp(-sizeof(data_to_inject), std::ios_base::end);
+      broken_image.write(reinterpret_cast<const char*>(data_to_inject), sizeof(data_to_inject));
+      broken_image.close();
     }
 
     return getCurrentMetadata();
@@ -102,13 +132,28 @@ class UptaneRepoWrapper {
     return metadata;
   }
 
-  std::string getImageData(const std::string& targetname) const {
-    std::string image_data;
-    boost::filesystem::load_string_file(root_dir_ / targetname, image_data);
-    return image_data;
-  }
+  std::string getTargetImagePath(const std::string& targetname) const { return (root_dir_ / targetname).string(); }
 
   void refreshRoot(Uptane::RepositoryType repo) { uptane_repo_.refresh(repo, Uptane::Role::Root()); }
+
+ private:
+  static void generateRandomFile(const boost::filesystem::path& filepath, size_t size) {
+    std::ofstream file{filepath.string(), std::ofstream::binary};
+
+    if (!file.is_open() || !file.good()) {
+      throw std::runtime_error("Failed to create a file: " + filepath.string());
+    }
+
+    const unsigned char symbols[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuv";
+    unsigned char cur_symbol;
+
+    for (unsigned int ii = 0; ii < size; ++ii) {
+      cur_symbol = symbols[rand() % sizeof(symbols)];
+      file.put(cur_symbol);
+    }
+
+    file.close();
+  }
 
  private:
   TemporaryDirectory root_dir_;
@@ -121,11 +166,8 @@ class UptaneRepoWrapper {
 class SecondaryTest : public ::testing::Test {
  protected:
   SecondaryTest() : update_agent_(*(secondary_.update_agent)) {
-    uptane_repo_.addImageFile(default_target_, secondary_->getHwId().ToString(), secondary_->getSerial().ToString());
-  }
-
-  std::string getImageData(const std::string& targetname = default_target_) const {
-    return uptane_repo_.getImageData(targetname);
+    uptane_repo_.addImageFile(default_target_, secondary_->getHwId().ToString(), secondary_->getSerial().ToString(),
+                              target_size, true, true, inavlid_target_size_delta);
   }
 
   std::vector<Uptane::Target> getCurrentTargets() {
@@ -141,11 +183,54 @@ class SecondaryTest : public ::testing::Test {
 
   Hash getDefaultTargetHash() { return Hash(Hash::Type::kSha256, getDefaultTarget().sha256Hash()); }
 
+  data::ResultCode::Numeric sendImageFile(std::string target_name = default_target_) {
+    auto image_path = uptane_repo_.getTargetImagePath(target_name);
+    size_t total_size = boost::filesystem::file_size(image_path);
+
+    std::ifstream file{image_path};
+
+    uint8_t buf[send_buffer_size];
+    size_t read_and_send_data_size = 0;
+
+    while (read_and_send_data_size < total_size) {
+      auto read_bytes = file.readsome(reinterpret_cast<char*>(buf), sizeof(buf));
+      if (read_bytes < 0) {
+        file.close();
+        return data::ResultCode::Numeric::kGeneralError;
+      }
+
+      auto result = secondary_->sendFirmware(buf, read_bytes);
+      if (result != data::ResultCode::Numeric::kOk) {
+        file.close();
+        return result;
+      }
+      read_and_send_data_size += read_bytes;
+    }
+
+    file.close();
+
+    data::ResultCode::Numeric result{data::ResultCode::Numeric::kGeneralError};
+    if (read_and_send_data_size == total_size) {
+      result = data::ResultCode::Numeric::kOk;
+    }
+
+    return result;
+  }
+
  protected:
   static constexpr const char* const default_target_{"default-target"};
+  static constexpr const char* const bigger_target_{"default-target.bigger"};
+  static constexpr const char* const smaller_target_{"default-target.smaller"};
+  static constexpr const char* const broken_target_{"default-target.broken"};
+
+  static const size_t target_size{2049};
+  static const size_t inavlid_target_size_delta{2};
+  static const size_t send_buffer_size{1024};
+
   AktualizrSecondaryWrapper secondary_;
   UptaneRepoWrapper uptane_repo_;
   NiceMock<UpdateAgentMock>& update_agent_;
+  TemporaryDirectory image_dir_;
 };
 
 class SecondaryTestNegative : public ::testing::Test,
@@ -214,11 +299,12 @@ INSTANTIATE_TEST_SUITE_P(SecondaryTestMalformedMetadata, SecondaryTestNegative,
                                            std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Targets())));
 
 TEST_F(SecondaryTest, fullUptaneVerificationPositive) {
-  EXPECT_CALL(update_agent_, download).Times(1);
+  EXPECT_CALL(update_agent_, receiveData)
+      .Times(target_size / send_buffer_size + (target_size % send_buffer_size ? 1 : 0));
   EXPECT_CALL(update_agent_, install).Times(1);
 
   ASSERT_TRUE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()));
-  ASSERT_TRUE(secondary_->sendFirmware(getImageData()));
+  ASSERT_EQ(sendImageFile(), data::ResultCode::Numeric::kOk);
   ASSERT_EQ(secondary_->install(default_target_), data::ResultCode::Numeric::kOk);
 
   // check if a file was actually updated
@@ -240,7 +326,7 @@ TEST_F(SecondaryTest, TwoImagesAndOneTarget) {
   // two images for the same ECU, just one of them is added as a target and signed
   // default image and corresponding target has been already added, just add another image
   uptane_repo_.addImageFile("second_image_00", secondary_->getHwId().ToString(), secondary_->getSerial().ToString(),
-                            false);
+                            target_size, false, false);
   EXPECT_TRUE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()));
 }
 
@@ -249,7 +335,8 @@ TEST_F(SecondaryTest, IncorrectTargetQuantity) {
     // two targets for the same ECU
     uptane_repo_.addImageFile("second_target", secondary_->getHwId().ToString(), secondary_->getSerial().ToString());
 
-    EXPECT_FALSE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()));
+    auto meta = uptane_repo_.getCurrentMetadata();
+    EXPECT_FALSE(secondary_->putMetadata(meta));
   }
 
   {
@@ -279,25 +366,37 @@ TEST_F(SecondaryTest, ImageRootVersionIncremented) {
   EXPECT_TRUE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()));
 }
 
-TEST_F(SecondaryTest, InvalidImageFileSize) {
-  EXPECT_CALL(update_agent_, download).Times(1);
-  EXPECT_CALL(update_agent_, install).Times(0);
+TEST_F(SecondaryTest, SmallerImageFileSize) {
+  EXPECT_CALL(update_agent_, receiveData)
+      .Times((target_size - inavlid_target_size_delta) / send_buffer_size +
+             ((target_size - inavlid_target_size_delta) % send_buffer_size ? 1 : 0));
+  EXPECT_CALL(update_agent_, install).Times(1);
 
   EXPECT_TRUE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()));
-  auto image_data = getImageData();
-  image_data.append("\n");
-  EXPECT_FALSE(secondary_->sendFirmware(image_data));
+
+  EXPECT_EQ(sendImageFile(smaller_target_), data::ResultCode::Numeric::kOk);
+  EXPECT_NE(secondary_->install(default_target_), data::ResultCode::Numeric::kOk);
+}
+
+TEST_F(SecondaryTest, BiggerImageFileSize) {
+  EXPECT_CALL(update_agent_, receiveData)
+      .Times((target_size + inavlid_target_size_delta) / send_buffer_size +
+             ((target_size + inavlid_target_size_delta) % send_buffer_size ? 1 : 0));
+  EXPECT_CALL(update_agent_, install).Times(1);
+
+  EXPECT_TRUE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()));
+
+  EXPECT_EQ(sendImageFile(bigger_target_), data::ResultCode::Numeric::kOk);
   EXPECT_NE(secondary_->install(default_target_), data::ResultCode::Numeric::kOk);
 }
 
 TEST_F(SecondaryTest, InvalidImageData) {
-  EXPECT_CALL(update_agent_, download).Times(1);
-  EXPECT_CALL(update_agent_, install).Times(0);
+  EXPECT_CALL(update_agent_, receiveData)
+      .Times(target_size / send_buffer_size + (target_size % send_buffer_size ? 1 : 0));
+  EXPECT_CALL(update_agent_, install).Times(1);
 
   EXPECT_TRUE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()));
-  auto image_data = getImageData();
-  image_data.operator[](3) = '0';
-  EXPECT_FALSE(secondary_->sendFirmware(image_data));
+  EXPECT_EQ(sendImageFile(broken_target_), data::ResultCode::Numeric::kOk);
   EXPECT_NE(secondary_->install(default_target_), data::ResultCode::Numeric::kOk);
 }
 
