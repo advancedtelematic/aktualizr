@@ -8,7 +8,7 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
-include::_partials/aktualizr-version.adoc[]
+include::partial$aktualizr-version.adoc[]
 
 Every time you bitbake a new image, it is automatically pushed to {product-name}. You can then send the updated image out to any of your devices. In this guide, you learn a few ways to push updated system images from your build machine or workstation to {product-name-short}.
 

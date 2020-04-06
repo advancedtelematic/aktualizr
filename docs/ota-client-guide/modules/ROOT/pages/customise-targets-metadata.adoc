@@ -7,7 +7,7 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
-include::_partials/aktualizr-version.adoc[]
+include::partial$aktualizr-version.adoc[]
 
 In some cases, you might find it useful to include extra metadata about your software inside the signed Uptane metadata that OTA Connect delivers to your device. Some reasons you might want to do this include:
 
