@@ -1456,6 +1456,16 @@ void SQLStorage::storeDeviceInstallationResult(const data::InstallationResult& r
   }
 }
 
+bool SQLStorage::storeDeviceInstallationRawReport(const std::string& raw_report) {
+  SQLite3Guard db = dbConnection();
+  auto statement = db.prepareStatement<std::string>("UPDATE device_installation_result SET raw_report=?;", raw_report);
+  if (statement.step() != SQLITE_DONE || sqlite3_changes(db.get()) != 1) {
+    LOG_ERROR << "Can't set device raw report result: " << db.errmsg();
+    return false;
+  }
+  return true;
+}
+
 bool SQLStorage::loadDeviceInstallationResult(data::InstallationResult* result, std::string* raw_report,
                                               std::string* correlation_id) const {
   SQLite3Guard db = dbConnection();
