@@ -8,6 +8,7 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
+include::ota-client::partial$aktualizr-version.adoc[]
 
 :page-layout: page
 :page-categories: [quickstarts]
@@ -22,7 +23,7 @@ endif::[]
 
 // Most of the content here is the same as the Raspberry Pi instructions, so we re-use the chunks we can.
 
-include::build-raspberry.adoc[tags=prereqs]
+include::ota-client::page$build-raspberry.adoc[tags=prereqs]
 
 == Create your AGL Yocto build environment
 
@@ -67,7 +68,7 @@ By default, AGL for QEMU boots into an initrd before loading the root filesystem
 AGL_DEFAULT_INITRAMFS_FSTYPES = "cpio.gz"
 ----
 
-include::build-raspberry.adoc[tags=config]
+include::ota-client::page$build-raspberry.adoc[tags=config]
 
 == Bitbake
 
