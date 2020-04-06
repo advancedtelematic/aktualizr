@@ -89,6 +89,12 @@ IpUptane DEFINITIONS ::= BEGIN
     ...
   }
 
+  AKSendFirmwareDataReqMes ::= SEQUENCE {
+    data OCTET STRING,
+    size INTEGER,
+    ...
+  }
+
   AKSendFirmwareRespMes ::= SEQUENCE {
     result AKInstallationResult,
     ...
@@ -112,9 +118,10 @@ IpUptane DEFINITIONS ::= BEGIN
     putMetaReq [4] AKPutMetaReqMes,
     putMetaResp [5] AKPutMetaRespMes,
     sendFirmwareReq [6] AKSendFirmwareReqMes,
-    sendFirmwareResp [7] AKSendFirmwareRespMes,
-    installReq [8] AKInstallReqMes,
-    installResp [9] AKInstallRespMes,
+    sendFirmwareDataReq [7] AKSendFirmwareDataReqMes,
+    sendFirmwareResp [8] AKSendFirmwareRespMes,
+    installReq [9] AKInstallReqMes,
+    installResp [10] AKInstallRespMes,
     ...
   }
 
