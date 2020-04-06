@@ -8,6 +8,7 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
+include::ota-client::partial$aktualizr-version.adoc[]
 
 :page-layout: page
 :page-categories: [quickstarts]
@@ -22,7 +23,7 @@ endif::[]
 
 // Most of the content here is the same as the Raspberry Pi instructions, so we re-use the chunks we can.
 
-include::build-raspberry.adoc[tags=prereqs]
+include::ota-client::page$build-raspberry.adoc[tags=prereqs]
 
 == Create your AGL Yocto build environment
 
@@ -57,7 +58,7 @@ source meta-agl/scripts/aglsetup.sh -m <target-architecture> agl-demo agl-appfw-
 
 IMPORTANT: Only `raspberrypi3` and `qemux86-64` will work out of the box. If you want to create an {product-name-short}-compatible build for one of the other architectures AGL supports, you'll need to write a BSP layer for that board. You can take the link:https://github.com/advancedtelematic/meta-updater-raspberrypi/tree/morty/recipes-bsp[Raspberry Pi BSP] as an example of what's needed. You can also link:mailto:otaconnect.support@here.com[contact us directly] to inquire about commercial development of BSP layers for specific boards.
 
-include::build-raspberry.adoc[tags=config;bitbake]
+include::ota-client::page$build-raspberry.adoc[tags=config;bitbake]
 
 == Put the built image on your device's boot media
 
