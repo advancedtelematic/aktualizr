@@ -8,6 +8,7 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
+include::ota-client::partial$aktualizr-version.adoc[]
 
 :page-layout: page
 :page-categories: [quickstarts]
