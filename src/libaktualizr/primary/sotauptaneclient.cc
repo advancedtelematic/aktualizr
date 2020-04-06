@@ -933,7 +933,7 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
     // stuck in an unrecoverable state here
     if (!waitSecondariesReachable(updates)) {
       result.dev_report = {false, data::ResultCode::Numeric::kInternalError, "Unreachable secondary"};
-      return std::make_tuple(result, "Secondaries were not available", false);
+      return std::make_tuple(result, "Secondaries were not available", true);
     }
 
     // Uptane step 5 (send time to all ECUs) is not implemented yet.
