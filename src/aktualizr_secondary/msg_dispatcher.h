@@ -41,6 +41,7 @@ class AktualizrSecondaryMsgDispatcher : public MsgDispatcher {
   HandleStatusCode getManifestHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
   HandleStatusCode putMetaHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
   HandleStatusCode sendFirmwareHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
+  HandleStatusCode sendFirmwareDataHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
   HandleStatusCode installHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
 
  private:

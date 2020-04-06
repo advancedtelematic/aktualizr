@@ -13,7 +13,10 @@ class IAktualizrSecondary {
   virtual std::tuple<Uptane::EcuSerial, Uptane::HardwareIdentifier, PublicKey> getInfo() const = 0;
   virtual Uptane::Manifest getManifest() const = 0;
   virtual bool putMetadata(const Uptane::RawMetaPack& meta_pack) = 0;
+
   virtual bool sendFirmware(const std::string& firmware) = 0;
+
+  virtual data::ResultCode::Numeric sendFirmware(const uint8_t* data, size_t size) = 0;
   virtual data::ResultCode::Numeric install(const std::string& target_name) = 0;
 
  public:
