@@ -7,7 +7,7 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
-include::_partials/aktualizr-version.adoc[]
+include::partial$aktualizr-version.adoc[]
 
 To avoid conflicts and certain classes of bugs, we require the use of `usrmerge`, even on systems that do not use systemd. In the https://www.yoctoproject.org/docs/{yocto-version}/mega-manual/mega-manual.html[Yocto] ecosystem, it is a general best practice to write `do_install()` functions that install to the variable `\{bindir}`, but some recipes still hard-code the location of `/bin`.
 
