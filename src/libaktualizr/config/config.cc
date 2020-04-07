@@ -128,7 +128,7 @@ void Config::postUpdateValues() {
     if (!tls.server_url_path.empty()) {
       try {
         tls.server = Utils::readFile(tls.server_url_path, true);
-      } catch (const boost::filesystem::filesystem_error& e) {
+      } catch (const std::exception& e) {
         LOG_ERROR << "Couldn't read gateway URL: " << e.what();
         tls.server = "";
       }
