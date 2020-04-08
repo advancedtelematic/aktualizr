@@ -268,6 +268,10 @@ Json::Value SotaUptaneClient::AssembleManifest() {
   std::string correlation_id;
   bool has_results = storage->loadDeviceInstallationResult(&dev_result, &raw_report, &correlation_id);
   if (has_results) {
+    if (!(dev_result.isSuccess() || dev_result.needCompletion())) {
+      director_repo.dropTargets(*storage);  // fix for OTA-2587, listen to backend again after end of install
+    }
+
     installation_report["result"] = dev_result.toJson();
     installation_report["raw_report"] = raw_report;
     installation_report["correlation_id"] = correlation_id;
@@ -892,17 +896,12 @@ result::UpdateStatus SotaUptaneClient::checkUpdatesOffline(const std::vector<Upt
 result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> &updates) {
   const std::string &correlation_id = director_repo.getCorrelationId();
 
-  // clear all old results first
-  storage->clearInstallationResults();
-
   // put most of the logic in a lambda so that we can take care of common
   // post-operations
   result::Install r;
   std::string raw_report;
-  bool drop_targets = false;
 
-  std::tie(r, raw_report, drop_targets) = [this, &updates,
-                                           &correlation_id]() -> std::tuple<result::Install, std::string, bool> {
+  std::tie(r, raw_report) = [this, &updates, &correlation_id]() -> std::tuple<result::Install, std::string> {
     result::Install result;
 
     // Recheck the Uptane metadata and make sure the requested updates are
@@ -914,7 +913,7 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
       } else {
         result.dev_report = {false, data::ResultCode::Numeric::kInternalError, ""};
       }
-      return std::make_tuple(result, "Stored Uptane metadata is invalid", false);
+      return std::make_tuple(result, "Stored Uptane metadata is invalid");
     }
 
     Uptane::EcuSerial primary_ecu_serial = primaryEcuSerial();
@@ -928,7 +927,7 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
         // if they differ signficantly as ostree has a certain cap/limit of the diff it pulls
         if (package_manager_->verifyTarget(update) != TargetStatus::kGood) {
           result.dev_report = {false, data::ResultCode::Numeric::kInternalError, ""};
-          return std::make_tuple(result, "Downloaded target is invalid", false);
+          return std::make_tuple(result, "Downloaded target is invalid");
         }
       }
     }
@@ -938,8 +937,8 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
     // phase if the targets have not been changed. This is done to avoid being
     // stuck in an unrecoverable state here
     if (!waitSecondariesReachable(updates)) {
-      result.dev_report = {false, data::ResultCode::Numeric::kInternalError, "Unreachable Secondary"};
-      return std::make_tuple(result, "Secondaries were not available", true);
+      result.dev_report = {false, data::ResultCode::Numeric::kInternalError, "Unreachable secondary"};
+      return std::make_tuple(result, "Secondaries were not available");
     }
 
     // Uptane step 5 (send time to all ECUs) is not implemented yet.
@@ -948,7 +947,7 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
     //   6 - send metadata to all the ECUs
     if (!sendMetadataToEcus(updates)) {
       result.dev_report = {false, data::ResultCode::Numeric::kInternalError, "Metadata verification failed"};
-      return std::make_tuple(result, "Secondary metadata verification failed", true);
+      return std::make_tuple(result, "Secondary metadata verification failed");
     }
 
     //   7 - send images to ECUs (deploy for OSTree)
@@ -1001,17 +1000,13 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
     std::string rr;
     computeDeviceInstallationResult(&result.dev_report, &rr);
 
-    return std::make_tuple(result, rr, !(result.dev_report.isSuccess() || result.dev_report.needCompletion()));
+    return std::make_tuple(result, rr);
   }();
 
   // TODO(OTA-2178): think of exception handling; the SQLite related code can throw exceptions
   storage->storeDeviceInstallationResult(r.dev_report, raw_report, correlation_id);
 
   sendEvent<event::AllInstallsComplete>(r);
-
-  if (drop_targets) {
-    director_repo.dropTargets(*storage);  // fix for OTA-2587, listen to backend again after end of install
-  }
 
   return r;
 }
@@ -1084,6 +1079,7 @@ bool SotaUptaneClient::putManifestSimple(const Json::Value &custom) {
     }
     connected = true;
     storage->clearInstallationResults();
+
     return true;
   } else {
     connected = false;
