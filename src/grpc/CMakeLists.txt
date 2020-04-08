@@ -11,6 +11,10 @@ set(_PROTOBUF_PROTOC $<TARGET_FILE:protobuf::protoc>)
 # Looks for gRPCConfig.cmake file installed by gRPC's cmake installation.
 message(STATUS "Using gRPC ${gRPC_VERSION}")
 
+find_library(_GRPC_GPR gpr)
+find_library(_GRPC_CARES cares)
+find_library(_GRPC_ADDRESS_SORTING address_sorting)
+find_library(_GRPC_GRPC_UNSECURE grpc_unsecure)
 find_library(_GRPC_GRPCPP_UNSECURE grpc++_unsecure)
 find_program(_GRPC_CPP_PLUGIN_EXECUTABLE grpc_cpp_plugin)
 
@@ -48,7 +52,13 @@ aktualizr_source_file_checks(main.cc)
 add_definitions("-Wno-array-bounds")
 add_executable(${TARGET_NAME} ${SOURCES})
 
-target_link_libraries(${TARGET_NAME} aktualizr_lib ${_GRPC_GRPCPP_UNSECURE} ${_PROTOBUF_LIBPROTOBUF})
+target_link_libraries(${TARGET_NAME} aktualizr_lib
+  ${_PROTOBUF_LIBPROTOBUF}
+  ${_GRPC_GRPCPP_UNSECURE}
+  ${_GRPC_GRPC_UNSECURE}
+  ${_GRPC_GPR}
+  ${_GRPC_CARES}
+  ${_GRPC_ADDRESS_SORTING})
 
 install(TARGETS ${TARGET_NAME} RUNTIME DESTINATION bin COMPONENT ${TARGET_NAME})
 
