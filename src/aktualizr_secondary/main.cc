@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
     LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
 
     auto secondary = AktualizrSecondaryFactory::create(config);
-    SecondaryTcpServer tcp_server(*secondary, config.network.primary_ip, config.network.primary_port,
+    SecondaryTcpServer tcp_server(secondary->getDispatcher(), config.network.primary_ip, config.network.primary_port,
                                   config.network.port, config.uptane.force_install_completion);
 
     tcp_server.run();

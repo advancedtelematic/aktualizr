@@ -110,7 +110,7 @@ class AktualizrSecondaryWrapper {
   }
 
  public:
-  Uptane::SecondaryInterface::Ptr& operator->() { return _secondary; }
+  AktualizrSecondary::Ptr& operator->() { return _secondary; }
 
   Uptane::Target getPendingVersion() const { return getVersion().first; }
 
@@ -139,7 +139,7 @@ class AktualizrSecondaryWrapper {
   TemporaryDirectory _storage_dir;
   AktualizrSecondaryConfig _config;
   std::shared_ptr<INvStorage> _storage;
-  Uptane::SecondaryInterface::Ptr _secondary;
+  AktualizrSecondary::Ptr _secondary;
 };
 
 class UptaneRepoWrapper {

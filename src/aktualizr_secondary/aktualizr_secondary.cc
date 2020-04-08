@@ -14,7 +14,8 @@ AktualizrSecondary::AktualizrSecondary(AktualizrSecondaryConfig config, std::sha
     : config_(std::move(config)),
       storage_(std::move(storage)),
       keys_(std::move(key_mngr)),
-      update_agent_(std::move(update_agent)) {
+      update_agent_(std::move(update_agent)),
+      dispatcher_(*this) {
   uptaneInitialize();
   manifest_issuer_ = std::make_shared<Uptane::ManifestIssuer>(keys_, ecu_serial_);
   initPendingTargetIfAny();
@@ -60,6 +61,10 @@ Uptane::HardwareIdentifier AktualizrSecondary::getHwId() const { return hardware
 
 PublicKey AktualizrSecondary::getPublicKey() const { return keys_->UptanePublicKey(); }
 
+std::tuple<Uptane::EcuSerial, Uptane::HardwareIdentifier, PublicKey> AktualizrSecondary::getInfo() const {
+  return std::tuple<Uptane::EcuSerial, Uptane::HardwareIdentifier, PublicKey>{getSerial(), getHwId(), getPublicKey()};
+}
+
 Uptane::Manifest AktualizrSecondary::getManifest() const {
   Uptane::InstalledImageInfo installed_image_info;
   Uptane::Manifest manifest;
@@ -68,24 +73,6 @@ Uptane::Manifest AktualizrSecondary::getManifest() const {
   }
 
   return manifest;
-}
-
-int32_t AktualizrSecondary::getRootVersion(bool director) const {
-  std::string root_meta;
-  if (!storage_->loadLatestRoot(&root_meta,
-                                (director) ? Uptane::RepositoryType::Director() : Uptane::RepositoryType::Image())) {
-    LOG_ERROR << "Could not load Root metadata";
-    return -1;
-  }
-
-  return Uptane::extractVersionUntrusted(root_meta);
-}
-
-bool AktualizrSecondary::putRoot(const std::string& root, bool director) {
-  (void)root;
-  (void)director;
-  LOG_ERROR << "putRootResp is not implemented yet";
-  return false;
 }
 
 bool AktualizrSecondary::putMetadata(const Metadata& metadata) { return doFullVerification(metadata); }

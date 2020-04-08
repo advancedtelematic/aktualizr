@@ -7,6 +7,7 @@ set(AKTUALIZR_SECONDARY_LIB_SRC
     aktualizr_secondary_config.cc
     aktualizr_secondary_metadata.cc
     secondary_tcp_server.cc
+    msg_dispatcher.cc
     )
 
 # do not link tests with libaktualizr
@@ -47,6 +48,8 @@ set(ALL_AKTUALIZR_SECONDARY_HEADERS
     aktualizr_secondary_config.h
     aktualizr_secondary_metadata.h
     secondary_tcp_server.h
+    aktualizr_secondary_interface.h
+    msg_dispatcher.h
     )
 
 # insert in front, so that the order matches the dependencies to the system libraries
@@ -55,8 +58,8 @@ list(INSERT TEST_LIBS 0 aktualizr_secondary_lib)
 add_aktualizr_test(NAME aktualizr_secondary_config
     SOURCES aktualizr_secondary_config_test.cc PROJECT_WORKING_DIRECTORY LIBRARIES aktualizr_secondary_lib)
 
-add_aktualizr_test(NAME secondary_tcp_server
-                   SOURCES secondary_tcp_server_test.cc PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME secondary_rpc
+                   SOURCES secondary_rpc_test.cc PROJECT_WORKING_DIRECTORY)
 
 if(BUILD_OSTREE)
     target_sources(aktualizr_secondary_lib PRIVATE update_agent_ostree.cc)

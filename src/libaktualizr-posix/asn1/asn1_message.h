@@ -61,7 +61,10 @@ class Asn1Message {
   }
 
   AKIpUptaneMes_PR present() const { return msg_.present; }
-  void present(AKIpUptaneMes_PR present) { msg_.present = present; }
+  Asn1Message& present(AKIpUptaneMes_PR present) {
+    msg_.present = present;
+    return *this;
+  }
 
 #define ASN1_MESSAGE_DEFINE_ACCESSOR(MessageType, FieldName)                                                         \
   SubPtr<MessageType> FieldName() {                                                                                  \
@@ -78,6 +81,28 @@ class Asn1Message {
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKSendFirmwareRespMes_t, sendFirmwareResp);
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKInstallReqMes_t, installReq);
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKInstallRespMes_t, installResp);
+
+#define ASN1_MESSAGE_DEFINE_STR_NAME(MessageID) \
+  case MessageID:                               \
+    return #MessageID;
+
+  const char* toStr() {
+    switch (present()) {
+      default:
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_NOTHING);
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_getInfoReq);
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_getInfoResp);
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_manifestReq);
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_manifestResp);
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_putMetaReq);
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_putMetaResp);
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_sendFirmwareReq);
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_sendFirmwareResp);
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_installReq);
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_installResp);
+    }
+    return "Unknown";
+  };
 
   /**
    * The underlying message structure. This is public to simplify calls to
