@@ -27,6 +27,8 @@ DockerAppManagerConfig::DockerAppManagerConfig(const PackageConfig &pconfig) {
   }
 
   if (raw.count("docker_prune") == 1) {
-    docker_compose_bin = raw.at("docker_prune");
+    std::string val = raw.at("docker_prune");
+    boost::algorithm::to_lower(val);
+    docker_prune = val != "0" && val != "false";
   }
 }
