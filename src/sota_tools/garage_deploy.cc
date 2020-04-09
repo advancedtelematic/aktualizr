@@ -1,3 +1,4 @@
+#include <chrono>
 #include <string>
 
 #include <boost/filesystem.hpp>
@@ -16,6 +17,8 @@ namespace po = boost::program_options;
 
 int main(int argc, char **argv) {
   logger_init();
+
+  auto start_time = std::chrono::system_clock::now();
 
   int verbosity;
   std::string ostree_commit;
@@ -137,6 +140,10 @@ int main(int argc, char **argv) {
     LOG_FATAL << e.what();
     return EXIT_FAILURE;
   }
+
+  auto end_time = std::chrono::system_clock::now();
+  std::chrono::duration<double> diff_time = end_time - start_time;
+  LOG_INFO << "Total runtime: " << diff_time.count() << " seconds.";
 
   return EXIT_SUCCESS;
 }

@@ -50,6 +50,8 @@ class OSTreeObject {
   /* Process a completed curl transaction (presence check or upload). */
   void CurlDone(CURLM* curl_multi_handle, RequestPool& pool);
 
+  uintmax_t GetSize() { return boost::filesystem::file_size(file_path_); }
+
   PresenceOnServer is_on_server() const { return is_on_server_; }
   CurrentOp operation() const { return current_operation_; }
   bool children_ready() { return children_.empty(); }

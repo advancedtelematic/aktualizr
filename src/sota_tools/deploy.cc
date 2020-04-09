@@ -50,7 +50,9 @@ bool UploadToTreehub(const OSTreeRepo::ptr &src_repo, TreehubServer &push_server
 
   if (root_object->is_on_server() == PresenceOnServer::kObjectPresent) {
     if (mode == RunMode::kDefault || mode == RunMode::kPushTree) {
-      LOG_INFO << "Upload to Treehub complete after " << request_pool.total_requests_made() << " requests";
+      LOG_INFO << "Upload to Treehub complete after " << request_pool.head_requests_made() << " HEAD requests and "
+               << request_pool.put_requests_made() << " PUT requests.";
+      LOG_INFO << "Total size of uploaded objects: " << request_pool.total_object_size() << " bytes.";
     } else {
       LOG_INFO << "Dry run. No objects uploaded.";
     }
