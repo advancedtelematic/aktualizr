@@ -1,12 +1,12 @@
 = OTA Connect Developer Guide
 
-This directory contains the source of our **OTA Connect Developer Guide** which is published to our https://docs.ota.here.com[documentation portal].
+The `ota-client-guide` subdirectory contains the source of our **OTA Connect Developer Guide** which is published to our https://docs.ota.here.com[documentation portal].
 
 You can also read the source files for this guide. To read this guide locally or in GitHub, start with the xref:ota-client-guide/modules/ROOT/nav.adoc[table of contents].
 
 [NOTE]
 ====
-Content includes, such as code snippets or reused text snippets will not render correctly in Github.
+Some elements, such as code snippets or reused text snippets, will not render correctly in Github.
 ====
 
 == Reference documentation

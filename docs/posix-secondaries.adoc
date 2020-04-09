@@ -1,1 +1,0 @@
-./ota-client-guide/modules/ROOT/pages/posix-secondaries.adoc
