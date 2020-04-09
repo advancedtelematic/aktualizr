@@ -56,7 +56,8 @@ void RequestPool::LoopLaunch() {
       cur = upload_queue_.front();
       upload_queue_.pop_front();
       cur->Upload(server_, multi_, mode_);
-      total_requests_made_++;
+      put_requests_made_++;
+      total_object_size_ += cur->GetSize();
       if (mode_ == RunMode::kDryRun || mode_ == RunMode::kWalkTree) {
         // Don't send an actual upload message, just skip to the part where we
         // acknowledge that the object has been uploaded.
@@ -66,7 +67,7 @@ void RequestPool::LoopLaunch() {
       cur = query_queue_.front();
       query_queue_.pop_front();
       cur->MakeTestRequest(server_, multi_);
-      total_requests_made_++;
+      head_requests_made_++;
     }
 
     running_requests_++;

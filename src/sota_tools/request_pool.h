@@ -33,7 +33,9 @@ class RequestPool {
    * The number of HEAD + PUT requests that have been sent to curl. This
    * includes requests that eventually returned 500 and get retried.
    */
-  int total_requests_made() { return total_requests_made_; }
+  int put_requests_made() { return put_requests_made_; }
+  int head_requests_made() { return head_requests_made_; }
+  uintmax_t total_object_size() { return total_object_size_; }
 
  private:
   void LoopLaunch();  // launches multiple requests from the queues
@@ -41,7 +43,9 @@ class RequestPool {
 
   RateController rate_controller_;
   int running_requests_;
-  int total_requests_made_{0};
+  int head_requests_made_{0};
+  int put_requests_made_{0};
+  uintmax_t total_object_size_{0};
   TreehubServer& server_;
   CURLM* multi_;
   std::list<OSTreeObject::ptr> query_queue_;

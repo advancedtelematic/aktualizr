@@ -24,7 +24,7 @@ OSTreeObject::OSTreeObject(const OSTreeRepo &repo, const std::string &object_nam
       curl_handle_(nullptr),
       fd_(nullptr) {
   if (!boost::filesystem::is_regular_file(file_path_)) {
-    throw std::runtime_error(file_path_.native() + " is not a valid OSTree repo.");
+    throw std::runtime_error(file_path_.native() + " is not a valid OSTree object.");
   }
 }
 
