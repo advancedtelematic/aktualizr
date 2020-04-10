@@ -7,7 +7,7 @@
 
 #include "utilities/utils.h"
 
-class MsgDispatcher;
+class MsgHandler;
 
 /**
  * Listens on a socket, decodes calls (ASN.1) and forwards them to an Uptane Secondary
@@ -21,7 +21,7 @@ class SecondaryTcpServer {
     kUnkown,
   };
 
-  SecondaryTcpServer(MsgDispatcher& msg_dispatcher, const std::string& primary_ip, in_port_t primary_port,
+  SecondaryTcpServer(MsgHandler& msg_dispatcher, const std::string& primary_ip, in_port_t primary_port,
                      in_port_t port = 0, bool reboot_after_install = false);
 
   SecondaryTcpServer(const SecondaryTcpServer&) = delete;
@@ -43,7 +43,7 @@ class SecondaryTcpServer {
   bool HandleOneConnection(int socket);
 
  private:
-  MsgDispatcher& msg_dispatcher_;
+  MsgHandler& msg_handler_;
   ListenSocket listen_socket_;
   std::atomic<bool> keep_running_;
   bool reboot_after_install_;

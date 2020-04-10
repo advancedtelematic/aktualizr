@@ -12,9 +12,11 @@ class UpdateAgent {
   virtual bool isTargetSupported(const Uptane::Target& target) const = 0;
   virtual bool getInstalledImageInfo(Uptane::InstalledImageInfo& installed_image_info) const = 0;
 
-  virtual bool download(const Uptane::Target& target, const std::string& data) = 0;
-  virtual data::ResultCode::Numeric receiveData(const Uptane::Target& target, const uint8_t* data, size_t size) = 0;
+  //  virtual bool download(const Uptane::Target& target, const std::string& data) = 0;
+  //  virtual data::ResultCode::Numeric receiveData(const Uptane::Target& target, const uint8_t* data, size_t size) = 0;
+
   virtual data::ResultCode::Numeric install(const Uptane::Target& target) = 0;
+
   virtual void completeInstall() = 0;
   virtual data::InstallationResult applyPendingInstall(const Uptane::Target& target) = 0;
 

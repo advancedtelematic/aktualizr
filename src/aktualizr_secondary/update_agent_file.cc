@@ -23,29 +23,6 @@ bool FileUpdateAgent::getInstalledImageInfo(Uptane::InstalledImageInfo& installe
   return true;
 }
 
-bool FileUpdateAgent::download(const Uptane::Target& target, const std::string& data) {
-  Utils::writeFile(new_target_filepath_, data);
-  auto received_target_image_size = boost::filesystem::file_size(new_target_filepath_);
-  if (received_target_image_size != target.length()) {
-    LOG_ERROR << "Received target image size does not match the size specified in metadata: "
-              << received_target_image_size << " != " << target.length();
-    boost::filesystem::remove(new_target_filepath_);
-    return false;
-  }
-
-  new_target_hasher_ = MultiPartHasher::create(getTargetHash(target).type());
-
-  new_target_hasher_->update(reinterpret_cast<const unsigned char*>(data.c_str()), data.length());
-
-  if (!target.MatchHash(new_target_hasher_->getHash())) {
-    LOG_ERROR << "The received target image hash does not match the hash specified in metadata: "
-              << new_target_hasher_->getHash() << " != " << getTargetHash(target).HashString();
-    return false;
-  }
-
-  return true;
-}
-
 data::ResultCode::Numeric FileUpdateAgent::install(const Uptane::Target& target) {
   if (!boost::filesystem::exists(new_target_filepath_)) {
     LOG_ERROR << "The target image has not been received";

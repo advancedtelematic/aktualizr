@@ -6,12 +6,15 @@
 
 #include "aktualizr_secondary.h"
 #include "aktualizr_secondary_config.h"
-#include "aktualizr_secondary_factory.h"
 #include "utilities/aktualizr_version.h"
 #include "utilities/utils.h"
 
+#include "aktualizr_secondary_file.h"
 #include "logging/logging.h"
 #include "secondary_tcp_server.h"
+#ifdef BUILD_OSTREE
+#include "aktualizr_secondary_ostree.h"
+#endif
 
 namespace bpo = boost::program_options;
 
@@ -85,10 +88,18 @@ int main(int argc, char *argv[]) {
   int ret = EXIT_SUCCESS;
   try {
     AktualizrSecondaryConfig config(commandline_map);
-    LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
+    AktualizrSecondary::Ptr secondary;
 
-    auto secondary = AktualizrSecondaryFactory::create(config);
-    SecondaryTcpServer tcp_server(secondary->getDispatcher(), config.network.primary_ip, config.network.primary_port,
+    if (config.pacman.type != PACKAGE_MANAGER_OSTREE) {
+      secondary = std::make_shared<AktualizrSecondaryFile>(config);
+    }
+#ifdef BUILD_OSTREE
+    else {
+      secondary = std::make_shared<AktualizrSecondaryOstree>(config);
+    }
+#endif  // BUILD_OSTREE
+
+    SecondaryTcpServer tcp_server(*secondary, config.network.primary_ip, config.network.primary_port,
                                   config.network.port, config.uptane.force_install_completion);
 
     tcp_server.run();

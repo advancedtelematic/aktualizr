@@ -32,16 +32,20 @@ class IpUptaneSecondary : public SecondaryInterface {
   int32_t getRootVersion(bool /* director */) const override { return 0; }
   bool putRoot(const std::string& /* root */, bool /* director */) override { return true; }
   // bool sendFirmware(const std::string& data) override;
-  data::ResultCode::Numeric install(const Uptane::Target& target) override;
   Manifest getManifest() const override;
   bool ping() const override;
+  data::ResultCode::Numeric install(const Uptane::Target& target) override;
 
  private:
   const std::pair<std::string, uint16_t>& getAddr() const { return addr_; }
   data::ResultCode::Numeric install_v1(const Uptane::Target& target);
-  data::ResultCode::Numeric install_v2(const Uptane::Target& target);
   bool sendFirmware(const std::string& data);
-  bool sendFirmwareData(const uint8_t* data, size_t size);
+  data::ResultCode::Numeric invokeInstallOnSecondary(const Uptane::Target& target);
+
+  data::ResultCode::Numeric install_v2(const Uptane::Target& target);
+  data::ResultCode::Numeric downloadOstreeRev(const Uptane::Target& target);
+  data::ResultCode::Numeric uploadFirmware(const Uptane::Target& target);
+  bool uploadFirmwareData(const uint8_t* data, size_t size);
 
  private:
   std::mutex install_mutex;
