@@ -58,8 +58,8 @@ def test_secondary_update_if_primary_starts_first(uptane_repo, secondary, aktual
 
 @with_uptane_backend()
 @with_director()
-@with_secondary(start=False)
-@with_aktualizr(start=False, output_logs=False)
+@with_secondary(start=False, output_logs=True)
+@with_aktualizr(start=False, output_logs=True)
 def test_secondary_update(uptane_repo, secondary, aktualizr, director, **kwargs):
     '''Test Secondary update if a boot order of Secondary and Primary is undefined'''
 

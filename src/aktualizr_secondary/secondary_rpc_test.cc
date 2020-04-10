@@ -2,15 +2,14 @@
 
 #include <netinet/tcp.h>
 
-#include "aktualizr_secondary_interface.h"
 #include "ipuptanesecondary.h"
 #include "logging/logging.h"
-#include "msg_dispatcher.h"
+#include "msg_handler.h"
 #include "secondary_tcp_server.h"
 #include "storage/invstorage.h"
 #include "test_utils.h"
 
-class SecondaryMock : public IAktualizrSecondary {
+class SecondaryMock : public MsgDispatcher {
  public:
   SecondaryMock(const Uptane::EcuSerial& serial, const Uptane::HardwareIdentifier& hdw_id, const PublicKey& pub_key,
                 const Uptane::Manifest& manifest)
@@ -18,33 +17,107 @@ class SecondaryMock : public IAktualizrSecondary {
         hdw_id_(hdw_id),
         pub_key_(pub_key),
         manifest_(manifest),
-        msg_dispatcher_{*this},
         image_filepath_{image_dir_ / "image.bin"},
-        hasher_{MultiPartHasher::create(Hash::Type::kSha256)} {}
+        hasher_{MultiPartHasher::create(Hash::Type::kSha256)} {
+    registerHandler(AKIpUptaneMes_PR_getInfoReq,
+                    std::bind(&SecondaryMock::getInfoHdlr, this, std::placeholders::_1, std::placeholders::_2));
 
- public:
-  MsgDispatcher& getDispatcher() { return msg_dispatcher_; }
-  Uptane::EcuSerial getSerial() const { return serial_; }
-  Uptane::HardwareIdentifier getHwId() const { return hdw_id_; }
-  PublicKey getPublicKey() const { return pub_key_; }
+    registerHandler(AKIpUptaneMes_PR_manifestReq,
+                    std::bind(&SecondaryMock::getManifestHdlr, this, std::placeholders::_1, std::placeholders::_2));
 
-  std::tuple<Uptane::EcuSerial, Uptane::HardwareIdentifier, PublicKey> getInfo() const override {
-    return {serial_, hdw_id_, pub_key_};
+    registerHandler(AKIpUptaneMes_PR_putMetaReq,
+                    std::bind(&SecondaryMock::putMetaHdlr, this, std::placeholders::_1, std::placeholders::_2));
+
+    registerHandler(AKIpUptaneMes_PR_installReq,
+                    std::bind(&SecondaryMock::installHdlr, this, std::placeholders::_1, std::placeholders::_2));
+
+    registerHandler(AKIpUptaneMes_PR_uploadDataReq,
+                    std::bind(&SecondaryMock::uploadDataHdlr, this, std::placeholders::_1, std::placeholders::_2));
   }
 
-  Uptane::Manifest getManifest() const override { return manifest_; }
+ public:
+  const Uptane::EcuSerial& serial() const { return serial_; }
+  const Uptane::HardwareIdentifier& hwID() const { return hdw_id_; }
+  const PublicKey& publicKey() const { return pub_key_; }
+  const Uptane::Manifest& manifest() const { return manifest_; }
 
-  bool putMetadata(const Uptane::RawMetaPack& meta_pack) override {
+ public:
+  MsgHandler::ReturnCode getInfoHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+    (void)in_msg;
+
+    out_msg.present(AKIpUptaneMes_PR_getInfoResp);
+
+    auto info_resp = out_msg.getInfoResp();
+
+    SetString(&info_resp->ecuSerial, serial_.ToString());
+    SetString(&info_resp->hwId, hdw_id_.ToString());
+    info_resp->keyType = static_cast<AKIpUptaneKeyType_t>(pub_key_.Type());
+    SetString(&info_resp->key, pub_key_.Value());
+
+    return ReturnCode::kOk;
+  }
+
+  MsgHandler::ReturnCode getManifestHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+    (void)in_msg;
+
+    out_msg.present(AKIpUptaneMes_PR_manifestResp);
+    auto manifest_resp = out_msg.manifestResp();
+    manifest_resp->manifest.present = manifest_PR_json;
+    SetString(&manifest_resp->manifest.choice.json, Utils::jsonToStr(manifest()));
+
+    return ReturnCode::kOk;
+  }
+
+  MsgHandler::ReturnCode putMetaHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+    auto md = in_msg.putMetaReq();
+    Uptane::RawMetaPack meta_pack;
+
+    meta_pack.director_root = ToString(md->director.choice.json.root);
+    meta_pack.director_targets = ToString(md->director.choice.json.targets);
+
+    meta_pack.image_root = ToString(md->image.choice.json.root);
+    meta_pack.image_timestamp = ToString(md->image.choice.json.timestamp);
+    meta_pack.image_snapshot = ToString(md->image.choice.json.snapshot);
+    meta_pack.image_targets = ToString(md->image.choice.json.targets);
+
+    bool ok = putMetadata(meta_pack);
+
+    out_msg.present(AKIpUptaneMes_PR_putMetaResp).putMetaResp()->result =
+        ok ? AKInstallationResult_success : AKInstallationResult_failure;
+
+    return ReturnCode::kOk;
+  }
+
+  MsgHandler::ReturnCode installHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+    auto install_result = install(ToString(in_msg.installReq()->hash));
+    out_msg.present(AKIpUptaneMes_PR_installResp).installResp()->result =
+        static_cast<AKInstallationResultCode_t>(install_result);
+
+    if (data::ResultCode::Numeric::kNeedCompletion == install_result) {
+      return ReturnCode::kRebootRequired;
+    }
+
+    return ReturnCode::kOk;
+  }
+
+  MsgHandler::ReturnCode uploadDataHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+    auto fw = in_msg.uploadDataReq();
+
+    auto send_firmware_result = sendFirmware(in_msg.uploadDataReq()->data.buf, in_msg.uploadDataReq()->data.size);
+
+    out_msg.present(AKIpUptaneMes_PR_uploadDataResp).uploadDataResp()->result =
+        (send_firmware_result == data::ResultCode::Numeric::kOk) ? AKInstallationResult_success
+                                                                 : AKInstallationResult_failure;
+
+    return ReturnCode::kOk;
+  }
+
+  bool putMetadata(const Uptane::RawMetaPack& meta_pack) {
     metapack_ = meta_pack;
     return true;
   }
 
-  bool sendFirmware(const std::string& data) override {
-    (void)data;
-    return true;
-  }
-
-  data::ResultCode::Numeric sendFirmware(const uint8_t* data, size_t size) override {
+  data::ResultCode::Numeric sendFirmware(const uint8_t* data, size_t size) {
     std::ofstream target_file(image_filepath_.c_str(), std::ofstream::out | std::ofstream::binary | std::ofstream::app);
 
     target_file.write(reinterpret_cast<const char*>(data), size);
@@ -54,7 +127,7 @@ class SecondaryMock : public IAktualizrSecondary {
     return data::ResultCode::Numeric::kOk;
   }
 
-  data::ResultCode::Numeric install(const std::string& target_name) override {
+  data::ResultCode::Numeric install(const std::string& target_name) {
     (void)target_name;
     return data::ResultCode::Numeric::kOk;
   }
@@ -72,10 +145,10 @@ class SecondaryMock : public IAktualizrSecondary {
   Uptane::RawMetaPack metapack_;
 
  private:
-  AktualizrSecondaryMsgDispatcher msg_dispatcher_;
   TemporaryDirectory image_dir_;
   boost::filesystem::path image_filepath_;
   std::shared_ptr<MultiPartHasher> hasher_;
+  std::unordered_map<unsigned int, Handler> handler_map_;
 };
 
 bool operator==(const Uptane::RawMetaPack& lhs, const Uptane::RawMetaPack& rhs) {
@@ -164,7 +237,7 @@ TEST(SecondaryTcpServer, TestIpSecondaryRPC) {
                           PublicKey("pub-key", KeyType::kED25519), Uptane::Manifest());
 
   // create Secondary on Secondary ECU, and run it in a dedicated thread
-  SecondaryTcpServer secondary_server(secondary.getDispatcher(), "", 0);
+  SecondaryTcpServer secondary_server(secondary, "", 0);
   std::thread secondary_server_thread{[&secondary_server]() { secondary_server.run(); }};
 
   secondary_server.wait_until_running();
@@ -174,10 +247,10 @@ TEST(SecondaryTcpServer, TestIpSecondaryRPC) {
       "localhost", secondary_server.port(), target_file.getImageReader(), nullptr);
 
   ASSERT_TRUE(ip_secondary != nullptr) << "Failed to create IP Secondary";
-  EXPECT_EQ(ip_secondary->getSerial(), secondary.getSerial());
-  EXPECT_EQ(ip_secondary->getHwId(), secondary.getHwId());
-  EXPECT_EQ(ip_secondary->getPublicKey(), secondary.getPublicKey());
-  EXPECT_EQ(ip_secondary->getManifest(), secondary.getManifest());
+  EXPECT_EQ(ip_secondary->getSerial(), secondary.serial());
+  EXPECT_EQ(ip_secondary->getHwId(), secondary.hwID());
+  EXPECT_EQ(ip_secondary->getPublicKey(), secondary.publicKey());
+  EXPECT_EQ(ip_secondary->getManifest(), secondary.manifest());
 
   Uptane::RawMetaPack meta_pack{"director-root", "director-target", "image_root",
                                 "image_targets", "image_timestamp", "image_snapshot"};
@@ -199,7 +272,7 @@ class ImageTransferTest : public ::testing::Test, public ::testing::WithParamInt
   ImageTransferTest()
       : secondary_{Uptane::EcuSerial("serial"), Uptane::HardwareIdentifier("hardware-id"),
                    PublicKey("pub-key", KeyType::kED25519), Uptane::Manifest()},
-        secondary_server_{secondary_.getDispatcher(), "", 0},
+        secondary_server_{secondary_, "", 0},
         secondary_server_thread_{std::bind(&ImageTransferTest::run_secondary_server, this)},
         image_file_{"mytarget_image.img", GetParam()} {
     secondary_server_.wait_until_running();
@@ -237,7 +310,7 @@ TEST_P(ImageTransferTest, ImageTransferEdgeCases) {
 }
 
 INSTANTIATE_TEST_SUITE_P(ImageTransferTestEdgeCases, ImageTransferTest,
-                         ::testing::Values(1, 1024, 1024 - 1, 1024 + 1, 1024 * 10 + 1, 1024 * 10 - 1));
+                         ::testing::Values(1, 1024, 1024 - 1, 1024 + 1, 1024 * 10, 1024 * 10 + 1, 1024 * 10 - 1));
 
 TEST(SecondaryTcpServer, TestIpSecondaryIfSecondaryIsNotRunning) {
   in_port_t secondary_port = TestUtils::getFreePortAsInt();
@@ -261,25 +334,25 @@ TEST(SecondaryTcpServer, TestIpSecondaryIfSecondaryIsNotRunning) {
   EXPECT_FALSE(ip_secondary->putMetadata(meta_pack));
   Json::Value target_json;
   target_json["custom"]["targetFormat"] = "BINARY";
-  EXPECT_EQ(ip_secondary->install(Uptane::Target(target_file.path(), target_json)),
-            data::ResultCode::Numeric::kInstallFailed);
+  EXPECT_NE(ip_secondary->install(Uptane::Target(target_file.path(), target_json)), data::ResultCode::Numeric::kOk);
 }
 
-class SecondaryRpcTestNegative : public ::testing::Test {
+class SecondaryRpcTestNegative : public ::testing::Test, public MsgHandler {
  protected:
   SecondaryRpcTestNegative()
-      : secondary_server_{msg_dispatcher_, "", 0}, secondary_server_thread_{[&]() { secondary_server_.run(); }} {
-    msg_dispatcher_.registerHandler(AKIpUptaneMes_PR_installReq, [](Asn1Message& in_msg, Asn1Message& out_msg) {
-      (void)in_msg;
-      out_msg.present(AKIpUptaneMes_PR_installResp).installResp()->result = AKInstallationResultCode_ok;
-      return MsgDispatcher::HandleStatusCode::kOk;
-    });
+      : secondary_server_{*this, "", 0}, secondary_server_thread_{[&]() { secondary_server_.run(); }} {
     secondary_server_.wait_until_running();
   }
 
   ~SecondaryRpcTestNegative() {
     secondary_server_.stop();
     secondary_server_thread_.join();
+  }
+
+  ReturnCode handleMsg(const Asn1Message::Ptr& in_msg, Asn1Message::Ptr& out_msg) override {
+    (void)in_msg;
+    out_msg->present(AKIpUptaneMes_PR_installResp).installResp()->result = AKInstallationResultCode_ok;
+    return ReturnCode::kOk;
   }
 
   AKIpUptaneMes_PR sendInstallMsg() {
@@ -298,7 +371,6 @@ class SecondaryRpcTestNegative : public ::testing::Test {
   }
 
  protected:
-  MsgDispatcher msg_dispatcher_;
   SecondaryTcpServer secondary_server_;
   std::thread secondary_server_thread_;
 };

@@ -78,10 +78,14 @@ class Asn1Message {
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKPutMetaReqMes_t, putMetaReq);
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKPutMetaRespMes_t, putMetaResp);
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKSendFirmwareReqMes_t, sendFirmwareReq);
-  ASN1_MESSAGE_DEFINE_ACCESSOR(AKSendFirmwareDataReqMes_t, sendFirmwareDataReq);
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKSendFirmwareRespMes_t, sendFirmwareResp);
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKInstallReqMes_t, installReq);
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKInstallRespMes_t, installResp);
+
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKUploadDataReqMes_t, uploadDataReq);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKUploadDataRespMes_t, uploadDataResp);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKDownloadOstreeRevReqMes_t, downloadOstreeRevReq);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKDownloadOstreeRevRespMes_t, downloadOstreeRevResp);
 
 #define ASN1_MESSAGE_DEFINE_STR_NAME(MessageID) \
   case MessageID:                               \
@@ -98,10 +102,14 @@ class Asn1Message {
         ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_putMetaReq);
         ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_putMetaResp);
         ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_sendFirmwareReq);
-        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_sendFirmwareDataReq);
         ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_sendFirmwareResp);
         ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_installReq);
         ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_installResp);
+
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_uploadDataReq);
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_uploadDataResp);
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_downloadOstreeRevReq);
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_downloadOstreeRevResp);
     }
     return "Unknown";
   };

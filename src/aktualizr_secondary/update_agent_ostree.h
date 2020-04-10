@@ -18,19 +18,17 @@ class OstreeUpdateAgent : public UpdateAgent {
  public:
   bool isTargetSupported(const Uptane::Target& target) const override;
   bool getInstalledImageInfo(Uptane::InstalledImageInfo& installed_image_info) const override;
-  bool download(const Uptane::Target& target, const std::string& data) override;
-  data::ResultCode::Numeric receiveData(const Uptane::Target& target, const uint8_t* data, size_t size) override {
-    (void)target;
-    (void)data;
-    (void)size;
-    return data::ResultCode::Numeric::kInternalError;
-  }
+
+  bool downloadTargetRev(const Uptane::Target& target, const std::string& treehub_tls_creds);
+
   data::ResultCode::Numeric install(const Uptane::Target& target) override;
+
   void completeInstall() override;
+
   data::InstallationResult applyPendingInstall(const Uptane::Target& target) override;
 
  private:
-  const boost::filesystem::path& sysrootPath_;
+  boost::filesystem::path sysrootPath_;
   std::shared_ptr<KeyManager> keyMngr_;
   std::shared_ptr<OstreeManager> ostreePackMan_;
   const ::std::string targetname_prefix_;
