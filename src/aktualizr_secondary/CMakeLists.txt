@@ -3,11 +3,11 @@ set(AKTUALIZR_SECONDARY_SRC main.cc)
 set(AKTUALIZR_SECONDARY_LIB_SRC
     update_agent_file.cc
     aktualizr_secondary.cc
-    aktualizr_secondary_factory.cc
+    aktualizr_secondary_file.cc
     aktualizr_secondary_config.cc
     aktualizr_secondary_metadata.cc
     secondary_tcp_server.cc
-    msg_dispatcher.cc
+    msg_handler.cc
     )
 
 # do not link tests with libaktualizr
@@ -44,12 +44,12 @@ set(ALL_AKTUALIZR_SECONDARY_HEADERS
     update_agent.h
     update_agent_file.h
     aktualizr_secondary.h
-    aktualizr_secondary_factory.h
+    aktualizr_secondary_file.h
     aktualizr_secondary_config.h
     aktualizr_secondary_metadata.h
     secondary_tcp_server.h
     aktualizr_secondary_interface.h
-    msg_dispatcher.h
+    msg_handler.h
     )
 
 # insert in front, so that the order matches the dependencies to the system libraries
@@ -62,9 +62,9 @@ add_aktualizr_test(NAME secondary_rpc
                    SOURCES secondary_rpc_test.cc PROJECT_WORKING_DIRECTORY)
 
 if(BUILD_OSTREE)
-    target_sources(aktualizr_secondary_lib PRIVATE update_agent_ostree.cc)
-    list(APPEND  AKTUALIZR_SECONDARY_LIB_SRC update_agent_ostree.cc)
-    list(APPEND ALL_AKTUALIZR_SECONDARY_HEADERS update_agent_ostree.h)
+    target_sources(aktualizr_secondary_lib PRIVATE update_agent_ostree.cc aktualizr_secondary_ostree.cc)
+    list(APPEND  AKTUALIZR_SECONDARY_LIB_SRC update_agent_ostree.cc aktualizr_secondary_ostree.cc)
+    list(APPEND ALL_AKTUALIZR_SECONDARY_HEADERS update_agent_ostree.h aktualizr_secondary_ostree.h)
 
     add_aktualizr_test(NAME aktualizr_secondary_ostree
                        SOURCES aktualizr_secondary_ostree_test.cc
@@ -74,8 +74,8 @@ if(BUILD_OSTREE)
 
     set_target_properties(t_aktualizr_secondary_ostree PROPERTIES LINK_FLAGS -Wl,--export-dynamic)
 else(BUILD_OSTREE)
-    list(APPEND TEST_SOURCES aktualizr_secondary_ostree_test.cc update_agent_ostree.cc)
-    list(APPEND ALL_AKTUALIZR_SECONDARY_HEADERS update_agent_ostree.h)
+    list(APPEND TEST_SOURCES aktualizr_secondary_ostree_test.cc update_agent_ostree.cc aktualizr_secondary_ostree.cc)
+    list(APPEND ALL_AKTUALIZR_SECONDARY_HEADERS update_agent_ostree.h aktualizr_secondary_ostree.h)
 endif(BUILD_OSTREE)
 
 add_aktualizr_test(NAME aktualizr_secondary

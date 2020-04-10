@@ -3,8 +3,8 @@
 
 #include <boost/process.hpp>
 
-#include "aktualizr_secondary.h"
-#include "aktualizr_secondary_factory.h"
+#include "aktualizr_secondary_file.h"
+//#include "aktualizr_secondary_factory.h"
 #include "crypto/keymanager.h"
 #include "test_utils.h"
 #include "update_agent.h"
@@ -18,9 +18,6 @@ class UpdateAgentMock : public FileUpdateAgent {
  public:
   UpdateAgentMock(boost::filesystem::path target_filepath, std::string target_name)
       : FileUpdateAgent(std::move(target_filepath), std::move(target_name)) {
-    ON_CALL(*this, download).WillByDefault([this](const Uptane::Target& target, const std::string& data) {
-      return FileUpdateAgent::download(target, data);
-    });
     ON_CALL(*this, receiveData).WillByDefault([this](const Uptane::Target& target, const uint8_t* data, size_t size) {
       return FileUpdateAgent::receiveData(target, data, size);
     });
@@ -29,7 +26,6 @@ class UpdateAgentMock : public FileUpdateAgent {
     });
   }
 
-  MOCK_METHOD(bool, download, (const Uptane::Target& target, const std::string& data));
   MOCK_METHOD(data::ResultCode::Numeric, receiveData, (const Uptane::Target& target, const uint8_t* data, size_t size));
   MOCK_METHOD(data::ResultCode::Numeric, install, (const Uptane::Target& target));
 };
@@ -44,34 +40,34 @@ class AktualizrSecondaryWrapper {
     config.storage.type = StorageType::kSqlite;
 
     storage_ = INvStorage::newStorage(config.storage);
-    auto key_mngr = std::make_shared<KeyManager>(storage_, config.keymanagerConfig());
-    update_agent = std::make_shared<NiceMock<UpdateAgentMock>>(config.storage.path / "firmware.txt", "");
 
-    secondary_ = std::make_shared<AktualizrSecondary>(config, storage_, key_mngr, update_agent);
+    update_agent_ = std::make_shared<NiceMock<UpdateAgentMock>>(config.storage.path / "firmware.txt", "");
+
+    secondary_ = std::make_shared<AktualizrSecondaryFile>(config, storage_, update_agent_);
   }
 
-  std::shared_ptr<AktualizrSecondary>& operator->() { return secondary_; }
+  std::shared_ptr<AktualizrSecondaryFile>& operator->() { return secondary_; }
 
   Uptane::Target getPendingVersion() const {
     boost::optional<Uptane::Target> pending_target;
 
-    storage_->loadInstalledVersions(secondary_->getSerial().ToString(), nullptr, &pending_target);
+    storage_->loadInstalledVersions(secondary_->serial().ToString(), nullptr, &pending_target);
     return *pending_target;
   }
 
-  std::string hardwareID() const { return secondary_->getHwId().ToString(); }
+  std::string hardwareID() const { return secondary_->hwID().ToString(); }
 
-  std::string serial() const { return secondary_->getSerial().ToString(); }
+  std::string serial() const { return secondary_->serial().ToString(); }
 
   boost::filesystem::path targetFilepath() const {
-    return storage_dir_.Path() / AktualizrSecondaryFactory::BinaryUpdateDefaultFile;
+    return storage_dir_.Path() / AktualizrSecondaryFile::FileUpdateDefaultFile;
   }
 
-  std::shared_ptr<NiceMock<UpdateAgentMock>> update_agent;
+  std::shared_ptr<NiceMock<UpdateAgentMock>> update_agent_;
 
  private:
   TemporaryDirectory storage_dir_;
-  AktualizrSecondary::Ptr secondary_;
+  std::shared_ptr<AktualizrSecondaryFile> secondary_;
   std::shared_ptr<INvStorage> storage_;
 };
 
@@ -165,14 +161,14 @@ class UptaneRepoWrapper {
 
 class SecondaryTest : public ::testing::Test {
  protected:
-  SecondaryTest() : update_agent_(*(secondary_.update_agent)) {
-    uptane_repo_.addImageFile(default_target_, secondary_->getHwId().ToString(), secondary_->getSerial().ToString(),
+  SecondaryTest() : update_agent_(*(secondary_.update_agent_)) {
+    uptane_repo_.addImageFile(default_target_, secondary_->hwID().ToString(), secondary_->serial().ToString(),
                               target_size, true, true, inavlid_target_size_delta);
   }
 
   std::vector<Uptane::Target> getCurrentTargets() {
     auto targets = Uptane::Targets(Utils::parseJSON(uptane_repo_.getCurrentMetadata().director_targets));
-    return targets.getTargets(secondary_->getSerial(), secondary_->getHwId());
+    return targets.getTargets(secondary_->serial(), secondary_->hwID());
   }
 
   Uptane::Target getDefaultTarget() {
@@ -199,7 +195,7 @@ class SecondaryTest : public ::testing::Test {
         return data::ResultCode::Numeric::kGeneralError;
       }
 
-      auto result = secondary_->sendFirmware(buf, read_bytes);
+      auto result = secondary_->receiveData(buf, read_bytes);
       if (result != data::ResultCode::Numeric::kOk) {
         file.close();
         return result;
@@ -236,7 +232,7 @@ class SecondaryTest : public ::testing::Test {
 class SecondaryTestNegative : public ::testing::Test,
                               public ::testing::WithParamInterface<std::pair<Uptane::RepositoryType, Uptane::Role>> {
  public:
-  SecondaryTestNegative() : update_agent_(*(secondary_.update_agent)) {}
+  SecondaryTestNegative() : update_agent_(*(secondary_.update_agent_)) {}
 
  protected:
   class MetadataInvalidator : public Metadata {
@@ -277,12 +273,10 @@ class SecondaryTestNegative : public ::testing::Test,
 TEST_P(SecondaryTestNegative, MalformedMetadaJson) {
   EXPECT_FALSE(secondary_->putMetadata(currentMetadata()));
 
-  EXPECT_CALL(update_agent_, download).Times(0);
+  EXPECT_CALL(update_agent_, receiveData).Times(0);
   EXPECT_CALL(update_agent_, install).Times(0);
 
-  EXPECT_FALSE(secondary_->sendFirmware("firmware"));
-
-  EXPECT_NE(secondary_->install("target"), data::ResultCode::Numeric::kOk);
+  EXPECT_NE(secondary_->install(), data::ResultCode::Numeric::kOk);
 }
 
 /**
@@ -304,7 +298,7 @@ TEST_F(SecondaryTest, fullUptaneVerificationPositive) {
 
   ASSERT_TRUE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()));
   ASSERT_EQ(sendImageFile(), data::ResultCode::Numeric::kOk);
-  ASSERT_EQ(secondary_->install(default_target_), data::ResultCode::Numeric::kOk);
+  ASSERT_EQ(secondary_->install(), data::ResultCode::Numeric::kOk);
 
   // check if a file was actually updated
   ASSERT_TRUE(boost::filesystem::exists(secondary_.targetFilepath()));
@@ -324,7 +318,7 @@ TEST_F(SecondaryTest, fullUptaneVerificationPositive) {
 TEST_F(SecondaryTest, TwoImagesAndOneTarget) {
   // two images for the same ECU, just one of them is added as a target and signed
   // default image and corresponding target has been already added, just add another image
-  uptane_repo_.addImageFile("second_image_00", secondary_->getHwId().ToString(), secondary_->getSerial().ToString(),
+  uptane_repo_.addImageFile("second_image_00", secondary_->hwID().ToString(), secondary_->serial().ToString(),
                             target_size, false, false);
   EXPECT_TRUE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()));
 }
@@ -332,7 +326,7 @@ TEST_F(SecondaryTest, TwoImagesAndOneTarget) {
 TEST_F(SecondaryTest, IncorrectTargetQuantity) {
   {
     // two targets for the same ECU
-    uptane_repo_.addImageFile("second_target", secondary_->getHwId().ToString(), secondary_->getSerial().ToString());
+    uptane_repo_.addImageFile("second_target", secondary_->hwID().ToString(), secondary_->serial().ToString());
 
     auto meta = uptane_repo_.getCurrentMetadata();
     EXPECT_FALSE(secondary_->putMetadata(meta));
@@ -340,16 +334,14 @@ TEST_F(SecondaryTest, IncorrectTargetQuantity) {
 
   {
     // zero targets for the ECU being tested
-    auto metadata =
-        UptaneRepoWrapper().addImageFile("mytarget", secondary_->getHwId().ToString(), "non-existing-serial");
+    auto metadata = UptaneRepoWrapper().addImageFile("mytarget", secondary_->hwID().ToString(), "non-existing-serial");
 
     EXPECT_FALSE(secondary_->putMetadata(metadata));
   }
 
   {
     // zero targets for the ECU being tested
-    auto metadata =
-        UptaneRepoWrapper().addImageFile("mytarget", "non-existig-hwid", secondary_->getSerial().ToString());
+    auto metadata = UptaneRepoWrapper().addImageFile("mytarget", "non-existig-hwid", secondary_->serial().ToString());
 
     EXPECT_FALSE(secondary_->putMetadata(metadata));
   }
@@ -374,7 +366,7 @@ TEST_F(SecondaryTest, SmallerImageFileSize) {
   EXPECT_TRUE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()));
 
   EXPECT_EQ(sendImageFile(smaller_target_), data::ResultCode::Numeric::kOk);
-  EXPECT_NE(secondary_->install(default_target_), data::ResultCode::Numeric::kOk);
+  EXPECT_NE(secondary_->install(), data::ResultCode::Numeric::kOk);
 }
 
 TEST_F(SecondaryTest, BiggerImageFileSize) {
@@ -386,7 +378,7 @@ TEST_F(SecondaryTest, BiggerImageFileSize) {
   EXPECT_TRUE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()));
 
   EXPECT_EQ(sendImageFile(bigger_target_), data::ResultCode::Numeric::kOk);
-  EXPECT_NE(secondary_->install(default_target_), data::ResultCode::Numeric::kOk);
+  EXPECT_NE(secondary_->install(), data::ResultCode::Numeric::kOk);
 }
 
 TEST_F(SecondaryTest, InvalidImageData) {
@@ -396,7 +388,7 @@ TEST_F(SecondaryTest, InvalidImageData) {
 
   EXPECT_TRUE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()));
   EXPECT_EQ(sendImageFile(broken_target_), data::ResultCode::Numeric::kOk);
-  EXPECT_NE(secondary_->install(default_target_), data::ResultCode::Numeric::kOk);
+  EXPECT_NE(secondary_->install(), data::ResultCode::Numeric::kOk);
 }
 
 int main(int argc, char** argv) {

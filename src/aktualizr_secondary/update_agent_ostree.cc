@@ -37,13 +37,13 @@ bool OstreeUpdateAgent::getInstalledImageInfo(Uptane::InstalledImageInfo& instal
   return result;
 }
 
-bool OstreeUpdateAgent::download(const Uptane::Target& target, const std::string& data) {
+bool OstreeUpdateAgent::downloadTargetRev(const Uptane::Target& target, const std::string& treehub_tls_creds) {
   std::string treehub_server;
   bool download_result = false;
 
   try {
     std::string ca, cert, pkey, server_url;
-    extractCredentialsArchive(data, &ca, &cert, &pkey, &server_url);
+    extractCredentialsArchive(treehub_tls_creds, &ca, &cert, &pkey, &server_url);
     keyMngr_->loadKeys(&pkey, &cert, &ca);
     boost::trim(server_url);
     treehub_server = server_url;

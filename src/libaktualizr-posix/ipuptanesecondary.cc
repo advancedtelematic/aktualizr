@@ -134,11 +134,6 @@ bool IpUptaneSecondary::putMetadata(const RawMetaPack& meta_pack) {
   return r->result == AKInstallationResult_success;
 }
 
-data::ResultCode::Numeric IpUptaneSecondary::install(const Uptane::Target& target) {
-  return install_v2(target);
-  // return install_v1(target);
-}
-
 Manifest IpUptaneSecondary::getManifest() const {
   LOG_DEBUG << "Getting the manifest from Secondary with serial " << getSerial();
   Asn1Message::Ptr req(Asn1Message::Empty());
@@ -170,6 +165,12 @@ bool IpUptaneSecondary::ping() const {
   auto resp = Asn1Rpc(req, getAddr());
 
   return resp->present() == AKIpUptaneMes_PR_getInfoResp;
+}
+
+data::ResultCode::Numeric IpUptaneSecondary::install(const Uptane::Target& target) {
+  std::lock_guard<std::mutex> l(install_mutex);
+  return install_v2(target);
+  // return install_v1(target);
 }
 
 data::ResultCode::Numeric IpUptaneSecondary::install_v1(const Uptane::Target& target) {
@@ -213,55 +214,25 @@ data::ResultCode::Numeric IpUptaneSecondary::install_v1(const Uptane::Target& ta
 }
 
 data::ResultCode::Numeric IpUptaneSecondary::install_v2(const Uptane::Target& target) {
+  data::ResultCode::Numeric data_delivery_result = data::ResultCode::Numeric::kDownloadFailed;
+
+  LOG_INFO << "Invoking the target image delivery to/on the Secondary: " << target;
+
   if (target.IsOstree()) {
-    // empty firmware means OSTree secondaries: pack credentials instead
-    std::string data_to_send = treehub_cred_provider_();
-    bool send_frimware_result = sendFirmware(data_to_send);
-    if (!send_frimware_result) {
-      return data::ResultCode::Numeric::kInstallFailed;
-    }
+    data_delivery_result = downloadOstreeRev(target);
   } else {
-    std::unique_ptr<StorageTargetRHandle> image_reader = image_reader_(target);
-
-    auto image_size = image_reader->rsize();
-    const size_t size = 1024;
-    size_t total_read_data = 0;
-    uint8_t buf[size];
-    bool send_frimware_result = false;
-
-    while (total_read_data < image_size) {
-      auto read_data = image_reader->rread(buf, sizeof(buf));
-      total_read_data += read_data;
-      send_frimware_result = sendFirmwareData(buf, read_data);
-      if (!send_frimware_result) {
-        return data::ResultCode::Numeric::kInstallFailed;
-      }
-    }
-
-    image_reader->rclose();
+    data_delivery_result = uploadFirmware(target);
   }
 
-  LOG_INFO << "Invoking an installation of the target on the secondary: " << target;
-
-  Asn1Message::Ptr req(Asn1Message::Empty());
-  req->present(AKIpUptaneMes_PR_installReq);
-
-  // prepare request message
-  auto req_mes = req->installReq();
-  SetString(&req_mes->hash, target.filename());
-  // send request and receive response, a request-response type of RPC
-  auto resp = Asn1Rpc(req, getAddr());
-
-  // invalid type of an response message
-  if (resp->present() != AKIpUptaneMes_PR_installResp) {
-    LOG_ERROR << "Failed to get response to an installation request to secondary";
-    return data::ResultCode::Numeric::kInternalError;
+  if (data::ResultCode::Numeric::kOk != data_delivery_result) {
+    return data_delivery_result;
   }
 
-  // deserialize the response message
-  auto r = resp->installResp();
+  LOG_INFO << "Invoking an installation of the target on the Secondary: " << target;
 
-  return static_cast<data::ResultCode::Numeric>(r->result);
+  data::ResultCode::Numeric installation_result = data::ResultCode::Numeric::kInstallFailed;
+  installation_result = invokeInstallOnSecondary(target);
+  return installation_result;
 }
 
 bool IpUptaneSecondary::sendFirmware(const std::string& data) {
@@ -275,7 +246,7 @@ bool IpUptaneSecondary::sendFirmware(const std::string& data) {
   auto resp = Asn1Rpc(req, getAddr());
 
   if (resp->present() != AKIpUptaneMes_PR_sendFirmwareResp) {
-    LOG_ERROR << "Failed to get response to sending firmware to secondary";
+    LOG_ERROR << "Failed to get response to sending firmware to Secondary";
     return false;
   }
 
@@ -283,24 +254,89 @@ bool IpUptaneSecondary::sendFirmware(const std::string& data) {
   return r->result == AKInstallationResult_success;
 }
 
-bool IpUptaneSecondary::sendFirmwareData(const uint8_t* data, size_t size) {
-  std::lock_guard<std::mutex> l(install_mutex);
-  LOG_INFO << "Sending firmware to the secondary";
+data::ResultCode::Numeric IpUptaneSecondary::downloadOstreeRev(const Uptane::Target& target) {
+  LOG_INFO << "Invoking donwload of the ostree target revision ( " << target.sha256Hash() << " ) on Secondary ( "
+           << getSerial() << " )";
+  std::string tls_creds = treehub_cred_provider_();
   Asn1Message::Ptr req(Asn1Message::Empty());
-  req->present(AKIpUptaneMes_PR_sendFirmwareDataReq);
+  req->present(AKIpUptaneMes_PR_downloadOstreeRevReq);
 
-  auto m = req->sendFirmwareDataReq();
-  OCTET_STRING_fromBuf(&m->data, reinterpret_cast<const char*>(data), static_cast<int>(size));
-  m->size = size;
+  auto m = req->downloadOstreeRevReq();
+  SetString(&m->tlsCred, tls_creds);
   auto resp = Asn1Rpc(req, getAddr());
 
-  if (resp->present() != AKIpUptaneMes_PR_sendFirmwareResp) {
-    LOG_ERROR << "Failed to get response to sending firmware to secondary";
+  if (resp->present() != AKIpUptaneMes_PR_downloadOstreeRevResp) {
+    LOG_ERROR << "Failed to get response to download ostree revision request";
+    return data::ResultCode::Numeric::kUnknown;
+  }
+
+  auto r = resp->downloadOstreeRevResp();
+  return static_cast<data::ResultCode::Numeric>(r->result);
+}
+
+data::ResultCode::Numeric IpUptaneSecondary::uploadFirmware(const Uptane::Target& target) {
+  LOG_INFO << "Uploading the target image (" << target.filename() << ") "
+           << "to the Secondary (" << getSerial() << ")";
+
+  data::ResultCode::Numeric upload_result = data::ResultCode::Numeric::kDownloadFailed;
+
+  std::unique_ptr<StorageTargetRHandle> image_reader = image_reader_(target);
+
+  auto image_size = image_reader->rsize();
+  const size_t size = 1024;
+  size_t total_send_data = 0;
+  uint8_t buf[size];
+  bool send_frimware_result = true;
+
+  while (total_send_data < image_size && send_frimware_result) {
+    auto read_data = image_reader->rread(buf, sizeof(buf));
+    send_frimware_result = uploadFirmwareData(buf, read_data);
+    total_send_data += read_data;
+  }
+  if (send_frimware_result && total_send_data == image_size) {
+    upload_result = data::ResultCode::Numeric::kOk;
+  }
+  image_reader->rclose();
+  return upload_result;
+}
+
+bool IpUptaneSecondary::uploadFirmwareData(const uint8_t* data, size_t size) {
+  Asn1Message::Ptr req(Asn1Message::Empty());
+  req->present(AKIpUptaneMes_PR_uploadDataReq);
+
+  auto m = req->uploadDataReq();
+  OCTET_STRING_fromBuf(&m->data, reinterpret_cast<const char*>(data), static_cast<int>(size));
+  auto resp = Asn1Rpc(req, getAddr());
+
+  if (resp->present() != AKIpUptaneMes_PR_uploadDataResp) {
+    LOG_ERROR << "Failed to get response to an uploading data request to Secondary";
     return false;
   }
 
   auto r = resp->sendFirmwareResp();
   return r->result == AKInstallationResult_success;
+}
+
+data::ResultCode::Numeric IpUptaneSecondary::invokeInstallOnSecondary(const Uptane::Target& target) {
+  Asn1Message::Ptr req(Asn1Message::Empty());
+  req->present(AKIpUptaneMes_PR_installReq);
+
+  // prepare request message
+  auto req_mes = req->installReq();
+  SetString(&req_mes->hash, target.filename());
+  // send request and receive response, a request-response type of RPC
+  auto resp = Asn1Rpc(req, getAddr());
+
+  // invalid type of an response message
+  if (resp->present() != AKIpUptaneMes_PR_installResp) {
+    LOG_ERROR << "Failed to get response to an installation request to Secondary";
+    return data::ResultCode::Numeric::kInternalError;
+  }
+
+  // deserialize the response message
+  auto r = resp->installResp();
+
+  return static_cast<data::ResultCode::Numeric>(r->result);
 }
 
 }  // namespace Uptane
