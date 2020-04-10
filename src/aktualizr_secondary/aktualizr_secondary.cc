@@ -9,66 +9,22 @@
 #include <sys/types.h>
 #include <memory>
 
-AktualizrSecondary::AktualizrSecondary(AktualizrSecondaryConfig config, std::shared_ptr<INvStorage> storage,
-                                       std::shared_ptr<KeyManager> key_mngr, std::shared_ptr<UpdateAgent> update_agent)
+AktualizrSecondary::AktualizrSecondary(AktualizrSecondaryConfig config, std::shared_ptr<INvStorage> storage)
     : config_(std::move(config)),
       storage_(std::move(storage)),
-      keys_(std::move(key_mngr)),
-      update_agent_(std::move(update_agent)),
-      dispatcher_(*this) {
+      keys_(std::make_shared<KeyManager>(storage_, config.keymanagerConfig())) {
   uptaneInitialize();
   manifest_issuer_ = std::make_shared<Uptane::ManifestIssuer>(keys_, ecu_serial_);
-  initPendingTargetIfAny();
-
-  if (hasPendingUpdate()) {
-    LOG_INFO << "Found a pending target to be applied.";
-    // TODO(OTA-4545): refactor this to make it simpler as we don't need to persist/store
-    // an installation status of each ECU but store it just for a given secondary ECU
-    std::vector<Uptane::Target> installed_versions;
-    boost::optional<Uptane::Target> pending_target;
-    storage_->loadInstalledVersions(ecu_serial_.ToString(), nullptr, &pending_target);
-
-    if (!!pending_target) {
-      data::InstallationResult install_res =
-          data::InstallationResult(data::ResultCode::Numeric::kUnknown, "Unknown installation error");
-      LOG_INFO << "Pending update found; attempting to apply it. Target hash: " << pending_target->sha256Hash();
-
-      install_res = update_agent_->applyPendingInstall(*pending_target);
-
-      if (install_res.result_code != data::ResultCode::Numeric::kNeedCompletion) {
-        storage_->saveEcuInstallationResult(ecu_serial_, install_res);
-
-        if (install_res.success) {
-          LOG_INFO << "Pending update has been successfully applied: " << pending_target->sha256Hash();
-          storage_->saveInstalledVersion(ecu_serial_.ToString(), *pending_target, InstalledVersionUpdateMode::kCurrent);
-        } else {
-          LOG_ERROR << "Application of the pending update has failed: (" << install_res.result_code.toString() << ")"
-                    << install_res.description;
-          storage_->saveInstalledVersion(ecu_serial_.ToString(), *pending_target, InstalledVersionUpdateMode::kNone);
-        }
-
-        director_repo_.dropTargets(*storage_);
-      } else {
-        LOG_INFO << "Pending update hasn't been applied because a reboot hasn't been detected";
-      }
-    }
-  }
+  registerHandlers();
 }
 
-Uptane::EcuSerial AktualizrSecondary::getSerial() const { return ecu_serial_; }
-
-Uptane::HardwareIdentifier AktualizrSecondary::getHwId() const { return hardware_id_; }
-
-PublicKey AktualizrSecondary::getPublicKey() const { return keys_->UptanePublicKey(); }
-
-std::tuple<Uptane::EcuSerial, Uptane::HardwareIdentifier, PublicKey> AktualizrSecondary::getInfo() const {
-  return std::tuple<Uptane::EcuSerial, Uptane::HardwareIdentifier, PublicKey>{getSerial(), getHwId(), getPublicKey()};
-}
+PublicKey AktualizrSecondary::publicKey() const { return keys_->UptanePublicKey(); }
 
 Uptane::Manifest AktualizrSecondary::getManifest() const {
   Uptane::InstalledImageInfo installed_image_info;
   Uptane::Manifest manifest;
-  if (update_agent_->getInstalledImageInfo(installed_image_info)) {
+
+  if (getInstalledImageInfo(installed_image_info)) {
     manifest = manifest_issuer_->assembleAndSignManifest(installed_image_info);
   }
 
@@ -77,34 +33,14 @@ Uptane::Manifest AktualizrSecondary::getManifest() const {
 
 bool AktualizrSecondary::putMetadata(const Metadata& metadata) { return doFullVerification(metadata); }
 
-bool AktualizrSecondary::sendFirmware(const std::string& firmware) {
-  if (!pending_target_.IsValid()) {
-    LOG_ERROR << "Aborting image download/receiving; no valid target found.";
-    return false;
-  }
-
-  if (!update_agent_->download(pending_target_, firmware)) {
-    LOG_ERROR << "Failed to pull/store an update data";
-    pending_target_ = Uptane::Target::Unknown();
-    return false;
-  }
-
-  LOG_INFO << "Download firmware " << pending_target_.filename() << " successful.";
-  return true;
-}
-
-data::ResultCode::Numeric AktualizrSecondary::install(const std::string& target_name) {
+data::ResultCode::Numeric AktualizrSecondary::install() {
   if (!pending_target_.IsValid()) {
     LOG_ERROR << "Aborting target image installation; no valid target found.";
     return data::ResultCode::Numeric::kInternalError;
   }
 
-  if (pending_target_.filename() != target_name) {
-    LOG_ERROR << "name of the target to install and a name of the pending target do not match";
-    return data::ResultCode::Numeric::kInternalError;
-  }
-
-  auto install_result = update_agent_->install(pending_target_);
+  auto target_name = pending_target_.filename();
+  auto install_result = installPendingTarget(pending_target_);
 
   switch (install_result) {
     case data::ResultCode::Numeric::kOk: {
@@ -125,8 +61,6 @@ data::ResultCode::Numeric AktualizrSecondary::install(const std::string& target_
 
   return install_result;
 }
-
-void AktualizrSecondary::completeInstall() { update_agent_->completeInstall(); }
 
 bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
   // 5.4.4.2. Full verification  https://uptane.github.io/uptane-standard/uptane-standard.html#metadata_verification
@@ -179,14 +113,14 @@ bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
     return false;
   }
 
-  auto targetsForThisEcu = director_repo_.getTargets(getSerial(), getHwId());
+  auto targetsForThisEcu = director_repo_.getTargets(serial(), hwID());
 
   if (targetsForThisEcu.size() != 1) {
     LOG_ERROR << "Invalid number of targets (should be 1): " << targetsForThisEcu.size();
     return false;
   }
 
-  if (!update_agent_->isTargetSupported(targetsForThisEcu[0])) {
+  if (!isTargetSupported(targetsForThisEcu[0])) {
     LOG_ERROR << "The given target type is not supported: " << targetsForThisEcu[0].type();
     return false;
   }
@@ -255,7 +189,7 @@ void AktualizrSecondary::initPendingTargetIfAny() {
     return;
   }
 
-  if (!update_agent_->isTargetSupported(targetsForThisEcu[0])) {
+  if (!isTargetSupported(targetsForThisEcu[0])) {
     LOG_ERROR << "The given target type is not supported: " << targetsForThisEcu[0].type();
     return;
   }
@@ -263,11 +197,89 @@ void AktualizrSecondary::initPendingTargetIfAny() {
   pending_target_ = targetsForThisEcu[0];
 }
 
-data::ResultCode::Numeric AktualizrSecondary::sendFirmware(const uint8_t* data, size_t size) {
-  if (!pending_target_.IsValid()) {
-    LOG_ERROR << "Aborting image download/receiving; no valid target found.";
-    return data::ResultCode::Numeric::kGeneralError;
+void AktualizrSecondary::registerHandlers() {
+  registerHandler(AKIpUptaneMes_PR_getInfoReq,
+                  std::bind(&AktualizrSecondary::getInfoHdlr, this, std::placeholders::_1, std::placeholders::_2));
+
+  registerHandler(AKIpUptaneMes_PR_manifestReq,
+                  std::bind(&AktualizrSecondary::getManifestHdlr, this, std::placeholders::_1, std::placeholders::_2));
+
+  registerHandler(AKIpUptaneMes_PR_putMetaReq,
+                  std::bind(&AktualizrSecondary::putMetaHdlr, this, std::placeholders::_1, std::placeholders::_2));
+
+  registerHandler(AKIpUptaneMes_PR_installReq,
+                  std::bind(&AktualizrSecondary::installHdlr, this, std::placeholders::_1, std::placeholders::_2));
+}
+
+MsgHandler::ReturnCode AktualizrSecondary::getInfoHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+  (void)in_msg;
+
+  out_msg.present(AKIpUptaneMes_PR_getInfoResp);
+
+  auto info_resp = out_msg.getInfoResp();
+
+  SetString(&info_resp->ecuSerial, serial().ToString());
+  SetString(&info_resp->hwId, hwID().ToString());
+  info_resp->keyType = static_cast<AKIpUptaneKeyType_t>(publicKey().Type());
+  SetString(&info_resp->key, publicKey().Value());
+
+  return ReturnCode::kOk;
+}
+
+AktualizrSecondary::ReturnCode AktualizrSecondary::getManifestHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+  (void)in_msg;
+
+  out_msg.present(AKIpUptaneMes_PR_manifestResp);
+  auto manifest_resp = out_msg.manifestResp();
+  manifest_resp->manifest.present = manifest_PR_json;
+  SetString(&manifest_resp->manifest.choice.json, Utils::jsonToStr(getManifest()));
+
+  LOG_TRACE << "Manifest : \n" << getManifest();
+  return ReturnCode::kOk;
+}
+
+AktualizrSecondary::ReturnCode AktualizrSecondary::putMetaHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+  auto md = in_msg.putMetaReq();
+  Uptane::RawMetaPack meta_pack;
+
+  if (md->director.present == director_PR_json) {
+    meta_pack.director_root = ToString(md->director.choice.json.root);        // NOLINT
+    meta_pack.director_targets = ToString(md->director.choice.json.targets);  // NOLINT
+    LOG_DEBUG << "Received Director repo Root metadata:\n" << meta_pack.director_root;
+    LOG_DEBUG << "Received Director repo Targets metadata:\n" << meta_pack.director_targets;
+  } else {
+    LOG_WARNING << "Director metadata in unknown format:" << md->director.present;
   }
 
-  return update_agent_->receiveData(pending_target_, data, size);
+  if (md->image.present == image_PR_json) {
+    meta_pack.image_root = ToString(md->image.choice.json.root);            // NOLINT
+    meta_pack.image_timestamp = ToString(md->image.choice.json.timestamp);  // NOLINT
+    meta_pack.image_snapshot = ToString(md->image.choice.json.snapshot);    // NOLINT
+    meta_pack.image_targets = ToString(md->image.choice.json.targets);      // NOLINT
+    LOG_DEBUG << "Received Image repo Root metadata:\n" << meta_pack.image_root;
+    LOG_DEBUG << "Received Image repo Timestamp metadata:\n" << meta_pack.image_timestamp;
+    LOG_DEBUG << "Received Image repo Snapshot metadata:\n" << meta_pack.image_snapshot;
+    LOG_DEBUG << "Received Image repo Targets metadata:\n" << meta_pack.image_targets;
+  } else {
+    LOG_WARNING << "Image repo metadata in unknown format:" << md->image.present;
+  }
+  bool ok = putMetadata(meta_pack);
+
+  out_msg.present(AKIpUptaneMes_PR_putMetaResp).putMetaResp()->result =
+      ok ? AKInstallationResult_success : AKInstallationResult_failure;
+
+  return ReturnCode::kOk;
+}
+
+AktualizrSecondary::ReturnCode AktualizrSecondary::installHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+  (void)in_msg;
+  auto install_result = install();
+  out_msg.present(AKIpUptaneMes_PR_installResp).installResp()->result =
+      static_cast<AKInstallationResultCode_t>(install_result);
+
+  if (data::ResultCode::Numeric::kNeedCompletion == install_result) {
+    return ReturnCode::kRebootRequired;
+  }
+
+  return ReturnCode::kOk;
 }

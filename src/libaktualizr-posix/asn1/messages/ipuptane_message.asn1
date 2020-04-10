@@ -89,12 +89,6 @@ IpUptane DEFINITIONS ::= BEGIN
     ...
   }
 
-  AKSendFirmwareDataReqMes ::= SEQUENCE {
-    data OCTET STRING,
-    size INTEGER,
-    ...
-  }
-
   AKSendFirmwareRespMes ::= SEQUENCE {
     result AKInstallationResult,
     ...
@@ -110,6 +104,26 @@ IpUptane DEFINITIONS ::= BEGIN
     ...
   }
 
+  AKUploadDataReqMes ::= SEQUENCE {
+    data OCTET STRING,
+    ...
+  }
+
+  AKUploadDataRespMes ::= SEQUENCE {
+    result AKInstallationResult,
+    ...
+  }
+
+  AKDownloadOstreeRevReqMes ::= SEQUENCE {
+    tlsCred OCTET STRING,
+    ...
+  }
+
+  AKDownloadOstreeRevRespMes ::= SEQUENCE {
+    result AKInstallationResultCode,
+    ...
+  }
+
   AKIpUptaneMes ::= CHOICE {
     getInfoReq [0] AKGetInfoReqMes,
     getInfoResp [1] AKGetInfoRespMes,
@@ -118,10 +132,14 @@ IpUptane DEFINITIONS ::= BEGIN
     putMetaReq [4] AKPutMetaReqMes,
     putMetaResp [5] AKPutMetaRespMes,
     sendFirmwareReq [6] AKSendFirmwareReqMes,
-    sendFirmwareDataReq [7] AKSendFirmwareDataReqMes,
-    sendFirmwareResp [8] AKSendFirmwareRespMes,
-    installReq [9] AKInstallReqMes,
-    installResp [10] AKInstallRespMes,
+    sendFirmwareResp [7] AKSendFirmwareRespMes,
+    installReq [8] AKInstallReqMes,
+    installResp [9] AKInstallRespMes,
+
+    uploadDataReq [10] AKUploadDataReqMes,
+    uploadDataResp [11] AKUploadDataRespMes,
+    downloadOstreeRevReq [12] AKDownloadOstreeRevReqMes,
+    downloadOstreeRevResp [13] AKDownloadOstreeRevRespMes,
     ...
   }
 
