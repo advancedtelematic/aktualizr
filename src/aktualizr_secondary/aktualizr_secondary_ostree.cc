@@ -9,6 +9,7 @@ AktualizrSecondaryOstree::AktualizrSecondaryOstree(AktualizrSecondaryConfig conf
     : AktualizrSecondary(config, storage) {
   registerHandler(AKIpUptaneMes_PR_downloadOstreeRevReq, std::bind(&AktualizrSecondaryOstree::downloadOstreeRev, this,
                                                                    std::placeholders::_1, std::placeholders::_2));
+
   std::shared_ptr<OstreeManager> pack_man =
       std::make_shared<OstreeManager>(config.pacman, config.bootloader, AktualizrSecondary::storagePtr(), nullptr);
   update_agent_ =
@@ -52,10 +53,10 @@ AktualizrSecondaryOstree::AktualizrSecondaryOstree(AktualizrSecondaryConfig conf
 }
 
 MsgHandler::ReturnCode AktualizrSecondaryOstree::downloadOstreeRev(Asn1Message& in_msg, Asn1Message& out_msg) {
-  auto send_firmware_result = downloadOstreeUpdate(ToString(in_msg.downloadOstreeRevReq()->tlsCred));
+  auto download_ostree_rev_result = downloadOstreeUpdate(ToString(in_msg.downloadOstreeRevReq()->tlsCred));
 
   out_msg.present(AKIpUptaneMes_PR_downloadOstreeRevResp).downloadOstreeRevResp()->result =
-      static_cast<AKInstallationResultCode_t>(send_firmware_result);
+      static_cast<AKInstallationResultCode_t>(download_ostree_rev_result);
 
   return ReturnCode::kOk;
 }
