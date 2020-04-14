@@ -4,7 +4,6 @@
 #include <boost/process.hpp>
 
 #include "aktualizr_secondary_file.h"
-//#include "aktualizr_secondary_factory.h"
 #include "crypto/keymanager.h"
 #include "test_utils.h"
 #include "update_agent.h"
