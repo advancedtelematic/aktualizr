@@ -113,17 +113,22 @@ bool SecondaryTcpServer::HandleOneConnection(int socket) {
     // Note that ber_decode allocates *m even on failure, so this must always be done
     Asn1Message::Ptr request_msg = Asn1Message::FromRaw(&m);
 
-    if (received <= 0) {
+    if (received == 0) {
       LOG_DEBUG << "Primary has closed a connection socket";
       break;
     }
 
-    if (res.code != RC_OK) {
-      LOG_ERROR << "Failed to receive and/or decode a message from Primary";
+    if (received < 0) {
+      LOG_ERROR << "Error while reading message data from a socket: " << strerror(errno);
       break;
     }
 
-    LOG_DEBUG << "Received message from Primary, try to decode it...";
+    if (res.code != RC_OK) {
+      LOG_ERROR << "Failed to decode a message received from Primary";
+      break;
+    }
+
+    LOG_DEBUG << "Received message from Primary, trying to handle it...";
     Asn1Message::Ptr response_msg = Asn1Message::Empty();
     MsgHandler::ReturnCode handle_status_code = msg_handler_.handleMsg(request_msg, response_msg);
 

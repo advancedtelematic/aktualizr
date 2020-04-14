@@ -45,7 +45,7 @@ class IpUptaneSecondary : public SecondaryInterface {
   data::ResultCode::Numeric install_v2(const Uptane::Target& target);
   data::ResultCode::Numeric downloadOstreeRev(const Uptane::Target& target);
   data::ResultCode::Numeric uploadFirmware(const Uptane::Target& target);
-  bool uploadFirmwareData(const uint8_t* data, size_t size);
+  data::ResultCode::Numeric uploadFirmwareData(const uint8_t* data, size_t size);
 
  private:
   std::mutex install_mutex;
