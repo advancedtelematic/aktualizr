@@ -5,6 +5,7 @@
 
 #include "config/config.h"
 #include "http/httpclient.h"
+#include "package_manager/dockerappmanager.h"
 #include "package_manager/packagemanagerfactory.h"
 #include "package_manager/packagemanagerinterface.h"
 #include "primary/sotauptaneclient.h"
@@ -41,6 +42,34 @@ TEST(DockerAppManager, PackageManager_Factory_Good) {
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   auto pacman = PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr);
   EXPECT_TRUE(pacman);
+}
+
+TEST(DockerAppManager, DockerAppConfig) {
+  Config config;
+  config.pacman.type = PACKAGE_MANAGER_OSTREEDOCKERAPP;
+  config.pacman.sysroot = test_sysroot.string();
+  config.pacman.ostree_server = treehub_server;
+  config.pacman.extra["docker_apps_root"] = "apps-root";
+  config.pacman.extra["docker_apps"] = "app1 app2";
+  config.pacman.extra["docker_app_bin"] = "dab";
+  config.pacman.extra["docker_compose_bin"] = "compose";
+
+  DockerAppManagerConfig dacfg(config.pacman);
+  ASSERT_TRUE(dacfg.docker_prune);
+  ASSERT_EQ(2, dacfg.docker_apps.size());
+  ASSERT_EQ("app1", dacfg.docker_apps[0]);
+  ASSERT_EQ("app2", dacfg.docker_apps[1]);
+  ASSERT_EQ("apps-root", dacfg.docker_apps_root);
+  ASSERT_EQ("dab", dacfg.docker_app_bin);
+  ASSERT_EQ("compose", dacfg.docker_compose_bin);
+
+  config.pacman.extra["docker_prune"] = "0";
+  dacfg = DockerAppManagerConfig(config.pacman);
+  ASSERT_FALSE(dacfg.docker_prune);
+
+  config.pacman.extra["docker_prune"] = "FALSE";
+  dacfg = DockerAppManagerConfig(config.pacman);
+  ASSERT_FALSE(dacfg.docker_prune);
 }
 
 TEST(DockerAppManager, DockerAppStandalone) {
