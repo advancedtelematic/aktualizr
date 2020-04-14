@@ -3,7 +3,6 @@
 set -euo pipefail
 
 GITREPO_ROOT="${1:-$(readlink -f "$(dirname "$0")/..")}"
-TRAVIS_COMMIT=${TRAVIS_COMMIT:-}
 
 # Test options: test stages, additional checkers, compile options
 TEST_BUILD_DIR=${TEST_BUILD_DIR:-build-test}
@@ -179,7 +178,7 @@ if [[ $TEST_WITH_TESTSUITE = 1 ]]; then
             set -x
             run_make coverage || add_failure "testsuite with coverage"
 
-            if [[ -n $TRAVIS_COMMIT || -n ${CODECOV_TOKEN:-} ]]; then
+            if [[ -n ${CODECOV_TOKEN:-} ]]; then
                 bash <(curl -s https://codecov.io/bash) -f '!*/#usr*' -f '!*/^#third_party*' -R "${GITREPO_ROOT}" -s . > /dev/null
             else
                 echo "Skipping codecov.io upload"
