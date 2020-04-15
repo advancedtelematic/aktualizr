@@ -39,9 +39,10 @@ class Aktualizr {
 
   /**
    * Asynchronously run aktualizr indefinitely until Shutdown is called.
+   * @param custom_hwinfo if not empty will be sent to the backend instead of `lshw` output
    * @return Empty std::future object
    */
-  std::future<void> RunForever();
+  std::future<void> RunForever(const Json::Value& custom_hwinfo = Json::nullValue);
 
   /**
    * Shuts down currently running `RunForever()` method

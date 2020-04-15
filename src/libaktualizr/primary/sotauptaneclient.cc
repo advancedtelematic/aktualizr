@@ -162,7 +162,7 @@ data::InstallationResult SotaUptaneClient::PackageInstallSetResult(const Uptane:
 
 void SotaUptaneClient::reportHwInfo(const Json::Value &custom_hwinfo) {
   Json::Value system_info;
-  
+
   if (custom_hwinfo.empty()) {
     system_info = Utils::getHardwareInfo();
     if (system_info.empty()) {

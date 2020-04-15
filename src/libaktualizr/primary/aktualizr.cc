@@ -69,9 +69,9 @@ bool Aktualizr::UptaneCycle() {
   return true;
 }
 
-std::future<void> Aktualizr::RunForever() {
-  std::future<void> future = std::async(std::launch::async, [&]() {
-    SendDeviceData().get();
+std::future<void> Aktualizr::RunForever(const Json::Value &custom_hwinfo) {
+  std::future<void> future = std::async(std::launch::async, [this, custom_hwinfo]() {
+    SendDeviceData(custom_hwinfo).get();
 
     std::unique_lock<std::mutex> l(exit_cond_.m);
     while (true) {
