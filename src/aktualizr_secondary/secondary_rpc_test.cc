@@ -129,7 +129,13 @@ class SecondaryMock : public MsgDispatcher {
   }
 
   MsgHandler::ReturnCode uploadDataHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
-    auto send_firmware_result = receiveImageData(in_msg.uploadDataReq()->data.buf, in_msg.uploadDataReq()->data.size);
+    if (in_msg.uploadDataReq()->data.size < 0) {
+      out_msg.present(AKIpUptaneMes_PR_uploadDataResp).uploadDataResp()->result = AKInstallationResult_failure;
+      return ReturnCode::kOk;
+    }
+
+    size_t data_size = static_cast<size_t>(in_msg.uploadDataReq()->data.size);
+    auto send_firmware_result = receiveImageData(in_msg.uploadDataReq()->data.buf, data_size);
 
     out_msg.present(AKIpUptaneMes_PR_uploadDataResp).uploadDataResp()->result =
         (send_firmware_result == data::ResultCode::Numeric::kOk) ? AKInstallationResult_success
@@ -161,7 +167,7 @@ class SecondaryMock : public MsgDispatcher {
   data::ResultCode::Numeric receiveImageData(const uint8_t* data, size_t size) {
     std::ofstream target_file(image_filepath_.c_str(), std::ofstream::out | std::ofstream::binary | std::ofstream::app);
 
-    target_file.write(reinterpret_cast<const char*>(data), size);
+    target_file.write(reinterpret_cast<const char*>(data), static_cast<std::streamsize>(size));
     hasher_->update(data, size);
 
     target_file.close();
@@ -214,7 +220,7 @@ class TargetFile {
   const Hash& hash() const { return image_hash_; }
   const size_t& size() const { return image_size_; }
 
-  static ImageReader getImageReader() {
+  static ImageReaderProvider getImageReader() {
     return [](const Uptane::Target& target) { return std_::make_unique<ImageReaderMock>(target.filename()); };
   }
 
@@ -237,7 +243,8 @@ class TargetFile {
     uintmax_t rsize() const override { return boost::filesystem::file_size(image_filename_); }
 
     size_t rread(uint8_t* buf, size_t size) override {
-      return image_file_.readsome(reinterpret_cast<char*>(buf), size);
+      return static_cast<size_t>(
+          image_file_.readsome(reinterpret_cast<char*>(buf), static_cast<std::streamsize>(size)));
     }
 
     void rclose() override { image_file_.close(); }
@@ -259,8 +266,8 @@ class TargetFile {
     unsigned char cur_symbol;
 
     for (unsigned int ii = 0; ii < size; ++ii) {
-      cur_symbol = symbols[rand() % sizeof(symbols)];
-      file.put(cur_symbol);
+      cur_symbol = symbols[static_cast<unsigned int>(rand()) % sizeof(symbols)];
+      file.put(static_cast<char>(cur_symbol));
       hasher->update(&cur_symbol, sizeof(cur_symbol));
     }
 
@@ -348,13 +355,21 @@ TEST_P(SecondaryRpcTest, AllRpcCallsTest) {
   EXPECT_EQ(tls_creds_.hash(), secondary_.getReceivedTlsCredsHash());
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    SecondaryRpcTestCases, SecondaryRpcTest,
-    ::testing::Values(std::make_pair(1024 * 3 + 1, true /* new API/messages */),
-                      std::make_pair(1024 * 3 + 1, false /* old messages/sendFirmware, fallback testing */),
-                      std::make_pair(1, true), std::make_pair(1024, true), std::make_pair(1024 - 1, true),
-                      std::make_pair(1024 + 1, true), std::make_pair(1024 * 10, false),
-                      std::make_pair(1024 * 10 - 1, false), std::make_pair(1024 * 10 + 1, false)));
+INSTANTIATE_TEST_SUITE_P(SecondaryRpcTestCases, SecondaryRpcTest,
+                         ::testing::Values(
+                             // Binary update by using a new RPC API bteween Primary and Secondary
+                             std::make_pair(1024 * 3 + 1, true /* new API/messages */),
+
+                             // Binary update that tests the Primary's fallback to the previous/old version of RPC API
+                             // The Secondary mock is configured to handle the old RPC API (sendFirmware) while
+                             // Primary uses the new API and if it fails fallbacks to the old API usage
+                             // (false|true) defines whether to handle the new or old RPC API in the Secondary mock
+                             // `true` means to handle the new RPC API
+                             // `false` means to handle an old RPC API (sendFirmware request) * /
+                             std::make_pair(1024 * 3 + 1, false /* old messages/sendFirmware, fallback testing */),
+                             std::make_pair(1, true), std::make_pair(1024, true), std::make_pair(1024 - 1, true),
+                             std::make_pair(1024 + 1, true), std::make_pair(1024 * 10, false),
+                             std::make_pair(1024 * 10 - 1, false), std::make_pair(1024 * 10 + 1, false)));
 
 TEST(SecondaryTcpServer, TestIpSecondaryIfSecondaryIsNotRunning) {
   in_port_t secondary_port = TestUtils::getFreePortAsInt();

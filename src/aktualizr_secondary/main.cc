@@ -97,7 +97,16 @@ int main(int argc, char *argv[]) {
     else {
       secondary = std::make_shared<AktualizrSecondaryOstree>(config);
     }
+#else
+    else {
+      LOG_ERROR << "Unsupported type of Secondary: " << config.pacman.type;
+    }
 #endif  // BUILD_OSTREE
+
+    if (!secondary) {
+      throw std::runtime_error("Failed to create IP Secondary of the specified type: " + config.pacman.type);
+    }
+    secondary->initialize();
 
     SecondaryTcpServer tcp_server(*secondary, config.network.primary_ip, config.network.primary_port,
                                   config.network.port, config.uptane.force_install_completion);
@@ -108,7 +117,7 @@ int main(int argc, char *argv[]) {
       secondary->completeInstall();
     }
 
-  } catch (std::runtime_error &exc) {
+  } catch (std::exception &exc) {
     LOG_ERROR << "Error: " << exc.what();
     ret = EXIT_FAILURE;
   }

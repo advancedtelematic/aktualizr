@@ -11,12 +11,11 @@ class AktualizrSecondaryFile : public AktualizrSecondary {
  public:
   static const std::string FileUpdateDefaultFile;
 
- public:
-  AktualizrSecondaryFile(AktualizrSecondaryConfig config);
-  AktualizrSecondaryFile(AktualizrSecondaryConfig config, std::shared_ptr<INvStorage> storage,
+  AktualizrSecondaryFile(const AktualizrSecondaryConfig& config);
+  AktualizrSecondaryFile(const AktualizrSecondaryConfig& config, std::shared_ptr<INvStorage> storage,
                          std::shared_ptr<FileUpdateAgent> update_agent = nullptr);
 
- public:
+  void initialize() override;
   data::ResultCode::Numeric receiveData(const uint8_t* data, size_t size);
 
  protected:

@@ -2,10 +2,11 @@
 #include "package_manager/ostreemanager.h"
 #include "update_agent_ostree.h"
 
-AktualizrSecondaryOstree::AktualizrSecondaryOstree(AktualizrSecondaryConfig config)
+AktualizrSecondaryOstree::AktualizrSecondaryOstree(const AktualizrSecondaryConfig& config)
     : AktualizrSecondaryOstree(config, INvStorage::newStorage(config.storage)) {}
 
-AktualizrSecondaryOstree::AktualizrSecondaryOstree(AktualizrSecondaryConfig config, std::shared_ptr<INvStorage> storage)
+AktualizrSecondaryOstree::AktualizrSecondaryOstree(const AktualizrSecondaryConfig& config,
+                                                   const std::shared_ptr<INvStorage>& storage)
     : AktualizrSecondary(config, storage) {
   registerHandler(AKIpUptaneMes_PR_downloadOstreeRevReq, std::bind(&AktualizrSecondaryOstree::downloadOstreeRev, this,
                                                                    std::placeholders::_1, std::placeholders::_2));
@@ -14,7 +15,9 @@ AktualizrSecondaryOstree::AktualizrSecondaryOstree(AktualizrSecondaryConfig conf
       std::make_shared<OstreeManager>(config.pacman, config.bootloader, AktualizrSecondary::storagePtr(), nullptr);
   update_agent_ =
       std::make_shared<OstreeUpdateAgent>(config.pacman.sysroot, keyMngr(), pack_man, config.uptane.ecu_hardware_id);
+}
 
+void AktualizrSecondaryOstree::initialize() {
   initPendingTargetIfAny();
 
   if (hasPendingUpdate()) {
@@ -23,7 +26,7 @@ AktualizrSecondaryOstree::AktualizrSecondaryOstree(AktualizrSecondaryConfig conf
     // an installation status of each ECU but store it just for a given secondary ECU
     std::vector<Uptane::Target> installed_versions;
     boost::optional<Uptane::Target> pending_target;
-    storage->loadInstalledVersions(serial().ToString(), nullptr, &pending_target);
+    AktualizrSecondary::storage().loadInstalledVersions(serial().ToString(), nullptr, &pending_target);
 
     if (!!pending_target) {
       data::InstallationResult install_res =
@@ -33,18 +36,20 @@ AktualizrSecondaryOstree::AktualizrSecondaryOstree(AktualizrSecondaryConfig conf
       install_res = applyPendingInstall(*pending_target);
 
       if (install_res.result_code != data::ResultCode::Numeric::kNeedCompletion) {
-        storage->saveEcuInstallationResult(serial(), install_res);
+        AktualizrSecondary::storage().saveEcuInstallationResult(serial(), install_res);
 
         if (install_res.success) {
           LOG_INFO << "Pending update has been successfully applied: " << pending_target->sha256Hash();
-          storage->saveInstalledVersion(serial().ToString(), *pending_target, InstalledVersionUpdateMode::kCurrent);
+          AktualizrSecondary::storage().saveInstalledVersion(serial().ToString(), *pending_target,
+                                                             InstalledVersionUpdateMode::kCurrent);
         } else {
           LOG_ERROR << "Application of the pending update has failed: (" << install_res.result_code.toString() << ")"
                     << install_res.description;
-          storage->saveInstalledVersion(serial().ToString(), *pending_target, InstalledVersionUpdateMode::kNone);
+          AktualizrSecondary::storage().saveInstalledVersion(serial().ToString(), *pending_target,
+                                                             InstalledVersionUpdateMode::kNone);
         }
 
-        directorRepo().dropTargets(*storage);
+        directorRepo().dropTargets(AktualizrSecondary::storage());
       } else {
         LOG_INFO << "Pending update hasn't been applied because a reboot hasn't been detected";
       }
@@ -53,6 +58,7 @@ AktualizrSecondaryOstree::AktualizrSecondaryOstree(AktualizrSecondaryConfig conf
 }
 
 MsgHandler::ReturnCode AktualizrSecondaryOstree::downloadOstreeRev(Asn1Message& in_msg, Asn1Message& out_msg) {
+  LOG_INFO << "Received a request to download a new ostree revision from Treehub";
   auto download_ostree_rev_result = downloadOstreeUpdate(ToString(in_msg.downloadOstreeRevReq()->tlsCred));
 
   out_msg.present(AKIpUptaneMes_PR_downloadOstreeRevResp).downloadOstreeRevResp()->result =
@@ -61,19 +67,16 @@ MsgHandler::ReturnCode AktualizrSecondaryOstree::downloadOstreeRev(Asn1Message& 
   return ReturnCode::kOk;
 }
 
-data::ResultCode::Numeric AktualizrSecondaryOstree::downloadOstreeUpdate(std::string packed_tls_creds) {
+data::ResultCode::Numeric AktualizrSecondaryOstree::downloadOstreeUpdate(const std::string& packed_tls_creds) {
   if (!pendingTarget().IsValid()) {
     LOG_ERROR << "Aborting image download/receiving; no valid target found.";
     return data::ResultCode::Numeric::kGeneralError;
   }
 
   if (!update_agent_->downloadTargetRev(pendingTarget(), packed_tls_creds)) {
-    LOG_ERROR << "Failed to pull/store an update data";
     pendingTarget() = Uptane::Target::Unknown();
     return data::ResultCode::Numeric::kGeneralError;
   }
-
-  LOG_INFO << "Download firmware " << pendingTarget().filename() << " successful.";
   return data::ResultCode::Numeric::kOk;
 }
 

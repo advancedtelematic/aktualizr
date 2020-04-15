@@ -9,10 +9,10 @@
 #include <sys/types.h>
 #include <memory>
 
-AktualizrSecondary::AktualizrSecondary(AktualizrSecondaryConfig config, std::shared_ptr<INvStorage> storage)
-    : config_(std::move(config)),
+AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig& config, std::shared_ptr<INvStorage> storage)
+    : config_(config),
       storage_(std::move(storage)),
-      keys_(std::make_shared<KeyManager>(storage_, config.keymanagerConfig())) {
+      keys_(std::make_shared<KeyManager>(storage_, config_.keymanagerConfig())) {
   uptaneInitialize();
   manifest_issuer_ = std::make_shared<Uptane::ManifestIssuer>(keys_, ecu_serial_);
   registerHandlers();
@@ -232,7 +232,7 @@ AktualizrSecondary::ReturnCode AktualizrSecondary::getManifestHdlr(Asn1Message& 
   out_msg.present(AKIpUptaneMes_PR_manifestResp);
   auto manifest_resp = out_msg.manifestResp();
   manifest_resp->manifest.present = manifest_PR_json;
-  SetString(&manifest_resp->manifest.choice.json, Utils::jsonToStr(getManifest()));
+  SetString(&manifest_resp->manifest.choice.json, Utils::jsonToStr(getManifest()));  // NOLINT
 
   LOG_TRACE << "Manifest : \n" << getManifest();
   return ReturnCode::kOk;

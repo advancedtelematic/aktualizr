@@ -22,7 +22,7 @@ class VirtualSecondaryConfig : public ManagedSecondaryConfig {
 
 class VirtualSecondary : public ManagedSecondary {
  public:
-  explicit VirtualSecondary(Primary::VirtualSecondaryConfig sconfig_in, ImageReader image_reader_in);
+  explicit VirtualSecondary(Primary::VirtualSecondaryConfig sconfig_in, ImageReaderProvider image_reader_in);
   ~VirtualSecondary() override = default;
 
   std::string Type() const override { return VirtualSecondaryConfig::Type; }

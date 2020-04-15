@@ -3,12 +3,13 @@
 
 const std::string AktualizrSecondaryFile::FileUpdateDefaultFile{"firmware.txt"};
 
-AktualizrSecondaryFile::AktualizrSecondaryFile(AktualizrSecondaryConfig config)
+AktualizrSecondaryFile::AktualizrSecondaryFile(const AktualizrSecondaryConfig& config)
     : AktualizrSecondaryFile(config, INvStorage::newStorage(config.storage)) {}
 
-AktualizrSecondaryFile::AktualizrSecondaryFile(AktualizrSecondaryConfig config, std::shared_ptr<INvStorage> storage,
+AktualizrSecondaryFile::AktualizrSecondaryFile(const AktualizrSecondaryConfig& config,
+                                               std::shared_ptr<INvStorage> storage,
                                                std::shared_ptr<FileUpdateAgent> update_agent)
-    : AktualizrSecondary(config, storage), update_agent_{update_agent} {
+    : AktualizrSecondary(config, std::move(storage)), update_agent_{std::move(update_agent)} {
   registerHandler(AKIpUptaneMes_PR_uploadDataReq, std::bind(&AktualizrSecondaryFile::uploadDataHdlr, this,
                                                             std::placeholders::_1, std::placeholders::_2));
   if (!update_agent_) {
@@ -27,9 +28,9 @@ AktualizrSecondaryFile::AktualizrSecondaryFile(AktualizrSecondaryConfig config, 
 
     update_agent_ = std::make_shared<FileUpdateAgent>(config.storage.path / FileUpdateDefaultFile, current_target_name);
   }
-
-  initPendingTargetIfAny();
 }
+
+void AktualizrSecondaryFile::initialize() { initPendingTargetIfAny(); }
 
 data::ResultCode::Numeric AktualizrSecondaryFile::receiveData(const uint8_t* data, size_t size) {
   if (!pendingTarget().IsValid()) {
@@ -37,6 +38,7 @@ data::ResultCode::Numeric AktualizrSecondaryFile::receiveData(const uint8_t* dat
     return data::ResultCode::Numeric::kGeneralError;
   }
 
+  LOG_INFO << "Receiving target image data from Primary: " << size;
   return update_agent_->receiveData(pendingTarget(), data, size);
 }
 
@@ -59,9 +61,15 @@ data::ResultCode::Numeric AktualizrSecondaryFile::installPendingTarget(const Upt
 void AktualizrSecondaryFile::completeInstall() { return update_agent_->completeInstall(); }
 
 MsgHandler::ReturnCode AktualizrSecondaryFile::uploadDataHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
-  auto fw = in_msg.uploadDataReq();
+  LOG_INFO << "Handling upload data request from Primary";
 
-  auto send_firmware_result = receiveData(in_msg.uploadDataReq()->data.buf, in_msg.uploadDataReq()->data.size);
+  auto rec_buf_size = in_msg.uploadDataReq()->data.size;
+  if (rec_buf_size < 0) {
+    LOG_ERROR << "The received data buffer size has a negative size: " << rec_buf_size;
+    return ReturnCode::kOk;
+  }
+
+  auto send_firmware_result = receiveData(in_msg.uploadDataReq()->data.buf, static_cast<size_t>(rec_buf_size));
 
   out_msg.present(AKIpUptaneMes_PR_uploadDataResp).uploadDataResp()->result =
       (send_firmware_result == data::ResultCode::Numeric::kOk) ? AKInstallationResult_success

@@ -116,7 +116,7 @@ TEST(UptaneKey, CheckAllKeys) {
   initKeyTests(config, ecu_config1, ecu_config2, temp_dir, http->tls_server);
   auto storage = INvStorage::newStorage(config.storage);
   auto sota_client = std_::make_unique<UptaneTestCommon::TestUptaneClient>(config, storage, http);
-  ImageReader image_reader = std::bind(&INvStorage::openTargetFile, storage.get(), std::placeholders::_1);
+  ImageReaderProvider image_reader = std::bind(&INvStorage::openTargetFile, storage.get(), std::placeholders::_1);
   sota_client->addSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config1, image_reader));
   sota_client->addSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config2, image_reader));
   EXPECT_NO_THROW(sota_client->initialize());
@@ -140,7 +140,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
   {
     auto storage = INvStorage::newStorage(config.storage);
     auto sota_client = std_::make_unique<UptaneTestCommon::TestUptaneClient>(config, storage, http);
-    ImageReader image_reader = std::bind(&INvStorage::openTargetFile, storage.get(), std::placeholders::_1);
+    ImageReaderProvider image_reader = std::bind(&INvStorage::openTargetFile, storage.get(), std::placeholders::_1);
     sota_client->addSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config1, image_reader));
     sota_client->addSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config2, image_reader));
     EXPECT_NO_THROW(sota_client->initialize());

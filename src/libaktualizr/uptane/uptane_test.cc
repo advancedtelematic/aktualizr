@@ -579,7 +579,6 @@ class SecondaryInterfaceMock : public Uptane::SecondaryInterface {
   int32_t getRootVersion(bool director) const override { return getRootVersionMock(director); }
 
   bool putRoot(const std::string &, bool) override { return true; }
-  // bool sendFirmware(const std::string &) override { return true; }
   virtual data::ResultCode::Numeric install(const Uptane::Target &) override { return data::ResultCode::Numeric::kOk; }
 
   PublicKey public_key_;
@@ -693,7 +692,7 @@ TEST(Uptane, UptaneSecondaryAddSameSerial) {
   auto storage = INvStorage::newStorage(config.storage);
   auto sota_client = std_::make_unique<UptaneTestCommon::TestUptaneClient>(config, storage, http);
   UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware_new");
-  ImageReader image_reader = std::bind(&INvStorage::openTargetFile, storage.get(), std::placeholders::_1);
+  ImageReaderProvider image_reader = std::bind(&INvStorage::openTargetFile, storage.get(), std::placeholders::_1);
   EXPECT_THROW(
       sota_client->addSecondary(std::make_shared<Primary::VirtualSecondary>(
           Primary::VirtualSecondaryConfig::create_from_file(config.uptane.secondary_config_file)[0], image_reader)),

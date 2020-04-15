@@ -1,18 +1,19 @@
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 
+#include <array>
+#include <memory>
+
 #include "asn1/asn1_message.h"
 #include "der_encoder.h"
 #include "ipuptanesecondary.h"
 #include "logging/logging.h"
 #include "storage/invstorage.h"
 
-#include <memory>
-
 namespace Uptane {
 
 Uptane::SecondaryInterface::Ptr IpUptaneSecondary::connectAndCreate(const std::string& address, unsigned short port,
-                                                                    ImageReader image_reader,
+                                                                    ImageReaderProvider image_reader_provider,
                                                                     TlsCredsProvider treehub_cred_provider) {
   LOG_INFO << "Connecting to and getting info about IP Secondary: " << address << ":" << port << "...";
 
@@ -26,11 +27,11 @@ Uptane::SecondaryInterface::Ptr IpUptaneSecondary::connectAndCreate(const std::s
     return nullptr;
   }
 
-  return create(address, port, *con_sock, image_reader, treehub_cred_provider);
+  return create(address, port, *con_sock, std::move(image_reader_provider), std::move(treehub_cred_provider));
 }
 
 Uptane::SecondaryInterface::Ptr IpUptaneSecondary::create(const std::string& address, unsigned short port, int con_fd,
-                                                          ImageReader image_reader,
+                                                          ImageReaderProvider image_reader_provider,
                                                           TlsCredsProvider treehub_cred_provider) {
   Asn1Message::Ptr req(Asn1Message::Empty());
   req->present(AKIpUptaneMes_PR_getInfoReq);
@@ -54,19 +55,19 @@ Uptane::SecondaryInterface::Ptr IpUptaneSecondary::create(const std::string& add
   LOG_INFO << "Got ECU information from IP Secondary: "
            << "hardware ID: " << hw_id << " serial: " << serial;
 
-  return std::make_shared<IpUptaneSecondary>(address, port, serial, hw_id, pub_key, image_reader,
+  return std::make_shared<IpUptaneSecondary>(address, port, serial, hw_id, pub_key, image_reader_provider,
                                              treehub_cred_provider);
 }
 
 SecondaryInterface::Ptr IpUptaneSecondary::connectAndCheck(const std::string& address, unsigned short port,
                                                            EcuSerial serial, HardwareIdentifier hw_id,
-                                                           PublicKey pub_key, ImageReader image_reader,
+                                                           PublicKey pub_key, ImageReaderProvider image_reader_provider,
                                                            TlsCredsProvider treehub_cred_provider) {
   // try to connect:
   // - if it succeeds compare with what we expect
   // - otherwise, keep using what we know
   try {
-    auto sec = IpUptaneSecondary::connectAndCreate(address, port, image_reader, treehub_cred_provider);
+    auto sec = IpUptaneSecondary::connectAndCreate(address, port, image_reader_provider, treehub_cred_provider);
     if (sec != nullptr) {
       auto s = sec->getSerial();
       if (s != serial && serial != EcuSerial::Unknown()) {
@@ -94,18 +95,18 @@ SecondaryInterface::Ptr IpUptaneSecondary::connectAndCheck(const std::string& ad
   }
 
   return std::make_shared<IpUptaneSecondary>(address, port, std::move(serial), std::move(hw_id), std::move(pub_key),
-                                             image_reader, treehub_cred_provider);
+                                             image_reader_provider, treehub_cred_provider);
 }
 
 IpUptaneSecondary::IpUptaneSecondary(const std::string& address, unsigned short port, EcuSerial serial,
-                                     HardwareIdentifier hw_id, PublicKey pub_key, ImageReader image_reader,
-                                     TlsCredsProvider treehub_cred_provider)
+                                     HardwareIdentifier hw_id, PublicKey pub_key,
+                                     ImageReaderProvider image_reader_provider, TlsCredsProvider treehub_cred_provider)
     : addr_{address, port},
       serial_{std::move(serial)},
       hw_id_{std::move(hw_id)},
       pub_key_{std::move(pub_key)},
-      image_reader_{image_reader},
-      treehub_cred_provider_{treehub_cred_provider} {}
+      image_reader_provider_{std::move(image_reader_provider)},
+      treehub_cred_provider_{std::move(treehub_cred_provider)} {}
 
 bool IpUptaneSecondary::putMetadata(const RawMetaPack& meta_pack) {
   LOG_INFO << "Sending Uptane metadata to the Secondary";
@@ -172,6 +173,8 @@ data::ResultCode::Numeric IpUptaneSecondary::install(const Uptane::Target& targe
   auto install_result = install_v2(target);
   if (install_result == data::ResultCode::Numeric::kUnknown) {
     // fallback to the previous installation version
+    // TODO(OTA-4793): refactor to negotiate versioning once during
+    // initialization.
     LOG_ERROR << "Failed to install " << target.filename() << " on Secondary " << getSerial()
               << "\nTry to install by applying the previous version of the installation procedure";
 
@@ -188,7 +191,7 @@ data::ResultCode::Numeric IpUptaneSecondary::install_v1(const Uptane::Target& ta
     data_to_send = treehub_cred_provider_();
   } else {
     std::stringstream sstr;
-    sstr << *image_reader_(target);
+    sstr << *image_reader_provider_(target);
     data_to_send = sstr.str();
   }
 
@@ -197,7 +200,7 @@ data::ResultCode::Numeric IpUptaneSecondary::install_v1(const Uptane::Target& ta
     return data::ResultCode::Numeric::kInstallFailed;
   }
 
-  LOG_INFO << "Invoking an installation of the target on the Secondary: " << target;
+  LOG_INFO << "Invoking an installation of the target on the Secondary: " << target.filename();
 
   Asn1Message::Ptr req(Asn1Message::Empty());
   req->present(AKIpUptaneMes_PR_installReq);
@@ -260,11 +263,9 @@ bool IpUptaneSecondary::sendFirmware(const std::string& data) {
 }
 
 data::ResultCode::Numeric IpUptaneSecondary::downloadOstreeRev(const Uptane::Target& target) {
-  LOG_INFO << "Invoking donwload of the ostree target revision ( " << target.sha256Hash() << " ) on Secondary ( "
-           << getSerial() << " )";
+  LOG_INFO << "Instructing Secondary ( " << getSerial() << " ) to download OSTree commit ( " << target.sha256Hash()
+           << " )";
   std::string tls_creds = treehub_cred_provider_();
-  LOG_INFO << "Treehub TLS creds archive string size: " << tls_creds.size();
-
   Asn1Message::Ptr req(Asn1Message::Empty());
   req->present(static_cast<AKIpUptaneMes_PR>(AKIpUptaneMes_PR_downloadOstreeRevReq));
 
@@ -287,17 +288,17 @@ data::ResultCode::Numeric IpUptaneSecondary::uploadFirmware(const Uptane::Target
 
   data::ResultCode::Numeric upload_result = data::ResultCode::Numeric::kDownloadFailed;
 
-  std::unique_ptr<StorageTargetRHandle> image_reader = image_reader_(target);
+  std::unique_ptr<StorageTargetRHandle> image_reader = image_reader_provider_(target);
 
   auto image_size = image_reader->rsize();
   const size_t size = 1024;
   size_t total_send_data = 0;
-  uint8_t buf[size];
+  std::array<uint8_t, size> buf{};
   data::ResultCode::Numeric upload_data_result = data::ResultCode::Numeric::kOk;
 
   while (total_send_data < image_size && upload_data_result == data::ResultCode::Numeric::kOk) {
-    auto read_data = image_reader->rread(buf, sizeof(buf));
-    upload_data_result = uploadFirmwareData(buf, read_data);
+    auto read_data = image_reader->rread(buf.data(), buf.size());
+    upload_data_result = uploadFirmwareData(buf.data(), read_data);
     total_send_data += read_data;
   }
   if (upload_data_result == data::ResultCode::Numeric::kOk && total_send_data == image_size) {
