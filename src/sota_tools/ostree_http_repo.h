@@ -3,9 +3,11 @@
 
 #include <boost/filesystem.hpp>
 
+#include "logging/logging.h"
 #include "ostree_ref.h"
 #include "ostree_repo.h"
 #include "treehub_server.h"
+#include "utilities/utils.h"
 
 class OSTreeHttpRepo : public OSTreeRepo {
  public:
@@ -14,6 +16,9 @@ class OSTreeHttpRepo : public OSTreeRepo {
     if (root_.empty()) {
       root_ = root_tmp_.Path();
     }
+    curlEasySetoptWrapper(easy_handle_.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
+    curlEasySetoptWrapper(easy_handle_.get(), CURLOPT_WRITEFUNCTION, &OSTreeHttpRepo::curl_handle_write);
+    curlEasySetoptWrapper(easy_handle_.get(), CURLOPT_FAILONERROR, true);
   }
   ~OSTreeHttpRepo() override = default;
 
@@ -28,6 +33,7 @@ class OSTreeHttpRepo : public OSTreeRepo {
   TreehubServer* server_;
   boost::filesystem::path root_;
   const TemporaryDirectory root_tmp_;
+  mutable CurlEasyWrapper easy_handle_;
 };
 
 // vim: set tabstop=2 shiftwidth=2 expandtab:
