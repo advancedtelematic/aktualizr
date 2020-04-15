@@ -17,8 +17,11 @@ class IsoTpSecondary : public SecondaryInterface {
   bool putMetadata(const RawMetaPack& meta_pack) override;
   int getRootVersion(bool director) const override;
   bool putRoot(const std::string& root, bool director) override;
-  // bool sendFirmware(const std::string& data) override;
+  data::ResultCode::Numeric install(const Target& target) override;
   Uptane::Manifest getManifest() const override;
+
+ private:
+  bool sendFirmware(const std::string& data);
 
  private:
   mutable IsoTpSendRecv conn;

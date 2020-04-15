@@ -5,7 +5,8 @@
 AktualizrSecondaryOstree::AktualizrSecondaryOstree(AktualizrSecondaryConfig config)
     : AktualizrSecondaryOstree(config, INvStorage::newStorage(config.storage)) {}
 
-AktualizrSecondaryOstree::AktualizrSecondaryOstree(AktualizrSecondaryConfig config, std::shared_ptr<INvStorage> storage)
+AktualizrSecondaryOstree::AktualizrSecondaryOstree(AktualizrSecondaryConfig config,
+                                                   const std::shared_ptr<INvStorage>& storage)
     : AktualizrSecondary(config, storage) {
   registerHandler(AKIpUptaneMes_PR_downloadOstreeRevReq, std::bind(&AktualizrSecondaryOstree::downloadOstreeRev, this,
                                                                    std::placeholders::_1, std::placeholders::_2));
@@ -53,6 +54,7 @@ AktualizrSecondaryOstree::AktualizrSecondaryOstree(AktualizrSecondaryConfig conf
 }
 
 MsgHandler::ReturnCode AktualizrSecondaryOstree::downloadOstreeRev(Asn1Message& in_msg, Asn1Message& out_msg) {
+  LOG_INFO << "Received a request to download a new ostree revision from Treehub";
   auto download_ostree_rev_result = downloadOstreeUpdate(ToString(in_msg.downloadOstreeRevReq()->tlsCred));
 
   out_msg.present(AKIpUptaneMes_PR_downloadOstreeRevResp).downloadOstreeRevResp()->result =
@@ -61,19 +63,16 @@ MsgHandler::ReturnCode AktualizrSecondaryOstree::downloadOstreeRev(Asn1Message& 
   return ReturnCode::kOk;
 }
 
-data::ResultCode::Numeric AktualizrSecondaryOstree::downloadOstreeUpdate(std::string packed_tls_creds) {
+data::ResultCode::Numeric AktualizrSecondaryOstree::downloadOstreeUpdate(const std::string& packed_tls_creds) {
   if (!pendingTarget().IsValid()) {
     LOG_ERROR << "Aborting image download/receiving; no valid target found.";
     return data::ResultCode::Numeric::kGeneralError;
   }
 
   if (!update_agent_->downloadTargetRev(pendingTarget(), packed_tls_creds)) {
-    LOG_ERROR << "Failed to pull/store an update data";
     pendingTarget() = Uptane::Target::Unknown();
     return data::ResultCode::Numeric::kGeneralError;
   }
-
-  LOG_INFO << "Download firmware " << pendingTarget().filename() << " successful.";
   return data::ResultCode::Numeric::kOk;
 }
 

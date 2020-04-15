@@ -138,7 +138,7 @@ TEST(Aktualizr, AddSecondary) {
   UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
 
   Primary::VirtualSecondaryConfig ecu_config = virtual_configuration(temp_dir.Path());
-  ImageReader image_reader = std::bind(&INvStorage::openTargetFile, storage.get(), std::placeholders::_1);
+  ImageReaderProvider image_reader = std::bind(&INvStorage::openTargetFile, storage.get(), std::placeholders::_1);
   aktualizr.AddSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config, image_reader));
 
   aktualizr.Initialize();
@@ -183,7 +183,7 @@ TEST(Aktualizr, DeviceInstallationResult) {
 
   Primary::VirtualSecondaryConfig ecu_config = virtual_configuration(temp_dir.Path());
 
-  ImageReader image_reader = std::bind(&INvStorage::openTargetFile, storage.get(), std::placeholders::_1);
+  ImageReaderProvider image_reader = std::bind(&INvStorage::openTargetFile, storage.get(), std::placeholders::_1);
   aktualizr.AddSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config, image_reader));
 
   aktualizr.Initialize();
@@ -1204,7 +1204,7 @@ TEST(Aktualizr, FullMultipleSecondaries) {
   auto storage = INvStorage::newStorage(conf.storage);
   UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
   UptaneTestCommon::addDefaultSecondary(conf, temp_dir2, "sec_serial2", "sec_hw2");
-  ImageReader image_reader = std::bind(&INvStorage::openTargetFile, storage.get(), std::placeholders::_1);
+  ImageReaderProvider image_reader = std::bind(&INvStorage::openTargetFile, storage.get(), std::placeholders::_1);
   ASSERT_NO_THROW(aktualizr.AddSecondary(std::make_shared<Primary::VirtualSecondary>(
       Primary::VirtualSecondaryConfig::create_from_file(conf.uptane.secondary_config_file)[0], image_reader)));
 

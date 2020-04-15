@@ -7,11 +7,10 @@ class OstreeUpdateAgent;
 
 class AktualizrSecondaryOstree : public AktualizrSecondary {
  public:
-  AktualizrSecondaryOstree(AktualizrSecondaryConfig config, std::shared_ptr<INvStorage> storage);
+  AktualizrSecondaryOstree(AktualizrSecondaryConfig config, const std::shared_ptr<INvStorage>& storage);
   AktualizrSecondaryOstree(AktualizrSecondaryConfig config);
 
- public:
-  data::ResultCode::Numeric downloadOstreeUpdate(std::string packed_tls_creds);
+  data::ResultCode::Numeric downloadOstreeUpdate(const std::string& packed_tls_creds);
 
  protected:
   bool getInstalledImageInfo(Uptane::InstalledImageInfo& installed_image_info) const override;
