@@ -21,8 +21,8 @@ class SecondaryTcpServer {
     kUnkown,
   };
 
-  SecondaryTcpServer(MsgHandler& msg_dispatcher, const std::string& primary_ip, in_port_t primary_port,
-                     in_port_t port = 0, bool reboot_after_install = false);
+  SecondaryTcpServer(MsgHandler& msg_handler, const std::string& primary_ip, in_port_t primary_port, in_port_t port = 0,
+                     bool reboot_after_install = false);
 
   SecondaryTcpServer(const SecondaryTcpServer&) = delete;
   SecondaryTcpServer& operator=(const SecondaryTcpServer&) = delete;

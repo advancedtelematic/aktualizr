@@ -106,6 +106,7 @@ class AktualizrSecondaryWrapper {
 
     storage_ = INvStorage::newStorage(config_.storage);
     secondary_ = std::make_shared<AktualizrSecondaryOstree>(config_, storage_);
+    secondary_->initialize();
   }
 
  public:
@@ -132,6 +133,7 @@ class AktualizrSecondaryWrapper {
   void reboot() {
     boost::filesystem::remove(storage_dir_ / config_.bootloader.reboot_sentinel_name);
     secondary_ = std::make_shared<AktualizrSecondaryOstree>(config_, storage_);
+    secondary_->initialize();
   }
 
  private:

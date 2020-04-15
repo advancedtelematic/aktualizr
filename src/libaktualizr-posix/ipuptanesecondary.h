@@ -11,16 +11,19 @@ namespace Uptane {
 class IpUptaneSecondary : public SecondaryInterface {
  public:
   static SecondaryInterface::Ptr connectAndCreate(const std::string& address, unsigned short port,
-                                                  ImageReader image_reader, TlsCredsProvider treehub_cred_provider);
+                                                  ImageReaderProvider image_reader_provider,
+                                                  TlsCredsProvider treehub_cred_provider);
   static SecondaryInterface::Ptr create(const std::string& address, unsigned short port, int con_fd,
-                                        ImageReader image_reader, TlsCredsProvider treehub_cred_provider);
+                                        ImageReaderProvider image_reader_provider,
+                                        TlsCredsProvider treehub_cred_provider);
 
   static SecondaryInterface::Ptr connectAndCheck(const std::string& address, unsigned short port, EcuSerial serial,
-                                                 HardwareIdentifier hw_id, PublicKey pub_key, ImageReader image_reader,
+                                                 HardwareIdentifier hw_id, PublicKey pub_key,
+                                                 ImageReaderProvider image_reader_provider,
                                                  TlsCredsProvider treehub_cred_provider);
 
   explicit IpUptaneSecondary(const std::string& address, unsigned short port, EcuSerial serial,
-                             HardwareIdentifier hw_id, PublicKey pub_key, ImageReader image_reader,
+                             HardwareIdentifier hw_id, PublicKey pub_key, ImageReaderProvider image_reader_provider,
                              TlsCredsProvider treehub_cred_provider);
 
   std::string Type() const override { return "IP"; }
@@ -31,7 +34,6 @@ class IpUptaneSecondary : public SecondaryInterface {
   bool putMetadata(const RawMetaPack& meta_pack) override;
   int32_t getRootVersion(bool /* director */) const override { return 0; }
   bool putRoot(const std::string& /* root */, bool /* director */) override { return true; }
-  // bool sendFirmware(const std::string& data) override;
   Manifest getManifest() const override;
   bool ping() const override;
   data::ResultCode::Numeric install(const Uptane::Target& target) override;
@@ -55,7 +57,7 @@ class IpUptaneSecondary : public SecondaryInterface {
   const HardwareIdentifier hw_id_;
   const PublicKey pub_key_;
 
-  ImageReader image_reader_;
+  ImageReaderProvider image_reader_provider_;
   TlsCredsProvider treehub_cred_provider_;
 };
 

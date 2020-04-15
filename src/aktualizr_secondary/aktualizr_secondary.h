@@ -17,9 +17,7 @@ class AktualizrSecondary : public MsgDispatcher {
  public:
   using Ptr = std::shared_ptr<AktualizrSecondary>;
 
- public:
-  virtual ~AktualizrSecondary() = default;
-
+  virtual void initialize() = 0;
   const Uptane::EcuSerial& serial() const { return ecu_serial_; }
   const Uptane::HardwareIdentifier& hwID() const { return hardware_id_; }
   PublicKey publicKey() const;
@@ -32,7 +30,7 @@ class AktualizrSecondary : public MsgDispatcher {
   virtual void completeInstall() = 0;
 
  protected:
-  AktualizrSecondary(AktualizrSecondaryConfig config, std::shared_ptr<INvStorage> storage);
+  AktualizrSecondary(const AktualizrSecondaryConfig& config, std::shared_ptr<INvStorage> storage);
 
   // protected interface to be defined by child classes, i.e. a specific IP secondary type (e.g. OSTree, File, etc)
   virtual bool getInstalledImageInfo(Uptane::InstalledImageInfo& installed_image_info) const = 0;
@@ -40,7 +38,6 @@ class AktualizrSecondary : public MsgDispatcher {
   virtual data::ResultCode::Numeric installPendingTarget(const Uptane::Target& target) = 0;
   virtual data::InstallationResult applyPendingInstall(const Uptane::Target& target) = 0;
 
- protected:
   // protected interface to be used by child classes
   Uptane::Target& pendingTarget() { return pending_target_; }
   INvStorage& storage() { return *storage_; }
@@ -55,14 +52,12 @@ class AktualizrSecondary : public MsgDispatcher {
   void uptaneInitialize();
   void registerHandlers();
 
- private:
   // Message handlers
   ReturnCode getInfoHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
   ReturnCode getManifestHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
   ReturnCode putMetaHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
   ReturnCode installHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
 
- private:
   Uptane::HardwareIdentifier hardware_id_{Uptane::HardwareIdentifier::Unknown()};
   Uptane::EcuSerial ecu_serial_{Uptane::EcuSerial::Unknown()};
 
