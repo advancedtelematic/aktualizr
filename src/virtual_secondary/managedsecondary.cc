@@ -17,7 +17,7 @@
 
 namespace Primary {
 
-ManagedSecondary::ManagedSecondary(Primary::ManagedSecondaryConfig sconfig_in, ImageReader image_reader_in)
+ManagedSecondary::ManagedSecondary(Primary::ManagedSecondaryConfig sconfig_in, ImageReaderProvider image_reader_in)
     : sconfig(std::move(sconfig_in)), image_reader(std::move(image_reader_in)) {
   // TODO: FIX
   // loadMetadata(meta_pack);

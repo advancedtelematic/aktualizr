@@ -224,7 +224,7 @@ AktualizrSecondary::ReturnCode AktualizrSecondary::getManifestHdlr(Asn1Message& 
   out_msg.present(AKIpUptaneMes_PR_manifestResp);
   auto manifest_resp = out_msg.manifestResp();
   manifest_resp->manifest.present = manifest_PR_json;
-  SetString(&manifest_resp->manifest.choice.json, Utils::jsonToStr(getManifest()));
+  SetString(&manifest_resp->manifest.choice.json, Utils::jsonToStr(getManifest()));  // NOLINT
 
   LOG_TRACE << "Manifest : \n" << getManifest();
   return ReturnCode::kOk;

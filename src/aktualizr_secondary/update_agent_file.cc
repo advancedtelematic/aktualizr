@@ -1,4 +1,5 @@
 #include "update_agent_file.h"
+#include <fstream>
 #include "crypto/crypto.h"
 #include "logging/logging.h"
 #include "uptane/manifest.h"
@@ -94,7 +95,7 @@ data::ResultCode::Numeric FileUpdateAgent::receiveData(const Uptane::Target& tar
     new_target_hasher_ = MultiPartHasher::create(getTargetHash(target).type());
   }
 
-  target_file.write(reinterpret_cast<const char*>(data), size);
+  target_file.write(reinterpret_cast<const char*>(data), static_cast<std::streamsize>(size));
   auto written_data_size = target_file.tellp() - current_new_image_size;
 
   if (written_data_size < 0 || static_cast<size_t>(written_data_size) != size) {
@@ -106,12 +107,17 @@ data::ResultCode::Numeric FileUpdateAgent::receiveData(const Uptane::Target& tar
 
   target_file.close();
 
+  LOG_INFO << "Received and stored data of a new target image;"
+              " received in this request (bytes): "
+           << size << " total received so far: " << (current_new_image_size + written_data_size)
+           << " expected total: " << target.length();
+
   new_target_hasher_->update(data, size);
 
   return data::ResultCode::Numeric::kOk;
 }
 
 Hash FileUpdateAgent::getTargetHash(const Uptane::Target& target) {
-  // TODO check target.hashes() size
+  // TODO(OTA-4831): check target.hashes() size.
   return target.hashes()[0];
 }
