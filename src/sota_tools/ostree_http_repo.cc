@@ -6,9 +6,6 @@
 
 #include <boost/property_tree/ini_parser.hpp>
 
-#include "logging/logging.h"
-#include "utilities/utils.h"
-
 namespace pt = boost::property_tree;
 
 bool OSTreeHttpRepo::LooksValid() const {
@@ -38,10 +35,7 @@ OSTreeRef OSTreeHttpRepo::GetRef(const std::string &refname) const { return OSTr
 
 bool OSTreeHttpRepo::FetchObject(const boost::filesystem::path &path) const {
   CURLcode err = CURLE_OK;
-  CurlEasyWrapper easy_handle;
-  curlEasySetoptWrapper(easy_handle.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
-  server_->InjectIntoCurl(path.string(), easy_handle.get());
-  curlEasySetoptWrapper(easy_handle.get(), CURLOPT_WRITEFUNCTION, &OSTreeHttpRepo::curl_handle_write);
+  server_->InjectIntoCurl(path.string(), easy_handle_.get());
   boost::filesystem::create_directories((root_ / path).parent_path());
   std::string filename = (root_ / path).string();
   int fp = open(filename.c_str(), O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
@@ -49,9 +43,8 @@ bool OSTreeHttpRepo::FetchObject(const boost::filesystem::path &path) const {
     LOG_ERROR << "Failed to open file: " << filename;
     return false;
   }
-  curlEasySetoptWrapper(easy_handle.get(), CURLOPT_WRITEDATA, &fp);
-  curlEasySetoptWrapper(easy_handle.get(), CURLOPT_FAILONERROR, true);
-  err = curl_easy_perform(easy_handle.get());
+  curlEasySetoptWrapper(easy_handle_.get(), CURLOPT_WRITEDATA, &fp);
+  err = curl_easy_perform(easy_handle_.get());
   close(fp);
 
   if (err == CURLE_HTTP_RETURNED_ERROR) {
@@ -62,7 +55,7 @@ bool OSTreeHttpRepo::FetchObject(const boost::filesystem::path &path) const {
   } else if (err != CURLE_OK) {
     // other unexpected error
     char *last_url = nullptr;
-    curl_easy_getinfo(easy_handle.get(), CURLINFO_EFFECTIVE_URL, &last_url);
+    curl_easy_getinfo(easy_handle_.get(), CURLINFO_EFFECTIVE_URL, &last_url);
     LOG_ERROR << "Failed to get object:" << curl_easy_strerror(err);
     if (last_url != nullptr) {
       LOG_ERROR << "Url: " << last_url;

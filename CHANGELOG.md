@@ -6,6 +6,10 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ## [??? (unreleased)]
 
+### Changed
+
+- Improved garage-deploy object fetching performance by reusing the curl handle: [PR](https://github.com/advancedtelematic/aktualizr/pull/1643)
+
 
 ## [2020.5] - 2020-04-01
 
