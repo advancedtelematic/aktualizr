@@ -141,6 +141,10 @@ class SQLite3Guard {
     } else {
       rc_ = sqlite3_open_v2(path, &h, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, nullptr);
     }
+
+    /* retry operations for 2 seconds before returning SQLITE_BUSY */
+    sqlite3_busy_timeout(h, 2000);
+
     handle_.reset(h);
   }
 
