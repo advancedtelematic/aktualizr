@@ -86,7 +86,7 @@ if(EXISTS /usr/local/opt/libarchive)
   list(APPEND CMAKE_PREFIX_PATH /usr/local/opt/libarchive)
 endif()
 
-find_package(Boost 1.57.0 COMPONENTS ${BOOST_COMPONENTS} REQUIRED)
+find_package(Boost 1.58.0 COMPONENTS ${BOOST_COMPONENTS} REQUIRED)
 find_package(CURL REQUIRED)
 find_package(OpenSSL 1.0.2 REQUIRED)
 find_package(Threads REQUIRED)
