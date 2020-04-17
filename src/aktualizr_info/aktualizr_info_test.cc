@@ -384,10 +384,10 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersions) {
 
   Uptane::EcuMap ecu_map{{primary_ecu_serial, primary_hw_id}};
   db_storage_->savePrimaryInstalledVersion(
-      {"update.bin", ecu_map, {{Uptane::Hash::Type::kSha256, current_ecu_version}}, 1, "corrid"},
+      {"update.bin", ecu_map, {{Hash::Type::kSha256, current_ecu_version}}, 1, "corrid"},
       InstalledVersionUpdateMode::kCurrent);
   db_storage_->savePrimaryInstalledVersion(
-      {"update-01.bin", ecu_map, {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
+      {"update-01.bin", ecu_map, {{Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
       InstalledVersionUpdateMode::kPending);
 
   aktualizr_info_process_.run();
@@ -423,7 +423,7 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
 
   Uptane::EcuMap ecu_map{{primary_ecu_serial, primary_hw_id}};
   db_storage_->savePrimaryInstalledVersion(
-      {"update-01.bin", ecu_map, {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
+      {"update-01.bin", ecu_map, {{Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
       InstalledVersionUpdateMode::kPending);
 
   aktualizr_info_process_.run();
@@ -433,7 +433,7 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
   EXPECT_NE(aktualizr_info_output.find("Pending Primary ECU version: " + pending_ecu_version), std::string::npos);
 
   db_storage_->savePrimaryInstalledVersion(
-      {"update-01.bin", ecu_map, {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
+      {"update-01.bin", ecu_map, {{Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
       InstalledVersionUpdateMode::kCurrent);
 
   aktualizr_info_process_.run();
@@ -464,14 +464,13 @@ TEST_F(AktualizrInfoTest, PrintSecondaryEcuCurrentAndPendingVersions) {
   db_storage_->storeEcuRegistered();
 
   Uptane::EcuMap ecu_map{{secondary_ecu_serial, secondary_hw_id}};
-  db_storage_->saveInstalledVersion(
-      secondary_ecu_serial.ToString(),
-      {secondary_ecu_filename, ecu_map, {{Uptane::Hash::Type::kSha256, current_ecu_version}}, 1},
-      InstalledVersionUpdateMode::kCurrent);
+  db_storage_->saveInstalledVersion(secondary_ecu_serial.ToString(),
+                                    {secondary_ecu_filename, ecu_map, {{Hash::Type::kSha256, current_ecu_version}}, 1},
+                                    InstalledVersionUpdateMode::kCurrent);
 
   db_storage_->saveInstalledVersion(
       secondary_ecu_serial.ToString(),
-      {secondary_ecu_filename_update, ecu_map, {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1},
+      {secondary_ecu_filename_update, ecu_map, {{Hash::Type::kSha256, pending_ecu_version}}, 1},
       InstalledVersionUpdateMode::kPending);
 
   aktualizr_info_process_.run();

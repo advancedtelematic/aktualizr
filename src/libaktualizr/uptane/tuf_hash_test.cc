@@ -6,27 +6,26 @@
 #include "utilities/utils.h"
 
 TEST(TufHash, EncodeDecode) {
-  std::vector<Uptane::Hash> hashes = {{Uptane::Hash::Type::kSha256, "abcd"}, {Uptane::Hash::Type::kSha512, "defg"}};
+  std::vector<Hash> hashes = {{Hash::Type::kSha256, "abcd"}, {Hash::Type::kSha512, "defg"}};
 
-  std::string encoded = Uptane::Hash::encodeVector(hashes);
-  std::vector<Uptane::Hash> decoded = Uptane::Hash::decodeVector(encoded);
+  std::string encoded = Hash::encodeVector(hashes);
+  std::vector<Hash> decoded = Hash::decodeVector(encoded);
 
   EXPECT_EQ(hashes, decoded);
 }
 
 TEST(TufHash, DecodeBad) {
   std::string bad1 = ":";
-  EXPECT_EQ(Uptane::Hash::decodeVector(bad1), std::vector<Uptane::Hash>{});
+  EXPECT_EQ(Hash::decodeVector(bad1), std::vector<Hash>{});
 
   std::string bad2 = ":abcd;sha256:12";
-  EXPECT_EQ(Uptane::Hash::decodeVector(bad2),
-            std::vector<Uptane::Hash>{Uptane::Hash(Uptane::Hash::Type::kSha256, "12")});
+  EXPECT_EQ(Hash::decodeVector(bad2), std::vector<Hash>{Hash(Hash::Type::kSha256, "12")});
 
   std::string bad3 = "sha256;";
-  EXPECT_EQ(Uptane::Hash::decodeVector(bad3), std::vector<Uptane::Hash>{});
+  EXPECT_EQ(Hash::decodeVector(bad3), std::vector<Hash>{});
 
   std::string bad4 = "sha256:;";
-  EXPECT_EQ(Uptane::Hash::decodeVector(bad4), std::vector<Uptane::Hash>{});
+  EXPECT_EQ(Hash::decodeVector(bad4), std::vector<Hash>{});
 }
 
 #ifndef __NO_MAIN__

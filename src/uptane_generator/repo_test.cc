@@ -438,7 +438,7 @@ TEST(uptane_generator, oldtargets) {
   TemporaryDirectory temp_dir;
   UptaneRepo repo(temp_dir.Path(), "", "");
   repo.generateRepo(key_type);
-  Uptane::Hash hash(Uptane::Hash::Type::kSha256, "8ab755c16de6ee9b6224169b36cbf0f2a545f859be385501ad82cdccc240d0a6");
+  Hash hash(Hash::Type::kSha256, "8ab755c16de6ee9b6224169b36cbf0f2a545f859be385501ad82cdccc240d0a6");
   repo.addCustomImage("target1", hash, 123, "test-hw", "");
   repo.addCustomImage("target2", hash, 321, "test-hw", "");
   repo.addTarget("target1", "test-hw", "test-serial", "");

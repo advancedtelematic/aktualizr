@@ -195,7 +195,7 @@ class INvStorage {
   virtual bool loadInstallationLog(const std::string& ecu_serial, std::vector<Uptane::Target>* log,
                                    bool only_installed) = 0;
   virtual bool hasPendingInstall() = 0;
-  virtual void getPendingEcus(std::vector<std::pair<Uptane::EcuSerial, Uptane::Hash>>* pendingEcus) = 0;
+  virtual void getPendingEcus(std::vector<std::pair<Uptane::EcuSerial, Hash>>* pendingEcus) = 0;
   virtual void clearInstalledVersions() = 0;
 
   virtual void saveEcuInstallationResult(const Uptane::EcuSerial& ecu_serial,

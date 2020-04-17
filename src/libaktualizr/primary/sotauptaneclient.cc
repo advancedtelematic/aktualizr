@@ -1046,10 +1046,10 @@ void SotaUptaneClient::campaignPostpone(const std::string &campaign_id) {
 }
 
 bool SotaUptaneClient::isInstallCompletionRequired() const {
-  std::vector<std::pair<Uptane::EcuSerial, Uptane::Hash>> pending_ecus;
+  std::vector<std::pair<Uptane::EcuSerial, Hash>> pending_ecus;
   storage->getPendingEcus(&pending_ecus);
   bool pending_for_ecu = std::find_if(pending_ecus.begin(), pending_ecus.end(),
-                                      [this](const std::pair<Uptane::EcuSerial, Uptane::Hash> &ecu) -> bool {
+                                      [this](const std::pair<Uptane::EcuSerial, Hash> &ecu) -> bool {
                                         return ecu.first == primary_ecu_serial_;
                                       }) != pending_ecus.end();
 
@@ -1421,7 +1421,7 @@ Uptane::LazyTargetsList SotaUptaneClient::allTargets() const {
 
 void SotaUptaneClient::checkAndUpdatePendingSecondaries() {
   // TODO: think of another alternatives to inform Primary about installation result on Secondary ECUs (reboot case)
-  std::vector<std::pair<Uptane::EcuSerial, Uptane::Hash>> pending_ecus;
+  std::vector<std::pair<Uptane::EcuSerial, Hash>> pending_ecus;
   storage->getPendingEcus(&pending_ecus);
 
   for (const auto &pending_ecu : pending_ecus) {

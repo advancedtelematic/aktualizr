@@ -154,7 +154,7 @@ bool ManagedSecondary::sendFirmware(const std::string &data) {
     return false;
   }
 
-  std::vector<Uptane::Hash>::const_iterator it;
+  std::vector<Hash>::const_iterator it;
   for (it = expected_target_hashes.begin(); it != expected_target_hashes.end(); it++) {
     if (it->TypeString() == "sha256") {
       if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(data))) !=

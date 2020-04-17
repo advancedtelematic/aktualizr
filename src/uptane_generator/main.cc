@@ -131,11 +131,11 @@ int main(int argc, char **argv) {
                          "is not supplied.\n";
             exit(EXIT_FAILURE);
           }
-          std::unique_ptr<Uptane::Hash> hash;
+          std::unique_ptr<Hash> hash;
           if (vm.count("targetsha256") > 0) {
-            hash = std_::make_unique<Uptane::Hash>(Uptane::Hash::Type::kSha256, vm["targetsha256"].as<std::string>());
+            hash = std_::make_unique<Hash>(Hash::Type::kSha256, vm["targetsha256"].as<std::string>());
           } else {
-            hash = std_::make_unique<Uptane::Hash>(Uptane::Hash::Type::kSha512, vm["targetsha512"].as<std::string>());
+            hash = std_::make_unique<Hash>(Hash::Type::kSha512, vm["targetsha512"].as<std::string>());
           }
           Json::Value custom;
           if (vm.count("targetcustom") > 0 && vm.count("targetformat") > 0) {

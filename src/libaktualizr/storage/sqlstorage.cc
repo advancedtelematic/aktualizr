@@ -1138,7 +1138,7 @@ void SQLStorage::saveInstalledVersion(const std::string& ecu_serial, const Uptan
     }
   }
 
-  std::string hashes_encoded = Uptane::Hash::encodeVector(target.hashes());
+  std::string hashes_encoded = Hash::encodeVector(target.hashes());
 
   // get the last time this version was installed on this ecu
   boost::optional<int64_t> old_id;
@@ -1274,13 +1274,13 @@ bool SQLStorage::loadInstallationLog(const std::string& ecu_serial, std::vector<
 
       // note: sha256 should always be present and is used to uniquely identify
       // a version. It should normally be part of the hash list as well.
-      std::vector<Uptane::Hash> hashes = Uptane::Hash::decodeVector(hashes_str);
+      std::vector<Hash> hashes = Hash::decodeVector(hashes_str);
 
-      auto find_sha256 = std::find_if(hashes.cbegin(), hashes.cend(),
-                                      [](const Uptane::Hash& h) { return h.type() == Uptane::Hash::Type::kSha256; });
+      auto find_sha256 =
+          std::find_if(hashes.cbegin(), hashes.cend(), [](const Hash& h) { return h.type() == Hash::Type::kSha256; });
       if (find_sha256 == hashes.cend()) {
         LOG_WARNING << "No sha256 in hashes list";
-        hashes.emplace_back(Uptane::Hash::Type::kSha256, sha256);
+        hashes.emplace_back(Hash::Type::kSha256, sha256);
       }
 
       Uptane::Target t(filename, ecu_map, hashes, static_cast<uint64_t>(length), correlation_id);
@@ -1336,13 +1336,13 @@ bool SQLStorage::loadInstalledVersions(const std::string& ecu_serial, boost::opt
 
     // note: sha256 should always be present and is used to uniquely identify
     // a version. It should normally be part of the hash list as well.
-    std::vector<Uptane::Hash> hashes = Uptane::Hash::decodeVector(hashes_str);
+    std::vector<Hash> hashes = Hash::decodeVector(hashes_str);
 
-    auto find_sha256 = std::find_if(hashes.cbegin(), hashes.cend(),
-                                    [](const Uptane::Hash& h) { return h.type() == Uptane::Hash::Type::kSha256; });
+    auto find_sha256 =
+        std::find_if(hashes.cbegin(), hashes.cend(), [](const Hash& h) { return h.type() == Hash::Type::kSha256; });
     if (find_sha256 == hashes.cend()) {
       LOG_WARNING << "No sha256 in hashes list";
-      hashes.emplace_back(Uptane::Hash::Type::kSha256, sha256);
+      hashes.emplace_back(Hash::Type::kSha256, sha256);
     }
     Uptane::Target t(filename, ecu_map, hashes, static_cast<uint64_t>(length), correlation_id);
     if (!custom_str.empty()) {
@@ -1412,7 +1412,7 @@ bool SQLStorage::hasPendingInstall() {
   return statement.get_result_col_int(0) > 0;
 }
 
-void SQLStorage::getPendingEcus(std::vector<std::pair<Uptane::EcuSerial, Uptane::Hash>>* pendingEcus) {
+void SQLStorage::getPendingEcus(std::vector<std::pair<Uptane::EcuSerial, Hash>>* pendingEcus) {
   SQLite3Guard db = dbConnection();
 
   auto statement = db.prepareStatement("SELECT ecu_serial, sha256 FROM installed_versions where is_pending = 1");
@@ -1421,7 +1421,7 @@ void SQLStorage::getPendingEcus(std::vector<std::pair<Uptane::EcuSerial, Uptane:
     throw std::runtime_error("Failed to get ECUs with a pending target installation: " + db.errmsg());
   }
 
-  std::vector<std::pair<Uptane::EcuSerial, Uptane::Hash>> ecu_res;
+  std::vector<std::pair<Uptane::EcuSerial, Hash>> ecu_res;
 
   if (statement_result == SQLITE_DONE) {
     // if there are no any record in the DB
@@ -1431,8 +1431,7 @@ void SQLStorage::getPendingEcus(std::vector<std::pair<Uptane::EcuSerial, Uptane:
   for (; statement_result != SQLITE_DONE; statement_result = statement.step()) {
     std::string ecu_serial = statement.get_result_col_str(0).value();
     std::string hash = statement.get_result_col_str(1).value();
-    ecu_res.emplace_back(
-        std::make_pair(Uptane::EcuSerial(ecu_serial), Uptane::Hash(Uptane::Hash::Type::kSha256, hash)));
+    ecu_res.emplace_back(std::make_pair(Uptane::EcuSerial(ecu_serial), Hash(Hash::Type::kSha256, hash)));
   }
 
   if (pendingEcus != nullptr) {
@@ -1734,13 +1733,13 @@ boost::optional<std::pair<uintmax_t, std::string>> SQLStorage::checkTargetFile(c
     bool sha256_match = false;
     bool sha512_match = false;
     if (!(*sha256).empty()) {
-      if (target.MatchHash(Uptane::Hash(Uptane::Hash::Type::kSha256, *sha256))) {
+      if (target.MatchHash(Hash(Hash::Type::kSha256, *sha256))) {
         sha256_match = true;
       }
     }
 
     if (!(*sha512).empty()) {
-      if (target.MatchHash(Uptane::Hash(Uptane::Hash::Type::kSha512, *sha512))) {
+      if (target.MatchHash(Hash(Hash::Type::kSha512, *sha512))) {
         sha512_match = true;
       }
     }
@@ -1771,9 +1770,9 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     std::string sha256Hash;
     std::string sha512Hash;
     for (const auto& hash : target_.hashes()) {
-      if (hash.type() == Uptane::Hash::Type::kSha256) {
+      if (hash.type() == Hash::Type::kSha256) {
         sha256Hash = hash.HashString();
-      } else if (hash.type() == Uptane::Hash::Type::kSha512) {
+      } else if (hash.type() == Hash::Type::kSha512) {
         sha512Hash = hash.HashString();
       }
     }
@@ -1932,12 +1931,12 @@ std::vector<Uptane::Target> SQLStorage::getTargetFiles() {
     auto sha256 = statement.get_result_col_str(2).value();
     auto sha512 = statement.get_result_col_str(3).value();
 
-    std::vector<Uptane::Hash> hashes;
+    std::vector<Hash> hashes;
     if (!sha256.empty()) {
-      hashes.emplace_back(Uptane::Hash::Type::kSha256, sha256);
+      hashes.emplace_back(Hash::Type::kSha256, sha256);
     }
     if (!sha512.empty()) {
-      hashes.emplace_back(Uptane::Hash::Type::kSha512, sha512);
+      hashes.emplace_back(Hash::Type::kSha512, sha512);
     }
     v.emplace_back(tname, Uptane::EcuMap{}, hashes, tsize);
 

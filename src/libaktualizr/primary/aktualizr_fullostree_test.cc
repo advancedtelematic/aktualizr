@@ -102,7 +102,7 @@ TEST(Aktualizr, FullOstreeUpdate) {
     // Verify a bogus target is not present.
     Uptane::EcuMap primary_ecu{{Uptane::EcuSerial(conf.provision.primary_ecu_serial),
                                 Uptane::HardwareIdentifier(conf.provision.primary_ecu_hardware_id)}};
-    Uptane::Target target_bad("some-pkg", primary_ecu, {Uptane::Hash(Uptane::Hash::Type::kSha256, "hash-bad")}, 4, "");
+    Uptane::Target target_bad("some-pkg", primary_ecu, {Hash(Hash::Type::kSha256, "hash-bad")}, 4, "");
     EXPECT_EQ(aktualizr.uptane_client()->package_manager_->verifyTarget(target_bad), TargetStatus::kNotFound);
   }
 }

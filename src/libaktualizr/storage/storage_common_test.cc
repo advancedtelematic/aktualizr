@@ -295,9 +295,9 @@ TEST(storage, load_store_installed_versions) {
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
   // Test lazy primary installed version: primary ecu serial is not defined yet
-  const std::vector<Uptane::Hash> hashes = {
-      Uptane::Hash{Uptane::Hash::Type::kSha256, "2561"},
-      Uptane::Hash{Uptane::Hash::Type::kSha512, "5121"},
+  const std::vector<Hash> hashes = {
+      Hash{Hash::Type::kSha256, "2561"},
+      Hash{Hash::Type::kSha512, "5121"},
   };
   Uptane::EcuMap primary_ecu{{Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")}};
   Uptane::Target t1{"update.bin", primary_ecu, hashes, 1, "corrid"};
@@ -334,7 +334,7 @@ TEST(storage, load_store_installed_versions) {
   }
 
   // Set t2 as a pending version
-  Uptane::Target t2{"update2.bin", primary_ecu, {Uptane::Hash{Uptane::Hash::Type::kSha256, "2562"}}, 2};
+  Uptane::Target t2{"update2.bin", primary_ecu, {Hash{Hash::Type::kSha256, "2562"}}, 2};
   storage->savePrimaryInstalledVersion(t2, InstalledVersionUpdateMode::kPending);
 
   {
@@ -346,7 +346,7 @@ TEST(storage, load_store_installed_versions) {
   }
 
   // Set t3 as the new pending
-  Uptane::Target t3{"update3.bin", primary_ecu, {Uptane::Hash{Uptane::Hash::Type::kSha256, "2563"}}, 3};
+  Uptane::Target t3{"update3.bin", primary_ecu, {Hash{Hash::Type::kSha256, "2563"}}, 3};
   storage->savePrimaryInstalledVersion(t3, InstalledVersionUpdateMode::kPending);
 
   {
@@ -408,7 +408,7 @@ TEST(storage, load_store_installed_versions) {
 
   // Add a secondary installed version
   Uptane::EcuMap secondary_ecu{{Uptane::EcuSerial("secondary1"), Uptane::HardwareIdentifier("secondary_hw")}};
-  Uptane::Target tsec{"secondary.bin", secondary_ecu, {Uptane::Hash{Uptane::Hash::Type::kSha256, "256s"}}, 4};
+  Uptane::Target tsec{"secondary.bin", secondary_ecu, {Hash{Hash::Type::kSha256, "256s"}}, 4};
   storage->saveInstalledVersion("secondary_1", tsec, InstalledVersionUpdateMode::kCurrent);
 
   {
@@ -560,7 +560,7 @@ TEST(storage, list_remove_targets) {
   EXPECT_EQ(tf.filename(), "some.deb");
   EXPECT_EQ(tf.length(), 2);
   EXPECT_EQ(tf.hashes().size(), 1);
-  EXPECT_EQ(tf.hashes().at(0), Uptane::Hash(Uptane::Hash::Type::kSha256, "HASH"));
+  EXPECT_EQ(tf.hashes().at(0), Hash(Hash::Type::kSha256, "HASH"));
 
   // note: implementation specific
   EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "images" / "HASH"));

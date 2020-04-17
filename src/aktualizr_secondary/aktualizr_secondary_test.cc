@@ -139,9 +139,7 @@ class SecondaryTest : public ::testing::Test {
     return targets[0];
   }
 
-  Uptane::Hash getDefaultTargetHash() {
-    return Uptane::Hash(Uptane::Hash::Type::kSha256, getDefaultTarget().sha256Hash());
-  }
+  Hash getDefaultTargetHash() { return Hash(Hash::Type::kSha256, getDefaultTarget().sha256Hash()); }
 
  protected:
   static constexpr const char* const default_target_{"default-target"};
@@ -228,9 +226,8 @@ TEST_F(SecondaryTest, fullUptaneVerificationPositive) {
   auto target = getDefaultTarget();
 
   // check the updated file hash
-  auto target_hash = Uptane::Hash(Uptane::Hash::Type::kSha256, target.sha256Hash());
-  auto target_file_hash =
-      Uptane::Hash::generate(Uptane::Hash::Type::kSha256, Utils::readFile(secondary_.targetFilepath()));
+  auto target_hash = Hash(Hash::Type::kSha256, target.sha256Hash());
+  auto target_file_hash = Hash::generate(Hash::Type::kSha256, Utils::readFile(secondary_.targetFilepath()));
   EXPECT_EQ(target_hash, target_file_hash);
 
   // check the secondary manifest

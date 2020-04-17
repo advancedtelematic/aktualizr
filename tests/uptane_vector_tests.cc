@@ -102,7 +102,7 @@ TEST_P(UptaneVector, Test) {
   uptane_client->primary_ecu_serial_ = ecu_serial;
   uptane_client->primary_ecu_hw_id_ = hw_id;
   Uptane::EcuMap ecu_map{{ecu_serial, hw_id}};
-  Uptane::Target target("test_filename", ecu_map, {{Uptane::Hash::Type::kSha256, "sha256"}}, 1, "");
+  Uptane::Target target("test_filename", ecu_map, {{Hash::Type::kSha256, "sha256"}}, 1, "");
   storage->saveInstalledVersion(ecu_serial.ToString(), target, InstalledVersionUpdateMode::kCurrent);
 
   HttpClient http_client;

@@ -8,8 +8,7 @@ std::string Manifest::filepath() const { return (*this)["signed"]["installed_ima
 
 Hash Manifest::installedImageHash() const {
   // TODO: proper verification of the required fields
-  return Uptane::Hash(Uptane::Hash::Type::kSha256,
-                      (*this)["signed"]["installed_image"]["fileinfo"]["hashes"]["sha256"].asString());
+  return Hash(Hash::Type::kSha256, (*this)["signed"]["installed_image"]["fileinfo"]["hashes"]["sha256"].asString());
 }
 
 std::string Manifest::signature() const {
