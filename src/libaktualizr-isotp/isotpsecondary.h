@@ -8,7 +8,7 @@ namespace Uptane {
 
 class IsoTpSecondary : public SecondaryInterface {
  public:
-  explicit IsoTpSecondary(const std::string& can_iface, uint16_t can_id);
+  explicit IsoTpSecondary(const std::string& can_iface, uint16_t can_id, ImageReaderProvider image_reader_provider);
 
   std::string Type() const override { return "isotp"; }
   EcuSerial getSerial() const override;
@@ -21,10 +21,8 @@ class IsoTpSecondary : public SecondaryInterface {
   Uptane::Manifest getManifest() const override;
 
  private:
-  bool sendFirmware(const std::string& data);
-
- private:
   mutable IsoTpSendRecv conn;
+  ImageReaderProvider image_reader_provider_;
 };
 }  // namespace Uptane
 #endif  // UPTANE_ISOTPSECONDARY_H_

@@ -226,8 +226,7 @@ data::ResultCode::Numeric IpUptaneSecondary::install_v1(const Uptane::Target& ta
 data::ResultCode::Numeric IpUptaneSecondary::install_v2(const Uptane::Target& target) {
   data::ResultCode::Numeric data_delivery_result = data::ResultCode::Numeric::kDownloadFailed;
 
-  LOG_INFO << "Invoking an image delivery of the target  " << target.filename() << " to/on the Secondary "
-           << getSerial();
+  LOG_INFO << "Instructing Secondary " << getSerial() << " to receive target " << target.filename();
 
   if (target.IsOstree()) {
     data_delivery_result = downloadOstreeRev(target);
@@ -239,7 +238,7 @@ data::ResultCode::Numeric IpUptaneSecondary::install_v2(const Uptane::Target& ta
     return data_delivery_result;
   }
 
-  LOG_INFO << "Invoking an installation of the target " << target.filename() << " on the Secondary " << getSerial();
+  LOG_INFO << "Instructing Secondary " << getSerial() << " to install target " << target.filename();
 
   return invokeInstallOnSecondary(target);
 }
