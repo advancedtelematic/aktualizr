@@ -9,6 +9,8 @@
 #include <boost/lexical_cast.hpp>
 #include <future>
 
+#include "storage/invstorage.h"
+
 #define LIBUPTINY_ISOTP_PRIMARY_CANID 0x7D8
 
 constexpr size_t kChunkSize = 500;
@@ -32,8 +34,9 @@ enum class IsoTpUptaneMesType {
 
 namespace Uptane {
 
-IsoTpSecondary::IsoTpSecondary(const std::string& can_iface, uint16_t can_id)
-    : conn(can_iface, LIBUPTINY_ISOTP_PRIMARY_CANID, can_id) {}
+IsoTpSecondary::IsoTpSecondary(const std::string& can_iface, uint16_t can_id, ImageReaderProvider image_reader_provider)
+    : conn(can_iface, LIBUPTINY_ISOTP_PRIMARY_CANID, can_id),
+      image_reader_provider_{std::move(image_reader_provider)} {}
 
 EcuSerial IsoTpSecondary::getSerial() const {
   std::string out;
@@ -137,42 +140,49 @@ bool IsoTpSecondary::putMetadata(const RawMetaPack& meta_pack) {
   return conn.Send(out);
 }
 
-data::ResultCode::Numeric install(const Target& target) {
-  (void)target;
-  // TODO: implement an image sending data by using ImageReader and IsoTpSecondary::sendFirmware
-  return data::ResultCode::Numeric::kOk;
-}
+data::ResultCode::Numeric IsoTpSecondary::install(const Target& target) {
+  auto result = data::ResultCode::Numeric::kOk;
 
-bool IsoTpSecondary::sendFirmware(const std::string& data) {
-  size_t num_chunks = 1 + (data.length() - 1) / kChunkSize;
+  try {
+    std::unique_ptr<StorageTargetRHandle> image_reader = image_reader_provider_(target);
 
-  if (num_chunks > 127) {
-    return false;
+    auto image_size = image_reader->rsize();
+    size_t num_chunks = (image_size / kChunkSize) + (static_cast<bool>(image_size % kChunkSize) ? 1 : 0);
+
+    if (num_chunks > 127) {
+      return data::ResultCode::Numeric::kInternalError;
+    }
+
+    for (size_t i = 0; i < num_chunks; ++i) {
+      std::string out;
+      std::string in;
+      out += static_cast<char>(IsoTpUptaneMesType::kPutImageChunk);
+      out += static_cast<char>(num_chunks);
+      out += static_cast<char>(i + 1);
+
+      char buf[kChunkSize];
+      image_reader->rread(reinterpret_cast<uint8_t*>(buf), kChunkSize);
+      out += std::string(buf);
+
+      if (!conn.SendRecv(out, &in)) {
+        result = data::ResultCode::Numeric::kDownloadFailed;
+        break;
+      }
+      if (in[0] != static_cast<char>(IsoTpUptaneMesType::kPutImageChunkAckErr)) {
+        result = data::ResultCode::Numeric::kDownloadFailed;
+        break;
+      }
+      if (in[1] != 0x00) {
+        result = data::ResultCode::Numeric::kDownloadFailed;
+        break;
+      }
+    }
+
+  } catch (const std::exception& exc) {
+    LOG_ERROR << "Failed to upload a target image: " << target.filename() << ", error " << exc.what();
+    result = data::ResultCode::Numeric::kDownloadFailed;
   }
-
-  for (size_t i = 0; i < num_chunks; ++i) {
-    std::string out;
-    std::string in;
-    out += static_cast<char>(IsoTpUptaneMesType::kPutImageChunk);
-    out += static_cast<char>(num_chunks);
-    out += static_cast<char>(i + 1);
-    if (i == num_chunks - 1) {
-      out += data.substr(static_cast<size_t>(i * kChunkSize));
-    } else {
-      out += data.substr(static_cast<size_t>(i * kChunkSize), static_cast<size_t>(kChunkSize));
-    }
-    if (!conn.SendRecv(out, &in)) {
-      return false;
-    }
-    if (in[0] != static_cast<char>(IsoTpUptaneMesType::kPutImageChunkAckErr)) {
-      return false;
-    }
-
-    if (in[1] != 0x00) {
-      return false;
-    }
-  }
-  return true;
+  return result;
 }
 
 }  // namespace Uptane
