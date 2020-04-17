@@ -60,7 +60,7 @@ class SotaUptaneClient {
                                                 const api::FlowControlToken *token = nullptr);
   void reportPause();
   void reportResume();
-  void sendDeviceData();
+  void sendDeviceData(const Json::Value &custom_hwinfo = Json::nullValue);
   result::UpdateCheck fetchMeta();
   bool putManifest(const Json::Value &custom = Json::nullValue);
   result::UpdateCheck checkUpdates();
@@ -124,7 +124,7 @@ class SotaUptaneClient {
                                                 const Uptane::EcuSerial &ecu_id);
   data::InstallationResult PackageInstallSetResult(const Uptane::Target &target);
   void finalizeAfterReboot();
-  void reportHwInfo();
+  void reportHwInfo(const Json::Value &custom_hwinfo);
   void reportInstalledPackages();
   void reportNetworkInfo();
   void reportAktualizrConfiguration();

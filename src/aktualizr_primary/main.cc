@@ -44,7 +44,8 @@ bpo::variables_map parseOptions(int argc, char *argv[]) {
       ("primary-ecu-serial", bpo::value<std::string>(), "serial number of Primary ECU")
       ("primary-ecu-hardware-id", bpo::value<std::string>(), "hardware ID of Primary ECU")
       ("secondary-config-file", bpo::value<boost::filesystem::path>(), "secondary ECUs configuration file")
-      ("campaign-id", bpo::value<std::string>(), "ID of the campaign to act on");
+      ("campaign-id", bpo::value<std::string>(), "ID of the campaign to act on")
+      ("hwinfo-file", bpo::value<boost::filesystem::path>(), "custom hardware information JSON file");
   // clang-format on
 
   // consider the first positional argument as the aktualizr run mode
@@ -147,6 +148,16 @@ int main(int argc, char *argv[]) {
     SigHandler::signal(SIGINT);
     SigHandler::signal(SIGTERM);
 
+    Json::Value hwinfo;
+    if (commandline_map.count("hwinfo-file") != 0) {
+      auto file = commandline_map["hwinfo-file"].as<boost::filesystem::path>();
+      hwinfo = Utils::parseJSONFile(file);
+      if (hwinfo.empty()) {
+        LOG_ERROR << file << " is not a valid JSON file";
+        return EXIT_FAILURE;
+      }
+    }
+
     std::string run_mode;
     if (commandline_map.count("run-mode") != 0) {
       run_mode = commandline_map["run-mode"].as<std::string>();
@@ -161,7 +172,7 @@ int main(int argc, char *argv[]) {
       aktualizr.CampaignControl(commandline_map["campaign-id"].as<std::string>(), campaign::cmdFromName(run_mode))
           .get();
     } else if (run_mode == "check") {
-      aktualizr.SendDeviceData().get();
+      aktualizr.SendDeviceData(hwinfo).get();
       aktualizr.CheckUpdates().get();
     } else if (run_mode == "download") {
       result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
@@ -170,14 +181,14 @@ int main(int argc, char *argv[]) {
       result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
       aktualizr.Install(update_result.updates).get();
     } else if (run_mode == "once") {
-      aktualizr.SendDeviceData().get();
+      aktualizr.SendDeviceData(hwinfo).get();
       aktualizr.UptaneCycle();
     } else {
       boost::signals2::connection ac_conn =
           aktualizr.SetSignalHandler(std::bind(targets_autoclean_cb, std::ref(aktualizr), std::placeholders::_1));
 
       try {
-        aktualizr.RunForever().get();
+        aktualizr.RunForever(hwinfo).get();
       } catch (const std::exception &ex) {
         LOG_ERROR << ex.what();
       }

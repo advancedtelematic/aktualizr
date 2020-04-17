@@ -6,6 +6,10 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ## [??? (unreleased)]
 
+### Added
+
+- libaktualizr API and aktualizr-primary command line parameter to provide custom hardware information in JSON format: [PR](https://github.com/advancedtelematic/aktualizr/pull/1644)
+
 ### Changed
 
 - Improved garage-deploy object fetching performance by reusing the curl handle: [PR](https://github.com/advancedtelematic/aktualizr/pull/1643)
