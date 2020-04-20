@@ -1,11 +1,9 @@
 #include <gtest/gtest.h>
 
+#include "crypto.h"
 #include "logging/logging.h"
-#include "uptane/exceptions.h"
-#include "uptane/tuf.h"
-#include "utilities/utils.h"
 
-TEST(TufHash, EncodeDecode) {
+TEST(Hash, EncodeDecode) {
   std::vector<Hash> hashes = {{Hash::Type::kSha256, "abcd"}, {Hash::Type::kSha512, "defg"}};
 
   std::string encoded = Hash::encodeVector(hashes);
@@ -14,7 +12,7 @@ TEST(TufHash, EncodeDecode) {
   EXPECT_EQ(hashes, decoded);
 }
 
-TEST(TufHash, DecodeBad) {
+TEST(Hash, DecodeBad) {
   std::string bad1 = ":";
   EXPECT_EQ(Hash::decodeVector(bad1), std::vector<Hash>{});
 

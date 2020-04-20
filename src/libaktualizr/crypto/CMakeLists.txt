@@ -21,6 +21,7 @@ else(BUILD_P11)
 endif(BUILD_P11)
 
 add_aktualizr_test(NAME crypto SOURCES crypto_test.cc PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME hash SOURCES hash_test.cc PROJECT_WORKING_DIRECTORY)
 add_aktualizr_test(NAME keymanager SOURCES keymanager_test.cc PROJECT_WORKING_DIRECTORY)
 set_property(SOURCE crypto_test.cc keymanager_test.cc PROPERTY COMPILE_DEFINITIONS TEST_PKCS11_MODULE_PATH="${TEST_PKCS11_MODULE_PATH}")
 
