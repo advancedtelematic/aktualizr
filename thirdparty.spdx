@@ -22,8 +22,8 @@ Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-ctest2junit.xsl
 
 PackageName: googletest
 SPDXID: SPDXRef-googletest
-PackageVersion: 1.8.0
-PackageDownloadLocation: https://github.com/google/googletest/archive/release-1.8.0.zip
+PackageVersion: 1.8.1
+PackageDownloadLocation: https://github.com/google/googletest/archive/release-1.8.1.zip
 PackageHomePage: https://github.com/google/googletest
 PackageLicenseConcluded: BSD-3-Clause
 PackageLicenseDeclared: BSD-3-Clause
@@ -36,8 +36,8 @@ PackageComment: <text>Testing only.</text>
 
 PackageName: jsoncpp
 SPDXID: SPDXRef-jsoncpp
-PackageVersion: 1.6.0
-PackageDownloadLocation: https://github.com/open-source-parsers/jsoncpp/archive/1.6.0.zip
+PackageVersion: 1.8.4
+PackageDownloadLocation: https://github.com/open-source-parsers/jsoncpp/archive/1.8.4.zip
 PackageHomePage: https://github.com/open-source-parsers/jsoncpp
 PackageLicenseConcluded: (MIT OR LicenseRef-jsoncpp-public-domain)
 PackageLicenseDeclared: (MIT OR LicenseRef-jsoncpp-public-domain)
@@ -49,6 +49,7 @@ FilesAnalyzed: false
 
 PackageName: HdrHistogram_c
 SPDXID: SPDXRef-HdrHistogram_c
+PackageVersion: 0.9.7
 PackageDownloadLocation: https://github.com/HdrHistogram/HdrHistogram_c/archive/0.9.7.tar.gz
 PackageHomePage: https://github.com/HdrHistogram/HdrHistogram_c
 PackageLicenseConcluded: BSD-2-Clause
@@ -75,7 +76,8 @@ FilesAnalyzed: false
 
 PackageName: boost-filesystem
 SPDXID: SPDXRef-boost-filesystem
-PackageDownloadLocation: https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.bz2
+PackageVersion: 1.58.0
+PackageDownloadLocation: https://dl.bintray.com/boostorg/release/1.58.0/source/boost_1_58_0.tar.bz2
 PackageHomePage: http://www.boost.org/
 PackageLicenseConcluded: BSL-1.0
 PackageLicenseDeclared: BSL-1.0
@@ -86,7 +88,8 @@ FilesAnalyzed: false
 
 PackageName: boost-program-options
 SPDXID: SPDXRef-boost-program-options
-PackageDownloadLocation: https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.bz2
+PackageVersion: 1.58.0
+PackageDownloadLocation: https://dl.bintray.com/boostorg/release/1.58.0/source/boost_1_58_0.tar.bz2
 PackageHomePage: http://www.boost.org/
 PackageLicenseConcluded: BSL-1.0
 PackageLicenseDeclared: BSL-1.0
@@ -97,7 +100,8 @@ FilesAnalyzed: false
 
 PackageName: boost-log
 SPDXID: SPDXRef-boost-log
-PackageDownloadLocation: https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.bz2
+PackageVersion: 1.58.0
+PackageDownloadLocation: https://dl.bintray.com/boostorg/release/1.58.0/source/boost_1_58_0.tar.bz2
 PackageHomePage: http://www.boost.org/
 PackageLicenseConcluded: BSL-1.0
 PackageLicenseDeclared: BSL-1.0
