@@ -95,7 +95,6 @@ find_package(sodium REQUIRED)
 find_package(SQLite3 REQUIRED)
 find_package(Git)
 find_package(Asn1c REQUIRED)
-find_package(ZLIB)
 
 if(NOT AKTUALIZR_VERSION)
     if (EXISTS ${PROJECT_SOURCE_DIR}/VERSION)
@@ -371,8 +370,7 @@ set (AKTUALIZR_EXTERNAL_LIBS
     ${SQLITE3_LIBRARIES}
     ${LibArchive_LIBRARIES}
     ${LIBP11_LIBRARIES}
-    ${GLIB2_LIBRARIES}
-    ${ZLIB_LIBRARY})
+    ${GLIB2_LIBRARIES})
 
 if(ANDROID)
     list(APPEND AKTUALIZR_EXTERNAL_LIBS liblog.so)
