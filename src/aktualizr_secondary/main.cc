@@ -35,8 +35,8 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
       ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
       ("server-port,p", bpo::value<int>(), "command server listening port")
-      ("ecu-serial", bpo::value<std::string>(), "serial number of secondary ecu")
-      ("ecu-hardware-id", bpo::value<std::string>(), "hardware ID of secondary ecu");
+      ("ecu-serial", bpo::value<std::string>(), "serial number of Secondary ECU")
+      ("ecu-hardware-id", bpo::value<std::string>(), "hardware ID of Secondary ECU");
   // clang-format on
 
   bpo::variables_map vm;
@@ -78,7 +78,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
 int main(int argc, char *argv[]) {
   logger_init();
   logger_set_threshold(boost::log::trivial::info);
-  LOG_INFO << "Aktualizr-secondary version " << aktualizr_version() << " starting";
+  LOG_INFO << "aktualizr-secondary version " << aktualizr_version() << " starting";
 
   bpo::variables_map commandline_map = parse_options(argc, argv);
 

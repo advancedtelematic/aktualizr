@@ -14,7 +14,7 @@ When you develop software updates for OTA deployment, it's important to understa
 
 OTA Connect is designed for delivering firmware and/or disk images to automotive electronic control units (ECUs). But because we designed it with auto-industry robustness and security requirements in mind, it's also a great way to deliver updates to any embedded Linux system. To really understand how and why OTA Connect works the way it does, though, it's a good idea to keep automotive use cases in mind.
 
-In general, in a vehicle, we have dozens of individual ECUs, with varying capabilities. In a modern vehicle, that will usually include a small number of high-capability ECUs, including one with a connection to the internet. We call that one the *primary* ECU, and all the others *secondary* ECUs. For OTA software updates, it's the job of the primary to download and check updates for itself, and for all the other ECUs in the vehicle. The secondaries get their updates from the primary, along with metadata that allows them to check for themselves whether the update is valid.
+In general, in a vehicle, we have dozens of individual ECUs, with varying capabilities. In a modern vehicle, that will usually include a small number of high-capability ECUs, including one with a connection to the internet. We call that one the *Primary* ECU, and all the others *Secondary* ECUs. For OTA software updates, it's the job of the Primary to download and check updates for itself, and for all the other ECUs in the vehicle. The Secondaries get their updates from the Primary, along with metadata that allows them to check for themselves whether the update is valid.
 
 Broadly speaking, there are two types of software image that you can upload to your personal software repository on OTA Connect:
 
@@ -29,8 +29,8 @@ When you build a disk image for your embedded device, you normally get a file, l
 
 == Uploading other image files
 
-OTA Connect is also designed to enable secure updates to secondary ECUs. This can, of course, include non-Linux systems, and even tiny microcontrollers with no operating system. For these devices, obviously, a filesystem image doesn't make sense. That's why you can xref:ota-web::upload-software-ui.adoc[upload software packages for this type of ECU directly in the OTA Connect portal]. When you do, you'll specify exactly which type of ECU the software is for, to make sure you don't send the wrong type of image.
+OTA Connect is also designed to enable secure updates to Secondary ECUs. This can, of course, include non-Linux systems, and even tiny microcontrollers with no operating system. For these devices, obviously, a filesystem image doesn't make sense. That's why you can xref:ota-web::upload-software-ui.adoc[upload software packages for this type of ECU directly in the OTA Connect portal]. When you do, you'll specify exactly which type of ECU the software is for, to make sure you don't send the wrong type of image.
 
 === Using the file upload for things that aren't ECUs
 
-Even though this functionality was developed for delivering firmware to secondary ECUs, you can use it to send other kinds of updates as well, even for a single device. For example, you might have a data partition, software packages, or apps that you want to send updates to independently from the base system. Or, you might want to create a virtual secondary for testing, and have it just drop the file you uploaded somewhere on the filesystem.
+Even though this functionality was developed for delivering firmware to Secondary ECUs, you can use it to send other kinds of updates as well, even for a single device. For example, you might have a data partition, software packages, or apps that you want to send updates to independently from the base system. Or, you might want to create a virtual Secondary for testing, and have it just drop the file you uploaded somewhere on the filesystem.

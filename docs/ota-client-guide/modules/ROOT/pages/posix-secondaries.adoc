@@ -16,15 +16,15 @@ It refers to ECU, software/firmware/package updates of which are managed by anot
 
 A key component of this repository is libaktualizr which is a library implementing Uptane protocol and providing customers and community with capability to build application(s) one of the purposes of which is to update software/firmware/packages in compliance with the Uptane standard. In addition to libaktualizr, a user can find in this repo another two components:
 
-. *aktualizr*, aka aktualizr primary - a reference implementation of an application utilizing libaktualizr, its binary/executable is called aktualizr. Aktualizr can be used to emulate Primary ECU locally on a user's host;
-. *aktualizr-secondary*, aka posix or IP secondary - a reference implementation intended for running on Secondary ECU and capable to communicate with Primary ECU aktualizr via TCP/IP protocol (implemenation relies on Posix API). Aktualizr-secondary can be used to emulate a Secondary ECU on a user's host.
+. *aktualizr*, aka aktualizr-primary - a reference implementation of an application utilizing libaktualizr, its binary/executable is called aktualizr. Aktualizr can be used to emulate Primary ECU locally on a user's host;
+. *aktualizr-secondary*, aka POSIX or IP Secondary - a reference implementation intended for running on Secondary ECU and capable to communicate with Primary ECU aktualizr via TCP/IP protocol (implemenation relies on Posix API). Aktualizr-secondary can be used to emulate a Secondary ECU on a user's host.
 
 
 == *Secondary*
 
 *Build*
 
-The Secondary executable is built by default, thus following build instructions outlined in link:{aktualizr-github-url}/README.adoc[the repo's README] should do the trick. If the build procedure is completed successfully then aktualizr-secondary can be found in ``<build-dir>/src/aktualizr_secondary/aktualizr-secondary``.
+The Secondary executable is built by default, thus following build instructions outlined in link:{aktualizr-github-url}/README.adoc[the repo's README] should do the trick. If the build procedure is completed successfully then aktualizr-Secondary can be found in ``<build-dir>/src/aktualizr_secondary/aktualizr-secondary``.
 
 *Configure*
 
@@ -53,16 +53,16 @@ The Primary executable is built by default, thus following build instructions ou
 
 A default configuration of aktualizr acting as Primary can be found in link:{aktualizr-github-url}/config/sota-local-with-secondaries.toml[<src-root>/config/sota-local-with-secondaries.toml].
 
-One configuration parameter that is worth mentioning is `[uptane]: secondary_config_file` which specifies a path
-to secondary(ies) configuration file containing input parameters for aktualizr/Primary to communicate with any secondaries.
-This is a link:{aktualizr-github-url}/config/posix-secondary-config.json[default secondary configuration for Primary].
+One configuration parameter that is worth mentioning is `[uptane]: secondary_config_file`, which specifies a path
+to a configuration file containing input parameters for aktualizr/Primary to communicate with any Secondaries.
+This is a link:{aktualizr-github-url}/config/posix-secondary-config.json[default Secondary configuration for Primary].
 In order to use the given default config file, either copy it into your current working directory or update
-`[uptane]: secondary_config_file` value so it defines a full path to the secondary config file (e.g. ``<src-root>/config/posix-secondary-config.json``).
+`[uptane]: secondary_config_file` value so it defines a full path to the Secondary config file (e.g. ``<src-root>/config/posix-secondary-config.json``).
 
-Configuration parameters of secondaries for Primary/aktualizr that are worth mentioning are:
+Configuration parameters of Secondaries for Primary/aktualizr that are worth mentioning are:
 
 * `secondaries_wait_port` - TCP port aktualizr listen on for connections from Secondaries
-* `secondaries_wait_timeout` - timeout (in sec) of waiting for connections from Secondaries. Primary/aktualizr waits for a connection from those secondaries that it failed to connect to at the startup time.
+* `secondaries_wait_timeout` - timeout (in sec) of waiting for connections from Secondaries. Primary/aktualizr waits for a connection from those Secondaries that it failed to connect to at the startup time.
 * `secondaries` -  a list of Secondary TCP/IP addresses
 
 Put your credential.zip file into the current working directory or update `[provision] provision_path` in link:{aktualizr-github-url}/config/sota-local-with-secondaries.toml[the config] so it specifies a full path to your credential file.
@@ -86,31 +86,31 @@ echo 'export AKT_BUILD_DIR="$AKT_PROJ_HOME/build"' >> ~/.profile
 * Copy ``$AKT_PROJ_HOME/config/posix-secondary-config.json`` to the directory you run your Primary from, let's call it `PRIMARY_HOME_DIR` further.
 * Copy your credential file ``credentials.zip`` to `PRIMARY_HOME_DIR`
 * Use ``$AKT_PROJ_HOME/config/posix-secondary.toml`` as the config for your emulated Secondary ECU
-* To run the primary launch the following from `PRIMARY_HOME_DIR`
+* To run the Primary launch the following from `PRIMARY_HOME_DIR`
 ....
 $AKT_PRIMARY -c $AKT_PROJ_HOME/config/sota-local-with-secondaries.toml
 ....
-* To run the secondary launch the following from `PRIMARY_HOME_DIR` (although it can be executed from any directory)
+* To run the Secondary launch the following from `PRIMARY_HOME_DIR` (although it can be executed from any directory)
 ....
 $AKT_SECNDR -c $AKT_PROJ_HOME/config/posix-secondary.toml
 ....
 * Add --loglevel 0 to the aforementioned launch commands if you would like to see more logs
 * To re-register your emulated multi-ECU device (or start playing it from scratch) remove ``storage`` directory from `PRIMARY_HOME_DIR`
 
-=== Multiple secondaries
+=== Multiple Secondaries
 
-In order to emulate a device containing one primary ECU along with more than one secondary ECUs the following should be done.
+In order to emulate a device containing one Primary ECU along with more than one Secondary ECUs the following should be done.
 
-* Run the secondary executable `<build-dir>/src/aktualizr_secondary/aktualizr-secondary` desired number of times each from different directories.
-Prior to running secondary executables, please,
+* Run the Secondary executable `<build-dir>/src/aktualizr_secondary/aktualizr-secondary` desired number of times each from different directories.
+Prior to running Secondary executables, please,
 
- ** copy the configuration file <src-root>/config/posix-secondary.toml to each directory  the secondary will be launched from.
+ ** copy the configuration file <src-root>/config/posix-secondary.toml to each directory the Secondary will be launched from.
  Let's call such directory as `SECONDARY_HOME_DIR`;
 
  ** update a value of `[network]:port` parameter of the config file in each `SECONDARY_HOME_DIR` directory in such way
-  that each secondary config specifies different port number (9050 by default) hence each secondary will listen on different port;
+  that each Secondary config specifies different port number (9050 by default) hence each Secondary will listen on different port;
 
-* Update posix-secondary-config.json located in `PRIMARY_HOME_DIR` (see instructions in p. `Primary`) with details of each secondary
- that was executed in previous step, specifically, add corresponding values to "secondaries" list field (e.g. `"secondaries": [{"addr": "127.0.0.1:9050"}, {"addr": "127.0.0.1:9051"}]`).
- Once posix-secondary-config.json is updated run the primary, as result you should see that it is connected with multiple secondaries
+* Update posix-secondary-config.json located in `PRIMARY_HOME_DIR` (see instructions in p. `Primary`) with details of each Secondary
+ that was executed in previous step, specifically, add corresponding values to `secondaries` list field (e.g. `"secondaries": [{"addr": "127.0.0.1:9050"}, {"addr": "127.0.0.1:9051"}]`).
+ Once posix-secondary-config.json is updated run the Primary, as result you should see that it is connected with multiple Secondaries
  in aktualizr logs as well as on UI.

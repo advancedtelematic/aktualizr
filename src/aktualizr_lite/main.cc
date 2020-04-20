@@ -185,7 +185,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
       ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
       ("repo-server", bpo::value<std::string>(), "URL of the Uptane Image repository")
-      ("primary-ecu-hardware-id", bpo::value<std::string>(), "hardware ID of primary ecu")
+      ("primary-ecu-hardware-id", bpo::value<std::string>(), "hardware ID of Primary ecu")
       ("update-name", bpo::value<std::string>(), "optional name of the update when running \"update\". default=latest")
       ("command", bpo::value<std::string>(), subs.c_str());
   // clang-format on

@@ -163,13 +163,13 @@ An instance is constructed based on the provided config. A config should at leas
 The configuration options depend on the used provisioning type and the local storage which you use to store updates and metadata.
 For description of all configuration options, refer to the client configuraton xref:aktualizr-config-options.adoc[reference documentation] and to the https://github.com/advancedtelematic/aktualizr/tree/master/config[`config`] folder for configuration examples.
 
-* *Add a new secondary ECU*
+* *Add a new Secondary ECU*
 +
 [source,cpp]
 ----
 void Aktualizr::AddSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &secondary)
 ----
-You must call this function before you call `Initialize`. To find out more about primary and secondary ECUs, see our xref:uptane.adoc#_primary_and_secondary_ecus[Uptane description].
+You must call this function before you call `Initialize`. To find out more about Primary and Secondary ECUs, see our xref:uptane.adoc#_primary_and_secondary_ecus[Uptane description].
 
 * *Initialize aktualizr*
 +
@@ -177,7 +177,7 @@ You must call this function before you call `Initialize`. To find out more about
 ----
 void Aktualizr::Initialize()
 ----
-Any secondary ECUs should be added before making this
+Any Secondary ECUs should be added before making this
 call. This will provision with the server if required. This must be called before using any other aktualizr functions except `AddSecondary`.
 
 * *Set a callback to receive event notifications*

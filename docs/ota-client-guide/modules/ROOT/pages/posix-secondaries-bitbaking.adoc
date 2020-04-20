@@ -51,7 +51,7 @@ bitbake primary-image
 | A space separated list of TCP/IP addresses of the Secondaries to be included into the list of ECUs served by the given Primary
 |===
 
-Note that PRIMARY_SECONDARIES can be a list of TCP/IP addresses in order to fulfill multiple secondaries use case.
+Note that PRIMARY_SECONDARIES can be a list of TCP/IP addresses in order to fulfill multiple Secondaries use case.
 For example, `PRIMARY_SECONDARIES = "10.0.3.2:9050 10.0.3.3:9050 10.0.3.4:9050"`.
 
 
@@ -81,15 +81,15 @@ bitbake secondary-image
 
 Secondary images will also take advantage of some common configuration snippets described in xref:recommended-clientconfig.adoc[recommended client configurations], such as auto-reboot, persistent `journald` and debug logs.
 
-==== Multiple secondaries use case
-In order to support multiple secondaries use case an user should:
+==== Multiple Secondaries use case
+In order to support multiple Secondaries use case a user should:
 
-* repeat the secondary bitbaking procedure corresponding number of times, each time
+* repeat the Secondary bitbaking procedure corresponding number of times, each time
 ** specifying unique TCP/IP address by means of `SECONDARY_IP` and `SECONDARY_PORT` configuration variables
 ** copying and naming uniquely the resultant image file (e.g. `cp tmp/deploy/images/qemux86-64/secondary-image-qemux86-64.ota-ext4 secondary-images/secondary-image-qemux86-64.ota-ext4-001`)
-* bitbake the primary image with `PRIMARY_SECONDARIES` listing the corresponding secondaries TCP/IP addresses
-* run the primary by following the guide in <<Running>>
-* run the secondaries by running the command specified in <<Running>> with a parameter pointing to corresponding secondary image.
+* bitbake the Primary image with `PRIMARY_SECONDARIES` listing the corresponding Secondaries TCP/IP addresses
+* run the Primary by following the guide in <<Running>>
+* run the Secondaries by running the command specified in <<Running>> with a parameter pointing to corresponding Secondary image.
 For example,
 
 `../meta-updater/scripts/run-qemu-ota --no-gui --secondary-network secondary-images/secondary-image-qemux86-64.ota-ext4-001`
@@ -126,26 +126,26 @@ By default ethernet NIC is used which implies that Raspberry Pi is connected to 
 |===
 
 
-==== RPi networking details in a context of Posix secondaries support
+==== RPi networking details in a context of Posix Secondaries support
 
-IP/Posix secondaries support implies that a single primary ECU connected to two IP networks:
+IP/Posix Secondaries support implies that a single Primary ECU connected to two IP networks:
 
 * an IP network with an access to Internet for communication with the OTA backend;
-* an IP network that does not have access to Internet for communication with secondary ECU(s). The secondaries should be connected to this internal network.
+* an IP network that does not have access to Internet for communication with Secondary ECU(s). The Secondaries should be connected to this internal network.
 
 Taking into account that RPi has two NICs, ethernet and wifi the aforementioned requirements to networking can be fulfilled by applying the following approaches.
 
 ===== Primary uses multihomed ethernet interface, Secondary uses ethernet interface
 
-Both primary and secondary ECUs has wifi turned off and are connected to the same LAN (via switch or router) that has an access to Internet.
+Both Primary and Secondary ECUs has wifi turned off and are connected to the same LAN (via switch or router) that has an access to Internet.
 Primary only network interface is configured in such way that it has two IP addresses assigned to it.
 
 The first one (10.0.3.1 by default) is statically defined (can be configured via `PRIMARY_IP` configuration variable)
-and connects the primary to an internal IP network (10.0.3.0/8) that is aimed for communication with secondary ECU(s).
+and connects the Primary to an internal IP network (10.0.3.0/8) that is aimed for communication with Secondary ECU(s).
 Secondary(ies) are connected to the same internal network (10.0.3.0/8) by assigning to their
-ethernet interface corresponding IP addresses (10.0.3.x, 10.0.3.2 for the default only secondary, `SECONDARY_IP` configuration variable).
+ethernet interface corresponding IP addresses (10.0.3.x, 10.0.3.2 for the default only Secondary, `SECONDARY_IP` configuration variable).
 
-The second IP address assigned to the primary ethernet NIC should be obtained from a DHCP server running on one of
+The second IP address assigned to the Primary ethernet NIC should be obtained from a DHCP server running on one of
 the devices (usually a router) that is connected to the given LAN, has an access to Internet and provides each host connected to the given IP network with access to Internet
 (via NATing IP packets, DHCP and NAT server can be hosted/running on different devices).
 
@@ -154,9 +154,9 @@ The given networking option is enabled by default.
 ===== Primary uses both wifi and ethernet interfaces, Secondary uses ethernet interface
 Primary has wifi on, and its wifi NIC is connected to a LAN with an access to Internet. Also, Primary ethernet NIC
 is assigned with an only IP address (10.0.3.1 by default) to connect to the internal network for communication
-with secondary ECUs.
+with Secondary ECUs.
 Secondary(ies) are connected to the same internal network (10.0.3.0/8) by assigning to their
-ethernet interface corresponding IP addresses (10.0.3.x, 10.0.3.2 for the default only secondary, `SECONDARY_IP` configuration variable).
+ethernet interface corresponding IP addresses (10.0.3.x, 10.0.3.2 for the default only Secondary, `SECONDARY_IP` configuration variable).
 
 ===== Primary and Secondary uses wifi, only Primary uses ethernet NIC
 In this case, both Primary and Secondary(ies) uses wifi NIC to connect to the internal network (wifi router should not have an Internet access). Secondary doesn't use ethernet NIC.
@@ -194,7 +194,7 @@ Once both Primary and Secondary VMs are running you should see that a new device
 The following are Tips & Tricks for using & troubleshooting of the Primary and Secondary VMs.
 
 * run `journalctl -f -u aktualizr` to see logs that are being output by aktualizr running on `Primary` VM;
-* run `journalctl -f -u aktualizr-secondary` to see logs that are being output by aktualizr-secondary (posix/IP secondary) running on `Secondary` VM;
+* run `journalctl -f -u aktualizr-secondary` to see logs that are being output by aktualizr-secondary (POSIX/IP Secondary) running on `Secondary` VM;
 * By default, both aktualizr and aktualizr-secondary are running as systemd services. Use `systemctl stop|start|restart <aktualizr|aktualizr-secondary>` to control aktualizr and aktualizr-secondary daemons/services managed by systemd;
 * To control aktualizr|aktualizr-secondary manually stop corresponding systemd service (see above) and run it from command line:
 just type `aktualizr' | `aktualizr-secondary`;
@@ -204,8 +204,8 @@ In case of running as a systemd service add corresponding configuration fragment
 e.g. `echo -e "[logger]\nloglevel = 0" > /etc/sota/conf.d/50-debug-logs.toml` and restart the service;
 * In order to trigger a device re-provisioning, please, remove the DB file on Primary, i.e. `rm /var/sota/sql.db`
 * If the DB file is removed on Secondary then the device should be re-provisioned (see above),
-otherwise Primary/aktualizr will refuse to work with a 'new' secondary as it will have a "new" autogenerated ECU serial
+otherwise Primary/aktualizr will refuse to work with a 'new' Secondary as it will have a "new" autogenerated ECU serial
 that doesn't the one already been registered on Primary.
-* OTA Connect does not support adding/removing secondary ECUs to a device that has been already registered.
-Thus adding a new ECU to the list of secondaries on Primary won't take much effect,
+* OTA Connect does not support adding/removing Secondary ECUs to a device that has been already registered.
+Thus adding a new ECU to the list of Secondaries on Primary won't take much effect,
 the new ECU won't appear on the UI and it will be listed as not registered by aktualizr-info.

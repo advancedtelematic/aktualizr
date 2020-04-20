@@ -125,7 +125,7 @@ add_test(NAME aktualizr_secondary_log_default
          COMMAND aktualizr-secondary -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml)
 set_tests_properties(aktualizr_secondary_log_default
                      PROPERTIES FAIL_REGULAR_EXPRESSION "Final configuration that will be used"
-                                PASS_REGULAR_EXPRESSION "Aktualizr-secondary version")
+                                PASS_REGULAR_EXPRESSION "aktualizr-secondary version")
 
 # Check aktualizr-secondary invalid logging levels.
 add_test(NAME aktualizr_secondary_log_invalid

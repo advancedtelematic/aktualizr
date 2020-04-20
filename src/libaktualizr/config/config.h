@@ -65,7 +65,7 @@ struct UptaneConfig {
 };
 
 /**
- * Configuration object for an aktualizr instance running on a primary ECU.
+ * Configuration object for an aktualizr instance running on a Primary ECU.
  *
  * This class is a parent to a series of smaller configuration objects for
  * specific subsystems. Note that most other aktualizr-related tools have their

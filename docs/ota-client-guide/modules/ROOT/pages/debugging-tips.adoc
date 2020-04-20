@@ -25,7 +25,7 @@ Try the scripts available in the link:{aktualizr-github-url}/tests/ostree-script
 
 == Inspect stored info with aktualizr-info
 
-The aktualizr-info tool can be used to dump information stored in the libaktualizr database. By default, it displays basic information such as storage type, device ID, primary ECU serial and hardware ID and provisioning status. Additional information can be requested with link:{aktualizr-github-url}/src/aktualizr_info/main.cc[various command line parameters].
+The aktualizr-info tool can be used to dump information stored in the libaktualizr database. By default, it displays basic information such as storage type, device ID, Primary ECU serial and hardware ID and provisioning status. Additional information can be requested with link:{aktualizr-github-url}/src/aktualizr_info/main.cc[various command line parameters].
 
 == Valgrind and gdb
 

@@ -40,11 +40,11 @@ To see an example of this metadata, open the link:https://raw.githubusercontent.
 
 * `targets.json`:
 +
-The instance of `targets.json` in your image repository contains information about all the valid software files. 
+The instance of `targets.json` in your image repository contains information about all the valid software files.
 +
 As mentioned previously, there are two versions of each metadata file, one in your image repository and one in the Director service.
 +
-The _other_ instance of `targets.json` is in the Director service. It only contains information about the software files that are included in a specific update. The entries in this file are cross-referenced with the corresponding entries in `targets.json` for your image repository. 
+The _other_ instance of `targets.json` is in the Director service. It only contains information about the software files that are included in a specific update. The entries in this file are cross-referenced with the corresponding entries in `targets.json` for your image repository.
 +
 Basically this comparison is answering the question:
 +
@@ -58,10 +58,10 @@ OTA Connect manages the Director for you. When you create an update campaign, we
 
 The keys for the metadata in your image repository should be managed on your side; we provide tooling to help you do just that. When you build a new device, bitbake automatically signs the image for you, using keys that you specify in the build's `local.conf`{zwsp}footnote:[These keys are packed inside the zip file specified by the `SOTA_PACKED_CREDENTIALS` line.]. Your initial key is created by HERE OTA Connect, delivered to you inside your `credentials.zip` file, and kept online for convenience and bootstrapping; for any production use you should xref:rotating-signing-keys.adoc[manage the keys for software metadata] yourself and store them securely offlinefootnote:[Proceed with caution! Once you take the key offline, HERE Technologies cannot recover it.].
 
-== Primary and secondary ECUs
+== Primary and Secondary ECUs
 
-In the Uptane framework, an ECU is categorized as either a primary or a secondary ECU. In most cases, a vehicle has one primary ECU and several secondary ECUs. The primary ECU is responsible for downloading and distributing software to the secondary ECUs. In many cases, the Telematics Control Unit (TCU) serves the role of primary ECU. A primary ECU also verifies and distributes the Uptane-compliant metadata associated with each piece of software.
+In the Uptane framework, an ECU is categorized as either a Primary or a Secondary ECU. In most cases, a vehicle has one Primary ECU and several Secondary ECUs. The Primary ECU is responsible for downloading and distributing software to the Secondary ECUs. In many cases, the Telematics Control Unit (TCU) serves the role of Primary ECU. A Primary ECU also verifies and distributes the Uptane-compliant metadata associated with each piece of software.
 
 Secondary ECUs, such as the Transmission or Body control modules, receive the software and should also perform some form of metadata verification. If the ECU has sufficient processing capabilities, it should perform a full verification of the Uptane-compliant metadata, otherwise it should at least perform a partial verification.
 
-To get an overview of the ECUs detected in a device, open the OTA Connect web application and navigate to the device details for the device. This view shows the ECUs grouped according to whether they are primary and secondary ECUs.
+To get an overview of the ECUs detected in a device, open the OTA Connect web application and navigate to the device details for the device. This view shows the ECUs grouped according to whether they are Primary and Secondary ECUs.

@@ -24,12 +24,12 @@ namespace bpo = boost::program_options;
 boost::filesystem::path build_dir;
 
 /**
- * Check that aktualizr generates random ecu_serial for primary and all
- * secondaries.
+ * Check that aktualizr generates random ecu_serial for Primary and all
+ * Secondaries.
  */
 TEST(Uptane, RandomSerial) {
   RecordProperty("zephyr_key", "OTA-989,TST-155");
-  // Make two configs, neither of which specify a primary serial.
+  // Make two configs, neither of which specify a Primary serial.
   TemporaryDirectory temp_dir1, temp_dir2;
   Config conf_1("tests/config/basic.toml");
   conf_1.storage.path = temp_dir1.Path();
@@ -72,9 +72,9 @@ TEST(Uptane, RandomSerial) {
 }
 
 /**
- * Check that aktualizr saves random ecu_serial for primary and all secondaries.
+ * Check that aktualizr saves random ecu_serial for Primary and all Secondaries.
  *
- * Test with a virtual secondary.
+ * Test with a virtual Secondary.
  */
 TEST(Uptane, ReloadSerial) {
   RecordProperty("zephyr_key", "OTA-989,TST-156");
@@ -123,7 +123,7 @@ TEST(Uptane, ReloadSerial) {
   // Verify that serials match across initializations.
   EXPECT_EQ(ecu_serials_1[0].first, ecu_serials_2[0].first);
   EXPECT_EQ(ecu_serials_1[1].first, ecu_serials_2[1].first);
-  // Sanity check that primary and secondary serials do not match.
+  // Sanity check that Primary and Secondary serials do not match.
   EXPECT_NE(ecu_serials_1[0].first, ecu_serials_1[1].first);
   EXPECT_NE(ecu_serials_2[0].first, ecu_serials_2[1].first);
 }

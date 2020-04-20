@@ -42,7 +42,7 @@ TEST(config, TomlInt) {
 }
 
 /*
- * Check that user can specify primary serial via a config file.
+ * Check that user can specify Primary serial via a config file.
  */
 TEST(config, TomlPrimarySerial) {
   RecordProperty("zephyr_key", "OTA-988");
@@ -51,7 +51,7 @@ TEST(config, TomlPrimarySerial) {
 }
 
 /*
- * Check that user can specify primary serial on the command line.
+ * Check that user can specify Primary serial on the command line.
  */
 TEST(config, CmdlPrimarySerial) {
   RecordProperty("zephyr_key", "OTA-988");

@@ -36,7 +36,7 @@ StorageConfig MakeConfig(StorageType type, const boost::filesystem::path &storag
   return config;
 }
 
-/* Load and store primary keys. */
+/* Load and store Primary keys. */
 TEST(storage, load_store_primary_keys) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
@@ -294,7 +294,7 @@ TEST(storage, load_store_installed_versions) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
-  // Test lazy primary installed version: primary ecu serial is not defined yet
+  // Test lazy Primary installed version: Primary ECU serial is not defined yet
   const std::vector<Hash> hashes = {
       Hash{Hash::Type::kSha256, "2561"},
       Hash{Hash::Type::kSha512, "5121"},
@@ -406,7 +406,7 @@ TEST(storage, load_store_installed_versions) {
     EXPECT_EQ(log[0].custom_data()["foo"], "bar");
   }
 
-  // Add a secondary installed version
+  // Add a Secondary installed version
   Uptane::EcuMap secondary_ecu{{Uptane::EcuSerial("secondary1"), Uptane::HardwareIdentifier("secondary_hw")}};
   Uptane::Target tsec{"secondary.bin", secondary_ecu, {Hash{Hash::Type::kSha256, "256s"}}, 4};
   storage->saveInstalledVersion("secondary_1", tsec, InstalledVersionUpdateMode::kCurrent);
@@ -423,7 +423,7 @@ TEST(storage, load_store_installed_versions) {
 }
 
 /*
- * Load and store an ecu installation result in an SQL database.
+ * Load and store an ECU installation result in an SQL database.
  * Load and store a device installation result in an SQL database.
  */
 TEST(storage, load_store_installation_results) {
@@ -576,7 +576,7 @@ TEST(storage, load_store_secondary_info) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
-  // note: this can be done before the ecu is known
+  // note: this can be done before the ECU is known
   storage->saveSecondaryData(Uptane::EcuSerial("secondary_2"), "data2");
 
   EcuSerials serials{{Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")},
@@ -589,7 +589,7 @@ TEST(storage, load_store_secondary_info) {
   testing::internal::CaptureStdout();
   storage->saveSecondaryInfo(Uptane::EcuSerial("primary"), "ip",
                              PublicKey("key0", KeyType::kRSA2048));  // should show an error
-  EXPECT_NE(std::string::npos, testing::internal::GetCapturedStdout().find("Can't save secondary"));
+  EXPECT_NE(std::string::npos, testing::internal::GetCapturedStdout().find("Can't save Secondary"));
 
   std::vector<SecondaryInfo> sec_infos;
   EXPECT_TRUE(storage->loadSecondariesInfo(&sec_infos));

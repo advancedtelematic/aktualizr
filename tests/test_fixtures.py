@@ -174,7 +174,7 @@ class Aktualizr:
         device_status = self.get_info()
         if not ((device_status.find(ecu_id[0]) != -1) and (device_status.find(ecu_id[1]) != -1)):
             return False
-        not_registered_field = "Removed or not registered ecus:"
+        not_registered_field = "Removed or not registered ECUs:"
         not_reg_start = device_status.find(not_registered_field)
         return not_reg_start == -1 or (device_status.find(ecu_id[1], not_reg_start) == -1)
 
@@ -187,9 +187,9 @@ class Aktualizr:
     def get_current_pending_image_info(self, ecu_id):
         return self._get_current_image_info(ecu_id, secondary_image_hash_field='pending image hash: ')
 
-    # applicable only to secondary ECUs due to inconsistency in presenting information
-    # about primary and secondary ECUs
-    # ugly stuff that could be removed if Aktualizr had exposed API to check status
+    # applicable only to Secondary ECUs due to inconsistency in presenting information
+    # about Primary and Secondary ECUs
+    # ugly stuff that could be removed if aktualizr had exposed API to check status
     # or aktializr-info had output status/info in a structured way (e.g. json)
     def _get_current_image_info(self, ecu_id, secondary_image_hash_field='installed image hash: '):
         #secondary_image_filename_field = 'installed image filename: '

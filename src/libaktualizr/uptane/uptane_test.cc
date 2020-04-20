@@ -126,8 +126,8 @@ TEST(Uptane, VerifyDataBadThreshold) {
   }
 }
 
-/* Get manifest from primary.
- * Get manifest from secondaries. */
+/* Get manifest from Primary.
+ * Get manifest from Secondaries. */
 TEST(Uptane, AssembleManifestGood) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -182,7 +182,7 @@ TEST(Uptane, AssembleManifestBad) {
   Primary::VirtualSecondaryConfig ecu_config =
       UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
 
-  /* Overwrite the secondary's keys on disk. */
+  /* Overwrite the Secondary's keys on disk. */
   std::string private_key, public_key;
   ASSERT_TRUE(Crypto::generateKeyPair(ecu_config.key_type, &public_key, &private_key));
   Utils::writeFile(ecu_config.full_client_dir / ecu_config.ecu_private_key, private_key);
@@ -201,8 +201,8 @@ TEST(Uptane, AssembleManifestBad) {
   EXPECT_FALSE(manifest["secondary_ecu_serial"]["signed"].isMember("custom"));
 }
 
-/* Get manifest from primary.
- * Get manifest from secondaries.
+/* Get manifest from Primary.
+ * Get manifest from Secondaries.
  * Send manifest to the server. */
 TEST(Uptane, PutManifest) {
   TemporaryDirectory temp_dir;
@@ -335,9 +335,9 @@ void process_events_Install(const std::shared_ptr<event::BaseEvent> &event) {
  * Verify successful installation of a package.
  *
  * Identify ECU for each target.
- * Check if there are updates to install for the primary.
- * Install a binary update on the primary.
- * Store installation result for primary.
+ * Check if there are updates to install for the Primary.
+ * Install a binary update on the Primary.
+ * Store installation result for Primary.
  * Store installation result for device.
  * Check if an update is already installed.
  */
@@ -564,8 +564,8 @@ MATCHER_P(matchMeta, meta, "") {
 }
 
 /*
- * Send metadata to secondary ECUs
- * Send EcuInstallationStartedReport to server for secondaries
+ * Send metadata to Secondary ECUs
+ * Send EcuInstallationStartedReport to server for Secondaries
  */
 TEST(Uptane, SendMetadataToSecondary) {
   Config conf("tests/config/basic.toml");
@@ -614,7 +614,7 @@ TEST(Uptane, SendMetadataToSecondary) {
   EXPECT_TRUE(EcuInstallationStartedReportGot);
 }
 
-/* Register secondary ECUs with Director. */
+/* Register Secondary ECUs with Director. */
 TEST(Uptane, UptaneSecondaryAdd) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -635,7 +635,7 @@ TEST(Uptane, UptaneSecondaryAdd) {
   EXPECT_NO_THROW(sota_client->initialize());
 
   /* Verify the correctness of the metadata sent to the server about the
-   * secondary. */
+   * Secondary. */
   Json::Value ecu_data = Utils::parseJSONFile(temp_dir / "post.json");
   EXPECT_EQ(ecu_data["ecus"].size(), 2);
   EXPECT_EQ(ecu_data["primary_ecu_serial"].asString(), config.provision.primary_ecu_serial);
@@ -645,7 +645,7 @@ TEST(Uptane, UptaneSecondaryAdd) {
   EXPECT_TRUE(ecu_data["ecus"][1]["clientKey"]["keyval"]["public"].asString().size() > 0);
 }
 
-/* Adding multiple secondaries with the same serial throws an error */
+/* Adding multiple Secondaries with the same serial throws an error */
 TEST(Uptane, UptaneSecondaryAddSameSerial) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -670,8 +670,8 @@ TEST(Uptane, UptaneSecondaryAddSameSerial) {
 // TODO: this test needs some refresh, it relies on the behaviour of
 // UptaneTestCommon::TestUptaneClient which differs from actual SotaUptaneClient
 /*
- * Identify previously unknown secondaries
- * Identify currently unavailable secondaries
+ * Identify previously unknown Secondaries
+ * Identify currently unavailable Secondaries
  */
 TEST(Uptane, UptaneSecondaryMisconfigured) {
   TemporaryDirectory temp_dir;
@@ -716,7 +716,7 @@ TEST(Uptane, UptaneSecondaryMisconfigured) {
       EXPECT_EQ(ecus[1].serial.ToString(), "new_secondary_ecu_serial");
       EXPECT_EQ(ecus[1].state, EcuState::kNotRegistered);
     } else {
-      FAIL() << "Unexpected secondary serial in storage: " << ecus[0].serial.ToString();
+      FAIL() << "Unexpected Secondary serial in storage: " << ecus[0].serial.ToString();
     }
   }
   {
@@ -757,7 +757,7 @@ class HttpFakeProv : public HttpFake {
       EXPECT_EQ(data["deviceId"].asString(), "tst149_device_id");
       return HttpResponse(Utils::readFile("tests/test_data/cred.p12"), 200, CURLE_OK, "");
     } else if (url.find("/director/ecus") != std::string::npos) {
-      /* Register primary ECU with Director. */
+      /* Register Primary ECU with Director. */
       ecus_count++;
       EXPECT_EQ(data["primary_ecu_serial"].asString(), "CA:FE:A6:D2:84:9D");
       EXPECT_EQ(data["ecus"][0]["hardware_identifier"].asString(), "primary_hw");
@@ -811,12 +811,12 @@ class HttpFakeProv : public HttpFake {
         }
         break;
       case 5:
-        /* Send EcuInstallationStartedReport to server for primary. */
+        /* Send EcuInstallationStartedReport to server for Primary. */
         EXPECT_EQ(event_type, "EcuInstallationStarted");
         EXPECT_EQ(serial, "CA:FE:A6:D2:84:9D");
         break;
       case 6:
-        /* Send EcuInstallationCompletedReport to server for primary. */
+        /* Send EcuInstallationCompletedReport to server for Primary. */
         EXPECT_EQ(event_type, "EcuInstallationCompleted");
         EXPECT_EQ(serial, "CA:FE:A6:D2:84:9D");
         break;
@@ -854,8 +854,8 @@ class HttpFakeProv : public HttpFake {
       EXPECT_EQ(data[0]["name"].asString(), "fake-package");
       EXPECT_EQ(data[0]["version"].asString(), "1.0");
     } else if (url.find("/director/manifest") != std::string::npos) {
-      /* Get manifest from primary.
-       * Get primary installation result.
+      /* Get manifest from Primary.
+       * Get Primary installation result.
        * Send manifest to the server. */
       manifest_count++;
       std::string file_primary;

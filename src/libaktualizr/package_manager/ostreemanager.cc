@@ -242,7 +242,7 @@ OstreeManager::OstreeManager(const PackageConfig &pconfig, const BootloaderConfi
     throw std::runtime_error("Could not find OSTree sysroot at: " + config.sysroot.string());
   }
 
-  // consider boot successful as soon as we started, missing internet connection or connection to secondaries are not
+  // consider boot successful as soon as we started, missing internet connection or connection to Secondaries are not
   // proper reasons to roll back
   if (imageUpdated()) {
     bootloader_->setBootOK();
@@ -253,7 +253,7 @@ bool OstreeManager::fetchTarget(const Uptane::Target &target, Uptane::Fetcher &f
                                 FetcherProgressCb progress_cb, const api::FlowControlToken *token) {
   if (!target.IsOstree()) {
     // The case when the ostree package manager is set as a package manager for aktualizr
-    // while the target is aimed for a secondary ECU that is configured with another/non-ostree package manager
+    // while the target is aimed for a Secondary ECU that is configured with another/non-ostree package manager
     return PackageManagerInterface::fetchTarget(target, fetcher, keys, progress_cb, token);
   }
   return OstreeManager::pull(config.sysroot, config.ostree_server, keys, target, token, progress_cb).success;
@@ -262,7 +262,7 @@ bool OstreeManager::fetchTarget(const Uptane::Target &target, Uptane::Fetcher &f
 TargetStatus OstreeManager::verifyTarget(const Uptane::Target &target) const {
   if (!target.IsOstree()) {
     // The case when the ostree package manager is set as a package manager for aktualizr
-    // while the target is aimed for a secondary ECU that is configured with another/non-ostree package manager
+    // while the target is aimed for a Secondary ECU that is configured with another/non-ostree package manager
     return PackageManagerInterface::verifyTarget(target);
   }
   return verifyTargetInternal(target);

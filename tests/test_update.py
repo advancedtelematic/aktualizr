@@ -19,8 +19,8 @@ logger = logging.getLogger(__file__)
 
  Aktualizr/Primary's package manager is set to `ostree`
  Secondary's package manager is set to `fake` which means a file/binary update
- Primary goal is to verify whether aktualizr succeeds with a binary/fake update of secondary
- while aktualizr/primary is configured with ostree package manager
+ Primary goal is to verify whether aktualizr succeeds with a binary/fake update of Secondary
+ while aktualizr/Primary is configured with ostree package manager
 """
 @with_uptane_backend(start_generic_server=True)
 @with_secondary(start=True)
@@ -48,7 +48,7 @@ def test_primary_ostree_secondary_file_updates(uptane_repo, secondary, aktualizr
     # check the Secondary update
     current_secondary_image_hash = aktualizr.get_current_image_info(secondary.id)
     if current_secondary_image_hash != secondary_update_hash:
-        logger.error("Current secondary image {} != expected image {}".format(current_secondary_image_hash,
+        logger.error("Current Secondary image {} != expected image {}".format(current_secondary_image_hash,
                                                                               secondary_update_hash))
         return False
 

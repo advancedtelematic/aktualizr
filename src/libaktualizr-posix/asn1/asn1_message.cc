@@ -88,7 +88,7 @@ Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, const std::pair<std::string
   ConnectionSocket connection(addr.first, addr.second);
 
   if (connection.connect() < 0) {
-    LOG_ERROR << "Failed to connect to the secondary ( " << addr.first << ":" << addr.second
+    LOG_ERROR << "Failed to connect to the Secondary ( " << addr.first << ":" << addr.second
               << "): " << std::strerror(errno);
     return Asn1Message::Empty();
   }

@@ -49,7 +49,7 @@ This is all done with the meta-updater Yocto layer, as an integrated part of the
 
 == Installing updates on devices
 
-In OTA Connect, we generally assume that updates will be OSTree images or complete firmware images to flash onto secondary ECUs, but in fact OTA Connect can be used to send all kinds of other updates.footnote:[For more information on using OTA Connect for other types of update, please contact us at link:mailto:otaconnect.support@here.com[otaconnect.support@here.com].] For now, let's look at the default OSTree update process.
+In OTA Connect, we generally assume that updates will be OSTree images or complete firmware images to flash onto Secondary ECUs, but in fact OTA Connect can be used to send all kinds of other updates.footnote:[For more information on using OTA Connect for other types of update, please contact us at link:mailto:otaconnect.support@here.com[otaconnect.support@here.com].] For now, let's look at the default OSTree update process.
 
 .OTA Connect device update flow
 ****
