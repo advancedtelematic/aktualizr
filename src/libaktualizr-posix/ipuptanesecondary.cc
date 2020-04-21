@@ -168,6 +168,11 @@ bool IpUptaneSecondary::ping() const {
   return resp->present() == AKIpUptaneMes_PR_getInfoResp;
 }
 
+data::ResultCode::Numeric IpUptaneSecondary::sendFirmware(const Uptane::Target& target) {
+  (void)target;
+  return data::ResultCode::Numeric::kOk;
+}
+
 data::ResultCode::Numeric IpUptaneSecondary::install(const Uptane::Target& target) {
   std::lock_guard<std::mutex> l(install_mutex);
   auto install_result = install_v2(target);
