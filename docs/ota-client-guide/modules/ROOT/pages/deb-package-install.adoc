@@ -24,7 +24,7 @@ For security reasons, we recommend creating the `/usr/lib/sota/sota.env` file ev
 
 === Secondary ECUs
 
-The debian package ships with a default secondary ECU configured. This acts like a dummy device, dropping whatever file you send it into `/tmp/demo-virtual-secondary/firmware.bin`.
+The debian package ships with a default Secondary ECU configured. This acts like a dummy device, dropping whatever file you send it into `/tmp/demo-virtual-secondary/firmware.bin`.
 
 === Building the debian package
 

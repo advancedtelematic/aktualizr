@@ -79,7 +79,7 @@ class SQLStorage : public SQLStorageBase, public INvStorage {
   bool loadInstallationLog(const std::string& ecu_serial, std::vector<Uptane::Target>* log,
                            bool only_installed) override;
   bool hasPendingInstall() override;
-  void getPendingEcus(std::vector<std::pair<Uptane::EcuSerial, Uptane::Hash>>* pendingEcus) override;
+  void getPendingEcus(std::vector<std::pair<Uptane::EcuSerial, Hash>>* pendingEcus) override;
   void clearInstalledVersions() override;
 
   void saveEcuInstallationResult(const Uptane::EcuSerial& ecu_serial, const data::InstallationResult& result) override;

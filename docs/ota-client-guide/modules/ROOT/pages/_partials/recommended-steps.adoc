@@ -111,7 +111,7 @@ Once you understand how the libaktualizr demo application works, you'll want to 
 * Hook into an HMI system to ask for user confirmation before installing an update
 * Check for safety conditions in the vehicle before starting an update
 * Only download large updates when the vehicle is connected to WiFi, or at off-peak times
-* Pass an update for a secondary ECU off to a custom UDS flashing tool
+* Pass an update for a Secondary ECU off to a custom UDS flashing tool
 
 * *Build and cross-deploy your disk images to your production account*
 +

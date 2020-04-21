@@ -1,10 +1,12 @@
 #ifndef AKTUALIZR_UPTANE_MANIFEST_H
 #define AKTUALIZR_UPTANE_MANIFEST_H
 
-#include "json/json.h"
-#include "tuf.h"
-
 #include <memory>
+
+#include "json/json.h"
+
+#include "crypto/crypto.h"
+#include "tuf.h"
 
 class KeyManager;
 

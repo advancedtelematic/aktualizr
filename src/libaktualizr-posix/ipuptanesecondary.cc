@@ -19,7 +19,7 @@ Uptane::SecondaryInterface::Ptr IpUptaneSecondary::connectAndCreate(const std::s
     LOG_INFO << "Connected to IP Secondary: "
              << "(" << address << ":" << port << ")";
   } else {
-    LOG_WARNING << "Failed to connect to a secondary: " << std::strerror(errno);
+    LOG_WARNING << "Failed to connect to a Secondary: " << std::strerror(errno);
     return nullptr;
   }
 
@@ -35,8 +35,8 @@ Uptane::SecondaryInterface::Ptr IpUptaneSecondary::create(const std::string& add
   auto resp = Asn1Rpc(req, con_fd);
 
   if (resp->present() != AKIpUptaneMes_PR_getInfoResp) {
-    LOG_ERROR << "Failed to get info response message from secondary";
-    throw std::runtime_error("Failed to obtain information about a secondary: " + address + std::to_string(port));
+    LOG_ERROR << "Failed to get info response message from Secondary";
+    throw std::runtime_error("Failed to obtain information about a Secondary: " + address + std::to_string(port));
   }
   auto r = resp->getInfoResp();
 
@@ -46,8 +46,8 @@ Uptane::SecondaryInterface::Ptr IpUptaneSecondary::create(const std::string& add
   auto type = static_cast<KeyType>(r->keyType);
   PublicKey pub_key = PublicKey(key, type);
 
-  LOG_INFO << "Got info on IP Secondary: "
-           << "hw-ID: " << hw_id << " serial: " << serial;
+  LOG_INFO << "Got info from IP Secondary: "
+           << "hardware ID: " << hw_id << " serial: " << serial;
 
   return std::make_shared<IpUptaneSecondary>(address, port, serial, hw_id, pub_key);
 }
@@ -63,27 +63,27 @@ SecondaryInterface::Ptr IpUptaneSecondary::connectAndCheck(const std::string& ad
     if (sec != nullptr) {
       auto s = sec->getSerial();
       if (s != serial) {
-        LOG_ERROR << "Mismatch between secondary serials " << s << " and " << serial;
+        LOG_ERROR << "Mismatch between Secondary serials " << s << " and " << serial;
         return nullptr;
       }
       auto h = sec->getHwId();
       if (h != hw_id) {
-        LOG_ERROR << "Mismatch between hardware ids " << h << " and " << hw_id;
+        LOG_ERROR << "Mismatch between hardware IDs " << h << " and " << hw_id;
         return nullptr;
       }
       auto p = sec->getPublicKey();
       if (pub_key.Type() == KeyType::kUnknown) {
         LOG_INFO << "Secondary " << s << " do not have a known public key";
       } else if (p != pub_key) {
-        LOG_ERROR << "Mismatch between public keys " << p.Value() << " and " << pub_key.Value() << " for secondary "
+        LOG_ERROR << "Mismatch between public keys " << p.Value() << " and " << pub_key.Value() << " for Secondary "
                   << serial;
         return nullptr;
       }
       return sec;
     }
   } catch (std::exception& e) {
-    LOG_WARNING << "Could not connect to secondary " << serial << " at " << address << ":" << port
-                << ", using previously known registration data";
+    LOG_WARNING << "Could not connect to Secondary " << serial << " at " << address << ":" << port
+                << " using previously known registration data";
   }
 
   return std::make_shared<IpUptaneSecondary>(address, port, std::move(serial), std::move(hw_id), std::move(pub_key));
@@ -94,7 +94,7 @@ IpUptaneSecondary::IpUptaneSecondary(const std::string& address, unsigned short 
     : addr_{address, port}, serial_{std::move(serial)}, hw_id_{std::move(hw_id)}, pub_key_{std::move(pub_key)} {}
 
 bool IpUptaneSecondary::putMetadata(const RawMetaPack& meta_pack) {
-  LOG_INFO << "Sending Uptane metadata to the secondary";
+  LOG_INFO << "Sending Uptane metadata to the Secondary";
   Asn1Message::Ptr req(Asn1Message::Empty());
   req->present(AKIpUptaneMes_PR_putMetaReq);
 
@@ -112,7 +112,7 @@ bool IpUptaneSecondary::putMetadata(const RawMetaPack& meta_pack) {
   auto resp = Asn1Rpc(req, getAddr());
 
   if (resp->present() != AKIpUptaneMes_PR_putMetaResp) {
-    LOG_ERROR << "Failed to get response to sending manifest to secondary";
+    LOG_ERROR << "Failed to get response to sending manifest to Secondary";
     return false;
   }
 
@@ -122,7 +122,7 @@ bool IpUptaneSecondary::putMetadata(const RawMetaPack& meta_pack) {
 
 bool IpUptaneSecondary::sendFirmware(const std::string& data) {
   std::lock_guard<std::mutex> l(install_mutex);
-  LOG_INFO << "Sending firmware to the secondary";
+  LOG_INFO << "Sending firmware to the Secondary";
   Asn1Message::Ptr req(Asn1Message::Empty());
   req->present(AKIpUptaneMes_PR_sendFirmwareReq);
 
@@ -131,7 +131,7 @@ bool IpUptaneSecondary::sendFirmware(const std::string& data) {
   auto resp = Asn1Rpc(req, getAddr());
 
   if (resp->present() != AKIpUptaneMes_PR_sendFirmwareResp) {
-    LOG_ERROR << "Failed to get response to sending firmware to secondary";
+    LOG_ERROR << "Failed to get response to sending firmware to Secondary";
     return false;
   }
 
@@ -140,7 +140,7 @@ bool IpUptaneSecondary::sendFirmware(const std::string& data) {
 }
 
 data::ResultCode::Numeric IpUptaneSecondary::install(const std::string& target_name) {
-  LOG_INFO << "Invoking an installation of the target on the secondary: " << target_name;
+  LOG_INFO << "Invoking an installation of the target on the Secondary: " << target_name;
 
   Asn1Message::Ptr req(Asn1Message::Empty());
   req->present(AKIpUptaneMes_PR_installReq);
@@ -153,7 +153,7 @@ data::ResultCode::Numeric IpUptaneSecondary::install(const std::string& target_n
 
   // invalid type of an response message
   if (resp->present() != AKIpUptaneMes_PR_installResp) {
-    LOG_ERROR << "Failed to get response to an installation request to secondary";
+    LOG_ERROR << "Failed to get response to an installation request to Secondary";
     return data::ResultCode::Numeric::kInternalError;
   }
 
@@ -164,7 +164,7 @@ data::ResultCode::Numeric IpUptaneSecondary::install(const std::string& target_n
 }
 
 Manifest IpUptaneSecondary::getManifest() const {
-  LOG_DEBUG << "Getting the manifest from secondary with serial " << getSerial();
+  LOG_DEBUG << "Getting the manifest from Secondary with serial " << getSerial();
   Asn1Message::Ptr req(Asn1Message::Empty());
 
   req->present(AKIpUptaneMes_PR_manifestReq);

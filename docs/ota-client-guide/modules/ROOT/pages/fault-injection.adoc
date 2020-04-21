@@ -41,7 +41,7 @@ Please try to keep this list up-to-date when inserting/removing fail points.
 
 - `fake_package_download`: force the fake package manager download to fail, optionally with a failure code supplied via `failinfo`
 - `fake_package_install`: force the fake package manager installation to fail, optionally with a failure code supplied via `failinfo`
-- `secondary_install_xxx` (xxx is a virtual secondary ecu id): force a virtual secondary installation to fail, optionally with a failure code supplied via `failinfo`
+- `secondary_install_xxx` (xxx is a virtual Secondary ECU ID): force a virtual Secondary installation to fail, optionally with a failure code supplied via `failinfo`
 - `fake_install_finalization_failure`: force the fake package manager installation finalization to fail
 
 == Use in unit tests

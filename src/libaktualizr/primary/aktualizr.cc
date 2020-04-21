@@ -192,7 +192,7 @@ Aktualizr::InstallationLog Aktualizr::GetInstallationLog() {
 
   EcuSerials serials;
   if (!storage_->loadEcuSerials(&serials)) {
-    throw std::runtime_error("Could not load ecu serials");
+    throw std::runtime_error("Could not load ECU serials");
   }
 
   ilog.reserve(serials.size());

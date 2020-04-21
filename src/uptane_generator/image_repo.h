@@ -9,9 +9,8 @@ class ImageRepo : public Repo {
       : Repo(Uptane::RepositoryType::Image(), std::move(path), expires, std::move(correlation_id)) {}
   void addBinaryImage(const boost::filesystem::path &image_path, const boost::filesystem::path &targetname,
                       const std::string &hardware_id, const std::string &url, const Delegation &delegation = {});
-  void addCustomImage(const std::string &name, const Uptane::Hash &hash, uint64_t length,
-                      const std::string &hardware_id, const std::string &url, const Delegation &delegation,
-                      const Json::Value &custom = {});
+  void addCustomImage(const std::string &name, const Hash &hash, uint64_t length, const std::string &hardware_id,
+                      const std::string &url, const Delegation &delegation, const Json::Value &custom = {});
   void addDelegation(const Uptane::Role &name, const Uptane::Role &parent_role, const std::string &path,
                      bool terminating, KeyType key_type);
   void revokeDelegation(const Uptane::Role &name);

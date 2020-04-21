@@ -58,10 +58,47 @@ class PublicKey {
   KeyType type_{KeyType::kUnknown};
 };
 
+/**
+ * The hash of a file or Uptane metadata.  File hashes/checksums in Uptane include the length of the object, in order to
+ * defeat infinite download attacks.
+ */
+class Hash {
+ public:
+  // order corresponds algorithm priority
+  enum class Type { kSha256, kSha512, kUnknownAlgorithm };
+
+  static Hash generate(Type type, const std::string &data);
+  Hash(const std::string &type, const std::string &hash);
+  Hash(Type type, const std::string &hash);
+
+  bool HaveAlgorithm() const { return type_ != Type::kUnknownAlgorithm; }
+  bool operator==(const Hash &other) const;
+  bool operator!=(const Hash &other) const { return !operator==(other); }
+  static std::string TypeString(Type type);
+  std::string TypeString() const;
+  Type type() const;
+  std::string HashString() const { return hash_; }
+  friend std::ostream &operator<<(std::ostream &os, const Hash &h);
+
+  static std::string encodeVector(const std::vector<Hash> &hashes);
+  static std::vector<Hash> decodeVector(std::string hashes_str);
+
+ private:
+  Type type_;
+  std::string hash_;
+};
+
+std::ostream &operator<<(std::ostream &os, const Hash &h);
+
 class MultiPartHasher {
+ public:
+  using Ptr = std::shared_ptr<MultiPartHasher>;
+  static Ptr create(Hash::Type hash_type);
+
  public:
   virtual void update(const unsigned char *part, uint64_t size) = 0;
   virtual std::string getHexDigest() = 0;
+  virtual Hash getHash() = 0;
   virtual ~MultiPartHasher() = default;
 };
 
@@ -75,6 +112,8 @@ class MultiPartSHA512Hasher : public MultiPartHasher {
     crypto_hash_sha512_final(&state_, sha512_hash.data());
     return boost::algorithm::hex(std::string(reinterpret_cast<char *>(sha512_hash.data()), crypto_hash_sha512_BYTES));
   }
+
+  Hash getHash() override { return Hash(Hash::Type::kSha512, getHexDigest()); }
 
  private:
   crypto_hash_sha512_state state_{};
@@ -90,6 +129,8 @@ class MultiPartSHA256Hasher : public MultiPartHasher {
     crypto_hash_sha256_final(&state_, sha256_hash.data());
     return boost::algorithm::hex(std::string(reinterpret_cast<char *>(sha256_hash.data()), crypto_hash_sha256_BYTES));
   }
+
+  Hash getHash() override { return Hash(Hash::Type::kSha256, getHexDigest()); }
 
  private:
   crypto_hash_sha256_state state_{};

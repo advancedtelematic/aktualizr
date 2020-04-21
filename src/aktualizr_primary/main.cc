@@ -43,7 +43,7 @@ bpo::variables_map parseOptions(int argc, char *argv[]) {
       ("director-server", bpo::value<std::string>(), "URL of the Uptane Director repository")
       ("primary-ecu-serial", bpo::value<std::string>(), "serial number of Primary ECU")
       ("primary-ecu-hardware-id", bpo::value<std::string>(), "hardware ID of Primary ECU")
-      ("secondary-config-file", bpo::value<boost::filesystem::path>(), "secondary ECUs configuration file")
+      ("secondary-config-file", bpo::value<boost::filesystem::path>(), "Secondary ECUs configuration file")
       ("campaign-id", bpo::value<std::string>(), "ID of the campaign to act on")
       ("hwinfo-file", bpo::value<boost::filesystem::path>(), "custom hardware information JSON file");
   // clang-format on
@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
       try {
         Primary::initSecondaries(aktualizr, config.uptane.secondary_config_file);
       } catch (const std::exception &e) {
-        LOG_ERROR << "Failed to init secondaries :" << e.what();
+        LOG_ERROR << "Failed to initialize Secondaries :" << e.what();
         LOG_ERROR << "Exiting...";
         return EXIT_FAILURE;
       }

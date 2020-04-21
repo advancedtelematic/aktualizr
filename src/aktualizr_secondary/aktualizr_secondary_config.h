@@ -48,13 +48,13 @@ class AktualizrSecondaryConfig : public BaseConfig {
   void postUpdateValues();
   void writeToStream(std::ostream& sink) const;
 
-  // from primary config
+  // from Primary config
   LoggerConfig logger;
 
   AktualizrSecondaryNetConfig network;
   AktualizrSecondaryUptaneConfig uptane;
 
-  // from primary config
+  // from Primary config
   P11Config p11;
   PackageConfig pacman;
   BootloaderConfig bootloader;

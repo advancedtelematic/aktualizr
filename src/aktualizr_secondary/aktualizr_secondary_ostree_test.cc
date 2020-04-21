@@ -16,22 +16,22 @@
 class Treehub {
  public:
   Treehub(const std::string& server_path)
-      : _port(TestUtils::getFreePort()),
-        _url("http://127.0.0.1:" + _port),
-        _process(server_path, "-p", _port, "-d", _root_dir.PathString(), "-s0.5", "--create") {
+      : port_(TestUtils::getFreePort()),
+        url_("http://127.0.0.1:" + port_),
+        process_(server_path, "-p", port_, "-d", root_dir_.PathString(), "-s0.5", "--create") {
     TestUtils::waitForServer(url() + "/");
-    auto rev_process = Process("ostree").run({"rev-parse", "--repo", _root_dir.PathString(), "master"});
+    auto rev_process = Process("ostree").run({"rev-parse", "--repo", root_dir_.PathString(), "master"});
     EXPECT_EQ(std::get<0>(rev_process), 0) << std::get<2>(rev_process);
-    _cur_rev = std::get<1>(rev_process);
-    boost::trim_right_if(_cur_rev, boost::is_any_of(" \t\r\n"));
+    cur_rev_ = std::get<1>(rev_process);
+    boost::trim_right_if(cur_rev_, boost::is_any_of(" \t\r\n"));
 
-    LOG_INFO << "Treehub is running on: " << _port << " current revision: " << _cur_rev;
+    LOG_INFO << "Treehub is running on: " << port_ << " current revision: " << cur_rev_;
   }
 
   ~Treehub() {
-    _process.terminate();
-    _process.wait_for(std::chrono::seconds(10));
-    if (_process.running()) {
+    process_.terminate();
+    process_.wait_for(std::chrono::seconds(10));
+    if (process_.running()) {
       LOG_ERROR << "Failed to stop Treehub server";
     } else {
       LOG_INFO << "Treehub server has been stopped";
@@ -39,15 +39,15 @@ class Treehub {
   }
 
  public:
-  const std::string& url() const { return _url; }
-  const std::string& curRev() const { return _cur_rev; }
+  const std::string& url() const { return url_; }
+  const std::string& curRev() const { return cur_rev_; }
 
  private:
-  TemporaryDirectory _root_dir;
-  const std::string _port;
-  const std::string _url;
-  boost::process::child _process;
-  std::string _cur_rev;
+  TemporaryDirectory root_dir_;
+  const std::string port_;
+  const std::string url_;
+  boost::process::child process_;
+  std::string cur_rev_;
 };
 
 class OstreeRootfs {
@@ -61,20 +61,20 @@ class OstreeRootfs {
 
     EXPECT_EQ(std::get<0>(deployment_rev), 0) << std::get<2>(deployment_rev);
 
-    _rev = std::get<1>(deployment_rev);
-    boost::trim_right_if(_rev, boost::is_any_of(" \t\r\n"));
+    rev_ = std::get<1>(deployment_rev);
+    boost::trim_right_if(rev_, boost::is_any_of(" \t\r\n"));
 
-    _deployment.reset(ostree_deployment_new(0, getOSName(), getDeploymentRev(), getDeploymentSerial(),
+    deployment_.reset(ostree_deployment_new(0, getOSName(), getDeploymentRev(), getDeploymentSerial(),
                                             getDeploymentRev(), getDeploymentSerial()));
   }
 
-  const boost::filesystem::path& getPath() const { return _sysroot_dir; }
-  const char* getDeploymentRev() const { return _rev.c_str(); }
+  const boost::filesystem::path& getPath() const { return sysroot_dir_; }
+  const char* getDeploymentRev() const { return rev_.c_str(); }
   int getDeploymentSerial() const { return 0; }
-  const char* getOSName() const { return _os_name.c_str(); }
+  const char* getOSName() const { return os_name_.c_str(); }
 
-  OstreeDeployment* getDeployment() const { return _deployment.get(); }
-  void setNewDeploymentRev(const std::string& new_rev) { _rev = new_rev; }
+  OstreeDeployment* getDeployment() const { return deployment_.get(); }
+  void setNewDeploymentRev(const std::string& new_rev) { rev_ = new_rev; }
 
  private:
   struct OstreeDeploymentDeleter {
@@ -82,11 +82,11 @@ class OstreeRootfs {
   };
 
  private:
-  const std::string _os_name{"dummy-os"};
-  TemporaryDirectory _tmp_dir;
-  boost::filesystem::path _sysroot_dir{_tmp_dir / "ostree-rootfs"};
-  std::string _rev;
-  std::unique_ptr<OstreeDeployment, OstreeDeploymentDeleter> _deployment;
+  const std::string os_name_{"dummy-os"};
+  TemporaryDirectory tmp_dir_;
+  boost::filesystem::path sysroot_dir_{tmp_dir_ / "ostree-rootfs"};
+  std::string rev_;
+  std::unique_ptr<OstreeDeployment, OstreeDeploymentDeleter> deployment_;
 };
 
 class AktualizrSecondaryWrapper {
@@ -94,23 +94,23 @@ class AktualizrSecondaryWrapper {
   AktualizrSecondaryWrapper(const OstreeRootfs& sysroot, const Treehub& treehub) {
     // ostree update
 
-    _config.pacman.type = PACKAGE_MANAGER_OSTREE;
-    _config.pacman.os = sysroot.getOSName();
-    _config.pacman.sysroot = sysroot.getPath();
-    _config.pacman.ostree_server = treehub.url();
+    config_.pacman.type = PACKAGE_MANAGER_OSTREE;
+    config_.pacman.os = sysroot.getOSName();
+    config_.pacman.sysroot = sysroot.getPath();
+    config_.pacman.ostree_server = treehub.url();
 
-    _config.bootloader.reboot_sentinel_dir = _storage_dir.Path();
-    _config.bootloader.reboot_sentinel_name = "need_reboot";
+    config_.bootloader.reboot_sentinel_dir = storage_dir_.Path();
+    config_.bootloader.reboot_sentinel_name = "need_reboot";
 
-    _config.storage.path = _storage_dir.Path();
-    _config.storage.type = StorageType::kSqlite;
+    config_.storage.path = storage_dir_.Path();
+    config_.storage.type = StorageType::kSqlite;
 
-    _storage = INvStorage::newStorage(_config.storage);
-    _secondary = AktualizrSecondaryFactory::create(_config, _storage);
+    storage_ = INvStorage::newStorage(config_.storage);
+    secondary_ = AktualizrSecondaryFactory::create(config_, storage_);
   }
 
  public:
-  AktualizrSecondary::Ptr& operator->() { return _secondary; }
+  AktualizrSecondary::Ptr& operator->() { return secondary_; }
 
   Uptane::Target getPendingVersion() const { return getVersion().first; }
 
@@ -120,41 +120,40 @@ class AktualizrSecondaryWrapper {
     boost::optional<Uptane::Target> current_target;
     boost::optional<Uptane::Target> pending_target;
 
-    _storage->loadInstalledVersions(_secondary->getSerial().ToString(), &current_target, &pending_target);
+    storage_->loadInstalledVersions(secondary_->getSerial().ToString(), &current_target, &pending_target);
 
     return std::make_pair(!pending_target ? Uptane::Target::Unknown() : *pending_target,
                           !current_target ? Uptane::Target::Unknown() : *current_target);
   }
 
-  std::string hardwareID() const { return _secondary->getHwId().ToString(); }
+  std::string hardwareID() const { return secondary_->getHwId().ToString(); }
 
-  std::string serial() const { return _secondary->getSerial().ToString(); }
+  std::string serial() const { return secondary_->getSerial().ToString(); }
 
   void reboot() {
-    boost::filesystem::remove(_storage_dir / _config.bootloader.reboot_sentinel_name);
-    _secondary = AktualizrSecondaryFactory::create(_config, _storage);
+    boost::filesystem::remove(storage_dir_ / config_.bootloader.reboot_sentinel_name);
+    secondary_ = AktualizrSecondaryFactory::create(config_, storage_);
   }
 
  private:
-  TemporaryDirectory _storage_dir;
-  AktualizrSecondaryConfig _config;
-  std::shared_ptr<INvStorage> _storage;
-  AktualizrSecondary::Ptr _secondary;
+  TemporaryDirectory storage_dir_;
+  AktualizrSecondaryConfig config_;
+  std::shared_ptr<INvStorage> storage_;
+  AktualizrSecondary::Ptr secondary_;
 };
 
 class UptaneRepoWrapper {
  public:
-  UptaneRepoWrapper() { _uptane_repo.generateRepo(KeyType::kED25519); }
+  UptaneRepoWrapper() { uptane_repo_.generateRepo(KeyType::kED25519); }
 
   Metadata addOstreeRev(const std::string& rev, const std::string& hardware_id, const std::string& serial) {
     // it makes sense to add 'addOstreeImage' to UptaneRepo interface/class uptane_repo.h
     auto custom = Json::Value();
     custom["targetFormat"] = "OSTREE";
-    _uptane_repo.addCustomImage(rev, Uptane::Hash(Uptane::Hash::Type::kSha256, rev), 0, hardware_id, "", Delegation(),
-                                custom);
+    uptane_repo_.addCustomImage(rev, Hash(Hash::Type::kSha256, rev), 0, hardware_id, "", Delegation(), custom);
 
-    _uptane_repo.addTarget(rev, hardware_id, serial, "");
-    _uptane_repo.signTargets();
+    uptane_repo_.addTarget(rev, hardware_id, serial, "");
+    uptane_repo_.signTargets();
 
     return getCurrentMetadata();
   }
@@ -162,78 +161,78 @@ class UptaneRepoWrapper {
   Uptane::RawMetaPack getCurrentMetadata() const {
     Uptane::RawMetaPack metadata;
 
-    boost::filesystem::load_string_file(_director_dir / "root.json", metadata.director_root);
-    boost::filesystem::load_string_file(_director_dir / "targets.json", metadata.director_targets);
+    boost::filesystem::load_string_file(director_dir_ / "root.json", metadata.director_root);
+    boost::filesystem::load_string_file(director_dir_ / "targets.json", metadata.director_targets);
 
-    boost::filesystem::load_string_file(_imagerepo_dir / "root.json", metadata.image_root);
-    boost::filesystem::load_string_file(_imagerepo_dir / "timestamp.json", metadata.image_timestamp);
-    boost::filesystem::load_string_file(_imagerepo_dir / "snapshot.json", metadata.image_snapshot);
-    boost::filesystem::load_string_file(_imagerepo_dir / "targets.json", metadata.image_targets);
+    boost::filesystem::load_string_file(imagerepo_dir_ / "root.json", metadata.image_root);
+    boost::filesystem::load_string_file(imagerepo_dir_ / "timestamp.json", metadata.image_timestamp);
+    boost::filesystem::load_string_file(imagerepo_dir_ / "snapshot.json", metadata.image_snapshot);
+    boost::filesystem::load_string_file(imagerepo_dir_ / "targets.json", metadata.image_targets);
 
     return metadata;
   }
 
   std::shared_ptr<std::string> getImageData(const std::string& targetname) const {
     auto image_data = std::make_shared<std::string>();
-    boost::filesystem::load_string_file(_root_dir / targetname, *image_data);
+    boost::filesystem::load_string_file(root_dir_ / targetname, *image_data);
     return image_data;
   }
 
  private:
-  TemporaryDirectory _root_dir;
-  boost::filesystem::path _director_dir{_root_dir / "repo/director"};
-  boost::filesystem::path _imagerepo_dir{_root_dir / "repo/repo"};
-  UptaneRepo _uptane_repo{_root_dir.Path(), "", ""};
+  TemporaryDirectory root_dir_;
+  boost::filesystem::path director_dir_{root_dir_ / "repo/director"};
+  boost::filesystem::path imagerepo_dir_{root_dir_ / "repo/repo"};
+  UptaneRepo uptane_repo_{root_dir_.Path(), "", ""};
 };
 
 class SecondaryOstreeTest : public ::testing::Test {
  public:
   static const char* curOstreeRootfsRev(OstreeDeployment* ostree_depl) {
     (void)ostree_depl;
-    return _sysroot->getDeploymentRev();
+    return sysroot_->getDeploymentRev();
   }
 
   static OstreeDeployment* curOstreeDeployment(OstreeSysroot* ostree_sysroot) {
     (void)ostree_sysroot;
-    return _sysroot->getDeployment();
+    return sysroot_->getDeployment();
   }
 
   static void setOstreeRootfsTemplate(const std::string& ostree_rootfs_template) {
-    _ostree_rootfs_template = ostree_rootfs_template;
+    ostree_rootfs_template_ = ostree_rootfs_template;
   }
 
  protected:
   static void SetUpTestSuite() {
-    _treehub = std::make_shared<Treehub>("tests/sota_tools/treehub_server.py");
-    _sysroot = std::make_shared<OstreeRootfs>(_ostree_rootfs_template);
+    treehub_ = std::make_shared<Treehub>("tests/sota_tools/treehub_server.py");
+    sysroot_ = std::make_shared<OstreeRootfs>(ostree_rootfs_template_);
   }
 
   static void TearDownTestSuite() {
-    _treehub.reset();
-    _sysroot.reset();
+    treehub_.reset();
+    sysroot_.reset();
   }
 
  protected:
   SecondaryOstreeTest() {}
 
-  Uptane::RawMetaPack addDefaultTarget() { return addTarget(_treehub->curRev()); }
+  Uptane::RawMetaPack addDefaultTarget() { return addTarget(treehub_->curRev()); }
 
   Uptane::RawMetaPack addTarget(const std::string& rev = "", const std::string& hardware_id = "",
                                 const std::string& serial = "") {
-    auto rev_to_apply = rev.empty() ? _treehub->curRev() : rev;
-    auto hw_id = hardware_id.empty() ? _secondary.hardwareID() : hardware_id;
-    auto serial_id = serial.empty() ? _secondary.serial() : serial;
+    auto rev_to_apply = rev.empty() ? treehub_->curRev() : rev;
+    auto hw_id = hardware_id.empty() ? secondary_.hardwareID() : hardware_id;
+    auto serial_id = serial.empty() ? secondary_.serial() : serial;
 
-    _uptane_repo.addOstreeRev(rev, hw_id, serial_id);
+    uptane_repo_.addOstreeRev(rev, hw_id, serial_id);
 
     return currentMetadata();
   }
 
-  Uptane::RawMetaPack currentMetadata() const { return _uptane_repo.getCurrentMetadata(); }
+  Uptane::RawMetaPack currentMetadata() const { return uptane_repo_.getCurrentMetadata(); }
 
   std::string getCredsToSend() const {
     std::map<std::string, std::string> creds_map = {
-        {"ca.pem", ""}, {"client.pem", ""}, {"pkey.pem", ""}, {"server.url", _treehub->url()}};
+        {"ca.pem", ""}, {"client.pem", ""}, {"pkey.pem", ""}, {"server.url", treehub_->url()}};
 
     std::stringstream creads_strstream;
     Utils::writeArchive(creds_map, creads_strstream);
@@ -241,79 +240,77 @@ class SecondaryOstreeTest : public ::testing::Test {
     return creads_strstream.str();
   }
 
-  Uptane::Hash treehubCurRevHash() const { return Uptane::Hash(Uptane::Hash::Type::kSha256, _treehub->curRev()); }
-  Uptane::Hash sysrootCurRevHash() const {
-    return Uptane::Hash(Uptane::Hash::Type::kSha256, _sysroot->getDeploymentRev());
-  }
-  const std::string& treehubCurRev() const { return _treehub->curRev(); }
+  Hash treehubCurRevHash() const { return Hash(Hash::Type::kSha256, treehub_->curRev()); }
+  Hash sysrootCurRevHash() const { return Hash(Hash::Type::kSha256, sysroot_->getDeploymentRev()); }
+  const std::string& treehubCurRev() const { return treehub_->curRev(); }
 
  protected:
-  static std::shared_ptr<Treehub> _treehub;
-  static std::string _ostree_rootfs_template;
-  static std::shared_ptr<OstreeRootfs> _sysroot;
+  static std::shared_ptr<Treehub> treehub_;
+  static std::string ostree_rootfs_template_;
+  static std::shared_ptr<OstreeRootfs> sysroot_;
 
-  AktualizrSecondaryWrapper _secondary{*_sysroot, *_treehub};
-  UptaneRepoWrapper _uptane_repo;
+  AktualizrSecondaryWrapper secondary_{*sysroot_, *treehub_};
+  UptaneRepoWrapper uptane_repo_;
 };
 
-std::shared_ptr<Treehub> SecondaryOstreeTest::_treehub{nullptr};
-std::string SecondaryOstreeTest::_ostree_rootfs_template{"./build/ostree_repo"};
-std::shared_ptr<OstreeRootfs> SecondaryOstreeTest::_sysroot{nullptr};
+std::shared_ptr<Treehub> SecondaryOstreeTest::treehub_{nullptr};
+std::string SecondaryOstreeTest::ostree_rootfs_template_{"./build/ostree_repo"};
+std::shared_ptr<OstreeRootfs> SecondaryOstreeTest::sysroot_{nullptr};
 
 TEST_F(SecondaryOstreeTest, fullUptaneVerificationInvalidRevision) {
-  EXPECT_TRUE(_secondary->putMetadata(addTarget("invalid-revision")));
-  EXPECT_FALSE(_secondary->sendFirmware(getCredsToSend()));
+  EXPECT_TRUE(secondary_->putMetadata(addTarget("invalid-revision")));
+  EXPECT_FALSE(secondary_->sendFirmware(getCredsToSend()));
 }
 
 TEST_F(SecondaryOstreeTest, fullUptaneVerificationInvalidHwID) {
-  EXPECT_FALSE(_secondary->putMetadata(addTarget("", "invalid-hardware-id", "")));
+  EXPECT_FALSE(secondary_->putMetadata(addTarget("", "invalid-hardware-id", "")));
 }
 
 TEST_F(SecondaryOstreeTest, fullUptaneVerificationInvalidSerial) {
-  EXPECT_FALSE(_secondary->putMetadata(addTarget("", "", "invalid-serial-id")));
+  EXPECT_FALSE(secondary_->putMetadata(addTarget("", "", "invalid-serial-id")));
 }
 
 TEST_F(SecondaryOstreeTest, verifyUpdatePositive) {
   // check the version reported in the manifest just after an initial boot
-  Uptane::Manifest manifest = _secondary->getManifest();
-  EXPECT_TRUE(manifest.verifySignature(_secondary->getPublicKey()));
+  Uptane::Manifest manifest = secondary_->getManifest();
+  EXPECT_TRUE(manifest.verifySignature(secondary_->getPublicKey()));
   EXPECT_EQ(manifest.installedImageHash(), sysrootCurRevHash());
 
   // send metadata and do their full Uptane verification
-  EXPECT_TRUE(_secondary->putMetadata(addDefaultTarget()));
+  EXPECT_TRUE(secondary_->putMetadata(addDefaultTarget()));
 
   // emulate reboot to make sure that we can continue with an update installation after reboot
-  _secondary.reboot();
+  secondary_.reboot();
 
   // send and install firmware
-  EXPECT_TRUE(_secondary->sendFirmware(getCredsToSend()));
-  EXPECT_EQ(_secondary->install(treehubCurRev()), data::ResultCode::Numeric::kNeedCompletion);
+  EXPECT_TRUE(secondary_->sendFirmware(getCredsToSend()));
+  EXPECT_EQ(secondary_->install(treehubCurRev()), data::ResultCode::Numeric::kNeedCompletion);
 
   // check if the update was installed and pending
-  EXPECT_TRUE(_secondary.getPendingVersion().MatchHash(treehubCurRevHash()));
+  EXPECT_TRUE(secondary_.getPendingVersion().MatchHash(treehubCurRevHash()));
   // manifest should still report the old version
-  manifest = _secondary->getManifest();
-  EXPECT_TRUE(manifest.verifySignature(_secondary->getPublicKey()));
+  manifest = secondary_->getManifest();
+  EXPECT_TRUE(manifest.verifySignature(secondary_->getPublicKey()));
   EXPECT_EQ(manifest.installedImageHash(), sysrootCurRevHash());
 
   // emulate reboot
-  _sysroot->setNewDeploymentRev(treehubCurRev());
-  _secondary.reboot();
+  sysroot_->setNewDeploymentRev(treehubCurRev());
+  secondary_.reboot();
 
   // check if the version in the DB and reported in the manifest matches with the installed and applied one
-  EXPECT_FALSE(_secondary.getPendingVersion().IsValid());
-  EXPECT_TRUE(_secondary.getCurrentVersion().MatchHash(treehubCurRevHash()));
-  manifest = _secondary->getManifest();
-  EXPECT_TRUE(manifest.verifySignature(_secondary->getPublicKey()));
+  EXPECT_FALSE(secondary_.getPendingVersion().IsValid());
+  EXPECT_TRUE(secondary_.getCurrentVersion().MatchHash(treehubCurRevHash()));
+  manifest = secondary_->getManifest();
+  EXPECT_TRUE(manifest.verifySignature(secondary_->getPublicKey()));
   EXPECT_EQ(manifest.installedImageHash(), treehubCurRevHash());
 
   // emulate reboot
   // check if the installed version persists after a reboot
-  _secondary.reboot();
-  EXPECT_FALSE(_secondary.getPendingVersion().IsValid());
-  EXPECT_TRUE(_secondary.getCurrentVersion().MatchHash(treehubCurRevHash()));
-  manifest = _secondary->getManifest();
-  EXPECT_TRUE(manifest.verifySignature(_secondary->getPublicKey()));
+  secondary_.reboot();
+  EXPECT_FALSE(secondary_.getPendingVersion().IsValid());
+  EXPECT_TRUE(secondary_.getCurrentVersion().MatchHash(treehubCurRevHash()));
+  manifest = secondary_->getManifest();
+  EXPECT_TRUE(manifest.verifySignature(secondary_->getPublicKey()));
   EXPECT_EQ(manifest.installedImageHash(), treehubCurRevHash());
 }
 

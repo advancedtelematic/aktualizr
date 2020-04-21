@@ -41,14 +41,14 @@ void ImageRepo::addBinaryImage(const boost::filesystem::path &image_path, const 
   addImage(targetname.string(), target, hardware_id, delegation);
 }
 
-void ImageRepo::addCustomImage(const std::string &name, const Uptane::Hash &hash, const uint64_t length,
+void ImageRepo::addCustomImage(const std::string &name, const Hash &hash, const uint64_t length,
                                const std::string &hardware_id, const std::string &url, const Delegation &delegation,
                                const Json::Value &custom) {
   Json::Value target;
   target["length"] = Json::UInt(length);
-  if (hash.type() == Uptane::Hash::Type::kSha256) {
+  if (hash.type() == Hash::Type::kSha256) {
     target["hashes"]["sha256"] = hash.HashString();
-  } else if (hash.type() == Uptane::Hash::Type::kSha512) {
+  } else if (hash.type() == Hash::Type::kSha512) {
     target["hashes"]["sha512"] = hash.HashString();
   }
   target["custom"] = custom;

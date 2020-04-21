@@ -77,7 +77,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 ### Fixed
 
 - Catch the disk space availability exception: [PR](https://github.com/advancedtelematic/aktualizr/pull/1530)
-- Correct secondary target name/filepath in a manifest: [PR](https://github.com/advancedtelematic/aktualizr/pull/1529)
+- Correct Secondary target name/filepath in a manifest: [PR](https://github.com/advancedtelematic/aktualizr/pull/1529)
 
 
 ## [2020.1] - 2020-01-17
@@ -97,7 +97,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 ### Fixed
 
 - Do not provision if the Primary times out while connecting to Secondaries: [PR](https://github.com/advancedtelematic/aktualizr/pull/1491)
-- Use a bool type instead of a string in the virtual secondary config: [PR](https://github.com/advancedtelematic/aktualizr/pull/1505)
+- Use a bool type instead of a string in the virtual Secondary config: [PR](https://github.com/advancedtelematic/aktualizr/pull/1505)
 - Correctly read blob data with null terminators from the SQL database: [PR](https://github.com/advancedtelematic/aktualizr/pull/1502)
 - Report installation failure if download or target matching fails: [PR](https://github.com/advancedtelematic/aktualizr/pull/1510)
 - Disk space is now checked before downloading binary files to ensure sufficient available disk space: [PR](https://github.com/advancedtelematic/aktualizr/pull/1520)
@@ -159,7 +159,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 ### Fixed
 
 - Incorrect installation status reported if installation interrupted: [PR](https://github.com/advancedtelematic/aktualizr/pull/1402)
-- Binary updates of secondaries from an OSTree primary is again possible: [PR](https://github.com/advancedtelematic/aktualizr/pull/1395)
+- Binary updates of Secondaries from an OSTree Primary is again possible: [PR](https://github.com/advancedtelematic/aktualizr/pull/1395)
 - Applications built from release tarballs now report a valid version: [PR](https://github.com/advancedtelematic/aktualizr/pull/1415)
 
 
@@ -191,7 +191,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 - Uptane metadata is now rechecked (offline) before downloading and installing: [PR](https://github.com/advancedtelematic/aktualizr/pull/1296)
 - Downloaded target hashes are rechecked before installation: [PR](https://github.com/advancedtelematic/aktualizr/pull/1296)
 - Failed downloads are now reported to the backend in the installation report: [PR](https://github.com/advancedtelematic/aktualizr/pull/1301)
-- Binary targets for an OSTree-based primary are now rejected immediately: [PR](https://github.com/advancedtelematic/aktualizr/pull/1282)
+- Binary targets for an OSTree-based Primary are now rejected immediately: [PR](https://github.com/advancedtelematic/aktualizr/pull/1282)
 
 
 ## [2019.6] - 2019-08-21
@@ -254,7 +254,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 - Campaigns can be declined and postponed via the API: [PR](https://github.com/advancedtelematic/aktualizr/pull/1225)
 - Warn when running two libaktualizr instances simultaneously: [PR #1217](https://github.com/advancedtelematic/aktualizr/pull/1217) and [PR #1229](https://github.com/advancedtelematic/aktualizr/pull/1229)
 - aktualizr-info can output the Snapshot and Timestamp metadata from the Image repository: [PR](https://github.com/advancedtelematic/aktualizr/pull/1207)
-- aktualizr-info can output the current and pending image versions for secondaries: [PR](https://github.com/advancedtelematic/aktualizr/pull/1201)
+- aktualizr-info can output the current and pending image versions for Secondaries: [PR](https://github.com/advancedtelematic/aktualizr/pull/1201)
 - [Support for docker-app package management on top of OSTree](src/libaktualizr/package_manager/dockerappmanager.h): [PR](https://github.com/advancedtelematic/aktualizr/pull/1189)
 
 ### Changed
@@ -262,7 +262,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 - [Provisioning methods have been renamed](https://github.com/advancedtelematic/aktualizr/blob/master/docs/client-provisioning-methods.adoc). "Autoprovisioning" or "automatic provisioning" is now known as "shared credential provisioning". "Implicit provisioning" is now known as "device credential provisioning". "HSM provisioning" was always a misnomer, so it is now refered to as "device credential provisioning with an HSM". [PR# 1208](https://github.com/advancedtelematic/aktualizr/pull/1208) and [PR #1220](https://github.com/advancedtelematic/aktualizr/pull/1220)
 - aktualizr-cert-provider is now included in the garage_deploy.deb releases: [PR](https://github.com/advancedtelematic/aktualizr/pull/1218)
 - aktualizr-info metadata and key output is now printed without additional text for easier machine parsing (and piping to jq): [PR](https://github.com/advancedtelematic/aktualizr/pull/1215)
-- The IP secondary implementation has been substantially refactored and improved with support for POSIX sockets and easier configuration: [PR #1183](https://github.com/advancedtelematic/aktualizr/pull/1183) and [PR #1198](https://github.com/advancedtelematic/aktualizr/pull/1198)
+- The IP Secondary implementation has been substantially refactored and improved with support for POSIX sockets and easier configuration: [PR #1183](https://github.com/advancedtelematic/aktualizr/pull/1183) and [PR #1198](https://github.com/advancedtelematic/aktualizr/pull/1198)
 
 ### Removed
 
@@ -289,7 +289,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 ### Removed
 
 - example.com is no longer set as the default URL when using garage-sign via garage-deploy: [PR](https://github.com/advancedtelematic/aktualizr/pull/1169)
-- OPC-UA secondary support: [PR](https://github.com/advancedtelematic/aktualizr/pull/1177)
+- OPC-UA Secondary support: [PR](https://github.com/advancedtelematic/aktualizr/pull/1177)
 
 ### Fixed
 
@@ -319,7 +319,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 ### Changed
 
 - [Most API calls refactored to return immediately with a future](src/libaktualizr/primary/aktualizr.h)
-- With an OSTree primary, an installation is now considered successful when the device reboots with the new file system version. Before that, the installation is still considered in progress.
+- With an OSTree Primary, an installation is now considered successful when the device reboots with the new file system version. Before that, the installation is still considered in progress.
 - [Running modes in libaktualizr have been replaced by simpler logic in the aktualizr wrapper](src/aktualizr_primary/main.cc): [PR](https://github.com/advancedtelematic/aktualizr/pull/1039)
 - Tests now use ed25519 as the default key type: [PR](https://github.com/advancedtelematic/aktualizr/pull/1038)
 - Improved performance of garage-deploy: [PR](https://github.com/advancedtelematic/aktualizr/pull/1020)

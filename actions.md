@@ -6,14 +6,14 @@ These are the primary actions that a user of libaktualizr can perform through th
 
 - [x] Initialization
   - [ ] Set boot count to 0 to indicate successful boot
-  - [x] Detect a system reboot on the primary, if expected (bootloader_test.cc)
-  - [x] Initialize secondaries
-    - [x] Add secondaries from configuration (uptane_test.cc)
-      - [x] Parse secondary config files in JSON format (config_test.cc)
-      - [x] Create secondary object
-        - [x] Create a virtual secondary for testing (uptane_secondary_test.cc)
-    - [x] Add secondaries via API (aktualizr_test.cc)
-    - [x] Adding multiple secondaries with the same serial throws an error (uptane_test.cc)
+  - [x] Detect a system reboot on the Primary, if expected (bootloader_test.cc)
+  - [x] Initialize Secondaries
+    - [x] Add Secondaries from configuration (uptane_test.cc)
+      - [x] Parse Secondary config files in JSON format (config_test.cc)
+      - [x] Create Secondary object
+        - [x] Create a virtual Secondary for testing (uptane_secondary_test.cc)
+    - [x] Add Secondaries via API (aktualizr_test.cc)
+    - [x] Adding multiple Secondaries with the same serial throws an error (uptane_test.cc)
   - [x] Initialize device ID
     - [x] Use a provided device ID (OTA-985, uptane_init_test.cc)
     - [x] Generate a random device ID (OTA-986, utils_test.cc, uptane_init_test.cc)
@@ -33,26 +33,26 @@ These are the primary actions that a user of libaktualizr can perform through th
       - [x] Generate RSA keypairs via PKCS#11 (crypto_test.cc, keymanager_test.cc)
       - [x] Read a TLS certificate via PKCS#11 (crypto_test.cc)
       - [x] Sign and verify a file with RSA via PKCS#11 (crypto_test.cc, keymanager_test.cc)
-  - [x] Initialize primary ECU keys
-    - [x] Generate primary ECU keys (OTA-989, uptane_serial_test.cc)
+  - [x] Initialize Primary ECU keys
+    - [x] Generate Primary ECU keys (OTA-989, uptane_serial_test.cc)
       - [x] Generate RSA 2048 key pairs (crypto_test.cc)
       - [x] Generate RSA 4096 key pairs (crypto_test.cc)
       - [x] Generate ED25519 key pairs (crypto_test.cc)
-  - [x] Initialize primary ECU serial
-    - [x] Use a provided primary serial (OTA-988, config_test.cc)
-    - [x] Generate primary serial (OTA-989, uptane_serial_test.cc)
+  - [x] Initialize Primary ECU serial
+    - [x] Use a provided Primary serial (OTA-988, config_test.cc)
+    - [x] Generate Primary serial (OTA-989, uptane_serial_test.cc)
     - [x] Use a provided hardware ID (uptane_test.cc)
     - [x] Use the system hostname as hardware ID if one is not provided (uptane_init_test.cc)
       - [x] Read the hostname from the system (utils_test.cc)
   - [x] Register ECUs with Director
-    - [x] Register primary ECU with Director (uptane_test.cc)
-    - [x] Register secondary ECUs with Director (uptane_test.cc)
+    - [x] Register Primary ECU with Director (uptane_test.cc)
+    - [x] Register Secondary ECUs with Director (uptane_test.cc)
   - [x] Abort if initialization fails
     - [x] Recover from partial provisioning and network loss (OTA-991, uptane_network_test.cc, uptane_key_test.cc)
     - [x] Detect and recover from failed provisioning (uptane_init_test.cc)
-  - [x] Verify secondaries against storage
-    - [x] Identify previously unknown secondaries (uptane_test.cc)
-    - [x] Identify currently unavailable secondaries (uptane_test.cc)
+  - [x] Verify Secondaries against storage
+    - [x] Identify previously unknown Secondaries (uptane_test.cc)
+    - [x] Identify currently unavailable Secondaries (uptane_test.cc)
 - [x] Send system/network info to server
   - [x] Read hardware info from the system (utils_test.cc)
   - [x] Send hardware info to the server (OTA-984, uptane_test.cc)
@@ -136,37 +136,37 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] List targets in storage via API (aktualizr_test.cc)
   - [x] Remove targets in storage via API(aktualizr_test.cc)
 - [x] Install updates
-  - [x] Send metadata to secondary ECUs (uptane_test.cc)
+  - [x] Send metadata to Secondary ECUs (uptane_test.cc)
   - [x] Identify ECU for each target (uptane_test.cc, aktualizr_test.cc)
     - [x] Reject targets which do not match a known ECU (uptane_test.cc)
-  - [x] Install updates on primary
-    - [x] Check if there are updates to install for the primary (uptane_test.cc, aktualizr_test.cc)
+  - [x] Install updates on Primary
+    - [x] Check if there are updates to install for the Primary (uptane_test.cc, aktualizr_test.cc)
     - [x] Check if an update is already installed (uptane_test.cc)
     - [ ] Set boot count to 0 and rollback flag to 0 to indicate system update
-    - [x] Send InstallStarted event for primary (aktualizr_test.cc)
-    - [x] Send EcuInstallationStartedReport to server for primary (uptane_test.cc, aktualizr_test.cc)
+    - [x] Send InstallStarted event for Primary (aktualizr_test.cc)
+    - [x] Send EcuInstallationStartedReport to server for Primary (uptane_test.cc, aktualizr_test.cc)
       - [x] Send an event report (see below)
-    - [x] Install an update on the primary
-      - [x] Install an OSTree update on the primary (aktualizr_fullostree_test.cc)
+    - [x] Install an update on the Primary
+      - [x] Install an OSTree update on the Primary (aktualizr_fullostree_test.cc)
       - [ ] Notify "reboot needed" after an OSTree update trigger
       - [x] Set new version to pending status after an OSTree update trigger (aktualizr_test.cc)
       - [x] Send EcuInstallationAppliedReport to server after an OSTree update trigger (aktualizr_test.cc)
       - [x] Uptane check for updates and manifest sends are disabled while an installation is pending reboot (aktualizr_test.cc)
       - [ ] Trigger a system reboot at the end of the installation process in case of the ostree package manager usage (OTA-2135)
       - [x] Emulate a reboot at the end of the installation process in case of the fake package manager usage (OTA-2135, aktualizr_test.cc)
-      - [x] Install a binary update on the primary (uptane_test.cc, aktualizr_test.cc)
-    - [x] Store installation result for primary (uptane_test.cc)
-    - [x] Send InstallTargetComplete event for primary (aktualizr_test.cc)
-    - [x] Send EcuInstallationCompletedReport to server for primary (uptane_test.cc, aktualizr_test.cc)
+      - [x] Install a binary update on the Primary (uptane_test.cc, aktualizr_test.cc)
+    - [x] Store installation result for Primary (uptane_test.cc)
+    - [x] Send InstallTargetComplete event for Primary (aktualizr_test.cc)
+    - [x] Send EcuInstallationCompletedReport to server for Primary (uptane_test.cc, aktualizr_test.cc)
       - [x] Send an event report (see below)
-  - [x] Install updates on secondaries
-    - [x] Send InstallStarted event for secondaries (aktualizr_test.cc)
-    - [x] Send EcuInstallationStartedReport to server for secondaries (uptane_test.cc)
+  - [x] Install updates on Secondaries
+    - [x] Send InstallStarted event for Secondaries (aktualizr_test.cc)
+    - [x] Send EcuInstallationStartedReport to server for Secondaries (uptane_test.cc)
       - [x] Send an event report (see below)
-    - [x] Send images to secondary ECUs (aktualizr_test.cc)
-    - [x] Store installation result for secondary (aktualizr_test.cc)
-    - [x] Send InstallTargetComplete event for secondaries (aktualizr_test.cc)
-    - [x] Send EcuInstallationCompletedReport to server for secondaries (aktualizr_test.cc)
+    - [x] Send images to Secondary ECUs (aktualizr_test.cc)
+    - [x] Store installation result for Secondary (aktualizr_test.cc)
+    - [x] Send InstallTargetComplete event for Secondaries (aktualizr_test.cc)
+    - [x] Send EcuInstallationCompletedReport to server for Secondaries (aktualizr_test.cc)
       - [x] Send an event report (see below)
   - [x] Store installation result for device (uptane_test.cc)
   - [x] Compute device installation failure code as concatenation of ECU failure codes (aktualizr_test.cc)
@@ -227,10 +227,10 @@ These are internal requirements that are relatively opaque to the user and/or co
   - [x] Abort update if the Director Targets metadata has an invalid ECU ID (uptane_vector_tests.cc)
   - [x] Recover from an interrupted Uptane iteration (uptane_test.cc)
 - [x] Generate and send manifest
-  - [x] Get manifest from primary (uptane_test.cc)
-    - [x] Get primary installation result (uptane_test.cc)
-  - [x] Get manifest from secondaries (uptane_test.cc)
-    - [x] Ignore secondaries with bad signatures (uptane_test.cc)
+  - [x] Get manifest from Primary (uptane_test.cc)
+    - [x] Get Primary installation result (uptane_test.cc)
+  - [x] Get manifest from Secondaries (uptane_test.cc)
+    - [x] Ignore Secondaries with bad signatures (uptane_test.cc)
   - [x] Send manifest to the server (uptane_test.cc)
 - [x] Send an event report
   - [x] Generate a random UUID (utils_test.cc)
@@ -252,7 +252,7 @@ These are internal requirements that are relatively opaque to the user and/or co
   - [x] Migrate backward through SQL schemas (sqlstorage_test.cc)
   - [x] Reject invalid SQL databases (sqlstorage_test.cc)
   - [x] Migrate from the legacy filesystem storage (sqlstorage_test.cc, uptane_test.cc)
-  - [x] Load and store primary keys in an SQL database (storage_common_test.cc)
+  - [x] Load and store Primary keys in an SQL database (storage_common_test.cc)
   - [x] Load and store TLS credentials in an SQL database (storage_common_test.cc)
   - [x] Load and store Uptane metadata in an SQL database (storage_common_test.cc)
   - [x] Load and store Uptane roots in an SQL database (storage_common_test.cc)
@@ -277,18 +277,18 @@ These are internal requirements that are relatively opaque to the user and/or co
   - [x] Serialize and deserialize asn1 (asn1_test.cc)
   - [x] Support a fake package manager for testing (packagemanagerfactory_test.cc)
   - [x] ~~Support a Debian package manager~~ (packagemanagerfactory_test.cc, debianmanager_test.cc)
-  - [x] Support virtual partial verification secondaries for testing
-    - [x] Partial verification secondaries generate and store public keys (uptane_secondary_test.cc)
-    - [x] Partial verification secondaries can verify Uptane metadata (uptane_secondary_test.cc)
+  - [x] Support virtual partial verification Secondaries for testing
+    - [x] Partial verification Secondaries generate and store public keys (uptane_secondary_test.cc)
+    - [x] Partial verification Secondaries can verify Uptane metadata (uptane_secondary_test.cc)
 
 ### Expected action sequences
 
 This is just the list of sequences currently covered. It is likely that there are more worth testing, but these tests are expensive.
 
 - [x] Initialize -> UptaneCycle -> no updates -> no further action or events (aktualizr_test.cc)
-- [x] Initialize -> UptaneCycle -> updates downloaded and installed for primary and secondary (aktualizr_test.cc)
-- [x] Initialize -> UptaneCycle -> updates downloaded and installed for primary (after reboot) and secondary (aktualizr_test.cc)
-- [x] Initialize -> UptaneCycle -> updates downloaded and installed for secondaries without changing the primary (aktualizr_test.cc)
+- [x] Initialize -> UptaneCycle -> updates downloaded and installed for Primary and Secondary (aktualizr_test.cc)
+- [x] Initialize -> UptaneCycle -> updates downloaded and installed for Primary (after reboot) and Secondary (aktualizr_test.cc)
+- [x] Initialize -> UptaneCycle -> updates downloaded and installed for Secondaries without changing the Primary (aktualizr_test.cc)
 - [x] Initialize -> CheckUpdates -> no updates -> no further action or events (aktualizr_test.cc)
 - [x] Initialize -> Download -> nothing to download (aktualizr_test.cc)
 - [x] Initialize -> CheckUpdates -> Download -> updates downloaded but not installed (aktualizr_test.cc)
@@ -314,7 +314,7 @@ These tools all link with libaktualizr, although they do not necessary use the A
 
 ### aktualizr-secondary
 
-`aktualizr-secondary` was designed to demonstrate an Uptane-compliant secondary but is currently not part of the core product. It also uses libaktualizr, but less extensively than `aktualizr-primary`. This is just the list of things currently tested that relate specifically to it.
+`aktualizr-secondary` was designed to demonstrate an Uptane-compliant Secondary but is currently not part of the core product. It also uses libaktualizr, but less extensively than `aktualizr-primary`. This is just the list of things currently tested that relate specifically to it.
 
 - [x] Parse config files in TOML format (aktualizr_secondary_config_test.cc)
 - [x] Write its config to file or to the log (aktualizr_secondary_config_test.cc)
@@ -338,12 +338,12 @@ These tools all link with libaktualizr, although they do not necessary use the A
   - [x] Write its config to file or to the log (aktualizr_info_config_test.cc)
 - [x] Print information from libaktualizr storage (aktualizr_info_test.cc)
   - [x] Print device ID (aktualizr_info_test.cc)
-  - [x] Print primary ECU serial (aktualizr_info_test.cc)
-  - [x] Print primary ECU hardware ID (aktualizr_info_test.cc)
-  - [x] Print secondary ECU serials (aktualizr_info_test.cc)
-  - [x] Print secondary ECU hardware IDs (aktualizr_info_test.cc)
-  - [x] Print secondary ECUs no longer accessible (miscofigured: old) (aktualizr_info_test.cc)
-  - [x] Print secondary ECUs registered after provisioning (not registered) (aktualizr_info_test.cc)
+  - [x] Print Primary ECU serial (aktualizr_info_test.cc)
+  - [x] Print Primary ECU hardware ID (aktualizr_info_test.cc)
+  - [x] Print Secondary ECU serials (aktualizr_info_test.cc)
+  - [x] Print Secondary ECU hardware IDs (aktualizr_info_test.cc)
+  - [x] Print Secondary ECUs no longer accessible (miscofigured: old) (aktualizr_info_test.cc)
+  - [x] Print Secondary ECUs registered after provisioning (not registered) (aktualizr_info_test.cc)
   - [x] Print provisioning status (aktualizr_info_test.cc)
   - [x] Print whether metadata has been fetched from the server (aktualizr_info_test.cc)
   - [x] Print Root metadata from Image repository (aktualizr_info_test.cc)
@@ -351,9 +351,9 @@ These tools all link with libaktualizr, although they do not necessary use the A
   - [x] Print Root metadata from Director repository (aktualizr_info_test.cc)
   - [x] Print Targets metadata from Director repository (aktualizr_info_test.cc)
   - [x] Print TLS credentials (aktualizr_info_test.cc)
-  - [x] Print primary ECU keys (aktualizr_info_test.cc)
-  - [x] Print primary ECU current and pending versions (aktualizr_info_test.cc)
-  - [x] Print secondary ECU current and pending versions (aktualizr_info_test.cc)
+  - [x] Print Primary ECU keys (aktualizr_info_test.cc)
+  - [x] Print Primary ECU current and pending versions (aktualizr_info_test.cc)
+  - [x] Print Secondary ECU current and pending versions (aktualizr_info_test.cc)
   - [x] Print device name only for scripting purposes (aktualizr_info_test.cc)
   - [x] Print delegations (aktualizr_info_test.cc)
   - [x] Print Snapshot metadata (aktualizr_info_test.cc)
@@ -544,6 +544,6 @@ These tools also use libaktualizr, but only for common utility functions. They a
 - [x] Build an image with manual control that provisions successfully
 - [x] Build an image for Raspberry Pi
 - [x] Build an image using grub as a bootloader that provisions successfully
-- [x] Build an image for a secondary
-- [x] Build an image for a primary intended to connect to a secondary
+- [x] Build an image for a Secondary
+- [x] Build an image for a Primary intended to connect to a Secondary
 

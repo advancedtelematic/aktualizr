@@ -12,12 +12,12 @@ struct DownloadMetaStruct {
   uintmax_t downloaded_length{0};
   unsigned int last_progress{0};
   std::unique_ptr<StorageTargetWHandle> fhandle;
-  const Uptane::Hash::Type hash_type;
+  const Hash::Type hash_type;
   MultiPartHasher& hasher() {
     switch (hash_type) {
-      case Uptane::Hash::Type::kSha256:
+      case Hash::Type::kSha256:
         return sha256_hasher;
-      case Uptane::Hash::Type::kSha512:
+      case Hash::Type::kSha512:
         return sha512_hasher;
       default:
         throw std::runtime_error("Unknown hash algorithm");
@@ -153,7 +153,7 @@ bool PackageManagerInterface::fetchTarget(const Uptane::Target& target, Uptane::
       }
       throw Uptane::Exception("image", "Could not download file, error: " + response.error_message);
     }
-    if (!target.MatchHash(Uptane::Hash(ds->hash_type, ds->hasher().getHexDigest()))) {
+    if (!target.MatchHash(Hash(ds->hash_type, ds->hasher().getHexDigest()))) {
       ds->fhandle->wabort();
       throw Uptane::TargetHashMismatch(target.filename());
     }
@@ -184,7 +184,7 @@ TargetStatus PackageManagerInterface::verifyTarget(const Uptane::Target& target)
   auto target_handle = storage_->openTargetFile(target);
   ::restoreHasherState(ds.hasher(), target_handle.get());
   target_handle->rclose();
-  if (!target.MatchHash(Uptane::Hash(ds.hash_type, ds.hasher().getHexDigest()))) {
+  if (!target.MatchHash(Hash(ds.hash_type, ds.hasher().getHexDigest()))) {
     LOG_ERROR << "Target exists with expected length, but hash does not match metadata! " << target;
     return TargetStatus::kHashMismatch;
   }

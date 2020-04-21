@@ -36,7 +36,7 @@ StorageConfig MakeConfig(StorageType type, const boost::filesystem::path &storag
   return config;
 }
 
-/* Load and store primary keys. */
+/* Load and store Primary keys. */
 TEST(storage, load_store_primary_keys) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
@@ -294,10 +294,10 @@ TEST(storage, load_store_installed_versions) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
-  // Test lazy primary installed version: primary ecu serial is not defined yet
-  const std::vector<Uptane::Hash> hashes = {
-      Uptane::Hash{Uptane::Hash::Type::kSha256, "2561"},
-      Uptane::Hash{Uptane::Hash::Type::kSha512, "5121"},
+  // Test lazy Primary installed version: Primary ECU serial is not defined yet
+  const std::vector<Hash> hashes = {
+      Hash{Hash::Type::kSha256, "2561"},
+      Hash{Hash::Type::kSha512, "5121"},
   };
   Uptane::EcuMap primary_ecu{{Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")}};
   Uptane::Target t1{"update.bin", primary_ecu, hashes, 1, "corrid"};
@@ -334,7 +334,7 @@ TEST(storage, load_store_installed_versions) {
   }
 
   // Set t2 as a pending version
-  Uptane::Target t2{"update2.bin", primary_ecu, {Uptane::Hash{Uptane::Hash::Type::kSha256, "2562"}}, 2};
+  Uptane::Target t2{"update2.bin", primary_ecu, {Hash{Hash::Type::kSha256, "2562"}}, 2};
   storage->savePrimaryInstalledVersion(t2, InstalledVersionUpdateMode::kPending);
 
   {
@@ -346,7 +346,7 @@ TEST(storage, load_store_installed_versions) {
   }
 
   // Set t3 as the new pending
-  Uptane::Target t3{"update3.bin", primary_ecu, {Uptane::Hash{Uptane::Hash::Type::kSha256, "2563"}}, 3};
+  Uptane::Target t3{"update3.bin", primary_ecu, {Hash{Hash::Type::kSha256, "2563"}}, 3};
   storage->savePrimaryInstalledVersion(t3, InstalledVersionUpdateMode::kPending);
 
   {
@@ -406,9 +406,9 @@ TEST(storage, load_store_installed_versions) {
     EXPECT_EQ(log[0].custom_data()["foo"], "bar");
   }
 
-  // Add a secondary installed version
+  // Add a Secondary installed version
   Uptane::EcuMap secondary_ecu{{Uptane::EcuSerial("secondary1"), Uptane::HardwareIdentifier("secondary_hw")}};
-  Uptane::Target tsec{"secondary.bin", secondary_ecu, {Uptane::Hash{Uptane::Hash::Type::kSha256, "256s"}}, 4};
+  Uptane::Target tsec{"secondary.bin", secondary_ecu, {Hash{Hash::Type::kSha256, "256s"}}, 4};
   storage->saveInstalledVersion("secondary_1", tsec, InstalledVersionUpdateMode::kCurrent);
 
   {
@@ -423,7 +423,7 @@ TEST(storage, load_store_installed_versions) {
 }
 
 /*
- * Load and store an ecu installation result in an SQL database.
+ * Load and store an ECU installation result in an SQL database.
  * Load and store a device installation result in an SQL database.
  */
 TEST(storage, load_store_installation_results) {
@@ -560,7 +560,7 @@ TEST(storage, list_remove_targets) {
   EXPECT_EQ(tf.filename(), "some.deb");
   EXPECT_EQ(tf.length(), 2);
   EXPECT_EQ(tf.hashes().size(), 1);
-  EXPECT_EQ(tf.hashes().at(0), Uptane::Hash(Uptane::Hash::Type::kSha256, "HASH"));
+  EXPECT_EQ(tf.hashes().at(0), Hash(Hash::Type::kSha256, "HASH"));
 
   // note: implementation specific
   EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "images" / "HASH"));
@@ -576,7 +576,7 @@ TEST(storage, load_store_secondary_info) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
-  // note: this can be done before the ecu is known
+  // note: this can be done before the ECU is known
   storage->saveSecondaryData(Uptane::EcuSerial("secondary_2"), "data2");
 
   EcuSerials serials{{Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")},
@@ -589,7 +589,7 @@ TEST(storage, load_store_secondary_info) {
   testing::internal::CaptureStdout();
   storage->saveSecondaryInfo(Uptane::EcuSerial("primary"), "ip",
                              PublicKey("key0", KeyType::kRSA2048));  // should show an error
-  EXPECT_NE(std::string::npos, testing::internal::GetCapturedStdout().find("Can't save secondary"));
+  EXPECT_NE(std::string::npos, testing::internal::GetCapturedStdout().find("Can't save Secondary"));
 
   std::vector<SecondaryInfo> sec_infos;
   EXPECT_TRUE(storage->loadSecondariesInfo(&sec_infos));

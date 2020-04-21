@@ -82,16 +82,16 @@ class AktualizrInfoTest : public ::testing::Test {
 
 /**
  * Verifies an output of the aktualizr-info in a positive case when
- * there are both primary and secondary present and a device is provisioned
+ * there are both Primary and Secondary present and a device is provisioned
  * and metadata are fetched from a server
  *
  * Checks actions:
  *
  *  - [x] Print device ID
- *  - [x] Print primary ECU serial
- *  - [x] Print primary ECU hardware ID
- *  - [x] Print secondary ECU serials
- *  - [x] Print secondary ECU hardware IDs
+ *  - [x] Print Primary ECU serial
+ *  - [x] Print Primary ECU hardware ID
+ *  - [x] Print Secondary ECU serials
+ *  - [x] Print Secondary ECU hardware IDs
  *  - [x] Print provisioning status, if provisioned
  *  - [x] Print whether metadata has been fetched from the server, if they were fetched
  */
@@ -144,12 +144,12 @@ TEST_F(AktualizrInfoTest, PrintProvisioningAndMetadataNegative) {
 }
 
 /**
- * Verifies an output of miscofigured secondary ECUs
+ * Verifies an output of miscofigured Secondary ECUs
  *
  * Checks actions:
  *
- * - [x] Print secondary ECUs no longer accessible (miscofigured: old)
- * - [x] Print secondary ECUs registered after provisioning (not registered)
+ * - [x] Print Secondary ECUs no longer accessible (miscofigured: old)
+ * - [x] Print Secondary ECUs registered after provisioning (not registered)
  */
 TEST_F(AktualizrInfoTest, PrintSecondaryNotRegisteredOrRemoved) {
   const std::string provisioning_status = "Provisioned on server: yes";
@@ -289,11 +289,11 @@ TEST_F(AktualizrInfoTest, PrintDirectorTargetsMetadata) {
 }
 
 /**
- * Verifies aktualizr-info output of the primary ECU keys
+ * Verifies aktualizr-info output of the Primary ECU keys
  *
  * Checks actions:
  *
- *  - [x] Print primary ECU keys
+ *  - [x] Print Primary ECU keys
  *  - [x] Print ECU public key
  *  - [x] Print ECU private key
  */
@@ -369,11 +369,11 @@ TEST_F(AktualizrInfoTest, PrintTlsCredentials) {
 }
 
 /**
- * Verifies aktualizr-info output of the primary ECU's current and pending versions
+ * Verifies aktualizr-info output of the Primary ECU's current and pending versions
  *
  * Checks actions:
  *
- *  - [x] Print primary ECU current and pending versions
+ *  - [x] Print Primary ECU's current and pending versions
  */
 TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersions) {
   db_storage_->storeEcuSerials({{primary_ecu_serial, primary_hw_id}});
@@ -384,10 +384,10 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersions) {
 
   Uptane::EcuMap ecu_map{{primary_ecu_serial, primary_hw_id}};
   db_storage_->savePrimaryInstalledVersion(
-      {"update.bin", ecu_map, {{Uptane::Hash::Type::kSha256, current_ecu_version}}, 1, "corrid"},
+      {"update.bin", ecu_map, {{Hash::Type::kSha256, current_ecu_version}}, 1, "corrid"},
       InstalledVersionUpdateMode::kCurrent);
   db_storage_->savePrimaryInstalledVersion(
-      {"update-01.bin", ecu_map, {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
+      {"update-01.bin", ecu_map, {{Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
       InstalledVersionUpdateMode::kPending);
 
   aktualizr_info_process_.run();
@@ -399,11 +399,11 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersions) {
 }
 
 /**
- * Verifies aktualizr-info output of the primary ECU's current and pending versions negative test
+ * Verifies aktualizr-info output of the Primary ECU's current and pending versions negative test
  *
  * Checks actions:
  *
- *  - [x] Print primary ECU current and pending versions
+ *  - [x] Print Primary ECU's current and pending versions
  */
 TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
   db_storage_->storeEcuSerials({{primary_ecu_serial, primary_hw_id}});
@@ -423,7 +423,7 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
 
   Uptane::EcuMap ecu_map{{primary_ecu_serial, primary_hw_id}};
   db_storage_->savePrimaryInstalledVersion(
-      {"update-01.bin", ecu_map, {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
+      {"update-01.bin", ecu_map, {{Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
       InstalledVersionUpdateMode::kPending);
 
   aktualizr_info_process_.run();
@@ -433,13 +433,13 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
   EXPECT_NE(aktualizr_info_output.find("Pending Primary ECU version: " + pending_ecu_version), std::string::npos);
 
   db_storage_->savePrimaryInstalledVersion(
-      {"update-01.bin", ecu_map, {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
+      {"update-01.bin", ecu_map, {{Hash::Type::kSha256, pending_ecu_version}}, 1, "corrid-01"},
       InstalledVersionUpdateMode::kCurrent);
 
   aktualizr_info_process_.run();
   ASSERT_FALSE(aktualizr_info_output.empty());
 
-  // pending ecu version became the current now
+  // pending ECU version became the current now
   EXPECT_NE(aktualizr_info_output.find("Current Primary ECU running version: " + pending_ecu_version),
             std::string::npos);
   EXPECT_EQ(aktualizr_info_output.find("Pending Primary ECU version:"), std::string::npos);
@@ -450,7 +450,7 @@ TEST_F(AktualizrInfoTest, PrintPrimaryEcuCurrentAndPendingVersionsNegative) {
  *
  * Checks actions:
  *
- *  - [x] Print secondary ECU current and pending versions
+ *  - [x] Print Secondary ECU current and pending versions
  */
 TEST_F(AktualizrInfoTest, PrintSecondaryEcuCurrentAndPendingVersions) {
   const Uptane::EcuSerial secondary_ecu_serial{"c6998d3e-2a68-4ac2-817e-4ea6ef87d21f"};
@@ -464,14 +464,13 @@ TEST_F(AktualizrInfoTest, PrintSecondaryEcuCurrentAndPendingVersions) {
   db_storage_->storeEcuRegistered();
 
   Uptane::EcuMap ecu_map{{secondary_ecu_serial, secondary_hw_id}};
-  db_storage_->saveInstalledVersion(
-      secondary_ecu_serial.ToString(),
-      {secondary_ecu_filename, ecu_map, {{Uptane::Hash::Type::kSha256, current_ecu_version}}, 1},
-      InstalledVersionUpdateMode::kCurrent);
+  db_storage_->saveInstalledVersion(secondary_ecu_serial.ToString(),
+                                    {secondary_ecu_filename, ecu_map, {{Hash::Type::kSha256, current_ecu_version}}, 1},
+                                    InstalledVersionUpdateMode::kCurrent);
 
   db_storage_->saveInstalledVersion(
       secondary_ecu_serial.ToString(),
-      {secondary_ecu_filename_update, ecu_map, {{Uptane::Hash::Type::kSha256, pending_ecu_version}}, 1},
+      {secondary_ecu_filename_update, ecu_map, {{Hash::Type::kSha256, pending_ecu_version}}, 1},
       InstalledVersionUpdateMode::kPending);
 
   aktualizr_info_process_.run();

@@ -23,7 +23,7 @@ Here, we provide reference documentation on how to configure link:https://github
 | `OSTREE_UPDATE_SUMMARY`|Set this to '1' to update summary of OSTree repository on each commit. '0' by default.
 | `OSTREE_DEPLOY_DEVICETREE`|Set this to '1' to include devicetree(s) to boot
 | `GARAGE_SIGN_AUTOVERSION`|Set this to '1' to automatically fetch the last version of the garage tools installed by the aktualizr-native. Otherwise use the fixed version specified in the recipe.
-| `GARAGE_TARGET_NAME`|Target name used in the Uptane metadata. Defaults to `$\{OSTREE_BRANCHNAME}`. 
+| `GARAGE_TARGET_NAME`|Target name used in the Uptane metadata. Defaults to `$\{OSTREE_BRANCHNAME}`.
 | `GARAGE_TARGET_URL` | Sets the `--url` parameter of `garage-sign targets add`, which sets a custom URL for the Image repository targets.
 | `GARAGE_TARGET_EXPIRES` |
 // MC: This block shows reusable content snippets when the content is rendered in the docs portal.
@@ -52,7 +52,7 @@ More detail is available in the xref:metadata-expiry.adoc[metadata expiry] page.
 | `SOTA_DEPLOY_CREDENTIALS`|When set to '1' (default value), deploys credentials to the built image. Override it in `local.conf` to built a generic image that can be provisioned manually after the build.
 | `SOTA_CLIENT_PROV`|Which provisioning method to use. Valid options are `aktualizr-shared-prov`, `aktualizr-device-prov`, and `aktualizr-device-prov-hsm`. See the xref:client-provisioning-methods.adoc[client provisioning methods] page for more information on these provisioning methods. The default is `aktualizr-shared-prov`. This can also be set to an empty string to avoid using a provisioning recipe.
 | `SOTA_CLIENT_FEATURES`|Extensions to aktualizr. The only valid options are `hsm` (to build with HSM support), `ubootenv` (to enable rollback support in U-Boot; currently only supported for Raspberry Pi), and `serialcan` (to enable serial CAN support).
-| `SOTA_SECONDARY_CONFIG`|A file containing JSON configuration for secondaries. It will be installed into `/etc/sota/ecus` on the device and automatically provided to aktualizr. See the guide on xref:posix-secondaries-bitbaking.adoc[bitbaking POSIX Secondaries] for more details.
+| `SOTA_SECONDARY_CONFIG`|A file containing JSON configuration for Secondaries. It will be installed into `/etc/sota/ecus` on the device and automatically provided to aktualizr. See the guide on xref:posix-secondaries-bitbaking.adoc[bitbaking POSIX Secondaries] for more details.
 | `SOTA_HARDWARE_ID`|A custom hardware ID that will be written to the aktualizr config. Defaults to MACHINE if not set.
 | `SOTA_MAIN_DTB`|The base device tree to use with the kernel. Used together with FIT images. You can change it, and the device tree will also be changed after the update.
 | `SOTA_DT_OVERLAYS`|A whitespace-separated list of used device tree overlays for FIT image. This list is OSTree-updateable as well.

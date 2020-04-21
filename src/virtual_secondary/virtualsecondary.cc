@@ -81,7 +81,7 @@ bool VirtualSecondary::storeFirmware(const std::string& target_name, const std::
 
   // TODO: it does not make much sense to read, pass via a function parameter to Virtual secondary
   // and store the file that has been already downloaded by Primary
-  // Primary should apply ECU (primary, virtual, secondary) specific verification, download and installation logic in
+  // Primary should apply ECU (Primary, virtual, Secondary) specific verification, download and installation logic in
   // the first place
   Utils::writeFile(sconfig.target_name_path, target_name);
   Utils::writeFile(sconfig.firmware_path, content);

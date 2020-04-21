@@ -12,7 +12,7 @@ void targets_autoclean_cb(Aktualizr &aktualizr, const std::shared_ptr<event::Bas
 
   Aktualizr::InstallationLog log = aktualizr.GetInstallationLog();
 
-  // keep the last two installed targets for each ecu
+  // keep the last two installed targets for each ECU
   for (const Aktualizr::InstallationLogEntry &entry : log) {
     auto start = entry.installs.size() >= 2 ? entry.installs.end() - 2 : entry.installs.begin();
     for (auto it = start; it != entry.installs.end(); it++) {

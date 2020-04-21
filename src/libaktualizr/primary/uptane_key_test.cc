@@ -65,7 +65,7 @@ class UptaneKey_Check_Test {
     EXPECT_GT(cert.size(), 0);
     EXPECT_GT(pkey.size(), 0);
 
-    // Verify that primary keys are valid.
+    // Verify that Primary keys are valid.
     std::string primary_public;
     std::string primary_private;
     EXPECT_TRUE(storage->loadPrimaryKeys(&primary_public, &primary_private));
@@ -81,7 +81,7 @@ class UptaneKey_Check_Test {
     public_keys.push_back(primary_public);
     private_keys.push_back(primary_private);
 
-    // Verify that each secondary has valid keys.
+    // Verify that each Secondary has valid keys.
     for (auto it = sota_client.secondaries.begin(); it != sota_client.secondaries.end(); it++) {
       std::shared_ptr<Primary::ManagedSecondary> managed =
           boost::polymorphic_pointer_downcast<Primary::ManagedSecondary>(it->second);

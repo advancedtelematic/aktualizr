@@ -73,7 +73,7 @@ bool Initializer::initEcuSerials() {
 
 void Initializer::resetEcuSerials() { storage_->clearEcuSerials(); }
 
-// Postcondition: (public, private) is in the storage. It should not be stored until secondaries are provisioned
+// Postcondition: (public, private) is in the storage. It should not be stored until Secondaries are provisioned
 bool Initializer::initPrimaryEcuKeys() { return keys_.generateUptaneKeyPair().size() != 0U; }
 
 void Initializer::resetEcuKeys() { storage_->clearPrimaryKeys(); }

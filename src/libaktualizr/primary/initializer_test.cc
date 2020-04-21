@@ -349,7 +349,7 @@ TEST(Initializer, EcuRegisteration) {
 }
 
 /**
- * Verifies if the system hostname is used as a primary ECU hardware ID
+ * Verifies if the system hostname is used as a Primary ECU hardware ID
  * if it's not specified in the configuration
  *
  * Checks actions:
@@ -377,7 +377,7 @@ TEST(Initializer, HostnameAsHardwareID) {
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials));
     EXPECT_GE(ecu_serials.size(), 1);
 
-    // A second element of the first tuple in ECU Serials tuple array is a primary hardware ID.
+    // A second element of the first tuple in ECU Serials tuple array is a Primary hardware ID.
     // Each client of the storage class needs to know this information.
     // If it changes then corresponding changes should be done in each storage client.
     // perhaps it makes sense to introduce get/setPrimaryHardwareID method and incapsulate

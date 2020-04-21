@@ -26,7 +26,7 @@ class Aktualizr {
   Aktualizr& operator=(const Aktualizr&) = delete;
 
   /**
-   * Initialize aktualizr. Any secondaries should be added before making this
+   * Initialize aktualizr. Any Secondaries should be added before making this
    * call. This will provision with the server if required. This must be called
    * before using any other aktualizr functions except AddSecondary.
    */
@@ -187,19 +187,19 @@ class Aktualizr {
   bool UptaneCycle();
 
   /**
-   * Add new secondary to aktualizr. Must be called before Initialize.
-   * @param secondary An object to perform installation on a secondary ECU.
+   * Add new Secondary to aktualizr. Must be called before Initialize.
+   * @param secondary An object to perform installation on a Secondary ECU.
    */
   void AddSecondary(const std::shared_ptr<Uptane::SecondaryInterface>& secondary);
 
   /**
-   * Store some free-form data to be associated with a particular secondary, to
+   * Store some free-form data to be associated with a particular Secondary, to
    * be retrieved later through `GetSecondaries`
    */
   void SetSecondaryData(const Uptane::EcuSerial& ecu, const std::string& data);
 
   /**
-   * Returns a list of the registered secondaries, along with some associated
+   * Returns a list of the registered Secondaries, along with some associated
    * metadata
    *
    * @return vector of SecondaryInfo objects

@@ -33,7 +33,7 @@ void UptaneRepo::addImage(const boost::filesystem::path &image_path, const boost
                           const std::string &hardware_id, const std::string &url, const Delegation &delegation) {
   image_repo_.addBinaryImage(image_path, targetname, hardware_id, url, delegation);
 }
-void UptaneRepo::addCustomImage(const std::string &name, const Uptane::Hash &hash, uint64_t length,
+void UptaneRepo::addCustomImage(const std::string &name, const Hash &hash, uint64_t length,
                                 const std::string &hardware_id, const std::string &url, const Delegation &delegation,
                                 const Json::Value &custom) {
   image_repo_.addCustomImage(name, hash, length, hardware_id, url, delegation, custom);

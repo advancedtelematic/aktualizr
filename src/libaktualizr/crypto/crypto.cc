@@ -474,3 +474,70 @@ KeyType Crypto::IdentifyRSAKeyType(const std::string &public_key_pem) {
       return KeyType::kUnknown;
   }
 }
+
+MultiPartHasher::Ptr MultiPartHasher::create(Hash::Type hash_type) {
+  switch (hash_type) {
+    case Hash::Type::kSha256: {
+      return std::make_shared<MultiPartSHA256Hasher>();
+    }
+    case Hash::Type::kSha512: {
+      return std::make_shared<MultiPartSHA512Hasher>();
+    }
+    default: {
+      LOG_ERROR << "Unsupported type of hashing: " << Hash::TypeString(hash_type);
+      return nullptr;
+    }
+  }
+}
+
+Hash Hash::generate(Type type, const std::string &data) {
+  std::string hash;
+
+  switch (type) {
+    case Type::kSha256: {
+      hash = boost::algorithm::hex(Crypto::sha256digest(data));
+      break;
+    }
+    case Type::kSha512: {
+      hash = boost::algorithm::hex(Crypto::sha512digest(data));
+      break;
+    }
+    default: { throw std::invalid_argument("Unsupported hash type"); }
+  }
+
+  return Hash(type, hash);
+}
+
+Hash::Hash(const std::string &type, const std::string &hash) : hash_(boost::algorithm::to_upper_copy(hash)) {
+  if (type == "sha512") {
+    type_ = Hash::Type::kSha512;
+  } else if (type == "sha256") {
+    type_ = Hash::Type::kSha256;
+  } else {
+    type_ = Hash::Type::kUnknownAlgorithm;
+  }
+}
+
+Hash::Hash(Type type, const std::string &hash) : type_(type), hash_(boost::algorithm::to_upper_copy(hash)) {}
+
+bool Hash::operator==(const Hash &other) const { return type_ == other.type_ && hash_ == other.hash_; }
+
+std::string Hash::TypeString(Type type) {
+  switch (type) {
+    case Type::kSha256:
+      return "sha256";
+    case Type::kSha512:
+      return "sha512";
+    default:
+      return "unknown";
+  }
+}
+
+std::string Hash::TypeString() const { return TypeString(type_); }
+
+Hash::Type Hash::type() const { return type_; }
+
+std::ostream &operator<<(std::ostream &os, const Hash &h) {
+  os << "Hash: " << h.hash_;
+  return os;
+}

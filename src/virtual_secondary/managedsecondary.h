@@ -68,7 +68,7 @@ class ManagedSecondary : public Uptane::SecondaryInterface {
   Primary::ManagedSecondaryConfig sconfig;
   std::string detected_attack;
   std::string expected_target_name;
-  std::vector<Uptane::Hash> expected_target_hashes;
+  std::vector<Hash> expected_target_hashes;
   uint64_t expected_target_length{};
   std::mutex install_mutex;
 

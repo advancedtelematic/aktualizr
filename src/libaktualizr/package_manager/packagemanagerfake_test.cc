@@ -36,7 +36,7 @@ TEST(PackageManagerFake, Verify) {
   MultiPartSHA256Hasher hasher;
   hasher.update(content, length);
   const std::string hash = hasher.getHexDigest();
-  Uptane::Target target("some-pkg", primary_ecu, {Uptane::Hash(Uptane::Hash::Type::kSha256, hash)}, length, "");
+  Uptane::Target target("some-pkg", primary_ecu, {Hash(Hash::Type::kSha256, hash)}, length, "");
 
   PackageManagerFake fakepm(config.pacman, config.bootloader, storage, nullptr);
   // Target is not yet available.
@@ -82,7 +82,7 @@ TEST(PackageManagerFake, FinalizeAfterReboot) {
   PackageManagerFake fakepm(config.pacman, config.bootloader, storage, nullptr);
 
   Uptane::EcuMap primary_ecu;
-  Uptane::Target target("pkg", primary_ecu, {Uptane::Hash(Uptane::Hash::Type::kSha256, "hash")}, 1, "");
+  Uptane::Target target("pkg", primary_ecu, {Hash(Hash::Type::kSha256, "hash")}, 1, "");
   auto result = fakepm.install(target);
   EXPECT_EQ(result.result_code, data::ResultCode::Numeric::kNeedCompletion);
   storage->savePrimaryInstalledVersion(target, InstalledVersionUpdateMode::kPending);
@@ -113,7 +113,7 @@ TEST(PackageManagerFake, DownloadFailureInjection) {
 
   // no fault
   Uptane::EcuMap primary_ecu{{Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")}};
-  Uptane::Target target("pkg", primary_ecu, {Uptane::Hash(Uptane::Hash::Type::kSha256, "hash")}, 0, "");
+  Uptane::Target target("pkg", primary_ecu, {Hash(Hash::Type::kSha256, "hash")}, 0, "");
   EXPECT_TRUE(fakepm.fetchTarget(target, uptane_fetcher, keys, nullptr, nullptr));
 
   // fault
@@ -141,7 +141,7 @@ TEST(PackageManagerFake, InstallFailureInjection) {
 
   // no fault
   Uptane::EcuMap primary_ecu{{Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")}};
-  Uptane::Target target("pkg", primary_ecu, {Uptane::Hash(Uptane::Hash::Type::kSha256, "hash")}, 1, "");
+  Uptane::Target target("pkg", primary_ecu, {Hash(Hash::Type::kSha256, "hash")}, 1, "");
   auto result = fakepm.install(target);
   EXPECT_EQ(result.result_code, data::ResultCode::Numeric::kOk);
 

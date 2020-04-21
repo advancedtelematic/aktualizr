@@ -119,11 +119,11 @@ TEST(DockerAppManager, DockerAppStandalone) {
   bool result = client->package_manager_->fetchTarget(target, *(client->uptane_fetcher), keys, progress_cb, nullptr);
   ASSERT_TRUE(result);
 
-  auto hashes = std::vector<Uptane::Hash>{
-      Uptane::Hash(Uptane::Hash::Type::kSha256, "dfca385c923400228c8ddd3c2d572919985e48a9409a2d71dab33148017231c3"),
-      Uptane::Hash(Uptane::Hash::Type::kSha512,
-                   "76b183d51f53613a450825afc6f984077b68ae7b321ba041a2b3871f3c25a9a20d964ad0b60352e5fdd09b78fd53879f4e3"
-                   "fa3dcc8335b26d3bbf455803d2ecb")};
+  auto hashes = std::vector<Hash>{
+      Hash(Hash::Type::kSha256, "dfca385c923400228c8ddd3c2d572919985e48a9409a2d71dab33148017231c3"),
+      Hash(Hash::Type::kSha512,
+           "76b183d51f53613a450825afc6f984077b68ae7b321ba041a2b3871f3c25a9a20d964ad0b60352e5fdd09b78fd53879f4e3"
+           "fa3dcc8335b26d3bbf455803d2ecb")};
   Uptane::Target app_target("foo.dockerapp", Uptane::EcuMap{}, hashes, 8);
   ASSERT_TRUE(storage->checkTargetFile(app_target));
 

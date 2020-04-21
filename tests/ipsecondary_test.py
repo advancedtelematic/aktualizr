@@ -19,7 +19,7 @@ logger = logging.getLogger("IPSecondaryTest")
 def test_secondary_update_if_secondary_starts_first(uptane_repo, secondary, aktualizr, **kwargs):
     '''Test Secondary update if Secondary is booted before Primary'''
 
-    # add a new image to the repo in order to update the secondary with it
+    # add a new image to the repo in order to update the Secondary with it
     secondary_image_filename = "secondary_image_filename_001.img"
     secondary_image_hash = uptane_repo.add_image(id=secondary.id, image_filename=secondary_image_filename)
 
@@ -27,7 +27,7 @@ def test_secondary_update_if_secondary_starts_first(uptane_repo, secondary, aktu
                 format(secondary.id, (secondary_image_hash, secondary_image_filename)))
 
     with aktualizr:
-        # run aktualizr once, secondary has been already running
+        # run aktualizr once, Secondary has been already running
         aktualizr.wait_for_completion()
 
     test_result = secondary_image_hash == aktualizr.get_current_image_info(secondary.id)
@@ -41,14 +41,14 @@ def test_secondary_update_if_secondary_starts_first(uptane_repo, secondary, aktu
 def test_secondary_update_if_primary_starts_first(uptane_repo, secondary, aktualizr, **kwargs):
     '''Test Secondary update if Secondary is booted after Primary'''
 
-    # add a new image to the repo in order to update the secondary with it
+    # add a new image to the repo in order to update the Secondary with it
     secondary_image_filename = "secondary_image_filename_001.img"
     secondary_image_hash = uptane_repo.add_image(id=secondary.id, image_filename=secondary_image_filename)
 
     logger.debug("Trying to update ECU {} with the image {}".
                 format(secondary.id, (secondary_image_hash, secondary_image_filename)))
     with secondary:
-        # start secondary, aktualizr has been already started in 'once' mode
+        # start Secondary, aktualizr has been already started in 'once' mode
         aktualizr.wait_for_completion()
 
     test_result = secondary_image_hash == aktualizr.get_current_image_info(secondary.id)
@@ -64,14 +64,14 @@ def test_secondary_update(uptane_repo, secondary, aktualizr, director, **kwargs)
     '''Test Secondary update if a boot order of Secondary and Primary is undefined'''
 
     test_result = True
-    # add a new image to the repo in order to update the secondary with it
+    # add a new image to the repo in order to update the Secondary with it
     secondary_image_filename = "secondary_image_filename.img"
     secondary_image_hash = uptane_repo.add_image(id=secondary.id, image_filename=secondary_image_filename)
 
     logger.debug("Trying to update ECU {} with the image {}".
                 format(secondary.id, (secondary_image_hash, secondary_image_filename)))
 
-    # start Secondary and Aktualizr processes, aktualizr is started in 'once' mode
+    # start Secondary and aktualizr processes, aktualizr is started in 'once' mode
     with secondary, aktualizr:
         aktualizr.wait_for_completion()
 
@@ -235,8 +235,8 @@ def test_primary_timeout_during_first_run(uptane_repo, secondary, aktualizr, **k
 
     logger.debug("Checking Aktualizr behaviour if it timeouts while waiting for a connection from the secondary")
 
-    # just start the aktualizr and expect that it timeouts on waiting for a connection from the secondary
-    # so the secondary is not registered at the device and backend
+    # just start the aktualizr and expect that it timeouts on waiting for a connection from the Secondary
+    # so the Secondary is not registered at the device and backend
     with aktualizr:
         aktualizr.wait_for_completion()
 
@@ -280,26 +280,26 @@ def test_primary_wait_secondary_install(uptane_repo, secondary, aktualizr, direc
 def test_primary_timeout_after_device_is_registered(uptane_repo, secondary, aktualizr, **kwargs):
     '''Test Aktualizr's timeout of waiting for Secondaries after the device/aktualizr was registered at the backend'''
 
-    # run aktualizr and secondary and wait until the device/aktualizr is registered
+    # run aktualizr and Secondary and wait until the device/aktualizr is registered
     with aktualizr, secondary:
         aktualizr.wait_for_completion()
 
-    # the secondary must be registered
+    # the Secondary must be registered
     if not aktualizr.is_ecu_registered(secondary.id):
         return False
 
-    # make sure that the secondary is not running
+    # make sure that the Secondary is not running
     if secondary.is_running():
         return False
 
-    # run just aktualizr, the previously registered secondary is off
-    # and check if the primary ECU is updatable if the secondary is not connected
+    # run just aktualizr, the previously registered Secondary is off
+    # and check if the Primary ECU is updatable if the Secondary is not connected
     primary_image_filename = "primary_image_filename_001.img"
     primary_image_hash = uptane_repo.add_image(id=aktualizr.id, image_filename=primary_image_filename)
 
-    # if a new image for the not-connected secondary is specified in the target
+    # if a new image for the not-connected Secondary is specified in the target
     # then nothing is going to be updated, including the image intended for
-    # healthy primary ECU
+    # healthy Primary ECU
     # secondary_image_filename = "secondary_image_filename_001.img"
     # secondary_image_hash = uptane_repo.add_image(id=secondary.id, image_filename=secondary_image_filename)
 

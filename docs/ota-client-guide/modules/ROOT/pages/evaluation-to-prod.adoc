@@ -37,7 +37,7 @@ include::partial$recommended-steps.adoc[tags=evaluate-steps]
 
 == Integrate OTA Connect
 
-In this phase, you'll move more towards a realistic production workflow. This will take you into some more complex tasks, like generating unique device keys for registering devices, signed with your own certificate authority. You also might start thinking about using libaktualizr to customize your update flow--for example, to integrate with a user interface, or to update secondary ECUs. You'll also take your software signing keys offline, and sign software yourself before uploading it.
+In this phase, you'll move more towards a realistic production workflow. This will take you into some more complex tasks, like generating unique device keys for registering devices, signed with your own certificate authority. You also might start thinking about using libaktualizr to customize your update flow--for example, to integrate with a user interface, or to update Secondary ECUs. You'll also take your software signing keys offline, and sign software yourself before uploading it.
 
 === Recommendations
 

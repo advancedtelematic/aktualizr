@@ -81,7 +81,7 @@ void SQLStorage::storePrimaryKeys(const std::string& public_key, const std::stri
   auto statement = db.prepareStatement<std::string>(
       "INSERT OR REPLACE INTO primary_keys(unique_mark,public,private) VALUES (0,?,?);", public_key, private_key);
   if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't set primary keys: " << db.errmsg();
+    LOG_ERROR << "Can't set Primary keys: " << db.errmsg();
     return;
   }
 }
@@ -146,7 +146,7 @@ void SQLStorage::clearPrimaryKeys() {
   SQLite3Guard db = dbConnection();
 
   if (db.exec("DELETE FROM primary_keys;", nullptr, nullptr) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear primary keys: " << db.errmsg();
+    LOG_ERROR << "Can't clear Primary keys: " << db.errmsg();
     return;
   }
 }
@@ -185,7 +185,7 @@ void SQLStorage::saveSecondaryInfo(const Uptane::EcuSerial& ecu_serial, const st
   statement = db.prepareStatement<std::string, std::string, std::string, std::string>(
       req, sec_type, key_type_str, public_key.Value(), ecu_serial.ToString());
   if (statement.step() != SQLITE_DONE || sqlite3_changes(db.get()) != 1) {
-    LOG_ERROR << "Can't save secondary key: " << db.errmsg();
+    LOG_ERROR << "Can't save Secondary key: " << db.errmsg();
     return;
   }
 
@@ -216,7 +216,7 @@ void SQLStorage::saveSecondaryData(const Uptane::EcuSerial& ecu_serial, const st
 
   statement = db.prepareStatement<std::string, std::string>(req, data, ecu_serial.ToString());
   if (statement.step() != SQLITE_DONE || sqlite3_changes(db.get()) != 1) {
-    LOG_ERROR << "Can't save secondary data: " << db.errmsg();
+    LOG_ERROR << "Can't save Secondary data: " << db.errmsg();
     return;
   }
 
@@ -235,10 +235,10 @@ bool SQLStorage::loadSecondaryInfo(const Uptane::EcuSerial& ecu_serial, Secondar
       ecu_serial.ToString());
   int statement_state = statement.step();
   if (statement_state == SQLITE_DONE) {
-    LOG_TRACE << "Secondary ecu " << ecu_serial << " not found";
+    LOG_TRACE << "Secondary ECU " << ecu_serial << " not found";
     return false;
   } else if (statement_state != SQLITE_ROW) {
-    LOG_ERROR << "Cannot load secondary info: " << db.errmsg();
+    LOG_ERROR << "Cannot load Secondary info: " << db.errmsg();
     return false;
   }
 
@@ -298,7 +298,7 @@ bool SQLStorage::loadSecondariesInfo(std::vector<SecondaryInfo>* secondaries) {
     }
   }
   if (statement_state != SQLITE_DONE) {
-    LOG_ERROR << "Can't load secondary info" << db.errmsg();
+    LOG_ERROR << "Can't load Secondary info" << db.errmsg();
   }
 
   if (secondaries != nullptr) {
@@ -825,7 +825,7 @@ void SQLStorage::storeEcuRegistered() {
     throw std::runtime_error("Could not get device_info count");
   }
   if (statement.get_result_col_int(0) != 1) {
-    throw std::runtime_error("Cannot set ecu registered if no device_info set");
+    throw std::runtime_error("Cannot set ECU registered if no device_info set");
   }
 
   std::string req = "UPDATE device_info SET is_registered = 1";
@@ -921,7 +921,7 @@ void SQLStorage::storeEcuSerials(const EcuSerials& serials) {
       return;
     }
 
-    // first is the primary
+    // first is the Primary
     std::string serial = serials[0].first.ToString();
     std::string hwid = serials[0].second.ToString();
     {
@@ -960,7 +960,7 @@ void SQLStorage::storeEcuSerials(const EcuSerials& serials) {
 bool SQLStorage::loadEcuSerials(EcuSerials* serials) {
   SQLite3Guard db = dbConnection();
 
-  // order by auto-incremented primary key so that the ecu order is kept constant
+  // order by auto-incremented Primary key so that the ECU order is kept constant
   auto statement = db.prepareStatement("SELECT serial, hardware_id FROM ecus ORDER BY id;");
   int statement_state;
 
@@ -977,7 +977,7 @@ bool SQLStorage::loadEcuSerials(EcuSerials* serials) {
   }
 
   if (statement_state != SQLITE_DONE) {
-    LOG_ERROR << "Can't get ecu serials: " << db.errmsg();
+    LOG_ERROR << "Can't get ECU serials: " << db.errmsg();
     return false;
   }
 
@@ -997,12 +997,12 @@ void SQLStorage::clearEcuSerials() {
   }
 
   if (db.exec("DELETE FROM ecus;", nullptr, nullptr) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear ecus: " << db.errmsg();
+    LOG_ERROR << "Can't clear ECUs: " << db.errmsg();
     return;
   }
 
   if (db.exec("DELETE FROM secondary_ecus;", nullptr, nullptr) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear secondary ecus: " << db.errmsg();
+    LOG_ERROR << "Can't clear Secondary ECUs: " << db.errmsg();
     return;
   }
 
@@ -1015,7 +1015,7 @@ void SQLStorage::storeCachedEcuManifest(const Uptane::EcuSerial& ecu_serial, con
   auto statement = db.prepareStatement<std::string, std::string>(
       "UPDATE secondary_ecus SET manifest = ? WHERE (serial = ?);", manifest, ecu_serial.ToString());
   if (statement.step() != SQLITE_DONE || sqlite3_changes(db.get()) != 1) {
-    LOG_ERROR << "Can't save secondary manifest " << db.errmsg();
+    LOG_ERROR << "Can't save Secondary manifest " << db.errmsg();
     return;
   }
 }
@@ -1031,7 +1031,7 @@ bool SQLStorage::loadCachedEcuManifest(const Uptane::EcuSerial& ecu_serial, std:
                                                     ecu_serial.ToString());
 
   if (statement.step() != SQLITE_ROW) {
-    LOG_WARNING << "Could not find manifest for ecu " << ecu_serial;
+    LOG_WARNING << "Could not find manifest for ECU " << ecu_serial;
     return false;
   } else {
     stmanifest = statement.get_result_col_str(0).value_or("");
@@ -1127,18 +1127,18 @@ void SQLStorage::saveInstalledVersion(const std::string& ecu_serial, const Uptan
 
   // either adds a new entry or update the last one's status
 
-  // empty serial: use primary
+  // empty serial: use Primary
   std::string ecu_serial_real = ecu_serial;
   if (ecu_serial_real.empty()) {
     auto statement = db.prepareStatement("SELECT serial FROM ecus WHERE is_primary = 1;");
     if (statement.step() == SQLITE_ROW) {
       ecu_serial_real = statement.get_result_col_str(0).value();
     } else {
-      LOG_WARNING << "Could not find primary ecu serial, set to lazy init mode";
+      LOG_WARNING << "Could not find Primary ECU serial, set to lazy init mode";
     }
   }
 
-  std::string hashes_encoded = Uptane::Hash::encodeVector(target.hashes());
+  std::string hashes_encoded = Hash::encodeVector(target.hashes());
 
   // get the last time this version was installed on this ecu
   boost::optional<int64_t> old_id;
@@ -1274,13 +1274,13 @@ bool SQLStorage::loadInstallationLog(const std::string& ecu_serial, std::vector<
 
       // note: sha256 should always be present and is used to uniquely identify
       // a version. It should normally be part of the hash list as well.
-      std::vector<Uptane::Hash> hashes = Uptane::Hash::decodeVector(hashes_str);
+      std::vector<Hash> hashes = Hash::decodeVector(hashes_str);
 
-      auto find_sha256 = std::find_if(hashes.cbegin(), hashes.cend(),
-                                      [](const Uptane::Hash& h) { return h.type() == Uptane::Hash::Type::kSha256; });
+      auto find_sha256 =
+          std::find_if(hashes.cbegin(), hashes.cend(), [](const Hash& h) { return h.type() == Hash::Type::kSha256; });
       if (find_sha256 == hashes.cend()) {
         LOG_WARNING << "No sha256 in hashes list";
-        hashes.emplace_back(Uptane::Hash::Type::kSha256, sha256);
+        hashes.emplace_back(Hash::Type::kSha256, sha256);
       }
 
       Uptane::Target t(filename, ecu_map, hashes, static_cast<uint64_t>(length), correlation_id);
@@ -1336,13 +1336,13 @@ bool SQLStorage::loadInstalledVersions(const std::string& ecu_serial, boost::opt
 
     // note: sha256 should always be present and is used to uniquely identify
     // a version. It should normally be part of the hash list as well.
-    std::vector<Uptane::Hash> hashes = Uptane::Hash::decodeVector(hashes_str);
+    std::vector<Hash> hashes = Hash::decodeVector(hashes_str);
 
-    auto find_sha256 = std::find_if(hashes.cbegin(), hashes.cend(),
-                                    [](const Uptane::Hash& h) { return h.type() == Uptane::Hash::Type::kSha256; });
+    auto find_sha256 =
+        std::find_if(hashes.cbegin(), hashes.cend(), [](const Hash& h) { return h.type() == Hash::Type::kSha256; });
     if (find_sha256 == hashes.cend()) {
       LOG_WARNING << "No sha256 in hashes list";
-      hashes.emplace_back(Uptane::Hash::Type::kSha256, sha256);
+      hashes.emplace_back(Hash::Type::kSha256, sha256);
     }
     Uptane::Target t(filename, ecu_map, hashes, static_cast<uint64_t>(length), correlation_id);
     if (!custom_str.empty()) {
@@ -1412,7 +1412,7 @@ bool SQLStorage::hasPendingInstall() {
   return statement.get_result_col_int(0) > 0;
 }
 
-void SQLStorage::getPendingEcus(std::vector<std::pair<Uptane::EcuSerial, Uptane::Hash>>* pendingEcus) {
+void SQLStorage::getPendingEcus(std::vector<std::pair<Uptane::EcuSerial, Hash>>* pendingEcus) {
   SQLite3Guard db = dbConnection();
 
   auto statement = db.prepareStatement("SELECT ecu_serial, sha256 FROM installed_versions where is_pending = 1");
@@ -1421,7 +1421,7 @@ void SQLStorage::getPendingEcus(std::vector<std::pair<Uptane::EcuSerial, Uptane:
     throw std::runtime_error("Failed to get ECUs with a pending target installation: " + db.errmsg());
   }
 
-  std::vector<std::pair<Uptane::EcuSerial, Uptane::Hash>> ecu_res;
+  std::vector<std::pair<Uptane::EcuSerial, Hash>> ecu_res;
 
   if (statement_result == SQLITE_DONE) {
     // if there are no any record in the DB
@@ -1431,8 +1431,7 @@ void SQLStorage::getPendingEcus(std::vector<std::pair<Uptane::EcuSerial, Uptane:
   for (; statement_result != SQLITE_DONE; statement_result = statement.step()) {
     std::string ecu_serial = statement.get_result_col_str(0).value();
     std::string hash = statement.get_result_col_str(1).value();
-    ecu_res.emplace_back(
-        std::make_pair(Uptane::EcuSerial(ecu_serial), Uptane::Hash(Uptane::Hash::Type::kSha256, hash)));
+    ecu_res.emplace_back(std::make_pair(Uptane::EcuSerial(ecu_serial), Hash(Hash::Type::kSha256, hash)));
   }
 
   if (pendingEcus != nullptr) {
@@ -1458,7 +1457,7 @@ void SQLStorage::saveEcuInstallationResult(const Uptane::EcuSerial& ecu_serial,
       "(?,?,?,?);",
       ecu_serial.ToString(), static_cast<int>(result.success), result.result_code.toRepr(), result.description);
   if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't set ecu installation result: " << db.errmsg();
+    LOG_ERROR << "Can't set ECU installation result: " << db.errmsg();
     return;
   }
 }
@@ -1469,7 +1468,7 @@ bool SQLStorage::loadEcuInstallationResults(
 
   std::vector<std::pair<Uptane::EcuSerial, data::InstallationResult>> ecu_res;
 
-  // keep the same order as in ecus (start with primary)
+  // keep the same order as in ECUs (start with Primary)
   auto statement = db.prepareStatement(
       "SELECT ecu_serial, success, result_code, description FROM ecu_installation_results INNER JOIN ecus ON "
       "ecus.serial = ecu_serial ORDER BY ecus.id;");
@@ -1573,7 +1572,7 @@ void SQLStorage::saveEcuReportCounter(const Uptane::EcuSerial& ecu_serial, const
       "(?,?);",
       ecu_serial.ToString(), counter);
   if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't set ecu counter: " << db.errmsg();
+    LOG_ERROR << "Can't set ECU counter: " << db.errmsg();
     return;
   }
 }
@@ -1583,7 +1582,7 @@ bool SQLStorage::loadEcuReportCounter(std::vector<std::pair<Uptane::EcuSerial, i
 
   std::vector<std::pair<Uptane::EcuSerial, int64_t>> ecu_cnt;
 
-  // keep the same order as in ecus (start with primary)
+  // keep the same order as in ECUs (start with Primary)
   auto statement = db.prepareStatement(
       "SELECT ecu_serial, counter FROM ecu_report_counter INNER JOIN ecus ON "
       "ecus.serial = ecu_serial ORDER BY ecus.id;");
@@ -1734,13 +1733,13 @@ boost::optional<std::pair<uintmax_t, std::string>> SQLStorage::checkTargetFile(c
     bool sha256_match = false;
     bool sha512_match = false;
     if (!(*sha256).empty()) {
-      if (target.MatchHash(Uptane::Hash(Uptane::Hash::Type::kSha256, *sha256))) {
+      if (target.MatchHash(Hash(Hash::Type::kSha256, *sha256))) {
         sha256_match = true;
       }
     }
 
     if (!(*sha512).empty()) {
-      if (target.MatchHash(Uptane::Hash(Uptane::Hash::Type::kSha512, *sha512))) {
+      if (target.MatchHash(Hash(Hash::Type::kSha512, *sha512))) {
         sha512_match = true;
       }
     }
@@ -1771,9 +1770,9 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     std::string sha256Hash;
     std::string sha512Hash;
     for (const auto& hash : target_.hashes()) {
-      if (hash.type() == Uptane::Hash::Type::kSha256) {
+      if (hash.type() == Hash::Type::kSha256) {
         sha256Hash = hash.HashString();
-      } else if (hash.type() == Uptane::Hash::Type::kSha512) {
+      } else if (hash.type() == Hash::Type::kSha512) {
         sha512Hash = hash.HashString();
       }
     }
@@ -1932,12 +1931,12 @@ std::vector<Uptane::Target> SQLStorage::getTargetFiles() {
     auto sha256 = statement.get_result_col_str(2).value();
     auto sha512 = statement.get_result_col_str(3).value();
 
-    std::vector<Uptane::Hash> hashes;
+    std::vector<Hash> hashes;
     if (!sha256.empty()) {
-      hashes.emplace_back(Uptane::Hash::Type::kSha256, sha256);
+      hashes.emplace_back(Hash::Type::kSha256, sha256);
     }
     if (!sha512.empty()) {
-      hashes.emplace_back(Uptane::Hash::Type::kSha512, sha512);
+      hashes.emplace_back(Hash::Type::kSha512, sha512);
     }
     v.emplace_back(tname, Uptane::EcuMap{}, hashes, tsize);
 

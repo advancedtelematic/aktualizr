@@ -26,7 +26,7 @@ You can integrate the OTA update functionality yourself and minimize the involve
 Typical scenarios for making your own client could be:
 
 * You want to integrate OTA Connect functionality with a third-party HMI
-* You want to integrate OTA Connect with a third-party interface that installs software on secondary ECUs
+* You want to integrate OTA Connect with a third-party interface that installs software on Secondary ECUs
 * You want to constrain network traffic and software updates to specific vehicle states
 * You want to provide motorists or service staff with progress indicators for specific software updates.
 

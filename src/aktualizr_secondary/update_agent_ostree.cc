@@ -13,17 +13,17 @@ bool OstreeUpdateAgent::getInstalledImageInfo(Uptane::InstalledImageInfo& instal
   bool result = false;
   try {
     installed_image_info.len = 0;
-    installed_image_info.hash = _ostreePackMan->getCurrentHash();
+    installed_image_info.hash = ostreePackMan_->getCurrentHash();
 
     // TODO(OTA-4545): consider more elegant way of storing currently installed target name
     // usage of the SQLStorage and ostree implementions aimed for Primary is
     // a quite overhead for Secondary
-    auto currently_installed_target = _ostreePackMan->getCurrent();
+    auto currently_installed_target = ostreePackMan_->getCurrent();
     if (!currently_installed_target.IsValid()) {
       // This is the policy on a target image name in case of ostree
       // The policy in followed and implied in meta-updater (garage-sign/push) and the backend
       // installed_image_info.name = _targetname_prefix + "-" + installed_image_info.hash;
-      installed_image_info.name = _targetname_prefix + "-" + installed_image_info.hash;
+      installed_image_info.name = targetname_prefix_ + "-" + installed_image_info.hash;
     } else {
       installed_image_info.name = currently_installed_target.filename();
     }
@@ -43,7 +43,7 @@ bool OstreeUpdateAgent::download(const Uptane::Target& target, const std::string
     std::string ca, cert, pkey, server_url;
     extractCredentialsArchive(data, &ca, &cert, &pkey, &server_url);
     // TODO: why are qe loading this credentials at all ?
-    _keyMngr->loadKeys(&pkey, &cert, &ca);
+    keyMngr_->loadKeys(&pkey, &cert, &ca);
     boost::trim(server_url);
     treehub_server = server_url;
   } catch (std::runtime_error& exc) {
@@ -51,7 +51,7 @@ bool OstreeUpdateAgent::download(const Uptane::Target& target, const std::string
     return false;
   }
 
-  auto install_res = OstreeManager::pull(_sysrootPath, treehub_server, *_keyMngr, target);
+  auto install_res = OstreeManager::pull(sysrootPath_, treehub_server, *keyMngr_, target);
 
   switch (install_res.result_code.num_code) {
     case data::ResultCode::Numeric::kOk: {
@@ -74,13 +74,13 @@ bool OstreeUpdateAgent::download(const Uptane::Target& target, const std::string
 }
 
 data::ResultCode::Numeric OstreeUpdateAgent::install(const Uptane::Target& target) {
-  return (_ostreePackMan->install(target)).result_code.num_code;
+  return (ostreePackMan_->install(target)).result_code.num_code;
 }
 
-void OstreeUpdateAgent::completeInstall() { _ostreePackMan->completeInstall(); }
+void OstreeUpdateAgent::completeInstall() { ostreePackMan_->completeInstall(); }
 
 data::InstallationResult OstreeUpdateAgent::applyPendingInstall(const Uptane::Target& target) {
-  return _ostreePackMan->finalizeInstall(target);
+  return ostreePackMan_->finalizeInstall(target);
 }
 
 void extractCredentialsArchive(const std::string& archive, std::string* ca, std::string* cert, std::string* pkey,

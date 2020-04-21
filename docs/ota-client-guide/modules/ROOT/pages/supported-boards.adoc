@@ -37,12 +37,12 @@ Your images will also need network connectivity to be able to reach an actual OT
 
 The aktualizr binary is a lightweight {cpp} application between 2-5 MB in size. It uses around 20 MB RAM, although some of that comes from shared libraries. It uses a minimum amount of other resources when idle.
 
-The following hardware is required for your primary ECU:
+The following hardware is required for your Primary ECU:
 
 * At a minimum, the board or device aktualizr is running on will need **64 MB of RAM** and **128 MB of storage**.
 * We recommend using a board with slightly higher specs, however. **256 MB of RAM** and **512 MB storage** are reasonable targets, especially if you plan to process large, complex software updates. The aktualizr process itself won't consume significantly more RAM with larger updates, but the filesystem cache memory usage might increase.
 
 [NOTE]
 ====
-If you plan to send updates to secondary, low-performance ECUs, you can also use a more minimal implementaton called link:https://github.com/advancedtelematic/uptiny[`libuptiny`]. This utility is only 10 KB and performs a minimal verification of software metadata that is less resource intensive. For more information on `libuptiny`, contact us at mailto:otaconnect.support@here.com[].
+If you plan to send updates to low-performance Secondary ECUs, you can also use a more minimal implementaton called link:https://github.com/advancedtelematic/uptiny[`libuptiny`]. This utility is only 10 KB and performs a minimal verification of software metadata that is less resource intensive. For more information on `libuptiny`, contact us at mailto:otaconnect.support@here.com[].
 ====

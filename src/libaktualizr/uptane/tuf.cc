@@ -12,7 +12,6 @@
 #include "logging/logging.h"
 #include "utilities/exceptions.h"
 
-using Uptane::Hash;
 using Uptane::MetaPack;
 using Uptane::Root;
 using Uptane::Target;
@@ -37,57 +36,7 @@ std::ostream &Uptane::operator<<(std::ostream &os, const EcuSerial &ecu_serial) 
   return os;
 }
 
-Hash Hash::generate(Type type, const std::string &data) {
-  std::string hash;
-
-  switch (type) {
-    case Type::kSha256: {
-      hash = boost::algorithm::hex(Crypto::sha256digest(data));
-      break;
-    }
-    case Type::kSha512: {
-      hash = boost::algorithm::hex(Crypto::sha512digest(data));
-      break;
-    }
-    default: { throw std::invalid_argument("Unsupported hash type"); }
-  }
-
-  return Hash(type, hash);
-}
-
-Hash::Hash(const std::string &type, const std::string &hash) : hash_(boost::algorithm::to_upper_copy(hash)) {
-  if (type == "sha512") {
-    type_ = Hash::Type::kSha512;
-  } else if (type == "sha256") {
-    type_ = Hash::Type::kSha256;
-  } else {
-    type_ = Hash::Type::kUnknownAlgorithm;
-  }
-}
-
-Hash::Hash(Type type, const std::string &hash) : type_(type), hash_(boost::algorithm::to_upper_copy(hash)) {}
-
-bool Hash::operator==(const Hash &other) const { return type_ == other.type_ && hash_ == other.hash_; }
-
-std::string Hash::TypeString() const {
-  switch (type_) {
-    case Type::kSha256:
-      return "sha256";
-    case Type::kSha512:
-      return "sha512";
-    default:
-      return "unknown";
-  }
-}
-
-Hash::Type Hash::type() const { return type_; }
-
-std::ostream &Uptane::operator<<(std::ostream &os, const Hash &h) {
-  os << "Hash: " << h.hash_;
-  return os;
-}
-
-std::string Hash::encodeVector(const std::vector<Uptane::Hash> &hashes) {
+std::string Hash::encodeVector(const std::vector<Hash> &hashes) {
   std::stringstream hs;
 
   for (auto it = hashes.cbegin(); it != hashes.cend(); it++) {
@@ -100,8 +49,8 @@ std::string Hash::encodeVector(const std::vector<Uptane::Hash> &hashes) {
   return hs.str();
 }
 
-std::vector<Uptane::Hash> Hash::decodeVector(std::string hashes_str) {
-  std::vector<Uptane::Hash> hash_v;
+std::vector<Hash> Hash::decodeVector(std::string hashes_str) {
+  std::vector<Hash> hash_v;
 
   std::string cs = std::move(hashes_str);
   while (!cs.empty()) {
@@ -124,8 +73,8 @@ std::vector<Uptane::Hash> Hash::decodeVector(std::string hashes_str) {
     std::string hash_value_str = hash_token.substr(cp + 1);
 
     if (!hash_value_str.empty()) {
-      Uptane::Hash h{hash_type_str, hash_value_str};
-      if (h.type() != Uptane::Hash::Type::kUnknownAlgorithm) {
+      Hash h{hash_type_str, hash_value_str};
+      if (h.type() != Hash::Type::kUnknownAlgorithm) {
         hash_v.push_back(std::move(h));
       }
     }
@@ -204,7 +153,7 @@ bool Target::MatchHash(const Hash &hash) const {
 }
 
 std::string Target::hashString(Hash::Type type) const {
-  std::vector<Uptane::Hash>::const_iterator it;
+  std::vector<Hash>::const_iterator it;
   for (it = hashes_.begin(); it != hashes_.end(); it++) {
     if (it->type() == type) {
       return boost::algorithm::to_lower_copy(it->HashString());

@@ -13,27 +13,27 @@ class SecondaryMock : public IAktualizrSecondary {
  public:
   SecondaryMock(const Uptane::EcuSerial& serial, const Uptane::HardwareIdentifier& hdw_id, const PublicKey& pub_key,
                 const Uptane::Manifest& manifest)
-      : _serial(serial), _hdw_id(hdw_id), _pub_key(pub_key), _manifest(manifest), _msg_dispatcher{*this} {}
+      : serial_(serial), hdw_id_(hdw_id), pub_key_(pub_key), manifest_(manifest), msg_dispatcher_{*this} {}
 
  public:
-  MsgDispatcher& getDispatcher() { return _msg_dispatcher; }
-  Uptane::EcuSerial getSerial() const { return _serial; }
-  Uptane::HardwareIdentifier getHwId() const { return _hdw_id; }
-  PublicKey getPublicKey() const { return _pub_key; }
+  MsgDispatcher& getDispatcher() { return msg_dispatcher_; }
+  Uptane::EcuSerial getSerial() const { return serial_; }
+  Uptane::HardwareIdentifier getHwId() const { return hdw_id_; }
+  PublicKey getPublicKey() const { return pub_key_; }
 
   std::tuple<Uptane::EcuSerial, Uptane::HardwareIdentifier, PublicKey> getInfo() const override {
-    return {_serial, _hdw_id, _pub_key};
+    return {serial_, hdw_id_, pub_key_};
   }
 
-  Uptane::Manifest getManifest() const override { return _manifest; }
+  Uptane::Manifest getManifest() const override { return manifest_; }
 
   bool putMetadata(const Uptane::RawMetaPack& meta_pack) override {
-    _metapack = meta_pack;
+    metapack_ = meta_pack;
     return true;
   }
 
   bool sendFirmware(const std::string& data) override {
-    _data = data;
+    data_ = data;
     return true;
   }
 
@@ -43,16 +43,16 @@ class SecondaryMock : public IAktualizrSecondary {
   }
 
  public:
-  const Uptane::EcuSerial _serial;
-  const Uptane::HardwareIdentifier _hdw_id;
-  const PublicKey _pub_key;
-  const Uptane::Manifest _manifest;
+  const Uptane::EcuSerial serial_;
+  const Uptane::HardwareIdentifier hdw_id_;
+  const PublicKey pub_key_;
+  const Uptane::Manifest manifest_;
 
-  Uptane::RawMetaPack _metapack;
-  std::string _data;
+  Uptane::RawMetaPack metapack_;
+  std::string data_;
 
  private:
-  AktualizrSecondaryMsgDispatcher _msg_dispatcher;
+  AktualizrSecondaryMsgDispatcher msg_dispatcher_;
 };
 
 bool operator==(const Uptane::RawMetaPack& lhs, const Uptane::RawMetaPack& rhs) {
@@ -88,11 +88,11 @@ TEST(SecondaryTcpServer, TestIpSecondaryRPC) {
                                 "image_targets", "image_timestamp", "image_snapshot"};
 
   EXPECT_TRUE(ip_secondary->putMetadata(meta_pack));
-  EXPECT_TRUE(meta_pack == secondary._metapack);
+  EXPECT_TRUE(meta_pack == secondary.metapack_);
 
   std::string firmware = "firmware";
   EXPECT_TRUE(ip_secondary->sendFirmware(firmware));
-  EXPECT_EQ(firmware, secondary._data);
+  EXPECT_EQ(firmware, secondary.data_);
 
   EXPECT_EQ(ip_secondary->install(""), data::ResultCode::Numeric::kOk);
 

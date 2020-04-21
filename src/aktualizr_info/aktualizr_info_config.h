@@ -24,7 +24,7 @@ class AktualizrInfoConfig : public BaseConfig {
   void postUpdateValues();
   void writeToStream(std::ostream& sink) const;
 
-  // from primary config
+  // from Primary config
   BootloaderConfig bootloader;
   LoggerConfig logger;
   PackageConfig pacman;

@@ -25,7 +25,7 @@ boost::filesystem::path uptane_repos_dir;
 boost::filesystem::path fake_meta_dir;
 
 void verifyNothingInstalled(const Json::Value& manifest) {
-  // Verify nothing has installed for the primary.
+  // Verify nothing has installed for the Primary.
   EXPECT_EQ(
       manifest["ecu_version_manifests"]["CA:FE:A6:D2:84:9D"]["signed"]["custom"]["operation_result"]["id"].asString(),
       "");
@@ -39,7 +39,7 @@ void verifyNothingInstalled(const Json::Value& manifest) {
       "");
   EXPECT_EQ(manifest["ecu_version_manifests"]["CA:FE:A6:D2:84:9D"]["signed"]["installed_image"]["filepath"].asString(),
             "unknown");
-  // Verify nothing has installed for the secondary.
+  // Verify nothing has installed for the Secondary.
   EXPECT_EQ(
       manifest["ecu_version_manifests"]["secondary_ecu_serial"]["signed"]["installed_image"]["filepath"].asString(),
       "noimage");
@@ -127,7 +127,7 @@ TEST(Aktualizr, FullNoUpdates) {
 }
 
 /*
- * Add secondaries via API
+ * Add Secondaries via API
  */
 TEST(Aktualizr, AddSecondary) {
   TemporaryDirectory temp_dir;
@@ -238,8 +238,8 @@ class HttpFakeEventCounter : public HttpFake {
 };
 
 /*
- * Initialize -> UptaneCycle -> updates downloaded and installed for primary and
- * secondary.
+ * Initialize -> UptaneCycle -> updates downloaded and installed for Primary and
+ * Secondary.
  */
 TEST(Aktualizr, FullWithUpdates) {
   TemporaryDirectory temp_dir;
@@ -301,7 +301,7 @@ TEST(Aktualizr, FullWithUpdates) {
         break;
       }
       case 5: {
-        // Primary should complete before secondary begins. (Again not a
+        // Primary should complete before Secondary begins. (Again not a
         // requirement per se.)
         ASSERT_EQ(event->variant, "InstallTargetComplete");
         const auto install_complete = dynamic_cast<event::InstallTargetComplete*>(event.get());
@@ -468,7 +468,7 @@ TEST(Aktualizr, SplitUpdates) {
         break;
       }
       case 4: {
-        // Primary should complete before secondary begins. (Again not a
+        // Primary should complete before Secondary begins. (Again not a
         // requirement per se.)
         ASSERT_EQ(event->variant, "InstallTargetComplete");
         const auto install_complete = dynamic_cast<event::InstallTargetComplete*>(event.get());
@@ -597,8 +597,8 @@ class HttpFakePutCounter : public HttpFake {
 };
 
 /*
- * Initialize -> UptaneCycle -> updates downloaded and installed for primary
- * (after reboot) and secondary (aktualizr_test.cc)
+ * Initialize -> UptaneCycle -> updates downloaded and installed for Primary
+ * (after reboot) and Secondary (aktualizr_test.cc)
  *
  * It simulates closely the OSTree case which needs a reboot after applying an
  * update, but uses `PackageManagerFake`.
@@ -610,7 +610,7 @@ class HttpFakePutCounter : public HttpFake {
  *   - [x] Send manifest
  *   - [x] Update is not in pending state anymore after successful finalization
  *
- *  - [x] Install an update on the primary
+ *  - [x] Install an update on the Primary
  *    - [x] Set new version to pending status after an OSTree update trigger
  *    - [x] Send EcuInstallationAppliedReport to server after an OSTree update trigger
  *    - [x] Uptane check for updates and manifest sends are disabled while an installation
@@ -638,9 +638,9 @@ TEST(Aktualizr, FullWithUpdatesNeedReboot) {
 
   // check that no manifest has been sent after the update application
   EXPECT_EQ(http->manifest_sends, 1);
-  EXPECT_EQ(http->count_event_with_type("EcuInstallationStarted"), 2);    // two ecus have started
-  EXPECT_EQ(http->count_event_with_type("EcuInstallationApplied"), 1);    // primary ecu has been applied
-  EXPECT_EQ(http->count_event_with_type("EcuInstallationCompleted"), 1);  // secondary ecu has been updated
+  EXPECT_EQ(http->count_event_with_type("EcuInstallationStarted"), 2);    // two ECUs have started
+  EXPECT_EQ(http->count_event_with_type("EcuInstallationApplied"), 1);    // Primary ECU has been applied
+  EXPECT_EQ(http->count_event_with_type("EcuInstallationCompleted"), 1);  // Secondary ECU has been updated
 
   {
     // second run: before reboot, re-use the storage
@@ -673,14 +673,14 @@ TEST(Aktualizr, FullWithUpdatesNeedReboot) {
     result::UpdateCheck update_res = aktualizr.CheckUpdates().get();
     EXPECT_EQ(update_res.status, result::UpdateStatus::kNoUpdatesAvailable);
 
-    // primary is installed, nothing pending
+    // Primary is installed, nothing pending
     boost::optional<Uptane::Target> current_target;
     boost::optional<Uptane::Target> pending_target;
     storage->loadPrimaryInstalledVersions(&current_target, &pending_target);
     EXPECT_TRUE(!!current_target);
     EXPECT_FALSE(!!pending_target);
 
-    // secondary is installed, nothing pending
+    // Secondary is installed, nothing pending
     boost::optional<Uptane::Target> sec_current_target;
     boost::optional<Uptane::Target> sec_pending_target;
     storage->loadInstalledVersions("secondary_ecu_serial", &sec_current_target, &sec_pending_target);
@@ -845,8 +845,8 @@ TEST(Aktualizr, FinalizationFailure) {
     EXPECT_TRUE(event_hdlr.checkReceivedEvents(expected_event_order));
     EXPECT_TRUE(aktualizr.uptane_client()->hasPendingUpdates());
     EXPECT_TRUE(http_server_mock->checkReceivedReports(expected_report_order));
-    // Aktualizr reports to a server that installation was successfull for the secondary
-    // checkReceivedReports() verifies whether EcuInstallationApplied was reported for the primary
+    // Aktualizr reports to a server that installation was successfull for the Secondary
+    // checkReceivedReports() verifies whether EcuInstallationApplied was reported for the Primary
     EXPECT_FALSE(http_server_mock->wasInstallSuccessful(primary_ecu_id));
     EXPECT_TRUE(http_server_mock->wasInstallSuccessful(secondary_ecu_id));
 
@@ -1018,7 +1018,7 @@ TEST(Aktualizr, InstallationFailure) {
     fiu_disable("fake_package_install");
   }
 
-  // primary and secondary failure
+  // Primary and Secondary failure
   {
     TemporaryDirectory temp_dir;
     auto http_server_mock = std::make_shared<HttpInstallationFailed>(temp_dir.Path(), fake_meta_dir);
@@ -1083,7 +1083,7 @@ TEST(Aktualizr, InstallationFailure) {
 }
 
 /*
- * Verifies that updates fail after metadata verification failure reported by secondaries
+ * Verifies that updates fail after metadata verification failure reported by Secondaries
  */
 TEST(Aktualizr, SecondaryMetaFailure) {
   TemporaryDirectory temp_dir;
@@ -1127,7 +1127,7 @@ TEST(Aktualizr, SecondaryMetaFailure) {
 #endif  // FIU_ENABLE
 
 /*
- * Initialize -> UptaneCycle -> updates downloaded and installed for primary
+ * Initialize -> UptaneCycle -> updates downloaded and installed for Primary
  * -> reboot emulated -> Initialize -> Finalize Installation After Reboot
  *
  * Verifies an auto reboot and pending updates finalization after a reboot
@@ -1170,7 +1170,7 @@ TEST(Aktualizr, AutoRebootAfterUpdate) {
     result::UpdateCheck update_res = aktualizr.CheckUpdates().get();
     EXPECT_EQ(update_res.status, result::UpdateStatus::kNoUpdatesAvailable);
 
-    // primary is installed, nothing pending
+    // Primary is installed, nothing pending
     boost::optional<Uptane::Target> current_target;
     boost::optional<Uptane::Target> pending_target;
     storage->loadPrimaryInstalledVersions(&current_target, &pending_target);
@@ -1181,10 +1181,10 @@ TEST(Aktualizr, AutoRebootAfterUpdate) {
 }
 
 /*
- * Initialize -> UptaneCycle -> updates downloaded and installed for secondaries
- * without changing the primary.
+ * Initialize -> UptaneCycle -> updates downloaded and installed for Secondaries
+ * without changing the Primary.
 
- * Store installation result for secondary
+ * Store installation result for Secondary
  */
 TEST(Aktualizr, FullMultipleSecondaries) {
   TemporaryDirectory temp_dir;
@@ -1256,7 +1256,7 @@ TEST(Aktualizr, FullMultipleSecondaries) {
             "secondary_firmware2.txt");
   EXPECT_EQ(manifest_versions["sec_serial2"]["signed"]["installed_image"]["fileinfo"]["length"].asUInt(), 21);
 
-  // Make sure there is no result for the primary by checking the size
+  // Make sure there is no result for the Primary by checking the size
   EXPECT_EQ(manifest["installation_report"]["report"]["items"].size(), 2);
   EXPECT_EQ(manifest["installation_report"]["report"]["items"][0]["ecu"].asString(), "sec_serial1");
   EXPECT_TRUE(manifest["installation_report"]["report"]["items"][0]["result"]["success"].asBool());
@@ -1769,7 +1769,7 @@ TEST(Aktualizr, InstallWithUpdates) {
         break;
       }
       case 6: {
-        // Primary should complete before secondary begins. (Again not a
+        // Primary should complete before Secondary begins. (Again not a
         // requirement per se.)
         ASSERT_EQ(event->variant, "InstallTargetComplete");
         const auto install_complete = dynamic_cast<event::InstallTargetComplete*>(event.get());
@@ -1896,7 +1896,7 @@ TEST(Aktualizr, ReportDownloadProgress) {
 
   result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
   ASSERT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
-  // The test mocks are tailored to emulate a device with a primary ECU and one secondary ECU
+  // The test mocks are tailored to emulate a device with a Primary ECU and one Secondary ECU
   // for sake of the download progress report testing it's suffice to test it agains just one of the ECUs
   update_result.updates.pop_back();
 
