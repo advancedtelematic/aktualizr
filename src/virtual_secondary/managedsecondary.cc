@@ -142,7 +142,12 @@ bool ManagedSecondary::putRoot(const std::string &root, const bool director) {
   return true;
 }
 
-data::ResultCode::Numeric ManagedSecondary::install(const Uptane::Target &target_name) {
+data::ResultCode::Numeric ManagedSecondary::sendFirmware(const Uptane::Target &target) {
+  (void)target;
+  return data::ResultCode::Numeric::kOk;
+}
+
+data::ResultCode::Numeric ManagedSecondary::install(const Uptane::Target &target) {
   if (fiu_fail((std::string("secondary_install_") + getSerial().ToString()).c_str()) != 0) {
     // consider changing this approach of the fault injection, since the current approach impacts the non-test code flow
     // here as well as it doesn't test the installation failure on secondary from an end-to-end perspective as it
@@ -153,7 +158,7 @@ data::ResultCode::Numeric ManagedSecondary::install(const Uptane::Target &target
     return data::ResultCode::Numeric::kInstallFailed;
   }
 
-  image_reader(target_name)->writeToFile(sconfig.firmware_path);
+  image_reader(target)->writeToFile(sconfig.firmware_path);
   Utils::writeFile(sconfig.target_name_path, expected_target_name);
   return data::ResultCode::Numeric::kOk;
 }
