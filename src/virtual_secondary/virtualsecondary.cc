@@ -68,27 +68,6 @@ void VirtualSecondaryConfig::dump(const boost::filesystem::path& file_full_path)
 VirtualSecondary::VirtualSecondary(Primary::VirtualSecondaryConfig sconfig_in, ImageReaderProvider image_reader_in)
     : ManagedSecondary(std::move(sconfig_in), std::move(image_reader_in)) {}
 
-bool VirtualSecondary::storeFirmware(const std::string& target_name, const std::string& content) {
-  if (fiu_fail((std::string("secondary_install_") + getSerial().ToString()).c_str()) != 0) {
-    // consider changing this approach of the fault injection, since the current approach impacts the non-test code flow
-    // here as well as it doesn't test the installation failure on secondary from an end-to-end perspective as it
-    // injects an error on the middle of the control flow that would have happened if an installation error had happened
-    // in case of the virtual or the ip-secondary or any other secondary, e.g. add a mock secondary that returns an
-    // error to sendFirmware/install request we might consider passing the installation description message from
-    // Secondary, not just bool and/or data::ResultCode::Numeric
-    return false;
-  }
-
-  // TODO: it does not make much sense to read, pass via a function parameter to Virtual secondary
-  // and store the file that has been already downloaded by Primary
-  // Primary should apply ECU (Primary, virtual, Secondary) specific verification, download and installation logic in
-  // the first place
-  Utils::writeFile(sconfig.target_name_path, target_name);
-  Utils::writeFile(sconfig.firmware_path, content);
-  sync();
-  return true;
-}
-
 bool VirtualSecondary::getFirmwareInfo(Uptane::InstalledImageInfo& firmware_info) const {
   std::string content;
 
