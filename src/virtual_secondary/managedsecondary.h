@@ -72,7 +72,6 @@ class ManagedSecondary : public Uptane::SecondaryInterface {
   std::mutex install_mutex;
   ImageReaderProvider image_reader;
 
-  virtual bool storeFirmware(const std::string& target_name, const std::string& content) = 0;
   virtual bool getFirmwareInfo(Uptane::InstalledImageInfo& firmware_info) const = 0;
 
  private:
