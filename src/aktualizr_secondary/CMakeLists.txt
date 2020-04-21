@@ -48,7 +48,6 @@ set(ALL_AKTUALIZR_SECONDARY_HEADERS
     aktualizr_secondary_config.h
     aktualizr_secondary_metadata.h
     secondary_tcp_server.h
-    aktualizr_secondary_interface.h
     msg_handler.h
     )
 
