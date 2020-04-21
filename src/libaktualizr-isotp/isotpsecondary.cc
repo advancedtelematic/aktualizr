@@ -140,6 +140,11 @@ bool IsoTpSecondary::putMetadata(const RawMetaPack& meta_pack) {
   return conn.Send(out);
 }
 
+data::ResultCode::Numeric IsoTpSecondary::sendFirmware(const Target& target) {
+  (void)target;
+  return data::ResultCode::Numeric::kOk;
+}
+
 data::ResultCode::Numeric IsoTpSecondary::install(const Target& target) {
   auto result = data::ResultCode::Numeric::kOk;
 

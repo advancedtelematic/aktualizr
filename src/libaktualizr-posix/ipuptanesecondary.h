@@ -36,6 +36,7 @@ class IpUptaneSecondary : public SecondaryInterface {
   bool putRoot(const std::string& /* root */, bool /* director */) override { return true; }
   Manifest getManifest() const override;
   bool ping() const override;
+  data::ResultCode::Numeric sendFirmware(const Uptane::Target& target) override;
   data::ResultCode::Numeric install(const Uptane::Target& target) override;
 
  private:
