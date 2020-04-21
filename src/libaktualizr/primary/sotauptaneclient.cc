@@ -1292,7 +1292,11 @@ std::future<data::ResultCode::Numeric> SotaUptaneClient::sendFirmwareAsync(Uptan
     sendEvent<event::InstallStarted>(secondary.getSerial());
     report_queue->enqueue(std_::make_unique<EcuInstallationStartedReport>(secondary.getSerial(), correlation_id));
 
-    data::ResultCode::Numeric result = secondary.install(target);
+    data::ResultCode::Numeric result = secondary.sendFirmware(target);
+
+    if (result == data::ResultCode::Numeric::kOk) {
+      result = secondary.install(target);
+    }
 
     if (result == data::ResultCode::Numeric::kNeedCompletion) {
       report_queue->enqueue(std_::make_unique<EcuInstallationAppliedReport>(secondary.getSerial(), correlation_id));

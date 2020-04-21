@@ -76,8 +76,13 @@ bool PartialVerificationSecondary::putRoot(const std::string &root, bool directo
   return false;
 }
 
-data::ResultCode::Numeric PartialVerificationSecondary::install(const Uptane::Target &target_name) {
-  (void)target_name;
+data::ResultCode::Numeric PartialVerificationSecondary::sendFirmware(const Uptane::Target &target) {
+  (void)target;
+  throw NotImplementedException();
+}
+
+data::ResultCode::Numeric PartialVerificationSecondary::install(const Uptane::Target &target) {
+  (void)target;
   throw NotImplementedException();
 }
 

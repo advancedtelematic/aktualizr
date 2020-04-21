@@ -33,6 +33,7 @@ class SecondaryInterface {
   virtual int32_t getRootVersion(bool director) const = 0;
   virtual bool putRoot(const std::string& root, bool director) = 0;
 
+  virtual data::ResultCode::Numeric sendFirmware(const Target& target) = 0;
   virtual data::ResultCode::Numeric install(const Target& target) = 0;
 
   virtual ~SecondaryInterface() = default;
