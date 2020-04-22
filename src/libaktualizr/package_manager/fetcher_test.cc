@@ -260,6 +260,8 @@ TEST(Fetcher, DownloadLengthZero) {
   Json::Value empty_target_json;
   empty_target_json["hashes"]["sha256"] = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
   empty_target_json["length"] = 0;
+  // Make sure this isn't confused for an old-style OSTree target.
+  empty_target_json["custom"]["targetFormat"] = "binary";
   Uptane::Target empty_target("empty_file", empty_target_json);
   EXPECT_TRUE(pacman->fetchTarget(empty_target, fetcher, keys, progress_cb, nullptr));
   EXPECT_EQ(pacman->verifyTarget(empty_target), TargetStatus::kGood);
@@ -306,6 +308,39 @@ TEST(Fetcher, NotEnoughDiskSpace) {
 
   // Try to fetch a 1-byte target: download succeeds, and http module is called.
   // This is done purely to make sure the test is designed correctly.
+  Json::Value nonempty_target_json;
+  nonempty_target_json["hashes"]["sha256"] = "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9";
+  nonempty_target_json["length"] = 1;
+  Uptane::Target nonempty_target("fake_file", nonempty_target_json);
+  EXPECT_TRUE(pacman->fetchTarget(nonempty_target, fetcher, keys, progress_cb, nullptr));
+  EXPECT_EQ(pacman->verifyTarget(nonempty_target), TargetStatus::kGood);
+  EXPECT_EQ(http->counter, 1);
+}
+
+/* Abort downloading an OSTree target with the fake/binary package manager. */
+TEST(Fetcher, DownloadOstreeFail) {
+  TemporaryDirectory temp_dir;
+  config.storage.path = temp_dir.Path();
+  config.uptane.repo_server = server;
+
+  std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
+  auto http = std::make_shared<HttpZeroLength>(temp_dir.Path());
+  auto pacman = std::make_shared<PackageManagerFake>(config.pacman, config.bootloader, storage, http);
+  KeyManager keys(storage, config.keymanagerConfig());
+  Uptane::Fetcher fetcher(config, http);
+
+  // Empty target: download succeeds, but http module is never called.
+  Json::Value empty_target_json;
+  empty_target_json["hashes"]["sha256"] = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+  empty_target_json["length"] = 0;
+  empty_target_json["custom"]["targetFormat"] = "OSTREE";
+  Uptane::Target empty_target("empty_file", empty_target_json);
+  EXPECT_FALSE(pacman->fetchTarget(empty_target, fetcher, keys, progress_cb, nullptr));
+  EXPECT_NE(pacman->verifyTarget(empty_target), TargetStatus::kGood);
+  EXPECT_EQ(http->counter, 0);
+
+  // Non-empty target: download succeeds, and http module is called. This is
+  // done purely to make sure the test is designed correctly.
   Json::Value nonempty_target_json;
   nonempty_target_json["hashes"]["sha256"] = "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9";
   nonempty_target_json["length"] = 1;

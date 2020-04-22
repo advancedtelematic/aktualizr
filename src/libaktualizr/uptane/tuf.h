@@ -211,8 +211,8 @@ class Target {
  public:
   // From Uptane metadata
   Target(std::string filename, const Json::Value &content);
-  // Internal, does not have type. Only used for reading installation_versions
-  // list and by various tests.
+  // Internal use only. Only used for reading installed_versions list and by
+  // various tests.
   Target(std::string filename, EcuMap ecus, std::vector<Hash> hashes, uint64_t length, std::string correlation_id = "");
 
   static Target Unknown();

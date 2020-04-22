@@ -110,5 +110,10 @@ bool PackageManagerFake::fetchTarget(const Uptane::Target& target, Uptane::Fetch
     return false;
   }
 
+  if (target.IsOstree()) {
+    LOG_ERROR << "Cannot download OSTree target " << target.filename() << " with the fake package manager!";
+    return false;
+  }
+
   return PackageManagerInterface::fetchTarget(target, fetcher, keys, progress_cb, token);
 }
