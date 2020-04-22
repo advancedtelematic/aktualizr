@@ -136,7 +136,7 @@ class HttpFake : public HttpInterface {
     auto resp_future = resp_promise.get_future();
     std::thread(
         [path, write_cb, progress_cb, userp, url](std::promise<HttpResponse> promise) {
-          std::string content = Utils::readFile(path.string());
+          const std::string content = Utils::readFile(path.string());
           for (unsigned int i = 0; i < content.size(); ++i) {
             write_cb(const_cast<char *>(&content[i]), 1, 1, userp);
             progress_cb(userp, 0, 0, 0, 0);

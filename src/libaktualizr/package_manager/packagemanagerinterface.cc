@@ -92,11 +92,12 @@ bool PackageManagerInterface::fetchTarget(const Uptane::Target& target, Uptane::
       LOG_INFO << "Image already downloaded; skipping download";
       return true;
     }
+    std::unique_ptr<DownloadMetaStruct> ds = std_::make_unique<DownloadMetaStruct>(target, progress_cb, token);
     if (target.length() == 0) {
-      LOG_WARNING << "Skipping download of target with length 0";
+      LOG_INFO << "Skipping download of target with length 0";
+      ds->fhandle = storage_->allocateTargetFile(target);
       return true;
     }
-    std::unique_ptr<DownloadMetaStruct> ds = std_::make_unique<DownloadMetaStruct>(target, progress_cb, token);
     if (exists == TargetStatus::kIncomplete) {
       LOG_INFO << "Continuing incomplete download of file " << target.filename();
       auto target_check = storage_->checkTargetFile(target);
