@@ -15,8 +15,7 @@ class RepositoryCommon {
   bool verifyRoot(const std::string &root_raw);
   int rootVersion() { return root.version(); }
   bool rootExpired() { return root.isExpired(TimeStamp::Now()); }
-  virtual bool updateMeta(INvStorage &storage, const IMetadataFetcher &fetcher) = 0;
-  Exception getLastException() const { return last_exception; }
+  virtual void updateMeta(INvStorage &storage, const IMetadataFetcher &fetcher) = 0;
 
  protected:
   void resetRoot();
@@ -26,7 +25,6 @@ class RepositoryCommon {
 
   Root root;
   RepositoryType type;
-  Exception last_exception{"", ""};
 };
 }  // namespace Uptane
 

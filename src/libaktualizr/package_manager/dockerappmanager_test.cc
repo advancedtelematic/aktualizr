@@ -111,7 +111,7 @@ TEST(DockerAppManager, DockerAppStandalone) {
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   KeyManager keys(storage, config.keymanagerConfig());
   auto client = std_::make_unique<SotaUptaneClient>(config, storage);
-  ASSERT_TRUE(client->updateImageMeta());
+  ASSERT_NO_THROW(client->updateImageMeta());
 
   std::string targets = Utils::readFile(repo / "repo/repo/targets.json");
   LOG_INFO << "Repo targets " << targets;

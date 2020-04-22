@@ -16,16 +16,14 @@ bool ImageRepository::verifyTimestamp(const std::string& timestamp_raw) {
         TimestampMeta(RepositoryType::Image(), Utils::parseJSON(timestamp_raw), std::make_shared<MetaWithKeys>(root));
   } catch (const Exception& e) {
     LOG_ERROR << "Signature verification for Timestamp metadata failed";
-    last_exception = e;
-    return false;
+    throw e;
   }
   return true;
 }
 
 bool ImageRepository::timestampExpired() {
   if (timestamp.isExpired(TimeStamp::Now())) {
-    last_exception = Uptane::ExpiredMetadata(type.toString(), Role::Timestamp().ToString());
-    return true;
+    throw Uptane::ExpiredMetadata(type.toString(), Role::Timestamp().ToString());
   }
   return false;
 }
@@ -96,16 +94,14 @@ bool ImageRepository::verifySnapshot(const std::string& snapshot_raw, bool prefe
     }
   } catch (const Exception& e) {
     LOG_ERROR << "Signature verification for Snapshot metadata failed";
-    last_exception = e;
-    return false;
+    throw e;
   }
   return true;
 }
 
 bool ImageRepository::snapshotExpired() {
   if (snapshot.isExpired(TimeStamp::Now())) {
-    last_exception = Uptane::ExpiredMetadata(type.toString(), Role::Snapshot().ToString());
-    return true;
+    throw Uptane::ExpiredMetadata(type.toString(), Role::Snapshot().ToString());
   }
   return false;
 }
@@ -188,8 +184,7 @@ bool ImageRepository::verifyTargets(const std::string& targets_raw, bool prefetc
     }
   } catch (const Exception& e) {
     LOG_ERROR << "Signature verification for Image repo Targets metadata failed";
-    last_exception = e;
-    return false;
+    throw e;
   }
   return true;
 }
@@ -214,17 +209,16 @@ std::shared_ptr<Uptane::Targets> ImageRepository::verifyDelegation(const std::st
 
 bool ImageRepository::targetsExpired() {
   if (targets->isExpired(TimeStamp::Now())) {
-    last_exception = Uptane::ExpiredMetadata(type.toString(), Role::Targets().ToString());
-    return true;
+    throw Uptane::ExpiredMetadata(type.toString(), Role::Targets().ToString());
   }
   return false;
 }
 
-bool ImageRepository::updateMeta(INvStorage& storage, const IMetadataFetcher& fetcher) {
+void ImageRepository::updateMeta(INvStorage& storage, const IMetadataFetcher& fetcher) {
   resetMeta();
 
   if (!updateRoot(storage, fetcher, RepositoryType::Image())) {
-    return false;
+    throw std::runtime_error("");
   }
 
   // Update Image repo Timestamp metadata
@@ -232,7 +226,7 @@ bool ImageRepository::updateMeta(INvStorage& storage, const IMetadataFetcher& fe
     std::string image_timestamp;
 
     if (!fetcher.fetchLatestRole(&image_timestamp, kMaxTimestampSize, RepositoryType::Image(), Role::Timestamp())) {
-      return false;
+      throw std::runtime_error("");
     }
     int remote_version = extractVersionUntrusted(image_timestamp);
 
@@ -245,17 +239,17 @@ bool ImageRepository::updateMeta(INvStorage& storage, const IMetadataFetcher& fe
     }
 
     if (!verifyTimestamp(image_timestamp)) {
-      return false;
+      throw std::runtime_error("");
     }
 
     if (local_version > remote_version) {
-      return false;
+      throw std::runtime_error("");
     } else if (local_version < remote_version) {
       storage.storeNonRoot(image_timestamp, RepositoryType::Image(), Role::Timestamp());
     }
 
     if (timestampExpired()) {
-      return false;
+      throw std::runtime_error("");
     }
   }
 
@@ -279,12 +273,12 @@ bool ImageRepository::updateMeta(INvStorage& storage, const IMetadataFetcher& fe
     // If we don't, attempt to fetch the latest.
     if (fetch_snapshot) {
       if (!fetchSnapshot(storage, fetcher, local_version)) {
-        return false;
+        throw std::runtime_error("");
       }
     }
 
     if (snapshotExpired()) {
-      return false;
+      throw std::runtime_error("");
     }
   }
 
@@ -308,33 +302,31 @@ bool ImageRepository::updateMeta(INvStorage& storage, const IMetadataFetcher& fe
     // If we don't, attempt to fetch the latest.
     if (fetch_targets) {
       if (!fetchTargets(storage, fetcher, local_version)) {
-        return false;
+        throw std::runtime_error("");
       }
     }
 
     if (targetsExpired()) {
-      return false;
+      throw std::runtime_error("");
     }
   }
-
-  return true;
 }
 
-bool ImageRepository::checkMetaOffline(INvStorage& storage) {
+void ImageRepository::checkMetaOffline(INvStorage& storage) {
   resetMeta();
   // Load Image repo Root metadata
   {
     std::string image_root;
     if (!storage.loadLatestRoot(&image_root, RepositoryType::Image())) {
-      return false;
+      throw std::runtime_error("");
     }
 
     if (!initRoot(image_root)) {
-      return false;
+      throw std::runtime_error("");
     }
 
     if (rootExpired()) {
-      return false;
+      throw std::runtime_error("");
     }
   }
 
@@ -342,15 +334,15 @@ bool ImageRepository::checkMetaOffline(INvStorage& storage) {
   {
     std::string image_timestamp;
     if (!storage.loadNonRoot(&image_timestamp, RepositoryType::Image(), Role::Timestamp())) {
-      return false;
+      throw std::runtime_error("");
     }
 
     if (!verifyTimestamp(image_timestamp)) {
-      return false;
+      throw std::runtime_error("");
     }
 
     if (timestampExpired()) {
-      return false;
+      throw std::runtime_error("");
     }
   }
 
@@ -359,15 +351,15 @@ bool ImageRepository::checkMetaOffline(INvStorage& storage) {
     std::string image_snapshot;
 
     if (!storage.loadNonRoot(&image_snapshot, RepositoryType::Image(), Role::Snapshot())) {
-      return false;
+      throw std::runtime_error("");
     }
 
     if (!verifySnapshot(image_snapshot, false)) {
-      return false;
+      throw std::runtime_error("");
     }
 
     if (snapshotExpired()) {
-      return false;
+      throw std::runtime_error("");
     }
   }
 
@@ -376,19 +368,17 @@ bool ImageRepository::checkMetaOffline(INvStorage& storage) {
     std::string image_targets;
     Role targets_role = Uptane::Role::Targets();
     if (!storage.loadNonRoot(&image_targets, RepositoryType::Image(), targets_role)) {
-      return false;
+      throw std::runtime_error("");
     }
 
     if (!verifyTargets(image_targets, false)) {
-      return false;
+      throw std::runtime_error("");
     }
 
     if (targetsExpired()) {
-      return false;
+      throw std::runtime_error("");
     }
   }
-
-  return true;
 }
 
 }  // namespace Uptane

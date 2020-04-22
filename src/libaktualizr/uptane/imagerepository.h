@@ -30,8 +30,8 @@ class ImageRepository : public RepositoryCommon {
   int getRoleVersion(const Uptane::Role& role) const;
   int64_t getRoleSize(const Uptane::Role& role) const;
 
-  bool checkMetaOffline(INvStorage& storage);
-  bool updateMeta(INvStorage& storage, const IMetadataFetcher& fetcher) override;
+  void checkMetaOffline(INvStorage& storage);
+  void updateMeta(INvStorage& storage, const IMetadataFetcher& fetcher) override;
 
  private:
   bool timestampExpired();

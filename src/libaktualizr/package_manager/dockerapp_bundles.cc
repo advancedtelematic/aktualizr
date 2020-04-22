@@ -78,7 +78,11 @@ std::vector<std::pair<std::string, std::string>> DockerAppBundles::iterate_apps(
   Uptane::ImageRepository repo;
   // checkMetaOffline pulls in data from INvStorage to properly initialize
   // the targets member of the instance so that we can use the LazyTargetList
-  repo.checkMetaOffline(*storage_);
+  try {
+    repo.checkMetaOffline(*storage_);
+  } catch (const std::exception &e) {
+    // ignore errors here
+  }
 
   if (!apps) {
     LOG_DEBUG << "Detected an update target from Director with no docker-apps data";

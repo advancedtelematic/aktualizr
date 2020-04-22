@@ -73,8 +73,15 @@ bool Initializer::initEcuSerials() {
 
 void Initializer::resetEcuSerials() { storage_->clearEcuSerials(); }
 
-// Postcondition: (public, private) is in the storage. It should not be stored until Secondaries are provisioned
-bool Initializer::initPrimaryEcuKeys() { return keys_.generateUptaneKeyPair().size() != 0U; }
+// Postcondition: (public, private) is in the storage. It should not be stored until secondaries are provisioned
+bool Initializer::initPrimaryEcuKeys() {
+  try {
+    return keys_.generateUptaneKeyPair().size() != 0U;
+  } catch (const std::exception &e) {
+    LOG_ERROR << "Initializer error: " << e.what();
+  }
+  return false;
+}
 
 void Initializer::resetEcuKeys() { storage_->clearPrimaryKeys(); }
 

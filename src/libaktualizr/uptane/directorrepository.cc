@@ -10,8 +10,7 @@ void DirectorRepository::resetMeta() {
 
 bool DirectorRepository::targetsExpired() {
   if (latest_targets.isExpired(TimeStamp::Now())) {
-    last_exception = Uptane::ExpiredMetadata(type.toString(), Role::Targets().ToString());
-    return true;
+    throw Uptane::ExpiredMetadata(type.toString(), Role::Targets().ToString());
   }
   return false;
 }
@@ -20,9 +19,7 @@ bool DirectorRepository::targetsSanityCheck() {
   //  5.4.4.6.6. If checking Targets metadata from the Director repository,
   //  verify that there are no delegations.
   if (!latest_targets.delegated_role_names_.empty()) {
-    last_exception =
-        Uptane::InvalidMetadata(type.toString(), Role::Targets().ToString(), "Found unexpected delegation.");
-    return false;
+    throw Uptane::InvalidMetadata(type.toString(), Role::Targets().ToString(), "Found unexpected delegation.");
   }
   //  5.4.4.6.7. If checking Targets metadata from the Director repository,
   //  check that no ECU identifier is represented more than once.
@@ -32,8 +29,7 @@ bool DirectorRepository::targetsSanityCheck() {
       if (ecu_ids.find(ecu.first) == ecu_ids.end()) {
         ecu_ids.insert(ecu.first);
       } else {
-        last_exception = Uptane::InvalidMetadata(type.toString(), Role::Targets().ToString(), "Found repeated ECU ID.");
-        return false;
+        throw Uptane::InvalidMetadata(type.toString(), Role::Targets().ToString(), "Found repeated ECU ID.");
       }
     }
   }
@@ -56,27 +52,26 @@ bool DirectorRepository::verifyTargets(const std::string& targets_raw) {
     }
   } catch (const Uptane::Exception& e) {
     LOG_ERROR << "Signature verification for Director Targets metadata failed";
-    last_exception = e;
-    return false;
+    throw e;
   }
   return true;
 }
 
-bool DirectorRepository::checkMetaOffline(INvStorage& storage) {
+void DirectorRepository::checkMetaOffline(INvStorage& storage) {
   resetMeta();
   // Load Director Root Metadata
   {
     std::string director_root;
     if (!storage.loadLatestRoot(&director_root, RepositoryType::Director())) {
-      return false;
+      throw std::runtime_error("");
     }
 
     if (!initRoot(director_root)) {
-      return false;
+      throw std::runtime_error("");
     }
 
     if (rootExpired()) {
-      return false;
+      throw std::runtime_error("");
     }
   }
 
@@ -85,26 +80,24 @@ bool DirectorRepository::checkMetaOffline(INvStorage& storage) {
     std::string director_targets;
 
     if (!storage.loadNonRoot(&director_targets, RepositoryType::Director(), Role::Targets())) {
-      return false;
+      throw std::runtime_error("");
     }
 
     if (!verifyTargets(director_targets)) {
-      return false;
+      throw std::runtime_error("");
     }
 
     if (targetsExpired()) {
-      return false;
+      throw std::runtime_error("");
     }
 
     if (!targetsSanityCheck()) {
-      return false;
+      throw std::runtime_error("");
     }
   }
-
-  return true;
 }
 
-bool DirectorRepository::updateMeta(INvStorage& storage, const IMetadataFetcher& fetcher) {
+void DirectorRepository::updateMeta(INvStorage& storage, const IMetadataFetcher& fetcher) {
   // Uptane step 2 (download time) is not implemented yet.
   // Uptane step 3 (download metadata)
 
@@ -112,7 +105,7 @@ bool DirectorRepository::updateMeta(INvStorage& storage, const IMetadataFetcher&
   resetMeta();
 
   if (!updateRoot(storage, fetcher, RepositoryType::Director())) {
-    return false;
+    throw std::runtime_error("");
   }
 
   // Not supported: 3. Download and check the Timestamp metadata file from the Director repository, following the
@@ -125,7 +118,7 @@ bool DirectorRepository::updateMeta(INvStorage& storage, const IMetadataFetcher&
 
     if (!fetcher.fetchLatestRole(&director_targets, kMaxDirectorTargetsSize, RepositoryType::Director(),
                                  Role::Targets())) {
-      return false;
+      throw std::runtime_error("");
     }
     int remote_version = extractVersionUntrusted(director_targets);
 
@@ -141,25 +134,23 @@ bool DirectorRepository::updateMeta(INvStorage& storage, const IMetadataFetcher&
     }
 
     if (!verifyTargets(director_targets)) {
-      return false;
+      throw std::runtime_error("");
     }
 
     if (local_version > remote_version) {
-      return false;
+      throw std::runtime_error("");
     } else if (local_version < remote_version && !usePreviousTargets()) {
       storage.storeNonRoot(director_targets, RepositoryType::Director(), Role::Targets());
     }
 
     if (targetsExpired()) {
-      return false;
+      throw std::runtime_error("");
     }
 
     if (!targetsSanityCheck()) {
-      return false;
+      throw std::runtime_error("");
     }
   }
-
-  return true;
 }
 
 void DirectorRepository::dropTargets(INvStorage& storage) {

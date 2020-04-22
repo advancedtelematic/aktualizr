@@ -311,6 +311,7 @@ void SotaUptaneClient::initialize() {
   }
 
   EcuSerials serials;
+  /* unlikely, post-condition of Initializer::Initializer() */
   if (!storage->loadEcuSerials(&serials) || serials.size() == 0) {
     throw std::runtime_error("Unable to load ECU serials after device registration.");
   }
@@ -342,36 +343,20 @@ void SotaUptaneClient::initialize() {
   finalizeAfterReboot();
 }
 
-bool SotaUptaneClient::updateDirectorMeta() {
-  if (!director_repo.updateMeta(*storage, *uptane_fetcher)) {
-    last_exception = director_repo.getLastException();
-    return false;
-  }
-  return true;
+void SotaUptaneClient::updateDirectorMeta() {
+  director_repo.updateMeta(*storage, *uptane_fetcher);
 }
 
-bool SotaUptaneClient::updateImageMeta() {
-  if (!image_repo.updateMeta(*storage, *uptane_fetcher)) {
-    last_exception = image_repo.getLastException();
-    return false;
-  }
-  return true;
+void SotaUptaneClient::updateImageMeta() {
+  image_repo.updateMeta(*storage, *uptane_fetcher);
 }
 
-bool SotaUptaneClient::checkDirectorMetaOffline() {
-  if (!director_repo.checkMetaOffline(*storage)) {
-    last_exception = director_repo.getLastException();
-    return false;
-  }
-  return true;
+void SotaUptaneClient::checkDirectorMetaOffline() {
+  director_repo.checkMetaOffline(*storage);
 }
 
-bool SotaUptaneClient::checkImageMetaOffline() {
-  if (!image_repo.checkMetaOffline(*storage)) {
-    last_exception = image_repo.getLastException();
-    return false;
-  }
-  return true;
+void SotaUptaneClient::checkImageMetaOffline() {
+  image_repo.checkMetaOffline(*storage);
 }
 
 void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult *result,
@@ -449,7 +434,7 @@ void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult 
   }
 }
 
-bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, unsigned int *ecus_count) {
+void SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, unsigned int *ecus_count) {
   std::vector<Uptane::Target> targets = director_repo.getTargets().targets;
   Uptane::EcuSerial primary_ecu_serial = primaryEcuSerial();
   if (ecus_count != nullptr) {
@@ -468,14 +453,12 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
       auto hw_id_known = ecuHwId(ecu_serial);
       if (!hw_id_known) {
         LOG_ERROR << "Unknown ECU ID in Director Targets metadata: " << ecu_serial.ToString();
-        last_exception = Uptane::BadEcuId(target.filename());
-        return false;
+        throw Uptane::BadEcuId(target.filename());
       }
 
       if (*hw_id_known != hw_id) {
         LOG_ERROR << "Wrong hardware identifier for ECU " << ecu_serial.ToString();
-        last_exception = Uptane::BadHardwareId(target.filename());
-        return false;
+        throw Uptane::BadHardwareId(target.filename());
       }
 
       boost::optional<Uptane::Target> current_version;
@@ -495,8 +478,7 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
         if (!target.IsOstree() &&
             (config.pacman.type == PACKAGE_MANAGER_OSTREE || config.pacman.type == PACKAGE_MANAGER_OSTREEDOCKERAPP)) {
           LOG_ERROR << "Cannot install a non-OSTree package on an OSTree system";
-          last_exception = Uptane::InvalidTarget(target.filename());
-          return false;
+          throw Uptane::InvalidTarget(target.filename());
         }
       }
 
@@ -509,7 +491,6 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
       new_targets->push_back(target);
     }
   }
-  return true;
 }
 
 std::unique_ptr<Uptane::Target> SotaUptaneClient::findTargetHelper(const Uptane::Targets &cur_targets,
@@ -687,16 +668,20 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(const Uptane::Ta
   return {success, target};
 }
 
-bool SotaUptaneClient::uptaneIteration(std::vector<Uptane::Target> *targets, unsigned int *ecus_count) {
-  if (!updateDirectorMeta()) {
-    LOG_ERROR << "Failed to update Director metadata: " << last_exception.what();
-    return false;
+void SotaUptaneClient::uptaneIteration(std::vector<Uptane::Target> *targets, unsigned int *ecus_count) {
+  try {
+    updateDirectorMeta();
+  } catch (const std::exception &e) {
+    LOG_ERROR << "Director metadata update failed: " << e.what();
+    throw e;
   }
   std::vector<Uptane::Target> tmp_targets;
   unsigned int ecus;
-  if (!getNewTargets(&tmp_targets, &ecus)) {
+  try {
+    getNewTargets(&tmp_targets, &ecus);
+  } catch (const std::exception &e) {
     LOG_ERROR << "Inconsistency between Director metadata and discovered ECUs";
-    return false;
+    throw e;
   }
 
   if (tmp_targets.empty()) {
@@ -706,14 +691,16 @@ bool SotaUptaneClient::uptaneIteration(std::vector<Uptane::Target> *targets, uns
     if (ecus_count != nullptr) {
       *ecus_count = ecus;
     }
-    return true;
+    return;
   }
 
   LOG_INFO << "New updates found in Director metadata. Checking Image repo metadata...";
 
-  if (!updateImageMeta()) {
-    LOG_ERROR << "Failed to update Image repo metadata: " << last_exception.what();
-    return false;
+  try {
+    updateImageMeta();
+  } catch (const std::exception& e) {
+    LOG_ERROR << "Failed to update Image repo metadata: " << e.what();
+    throw e;
   }
 
   if (targets != nullptr) {
@@ -722,19 +709,22 @@ bool SotaUptaneClient::uptaneIteration(std::vector<Uptane::Target> *targets, uns
   if (ecus_count != nullptr) {
     *ecus_count = ecus;
   }
-  return true;
 }
 
-bool SotaUptaneClient::uptaneOfflineIteration(std::vector<Uptane::Target> *targets, unsigned int *ecus_count) {
-  if (!checkDirectorMetaOffline()) {
-    LOG_ERROR << "Failed to check Director metadata: " << last_exception.what();
-    return false;
+void SotaUptaneClient::uptaneOfflineIteration(std::vector<Uptane::Target> *targets, unsigned int *ecus_count) {
+  try {
+    checkDirectorMetaOffline();
+  } catch (const std::exception &e) {
+    LOG_ERROR << "Failed to check Director metadata: " << e.what();
+    throw e;
   }
   std::vector<Uptane::Target> tmp_targets;
   unsigned int ecus;
-  if (!getNewTargets(&tmp_targets, &ecus)) {
-    LOG_ERROR << "Inconsistency between Director metadata and existent ECUs";
-    return false;
+  try {
+    getNewTargets(&tmp_targets, &ecus);
+  } catch (const std::exception &e) {
+    LOG_ERROR << "Inconsistency between Director metadata and existent ECUs: " << e.what();
+    throw e;
   }
 
   if (tmp_targets.empty()) {
@@ -742,19 +732,20 @@ bool SotaUptaneClient::uptaneOfflineIteration(std::vector<Uptane::Target> *targe
     if (ecus_count != nullptr) {
       *ecus_count = ecus;
     }
-    return true;
+    return;
   }
 
-  if (!checkImageMetaOffline()) {
-    LOG_ERROR << "Failed to check Image repo metadata: " << last_exception.what();
-    return false;
+  try {
+    checkImageMetaOffline();
+  } catch (const std::exception &e) {
+    LOG_ERROR << "Failed to check Image repo metadata: " << e.what();
+    throw e;
   }
 
   *targets = std::move(tmp_targets);
   if (ecus_count != nullptr) {
     *ecus_count = ecus;
   }
-  return true;
 }
 
 void SotaUptaneClient::sendDeviceData(const Json::Value &custom_hwinfo) {
@@ -800,13 +791,18 @@ result::UpdateCheck SotaUptaneClient::checkUpdates() {
 
   std::vector<Uptane::Target> updates;
   unsigned int ecus_count = 0;
-  if (!uptaneIteration(&updates, &ecus_count)) {
+  try {
+    uptaneIteration(&updates, &ecus_count);
+  } catch (const std::exception &e) {
     result = result::UpdateCheck({}, 0, result::UpdateStatus::kError, Json::nullValue, "Could not update metadata.");
     return result;
   }
 
   std::string director_targets;
-  storage->loadNonRoot(&director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets());
+  if (!storage->loadNonRoot(&director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets())) {
+    // TODO: this kind of exception should come directly from the storage?
+    throw std::runtime_error("Could not get Director's Targets from storage");
+  }
 
   if (updates.empty()) {
     LOG_DEBUG << "No new updates found in Uptane metadata.";
@@ -822,14 +818,13 @@ result::UpdateCheck SotaUptaneClient::checkUpdates() {
   for (auto &target : updates) {
     auto image_target = findTargetInDelegationTree(target, false);
     if (image_target == nullptr) {
-      // TODO: Could also be a missing target or delegation expiration.
-      last_exception = Uptane::TargetMismatch(target.filename());
       LOG_ERROR << "No matching target in Image repo Targets metadata for " << target;
       result = result::UpdateCheck({}, 0, result::UpdateStatus::kError, Utils::parseJSON(director_targets),
                                    "Target mismatch.");
       storeInstallationFailure(
           data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed, "Metadata verification failed."));
-      return result;
+      // TODO: Could also be a missing target or delegation expiration.
+      throw Uptane::TargetMismatch(target.filename());
     }
     // If the URL from the Director is unset, but the URL from the Image repo
     // is set, use that.
@@ -862,7 +857,9 @@ result::UpdateStatus SotaUptaneClient::checkUpdatesOffline(const std::vector<Upt
 
   std::vector<Uptane::Target> director_targets;
   unsigned int ecus_count = 0;
-  if (!uptaneOfflineIteration(&director_targets, &ecus_count)) {
+  try {
+    uptaneOfflineIteration(&director_targets, &ecus_count);
+  } catch (const std::exception &e) {
     LOG_ERROR << "Invalid Uptane metadata in storage.";
     return result::UpdateStatus::kError;
   }
@@ -1342,8 +1339,7 @@ std::vector<result::Install::EcuReport> SotaUptaneClient::sendImagesToEcus(const
       auto f = secondaries.find(ecu_serial);
       if (f == secondaries.end()) {
         LOG_ERROR << "Target " << *targets_it << " has unknown ECU ID";
-        last_exception = Uptane::BadEcuId(targets_it->filename());
-        continue;
+        throw Uptane::BadEcuId(targets_it->filename());
       }
 
       Uptane::SecondaryInterface &sec = *f->second;

@@ -126,14 +126,12 @@ TEST_P(UptaneVector, Test) {
        *
        * It would be simpler to just call fetchMeta() here, but that calls
        * putManifestSimple(), which will fail here. */
-      if (!uptane_client->uptaneIteration(nullptr, nullptr)) {
-        ASSERT_TRUE(should_fail) << "uptaneIteration unexpectedly failed.";
-        throw uptane_client->getLastException();
-      }
+      uptane_client->uptaneIteration(nullptr, nullptr);
+
       result::UpdateCheck updates = uptane_client->checkUpdates();
       if (updates.status == result::UpdateStatus::kError) {
         ASSERT_TRUE(should_fail) << "checkUpdates unexpectedly failed.";
-        throw uptane_client->getLastException();
+        throw std::runtime_error("Unexpected failure");
       }
       if (updates.ecus_count > 0) {
         /* Download a binary package.
@@ -141,7 +139,7 @@ TEST_P(UptaneVector, Test) {
         result::Download result = uptane_client->downloadImages(updates.updates);
         if (result.status != result::DownloadStatus::kSuccess) {
           ASSERT_TRUE(should_fail) << "downloadImages unexpectedly failed.";
-          throw uptane_client->getLastException();
+          throw std::runtime_error("Unexpected failure");
         }
       }
 

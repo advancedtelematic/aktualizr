@@ -21,10 +21,10 @@ class DirectorRepository : public RepositoryCommon {
     return targets.getTargets(ecu_id, hw_id);
   }
   const std::string& getCorrelationId() const { return targets.correlation_id(); }
-  bool checkMetaOffline(INvStorage& storage);
+  void checkMetaOffline(INvStorage& storage);
   void dropTargets(INvStorage& storage);
 
-  bool updateMeta(INvStorage& storage, const IMetadataFetcher& fetcher) override;
+  void updateMeta(INvStorage& storage, const IMetadataFetcher& fetcher) override;
   bool matchTargetsWithImageTargets(const Uptane::Targets& image_targets) const;
 
  private:

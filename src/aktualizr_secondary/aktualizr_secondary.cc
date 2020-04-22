@@ -150,8 +150,10 @@ bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
   //  6. If checking Targets metadata from the Director repository, verify that there are no delegations.
   //  7. If checking Targets metadata from the Director repository, check that no ECU identifier is represented more
   //  than once.
-  if (!director_repo_.updateMeta(*storage_, metadata)) {
-    LOG_ERROR << "Failed to update Director metadata: " << director_repo_.getLastException().what();
+  try {
+    director_repo_.updateMeta(*storage_, metadata);
+  } catch (const std::exception &e) {
+    LOG_ERROR << "Failed to update Director metadata: " << e.what();
     return false;
   }
 
@@ -162,8 +164,10 @@ bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
   // Section 5.4.4.5.
   // 9. Download and check the top-level Targets metadata file from the Image repository, following the procedure in
   // Section 5.4.4.6.
-  if (!image_repo_.updateMeta(*storage_, metadata)) {
-    LOG_ERROR << "Failed to update Image repo metadata: " << image_repo_.getLastException().what();
+  try {
+    image_repo_.updateMeta(*storage_, metadata);
+  } catch (const std::exception &e) {
+    LOG_ERROR << "Failed to update Image repo metadata: " << e.what();
     return false;
   }
 
@@ -235,7 +239,9 @@ void AktualizrSecondary::uptaneInitialize() {
 }
 
 void AktualizrSecondary::initPendingTargetIfAny() {
-  if (!director_repo_.checkMetaOffline(*storage_)) {
+  try {
+    director_repo_.checkMetaOffline(*storage_);
+  } catch (const std::exception &e) {
     LOG_INFO << "No valid metadata found in storage.";
     return;
   }
