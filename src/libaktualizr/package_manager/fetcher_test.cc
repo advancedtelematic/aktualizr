@@ -230,20 +230,21 @@ class HttpZeroLength : public HttpFake {
   HttpZeroLength(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in) {}
   HttpResponse download(const std::string& url, curl_write_callback write_cb, curl_xferinfo_callback progress_cb,
                         void* userp, curl_off_t from) override {
-    (void)write_cb;
     (void)progress_cb;
-    (void)userp;
     (void)from;
 
     EXPECT_EQ(url, server + "/targets/fake_file");
+    const std::string content = "0";
+    write_cb(const_cast<char*>(&content[0]), 1, 1, userp);
     counter++;
-    return HttpResponse("0", 200, CURLE_OK, "");
+    return HttpResponse(content, 200, CURLE_OK, "");
   }
 
   int counter = 0;
 };
 
-/* Don't bother downloading a target with length 0. */
+/* Don't bother downloading a target with length 0, but make sure verification
+ * still succeeds so that installation is possible. */
 TEST(Fetcher, DownloadLengthZero) {
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
@@ -261,15 +262,17 @@ TEST(Fetcher, DownloadLengthZero) {
   empty_target_json["length"] = 0;
   Uptane::Target empty_target("empty_file", empty_target_json);
   EXPECT_TRUE(pacman->fetchTarget(empty_target, fetcher, keys, progress_cb, nullptr));
+  EXPECT_EQ(pacman->verifyTarget(empty_target), TargetStatus::kGood);
   EXPECT_EQ(http->counter, 0);
 
   // Non-empty target: download succeeds, and http module is called. This is
   // done purely to make sure the test is designed correctly.
   Json::Value nonempty_target_json;
-  nonempty_target_json["hashes"]["sha256"] = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+  nonempty_target_json["hashes"]["sha256"] = "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9";
   nonempty_target_json["length"] = 1;
   Uptane::Target nonempty_target("fake_file", nonempty_target_json);
   EXPECT_TRUE(pacman->fetchTarget(nonempty_target, fetcher, keys, progress_cb, nullptr));
+  EXPECT_EQ(pacman->verifyTarget(nonempty_target), TargetStatus::kGood);
   EXPECT_EQ(http->counter, 1);
 }
 
@@ -292,21 +295,23 @@ TEST(Fetcher, NotEnoughDiskSpace) {
   const uint64_t available_bytes = (stvfsbuf.f_bsize * stvfsbuf.f_bavail);
 
   // Try to fetch a target larger than the available disk space: an exception is
-  // thrown and the http module is never called.
+  // thrown and the http module is never called. Note the hash is bogus.
   Json::Value empty_target_json;
   empty_target_json["hashes"]["sha256"] = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
   empty_target_json["length"] = available_bytes * 2;
   Uptane::Target empty_target("empty_file", empty_target_json);
   EXPECT_FALSE(pacman->fetchTarget(empty_target, fetcher, keys, progress_cb, nullptr));
+  EXPECT_NE(pacman->verifyTarget(empty_target), TargetStatus::kGood);
   EXPECT_EQ(http->counter, 0);
 
   // Try to fetch a 1-byte target: download succeeds, and http module is called.
   // This is done purely to make sure the test is designed correctly.
   Json::Value nonempty_target_json;
-  nonempty_target_json["hashes"]["sha256"] = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+  nonempty_target_json["hashes"]["sha256"] = "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9";
   nonempty_target_json["length"] = 1;
   Uptane::Target nonempty_target("fake_file", nonempty_target_json);
   EXPECT_TRUE(pacman->fetchTarget(nonempty_target, fetcher, keys, progress_cb, nullptr));
+  EXPECT_EQ(pacman->verifyTarget(nonempty_target), TargetStatus::kGood);
   EXPECT_EQ(http->counter, 1);
 }
 
