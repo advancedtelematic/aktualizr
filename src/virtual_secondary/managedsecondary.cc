@@ -160,7 +160,6 @@ data::ResultCode::Numeric ManagedSecondary::install(const Uptane::Target &target
 
   image_reader(target)->writeToFile(sconfig.firmware_path);
   Utils::writeFile(sconfig.target_name_path, expected_target_name);
-  sync();
   return data::ResultCode::Numeric::kOk;
 }
 
