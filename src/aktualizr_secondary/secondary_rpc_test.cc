@@ -315,13 +315,23 @@ class SecondaryRpcTest : public ::testing::Test, public ::testing::WithParamInte
   data::ResultCode::Numeric sendAndInstallBinaryImage() {
     Json::Value target_json;
     target_json["custom"]["targetFormat"] = "BINARY";
-    return ip_secondary_->install(Uptane::Target(image_file_.path(), target_json));
+    Uptane::Target target = Uptane::Target(image_file_.path(), target_json);
+    data::ResultCode::Numeric result = ip_secondary_->sendFirmware(target);
+    if (result != data::ResultCode::Numeric::kOk) {
+      return result;
+    }
+    return ip_secondary_->install(target);
   }
 
   data::ResultCode::Numeric installOstreeRev() {
     Json::Value target_json;
     target_json["custom"]["targetFormat"] = "OSTREE";
-    return ip_secondary_->install(Uptane::Target("OSTREE", target_json));
+    Uptane::Target target = Uptane::Target("OSTREE", target_json);
+    data::ResultCode::Numeric result = ip_secondary_->sendFirmware(target);
+    if (result != data::ResultCode::Numeric::kOk) {
+      return result;
+    }
+    return ip_secondary_->install(target);
   }
 
  protected:
@@ -393,7 +403,9 @@ TEST(SecondaryTcpServer, TestIpSecondaryIfSecondaryIsNotRunning) {
   EXPECT_FALSE(ip_secondary->putMetadata(meta_pack));
   Json::Value target_json;
   target_json["custom"]["targetFormat"] = "BINARY";
-  EXPECT_NE(ip_secondary->install(Uptane::Target(target_file.path(), target_json)), data::ResultCode::Numeric::kOk);
+  Uptane::Target target = Uptane::Target(target_file.path(), target_json);
+  EXPECT_NE(ip_secondary->sendFirmware(target), data::ResultCode::Numeric::kOk);
+  EXPECT_NE(ip_secondary->install(target), data::ResultCode::Numeric::kOk);
 }
 
 class SecondaryRpcTestNegative : public ::testing::Test, public MsgHandler {

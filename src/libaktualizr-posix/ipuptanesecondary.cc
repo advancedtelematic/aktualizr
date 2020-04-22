@@ -168,26 +168,20 @@ bool IpUptaneSecondary::ping() const {
 }
 
 data::ResultCode::Numeric IpUptaneSecondary::sendFirmware(const Uptane::Target& target) {
-  (void)target;
-  return data::ResultCode::Numeric::kOk;
-}
-
-data::ResultCode::Numeric IpUptaneSecondary::install(const Uptane::Target& target) {
-  std::lock_guard<std::mutex> l(install_mutex);
-  auto install_result = install_v2(target);
-  if (install_result == data::ResultCode::Numeric::kUnknown) {
+  auto send_result = sendFirmware_v2(target);
+  if (send_result == data::ResultCode::Numeric::kUnknown) {
     // fallback to the previous installation version
     // TODO(OTA-4793): refactor to negotiate versioning once during
     // initialization.
-    LOG_ERROR << "Failed to install " << target.filename() << " on Secondary " << getSerial()
-              << "\nTry to install by applying the previous version of the installation procedure";
+    LOG_ERROR << "Failed to send firmware for target " << target.filename() << " to Secondary " << getSerial()
+              << "\nFalling back to previous version of the installation procedure.";
 
-    install_result = install_v1(target);
+    send_result = sendFirmware_v1(target);
   }
-  return install_result;
+  return send_result;
 }
 
-data::ResultCode::Numeric IpUptaneSecondary::install_v1(const Uptane::Target& target) {
+data::ResultCode::Numeric IpUptaneSecondary::sendFirmware_v1(const Uptane::Target& target) {
   std::string data_to_send;
 
   if (target.IsOstree()) {
@@ -199,11 +193,54 @@ data::ResultCode::Numeric IpUptaneSecondary::install_v1(const Uptane::Target& ta
     data_to_send = sstr.str();
   }
 
-  bool send_frimware_result = sendFirmware(data_to_send);
-  if (!send_frimware_result) {
-    return data::ResultCode::Numeric::kInstallFailed;
+  LOG_INFO << "Sending firmware to the Secondary, size: " << data_to_send.size();
+  Asn1Message::Ptr req(Asn1Message::Empty());
+  req->present(AKIpUptaneMes_PR_sendFirmwareReq);
+
+  auto m = req->sendFirmwareReq();
+  SetString(&m->firmware, data_to_send);
+  auto resp = Asn1Rpc(req, getAddr());
+
+  if (resp->present() != AKIpUptaneMes_PR_sendFirmwareResp) {
+    LOG_ERROR << "Failed to get response to sending firmware to Secondary";
+    return data::ResultCode::Numeric::kDownloadFailed;
+    ;
   }
 
+  auto r = resp->sendFirmwareResp();
+  if (r->result == AKInstallationResult_success) {
+    return data::ResultCode::Numeric::kOk;
+    ;
+  }
+  return data::ResultCode::Numeric::kDownloadFailed;
+  ;
+}
+
+data::ResultCode::Numeric IpUptaneSecondary::sendFirmware_v2(const Uptane::Target& target) {
+  LOG_INFO << "Instructing Secondary " << getSerial() << " to receive target " << target.filename();
+  if (target.IsOstree()) {
+    return downloadOstreeRev(target);
+  } else {
+    return uploadFirmware(target);
+  }
+}
+
+data::ResultCode::Numeric IpUptaneSecondary::install(const Uptane::Target& target) {
+  std::lock_guard<std::mutex> l(install_mutex);
+  auto install_result = install_v2(target);
+  if (install_result == data::ResultCode::Numeric::kUnknown) {
+    // fallback to the previous installation version
+    // TODO(OTA-4793): refactor to negotiate versioning once during
+    // initialization.
+    LOG_ERROR << "Failed to install " << target.filename() << " on Secondary " << getSerial()
+              << "\nFalling back to the previous version of the installation procedure.";
+
+    install_result = install_v1(target);
+  }
+  return install_result;
+}
+
+data::ResultCode::Numeric IpUptaneSecondary::install_v1(const Uptane::Target& target) {
   LOG_INFO << "Invoking an installation of the target on the Secondary: " << target.filename();
 
   Asn1Message::Ptr req(Asn1Message::Empty());
@@ -228,41 +265,8 @@ data::ResultCode::Numeric IpUptaneSecondary::install_v1(const Uptane::Target& ta
 }
 
 data::ResultCode::Numeric IpUptaneSecondary::install_v2(const Uptane::Target& target) {
-  data::ResultCode::Numeric data_delivery_result = data::ResultCode::Numeric::kDownloadFailed;
-
-  LOG_INFO << "Instructing Secondary " << getSerial() << " to receive target " << target.filename();
-
-  if (target.IsOstree()) {
-    data_delivery_result = downloadOstreeRev(target);
-  } else {
-    data_delivery_result = uploadFirmware(target);
-  }
-
-  if (data::ResultCode::Numeric::kOk != data_delivery_result) {
-    return data_delivery_result;
-  }
-
   LOG_INFO << "Instructing Secondary " << getSerial() << " to install target " << target.filename();
-
   return invokeInstallOnSecondary(target);
-}
-
-bool IpUptaneSecondary::sendFirmware(const std::string& data) {
-  LOG_INFO << "Sending firmware to the Secondary, size: " << data.size();
-  Asn1Message::Ptr req(Asn1Message::Empty());
-  req->present(AKIpUptaneMes_PR_sendFirmwareReq);
-
-  auto m = req->sendFirmwareReq();
-  SetString(&m->firmware, data);
-  auto resp = Asn1Rpc(req, getAddr());
-
-  if (resp->present() != AKIpUptaneMes_PR_sendFirmwareResp) {
-    LOG_ERROR << "Failed to get response to sending firmware to Secondary";
-    return false;
-  }
-
-  auto r = resp->sendFirmwareResp();
-  return r->result == AKInstallationResult_success;
 }
 
 data::ResultCode::Numeric IpUptaneSecondary::downloadOstreeRev(const Uptane::Target& target) {
