@@ -183,30 +183,27 @@ class SQLite3Guard {
   // if `rollbackTransaction()` is called explicitely, the changes will be
   // rolled back
 
-  bool beginTransaction() {
+  void beginTransaction() {
     // Note: transaction cannot be nested and this will fail if another
     // transaction was open on the same connection
-    int ret = exec("BEGIN TRANSACTION;", nullptr, nullptr);
-    if (ret != SQLITE_OK) {
+    if (exec("BEGIN TRANSACTION;", nullptr, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Can't begin transaction: " << errmsg();
+      throw SQLException("Transaction error");
     }
-    return ret == SQLITE_OK;
   }
 
-  bool commitTransaction() {
-    int ret = exec("COMMIT TRANSACTION;", nullptr, nullptr);
-    if (ret != SQLITE_OK) {
+  void commitTransaction() {
+    if (exec("COMMIT TRANSACTION;", nullptr, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Can't commit transaction: " << errmsg();
+      throw SQLException("Transaction error");
     }
-    return ret == SQLITE_OK;
   }
 
-  bool rollbackTransaction() {
-    int ret = exec("ROLLBACK TRANSACTION;", nullptr, nullptr);
-    if (ret != SQLITE_OK) {
+  void rollbackTransaction() {
+    if (exec("ROLLBACK TRANSACTION;", nullptr, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Can't rollback transaction: " << errmsg();
+      throw SQLException("Transaction error");
     }
-    return ret == SQLITE_OK;
   }
 
  private:

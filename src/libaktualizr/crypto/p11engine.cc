@@ -121,7 +121,7 @@ P11Engine::P11Engine(P11Config config) : config_(std::move(config)), ctx_(config
     // an engine which has not been fully initialized
     ENGINE_free(engine);
     ENGINE_cleanup();  // for openssl < 1.1
-    throw;
+    throw exc;
   }
 
   ssl_engine_ = engine;

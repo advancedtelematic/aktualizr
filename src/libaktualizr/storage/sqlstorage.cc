@@ -16,10 +16,7 @@
 void SQLStorage::cleanMetaVersion(Uptane::RepositoryType repo, const Uptane::Role& role) {
   SQLite3Guard db = dbConnection();
 
-  if (!db.beginTransaction()) {
-    LOG_ERROR << "Can't start transaction: " << db.errmsg();
-    return;
-  }
+  db.beginTransaction();
 
   auto statement = db.prepareStatement<int, int, int>(
       "SELECT meta FROM meta WHERE (repo=? AND meta_type=? AND version=?);", static_cast<int>(repo), role.ToInt(), -1);
@@ -161,10 +158,7 @@ void SQLStorage::saveSecondaryInfo(const Uptane::EcuSerial& ecu_serial, const st
   key_type_str = key_type_ss.str();
   key_type_str.erase(std::remove(key_type_str.begin(), key_type_str.end(), '"'), key_type_str.end());
 
-  if (!db.beginTransaction()) {
-    LOG_ERROR << "Can't start transaction: " << db.errmsg();
-    return;
-  }
+  db.beginTransaction();
 
   auto statement =
       db.prepareStatement<std::string>("SELECT count(*) FROM secondary_ecus WHERE serial = ?;", ecu_serial.ToString());
@@ -195,10 +189,7 @@ void SQLStorage::saveSecondaryInfo(const Uptane::EcuSerial& ecu_serial, const st
 void SQLStorage::saveSecondaryData(const Uptane::EcuSerial& ecu_serial, const std::string& data) {
   SQLite3Guard db = dbConnection();
 
-  if (!db.beginTransaction()) {
-    LOG_ERROR << "Can't start transaction: " << db.errmsg();
-    return;
-  }
+  db.beginTransaction();
 
   auto statement =
       db.prepareStatement<std::string>("SELECT count(*) FROM secondary_ecus WHERE serial = ?;", ecu_serial.ToString());
@@ -317,10 +308,7 @@ void SQLStorage::storeTlsCreds(const std::string& ca, const std::string& cert, c
 void SQLStorage::storeTlsCa(const std::string& ca) {
   SQLite3Guard db = dbConnection();
 
-  if (!db.beginTransaction()) {
-    LOG_ERROR << "Can't start transaction: " << db.errmsg();
-    return;
-  }
+  db.beginTransaction();
 
   auto statement = db.prepareStatement("SELECT count(*) FROM tls_creds;");
   if (statement.step() != SQLITE_ROW) {
@@ -347,10 +335,7 @@ void SQLStorage::storeTlsCa(const std::string& ca) {
 void SQLStorage::storeTlsCert(const std::string& cert) {
   SQLite3Guard db = dbConnection();
 
-  if (!db.beginTransaction()) {
-    LOG_ERROR << "Can't start transaction: " << db.errmsg();
-    return;
-  }
+  db.beginTransaction();
 
   auto statement = db.prepareStatement("SELECT count(*) FROM tls_creds;");
   if (statement.step() != SQLITE_ROW) {
@@ -377,10 +362,8 @@ void SQLStorage::storeTlsCert(const std::string& cert) {
 void SQLStorage::storeTlsPkey(const std::string& pkey) {
   SQLite3Guard db = dbConnection();
 
-  if (!db.beginTransaction()) {
-    LOG_ERROR << "Can't start transaction: " << db.errmsg();
-    return;
-  }
+  db.beginTransaction();
+
   auto statement = db.prepareStatement("SELECT count(*) FROM tls_creds;");
   if (statement.step() != SQLITE_ROW) {
     LOG_ERROR << "Can't get count of tls_creds table: " << db.errmsg();
@@ -406,10 +389,8 @@ void SQLStorage::storeTlsPkey(const std::string& pkey) {
 bool SQLStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* pkey) {
   SQLite3Guard db = dbConnection();
 
-  if (!db.beginTransaction()) {
-    LOG_ERROR << "Can't start transaction: " << db.errmsg();
-    return false;
-  }
+  db.beginTransaction();
+
   auto statement = db.prepareStatement("SELECT ca_cert, client_cert, client_pkey FROM tls_creds LIMIT 1;");
 
   int result = statement.step();
@@ -535,10 +516,7 @@ bool SQLStorage::loadTlsPkey(std::string* pkey) {
 void SQLStorage::storeRoot(const std::string& data, Uptane::RepositoryType repo, Uptane::Version version) {
   SQLite3Guard db = dbConnection();
 
-  if (!db.beginTransaction()) {
-    LOG_ERROR << "Can't start transaction: " << db.errmsg();
-    return;
-  }
+  db.beginTransaction();
 
   auto del_statement =
       db.prepareStatement<int, int, int>("DELETE FROM meta WHERE (repo=? AND meta_type=? AND version=?);",
@@ -564,10 +542,7 @@ void SQLStorage::storeRoot(const std::string& data, Uptane::RepositoryType repo,
 void SQLStorage::storeNonRoot(const std::string& data, Uptane::RepositoryType repo, const Uptane::Role role) {
   SQLite3Guard db = dbConnection();
 
-  if (!db.beginTransaction()) {
-    LOG_ERROR << "Can't start transaction: " << db.errmsg();
-    return;
-  }
+  db.beginTransaction();
 
   auto del_statement = db.prepareStatement<int, int>("DELETE FROM meta WHERE (repo=? AND meta_type=?);",
                                                      static_cast<int>(repo), role.ToInt());
@@ -683,10 +658,7 @@ void SQLStorage::clearMetadata() {
 void SQLStorage::storeDelegation(const std::string& data, const Uptane::Role role) {
   SQLite3Guard db = dbConnection();
 
-  if (!db.beginTransaction()) {
-    LOG_ERROR << "Can't start transaction: " << db.errmsg();
-    return;
-  }
+  db.beginTransaction();
 
   auto statement = db.prepareStatement<SQLBlob, std::string>("INSERT OR REPLACE INTO delegations VALUES (?, ?);",
                                                              SQLBlob(data), role.ToString());
@@ -815,10 +787,7 @@ void SQLStorage::clearDeviceId() {
 void SQLStorage::storeEcuRegistered() {
   SQLite3Guard db = dbConnection();
 
-  if (!db.beginTransaction()) {
-    LOG_ERROR << "Can't start transaction: " << db.errmsg();
-    return;
-  }
+  db.beginTransaction();
 
   auto statement = db.prepareStatement("SELECT count(*) FROM device_info;");
   if (statement.step() != SQLITE_ROW) {
@@ -911,10 +880,7 @@ void SQLStorage::storeEcuSerials(const EcuSerials& serials) {
   if (serials.size() >= 1) {
     SQLite3Guard db = dbConnection();
 
-    if (!db.beginTransaction()) {
-      LOG_ERROR << "Can't start transaction: " << db.errmsg();
-      return;
-    }
+    db.beginTransaction();
 
     if (db.exec("DELETE FROM ecus;", nullptr, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Can't clear ecus: " << db.errmsg();
@@ -991,10 +957,7 @@ bool SQLStorage::loadEcuSerials(EcuSerials* serials) {
 void SQLStorage::clearEcuSerials() {
   SQLite3Guard db = dbConnection();
 
-  if (!db.beginTransaction()) {
-    LOG_ERROR << "Can't start transaction: " << db.errmsg();
-    return;
-  }
+  db.beginTransaction();
 
   if (db.exec("DELETE FROM ecus;", nullptr, nullptr) != SQLITE_OK) {
     LOG_ERROR << "Can't clear ECUs: " << db.errmsg();
@@ -1050,10 +1013,7 @@ void SQLStorage::storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecu
   if (ecus.size() >= 1) {
     SQLite3Guard db = dbConnection();
 
-    if (!db.beginTransaction()) {
-      LOG_ERROR << "Can't start transaction: " << db.errmsg();
-      return;
-    }
+    db.beginTransaction();
 
     if (db.exec("DELETE FROM misconfigured_ecus;", nullptr, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Can't clear misconfigured_ecus: " << db.errmsg();
@@ -1120,10 +1080,7 @@ void SQLStorage::saveInstalledVersion(const std::string& ecu_serial, const Uptan
                                       InstalledVersionUpdateMode update_mode) {
   SQLite3Guard db = dbConnection();
 
-  if (!db.beginTransaction()) {
-    LOG_ERROR << "Can't start transaction: " << db.errmsg();
-    return;
-  }
+  db.beginTransaction();
 
   // either adds a new entry or update the last one's status
 
@@ -1662,10 +1619,8 @@ bool SQLStorage::loadReportEvents(Json::Value* report_array, int64_t* id_max) {
 
 void SQLStorage::deleteReportEvents(int64_t id_max) {
   SQLite3Guard db = dbConnection();
-  if (!db.beginTransaction()) {
-    LOG_ERROR << "Can't start transaction: " << db.errmsg();
-    return;
-  }
+
+  db.beginTransaction();
 
   auto statement = db.prepareStatement<int64_t>("DELETE FROM report_events WHERE id <= ?;", id_max);
   if (statement.step() != SQLITE_DONE) {
@@ -1677,10 +1632,8 @@ void SQLStorage::deleteReportEvents(int64_t id_max) {
 
 void SQLStorage::clearInstallationResults() {
   SQLite3Guard db = dbConnection();
-  if (!db.beginTransaction()) {
-    LOG_ERROR << "Can't start transaction: " << db.errmsg();
-    return;
-  }
+
+  db.beginTransaction();
 
   if (db.exec("DELETE FROM device_installation_result;", nullptr, nullptr) != SQLITE_OK) {
     LOG_ERROR << "Can't clear device_installation_result: " << db.errmsg();
@@ -1949,10 +1902,7 @@ std::vector<Uptane::Target> SQLStorage::getTargetFiles() {
 void SQLStorage::removeTargetFile(const std::string& target_name) {
   SQLite3Guard db = dbConnection();
 
-  if (!db.beginTransaction()) {
-    LOG_ERROR << "Can't start transaction: " << db.errmsg();
-    return;
-  }
+  db.beginTransaction();
 
   auto statement =
       db.prepareStatement<std::string>("SELECT filename FROM target_images WHERE targetname = ?;", target_name);
@@ -1974,7 +1924,7 @@ void SQLStorage::removeTargetFile(const std::string& target_name) {
     boost::filesystem::remove(images_path_ / filename);
   } catch (std::exception& e) {
     LOG_ERROR << "Could not remove target file";
-    throw;
+    throw e;
   }
 
   db.commitTransaction();

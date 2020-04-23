@@ -135,8 +135,9 @@ bool SQLStorageBase::dbMigrateForward(int version_from, int version_to) {
 
   SQLite3Guard db = dbConnection();
 
-  if (!db.beginTransaction()) {
-    LOG_ERROR << "Can't start transaction: " << db.errmsg();
+  try {
+    db.beginTransaction();
+  } catch (const SQLException& e) {
     return false;
   }
 
@@ -212,8 +213,9 @@ bool SQLStorageBase::dbMigrate() {
     LOG_INFO << "Bootstraping DB to version " << current_schema_version_;
     SQLite3Guard db = dbConnection();
 
-    if (!db.beginTransaction()) {
-      LOG_ERROR << "Can't start transaction: " << db.errmsg();
+    try {
+      db.beginTransaction();
+    } catch (const SQLException& e) {
       return false;
     }
 
