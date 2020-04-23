@@ -35,7 +35,7 @@ First, use the manifest file for AGL's Itchy Icefish release to download the req
 ----
 mkdir myproject
 cd myproject
-repo init -b icefish -m icefish_9.0.0.xml -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo
+repo init -b icefish -m icefish_9.0.1.xml -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo
 repo sync
 ----
 
@@ -56,23 +56,6 @@ source meta-agl/scripts/aglsetup.sh -m <target-architecture> agl-sota <1>
 <1> Where `<target-architecture>` is either `raspberrypi3` or `qemux86-64`.
 
 IMPORTANT: Only `raspberrypi3` and `qemux86-64` will work out of the box. If you want to create an {product-name-short}-compatible build for one of the other architectures AGL supports, you may need to write a BSP layer for that board. You can take the link:https://github.com/advancedtelematic/meta-updater-raspberrypi/tree/morty/recipes-bsp[Raspberry Pi BSP] as an example of what's needed. You can also link:mailto:otaconnect.support@here.com[contact us directly] to inquire about commercial development of BSP layers for specific boards.
-
-=== Additional configuration for Raspberry Pi 3
-
-As described in the link:https://docs.automotivelinux.org/docs/en/master/getting_started/reference/getting-started/machines/raspberrypi.html#sota[AGL documentation], you will need to edit your `bblayers.conf` to add `meta-updater-raspberrypi`.
-
-=== Additional configuration for QEMU
-
-// This has been moved upstream:
-// https://gerrit.automotivelinux.org/gerrit/c/AGL/meta-agl/+/23953
-// But it's only in master at present, not even the initial icefish release.
-// See 99c55be1635a8ff30317417093da54fbcd8eb250 in the icefish branch of meta-agl.
-
-By default, AGL for QEMU boots into an initrd before loading the root filesystem, but as of thud, meta-updater by default uses an initramfs. You will need to force the build to use an initramfs by adding this to your `local.conf`:
-
-----
-AGL_DEFAULT_INITRAMFS_FSTYPES = "cpio.gz"
-----
 
 include::ota-client::page$build-raspberry.adoc[tags=config]
 
