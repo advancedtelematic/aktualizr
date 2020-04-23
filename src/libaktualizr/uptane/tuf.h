@@ -23,14 +23,17 @@ class RepositoryType {
   enum class Type { kUnknown = -1, kImage = 0, kDirector = 1 };
 
  public:
+  static const std::string IMAGE;
+  static const std::string DIRECTOR;
+
   RepositoryType() = default;
   static constexpr int Director() { return static_cast<int>(Type::kDirector); }
   static constexpr int Image() { return static_cast<int>(Type::kImage); }
   RepositoryType(int type) { type_ = static_cast<RepositoryType::Type>(type); }
   RepositoryType(const std::string &repo_type) {
-    if (repo_type == "director") {
+    if (repo_type == DIRECTOR) {
       type_ = RepositoryType::Type::kDirector;
-    } else if (repo_type == "image") {
+    } else if (repo_type == IMAGE) {
       type_ = RepositoryType::Type::kImage;
     } else {
       throw std::runtime_error(std::string("Incorrect repo type: ") + repo_type);
@@ -41,9 +44,9 @@ class RepositoryType {
   Type type_;
   std::string toString() const {
     if (type_ == RepositoryType::Type::kDirector) {
-      return "director";
+      return DIRECTOR;
     } else if (type_ == RepositoryType::Type::kImage) {
-      return "image";
+      return IMAGE;
     } else {
       return "";
     }

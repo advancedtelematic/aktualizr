@@ -25,13 +25,18 @@ Targets getTrustedDelegation(const Role &delegate_role, const Targets &parent_ta
     if (offline) {
       throw Uptane::DelegationMissing(delegate_role.ToString());
     }
-    if (!fetcher.fetchLatestRole(&delegation_meta, Uptane::kMaxImageTargetsSize, RepositoryType::Image(),
-                                 delegate_role)) {
+    try {
+      fetcher.fetchLatestRole(&delegation_meta, Uptane::kMaxImageTargetsSize, RepositoryType::Image(), delegate_role);
+    } catch (const std::exception &e) {
+      LOG_ERROR << "Fetch role error: " << e.what();
       throw Uptane::DelegationMissing(delegate_role.ToString());
     }
   }
 
-  if (!image_repo.verifyRoleHashes(delegation_meta, delegate_role, false)) {
+  try {
+    image_repo.verifyRoleHashes(delegation_meta, delegate_role, false);
+  } catch (const std::exception &e) {
+    LOG_ERROR << "Role hashes error: " << e.what();
     throw Uptane::DelegationHashMismatch(delegate_role.ToString());
   }
 

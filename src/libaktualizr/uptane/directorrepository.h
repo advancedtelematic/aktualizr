@@ -14,7 +14,7 @@ class DirectorRepository : public RepositoryCommon {
  public:
   DirectorRepository() : RepositoryCommon(RepositoryType::Director()) {}
 
-  bool verifyTargets(const std::string& targets_raw);
+  void verifyTargets(const std::string& targets_raw);
   const Targets& getTargets() const { return targets; }
   std::vector<Uptane::Target> getTargets(const Uptane::EcuSerial& ecu_id,
                                          const Uptane::HardwareIdentifier& hw_id) const {
@@ -29,8 +29,8 @@ class DirectorRepository : public RepositoryCommon {
 
  private:
   void resetMeta();
-  bool targetsExpired();
-  bool targetsSanityCheck();
+  void checkTargetsExpired();
+  void targetsSanityCheck();
   bool usePreviousTargets() const;
 
  private:

@@ -152,7 +152,7 @@ bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
   //  than once.
   try {
     director_repo_.updateMeta(*storage_, metadata);
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     LOG_ERROR << "Failed to update Director metadata: " << e.what();
     return false;
   }
@@ -166,7 +166,7 @@ bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
   // Section 5.4.4.6.
   try {
     image_repo_.updateMeta(*storage_, metadata);
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     LOG_ERROR << "Failed to update Image repo metadata: " << e.what();
     return false;
   }
@@ -241,7 +241,7 @@ void AktualizrSecondary::uptaneInitialize() {
 void AktualizrSecondary::initPendingTargetIfAny() {
   try {
     director_repo_.checkMetaOffline(*storage_);
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     LOG_INFO << "No valid metadata found in storage.";
     return;
   }

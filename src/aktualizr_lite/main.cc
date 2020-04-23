@@ -85,7 +85,7 @@ static std::unique_ptr<Uptane::Target> find_target(const std::shared_ptr<SotaUpt
   std::unique_ptr<Uptane::Target> rv;
   try {
     client->updateImageMeta();
-  } catch (const std::exception& e) {
+  } catch (const std::exception &e) {
     LOG_WARNING << "Unable to update latest metadata, using local copy";
     try {
       client->checkImageMetaOffline();

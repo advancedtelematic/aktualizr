@@ -105,6 +105,13 @@ class BadHardwareId : public Exception {
   ~BadHardwareId() noexcept override = default;
 };
 
+class RootRotationError : public Exception {
+ public:
+  RootRotationError(const std::string& reponame)
+      : Exception(reponame, "Version in Root metadata does not match its expected value.") {}
+  ~RootRotationError() noexcept override = default;
+};
+
 class VersionMismatch : public Exception {
  public:
   VersionMismatch(const std::string& reponame, const std::string& role)

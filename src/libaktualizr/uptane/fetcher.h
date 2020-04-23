@@ -20,9 +20,9 @@ class IMetadataFetcher {
   virtual ~IMetadataFetcher() = default;
 
  public:
-  virtual bool fetchRole(std::string* result, int64_t maxsize, RepositoryType repo, const Uptane::Role& role,
+  virtual void fetchRole(std::string* result, int64_t maxsize, RepositoryType repo, const Uptane::Role& role,
                          Version version) const = 0;
-  virtual bool fetchLatestRole(std::string* result, int64_t maxsize, RepositoryType repo,
+  virtual void fetchLatestRole(std::string* result, int64_t maxsize, RepositoryType repo,
                                const Uptane::Role& role) const = 0;
 
  protected:
@@ -38,11 +38,11 @@ class Fetcher : public IMetadataFetcher {
       : http(std::move(http_in)),
         repo_server(std::move(repo_server_in)),
         director_server(std::move(director_server_in)) {}
-  bool fetchRole(std::string* result, int64_t maxsize, RepositoryType repo, const Uptane::Role& role,
+  void fetchRole(std::string* result, int64_t maxsize, RepositoryType repo, const Uptane::Role& role,
                  Version version) const override;
-  bool fetchLatestRole(std::string* result, int64_t maxsize, RepositoryType repo,
+  void fetchLatestRole(std::string* result, int64_t maxsize, RepositoryType repo,
                        const Uptane::Role& role) const override {
-    return fetchRole(result, maxsize, repo, role, Version());
+    fetchRole(result, maxsize, repo, role, Version());
   }
 
   std::string getRepoServer() const { return repo_server; }

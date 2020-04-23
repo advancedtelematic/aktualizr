@@ -1,8 +1,10 @@
 #include "fetcher.h"
 
+#include "uptane/exceptions.h"
+
 namespace Uptane {
 
-bool Fetcher::fetchRole(std::string* result, int64_t maxsize, RepositoryType repo, const Uptane::Role& role,
+void Fetcher::fetchRole(std::string* result, int64_t maxsize, RepositoryType repo, const Uptane::Role& role,
                         Version version) const {
   std::string url = (repo == RepositoryType::Director()) ? director_server : repo_server;
   if (role.IsDelegation()) {
@@ -11,10 +13,9 @@ bool Fetcher::fetchRole(std::string* result, int64_t maxsize, RepositoryType rep
   url += "/" + version.RoleFileName(role);
   HttpResponse response = http->get(url, maxsize);
   if (!response.isOk()) {
-    return false;
+    throw Uptane::Exception(repo.toString(), "Metadata fetch failure");
   }
   *result = response.body;
-  return true;
 }
 
 }  // namespace Uptane

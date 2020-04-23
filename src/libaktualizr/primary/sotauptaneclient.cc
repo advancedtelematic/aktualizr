@@ -343,21 +343,13 @@ void SotaUptaneClient::initialize() {
   finalizeAfterReboot();
 }
 
-void SotaUptaneClient::updateDirectorMeta() {
-  director_repo.updateMeta(*storage, *uptane_fetcher);
-}
+void SotaUptaneClient::updateDirectorMeta() { director_repo.updateMeta(*storage, *uptane_fetcher); }
 
-void SotaUptaneClient::updateImageMeta() {
-  image_repo.updateMeta(*storage, *uptane_fetcher);
-}
+void SotaUptaneClient::updateImageMeta() { image_repo.updateMeta(*storage, *uptane_fetcher); }
 
-void SotaUptaneClient::checkDirectorMetaOffline() {
-  director_repo.checkMetaOffline(*storage);
-}
+void SotaUptaneClient::checkDirectorMetaOffline() { director_repo.checkMetaOffline(*storage); }
 
-void SotaUptaneClient::checkImageMetaOffline() {
-  image_repo.checkMetaOffline(*storage);
-}
+void SotaUptaneClient::checkImageMetaOffline() { image_repo.checkMetaOffline(*storage); }
 
 void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult *result,
                                                        std::string *raw_installation_report) const {
@@ -681,7 +673,7 @@ void SotaUptaneClient::uptaneIteration(std::vector<Uptane::Target> *targets, uns
     getNewTargets(&tmp_targets, &ecus);
   } catch (const std::exception &e) {
     LOG_ERROR << "Inconsistency between Director metadata and discovered ECUs";
-    throw e;
+    throw;
   }
 
   if (tmp_targets.empty()) {
@@ -698,7 +690,7 @@ void SotaUptaneClient::uptaneIteration(std::vector<Uptane::Target> *targets, uns
 
   try {
     updateImageMeta();
-  } catch (const std::exception& e) {
+  } catch (const std::exception &e) {
     LOG_ERROR << "Failed to update Image repo metadata: " << e.what();
     throw e;
   }
@@ -818,13 +810,13 @@ result::UpdateCheck SotaUptaneClient::checkUpdates() {
   for (auto &target : updates) {
     auto image_target = findTargetInDelegationTree(target, false);
     if (image_target == nullptr) {
+      // TODO: Could also be a missing target or delegation expiration.
       LOG_ERROR << "No matching target in Image repo Targets metadata for " << target;
       result = result::UpdateCheck({}, 0, result::UpdateStatus::kError, Utils::parseJSON(director_targets),
                                    "Target mismatch.");
       storeInstallationFailure(
           data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed, "Metadata verification failed."));
-      // TODO: Could also be a missing target or delegation expiration.
-      throw Uptane::TargetMismatch(target.filename());
+      return result;
     }
     // If the URL from the Director is unset, but the URL from the Image repo
     // is set, use that.
@@ -1214,7 +1206,9 @@ void SotaUptaneClient::rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::
       std::string root;
       if (!storage->loadRoot(&root, repo, Uptane::Version(v))) {
         LOG_WARNING << "Couldn't find Root metadata in the storage, trying remote repo";
-        if (!uptane_fetcher->fetchRole(&root, Uptane::kMaxRootSize, repo, Uptane::Role::Root(), Uptane::Version(v))) {
+        try {
+          uptane_fetcher->fetchRole(&root, Uptane::kMaxRootSize, repo, Uptane::Role::Root(), Uptane::Version(v));
+        } catch (const std::exception &e) {
           // TODO(OTA-4552): looks problematic, robust procedure needs to be defined
           LOG_ERROR << "Root metadata could not be fetched, skipping to the next Secondary";
           return;

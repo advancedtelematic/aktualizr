@@ -1341,11 +1341,11 @@ TEST(Uptane, IgnoreUnknownUpdate) {
 
   EXPECT_NO_THROW(sota_client->initialize());
 
-  EXPECT_THROW(sota_client->fetchMeta(), Uptane::BadEcuId);
-  EXPECT_THROW(sota_client->checkUpdates(), Uptane::BadEcuId);
-
+  auto result = sota_client->fetchMeta();
+  EXPECT_EQ(result.status, result::UpdateStatus::kError);
   std::vector<Uptane::Target> packages_to_install = UptaneTestCommon::makePackage("testecuserial", "testecuhwid");
-  EXPECT_THROW(sota_client->uptaneInstall(packages_to_install), Uptane::BadEcuId);
+  auto report = sota_client->uptaneInstall(packages_to_install);
+  EXPECT_EQ(report.ecu_reports.size(), 0);
 }
 
 #ifdef BUILD_P11

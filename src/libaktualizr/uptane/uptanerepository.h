@@ -11,15 +11,15 @@ class RepositoryCommon {
  public:
   RepositoryCommon(RepositoryType type_in) : type{type_in} {}
   virtual ~RepositoryCommon() = default;
-  bool initRoot(const std::string &root_raw);
-  bool verifyRoot(const std::string &root_raw);
+  void initRoot(RepositoryType repo_type, const std::string &root_raw);
+  void verifyRoot(const std::string &root_raw);
   int rootVersion() { return root.version(); }
   bool rootExpired() { return root.isExpired(TimeStamp::Now()); }
   virtual void updateMeta(INvStorage &storage, const IMetadataFetcher &fetcher) = 0;
 
  protected:
   void resetRoot();
-  bool updateRoot(INvStorage &storage, const IMetadataFetcher &fetcher, RepositoryType repo_type);
+  void updateRoot(INvStorage &storage, const IMetadataFetcher &fetcher, RepositoryType repo_type);
 
   static const int64_t kMaxRotations = 1000;
 

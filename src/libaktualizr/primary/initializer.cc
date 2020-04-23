@@ -77,7 +77,7 @@ void Initializer::resetEcuSerials() { storage_->clearEcuSerials(); }
 bool Initializer::initPrimaryEcuKeys() {
   try {
     return keys_.generateUptaneKeyPair().size() != 0U;
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     LOG_ERROR << "Initializer error: " << e.what();
   }
   return false;
