@@ -39,9 +39,12 @@ class ManagedSecondaryConfig : public SecondaryConfig {
 // to be implemented in aktualizr itself.
 class ManagedSecondary : public SecondaryInterface {
  public:
-  explicit ManagedSecondary(Primary::ManagedSecondaryConfig sconfig_in, ImageReaderProvider image_reader_in);
+  explicit ManagedSecondary(Primary::ManagedSecondaryConfig sconfig_in);
   ~ManagedSecondary() override = default;
 
+  void init(std::shared_ptr<SecondaryProvider> secondary_provider_in) override {
+    secondary_provider_ = std::move(secondary_provider_in);
+  }
   void Initialize();
 
   Uptane::EcuSerial getSerial() const override {
@@ -52,7 +55,7 @@ class ManagedSecondary : public SecondaryInterface {
   }
   Uptane::HardwareIdentifier getHwId() const override { return Uptane::HardwareIdentifier(sconfig.ecu_hardware_id); }
   PublicKey getPublicKey() const override { return public_key_; }
-  bool putMetadata(const Uptane::RawMetaPack& meta_pack) override;
+  bool putMetadata(const Uptane::Target& target) override;
   int getRootVersion(bool director) const override;
   bool putRoot(const std::string& root, bool director) override;
 
@@ -64,28 +67,28 @@ class ManagedSecondary : public SecondaryInterface {
   bool loadKeys(std::string* pub_key, std::string* priv_key);
 
  protected:
-  Primary::ManagedSecondaryConfig sconfig;
-  std::string detected_attack;
-  std::string expected_target_name;
-  std::vector<Hash> expected_target_hashes;
-  uint64_t expected_target_length{};
-  std::mutex install_mutex;
-  ImageReaderProvider image_reader;
-
   virtual bool getFirmwareInfo(Uptane::InstalledImageInfo& firmware_info) const = 0;
 
- private:
-  PublicKey public_key_;
-  std::string private_key;
-  Uptane::MetaPack current_meta;
-  Uptane::RawMetaPack current_raw_meta;
+  Primary::ManagedSecondaryConfig sconfig;
+  std::string detected_attack;
+  std::mutex install_mutex;
 
+ private:
   void storeKeys(const std::string& pub_key, const std::string& priv_key);
   void rawToMeta();
 
   // TODO: implement
   void storeMetadata(const Uptane::RawMetaPack& meta_pack) { (void)meta_pack; }
-  bool loadMetadata(Uptane::RawMetaPack* meta_pack);
+  bool loadMetadata(Uptane::RawMetaPack* meta_pack) {
+    (void)meta_pack;
+    return true;
+  }
+
+  std::shared_ptr<SecondaryProvider> secondary_provider_;
+  PublicKey public_key_;
+  std::string private_key;
+  Uptane::MetaPack current_meta;
+  Uptane::RawMetaPack current_raw_meta;
 };
 
 }  // namespace Primary

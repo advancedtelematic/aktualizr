@@ -138,8 +138,7 @@ TEST(Aktualizr, AddSecondary) {
   UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
 
   Primary::VirtualSecondaryConfig ecu_config = virtual_configuration(temp_dir.Path());
-  ImageReaderProvider image_reader = std::bind(&INvStorage::openTargetFile, storage.get(), std::placeholders::_1);
-  aktualizr.AddSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config, image_reader));
+  aktualizr.AddSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config));
 
   aktualizr.Initialize();
 
@@ -159,7 +158,7 @@ TEST(Aktualizr, AddSecondary) {
   EXPECT_EQ(expected_ecus.size(), 0);
 
   ecu_config.ecu_serial = "ecuserial4";
-  auto sec4 = std::make_shared<Primary::VirtualSecondary>(ecu_config, image_reader);
+  auto sec4 = std::make_shared<Primary::VirtualSecondary>(ecu_config);
   EXPECT_THROW(aktualizr.AddSecondary(sec4), std::logic_error);
 }
 
@@ -181,12 +180,8 @@ TEST(Aktualizr, DeviceInstallationResult) {
   storage->storeEcuSerials(serials);
 
   UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
-
   Primary::VirtualSecondaryConfig ecu_config = virtual_configuration(temp_dir.Path());
-
-  ImageReaderProvider image_reader = std::bind(&INvStorage::openTargetFile, storage.get(), std::placeholders::_1);
-  aktualizr.AddSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config, image_reader));
-
+  aktualizr.AddSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config));
   aktualizr.Initialize();
 
   storage->saveEcuInstallationResult(Uptane::EcuSerial("ecuserial3"), data::InstallationResult());
@@ -1206,9 +1201,8 @@ TEST(Aktualizr, FullMultipleSecondaries) {
   auto storage = INvStorage::newStorage(conf.storage);
   UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
   UptaneTestCommon::addDefaultSecondary(conf, temp_dir2, "sec_serial2", "sec_hw2");
-  ImageReaderProvider image_reader = std::bind(&INvStorage::openTargetFile, storage.get(), std::placeholders::_1);
   ASSERT_NO_THROW(aktualizr.AddSecondary(std::make_shared<Primary::VirtualSecondary>(
-      Primary::VirtualSecondaryConfig::create_from_file(conf.uptane.secondary_config_file)[0], image_reader)));
+      Primary::VirtualSecondaryConfig::create_from_file(conf.uptane.secondary_config_file)[0])));
 
   struct {
     int started{0};

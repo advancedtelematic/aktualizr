@@ -348,7 +348,7 @@ void SotaUptaneClient::initialize() {
   primary_ecu_hw_id_ = serials[0].second;
   LOG_INFO << "Primary ECU serial: " << primary_ecu_serial_ << " with hardware ID: " << primary_ecu_hw_id_;
 
-  verifySecondaries();
+  initSecondaries();
 
   std::string device_id;
   if (!storage->loadDeviceId(&device_id)) {
@@ -1138,7 +1138,7 @@ bool SotaUptaneClient::putManifest(const Json::Value &custom) {
 }
 
 // Check stored Secondaries list against Secondaries known to aktualizr.
-void SotaUptaneClient::verifySecondaries() {
+void SotaUptaneClient::initSecondaries() {
   storage->clearMisconfiguredEcus();
   EcuSerials serials;
   if (!storage->loadEcuSerials(&serials) || serials.empty()) {
@@ -1183,6 +1183,10 @@ void SotaUptaneClient::verifySecondaries() {
   }
 
   storage->storeMisconfiguredEcus(misconfigured_ecus);
+
+  for (auto it = secondaries.begin(); it != secondaries.end(); ++it) {
+    it->second->init(secondary_provider_);
+  }
 }
 
 bool SotaUptaneClient::waitSecondariesReachable(const std::vector<Uptane::Target> &updates) {
@@ -1276,32 +1280,6 @@ void SotaUptaneClient::rotateSecondaryRoot(Uptane::RepositoryType repo, Secondar
 
 // TODO: the function blocks until it updates all the Secondaries. Consider non-blocking operation.
 bool SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &targets) {
-  Uptane::RawMetaPack meta;
-  if (!storage->loadLatestRoot(&meta.director_root, Uptane::RepositoryType::Director())) {
-    LOG_ERROR << "No Director Root metadata to send";
-    return false;
-  }
-  if (!storage->loadNonRoot(&meta.director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets())) {
-    LOG_ERROR << "No Director Targets metadata to send";
-    return false;
-  }
-  if (!storage->loadLatestRoot(&meta.image_root, Uptane::RepositoryType::Image())) {
-    LOG_ERROR << "No Image repo Root metadata to send";
-    return false;
-  }
-  if (!storage->loadNonRoot(&meta.image_timestamp, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp())) {
-    LOG_ERROR << "No Image repo Timestamp metadata to send";
-    return false;
-  }
-  if (!storage->loadNonRoot(&meta.image_snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot())) {
-    LOG_ERROR << "No Image repo Snapshot metadata to send";
-    return false;
-  }
-  if (!storage->loadNonRoot(&meta.image_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets())) {
-    LOG_ERROR << "No Image repo Targets metadata to send";
-    return false;
-  }
-
   bool put_meta_succeed = true;
   for (const auto &target : targets) {
     for (const auto &ecu : target.ecus()) {
@@ -1314,7 +1292,7 @@ bool SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &tar
       /* Root rotation if necessary */
       rotateSecondaryRoot(Uptane::RepositoryType::Director(), *(sec->second));
       rotateSecondaryRoot(Uptane::RepositoryType::Image(), *(sec->second));
-      if (!sec->second->putMetadata(meta)) {
+      if (!sec->second->putMetadata(target)) {
         LOG_ERROR << "Sending metadata to " << sec->first << " failed";
         put_meta_succeed = false;
       }
@@ -1408,35 +1386,6 @@ std::vector<result::Install::EcuReport> SotaUptaneClient::sendImagesToEcus(const
     reports.push_back(f.first);
   }
   return reports;
-}
-
-std::string SotaUptaneClient::treehubCredentials() const {
-  if (config.tls.pkey_source != CryptoSource::kFile || config.tls.cert_source != CryptoSource::kFile ||
-      config.tls.ca_source != CryptoSource::kFile) {
-    LOG_ERROR << "Cannot send OSTree update to a Secondary when not using file as credential sources";
-    return "";
-  }
-  std::string ca;
-  std::string cert;
-  std::string pkey;
-  if (!storage->loadTlsCreds(&ca, &cert, &pkey)) {
-    LOG_ERROR << "Could not load TLS credentials from storage";
-    return "";
-  }
-
-  std::string treehub_url = config.pacman.ostree_server;
-  std::map<std::string, std::string> archive_map = {
-      {"ca.pem", ca}, {"client.pem", cert}, {"pkey.pem", pkey}, {"server.url", treehub_url}};
-
-  try {
-    std::stringstream as;
-    Utils::writeArchive(archive_map, as);
-
-    return as.str();
-  } catch (std::runtime_error &exc) {
-    LOG_ERROR << "Could not create credentials archive: " << exc.what();
-    return "";
-  }
 }
 
 Uptane::LazyTargetsList SotaUptaneClient::allTargets() const {
