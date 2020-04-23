@@ -51,7 +51,7 @@ void DirectorRepository::verifyTargets(const std::string& targets_raw) {
     }
   } catch (const Uptane::Exception& e) {
     LOG_ERROR << "Signature verification for Director Targets metadata failed";
-    throw e;
+    throw;
   }
 }
 

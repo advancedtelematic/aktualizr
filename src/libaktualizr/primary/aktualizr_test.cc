@@ -1418,6 +1418,7 @@ TEST(Aktualizr, DownloadWithUpdates) {
   result::Download result = aktualizr.Download(std::vector<Uptane::Target>()).get();
   EXPECT_EQ(result.updates.size(), 0);
   EXPECT_EQ(result.status, result::DownloadStatus::kError);
+
   result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
   aktualizr.Download(update_result.updates);
 

@@ -557,16 +557,23 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
   result::Download result;
   std::vector<Uptane::Target> downloaded_targets;
 
-  result::UpdateStatus update_status = checkUpdatesOffline(targets);
+  result::UpdateStatus update_status;
+  try {
+    update_status = checkUpdatesOffline(targets);
+  } catch (const std::exception &e) {
+    last_exception = std::current_exception();
+    update_status = result::UpdateStatus::kError;
+  }
+
+  if (update_status == result::UpdateStatus::kNoUpdatesAvailable) {
+    result = result::Download({}, result::DownloadStatus::kNothingToDownload, "");
+  } else if (update_status == result::UpdateStatus::kError) {
+    result = result::Download(downloaded_targets, result::DownloadStatus::kError, "Error rechecking stored metadata.");
+    storeInstallationFailure(
+        data::InstallationResult(data::ResultCode::Numeric::kInternalError, "Error rechecking stored metadata."));
+  }
+
   if (update_status != result::UpdateStatus::kUpdatesAvailable) {
-    if (update_status == result::UpdateStatus::kNoUpdatesAvailable) {
-      result = result::Download({}, result::DownloadStatus::kNothingToDownload, "");
-    } else {
-      result =
-          result::Download(downloaded_targets, result::DownloadStatus::kError, "Error rechecking stored metadata.");
-      storeInstallationFailure(
-          data::InstallationResult(data::ResultCode::Numeric::kInternalError, "Error rechecking stored metadata."));
-    }
     sendEvent<event::AllDownloadsComplete>(result);
     return result;
   }
@@ -665,7 +672,7 @@ void SotaUptaneClient::uptaneIteration(std::vector<Uptane::Target> *targets, uns
     updateDirectorMeta();
   } catch (const std::exception &e) {
     LOG_ERROR << "Director metadata update failed: " << e.what();
-    throw e;
+    throw;
   }
   std::vector<Uptane::Target> tmp_targets;
   unsigned int ecus;
@@ -692,7 +699,7 @@ void SotaUptaneClient::uptaneIteration(std::vector<Uptane::Target> *targets, uns
     updateImageMeta();
   } catch (const std::exception &e) {
     LOG_ERROR << "Failed to update Image repo metadata: " << e.what();
-    throw e;
+    throw;
   }
 
   if (targets != nullptr) {
@@ -708,7 +715,7 @@ void SotaUptaneClient::uptaneOfflineIteration(std::vector<Uptane::Target> *targe
     checkDirectorMetaOffline();
   } catch (const std::exception &e) {
     LOG_ERROR << "Failed to check Director metadata: " << e.what();
-    throw e;
+    throw;
   }
   std::vector<Uptane::Target> tmp_targets;
   unsigned int ecus;
@@ -716,7 +723,7 @@ void SotaUptaneClient::uptaneOfflineIteration(std::vector<Uptane::Target> *targe
     getNewTargets(&tmp_targets, &ecus);
   } catch (const std::exception &e) {
     LOG_ERROR << "Inconsistency between Director metadata and existent ECUs: " << e.what();
-    throw e;
+    throw;
   }
 
   if (tmp_targets.empty()) {
@@ -731,7 +738,7 @@ void SotaUptaneClient::uptaneOfflineIteration(std::vector<Uptane::Target> *targe
     checkImageMetaOffline();
   } catch (const std::exception &e) {
     LOG_ERROR << "Failed to check Image repo metadata: " << e.what();
-    throw e;
+    throw;
   }
 
   *targets = std::move(tmp_targets);
@@ -786,6 +793,7 @@ result::UpdateCheck SotaUptaneClient::checkUpdates() {
   try {
     uptaneIteration(&updates, &ecus_count);
   } catch (const std::exception &e) {
+    last_exception = std::current_exception();
     result = result::UpdateCheck({}, 0, result::UpdateStatus::kError, Json::nullValue, "Could not update metadata.");
     return result;
   }
@@ -807,22 +815,27 @@ result::UpdateCheck SotaUptaneClient::checkUpdates() {
   // repositories match. A Primary ECU MUST perform this check on metadata for
   // all images listed in the Targets metadata file from the Director
   // repository.
-  for (auto &target : updates) {
-    auto image_target = findTargetInDelegationTree(target, false);
-    if (image_target == nullptr) {
-      // TODO: Could also be a missing target or delegation expiration.
-      LOG_ERROR << "No matching target in Image repo Targets metadata for " << target;
-      result = result::UpdateCheck({}, 0, result::UpdateStatus::kError, Utils::parseJSON(director_targets),
-                                   "Target mismatch.");
-      storeInstallationFailure(
-          data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed, "Metadata verification failed."));
-      return result;
+  try {
+    for (auto &target : updates) {
+      auto image_target = findTargetInDelegationTree(target, false);
+      if (image_target == nullptr) {
+        // TODO: Could also be a missing target or delegation expiration.
+        LOG_ERROR << "No matching target in Image repo Targets metadata for " << target;
+        throw Uptane::TargetMismatch(target.filename());
+      }
+      // If the URL from the Director is unset, but the URL from the Image repo
+      // is set, use that.
+      if (target.uri().empty() && !image_target->uri().empty()) {
+        target.setUri(image_target->uri());
+      }
     }
-    // If the URL from the Director is unset, but the URL from the Image repo
-    // is set, use that.
-    if (target.uri().empty() && !image_target->uri().empty()) {
-      target.setUri(image_target->uri());
-    }
+  } catch (const std::exception &e) {
+    last_exception = std::current_exception();
+    result = result::UpdateCheck({}, 0, result::UpdateStatus::kError, Utils::parseJSON(director_targets),
+                                 "Target mismatch.");
+    storeInstallationFailure(
+        data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed, "Metadata verification failed."));
+    return result;
   }
 
   result = result::UpdateCheck(updates, ecus_count, result::UpdateStatus::kUpdatesAvailable,
@@ -853,7 +866,7 @@ result::UpdateStatus SotaUptaneClient::checkUpdatesOffline(const std::vector<Upt
     uptaneOfflineIteration(&director_targets, &ecus_count);
   } catch (const std::exception &e) {
     LOG_ERROR << "Invalid Uptane metadata in storage.";
-    return result::UpdateStatus::kError;
+    throw;
   }
 
   if (director_targets.empty()) {
@@ -869,13 +882,13 @@ result::UpdateStatus SotaUptaneClient::checkUpdatesOffline(const std::vector<Upt
     const auto it = std::find_if(director_targets.cbegin(), director_targets.cend(), target_comp);
     if (it == director_targets.cend()) {
       LOG_ERROR << "No matching target in Director Targets metadata for " << target;
-      return result::UpdateStatus::kError;
+      throw Uptane::Exception(Uptane::RepositoryType::DIRECTOR, "No matching target in Director Targets metadata");
     }
 
     const auto image_target = findTargetInDelegationTree(target, true);
     if (image_target == nullptr) {
       LOG_ERROR << "No matching target in Image repo Targets metadata for " << target;
-      return result::UpdateStatus::kError;
+      throw Uptane::Exception(Uptane::RepositoryType::IMAGE, "No matching target in Director Targets metadata");
     }
   }
 
@@ -895,7 +908,14 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
 
     // Recheck the Uptane metadata and make sure the requested updates are
     // consistent with the stored metadata.
-    result::UpdateStatus update_status = checkUpdatesOffline(updates);
+    result::UpdateStatus update_status;
+    try {
+      update_status = checkUpdatesOffline(updates);
+    } catch (const std::exception &e) {
+      last_exception = std::current_exception();
+      update_status = result::UpdateStatus::kError;
+    }
+
     if (update_status != result::UpdateStatus::kUpdatesAvailable) {
       if (update_status == result::UpdateStatus::kNoUpdatesAvailable) {
         result.dev_report = {false, data::ResultCode::Numeric::kAlreadyProcessed, ""};

@@ -118,6 +118,7 @@ class SotaUptaneClient {
   result::UpdateStatus checkUpdatesOffline(const std::vector<Uptane::Target> &targets);
   Json::Value AssembleManifest();
   std::string secondaryTreehubCredentials() const;
+  std::exception_ptr getLastException() const { return last_exception; }
   bool isInstalledOnPrimary(const Uptane::Target &target);
   static std::vector<Uptane::Target> findForEcu(const std::vector<Uptane::Target> &targets,
                                                 const Uptane::EcuSerial &ecu_id);
@@ -172,6 +173,7 @@ class SotaUptaneClient {
   Json::Value last_hw_info_reported;
   std::shared_ptr<event::Channel> events_channel;
   boost::signals2::scoped_connection conn;
+  std::exception_ptr last_exception;
   // ecu_serial => secondary*
   std::map<Uptane::EcuSerial, Uptane::SecondaryInterface::Ptr> secondaries;
   std::mutex download_mutex;

@@ -22,10 +22,19 @@ class VectorWrapper {
   VectorWrapper(Json::Value vector) : vector_(std::move(vector)) {}
 
   bool matchError(const Uptane::Exception& e) {
-    if (vector_["director"]["update"]["err_msg"].asString() == e.what() ||
-        vector_["director"]["targets"][e.getName()]["err_msg"].asString() == e.what() ||
-        vector_["image_repo"]["update"]["err_msg"].asString() == e.what() ||
-        vector_["image_repo"]["targets"][e.getName()]["err_msg"].asString() == e.what()) {
+    auto me = [this, &e](const std::string r) {
+      if (vector_[r]["update"]["err_msg"].asString() == e.what()) {
+        return true;
+      }
+      const Json::Value& targets = vector_[r]["targets"];
+      for (Json::Value::const_iterator it = targets.begin(); it != targets.end(); it++) {
+        if ((*it)["err_msg"].asString() == e.what()) {
+          return true;
+        }
+      }
+      return false;
+    };
+    if (me("director") || me("image_repo")) {
       return true;
     }
     std::cout << "aktualizr failed with unmatched exception " << typeid(e).name() << ": " << e.what() << "\n";
@@ -131,7 +140,9 @@ TEST_P(UptaneVector, Test) {
       result::UpdateCheck updates = uptane_client->checkUpdates();
       if (updates.status == result::UpdateStatus::kError) {
         ASSERT_TRUE(should_fail) << "checkUpdates unexpectedly failed.";
-        throw std::runtime_error("Unexpected failure");
+        if (uptane_client->getLastException() != nullptr) {
+          std::rethrow_exception(uptane_client->getLastException());
+        }
       }
       if (updates.ecus_count > 0) {
         /* Download a binary package.
@@ -139,7 +150,9 @@ TEST_P(UptaneVector, Test) {
         result::Download result = uptane_client->downloadImages(updates.updates);
         if (result.status != result::DownloadStatus::kSuccess) {
           ASSERT_TRUE(should_fail) << "downloadImages unexpectedly failed.";
-          throw std::runtime_error("Unexpected failure");
+          if (uptane_client->getLastException() != nullptr) {
+            std::rethrow_exception(uptane_client->getLastException());
+          }
         }
       }
 

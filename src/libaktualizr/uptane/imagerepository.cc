@@ -16,7 +16,7 @@ void ImageRepository::verifyTimestamp(const std::string& timestamp_raw) {
         TimestampMeta(RepositoryType::Image(), Utils::parseJSON(timestamp_raw), std::make_shared<MetaWithKeys>(root));
   } catch (const Exception& e) {
     LOG_ERROR << "Signature verification for Timestamp metadata failed";
-    throw e;
+    throw;
   }
 }
 
@@ -85,7 +85,7 @@ void ImageRepository::verifySnapshot(const std::string& snapshot_raw, bool prefe
     snapshot = Snapshot(RepositoryType::Image(), Utils::parseJSON(snapshot_raw), std::make_shared<MetaWithKeys>(root));
   } catch (const Exception& e) {
     LOG_ERROR << "Signature verification for Snapshot metadata failed";
-    throw e;
+    throw;
   }
 
   if (snapshot.version() != timestamp.snapshot_version()) {
@@ -165,11 +165,11 @@ void ImageRepository::verifyTargets(const std::string& targets_raw, bool prefetc
         Targets(RepositoryType::Image(), Uptane::Role::Targets(), targets_json, signer));
 
     if (targets->version() != snapshot.role_version(Uptane::Role::Targets())) {
-      throw Uptane::SecurityException(RepositoryType::IMAGE, "Mismatched Targets version");
+      throw Uptane::VersionMismatch(RepositoryType::IMAGE, Uptane::Role::TARGETS);
     }
   } catch (const Exception& e) {
     LOG_ERROR << "Signature verification for Image repo Targets metadata failed";
-    throw e;
+    throw;
   }
 }
 
@@ -185,7 +185,7 @@ std::shared_ptr<Uptane::Targets> ImageRepository::verifyDelegation(const std::st
     return std::make_shared<Uptane::Targets>(Targets(RepositoryType::Image(), role, delegation_json, signer));
   } catch (const Exception& e) {
     LOG_ERROR << "Signature verification for Image repo delegated Targets metadata failed";
-    throw e;
+    throw;
   }
 
   return std::shared_ptr<Uptane::Targets>(nullptr);

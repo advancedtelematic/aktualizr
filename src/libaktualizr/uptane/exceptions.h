@@ -18,6 +18,13 @@ class Exception : public std::logic_error {
   std::string reponame_;
 };
 
+class MetadataFetchFailure : public Exception {
+ public:
+  MetadataFetchFailure(const std::string& reponame, const std::string& role)
+      : Exception(reponame, std::string("Failed to fetch role ") + role + " in " + reponame + " repository.") {}
+  ~MetadataFetchFailure() noexcept override = default;
+};
+
 class SecurityException : public Exception {
  public:
   SecurityException(const std::string& reponame, const std::string& what_arg) : Exception(reponame, what_arg) {}
