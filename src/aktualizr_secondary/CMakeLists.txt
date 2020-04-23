@@ -57,8 +57,8 @@ list(INSERT TEST_LIBS 0 aktualizr_secondary_lib)
 add_aktualizr_test(NAME aktualizr_secondary_config
     SOURCES aktualizr_secondary_config_test.cc PROJECT_WORKING_DIRECTORY LIBRARIES aktualizr_secondary_lib)
 
-add_aktualizr_test(NAME secondary_rpc
-                   SOURCES secondary_rpc_test.cc PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME secondary_rpc SOURCES $<TARGET_OBJECTS:primary> $<TARGET_OBJECTS:http> secondary_rpc_test.cc PROJECT_WORKING_DIRECTORY)
+list(REMOVE_ITEM TEST_SOURCES $<TARGET_OBJECTS:primary> $<TARGET_OBJECTS:http>)
 
 if(BUILD_OSTREE)
     target_sources(aktualizr_secondary_lib PRIVATE update_agent_ostree.cc aktualizr_secondary_ostree.cc)

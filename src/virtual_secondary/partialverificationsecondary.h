@@ -29,6 +29,9 @@ class PartialVerificationSecondary : public SecondaryInterface {
  public:
   explicit PartialVerificationSecondary(Primary::PartialVerificationSecondaryConfig sconfig_in);
 
+  void init(std::shared_ptr<SecondaryProvider> secondary_provider_in) override {
+    secondary_provider_ = std::move(secondary_provider_in);
+  }
   std::string Type() const override { return Primary::PartialVerificationSecondaryConfig::Type; }
   EcuSerial getSerial() const override {
     if (!sconfig.ecu_serial.empty()) {
@@ -39,7 +42,7 @@ class PartialVerificationSecondary : public SecondaryInterface {
   Uptane::HardwareIdentifier getHwId() const override { return Uptane::HardwareIdentifier(sconfig.ecu_hardware_id); }
   PublicKey getPublicKey() const override { return public_key_; }
 
-  bool putMetadata(const RawMetaPack& meta) override;
+  bool putMetadata(const Target& target) override;
   int getRootVersion(bool director) const override;
   bool putRoot(const std::string& root, bool director) override;
 
@@ -53,6 +56,7 @@ class PartialVerificationSecondary : public SecondaryInterface {
   bool loadKeys(std::string* public_key, std::string* private_key);
 
   Primary::PartialVerificationSecondaryConfig sconfig;
+  std::shared_ptr<SecondaryProvider> secondary_provider_;
   Uptane::Root root_;
   PublicKey public_key_;
   std::string private_key_;

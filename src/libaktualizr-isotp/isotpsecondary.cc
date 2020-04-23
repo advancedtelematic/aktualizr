@@ -36,9 +36,8 @@ enum class IsoTpUptaneMesType {
 
 namespace Uptane {
 
-IsoTpSecondary::IsoTpSecondary(const std::string& can_iface, uint16_t can_id, ImageReaderProvider image_reader_provider)
-    : conn(can_iface, LIBUPTINY_ISOTP_PRIMARY_CANID, can_id),
-      image_reader_provider_{std::move(image_reader_provider)} {}
+IsoTpSecondary::IsoTpSecondary(const std::string& can_iface, uint16_t can_id)
+    : conn(can_iface, LIBUPTINY_ISOTP_PRIMARY_CANID, can_id) {}
 
 EcuSerial IsoTpSecondary::getSerial() const {
   std::string out;
@@ -134,10 +133,18 @@ bool IsoTpSecondary::putRoot(const std::string& root, bool director) {
   return conn.Send(out);
 }
 
-bool IsoTpSecondary::putMetadata(const RawMetaPack& meta_pack) {
+bool IsoTpSecondary::putMetadata(const Target& target) {
+  (void)target;
+  // Partial verification only.
+  std::string director_targets;
+  if (!secondary_provider_->getDirectorMetadata(nullptr, &director_targets)) {
+    LOG_ERROR << "Unable to read Director metadata.";
+    return false;
+  }
+
   std::string out;
   out += static_cast<char>(IsoTpUptaneMesType::kPutTargets);
-  out += meta_pack.director_targets;
+  out += director_targets;
 
   return conn.Send(out);
 }
@@ -151,7 +158,7 @@ data::ResultCode::Numeric IsoTpSecondary::install(const Target& target) {
   auto result = data::ResultCode::Numeric::kOk;
 
   try {
-    std::unique_ptr<StorageTargetRHandle> image_reader = image_reader_provider_(target);
+    std::unique_ptr<StorageTargetRHandle> image_reader = secondary_provider_->getTargetFileHandle(target);
 
     auto image_size = image_reader->rsize();
     size_t num_chunks = (image_size / kChunkSize) + (static_cast<bool>(image_size % kChunkSize) ? 1 : 0);

@@ -9,28 +9,24 @@ namespace Uptane {
 
 class IpUptaneSecondary : public SecondaryInterface {
  public:
-  static SecondaryInterface::Ptr connectAndCreate(const std::string& address, unsigned short port,
-                                                  ImageReaderProvider image_reader_provider,
-                                                  TlsCredsProvider treehub_cred_provider);
-  static SecondaryInterface::Ptr create(const std::string& address, unsigned short port, int con_fd,
-                                        ImageReaderProvider image_reader_provider,
-                                        TlsCredsProvider treehub_cred_provider);
+  static SecondaryInterface::Ptr connectAndCreate(const std::string& address, unsigned short port);
+  static SecondaryInterface::Ptr create(const std::string& address, unsigned short port, int con_fd);
 
   static SecondaryInterface::Ptr connectAndCheck(const std::string& address, unsigned short port, EcuSerial serial,
-                                                 HardwareIdentifier hw_id, PublicKey pub_key,
-                                                 ImageReaderProvider image_reader_provider,
-                                                 TlsCredsProvider treehub_cred_provider);
+                                                 HardwareIdentifier hw_id, PublicKey pub_key);
 
   explicit IpUptaneSecondary(const std::string& address, unsigned short port, EcuSerial serial,
-                             HardwareIdentifier hw_id, PublicKey pub_key, ImageReaderProvider image_reader_provider,
-                             TlsCredsProvider treehub_cred_provider);
+                             HardwareIdentifier hw_id, PublicKey pub_key);
 
   std::string Type() const override { return "IP"; }
   EcuSerial getSerial() const override { return serial_; };
   Uptane::HardwareIdentifier getHwId() const override { return hw_id_; }
   PublicKey getPublicKey() const override { return pub_key_; }
 
-  bool putMetadata(const RawMetaPack& meta_pack) override;
+  void init(std::shared_ptr<SecondaryProvider> secondary_provider_in) override {
+    secondary_provider_ = std::move(secondary_provider_in);
+  }
+  bool putMetadata(const Target& target) override;
   int32_t getRootVersion(bool /* director */) const override { return 0; }
   bool putRoot(const std::string& /* root */, bool /* director */) override { return true; }
   Manifest getManifest() const override;
@@ -49,16 +45,12 @@ class IpUptaneSecondary : public SecondaryInterface {
   data::ResultCode::Numeric uploadFirmware(const Uptane::Target& target);
   data::ResultCode::Numeric uploadFirmwareData(const uint8_t* data, size_t size);
 
- private:
+  std::shared_ptr<SecondaryProvider> secondary_provider_;
   std::mutex install_mutex;
-
   std::pair<std::string, uint16_t> addr_;
   const EcuSerial serial_;
   const HardwareIdentifier hw_id_;
   const PublicKey pub_key_;
-
-  ImageReaderProvider image_reader_provider_;
-  TlsCredsProvider treehub_cred_provider_;
 };
 
 }  // namespace Uptane

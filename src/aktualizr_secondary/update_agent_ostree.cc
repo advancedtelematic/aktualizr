@@ -2,8 +2,8 @@
 
 #include "package_manager/ostreemanager.h"
 
-// TODO: consider moving this and SotaUptaneClient::secondaryTreehubCredentials() to encapsulate them in one place that
-// is shared between IP Secondary's component
+// TODO: consider moving this and SecondaryProvider::getTreehubCredentials to
+// encapsulate them in one shared place if possible.
 static void extractCredentialsArchive(const std::string& archive, std::string* ca, std::string* cert, std::string* pkey,
                                       std::string* treehub_server);
 

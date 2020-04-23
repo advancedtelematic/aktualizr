@@ -65,8 +65,8 @@ void VirtualSecondaryConfig::dump(const boost::filesystem::path& file_full_path)
   json_file.close();
 }
 
-VirtualSecondary::VirtualSecondary(Primary::VirtualSecondaryConfig sconfig_in, ImageReaderProvider image_reader_in)
-    : ManagedSecondary(std::move(sconfig_in), std::move(image_reader_in)) {}
+VirtualSecondary::VirtualSecondary(Primary::VirtualSecondaryConfig sconfig_in)
+    : ManagedSecondary(std::move(sconfig_in)) {}
 
 bool VirtualSecondary::getFirmwareInfo(Uptane::InstalledImageInfo& firmware_info) const {
   std::string content;
@@ -84,12 +84,12 @@ bool VirtualSecondary::getFirmwareInfo(Uptane::InstalledImageInfo& firmware_info
   return true;
 }
 
-bool VirtualSecondary::putMetadata(const Uptane::RawMetaPack& meta_pack) {
+bool VirtualSecondary::putMetadata(const Uptane::Target& target) {
   if (fiu_fail("secondary_putmetadata") != 0) {
     return false;
   }
 
-  return ManagedSecondary::putMetadata(meta_pack);
+  return ManagedSecondary::putMetadata(target);
 }
 
 }  // namespace Primary

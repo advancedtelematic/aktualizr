@@ -22,11 +22,11 @@ class VirtualSecondaryConfig : public ManagedSecondaryConfig {
 
 class VirtualSecondary : public ManagedSecondary {
  public:
-  explicit VirtualSecondary(Primary::VirtualSecondaryConfig sconfig_in, ImageReaderProvider image_reader_in);
+  explicit VirtualSecondary(Primary::VirtualSecondaryConfig sconfig_in);
   ~VirtualSecondary() override = default;
 
   std::string Type() const override { return VirtualSecondaryConfig::Type; }
-  bool putMetadata(const Uptane::RawMetaPack& meta_pack) override;
+  bool putMetadata(const Uptane::Target& target) override;
 
   bool ping() const override { return true; }
 

@@ -212,17 +212,9 @@ class Aktualizr {
    */
   boost::signals2::connection SetSignalHandler(const SigHandler& handler);
 
-  /**
-   * Return CA certificates, client certificates, the client private key, and
-   * the Treehub URL so a user (e.g. some Secondary) can setup a TLS connection
-   * with Treehub and download OSTree objects.
-   *
-   * @return a string containing a gzip archive with TLS certificates/credentials
-   * for a connection to Treehub.
-   */
-  std::string GetTreehubTlsCreds() const { return uptane_client_->treehubCredentials(); }
-
  private:
+  // Make sure this is declared before SotaUptaneClient to prevent Valgrind
+  // complaints with destructors.
   Config config_;
 
  protected:

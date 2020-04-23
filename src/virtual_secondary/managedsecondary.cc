@@ -17,8 +17,7 @@
 
 namespace Primary {
 
-ManagedSecondary::ManagedSecondary(Primary::ManagedSecondaryConfig sconfig_in, ImageReaderProvider image_reader_in)
-    : sconfig(std::move(sconfig_in)), image_reader(std::move(image_reader_in)) {
+ManagedSecondary::ManagedSecondary(Primary::ManagedSecondaryConfig sconfig_in) : sconfig(std::move(sconfig_in)) {
   // TODO: FIX
   // loadMetadata(meta_pack);
   std::string public_key_string;
@@ -74,41 +73,28 @@ void ManagedSecondary::rawToMeta() {
   current_meta.image_snapshot = Uptane::Snapshot(Utils::parseJSON(current_raw_meta.image_snapshot));
 }
 
-bool ManagedSecondary::putMetadata(const Uptane::RawMetaPack &meta_pack) {
+bool ManagedSecondary::putMetadata(const Uptane::Target &target) {
+  (void)target;
+  Uptane::RawMetaPack meta;
+  if (!secondary_provider_->getDirectorMetadata(&meta.director_root, &meta.director_targets)) {
+    LOG_ERROR << "Unable to read Director metadata.";
+    return false;
+  }
+  if (!secondary_provider_->getImageRepoMetadata(&meta.image_root, &meta.image_timestamp, &meta.image_snapshot,
+                                                 &meta.image_targets)) {
+    LOG_ERROR << "Unable to read Image repo metadata.";
+    return false;
+  }
+
   // No verification is currently performed, we can add verification in future for testing purposes
   detected_attack = "";
 
-  current_raw_meta = meta_pack;
+  current_raw_meta = meta;
   rawToMeta();  // current_raw_meta -> current_meta
   if (!current_meta.isConsistent()) {
     return false;
   }
   storeMetadata(current_raw_meta);
-
-  expected_target_name = "";
-  expected_target_hashes.clear();
-  expected_target_length = 0;
-
-  bool target_found = false;
-
-  std::vector<Uptane::Target>::const_iterator it;
-  for (it = current_meta.director_targets.targets.begin(); it != current_meta.director_targets.targets.end(); ++it) {
-    // TODO: what about hardware ID? Also missing in Uptane::Target
-    if (it->ecus().find(getSerial()) != it->ecus().end()) {
-      if (target_found) {
-        detected_attack = "Duplicate entry for this ECU";
-        break;
-      }
-      expected_target_name = it->filename();
-      expected_target_hashes = it->hashes();
-      expected_target_length = it->length();
-      target_found = true;
-    }
-  }
-
-  if (!target_found) {
-    detected_attack = "No update for this ECU";
-  }
 
   return true;
 }
@@ -158,8 +144,9 @@ data::ResultCode::Numeric ManagedSecondary::install(const Uptane::Target &target
     return data::ResultCode::Numeric::kInstallFailed;
   }
 
-  image_reader(target)->writeToFile(sconfig.firmware_path);
-  Utils::writeFile(sconfig.target_name_path, expected_target_name);
+  auto handle = secondary_provider_->getTargetFileHandle(target);
+  handle->writeToFile(sconfig.firmware_path);
+  Utils::writeFile(sconfig.target_name_path, target.filename());
   return data::ResultCode::Numeric::kOk;
 }
 
