@@ -623,38 +623,49 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(const Uptane::Ta
     report_queue->enqueue(std_::make_unique<EcuDownloadStartedReport>(ecu.first, correlation_id));
   }
 
-  KeyManager keys(storage, config.keymanagerConfig());
-  keys.loadKeys();
-  auto prog_cb = [this](const Uptane::Target &t, const std::string &description, unsigned int progress) {
-    report_progress_cb(events_channel.get(), t, description, progress);
-  };
+  // Note: handle exceptions from here so that we can send reports and
+  // DownloadTargetComple events in all cases. We might want to move these to
+  // downloadImages but aktualizr-lite currently calls this method directly.
 
   bool success = false;
-  const Uptane::EcuSerial &primary_ecu_serial = primaryEcuSerial();
+  try {
+    KeyManager keys(storage, config.keymanagerConfig());
+    keys.loadKeys();
+    auto prog_cb = [this](const Uptane::Target &t, const std::string &description, unsigned int progress) {
+      report_progress_cb(events_channel.get(), t, description, progress);
+    };
 
-  if (target.IsForEcu(primary_ecu_serial) || !target.IsOstree()) {
-    // TODO: download should be the logical ECU and packman specific
-    const int max_tries = 3;
-    int tries = 0;
-    std::chrono::milliseconds wait(500);
+    const Uptane::EcuSerial &primary_ecu_serial = primaryEcuSerial();
 
-    for (; tries < max_tries; tries++) {
-      success = package_manager_->fetchTarget(target, *uptane_fetcher, keys, prog_cb, token);
-      // Skip trying to fetch the 'target' if control flow token transaction
-      // was set to the 'abort' or 'pause' state, see the CommandQueue and FlowControlToken.
-      if (success || (token != nullptr && !token->canContinue(false))) {
-        break;
-      } else if (tries < max_tries - 1) {
-        std::this_thread::sleep_for(wait);
-        wait *= 2;
+    if (target.IsForEcu(primary_ecu_serial) || !target.IsOstree()) {
+      // TODO: download should be the logical ECU and packman specific
+      const int max_tries = 3;
+      int tries = 0;
+      std::chrono::milliseconds wait(500);
+
+      for (; tries < max_tries; tries++) {
+        success = package_manager_->fetchTarget(target, *uptane_fetcher, keys, prog_cb, token);
+        // Skip trying to fetch the 'target' if control flow token transaction
+        // was set to the 'abort' or 'pause' state, see the CommandQueue and FlowControlToken.
+        if (success || (token != nullptr && !token->canContinue(false))) {
+          break;
+        } else if (tries < max_tries - 1) {
+          std::this_thread::sleep_for(wait);
+          wait *= 2;
+        }
       }
+      if (!success) {
+        LOG_ERROR << "Download unsuccessful after " << tries << " attempts.";
+        // TODO: show real exception
+        throw Uptane::TargetHashMismatch(target.filename());
+      }
+    } else {
+      // we emulate successfull download in case of the Secondary OSTree update
+      success = true;
     }
-    if (!success) {
-      LOG_ERROR << "Download unsuccessful after " << tries << " attempts.";
-    }
-  } else {
-    // we emulate successfull download in case of the Secondary OSTree update
-    success = true;
+  } catch (const std::exception &e) {
+    LOG_ERROR << "Error downloading image: " << e.what();
+    last_exception = std::current_exception();
   }
 
   // send this asynchronously before `sendEvent`, so that the report timestamp
