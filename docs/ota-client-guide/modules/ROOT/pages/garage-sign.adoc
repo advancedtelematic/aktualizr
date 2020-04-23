@@ -22,7 +22,7 @@ In a production environment, we recommend that you keep the keys for signing sof
 
 * *Local repository*
 +
-A repository is a location for storing software packages. A local repository is a server that exists on your local machine such as your computer. When using the `garage-sign` tool, it is important to create a local repository on your machine that contains your credentials from OTA Connect, and your keys for signing metadata. With your keys existing locally on your machine, any changes you make to them will not directly affect your devices on OTA Connect. It also ensures the security of your keys in production as mentioned
+A repository is a location for storing software packages. A local repository is a server that exists on your local machine such as your computer. When using the `garage-sign` tool, it is important to create a local repository on your machine that contains your credentials from OTA Connect, and your keys for signing metadata. With your keys existing locally on your machine, any changes you make to them will not directly affect your devices on OTA Connect. It also ensures the security of your keys during production.
 
 ****
 
@@ -58,6 +58,7 @@ garage-sign init \
 +
 <1> The name of your image repository which is to be initialized by the `init` command is provided here.
 <2> Here you provide the path of your `credentials.zip` file downloaded from your account on the https://connect.ota.here.com[OTA Connect Portal].
+
 . Ensure you have the latest `targets.json` file by pulling it from OTA Connect.
 +
 [source, bash]
@@ -88,7 +89,6 @@ tuf/<reponame>
 <4> The `targets.json` metadata file
 
 
-
 == Use cases of `garage-sign` with OTA Connect
 
 In most use cases, more than one `garage-sign` command is used to perform a specific task. A few use cases will be discussed in this section, however the use of the `garage-sign` tool is not limited to these.
@@ -97,9 +97,9 @@ In most use cases, more than one `garage-sign` command is used to perform a spec
 
 You might generate new keys if you:
 
-* xref:rotating-signing-keys.adoc#_rotate_the_online_keys_with_your_new_offline_keys[want to rotate your online keys with your new offline keys]
-* believe your keys have been compromised
-* would like to revoke the current keys for signing metadata
+* xref:rotating-signing-keys.adoc#_rotate_the_online_keys_with_your_new_offline_keys[want to rotate your online keys with your new offline keys].
+* believe your keys have been compromised.
+* would like to revoke the current keys for signing metadata.
 
 ==== Workflow to generate new keys
 
@@ -121,12 +121,14 @@ garage-sign key generate \
 +
 <1> You can give any name to the keys you generate, which helps to easily identify between the new `root` and `targets` keys. Here, the keys generated are given the names `myroot` and `mytargets`.
 <2> The key type must be specified as either Ed25519 or RSA. In OTA Connect, an RSA key is used for signing uptane metadata.
+
 . Afterwards, pull the latest `targets.json` file from OTA Connect with the command `garage-sign targets pull`.
 +
 [source,bash]
 ----
 garage-sign targets pull --repo <reponame>
 ----
+
 . Next, use the command `garage-sign move-offline`. This command deletes the old `root` key from OTA Connect, downloads and signs the new `root` key with the newly generated keys, and pushes the new `root.json` file to OTA Connect.
 +
 [source,bash]
@@ -141,6 +143,7 @@ garage-sign move-offline \
 <1> This is an example of an alias given to the old `root` key. It gets saved with this name.
 <2> This is an example of the name given to your new `root` key which you previously generated using the command `garage-sign key generate`.
 <3> This is an example of the name given to your new `targets` key which you previously generated using the command `garage-sign key generate`.
+
 . As a final step, sign the new `targets.json` with your newly generated `targets` key and upload it to OTA Connect.
 +
 [source,bash]
@@ -149,23 +152,16 @@ garage-sign targets sign --repo <reponame> --key-name mytargets
 garage-sign targets push --repo <reponame>
 ----
 
-
 Please refer to xref:rotating-signing-keys.adoc#_rotate_the_keys_for_root_and_targets_metadata[rotating the keys for `root` and `targets` metadata] for additional information on generating new keys.
-
 
 === Add a new software version
 
 `garage-sign` can also be used to add software packages to your repository with the command `garage-sign targets add`. The packages are downloaded by aktualizr, however `garage-sign` doesn't upload the software file. The `garage-sign targets add` commmand puts new metadata in place, hence you need to tell aktualizr where the software package can be found. This is done by uploading the file somewhere else and providing `garage-sign` with the URL of where it's available.
 
-//The software package must first be uploaded via a URL and this URL is given to the command `garage-sign targets add` which tells aktualizr where to download the file from. Usually when aktualizr tries to download a file, it looks for it at a specific location in the repository based on its name.
-
-// When aktualizr tries to download a file, it first looks for it at a specific place in the repo based on its name. But when you use garage-sign targets add, you're just putting new metadata in place--you still need to tell aktualizr where it can find the file that the metadata is talking about. Since garage-sign doesn't upload the file for you, you need to upload it somewhere yourself, and provide garage-sign with a URL where it's available so that aktualizr can go get it.
-
-
 To add a software version, perform the following steps:
 
 . First upload the software package you wish to add via a URL.
-. Next, add the software package using the command `garage-sign targets add`
+. Next, give the URL where the software was uploaded to the command `garage-sign targets add`. This tells aktualizr where it should download the software file.
 +
 [source,bash]
 ----
@@ -196,82 +192,12 @@ garage-sign targets sign --repo <reponame> --key-name mytargets
 garage-sign targets push --repo <reponame>
 ----
 
-////
-An example of uploading a new software package is shown below.
-
-[source,bash]
-----
-!#/bin/bash
-set -ex
-file=$1
-s3_bucket=$2
-packagename=$3
-version=$4
-hwid=$5
-keyname=$6
-url="http://${s3_bucket}.s3.amazonaws.com/${file}" <1>
-aws s3 cp "${file}" "s3://${s3_bucket}/${file}"
-garage-sign targets add \
-  --repo ${reponame} \
-  --format binary \ <2>
-  --length $(wc -c <"${file}") \ <3>
-  --name ${packagename} \
-  --version ${version} \ <4>
-  --sha256 $(sha256sum "${file}" |cut -d' ' -f-1) \ <5>
-  --hardwareids ${hwid} \
-  --url ${url} <6>
-garage-sign targets sign \
-  --repo ${reponame} \
-  --key-name ${keyname}
-garage-sign targets push \
-  --repo ${reponame}
-----
-
-<1> The URL of where the software package is uploaded.
-<2> You must specify the format of the target image to be added--either as an ostree or binary image. In OTA Connect, the `garage-sign` tool is often used to upload `binary` images.
-<3> The length of the image to be added must be specified in bytes.
-<4> You must also specify the version number of the target image.
-<5> The sha256 hash of the software image is specified here.
-<6> The URL of the software package is specified here for `garage-sign` so that aktualizr will know where to find the software file to download.
-////
-
 === Define metadata expiry
 
 You can also define an expiry date for your metadata using `garage-sign` on the command line. You can do this in two ways--either specifying a fixed date and time or a specific period of time. However, only one type of expiry argument must be used to define the metadata expiry date.
 
-
 include::ota-client::page$metadata-expiry.adoc[tags=metadata-expiry]
-////
-==== Define a fixed date and time for metadata expiry
 
-Use the following format of `garage-sign` to define a specific time in UTC for metadata to expire:
-
-[source,bash]
-----
-garage-sign targets sign \
-  --expires 2018-01-01T00:01:00Z \ <1>
-  --repo <reponame> \
-  --key-name mytargets
-----
-
-<1> This is an example of specifying a date and time of expiry as an instance in UTC. After this fixed date and time, metadata will no longer be valid.
-
-==== Define a period for metadata expiry
-
-Use the following format of `garage-sign` to specify a period for metadata to be valid:
-
-[source,bash]
-----
-garage-sign targets sign \
-  --expire-after 1Y3M5D \ <1>
-  --repo <reponame> \
-  --key-name mytargets
-----
-
-<1> This is an example of specifying a period for the expiry of metadata. The expiration period is defined in the order of years, months and days, (each optional but in this specified order).
-
-For additional information, please refer to xref:metadata-expiry.adoc[managing metadata expiry dates] in our guide.
-////
 === Upload a large binary file
 
 The `garage-sign` tool can also be used to upload large binary files up to 3 GB. To upload a large binary file to OTA Connect, perform the following steps:
