@@ -554,6 +554,9 @@ class SecondaryInterfaceMock : public SecondaryInterface {
     manifest_["signed"] = manifest_unsigned;
     manifest_["signatures"].append(signature);
   }
+  void init(std::shared_ptr<SecondaryProvider> secondary_provider_in) override {
+    secondary_provider_ = std::move(secondary_provider_in);
+  }
   std::string Type() const override { return "mock"; }
   PublicKey getPublicKey() const override { return public_key_; }
 
@@ -569,8 +572,19 @@ class SecondaryInterfaceMock : public SecondaryInterface {
   MOCK_METHOD(bool, putMetadataMock, (const Uptane::RawMetaPack &));
   MOCK_METHOD(int32_t, getRootVersionMock, (bool), (const));
 
-  bool putMetadata(const Uptane::RawMetaPack &meta_pack) override {
-    putMetadataMock(meta_pack);
+  bool putMetadata(const Uptane::Target &target) override {
+    (void)target;
+    Uptane::RawMetaPack meta;
+    if (!secondary_provider_->getDirectorMetadata(&meta.director_root, &meta.director_targets)) {
+      LOG_ERROR << "Unable to read Director metadata.";
+      return false;
+    }
+    if (!secondary_provider_->getImageRepoMetadata(&meta.image_root, &meta.image_timestamp, &meta.image_snapshot,
+                                                   &meta.image_targets)) {
+      LOG_ERROR << "Unable to read Image repo metadata.";
+      return false;
+    }
+    putMetadataMock(meta);
     return true;
   }
   int32_t getRootVersion(bool director) const override { return getRootVersionMock(director); }
@@ -581,6 +595,7 @@ class SecondaryInterfaceMock : public SecondaryInterface {
   }
   virtual data::ResultCode::Numeric install(const Uptane::Target &) override { return data::ResultCode::Numeric::kOk; }
 
+  std::shared_ptr<SecondaryProvider> secondary_provider_;
   PublicKey public_key_;
   Json::Value manifest_;
 
@@ -691,11 +706,9 @@ TEST(Uptane, UptaneSecondaryAddSameSerial) {
   auto storage = INvStorage::newStorage(config.storage);
   auto sota_client = std_::make_unique<UptaneTestCommon::TestUptaneClient>(config, storage, http);
   UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware_new");
-  ImageReaderProvider image_reader = std::bind(&INvStorage::openTargetFile, storage.get(), std::placeholders::_1);
-  EXPECT_THROW(
-      sota_client->addSecondary(std::make_shared<Primary::VirtualSecondary>(
-          Primary::VirtualSecondaryConfig::create_from_file(config.uptane.secondary_config_file)[0], image_reader)),
-      std::runtime_error);
+  EXPECT_THROW(sota_client->addSecondary(std::make_shared<Primary::VirtualSecondary>(
+                   Primary::VirtualSecondaryConfig::create_from_file(config.uptane.secondary_config_file)[0])),
+               std::runtime_error);
 }
 
 #if 0

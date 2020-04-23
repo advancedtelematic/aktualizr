@@ -30,30 +30,27 @@ PartialVerificationSecondary::PartialVerificationSecondary(Primary::PartialVerif
   public_key_ = PublicKey(public_key_string, sconfig.key_type);
 }
 
-bool PartialVerificationSecondary::putMetadata(const RawMetaPack &meta) {
+bool PartialVerificationSecondary::putMetadata(const Target &target) {
+  (void)target;
   TimeStamp now(TimeStamp::Now());
   detected_attack_.clear();
 
+  std::string director_root;
+  std::string director_targets;
+  if (!secondary_provider_->getDirectorMetadata(&director_root, &director_targets)) {
+    LOG_ERROR << "Unable to read Director metadata.";
+    return false;
+  }
+
   // TODO(OTA-2484): check for expiration and version downgrade
-  root_ = Uptane::Root(RepositoryType::Director(), Utils::parseJSON(meta.director_root), root_);
-  Uptane::Targets targets(RepositoryType::Director(), Role::Targets(), Utils::parseJSON(meta.director_targets),
+  root_ = Uptane::Root(RepositoryType::Director(), Utils::parseJSON(director_root), root_);
+  Uptane::Targets targets(RepositoryType::Director(), Role::Targets(), Utils::parseJSON(director_targets),
                           std::make_shared<Uptane::Root>(root_));
   if (meta_targets_.version() > targets.version()) {
     detected_attack_ = "Rollback attack detected";
     return true;
   }
   meta_targets_ = targets;
-  std::vector<Uptane::Target>::const_iterator it;
-  bool target_found = false;
-  for (it = meta_targets_.targets.begin(); it != meta_targets_.targets.end(); ++it) {
-    if (it->IsForEcu(getSerial())) {
-      if (target_found) {
-        detected_attack_ = "Duplicate entry for this ECU";
-        break;
-      }
-      target_found = true;
-    }
-  }
   return true;
 }
 

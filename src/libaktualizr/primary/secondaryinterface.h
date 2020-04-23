@@ -1,31 +1,24 @@
 #ifndef UPTANE_SECONDARYINTERFACE_H
 #define UPTANE_SECONDARYINTERFACE_H
 
-#include <functional>
-#include <memory>
 #include <string>
 
-#include "json/json.h"
+#include "primary/secondary_provider.h"
 #include "uptane/manifest.h"
 #include "uptane/tuf.h"
-
-class StorageTargetRHandle;
-
-using ImageReaderProvider = std::function<std::unique_ptr<StorageTargetRHandle>(const Uptane::Target& target)>;
-using TlsCredsProvider = std::function<std::string()>;
 
 class SecondaryInterface {
  public:
   using Ptr = std::shared_ptr<SecondaryInterface>;
 
- public:
+  virtual void init(std::shared_ptr<SecondaryProvider> secondary_provider_in) = 0;
   virtual std::string Type() const = 0;
   virtual Uptane::EcuSerial getSerial() const = 0;
   virtual Uptane::HardwareIdentifier getHwId() const = 0;
   virtual PublicKey getPublicKey() const = 0;
 
   virtual Uptane::Manifest getManifest() const = 0;
-  virtual bool putMetadata(const Uptane::RawMetaPack& meta_pack) = 0;
+  virtual bool putMetadata(const Uptane::Target& target) = 0;
   virtual bool ping() const = 0;
 
   virtual int32_t getRootVersion(bool director) const = 0;
