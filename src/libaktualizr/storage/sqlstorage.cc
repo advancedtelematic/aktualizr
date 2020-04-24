@@ -1924,7 +1924,7 @@ void SQLStorage::removeTargetFile(const std::string& target_name) {
     boost::filesystem::remove(images_path_ / filename);
   } catch (std::exception& e) {
     LOG_ERROR << "Could not remove target file";
-    throw e;
+    throw;
   }
 
   db.commitTransaction();
