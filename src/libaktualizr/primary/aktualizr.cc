@@ -96,7 +96,7 @@ void Aktualizr::Shutdown() {
   exit_cond_.cv.notify_all();
 }
 
-void Aktualizr::AddSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &secondary) {
+void Aktualizr::AddSecondary(const std::shared_ptr<SecondaryInterface> &secondary) {
   uptane_client_->addSecondary(secondary);
 }
 

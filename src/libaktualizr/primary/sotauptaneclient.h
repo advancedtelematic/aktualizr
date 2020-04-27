@@ -19,6 +19,7 @@
 #include "package_manager/packagemanagerinterface.h"
 #include "primary/events.h"
 #include "primary/results.h"
+#include "primary/secondaryinterface.h"
 #include "reportqueue.h"
 #include "storage/invstorage.h"
 #include "uptane/directorrepository.h"
@@ -26,7 +27,6 @@
 #include "uptane/fetcher.h"
 #include "uptane/imagerepository.h"
 #include "uptane/iterator.h"
-#include "uptane/secondaryinterface.h"
 #include "uptane/tuf.h"
 
 class SotaUptaneClient {
@@ -54,7 +54,7 @@ class SotaUptaneClient {
       : SotaUptaneClient(config_in, storage_in, std::make_shared<HttpClient>()) {}
 
   void initialize();
-  void addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
+  void addSecondary(const std::shared_ptr<SecondaryInterface> &sec);
   result::Download downloadImages(const std::vector<Uptane::Target> &targets,
                                   const api::FlowControlToken *token = nullptr);
   std::pair<bool, Uptane::Target> downloadImage(const Uptane::Target &target,
@@ -140,14 +140,13 @@ class SotaUptaneClient {
   void reportAktualizrConfiguration();
   bool waitSecondariesReachable(const std::vector<Uptane::Target> &updates);
   bool sendMetadataToEcus(const std::vector<Uptane::Target> &targets);
-  std::future<data::ResultCode::Numeric> sendFirmwareAsync(Uptane::SecondaryInterface &secondary,
-                                                           const Uptane::Target &target);
+  std::future<data::ResultCode::Numeric> sendFirmwareAsync(SecondaryInterface &secondary, const Uptane::Target &target);
   std::vector<result::Install::EcuReport> sendImagesToEcus(const std::vector<Uptane::Target> &targets);
 
   bool putManifestSimple(const Json::Value &custom = Json::nullValue);
   void storeInstallationFailure(const data::InstallationResult &result);
   void getNewTargets(std::vector<Uptane::Target> *new_targets, unsigned int *ecus_count = nullptr);
-  void rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::SecondaryInterface &secondary);
+  void rotateSecondaryRoot(Uptane::RepositoryType repo, SecondaryInterface &secondary);
   void updateDirectorMeta();
   void checkDirectorMetaOffline();
   void computeDeviceInstallationResult(data::InstallationResult *result, std::string *raw_installation_report) const;
@@ -182,7 +181,7 @@ class SotaUptaneClient {
   boost::signals2::scoped_connection conn;
   std::exception_ptr last_exception;
   // ecu_serial => secondary*
-  std::map<Uptane::EcuSerial, Uptane::SecondaryInterface::Ptr> secondaries;
+  std::map<Uptane::EcuSerial, SecondaryInterface::Ptr> secondaries;
   std::mutex download_mutex;
   Uptane::EcuSerial primary_ecu_serial_;
   Uptane::HardwareIdentifier primary_ecu_hw_id_;

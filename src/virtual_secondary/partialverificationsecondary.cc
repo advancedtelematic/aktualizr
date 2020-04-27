@@ -7,7 +7,7 @@
 #include "json/json.h"
 
 #include "logging/logging.h"
-#include "uptane/secondaryinterface.h"
+#include "primary/secondaryinterface.h"
 #include "utilities/exceptions.h"
 #include "utilities/types.h"
 

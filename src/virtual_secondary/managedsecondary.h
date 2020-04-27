@@ -9,7 +9,7 @@
 #include "json/json.h"
 
 #include "primary/secondary_config.h"
-#include "uptane/secondaryinterface.h"
+#include "primary/secondaryinterface.h"
 #include "utilities/types.h"
 
 namespace Primary {
@@ -34,11 +34,10 @@ class ManagedSecondaryConfig : public SecondaryConfig {
   KeyType key_type{KeyType::kRSA2048};
 };
 
-// Managed secondary is an abstraction over virtual and other types of legacy
-// (non-Uptane) secondaries. They require all the Uptane-related functionality
-// to be implemented in aktualizr itself, so there's some shared code.
-
-class ManagedSecondary : public Uptane::SecondaryInterface {
+// ManagedSecondary is an abstraction over virtual and other types of legacy
+// (non-Uptane) Secondaries. They require any the Uptane-related functionality
+// to be implemented in aktualizr itself.
+class ManagedSecondary : public SecondaryInterface {
  public:
   explicit ManagedSecondary(Primary::ManagedSecondaryConfig sconfig_in, ImageReaderProvider image_reader_in);
   ~ManagedSecondary() override = default;

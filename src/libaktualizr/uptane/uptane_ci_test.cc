@@ -70,7 +70,7 @@ TEST(UptaneCI, CheckKeys) {
   EXPECT_TRUE(primary_public.size() > 0);
   EXPECT_TRUE(primary_private.size() > 0);
 
-  std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
+  std::map<Uptane::EcuSerial, std::shared_ptr<SecondaryInterface> >::iterator it;
   for (it = sota_client->secondaries.begin(); it != sota_client->secondaries.end(); it++) {
     std::shared_ptr<Primary::ManagedSecondary> managed_secondary =
         std::dynamic_pointer_cast<Primary::ManagedSecondary>(it->second);

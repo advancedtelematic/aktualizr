@@ -7,10 +7,9 @@
 #include <boost/filesystem.hpp>
 #include "json/json.h"
 
-#include "uptane/secondaryinterface.h"
-#include "utilities/types.h"
-
 #include "managedsecondary.h"
+#include "primary/secondaryinterface.h"
+#include "utilities/types.h"
 
 namespace Primary {
 

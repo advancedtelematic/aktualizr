@@ -14,7 +14,7 @@
 
 namespace Primary {
 
-using Secondaries = std::vector<std::shared_ptr<Uptane::SecondaryInterface>>;
+using Secondaries = std::vector<std::shared_ptr<SecondaryInterface>>;
 using SecondaryFactoryRegistry =
     std::unordered_map<std::string, std::function<Secondaries(const SecondaryConfig&, Aktualizr& aktualizr)>>;
 
@@ -174,7 +174,7 @@ static Secondaries createIPSecondaries(const IPSecondariesConfig& config, Aktual
   auto secondaries_info = aktualizr.GetSecondaries();
 
   for (const auto& cfg : config.secondaries_cfg) {
-    Uptane::SecondaryInterface::Ptr secondary;
+    SecondaryInterface::Ptr secondary;
     const SecondaryInfo* info = nullptr;
 
     // Try to match the configured Secondaries to stored Secondaries.

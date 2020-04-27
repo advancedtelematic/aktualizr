@@ -167,7 +167,7 @@ For description of all configuration options, refer to the client configuraton x
 +
 [source,cpp]
 ----
-void Aktualizr::AddSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &secondary)
+void Aktualizr::AddSecondary(const std::shared_ptr<SecondaryInterface> &secondary)
 ----
 You must call this function before you call `Initialize`. To find out more about Primary and Secondary ECUs, see our xref:uptane.adoc#_primary_and_secondary_ecus[Uptane description].
 
