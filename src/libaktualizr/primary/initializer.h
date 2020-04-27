@@ -4,8 +4,8 @@
 #include "config/config.h"
 #include "crypto/keymanager.h"
 #include "http/httpinterface.h"
+#include "primary/secondaryinterface.h"
 #include "storage/invstorage.h"
-#include "uptane/secondaryinterface.h"
 
 const int MaxInitializationAttempts = 3;
 
@@ -13,7 +13,7 @@ class Initializer {
  public:
   Initializer(const ProvisionConfig& config_in, std::shared_ptr<INvStorage> storage_in,
               std::shared_ptr<HttpInterface> http_client_in, KeyManager& keys_in,
-              const std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >& secondaries_in);
+              const std::map<Uptane::EcuSerial, std::shared_ptr<SecondaryInterface> >& secondaries_in);
 
   class Error : public std::runtime_error {
    public:
@@ -41,7 +41,7 @@ class Initializer {
   std::shared_ptr<INvStorage> storage_;
   std::shared_ptr<HttpInterface> http_client_;
   KeyManager& keys_;
-  const std::map<Uptane::EcuSerial, Uptane::SecondaryInterface::Ptr>& secondaries_;
+  const std::map<Uptane::EcuSerial, SecondaryInterface::Ptr>& secondaries_;
   std::vector<SecondaryInfo> sec_info_;
 
   void initDeviceId();

@@ -14,7 +14,6 @@ set(HEADERS
     exceptions.h
     fetcher.h
     iterator.h
-    secondaryinterface.h
     tuf.h
     uptanerepository.h
     directorrepository.h

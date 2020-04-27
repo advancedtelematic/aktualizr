@@ -1,10 +1,9 @@
 #ifndef UPTANE_IPUPTANESECONDARY_H_
 #define UPTANE_IPUPTANESECONDARY_H_
 
-#include <chrono>
-#include <future>
+#include <mutex>
 
-#include "uptane/secondaryinterface.h"
+#include "primary/secondaryinterface.h"
 
 namespace Uptane {
 

@@ -12,9 +12,9 @@
 
 namespace Uptane {
 
-Uptane::SecondaryInterface::Ptr IpUptaneSecondary::connectAndCreate(const std::string& address, unsigned short port,
-                                                                    ImageReaderProvider image_reader_provider,
-                                                                    TlsCredsProvider treehub_cred_provider) {
+SecondaryInterface::Ptr IpUptaneSecondary::connectAndCreate(const std::string& address, unsigned short port,
+                                                            ImageReaderProvider image_reader_provider,
+                                                            TlsCredsProvider treehub_cred_provider) {
   LOG_INFO << "Connecting to and getting info about IP Secondary: " << address << ":" << port << "...";
 
   ConnectionSocket con_sock{address, port};
@@ -30,9 +30,9 @@ Uptane::SecondaryInterface::Ptr IpUptaneSecondary::connectAndCreate(const std::s
   return create(address, port, *con_sock, std::move(image_reader_provider), std::move(treehub_cred_provider));
 }
 
-Uptane::SecondaryInterface::Ptr IpUptaneSecondary::create(const std::string& address, unsigned short port, int con_fd,
-                                                          ImageReaderProvider image_reader_provider,
-                                                          TlsCredsProvider treehub_cred_provider) {
+SecondaryInterface::Ptr IpUptaneSecondary::create(const std::string& address, unsigned short port, int con_fd,
+                                                  ImageReaderProvider image_reader_provider,
+                                                  TlsCredsProvider treehub_cred_provider) {
   Asn1Message::Ptr req(Asn1Message::Empty());
   req->present(AKIpUptaneMes_PR_getInfoReq);
 
