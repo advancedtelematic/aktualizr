@@ -304,11 +304,8 @@ bool SotaUptaneClient::hasPendingUpdates() const { return storage->hasPendingIns
 void SotaUptaneClient::initialize() {
   LOG_DEBUG << "Checking if device is provisioned...";
   auto keys = std::make_shared<KeyManager>(storage, config.keymanagerConfig());
-  Initializer initializer(config.provision, storage, http, *keys, secondaries);
 
-  if (!initializer.isSuccessful()) {
-    throw std::runtime_error("Fatal error during provisioning or ECU device registration.");
-  }
+  Initializer initializer(config.provision, storage, http, *keys, secondaries);
 
   EcuSerials serials;
   /* unlikely, post-condition of Initializer::Initializer() */

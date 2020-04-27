@@ -1370,9 +1370,8 @@ TEST(Uptane, Pkcs11Provision) {
   storage->importData(config.import);
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
   KeyManager keys(storage, config.keymanagerConfig());
-  Initializer initializer(config.provision, storage, http, keys, {});
 
-  EXPECT_TRUE(initializer.isSuccessful());
+  EXPECT_NO_THROW(Initializer(config.provision, storage, http, keys, {}));
 }
 #endif
 
