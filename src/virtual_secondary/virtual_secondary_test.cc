@@ -2,7 +2,7 @@
 
 #include "metafake.h"
 #include "partialverificationsecondary.h"
-#include "uptane/secondaryinterface.h"
+#include "primary/secondaryinterface.h"
 #include "virtualsecondary.h"
 
 class VirtualSecondaryTest : public ::testing::Test {

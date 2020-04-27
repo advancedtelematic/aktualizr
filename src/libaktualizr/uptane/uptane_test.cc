@@ -16,11 +16,11 @@
 #include "crypto/p11engine.h"
 #include "httpfake.h"
 #include "primary/initializer.h"
+#include "primary/secondaryinterface.h"
 #include "primary/sotauptaneclient.h"
 #include "storage/fsstorage_read.h"
 #include "storage/invstorage.h"
 #include "test_utils.h"
-#include "uptane/secondaryinterface.h"
 #include "uptane/tuf.h"
 #include "uptane/uptanerepository.h"
 #include "uptane_test_common.h"
@@ -534,7 +534,7 @@ class HttpFakeEvents : public HttpFake {
   }
 };
 
-class SecondaryInterfaceMock : public Uptane::SecondaryInterface {
+class SecondaryInterfaceMock : public SecondaryInterface {
  public:
   explicit SecondaryInterfaceMock(Primary::VirtualSecondaryConfig &sconfig_in) : sconfig(std::move(sconfig_in)) {
     std::string private_key, public_key;

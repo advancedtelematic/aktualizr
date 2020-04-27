@@ -24,7 +24,7 @@ static void report_progress_cb(event::Channel *channel, const Uptane::Target &ta
   (*channel)(event);
 }
 
-void SotaUptaneClient::addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec) {
+void SotaUptaneClient::addSecondary(const std::shared_ptr<SecondaryInterface> &sec) {
   Uptane::EcuSerial serial = sec->getSerial();
 
   SecondaryInfo info;
@@ -1168,7 +1168,7 @@ void SotaUptaneClient::verifySecondaries() {
 }
 
 bool SotaUptaneClient::waitSecondariesReachable(const std::vector<Uptane::Target> &updates) {
-  std::map<Uptane::EcuSerial, Uptane::SecondaryInterface *> targeted_secondaries;
+  std::map<Uptane::EcuSerial, SecondaryInterface *> targeted_secondaries;
   const Uptane::EcuSerial &primary_ecu_serial = primaryEcuSerial();
   for (const auto &t : updates) {
     for (const auto &ecu : t.ecus()) {
@@ -1225,7 +1225,7 @@ void SotaUptaneClient::storeInstallationFailure(const data::InstallationResult &
   director_repo.dropTargets(*storage);
 }
 
-void SotaUptaneClient::rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::SecondaryInterface &secondary) {
+void SotaUptaneClient::rotateSecondaryRoot(Uptane::RepositoryType repo, SecondaryInterface &secondary) {
   std::string latest_root;
 
   if (!storage->loadLatestRoot(&latest_root, repo)) {
@@ -1306,7 +1306,7 @@ bool SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &tar
   return put_meta_succeed;
 }
 
-std::future<data::ResultCode::Numeric> SotaUptaneClient::sendFirmwareAsync(Uptane::SecondaryInterface &secondary,
+std::future<data::ResultCode::Numeric> SotaUptaneClient::sendFirmwareAsync(SecondaryInterface &secondary,
                                                                            const Uptane::Target &target) {
   auto f = [this, &secondary, target]() {
     const std::string &correlation_id = director_repo.getCorrelationId();
@@ -1354,7 +1354,7 @@ std::vector<result::Install::EcuReport> SotaUptaneClient::sendImagesToEcus(const
         throw Uptane::BadEcuId(targets_it->filename());
       }
 
-      Uptane::SecondaryInterface &sec = *f->second;
+      SecondaryInterface &sec = *f->second;
       firmwareFutures.emplace_back(result::Install::EcuReport(*targets_it, ecu_serial, data::InstallationResult()),
                                    sendFirmwareAsync(sec, *targets_it));
     }

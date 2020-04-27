@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <thread>
+
 #include <netinet/tcp.h>
 
 #include "ipuptanesecondary.h"
@@ -340,7 +342,7 @@ class SecondaryRpcTest : public ::testing::Test, public ::testing::WithParamInte
   std::thread secondary_server_thread_;
   TargetFile image_file_;
   TlsCreds tls_creds_;
-  Uptane::SecondaryInterface::Ptr ip_secondary_;
+  SecondaryInterface::Ptr ip_secondary_;
 };
 
 // Test the serialization/deserialization and the TCP/IP communication implementation
@@ -383,7 +385,7 @@ INSTANTIATE_TEST_SUITE_P(SecondaryRpcTestCases, SecondaryRpcTest,
 
 TEST(SecondaryTcpServer, TestIpSecondaryIfSecondaryIsNotRunning) {
   in_port_t secondary_port = TestUtils::getFreePortAsInt();
-  Uptane::SecondaryInterface::Ptr ip_secondary;
+  SecondaryInterface::Ptr ip_secondary;
 
   // trying to connect to a non-running Secondary and create a corresponding instance on Primary
   ip_secondary = Uptane::IpUptaneSecondary::connectAndCreate("localhost", secondary_port, nullptr, nullptr);

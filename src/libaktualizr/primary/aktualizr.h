@@ -8,9 +8,9 @@
 
 #include "config/config.h"
 #include "primary/events.h"
+#include "primary/secondaryinterface.h"
 #include "sotauptaneclient.h"
 #include "storage/invstorage.h"
-#include "uptane/secondaryinterface.h"
 #include "utilities/apiqueue.h"
 
 /**
@@ -190,7 +190,7 @@ class Aktualizr {
    * Add new Secondary to aktualizr. Must be called before Initialize.
    * @param secondary An object to perform installation on a Secondary ECU.
    */
-  void AddSecondary(const std::shared_ptr<Uptane::SecondaryInterface>& secondary);
+  void AddSecondary(const std::shared_ptr<SecondaryInterface>& secondary);
 
   /**
    * Store some free-form data to be associated with a particular Secondary, to

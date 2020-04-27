@@ -183,7 +183,7 @@ void Initializer::initEcuRegister() {
 
   for (const auto& sec : secondaries_) {
     const Uptane::EcuSerial ecu_serial = sec.first;
-    Uptane::SecondaryInterface& itf = *sec.second;
+    SecondaryInterface& itf = *sec.second;
 
     const Uptane::HardwareIdentifier hw_id = itf.getHwId();
     const PublicKey pub_key = itf.getPublicKey();
@@ -230,7 +230,7 @@ void Initializer::initEcuReportCounter() {
 // Postcondition: "ECUs registered" flag set in the storage
 Initializer::Initializer(const ProvisionConfig& config_in, std::shared_ptr<INvStorage> storage_in,
                          std::shared_ptr<HttpInterface> http_client_in, KeyManager& keys_in,
-                         const std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>>& secondaries_in)
+                         const std::map<Uptane::EcuSerial, std::shared_ptr<SecondaryInterface>>& secondaries_in)
     : config_(config_in),
       storage_(std::move(storage_in)),
       http_client_(std::move(http_client_in)),

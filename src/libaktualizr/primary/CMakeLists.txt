@@ -11,6 +11,7 @@ set(HEADERS secondary_config.h
             initializer.h
             reportqueue.h
             results.h
+            secondaryinterface.h
             sotauptaneclient.h)
 
 
