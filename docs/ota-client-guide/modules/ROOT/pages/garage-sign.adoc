@@ -167,11 +167,11 @@ To add a software version, perform the following steps:
 ----
 garage-sign targets add \
   --repo <reponame> \
-  --format binary \ <1>
+  --format <target-format> \ <1>
   --length <length-of-package> \ <2>
   --name <packagename> \ <3>
   --version <version> \ <4>
-  --sha256 $(sha256sum "${file}" |cut -d' ' -f-1) \ <5>
+  --sha256 <sha256sum> \ <5>
   --hardwareids <hardware-id1> \ <6>
   --url <url-of-software> <7>
 ----
@@ -210,13 +210,13 @@ garage-sign targets pull \
   --repo <reponame> <1>
 ----
 
-. Next, upload the large binary file you want with the command below. This uploads the binary file directly to https://tuf-cli-releases.ota.here.com/index.html[garage-sign on the s3 reposerver].
+. Next, upload the large binary file you want with the command below.
 +
 [source,bash]
 ----
 garage-sign targets upload \
   --repo <reponame> \
-  --input bigfile.bin </path/to/bigfile.bin>\ <1>
+  --input </path/to/bigfile.bin> \ <1>
   --name <name-of-target> \
   --version <target-version> <2>
 ----
@@ -224,7 +224,7 @@ garage-sign targets upload \
 <1> The path to the file you want to upload is specified here.
 <2> The `name` and `version` of your `targets.json` file are specified here. These can be seen in the `targets.json` file under the `custom` field as shown in the example xref:customise-targets-metadata.adoc#_anatomy_of_targets_json_metadata[here].
 
-. After the upload is successful, add the file to your `targets.json`.
+. After the upload is successful, add metadata about the file to your `targets.json`.
 +
 [source,bash]
 ----
