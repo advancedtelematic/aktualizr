@@ -79,6 +79,7 @@ data::InstallationResult SotaUptaneClient::PackageInstall(const Uptane::Target &
   try {
     return package_manager_->install(target);
   } catch (std::exception &ex) {
+    LOG_ERROR << "Installation failed: " << ex.what();
     return data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, ex.what());
   }
 }
@@ -340,13 +341,40 @@ void SotaUptaneClient::initialize() {
   finalizeAfterReboot();
 }
 
-void SotaUptaneClient::updateDirectorMeta() { director_repo.updateMeta(*storage, *uptane_fetcher); }
+void SotaUptaneClient::updateDirectorMeta() {
+  try {
+    director_repo.updateMeta(*storage, *uptane_fetcher);
+  } catch (const std::exception &e) {
+    LOG_ERROR << "Director metadata update failed: " << e.what();
+    throw;
+  }
+}
 
-void SotaUptaneClient::updateImageMeta() { image_repo.updateMeta(*storage, *uptane_fetcher); }
+void SotaUptaneClient::updateImageMeta() {
+  try {
+    image_repo.updateMeta(*storage, *uptane_fetcher);
+  } catch (const std::exception &e) {
+    LOG_ERROR << "Failed to update Image repo metadata: " << e.what();
+    throw;
+  }
+}
 
-void SotaUptaneClient::checkDirectorMetaOffline() { director_repo.checkMetaOffline(*storage); }
+void SotaUptaneClient::checkDirectorMetaOffline() {
+  try {
+    director_repo.checkMetaOffline(*storage);
+  } catch (const std::exception &e) {
+    LOG_ERROR << "Failed to check Director metadata: " << e.what();
+    throw;
+  }
+}
 
-void SotaUptaneClient::checkImageMetaOffline() { image_repo.checkMetaOffline(*storage); }
+void SotaUptaneClient::checkImageMetaOffline() {
+  try {
+    image_repo.checkMetaOffline(*storage);
+  } catch (const std::exception &e) {
+    LOG_ERROR << "Failed to check Image repo metadata: " << e.what();
+  }
+}
 
 void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult *result,
                                                        std::string *raw_installation_report) const {
@@ -676,12 +704,8 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(const Uptane::Ta
 }
 
 void SotaUptaneClient::uptaneIteration(std::vector<Uptane::Target> *targets, unsigned int *ecus_count) {
-  try {
-    updateDirectorMeta();
-  } catch (const std::exception &e) {
-    LOG_ERROR << "Director metadata update failed: " << e.what();
-    throw;
-  }
+  updateDirectorMeta();
+
   std::vector<Uptane::Target> tmp_targets;
   unsigned int ecus;
   try {
@@ -703,12 +727,7 @@ void SotaUptaneClient::uptaneIteration(std::vector<Uptane::Target> *targets, uns
 
   LOG_INFO << "New updates found in Director metadata. Checking Image repo metadata...";
 
-  try {
-    updateImageMeta();
-  } catch (const std::exception &e) {
-    LOG_ERROR << "Failed to update Image repo metadata: " << e.what();
-    throw;
-  }
+  updateImageMeta();
 
   if (targets != nullptr) {
     *targets = std::move(tmp_targets);
@@ -719,18 +738,14 @@ void SotaUptaneClient::uptaneIteration(std::vector<Uptane::Target> *targets, uns
 }
 
 void SotaUptaneClient::uptaneOfflineIteration(std::vector<Uptane::Target> *targets, unsigned int *ecus_count) {
-  try {
-    checkDirectorMetaOffline();
-  } catch (const std::exception &e) {
-    LOG_ERROR << "Failed to check Director metadata: " << e.what();
-    throw;
-  }
+  checkDirectorMetaOffline();
+
   std::vector<Uptane::Target> tmp_targets;
   unsigned int ecus;
   try {
     getNewTargets(&tmp_targets, &ecus);
   } catch (const std::exception &e) {
-    LOG_ERROR << "Inconsistency between Director metadata and existent ECUs: " << e.what();
+    LOG_ERROR << "Inconsistency between Director metadata and existing ECUs: " << e.what();
     throw;
   }
 
@@ -742,12 +757,7 @@ void SotaUptaneClient::uptaneOfflineIteration(std::vector<Uptane::Target> *targe
     return;
   }
 
-  try {
-    checkImageMetaOffline();
-  } catch (const std::exception &e) {
-    LOG_ERROR << "Failed to check Image repo metadata: " << e.what();
-    throw;
-  }
+  checkImageMetaOffline();
 
   *targets = std::move(tmp_targets);
   if (ecus_count != nullptr) {
