@@ -135,9 +135,21 @@ class Aktualizr {
   std::future<result::Install> Install(const std::vector<Uptane::Target>& updates);
 
   /**
+   * SetInstallationRawReport allows setting a custom raw report field in the device installation result.
+   *
+   * @note An invocation of this method will have effect only after call of  Aktualizr::Install and before calling
+   * Aktualizr::SendManifest member function.
+   * @param custom_raw_report is an arbitrary json object which is intended to replace a default value in the device
+   * installation report.
+   * @return true if the custom raw report was successfully applied to the device installation result.
+   * If there is no installation report in the storage the function will always return false.
+   */
+  bool SetInstallationRawReport(const Json::Value& custom_raw_report);
+
+  /**
    * Send installation report to the backend.
    *
-   * Note that the device manifest is also sent as a part of CheckUpdates and
+   * @note The device manifest is also sent as a part of CheckUpdates and
    * SendDeviceData calls, as well as after a reboot if it was initiated
    * by Aktualizr as a part of an installation process.
    * All these manifests will not include the custom data provided in this call.
