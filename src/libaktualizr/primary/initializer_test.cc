@@ -36,8 +36,7 @@ TEST(Initializer, Success) {
 
   // Initialize.
   KeyManager keys(storage, conf.keymanagerConfig());
-  Initializer initializer(conf.provision, storage, http, keys, {});
-  EXPECT_TRUE(initializer.isSuccessful());
+  EXPECT_NO_THROW(Initializer(conf.provision, storage, http, keys, {}));
 
   // Then verify that the storage contains what we expect.
   EXPECT_TRUE(storage->loadTlsCreds(&ca, &cert, &pkey));
@@ -81,8 +80,7 @@ TEST(Initializer, InitializeTwice) {
   // Intialize and verify that the storage contains what we expect.
   {
     KeyManager keys(storage, conf.keymanagerConfig());
-    Initializer initializer(conf.provision, storage, http, keys, {});
-    EXPECT_TRUE(initializer.isSuccessful());
+    EXPECT_NO_THROW(Initializer(conf.provision, storage, http, keys, {}));
 
     EXPECT_TRUE(storage->loadTlsCreds(&ca1, &cert1, &pkey1));
     EXPECT_NE(ca1, "");
@@ -96,8 +94,7 @@ TEST(Initializer, InitializeTwice) {
   // Intialize again and verify that nothing has changed.
   {
     KeyManager keys(storage, conf.keymanagerConfig());
-    Initializer initializer(conf.provision, storage, http, keys, {});
-    EXPECT_TRUE(initializer.isSuccessful());
+    EXPECT_NO_THROW(Initializer(conf.provision, storage, http, keys, {}));
 
     std::string pkey2;
     std::string cert2;
@@ -132,8 +129,7 @@ TEST(Initializer, PetNameProvided) {
   auto storage = INvStorage::newStorage(conf.storage);
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   KeyManager keys(storage, conf.keymanagerConfig());
-  Initializer initializer(conf.provision, storage, http, keys, {});
-  EXPECT_TRUE(initializer.isSuccessful());
+  EXPECT_NO_THROW(Initializer(conf.provision, storage, http, keys, {}));
 
   {
     EXPECT_EQ(conf.provision.device_id, test_name);
@@ -171,8 +167,7 @@ TEST(Initializer, PetNameCreation) {
     auto storage = INvStorage::newStorage(conf.storage);
     auto http = std::make_shared<HttpFake>(temp_dir.Path());
     KeyManager keys(storage, conf.keymanagerConfig());
-    Initializer initializer(conf.provision, storage, http, keys, {});
-    EXPECT_TRUE(initializer.isSuccessful());
+    EXPECT_NO_THROW(Initializer(conf.provision, storage, http, keys, {}));
 
     EXPECT_TRUE(storage->loadDeviceId(&test_name1));
     EXPECT_NE(test_name1, "");
@@ -189,8 +184,7 @@ TEST(Initializer, PetNameCreation) {
     auto storage = INvStorage::newStorage(conf.storage);
     auto http = std::make_shared<HttpFake>(temp_dir2.Path());
     KeyManager keys(storage, conf.keymanagerConfig());
-    Initializer initializer(conf.provision, storage, http, keys, {});
-    EXPECT_TRUE(initializer.isSuccessful());
+    EXPECT_NO_THROW(Initializer(conf.provision, storage, http, keys, {}));
 
     EXPECT_TRUE(storage->loadDeviceId(&test_name2));
     EXPECT_NE(test_name2, test_name1);
@@ -203,8 +197,7 @@ TEST(Initializer, PetNameCreation) {
     auto storage = INvStorage::newStorage(conf.storage);
     auto http = std::make_shared<HttpFake>(temp_dir2.Path());
     KeyManager keys(storage, conf.keymanagerConfig());
-    Initializer initializer(conf.provision, storage, http, keys, {});
-    EXPECT_TRUE(initializer.isSuccessful());
+    EXPECT_NO_THROW(Initializer(conf.provision, storage, http, keys, {}));
 
     std::string devid;
     EXPECT_TRUE(storage->loadDeviceId(&devid));
@@ -223,14 +216,15 @@ TEST(Initializer, PetNameCreation) {
     auto storage = INvStorage::newStorage(conf.storage);
     auto http = std::make_shared<HttpFake>(temp_dir3.Path());
     KeyManager keys(storage, conf.keymanagerConfig());
-    Initializer initializer(conf.provision, storage, http, keys, {});
-    EXPECT_TRUE(initializer.isSuccessful());
+    EXPECT_NO_THROW(Initializer(conf.provision, storage, http, keys, {}));
 
     std::string devid;
     EXPECT_TRUE(storage->loadDeviceId(&devid));
     EXPECT_EQ(devid, test_name2);
   }
 }
+
+enum class InitRetCode { kOk, kOccupied, kServerFailure, kStorageFailure, kSecondaryFailure, kBadP12, kPkcs11Failure };
 
 class HttpFakeDeviceRegistration : public HttpFake {
  public:
@@ -271,22 +265,19 @@ TEST(Initializer, DeviceRegistration) {
   // Force a failure from the fake server due to device already registered.
   {
     http->retcode = InitRetCode::kOccupied;
-    Initializer initializer(conf.provision, storage, http, keys, {});
-    EXPECT_FALSE(initializer.isSuccessful());
+    EXPECT_THROW(Initializer(conf.provision, storage, http, keys, {}), Initializer::Error);
   }
 
   // Force an arbitrary failure from the fake server.
   {
     http->retcode = InitRetCode::kServerFailure;
-    Initializer initializer(conf.provision, storage, http, keys, {});
-    EXPECT_FALSE(initializer.isSuccessful());
+    EXPECT_THROW(Initializer(conf.provision, storage, http, keys, {}), Initializer::ServerError);
   }
 
   // Don't force a failure and make sure it actually works this time.
   {
     http->retcode = InitRetCode::kOk;
-    Initializer initializer(conf.provision, storage, http, keys, {});
-    EXPECT_TRUE(initializer.isSuccessful());
+    EXPECT_NO_THROW(Initializer(conf.provision, storage, http, keys, {}));
   }
 }
 
@@ -329,22 +320,19 @@ TEST(Initializer, EcuRegisteration) {
   // Force a failure from the fake server due to ECUs already registered.
   {
     http->retcode = InitRetCode::kOccupied;
-    Initializer initializer(conf.provision, storage, http, keys, {});
-    EXPECT_FALSE(initializer.isSuccessful());
+    EXPECT_THROW(Initializer(conf.provision, storage, http, keys, {}), Initializer::ServerError);
   }
 
   // Force an arbitary failure from the fake server.
   {
     http->retcode = InitRetCode::kServerFailure;
-    Initializer initializer(conf.provision, storage, http, keys, {});
-    EXPECT_FALSE(initializer.isSuccessful());
+    EXPECT_THROW(Initializer(conf.provision, storage, http, keys, {}), Initializer::ServerError);
   }
 
   // Don't force a failure and make sure it actually works this time.
   {
     http->retcode = InitRetCode::kOk;
-    Initializer initializer(conf.provision, storage, http, keys, {});
-    EXPECT_TRUE(initializer.isSuccessful());
+    EXPECT_NO_THROW(Initializer(conf.provision, storage, http, keys, {}));
   }
 }
 
@@ -370,8 +358,7 @@ TEST(Initializer, HostnameAsHardwareID) {
     KeyManager keys(storage, conf.keymanagerConfig());
 
     EXPECT_TRUE(conf.provision.primary_ecu_hardware_id.empty());
-    Initializer initializer(conf.provision, storage, http, keys, {});
-    EXPECT_TRUE(initializer.isSuccessful());
+    EXPECT_NO_THROW(Initializer(conf.provision, storage, http, keys, {}));
 
     EcuSerials ecu_serials;
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials));

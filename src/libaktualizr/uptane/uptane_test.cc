@@ -1249,43 +1249,43 @@ TEST(Uptane, restoreVerify) {
   EXPECT_NO_THROW(sota_client->initialize());
   sota_client->AssembleManifest();
   // 1st attempt, don't get anything
-  EXPECT_FALSE(sota_client->uptaneIteration(nullptr, nullptr));
+  EXPECT_THROW(sota_client->uptaneIteration(nullptr, nullptr), Uptane::MetadataFetchFailure);
   EXPECT_FALSE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Director()));
 
   // 2nd attempt, get Director root.json
   http->setUnstableValidNum(1);
-  EXPECT_FALSE(sota_client->uptaneIteration(nullptr, nullptr));
+  EXPECT_THROW(sota_client->uptaneIteration(nullptr, nullptr), Uptane::MetadataFetchFailure);
   EXPECT_TRUE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Director()));
   EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Director(), Uptane::Role::Targets()));
 
   // 3rd attempt, get Director targets.json
   http->setUnstableValidNum(2);
-  EXPECT_FALSE(sota_client->uptaneIteration(nullptr, nullptr));
+  EXPECT_THROW(sota_client->uptaneIteration(nullptr, nullptr), Uptane::MetadataFetchFailure);
   EXPECT_TRUE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Director()));
   EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Director(), Uptane::Role::Targets()));
   EXPECT_FALSE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Image()));
 
   // 4th attempt, get Image repo root.json
   http->setUnstableValidNum(3);
-  EXPECT_FALSE(sota_client->uptaneIteration(nullptr, nullptr));
+  EXPECT_THROW(sota_client->uptaneIteration(nullptr, nullptr), Uptane::MetadataFetchFailure);
   EXPECT_TRUE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Image()));
   EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()));
 
   // 5th attempt, get Image repo timestamp.json
   http->setUnstableValidNum(4);
-  EXPECT_FALSE(sota_client->uptaneIteration(nullptr, nullptr));
+  EXPECT_THROW(sota_client->uptaneIteration(nullptr, nullptr), Uptane::MetadataFetchFailure);
   EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()));
   EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()));
 
   // 6th attempt, get Image repo snapshot.json
   http->setUnstableValidNum(5);
-  EXPECT_FALSE(sota_client->uptaneIteration(nullptr, nullptr));
+  EXPECT_THROW(sota_client->uptaneIteration(nullptr, nullptr), Uptane::MetadataFetchFailure);
   EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()));
   EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Targets()));
 
   // 7th attempt, get Image repo targets.json, successful iteration
   http->setUnstableValidNum(6);
-  EXPECT_TRUE(sota_client->uptaneIteration(nullptr, nullptr));
+  EXPECT_NO_THROW(sota_client->uptaneIteration(nullptr, nullptr));
   EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Targets()));
 }
 
@@ -1312,10 +1312,10 @@ TEST(Uptane, offlineIteration) {
   EXPECT_NO_THROW(sota_client->initialize());
 
   std::vector<Uptane::Target> targets_online;
-  EXPECT_TRUE(sota_client->uptaneIteration(&targets_online, nullptr));
+  EXPECT_NO_THROW(sota_client->uptaneIteration(&targets_online, nullptr));
 
   std::vector<Uptane::Target> targets_offline;
-  EXPECT_TRUE(sota_client->uptaneOfflineIteration(&targets_offline, nullptr));
+  EXPECT_NO_THROW(sota_client->uptaneOfflineIteration(&targets_offline, nullptr));
   EXPECT_TRUE(Uptane::MatchTargetVector(targets_online, targets_offline));
 }
 
@@ -1340,20 +1340,11 @@ TEST(Uptane, IgnoreUnknownUpdate) {
   auto sota_client = std_::make_unique<UptaneTestCommon::TestUptaneClient>(config, storage, http);
 
   EXPECT_NO_THROW(sota_client->initialize());
+
   auto result = sota_client->fetchMeta();
   EXPECT_EQ(result.status, result::UpdateStatus::kError);
-  EXPECT_STREQ(sota_client->getLastException().what(),
-               "The target had an ECU ID that did not match the client's configured ECU ID.");
-  sota_client->last_exception = Uptane::Exception{"", ""};
-  result = sota_client->checkUpdates();
-  EXPECT_EQ(result.status, result::UpdateStatus::kError);
-  EXPECT_STREQ(sota_client->getLastException().what(),
-               "The target had an ECU ID that did not match the client's configured ECU ID.");
   std::vector<Uptane::Target> packages_to_install = UptaneTestCommon::makePackage("testecuserial", "testecuhwid");
-  sota_client->last_exception = Uptane::Exception{"", ""};
   auto report = sota_client->uptaneInstall(packages_to_install);
-  EXPECT_STREQ(sota_client->getLastException().what(),
-               "The target had an ECU ID that did not match the client's configured ECU ID.");
   EXPECT_EQ(report.ecu_reports.size(), 0);
 }
 
@@ -1379,9 +1370,8 @@ TEST(Uptane, Pkcs11Provision) {
   storage->importData(config.import);
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
   KeyManager keys(storage, config.keymanagerConfig());
-  Initializer initializer(config.provision, storage, http, keys, {});
 
-  EXPECT_TRUE(initializer.isSuccessful());
+  EXPECT_NO_THROW(Initializer(config.provision, storage, http, keys, {}));
 }
 #endif
 

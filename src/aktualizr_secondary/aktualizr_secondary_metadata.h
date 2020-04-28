@@ -10,13 +10,13 @@ class Metadata : public Uptane::IMetadataFetcher {
   Metadata(const Uptane::RawMetaPack& meta_pack);
   Metadata(Metadata&&) = default;
 
-  bool fetchRole(std::string* result, int64_t maxsize, Uptane::RepositoryType repo, const Uptane::Role& role,
+  void fetchRole(std::string* result, int64_t maxsize, Uptane::RepositoryType repo, const Uptane::Role& role,
                  Uptane::Version version) const override;
-  bool fetchLatestRole(std::string* result, int64_t maxsize, Uptane::RepositoryType repo,
+  void fetchLatestRole(std::string* result, int64_t maxsize, Uptane::RepositoryType repo,
                        const Uptane::Role& role) const override;
 
  protected:
-  virtual bool getRoleMetadata(std::string* result, const Uptane::RepositoryType& repo, const Uptane::Role& role,
+  virtual void getRoleMetadata(std::string* result, const Uptane::RepositoryType& repo, const Uptane::Role& role,
                                Uptane::Version version) const;
 
  private:

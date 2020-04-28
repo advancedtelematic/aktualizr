@@ -42,7 +42,6 @@ bool OstreeUpdateAgent::download(const Uptane::Target& target, const std::string
   try {
     std::string ca, cert, pkey, server_url;
     extractCredentialsArchive(data, &ca, &cert, &pkey, &server_url);
-    // TODO: why are qe loading this credentials at all ?
     keyMngr_->loadKeys(&pkey, &cert, &ca);
     boost::trim(server_url);
     treehub_server = server_url;

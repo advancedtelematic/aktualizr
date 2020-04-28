@@ -32,8 +32,7 @@ TEST(DeviceCredProv, Failure) {
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   KeyManager keys(storage, config.keymanagerConfig());
 
-  Initializer initializer(config.provision, storage, http, keys, {});
-  EXPECT_FALSE(initializer.isSuccessful());
+  EXPECT_THROW(Initializer(config.provision, storage, http, keys, {}), Initializer::Error);
 }
 
 /**
@@ -62,8 +61,7 @@ TEST(DeviceCredProv, Incomplete) {
     storage->importData(config.import);
     KeyManager keys(storage, config.keymanagerConfig());
 
-    Initializer initializer(config.provision, storage, http, keys, {});
-    EXPECT_FALSE(initializer.isSuccessful());
+    EXPECT_THROW(Initializer(config.provision, storage, http, keys, {}), Initializer::Error);
   }
 
   {
@@ -77,8 +75,7 @@ TEST(DeviceCredProv, Incomplete) {
     storage->importData(config.import);
     KeyManager keys(storage, config.keymanagerConfig());
 
-    Initializer initializer(config.provision, storage, http, keys, {});
-    EXPECT_FALSE(initializer.isSuccessful());
+    EXPECT_THROW(Initializer(config.provision, storage, http, keys, {}), Initializer::Error);
   }
 
   {
@@ -92,8 +89,7 @@ TEST(DeviceCredProv, Incomplete) {
     storage->importData(config.import);
     KeyManager keys(storage, config.keymanagerConfig());
 
-    Initializer initializer(config.provision, storage, http, keys, {});
-    EXPECT_FALSE(initializer.isSuccessful());
+    EXPECT_THROW(Initializer(config.provision, storage, http, keys, {}), Initializer::Error);
   }
 
   {
@@ -108,8 +104,7 @@ TEST(DeviceCredProv, Incomplete) {
     storage->importData(config.import);
     KeyManager keys(storage, config.keymanagerConfig());
 
-    Initializer initializer(config.provision, storage, http, keys, {});
-    EXPECT_FALSE(initializer.isSuccessful());
+    EXPECT_THROW(Initializer(config.provision, storage, http, keys, {}), Initializer::Error);
   }
 
   {
@@ -124,8 +119,7 @@ TEST(DeviceCredProv, Incomplete) {
     storage->importData(config.import);
     KeyManager keys(storage, config.keymanagerConfig());
 
-    Initializer initializer(config.provision, storage, http, keys, {});
-    EXPECT_FALSE(initializer.isSuccessful());
+    EXPECT_THROW(Initializer(config.provision, storage, http, keys, {}), Initializer::Error);
   }
 
   {
@@ -140,8 +134,7 @@ TEST(DeviceCredProv, Incomplete) {
     storage->importData(config.import);
     KeyManager keys(storage, config.keymanagerConfig());
 
-    Initializer initializer(config.provision, storage, http, keys, {});
-    EXPECT_FALSE(initializer.isSuccessful());
+    EXPECT_THROW(Initializer(config.provision, storage, http, keys, {}), Initializer::Error);
   }
 
   // Do one last round with all three files to make sure it actually works as
@@ -158,8 +151,7 @@ TEST(DeviceCredProv, Incomplete) {
   storage->importData(config.import);
   KeyManager keys(storage, config.keymanagerConfig());
 
-  Initializer initializer(config.provision, storage, http, keys, {});
-  EXPECT_TRUE(initializer.isSuccessful());
+  EXPECT_NO_THROW(Initializer(config.provision, storage, http, keys, {}));
 }
 
 /**
@@ -185,8 +177,7 @@ TEST(DeviceCredProv, Success) {
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   KeyManager keys(storage, config.keymanagerConfig());
 
-  Initializer initializer(config.provision, storage, http, keys, {});
-  EXPECT_TRUE(initializer.isSuccessful());
+  EXPECT_NO_THROW(Initializer(config.provision, storage, http, keys, {}));
 }
 
 #ifndef __NO_MAIN__

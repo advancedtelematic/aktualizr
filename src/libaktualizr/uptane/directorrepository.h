@@ -14,23 +14,23 @@ class DirectorRepository : public RepositoryCommon {
  public:
   DirectorRepository() : RepositoryCommon(RepositoryType::Director()) {}
 
-  bool verifyTargets(const std::string& targets_raw);
+  void verifyTargets(const std::string& targets_raw);
   const Targets& getTargets() const { return targets; }
   std::vector<Uptane::Target> getTargets(const Uptane::EcuSerial& ecu_id,
                                          const Uptane::HardwareIdentifier& hw_id) const {
     return targets.getTargets(ecu_id, hw_id);
   }
   const std::string& getCorrelationId() const { return targets.correlation_id(); }
-  bool checkMetaOffline(INvStorage& storage);
+  void checkMetaOffline(INvStorage& storage);
   void dropTargets(INvStorage& storage);
 
-  bool updateMeta(INvStorage& storage, const IMetadataFetcher& fetcher) override;
+  void updateMeta(INvStorage& storage, const IMetadataFetcher& fetcher) override;
   bool matchTargetsWithImageTargets(const Uptane::Targets& image_targets) const;
 
  private:
   void resetMeta();
-  bool targetsExpired();
-  bool targetsSanityCheck();
+  void checkTargetsExpired();
+  void targetsSanityCheck();
   bool usePreviousTargets() const;
 
  private:

@@ -19,9 +19,10 @@ TEST(Director, EmptyTargets) {
   uptane_gen.run({"generate", "--path", meta_dir.PathString()});
 
   DirectorRepository director;
-  EXPECT_TRUE(director.initRoot(Utils::readFile(meta_dir.Path() / "repo/director/root.json")));
+  EXPECT_NO_THROW(director.initRoot(Uptane::RepositoryType(Uptane::RepositoryType::DIRECTOR),
+                                    Utils::readFile(meta_dir.Path() / "repo/director/root.json")));
 
-  EXPECT_TRUE(director.verifyTargets(Utils::readFile(meta_dir.Path() / "repo/director/targets.json")));
+  EXPECT_NO_THROW(director.verifyTargets(Utils::readFile(meta_dir.Path() / "repo/director/targets.json")));
   EXPECT_TRUE(director.targets.targets.empty());
   EXPECT_TRUE(director.latest_targets.targets.empty());
 
@@ -31,7 +32,7 @@ TEST(Director, EmptyTargets) {
                   "--serial", "CA:FE:A6:D2:84:9D"});
   uptane_gen.run({"signtargets", "--path", meta_dir.PathString()});
 
-  EXPECT_TRUE(director.verifyTargets(Utils::readFile(meta_dir.Path() / "repo/director/targets.json")));
+  EXPECT_NO_THROW(director.verifyTargets(Utils::readFile(meta_dir.Path() / "repo/director/targets.json")));
   EXPECT_EQ(director.targets.targets.size(), 1);
   EXPECT_EQ(director.targets.targets[0].filename(), "firmware.txt");
   EXPECT_EQ(director.targets.targets.size(), director.latest_targets.targets.size());
@@ -39,7 +40,7 @@ TEST(Director, EmptyTargets) {
   uptane_gen.run({"emptytargets", "--path", meta_dir.PathString()});
   uptane_gen.run({"signtargets", "--path", meta_dir.PathString(), "--correlationid", "abc123"});
 
-  EXPECT_TRUE(director.verifyTargets(Utils::readFile(meta_dir.Path() / "repo/director/targets.json")));
+  EXPECT_NO_THROW(director.verifyTargets(Utils::readFile(meta_dir.Path() / "repo/director/targets.json")));
   EXPECT_EQ(director.targets.targets.size(), 1);
   EXPECT_EQ(director.targets.targets[0].filename(), "firmware.txt");
   EXPECT_TRUE(director.latest_targets.targets.empty());

@@ -46,8 +46,12 @@ bool doTestInit(StorageType storage_type, const std::string &device_register_sta
   auto store = INvStorage::newStorage(conf.storage);
   {
     KeyManager keys(store, conf.keymanagerConfig());
-    Initializer initializer(conf.provision, store, http, keys, {});
-    result = initializer.isSuccessful();
+    try {
+      Initializer initializer(conf.provision, store, http, keys, {});
+      result = true;
+    } catch (const std::exception &e) {
+      result = false;
+    }
   }
   if (device_register_state != "noerrors" || ecu_register_state != "noerrors") {
     EXPECT_FALSE(result);
@@ -66,8 +70,12 @@ bool doTestInit(StorageType storage_type, const std::string &device_register_sta
     }
 
     KeyManager keys(store, conf.keymanagerConfig());
-    Initializer initializer(conf.provision, store, http, keys, {});
-    result = initializer.isSuccessful();
+    try {
+      Initializer initializer(conf.provision, store, http, keys, {});
+      result = true;
+    } catch (const std::exception &e) {
+      result = false;
+    }
   }
 
   return result;

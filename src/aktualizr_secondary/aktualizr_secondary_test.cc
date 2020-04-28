@@ -160,14 +160,13 @@ class SecondaryTestNegative : public ::testing::Test,
                         const Uptane::Role& role)
         : Metadata(valid_metadata), repo_type_(repo), role_(role) {}
 
-    bool getRoleMetadata(std::string* result, const Uptane::RepositoryType& repo, const Uptane::Role& role,
+    void getRoleMetadata(std::string* result, const Uptane::RepositoryType& repo, const Uptane::Role& role,
                          Uptane::Version version) const override {
-      auto return_val = Metadata::getRoleMetadata(result, repo, role, version);
+      Metadata::getRoleMetadata(result, repo, role, version);
       if (!(repo_type_ == repo && role_ == role)) {
-        return return_val;
+        return;
       }
       (*result)[10] = 'f';
-      return true;
     }
 
    private:

@@ -18,6 +18,13 @@ class Exception : public std::logic_error {
   std::string reponame_;
 };
 
+class MetadataFetchFailure : public Exception {
+ public:
+  MetadataFetchFailure(const std::string& reponame, const std::string& role)
+      : Exception(reponame, std::string("Failed to fetch role ") + role + " in " + reponame + " repository.") {}
+  ~MetadataFetchFailure() noexcept override = default;
+};
+
 class SecurityException : public Exception {
  public:
   SecurityException(const std::string& reponame, const std::string& what_arg) : Exception(reponame, what_arg) {}
@@ -103,6 +110,13 @@ class BadHardwareId : public Exception {
   BadHardwareId(const std::string& reponame)
       : Exception(reponame, "The target had a hardware ID that did not match the client's configured hardware ID.") {}
   ~BadHardwareId() noexcept override = default;
+};
+
+class RootRotationError : public Exception {
+ public:
+  RootRotationError(const std::string& reponame)
+      : Exception(reponame, "Version in Root metadata does not match its expected value.") {}
+  ~RootRotationError() noexcept override = default;
 };
 
 class VersionMismatch : public Exception {

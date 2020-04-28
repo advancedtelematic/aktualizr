@@ -32,9 +32,7 @@ TEST(Aktualizr, DownloadNonOstreeBin) {
     std::shared_ptr<INvStorage> storage = INvStorage::newStorage(conf.storage);
     auto uptane_client = std_::make_unique<SotaUptaneClient>(conf, storage);
     uptane_client->initialize();
-    EXPECT_FALSE(uptane_client->uptaneIteration(nullptr, nullptr));
-    EXPECT_STREQ(uptane_client->getLastException().what(),
-                 "The target had a non-OSTree package that can not be installed on an OSTree system.");
+    EXPECT_THROW(uptane_client->uptaneIteration(nullptr, nullptr), Uptane::InvalidTarget);
   }
 }
 
