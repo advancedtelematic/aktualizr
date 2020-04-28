@@ -127,6 +127,7 @@ Target::Target(std::string filename, const Json::Value &content) : filename_(std
   std::sort(hashes_.begin(), hashes_.end(), [](const Hash &l, const Hash &r) { return l.type() < r.type(); });
 }
 
+// Internal use only.
 Target::Target(std::string filename, EcuMap ecus, std::vector<Hash> hashes, uint64_t length, std::string correlation_id)
     : filename_(std::move(filename)),
       ecus_(std::move(ecus)),
@@ -135,6 +136,7 @@ Target::Target(std::string filename, EcuMap ecus, std::vector<Hash> hashes, uint
       correlation_id_(std::move(correlation_id)) {
   // sort hashes so that higher priority hash algorithm goes first
   std::sort(hashes_.begin(), hashes_.end(), [](const Hash &l, const Hash &r) { return l.type() < r.type(); });
+  type_ = "UNKNOWN";
 }
 
 Target Target::Unknown() {
