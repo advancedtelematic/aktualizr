@@ -6,6 +6,9 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ## [??? (unreleased)]
 
+
+## [2020.6] - 2020-04-30
+
 ### Added
 
 - libaktualizr API and aktualizr-primary command line parameter to provide custom hardware information in JSON format: [PR](https://github.com/advancedtelematic/aktualizr/pull/1644)
@@ -13,6 +16,14 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 ### Changed
 
 - Improved garage-deploy object fetching performance by reusing the curl handle: [PR](https://github.com/advancedtelematic/aktualizr/pull/1643)
+- Added an SQL busy handler with 2 seconds timeout: [PR](https://github.com/advancedtelematic/aktualizr/pull/1648)
+- Improved internal exception handling: [PR #1654](https://github.com/advancedtelematic/aktualizr/pull/1654) and [PR #1658](https://github.com/advancedtelematic/aktualizr/pull/1658)
+
+### Fixed
+
+- Prevented more failure states from resulting in an installation loop: [PR #1632](https://github.com/advancedtelematic/aktualizr/pull/1632) and [PR #1635](https://github.com/advancedtelematic/aktualizr/pull/1635)
+- Allow installaton of 0-byte binary files: [PR](https://github.com/advancedtelematic/aktualizr/pull/1652)
+- Refuse to download OSTree targets with the fake/binary package manager: [PR](https://github.com/advancedtelematic/aktualizr/pull/1653)
 
 ### Removed
 
