@@ -14,6 +14,10 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 - Improved garage-deploy object fetching performance by reusing the curl handle: [PR](https://github.com/advancedtelematic/aktualizr/pull/1643)
 
+### Removed
+
+- No longer fetch unnumbered Root metadata from the Director: [PR](https://github.com/advancedtelematic/aktualizr/pull/1661)
+
 
 ## [2020.5] - 2020-04-01
 

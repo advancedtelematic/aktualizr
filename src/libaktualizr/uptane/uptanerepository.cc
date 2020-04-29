@@ -65,14 +65,7 @@ void RepositoryCommon::updateRoot(INvStorage& storage, const IMetadataFetcher& f
     if (storage.loadLatestRoot(&root_raw, repo_type)) {
       initRoot(repo_type, root_raw);
     } else {
-      // This block is a hack only required as long as we have to explicitly
-      // fetch this to make the Director recognize new devices as "online".
-      if (repo_type == RepositoryType::Director()) {
-        fetcher.fetchLatestRole(&root_raw, kMaxRootSize, repo_type, Role::Root());
-      }
-
       fetcher.fetchRole(&root_raw, kMaxRootSize, repo_type, Role::Root(), Version(1));
-
       initRoot(repo_type, root_raw);
       storage.storeRoot(root_raw, repo_type, Version(1));
     }

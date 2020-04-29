@@ -1203,11 +1203,7 @@ class HttpFakeUnstable : public HttpFake {
     if (unstable_valid_count >= unstable_valid_num) {
       return HttpResponse({}, 503, CURLE_OK, "");
     } else {
-      // This if is a hack only required as long as we have to explicitly fetch
-      // this to make the Director recognize new devices as "online".
-      if (url.find("director/root.json") == std::string::npos) {
-        ++unstable_valid_count;
-      }
+      ++unstable_valid_count;
       return HttpFake::get(url, maxsize);
     }
   }
