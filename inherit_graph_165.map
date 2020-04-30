@@ -1,3 +1,6 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$class_uptane_1_1_hardware_identifier.html" title=" " alt="" coords="5,5,204,32"/>
+<area shape="rect" id="node1" href="$class_update_agent.html" title=" " alt="" coords="5,31,112,57"/>
+<area shape="rect" id="node2" href="$class_file_update_agent.html" title=" " alt="" coords="170,5,301,32"/>
+<area shape="rect" id="node4" href="$class_ostree_update_agent.html" title=" " alt="" coords="160,56,311,83"/>
+<area shape="rect" id="node3" href="$class_update_agent_mock.html" title=" " alt="" coords="359,5,501,32"/>
 </map>

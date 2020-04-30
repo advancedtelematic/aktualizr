@@ -13,7 +13,7 @@
 <g id="node1" class="node">
 <title>Node1</title>
 <g id="a_node1"><a xlink:title=" ">
-<polygon fill="#bfbfbf" stroke="black" points="192.5,-0.5 192.5,-19.5 285.5,-19.5 285.5,-0.5 192.5,-0.5"/>
+<polygon fill="#bfbfbf" stroke="black" points="192,-0.5 192,-19.5 286,-19.5 286,-0.5 192,-0.5"/>
 <text text-anchor="middle" x="239" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">DebianManager</text>
 </a>
 </g>
@@ -95,20 +95,20 @@
 <title>Node6&#45;&gt;Node5</title>
 <path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M60,-421.37C60,-389 60,-324.7 60,-301.55"/>
 <polygon fill="#9a32cd" stroke="#9a32cd" points="56.5,-421.71 60,-431.71 63.5,-421.71 56.5,-421.71"/>
-<text text-anchor="middle" x="121" y="-400" font-family="Helvetica,sans-Serif" font-size="10.00"> uptane_public_key_path</text>
-<text text-anchor="middle" x="121" y="-389" font-family="Helvetica,sans-Serif" font-size="10.00">tls_pkey_path</text>
-<text text-anchor="middle" x="121" y="-378" font-family="Helvetica,sans-Serif" font-size="10.00">uptane_metadata_path</text>
-<text text-anchor="middle" x="121" y="-367" font-family="Helvetica,sans-Serif" font-size="10.00">sqldb_path</text>
+<text text-anchor="middle" x="120.5" y="-400" font-family="Helvetica,sans-Serif" font-size="10.00"> uptane_public_key_path</text>
+<text text-anchor="middle" x="120.5" y="-389" font-family="Helvetica,sans-Serif" font-size="10.00">tls_pkey_path</text>
+<text text-anchor="middle" x="120.5" y="-378" font-family="Helvetica,sans-Serif" font-size="10.00">uptane_metadata_path</text>
+<text text-anchor="middle" x="120.5" y="-367" font-family="Helvetica,sans-Serif" font-size="10.00">sqldb_path</text>
 <text text-anchor="start" x="60" y="-356" font-family="Helvetica,sans-Serif" font-size="10.00">uptane_private_key</text>
-<text text-anchor="middle" x="121" y="-345" font-family="Helvetica,sans-Serif" font-size="10.00">_path</text>
-<text text-anchor="middle" x="121" y="-334" font-family="Helvetica,sans-Serif" font-size="10.00">tls_cacert_path</text>
-<text text-anchor="middle" x="121" y="-323" font-family="Helvetica,sans-Serif" font-size="10.00">tls_clientcert_path</text>
+<text text-anchor="middle" x="120.5" y="-345" font-family="Helvetica,sans-Serif" font-size="10.00">_path</text>
+<text text-anchor="middle" x="120.5" y="-334" font-family="Helvetica,sans-Serif" font-size="10.00">tls_cacert_path</text>
+<text text-anchor="middle" x="120.5" y="-323" font-family="Helvetica,sans-Serif" font-size="10.00">tls_clientcert_path</text>
 </g>
 <!-- Node7 -->
 <g id="node7" class="node">
 <title>Node7</title>
 <g id="a_node7"><a xlink:href="struct_package_config.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="195,-124.5 195,-143.5 283,-143.5 283,-124.5 195,-124.5"/>
+<polygon fill="white" stroke="black" points="195.5,-124.5 195.5,-143.5 282.5,-143.5 282.5,-124.5 195.5,-124.5"/>
 <text text-anchor="middle" x="239" y="-131.5" font-family="Helvetica,sans-Serif" font-size="10.00">PackageConfig</text>
 </a>
 </g>

@@ -69,8 +69,8 @@ var sectionId = 'dynsection-1';
 <g id="node2" class="node">
 <title>Node2</title>
 <g id="a_node2"><a xlink:href="libaktualizr-c_8cc_source.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="386.5,-223.5 386.5,-253.5 483.5,-253.5 483.5,-223.5 386.5,-223.5"/>
-<text text-anchor="start" x="394.5" y="-241.5" font-family="Helvetica,sans-Serif" font-size="10.00">src/libaktualizr&#45;c</text>
+<polygon fill="white" stroke="black" points="386,-223.5 386,-253.5 484,-253.5 484,-223.5 386,-223.5"/>
+<text text-anchor="start" x="394" y="-241.5" font-family="Helvetica,sans-Serif" font-size="10.00">src/libaktualizr&#45;c</text>
 <text text-anchor="middle" x="435" y="-230.5" font-family="Helvetica,sans-Serif" font-size="10.00">/libaktualizr&#45;c.cc</text>
 </a>
 </g>
@@ -78,7 +78,7 @@ var sectionId = 'dynsection-1';
 <!-- Node1&#45;&gt;Node2 -->
 <g id="edge1" class="edge">
 <title>Node1&#45;&gt;Node2</title>
-<path fill="none" stroke="midnightblue" d="M872.77,-298.71C783.11,-291.19 628.96,-276.34 498,-254 493.35,-253.21 488.54,-252.28 483.73,-251.3"/>
+<path fill="none" stroke="midnightblue" d="M872.77,-298.71C783.11,-291.19 628.96,-276.34 498,-254 493.46,-253.23 488.76,-252.33 484.07,-251.37"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="872.58,-302.2 882.84,-299.54 873.16,-295.23 872.58,-302.2"/>
 </g>
 <!-- Node3 -->
@@ -110,8 +110,8 @@ var sectionId = 'dynsection-1';
 <!-- Node1&#45;&gt;Node8 -->
 <g id="edge62" class="edge">
 <title>Node1&#45;&gt;Node8</title>
-<path fill="none" stroke="midnightblue" d="M872.63,-299.67C770.96,-292.41 595.73,-277.02 536,-254 513.68,-245.4 512.69,-235.01 492,-223 409.54,-175.11 306.27,-130.53 253.16,-108.65"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="872.61,-303.18 882.84,-300.39 873.11,-296.2 872.61,-303.18"/>
+<path fill="none" stroke="midnightblue" d="M872.59,-299.76C770.88,-292.61 595.6,-277.34 536,-254 514.06,-245.41 513.32,-234.93 493,-223 410.52,-174.57 306.76,-130.22 253.36,-108.51"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="872.59,-303.27 882.8,-300.47 873.07,-296.29 872.59,-303.27"/>
 </g>
 <!-- Node12 -->
 <g id="node12" class="node">
@@ -664,7 +664,7 @@ var sectionId = 'dynsection-1';
 <!-- Node29&#45;&gt;Node25 -->
 <g id="edge54" class="edge">
 <title>Node29&#45;&gt;Node25</title>
-<path fill="none" stroke="midnightblue" d="M2104.19,-227.77C2159.77,-219.59 2236.96,-206.14 2303,-187 2307.84,-185.6 2580.66,-75.73 2679.08,-36.07"/>
+<path fill="none" stroke="midnightblue" d="M2104.19,-227.77C2159.77,-219.59 2236.96,-206.14 2303,-187 2305.42,-186.3 2579.78,-75.98 2678.84,-36.14"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="2103.46,-224.34 2094.07,-229.24 2104.46,-231.27 2103.46,-224.34"/>
 </g>
 <!-- Node29&#45;&gt;Node26 -->
@@ -705,34 +705,34 @@ var sectionId = 'dynsection-1';
 <g id="node34" class="node">
 <title>Node34</title>
 <g id="a_node34"><a xlink:href="dockerappmanager__test_8cc_source.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="2417.5,-145.5 2417.5,-186.5 2580.5,-186.5 2580.5,-145.5 2417.5,-145.5"/>
-<text text-anchor="start" x="2425.5" y="-174.5" font-family="Helvetica,sans-Serif" font-size="10.00">src/libaktualizr/package</text>
-<text text-anchor="start" x="2425.5" y="-163.5" font-family="Helvetica,sans-Serif" font-size="10.00">_manager/dockerappmanager</text>
-<text text-anchor="middle" x="2499" y="-152.5" font-family="Helvetica,sans-Serif" font-size="10.00">_test.cc</text>
+<polygon fill="white" stroke="black" points="2417,-145.5 2417,-186.5 2579,-186.5 2579,-145.5 2417,-145.5"/>
+<text text-anchor="start" x="2425" y="-174.5" font-family="Helvetica,sans-Serif" font-size="10.00">src/libaktualizr/package</text>
+<text text-anchor="start" x="2425" y="-163.5" font-family="Helvetica,sans-Serif" font-size="10.00">_manager/dockerappmanager</text>
+<text text-anchor="middle" x="2498" y="-152.5" font-family="Helvetica,sans-Serif" font-size="10.00">_test.cc</text>
 </a>
 </g>
 </g>
 <!-- Node29&#45;&gt;Node34 -->
 <g id="edge47" class="edge">
 <title>Node29&#45;&gt;Node34</title>
-<path fill="none" stroke="midnightblue" d="M2104.46,-228.91C2180.17,-219.92 2300,-204.66 2403,-187 2407.7,-186.19 2412.52,-185.33 2417.37,-184.42"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="2103.6,-225.49 2094.08,-230.14 2104.42,-232.44 2103.6,-225.49"/>
+<path fill="none" stroke="midnightblue" d="M2104.47,-228.96C2180.18,-220 2300.02,-204.77 2403,-187 2407.57,-186.21 2412.25,-185.36 2416.97,-184.47"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="2103.61,-225.53 2094.08,-230.18 2104.42,-232.49 2103.61,-225.53"/>
 </g>
 <!-- Node35 -->
 <g id="node35" class="node">
 <title>Node35</title>
 <g id="a_node35"><a xlink:href="device__cred__prov__test_8cc.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="2598.5,-151 2598.5,-181 2741.5,-181 2741.5,-151 2598.5,-151"/>
-<text text-anchor="start" x="2606.5" y="-169" font-family="Helvetica,sans-Serif" font-size="10.00">src/libaktualizr/primary</text>
-<text text-anchor="middle" x="2670" y="-158" font-family="Helvetica,sans-Serif" font-size="10.00">/device_cred_prov_test.cc</text>
+<polygon fill="white" stroke="black" points="2597.5,-151 2597.5,-181 2740.5,-181 2740.5,-151 2597.5,-151"/>
+<text text-anchor="start" x="2605.5" y="-169" font-family="Helvetica,sans-Serif" font-size="10.00">src/libaktualizr/primary</text>
+<text text-anchor="middle" x="2669" y="-158" font-family="Helvetica,sans-Serif" font-size="10.00">/device_cred_prov_test.cc</text>
 </a>
 </g>
 </g>
 <!-- Node29&#45;&gt;Node35 -->
 <g id="edge50" class="edge">
 <title>Node29&#45;&gt;Node35</title>
-<path fill="none" stroke="midnightblue" d="M2104.37,-234.43C2212.51,-229.19 2417.66,-216.12 2590,-187 2599.32,-185.43 2609.15,-183.33 2618.61,-181.1"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="2104.03,-230.95 2094.21,-234.92 2104.36,-237.94 2104.03,-230.95"/>
+<path fill="none" stroke="midnightblue" d="M2104.52,-234.32C2212.38,-228.96 2416.46,-215.75 2588,-187 2597.43,-185.42 2607.38,-183.32 2616.96,-181.09"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="2104.21,-230.83 2094.39,-234.82 2104.55,-237.83 2104.21,-230.83"/>
 </g>
 <!-- Node36 -->
 <g id="node36" class="node">

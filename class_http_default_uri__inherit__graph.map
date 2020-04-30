@@ -1,5 +1,5 @@
 <map id="HttpDefaultUri" name="HttpDefaultUri">
 <area shape="rect" id="node1" title=" " alt="" coords="5,155,123,181"/>
-<area shape="rect" id="node2" href="$class_http_fake.html" title=" " alt="" coords="24,80,104,107"/>
+<area shape="rect" id="node2" href="$class_http_fake.html" title=" " alt="" coords="25,80,103,107"/>
 <area shape="rect" id="node3" href="$class_http_interface.html" title=" " alt="" coords="10,5,118,32"/>
 </map>

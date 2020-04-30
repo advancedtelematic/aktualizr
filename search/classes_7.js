@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['gobjectfinalizer_521',['GObjectFinalizer',['../struct_g_object_finalizer.html',1,'']]]
+  ['gobjectfinalizer_535',['GObjectFinalizer',['../struct_g_object_finalizer.html',1,'']]]
 ];

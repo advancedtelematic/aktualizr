@@ -22,8 +22,8 @@
 <g id="node2" class="node">
 <title>Node2</title>
 <g id="a_node2"><a xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="2,-67.5 2,-97.5 150,-97.5 150,-67.5 2,-67.5"/>
-<text text-anchor="start" x="10" y="-85.5" font-family="Helvetica,sans-Serif" font-size="10.00">std::shared_ptr&lt; NiceMock</text>
+<polygon fill="white" stroke="#bfbfbf" points="1.5,-67.5 1.5,-97.5 150.5,-97.5 150.5,-67.5 1.5,-67.5"/>
+<text text-anchor="start" x="9.5" y="-85.5" font-family="Helvetica,sans-Serif" font-size="10.00">std::shared_ptr&lt; NiceMock</text>
 <text text-anchor="middle" x="76" y="-74.5" font-family="Helvetica,sans-Serif" font-size="10.00">&lt; UpdateAgentMock &gt; &gt;</text>
 </a>
 </g>

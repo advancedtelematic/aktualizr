@@ -97,16 +97,22 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_stopped</b> () con
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_request_pool.html#a0ccb0fadde5bd62a2bec10a53d31f6b5">Loop</a> ()</td></tr>
 <tr class="memdesc:a0ccb0fadde5bd62a2bec10a53d31f6b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">One iteration of request-listen loop, launches multiple requests, then listens for the result. <br /></td></tr>
 <tr class="separator:a0ccb0fadde5bd62a2bec10a53d31f6b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a974b7007d9648c565e5983da3def1952"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_request_pool.html#a974b7007d9648c565e5983da3def1952">total_requests_made</a> ()</td></tr>
-<tr class="memdesc:a974b7007d9648c565e5983da3def1952"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of HEAD + PUT requests that have been sent to curl.  <a href="class_request_pool.html#a974b7007d9648c565e5983da3def1952">More...</a><br /></td></tr>
-<tr class="separator:a974b7007d9648c565e5983da3def1952"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acb002f3a22883e43cbdbde90aab0602a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_request_pool.html#acb002f3a22883e43cbdbde90aab0602a">put_requests_made</a> ()</td></tr>
+<tr class="memdesc:acb002f3a22883e43cbdbde90aab0602a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of HEAD + PUT requests that have been sent to curl.  <a href="class_request_pool.html#acb002f3a22883e43cbdbde90aab0602a">More...</a><br /></td></tr>
+<tr class="separator:acb002f3a22883e43cbdbde90aab0602a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af2c723a2827f0052cd262e9e35eca2cd"><td class="memItemLeft" align="right" valign="top"><a id="af2c723a2827f0052cd262e9e35eca2cd"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>head_requests_made</b> ()</td></tr>
+<tr class="separator:af2c723a2827f0052cd262e9e35eca2cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6046d7f14059e1c31dd73750f9cca091"><td class="memItemLeft" align="right" valign="top"><a id="a6046d7f14059e1c31dd73750f9cca091"></a>
+uintmax_t&#160;</td><td class="memItemRight" valign="bottom"><b>total_object_size</b> ()</td></tr>
+<tr class="separator:a6046d7f14059e1c31dd73750f9cca091"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
 <p class="definition">Definition at line <a class="el" href="request__pool_8h_source.html#l00012">12</a> of file <a class="el" href="request__pool_8h_source.html">request_pool.h</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="a974b7007d9648c565e5983da3def1952"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a974b7007d9648c565e5983da3def1952">&#9670;&nbsp;</a></span>total_requests_made()</h2>
+<a id="acb002f3a22883e43cbdbde90aab0602a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acb002f3a22883e43cbdbde90aab0602a">&#9670;&nbsp;</a></span>put_requests_made()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -115,7 +121,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int RequestPool::total_requests_made </td>
+          <td class="memname">int RequestPool::put_requests_made </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>

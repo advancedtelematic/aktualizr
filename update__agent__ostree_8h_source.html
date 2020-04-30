@@ -82,10 +82,10 @@ $(function() {
 <div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160; <span class="keyword">public</span>:</div>
 <div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;  <a class="code" href="class_ostree_update_agent.html">OstreeUpdateAgent</a>(<span class="keyword">const</span> boost::filesystem::path&amp; sysroot_path, std::shared_ptr&lt;KeyManager&gt;&amp; key_mngr,</div>
 <div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;                    std::shared_ptr&lt;OstreeManager&gt;&amp; ostree_pack_man, std::string targetname_prefix)</div>
-<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;      : _sysrootPath(sysroot_path),</div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;        _keyMngr(key_mngr),</div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;        _ostreePackMan(ostree_pack_man),</div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;        _targetname_prefix(std::move(targetname_prefix)) {}</div>
+<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;      : sysrootPath_(sysroot_path),</div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;        keyMngr_(key_mngr),</div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;        ostreePackMan_(ostree_pack_man),</div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;        targetname_prefix_(std::move(targetname_prefix)) {}</div>
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160; </div>
 <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160; <span class="keyword">public</span>:</div>
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;  <span class="keywordtype">bool</span> isTargetSupported(<span class="keyword">const</span> <a class="code" href="class_uptane_1_1_target.html">Uptane::Target</a>&amp; target) <span class="keyword">const override</span>;</div>
@@ -96,10 +96,10 @@ $(function() {
 <div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;  <a class="code" href="structdata_1_1_installation_result.html">data::InstallationResult</a> applyPendingInstall(<span class="keyword">const</span> <a class="code" href="class_uptane_1_1_target.html">Uptane::Target</a>&amp; target) <span class="keyword">override</span>;</div>
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160; </div>
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160; <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;  <span class="keyword">const</span> boost::filesystem::path&amp; _sysrootPath;</div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;  std::shared_ptr&lt;KeyManager&gt; _keyMngr;</div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;  std::shared_ptr&lt;OstreeManager&gt; _ostreePackMan;</div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;  const ::std::string _targetname_prefix;</div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;  <span class="keyword">const</span> boost::filesystem::path&amp; sysrootPath_;</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;  std::shared_ptr&lt;KeyManager&gt; keyMngr_;</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;  std::shared_ptr&lt;OstreeManager&gt; ostreePackMan_;</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;  const ::std::string targetname_prefix_;</div>
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;};</div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160; </div>
 <div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;<span class="preprocessor">#endif  // AKTUALIZR_SECONDARY_UPDATE_AGENT_OSTREE_H</span></div>
@@ -108,9 +108,9 @@ $(function() {
 <div class="ttc" id="aclass_key_manager_html"><div class="ttname"><a href="class_key_manager.html">KeyManager</a></div><div class="ttdef"><b>Definition:</b> <a href="keymanager_8h_source.html#l00013">keymanager.h:13</a></div></div>
 <div class="ttc" id="astructdata_1_1_installation_result_html"><div class="ttname"><a href="structdata_1_1_installation_result.html">data::InstallationResult</a></div><div class="ttdef"><b>Definition:</b> <a href="types_8h_source.html#l00182">types.h:182</a></div></div>
 <div class="ttc" id="anamespacedata_html"><div class="ttname"><a href="namespacedata.html">data</a></div><div class="ttdoc">General data structures.</div><div class="ttdef"><b>Definition:</b> <a href="types_8cc_source.html#l00055">types.cc:55</a></div></div>
-<div class="ttc" id="astruct_uptane_1_1_installed_image_info_html"><div class="ttname"><a href="struct_uptane_1_1_installed_image_info.html">Uptane::InstalledImageInfo</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00132">tuf.h:132</a></div></div>
+<div class="ttc" id="astruct_uptane_1_1_installed_image_info_html"><div class="ttname"><a href="struct_uptane_1_1_installed_image_info.html">Uptane::InstalledImageInfo</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00135">tuf.h:135</a></div></div>
 <div class="ttc" id="aclass_ostree_manager_html"><div class="ttname"><a href="class_ostree_manager.html">OstreeManager</a></div><div class="ttdef"><b>Definition:</b> <a href="ostreemanager_8h_source.html#l00040">ostreemanager.h:40</a></div></div>
-<div class="ttc" id="aclass_uptane_1_1_target_html"><div class="ttname"><a href="class_uptane_1_1_target.html">Uptane::Target</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00238">tuf.h:238</a></div></div>
+<div class="ttc" id="aclass_uptane_1_1_target_html"><div class="ttname"><a href="class_uptane_1_1_target.html">Uptane::Target</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00210">tuf.h:210</a></div></div>
 <div class="ttc" id="aclass_ostree_update_agent_html"><div class="ttname"><a href="class_ostree_update_agent.html">OstreeUpdateAgent</a></div><div class="ttdef"><b>Definition:</b> <a href="update__agent__ostree_8h_source.html#l00009">update_agent_ostree.h:9</a></div></div>
 <div class="ttc" id="astructdata_1_1_result_code_html_a1217cbd9c97e19df1ade7b0384cd5aae"><div class="ttname"><a href="structdata_1_1_result_code.html#a1217cbd9c97e19df1ade7b0384cd5aae">data::ResultCode::Numeric</a></div><div class="ttdeci">Numeric</div><div class="ttdef"><b>Definition:</b> <a href="types_8h_source.html#l00128">types.h:128</a></div></div>
 <!-- start footer part -->

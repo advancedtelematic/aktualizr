@@ -86,9 +86,9 @@ Public Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a37744dee04ab83f1a9964b4e3c5a766d"><td class="memItemLeft" align="right" valign="top"><a id="a37744dee04ab83f1a9964b4e3c5a766d"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>SecondaryTcpServer</b> (<a class="el" href="class_uptane_1_1_secondary_interface.html">Uptane::SecondaryInterface</a> &amp;secondary, const std::string &amp;primary_ip, in_port_t primary_port, in_port_t port=0, bool reboot_after_install=false)</td></tr>
-<tr class="separator:a37744dee04ab83f1a9964b4e3c5a766d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4e8094f47df910cd693eefce70097857"><td class="memItemLeft" align="right" valign="top"><a id="a4e8094f47df910cd693eefce70097857"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>SecondaryTcpServer</b> (<a class="el" href="class_msg_dispatcher.html">MsgDispatcher</a> &amp;msg_dispatcher, const std::string &amp;primary_ip, in_port_t primary_port, in_port_t port=0, bool reboot_after_install=false)</td></tr>
+<tr class="separator:a4e8094f47df910cd693eefce70097857"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aecdb50479099fdd1056c915ab7e813d1"><td class="memItemLeft" align="right" valign="top"><a id="aecdb50479099fdd1056c915ab7e813d1"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>SecondaryTcpServer</b> (const <a class="el" href="class_secondary_tcp_server.html">SecondaryTcpServer</a> &amp;)=delete</td></tr>
 <tr class="separator:aecdb50479099fdd1056c915ab7e813d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -102,6 +102,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <tr class="memitem:a54d429c3cb387da678bf939e2ba9f17b"><td class="memItemLeft" align="right" valign="top"><a id="a54d429c3cb387da678bf939e2ba9f17b"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>stop</b> ()</td></tr>
 <tr class="separator:a54d429c3cb387da678bf939e2ba9f17b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a93b8b97aae530615d8c7864b0b7fe1ba"><td class="memItemLeft" align="right" valign="top"><a id="a93b8b97aae530615d8c7864b0b7fe1ba"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>wait_until_running</b> (int timeout=10)</td></tr>
+<tr class="separator:a93b8b97aae530615d8c7864b0b7fe1ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a40ea22f1daa19c3e7a8884ecd572b972"><td class="memItemLeft" align="right" valign="top"><a id="a40ea22f1daa19c3e7a8884ecd572b972"></a>
 in_port_t&#160;</td><td class="memItemRight" valign="bottom"><b>port</b> () const</td></tr>
 <tr class="separator:a40ea22f1daa19c3e7a8884ecd572b972"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -112,7 +115,7 @@ ExitReason&#160;</td><td class="memItemRight" valign="bottom"><b>exit_reason</b>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Listens on a socket, decodes calls (ASN.1) and forwards them to an <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of Uptane.">Uptane</a> Secondary implementation. </p>
 
-<p class="definition">Definition at line <a class="el" href="secondary__tcp__server_8h_source.html#l00015">15</a> of file <a class="el" href="secondary__tcp__server_8h_source.html">secondary_tcp_server.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="secondary__tcp__server_8h_source.html#l00016">16</a> of file <a class="el" href="secondary__tcp__server_8h_source.html">secondary_tcp_server.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>src/aktualizr_secondary/<a class="el" href="secondary__tcp__server_8h_source.html">secondary_tcp_server.h</a></li>
 <li>src/aktualizr_secondary/<a class="el" href="secondary__tcp__server_8cc_source.html">secondary_tcp_server.cc</a></li>

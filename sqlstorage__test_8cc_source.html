@@ -520,18 +520,18 @@ $(function() {
 <div class="line"><a name="l00448"></a><span class="lineno">  448</span>&#160;  std::string raw_director_root;</div>
 <div class="line"><a name="l00449"></a><span class="lineno">  449</span>&#160;  storage.loadRoot(&amp;raw_director_root, Uptane::RepositoryType::Director(), <a class="code" href="class_uptane_1_1_version.html">Uptane::Version</a>());</div>
 <div class="line"><a name="l00450"></a><span class="lineno">  450</span>&#160;  <a class="code" href="class_uptane_1_1_director_repository.html">Uptane::DirectorRepository</a> director;</div>
-<div class="line"><a name="l00451"></a><span class="lineno">  451</span>&#160;  EXPECT_TRUE(director.initRoot(raw_director_root));</div>
+<div class="line"><a name="l00451"></a><span class="lineno">  451</span>&#160;  EXPECT_NO_THROW(director.initRoot(<a class="code" href="class_uptane_1_1_repository_type.html">Uptane::RepositoryType</a>(Uptane::RepositoryType::DIRECTOR), raw_director_root));</div>
 <div class="line"><a name="l00452"></a><span class="lineno">  452</span>&#160; </div>
 <div class="line"><a name="l00453"></a><span class="lineno">  453</span>&#160;  std::string raw_director_targets;</div>
 <div class="line"><a name="l00454"></a><span class="lineno">  454</span>&#160;  storage.loadNonRoot(&amp;raw_director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets());</div>
 <div class="line"><a name="l00455"></a><span class="lineno">  455</span>&#160; </div>
-<div class="line"><a name="l00456"></a><span class="lineno">  456</span>&#160;  EXPECT_TRUE(director.verifyTargets(raw_director_targets));</div>
+<div class="line"><a name="l00456"></a><span class="lineno">  456</span>&#160;  EXPECT_NO_THROW(director.verifyTargets(raw_director_targets));</div>
 <div class="line"><a name="l00457"></a><span class="lineno">  457</span>&#160; </div>
 <div class="line"><a name="l00458"></a><span class="lineno">  458</span>&#160;  <span class="comment">// Image repo</span></div>
 <div class="line"><a name="l00459"></a><span class="lineno">  459</span>&#160;  std::string raw_image_root;</div>
 <div class="line"><a name="l00460"></a><span class="lineno">  460</span>&#160;  storage.loadRoot(&amp;raw_image_root, Uptane::RepositoryType::Image(), <a class="code" href="class_uptane_1_1_version.html">Uptane::Version</a>());</div>
 <div class="line"><a name="l00461"></a><span class="lineno">  461</span>&#160;  <a class="code" href="class_uptane_1_1_image_repository.html">Uptane::ImageRepository</a> imagerepository;</div>
-<div class="line"><a name="l00462"></a><span class="lineno">  462</span>&#160;  EXPECT_TRUE(imagerepository.initRoot(raw_image_root));</div>
+<div class="line"><a name="l00462"></a><span class="lineno">  462</span>&#160;  EXPECT_NO_THROW(imagerepository.initRoot(<a class="code" href="class_uptane_1_1_repository_type.html">Uptane::RepositoryType</a>(Uptane::RepositoryType::IMAGE), raw_image_root));</div>
 <div class="line"><a name="l00463"></a><span class="lineno">  463</span>&#160; </div>
 <div class="line"><a name="l00464"></a><span class="lineno">  464</span>&#160;  <span class="comment">// Check that the roots are different and haven&#39;t been swapped</span></div>
 <div class="line"><a name="l00465"></a><span class="lineno">  465</span>&#160;  EXPECT_NE(raw_director_root, raw_image_root);</div>
@@ -609,10 +609,11 @@ $(function() {
 <div class="line"><a name="l00537"></a><span class="lineno">  537</span>&#160;<span class="preprocessor">#endif</span></div>
 </div><!-- fragment --></div><!-- contents -->
 <div class="ttc" id="aclass_uptane_1_1_director_repository_html"><div class="ttname"><a href="class_uptane_1_1_director_repository.html">Uptane::DirectorRepository</a></div><div class="ttdef"><b>Definition:</b> <a href="directorrepository_8h_source.html#l00013">directorrepository.h:13</a></div></div>
-<div class="ttc" id="aclass_uptane_1_1_version_html"><div class="ttname"><a href="class_uptane_1_1_version.html">Uptane::Version</a></div><div class="ttdoc">Metadata version numbers.</div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00116">tuf.h:116</a></div></div>
+<div class="ttc" id="aclass_uptane_1_1_version_html"><div class="ttname"><a href="class_uptane_1_1_version.html">Uptane::Version</a></div><div class="ttdoc">Metadata version numbers.</div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00119">tuf.h:119</a></div></div>
 <div class="ttc" id="aclass_storage_exception_html"><div class="ttname"><a href="class_storage_exception.html">StorageException</a></div><div class="ttdef"><b>Definition:</b> <a href="storage__exception_8h_source.html#l00004">storage_exception.h:4</a></div></div>
 <div class="ttc" id="aclass_uptane_1_1_image_repository_html"><div class="ttname"><a href="class_uptane_1_1_image_repository.html">Uptane::ImageRepository</a></div><div class="ttdef"><b>Definition:</b> <a href="imagerepository_8h_source.html#l00013">imagerepository.h:13</a></div></div>
 <div class="ttc" id="astruct_storage_config_html"><div class="ttname"><a href="struct_storage_config.html">StorageConfig</a></div><div class="ttdef"><b>Definition:</b> <a href="storage__config_8h_source.html#l00015">storage_config.h:15</a></div></div>
+<div class="ttc" id="aclass_uptane_1_1_repository_type_html"><div class="ttname"><a href="class_uptane_1_1_repository_type.html">Uptane::RepositoryType</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00020">tuf.h:20</a></div></div>
 <div class="ttc" id="astruct_temp_s_q_l_db_html"><div class="ttname"><a href="struct_temp_s_q_l_db.html">TempSQLDb</a></div><div class="ttdef"><b>Definition:</b> <a href="sqlstorage__test_8cc_source.html#l00129">sqlstorage_test.cc:129</a></div></div>
 <div class="ttc" id="aclass_temporary_directory_html"><div class="ttname"><a href="class_temporary_directory.html">TemporaryDirectory</a></div><div class="ttdef"><b>Definition:</b> <a href="utils_8h_source.html#l00082">utils.h:82</a></div></div>
 <div class="ttc" id="anamespaceresult_html"><div class="ttname"><a href="namespaceresult.html">result</a></div><div class="ttdoc">Results of libaktualizr API calls.</div><div class="ttdef"><b>Definition:</b> <a href="results_8h_source.html#l00013">results.h:13</a></div></div>

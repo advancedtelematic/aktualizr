@@ -510,7 +510,7 @@ $(function() {
 <div class="line"><a name="l00438"></a><span class="lineno">  438</span>&#160;  <a class="code" href="class_temporary_directory.html">TemporaryDirectory</a> temp_dir;</div>
 <div class="line"><a name="l00439"></a><span class="lineno">  439</span>&#160;  <a class="code" href="class_uptane_repo.html">UptaneRepo</a> repo(temp_dir.Path(), <span class="stringliteral">&quot;&quot;</span>, <span class="stringliteral">&quot;&quot;</span>);</div>
 <div class="line"><a name="l00440"></a><span class="lineno">  440</span>&#160;  repo.generateRepo(key_type);</div>
-<div class="line"><a name="l00441"></a><span class="lineno">  441</span>&#160;  <a class="code" href="class_uptane_1_1_hash.html">Uptane::Hash</a> hash(Uptane::Hash::Type::kSha256, <span class="stringliteral">&quot;8ab755c16de6ee9b6224169b36cbf0f2a545f859be385501ad82cdccc240d0a6&quot;</span>);</div>
+<div class="line"><a name="l00441"></a><span class="lineno">  441</span>&#160;  <a class="code" href="class_hash.html">Hash</a> hash(Hash::Type::kSha256, <span class="stringliteral">&quot;8ab755c16de6ee9b6224169b36cbf0f2a545f859be385501ad82cdccc240d0a6&quot;</span>);</div>
 <div class="line"><a name="l00442"></a><span class="lineno">  442</span>&#160;  repo.addCustomImage(<span class="stringliteral">&quot;target1&quot;</span>, hash, 123, <span class="stringliteral">&quot;test-hw&quot;</span>, <span class="stringliteral">&quot;&quot;</span>);</div>
 <div class="line"><a name="l00443"></a><span class="lineno">  443</span>&#160;  repo.addCustomImage(<span class="stringliteral">&quot;target2&quot;</span>, hash, 321, <span class="stringliteral">&quot;test-hw&quot;</span>, <span class="stringliteral">&quot;&quot;</span>);</div>
 <div class="line"><a name="l00444"></a><span class="lineno">  444</span>&#160;  repo.addTarget(<span class="stringliteral">&quot;target1&quot;</span>, <span class="stringliteral">&quot;test-hw&quot;</span>, <span class="stringliteral">&quot;test-serial&quot;</span>, <span class="stringliteral">&quot;&quot;</span>);</div>
@@ -707,10 +707,10 @@ $(function() {
 <div class="line"><a name="l00635"></a><span class="lineno">  635</span>&#160;}</div>
 <div class="line"><a name="l00636"></a><span class="lineno">  636</span>&#160;<span class="preprocessor">#endif</span></div>
 </div><!-- fragment --></div><!-- contents -->
-<div class="ttc" id="aclass_uptane_1_1_hash_html"><div class="ttname"><a href="class_uptane_1_1_hash.html">Uptane::Hash</a></div><div class="ttdoc">The hash of a file or TUF metadata.</div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00209">tuf.h:209</a></div></div>
-<div class="ttc" id="aclass_uptane_1_1_targets_html"><div class="ttname"><a href="class_uptane_1_1_targets.html">Uptane::Targets</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00440">tuf.h:440</a></div></div>
+<div class="ttc" id="aclass_hash_html"><div class="ttname"><a href="class_hash.html">Hash</a></div><div class="ttdoc">The hash of a file or Uptane metadata.</div><div class="ttdef"><b>Definition:</b> <a href="crypto_8h_source.html#l00065">crypto.h:65</a></div></div>
+<div class="ttc" id="aclass_uptane_1_1_targets_html"><div class="ttname"><a href="class_uptane_1_1_targets.html">Uptane::Targets</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00412">tuf.h:412</a></div></div>
 <div class="ttc" id="aclass_temporary_directory_html"><div class="ttname"><a href="class_temporary_directory.html">TemporaryDirectory</a></div><div class="ttdef"><b>Definition:</b> <a href="utils_8h_source.html#l00082">utils.h:82</a></div></div>
-<div class="ttc" id="aclass_uptane_1_1_root_html"><div class="ttname"><a href="class_uptane_1_1_root.html">Uptane::Root</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00385">tuf.h:385</a></div></div>
+<div class="ttc" id="aclass_uptane_1_1_root_html"><div class="ttname"><a href="class_uptane_1_1_root.html">Uptane::Root</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00357">tuf.h:357</a></div></div>
 <div class="ttc" id="aclass_uptane_repo_html"><div class="ttname"><a href="class_uptane_repo.html">UptaneRepo</a></div><div class="ttdef"><b>Definition:</b> <a href="uptane__repo_8h_source.html#l00007">uptane_repo.h:7</a></div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

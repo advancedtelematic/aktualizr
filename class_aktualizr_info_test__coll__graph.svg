@@ -46,7 +46,7 @@ if (edges && edges.length) {
         </defs>
 
 <script type="text/javascript">
-var viewWidth = 1244;
+var viewWidth = 1243;
 var viewHeight = 779;
 var sectionId = 'dynsection-1';
 </script>
@@ -54,13 +54,13 @@ var sectionId = 'dynsection-1';
 <svg id="graph" class="graph">
 <g id="viewport">
 <title>AktualizrInfoTest</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-775 1240,-775 1240,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-775 1239,-775 1239,4 -4,4"/>
 <!-- Node1 -->
 <g id="node1" class="node">
 <title>Node1</title>
 <g id="a_node1"><a xlink:title=" ">
-<polygon fill="#bfbfbf" stroke="black" points="1138,-151.5 1138,-170.5 1236,-170.5 1236,-151.5 1138,-151.5"/>
-<text text-anchor="middle" x="1187" y="-158.5" font-family="Helvetica,sans-Serif" font-size="10.00">AktualizrInfoTest</text>
+<polygon fill="#bfbfbf" stroke="black" points="1137,-151.5 1137,-170.5 1235,-170.5 1235,-151.5 1137,-151.5"/>
+<text text-anchor="middle" x="1186" y="-158.5" font-family="Helvetica,sans-Serif" font-size="10.00">AktualizrInfoTest</text>
 </a>
 </g>
 </g>
@@ -68,80 +68,80 @@ var sectionId = 'dynsection-1';
 <g id="node2" class="node">
 <title>Node2</title>
 <g id="a_node2"><a xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="883,-472.5 883,-491.5 919,-491.5 919,-472.5 883,-472.5"/>
-<text text-anchor="middle" x="901" y="-479.5" font-family="Helvetica,sans-Serif" font-size="10.00">Test</text>
+<polygon fill="white" stroke="#bfbfbf" points="882,-472.5 882,-491.5 918,-491.5 918,-472.5 882,-472.5"/>
+<text text-anchor="middle" x="900" y="-479.5" font-family="Helvetica,sans-Serif" font-size="10.00">Test</text>
 </a>
 </g>
 </g>
 <!-- Node2&#45;&gt;Node1 -->
 <g id="edge1" class="edge">
 <title>Node2&#45;&gt;Node1</title>
-<path fill="none" stroke="midnightblue" d="M929.38,-484.02C975.39,-485.82 1068.25,-482.3 1120,-431 1158.47,-392.86 1180.22,-213.97 1185,-170.53"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="929.42,-480.52 919.26,-483.51 929.07,-487.51 929.42,-480.52"/>
+<path fill="none" stroke="midnightblue" d="M928.38,-484.02C974.39,-485.82 1067.25,-482.3 1119,-431 1157.47,-392.86 1179.22,-213.97 1184,-170.53"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="928.42,-480.52 918.26,-483.51 928.07,-487.51 928.42,-480.52"/>
 </g>
 <!-- Node3 -->
 <g id="node3" class="node">
 <title>Node3</title>
 <g id="a_node3"><a xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="818,-434.5 818,-453.5 984,-453.5 984,-434.5 818,-434.5"/>
-<text text-anchor="middle" x="901" y="-441.5" font-family="Helvetica,sans-Serif" font-size="10.00">std::shared_ptr&lt; INvStorage &gt;</text>
+<polygon fill="white" stroke="#bfbfbf" points="817,-434.5 817,-453.5 983,-453.5 983,-434.5 817,-434.5"/>
+<text text-anchor="middle" x="900" y="-441.5" font-family="Helvetica,sans-Serif" font-size="10.00">std::shared_ptr&lt; INvStorage &gt;</text>
 </a>
 </g>
 </g>
 <!-- Node3&#45;&gt;Node1 -->
 <g id="edge2" class="edge">
 <title>Node3&#45;&gt;Node1</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M966.82,-431.55C972.73,-429.65 978.54,-427.48 984,-425 1051.84,-394.21 1074.18,-385.75 1120,-327 1159.86,-275.89 1178.63,-197.59 1184.17,-170.56"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="965.42,-428.31 956.82,-434.49 967.4,-435.02 965.42,-428.31"/>
-<text text-anchor="middle" x="1061" y="-419" font-family="Helvetica,sans-Serif" font-size="10.00"> db_storage_</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M965.82,-431.55C971.73,-429.65 977.54,-427.48 983,-425 1050.84,-394.21 1073.18,-385.75 1119,-327 1158.86,-275.89 1177.63,-197.59 1183.17,-170.56"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="964.42,-428.31 955.82,-434.49 966.4,-435.02 964.42,-428.31"/>
+<text text-anchor="middle" x="1060" y="-419" font-family="Helvetica,sans-Serif" font-size="10.00"> db_storage_</text>
 </g>
 <!-- Node4 -->
 <g id="node4" class="node">
 <title>Node4</title>
 <g id="a_node4"><a xlink:href="class_i_nv_storage.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="642.5,-698.5 642.5,-717.5 713.5,-717.5 713.5,-698.5 642.5,-698.5"/>
-<text text-anchor="middle" x="678" y="-705.5" font-family="Helvetica,sans-Serif" font-size="10.00">INvStorage</text>
+<polygon fill="white" stroke="black" points="641.5,-698.5 641.5,-717.5 712.5,-717.5 712.5,-698.5 641.5,-698.5"/>
+<text text-anchor="middle" x="677" y="-705.5" font-family="Helvetica,sans-Serif" font-size="10.00">INvStorage</text>
 </a>
 </g>
 </g>
 <!-- Node4&#45;&gt;Node3 -->
 <g id="edge3" class="edge">
 <title>Node4&#45;&gt;Node3</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M723.73,-711C749.87,-710.15 781.3,-704.13 800,-683 832.5,-646.26 785.94,-500.12 818,-463 821.25,-459.24 825.08,-456.14 829.28,-453.6"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="723.61,-707.5 713.65,-711.09 723.68,-714.5 723.61,-707.5"/>
-<text text-anchor="middle" x="774" y="-711" font-family="Helvetica,sans-Serif" font-size="10.00"> ptr</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M722.73,-711C748.87,-710.15 780.3,-704.13 799,-683 831.5,-646.26 784.94,-500.12 817,-463 820.25,-459.24 824.08,-456.14 828.28,-453.6"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="722.61,-707.5 712.65,-711.09 722.68,-714.5 722.61,-707.5"/>
+<text text-anchor="middle" x="773" y="-711" font-family="Helvetica,sans-Serif" font-size="10.00"> ptr</text>
 </g>
 <!-- Node5 -->
 <g id="node5" class="node">
 <title>Node5</title>
 <g id="a_node5"><a xlink:href="struct_storage_config.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="385.5,-677.5 385.5,-696.5 470.5,-696.5 470.5,-677.5 385.5,-677.5"/>
-<text text-anchor="middle" x="428" y="-684.5" font-family="Helvetica,sans-Serif" font-size="10.00">StorageConfig</text>
+<polygon fill="white" stroke="black" points="384.5,-677.5 384.5,-696.5 469.5,-696.5 469.5,-677.5 384.5,-677.5"/>
+<text text-anchor="middle" x="427" y="-684.5" font-family="Helvetica,sans-Serif" font-size="10.00">StorageConfig</text>
 </a>
 </g>
 </g>
 <!-- Node5&#45;&gt;Node4 -->
 <g id="edge4" class="edge">
 <title>Node5&#45;&gt;Node4</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M480.48,-691.36C528.91,-695.46 600.09,-701.49 642.17,-705.05"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="480.77,-687.87 470.51,-690.51 480.18,-694.85 480.77,-687.87"/>
-<text text-anchor="middle" x="557.5" y="-704" font-family="Helvetica,sans-Serif" font-size="10.00"> config_</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M479.48,-691.36C527.91,-695.46 599.09,-701.49 641.17,-705.05"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="479.77,-687.87 469.51,-690.51 479.18,-694.85 479.77,-687.87"/>
+<text text-anchor="middle" x="556.5" y="-704" font-family="Helvetica,sans-Serif" font-size="10.00"> config_</text>
 </g>
 <!-- Node7 -->
 <g id="node7" class="node">
 <title>Node7</title>
-<g id="a_node7"><a xlink:href="class_config.html" target="_top" xlink:title="Configuration object for an aktualizr instance running on a primary ECU.">
-<polygon fill="white" stroke="black" points="877.5,-396.5 877.5,-415.5 924.5,-415.5 924.5,-396.5 877.5,-396.5"/>
-<text text-anchor="middle" x="901" y="-403.5" font-family="Helvetica,sans-Serif" font-size="10.00">Config</text>
+<g id="a_node7"><a xlink:href="class_config.html" target="_top" xlink:title="Configuration object for an aktualizr instance running on a Primary ECU.">
+<polygon fill="white" stroke="black" points="876.5,-396.5 876.5,-415.5 923.5,-415.5 923.5,-396.5 876.5,-396.5"/>
+<text text-anchor="middle" x="900" y="-403.5" font-family="Helvetica,sans-Serif" font-size="10.00">Config</text>
 </a>
 </g>
 </g>
 <!-- Node5&#45;&gt;Node7 -->
 <g id="edge9" class="edge">
 <title>Node5&#45;&gt;Node7</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M480.95,-686.07C573.17,-683.19 759.61,-671.51 800,-624 828.76,-590.17 788.83,-458.48 818,-425 832.49,-408.36 858.42,-404.74 877.25,-404.57"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="480.61,-682.57 470.72,-686.36 480.81,-689.57 480.61,-682.57"/>
-<text text-anchor="middle" x="678" y="-678" font-family="Helvetica,sans-Serif" font-size="10.00"> storage</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M479.95,-686.07C572.17,-683.19 758.61,-671.51 799,-624 827.76,-590.17 787.83,-458.48 817,-425 831.49,-408.36 857.42,-404.74 876.25,-404.57"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="479.61,-682.57 469.72,-686.36 479.81,-689.57 479.61,-682.57"/>
+<text text-anchor="middle" x="677" y="-678" font-family="Helvetica,sans-Serif" font-size="10.00"> storage</text>
 </g>
 <!-- Node6 -->
 <g id="node6" class="node">
@@ -155,92 +155,92 @@ var sectionId = 'dynsection-1';
 <!-- Node6&#45;&gt;Node5 -->
 <g id="edge5" class="edge">
 <title>Node6&#45;&gt;Node5</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M202.63,-655.9C210.31,-659.39 218.83,-662.77 227,-665 280.41,-679.59 344.35,-684.54 385.31,-686.21"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="203.96,-652.66 193.43,-651.51 200.94,-658.98 203.96,-652.66"/>
-<text text-anchor="middle" x="288" y="-763" font-family="Helvetica,sans-Serif" font-size="10.00"> uptane_public_key_path</text>
-<text text-anchor="middle" x="288" y="-752" font-family="Helvetica,sans-Serif" font-size="10.00">tls_pkey_path</text>
-<text text-anchor="middle" x="288" y="-741" font-family="Helvetica,sans-Serif" font-size="10.00">uptane_metadata_path</text>
-<text text-anchor="middle" x="288" y="-730" font-family="Helvetica,sans-Serif" font-size="10.00">sqldb_path</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M202.63,-655.9C210.31,-659.39 218.83,-662.77 227,-665 279.98,-679.48 343.36,-684.47 384.13,-686.16"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="203.96,-652.66 193.43,-651.51 200.94,-658.97 203.96,-652.66"/>
+<text text-anchor="middle" x="287.5" y="-763" font-family="Helvetica,sans-Serif" font-size="10.00"> uptane_public_key_path</text>
+<text text-anchor="middle" x="287.5" y="-752" font-family="Helvetica,sans-Serif" font-size="10.00">tls_pkey_path</text>
+<text text-anchor="middle" x="287.5" y="-741" font-family="Helvetica,sans-Serif" font-size="10.00">uptane_metadata_path</text>
+<text text-anchor="middle" x="287.5" y="-730" font-family="Helvetica,sans-Serif" font-size="10.00">sqldb_path</text>
 <text text-anchor="start" x="227" y="-719" font-family="Helvetica,sans-Serif" font-size="10.00">uptane_private_key</text>
-<text text-anchor="middle" x="288" y="-708" font-family="Helvetica,sans-Serif" font-size="10.00">_path</text>
-<text text-anchor="middle" x="288" y="-697" font-family="Helvetica,sans-Serif" font-size="10.00">tls_cacert_path</text>
-<text text-anchor="middle" x="288" y="-686" font-family="Helvetica,sans-Serif" font-size="10.00">tls_clientcert_path</text>
+<text text-anchor="middle" x="287.5" y="-708" font-family="Helvetica,sans-Serif" font-size="10.00">_path</text>
+<text text-anchor="middle" x="287.5" y="-697" font-family="Helvetica,sans-Serif" font-size="10.00">tls_cacert_path</text>
+<text text-anchor="middle" x="287.5" y="-686" font-family="Helvetica,sans-Serif" font-size="10.00">tls_clientcert_path</text>
 </g>
 <!-- Node20 -->
 <g id="node20" class="node">
 <title>Node20</title>
 <g id="a_node20"><a xlink:href="struct_import_config.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="388,-588.5 388,-607.5 468,-607.5 468,-588.5 388,-588.5"/>
-<text text-anchor="middle" x="428" y="-595.5" font-family="Helvetica,sans-Serif" font-size="10.00">ImportConfig</text>
+<polygon fill="white" stroke="black" points="387,-588.5 387,-607.5 467,-607.5 467,-588.5 387,-588.5"/>
+<text text-anchor="middle" x="427" y="-595.5" font-family="Helvetica,sans-Serif" font-size="10.00">ImportConfig</text>
 </a>
 </g>
 </g>
 <!-- Node6&#45;&gt;Node20 -->
 <g id="edge26" class="edge">
 <title>Node6&#45;&gt;Node20</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M190.7,-624.71C200,-615.16 212.91,-604.19 227,-599 279.95,-579.51 346.26,-584.36 387.64,-590.5"/>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M190.7,-624.72C200,-615.16 212.91,-604.19 227,-599 279.69,-579.6 345.67,-584.43 386.84,-590.54"/>
 <polygon fill="#9a32cd" stroke="#9a32cd" points="187.97,-622.52 183.79,-632.26 193.13,-627.25 187.97,-622.52"/>
-<text text-anchor="middle" x="288" y="-657" font-family="Helvetica,sans-Serif" font-size="10.00"> uptane_public_key_path</text>
-<text text-anchor="middle" x="288" y="-646" font-family="Helvetica,sans-Serif" font-size="10.00">tls_pkey_path</text>
+<text text-anchor="middle" x="287.5" y="-657" font-family="Helvetica,sans-Serif" font-size="10.00"> uptane_public_key_path</text>
+<text text-anchor="middle" x="287.5" y="-646" font-family="Helvetica,sans-Serif" font-size="10.00">tls_pkey_path</text>
 <text text-anchor="start" x="227" y="-635" font-family="Helvetica,sans-Serif" font-size="10.00">uptane_private_key</text>
-<text text-anchor="middle" x="288" y="-624" font-family="Helvetica,sans-Serif" font-size="10.00">_path</text>
-<text text-anchor="middle" x="288" y="-613" font-family="Helvetica,sans-Serif" font-size="10.00">tls_cacert_path</text>
-<text text-anchor="middle" x="288" y="-602" font-family="Helvetica,sans-Serif" font-size="10.00">tls_clientcert_path</text>
+<text text-anchor="middle" x="287.5" y="-624" font-family="Helvetica,sans-Serif" font-size="10.00">_path</text>
+<text text-anchor="middle" x="287.5" y="-613" font-family="Helvetica,sans-Serif" font-size="10.00">tls_cacert_path</text>
+<text text-anchor="middle" x="287.5" y="-602" font-family="Helvetica,sans-Serif" font-size="10.00">tls_clientcert_path</text>
 </g>
 <!-- Node7&#45;&gt;Node1 -->
 <g id="edge6" class="edge">
 <title>Node7&#45;&gt;Node1</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M920.99,-389.61C975.62,-342.49 1131.95,-207.62 1174.94,-170.54"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="918.42,-387.21 913.13,-396.4 922.99,-392.51 918.42,-387.21"/>
-<text text-anchor="middle" x="1061" y="-315" font-family="Helvetica,sans-Serif" font-size="10.00"> config_</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M919.99,-389.61C974.62,-342.49 1130.95,-207.62 1173.94,-170.54"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="917.42,-387.21 912.13,-396.4 921.99,-392.51 917.42,-387.21"/>
+<text text-anchor="middle" x="1060" y="-315" font-family="Helvetica,sans-Serif" font-size="10.00"> config_</text>
 </g>
 <!-- Node8 -->
 <g id="node8" class="node">
 <title>Node8</title>
 <g id="a_node8"><a xlink:href="class_base_config.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="642.5,-613.5 642.5,-632.5 713.5,-632.5 713.5,-613.5 642.5,-613.5"/>
-<text text-anchor="middle" x="678" y="-620.5" font-family="Helvetica,sans-Serif" font-size="10.00">BaseConfig</text>
+<polygon fill="white" stroke="black" points="641.5,-613.5 641.5,-632.5 712.5,-632.5 712.5,-613.5 641.5,-613.5"/>
+<text text-anchor="middle" x="677" y="-620.5" font-family="Helvetica,sans-Serif" font-size="10.00">BaseConfig</text>
 </a>
 </g>
 </g>
 <!-- Node8&#45;&gt;Node7 -->
 <g id="edge7" class="edge">
 <title>Node8&#45;&gt;Node7</title>
-<path fill="none" stroke="midnightblue" d="M723.57,-625.86C749.65,-624.95 781.07,-618.92 800,-598 851.86,-540.67 766.83,-482.94 818,-425 832.61,-408.46 858.51,-404.82 877.3,-404.62"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="723.47,-622.36 713.51,-625.97 723.55,-629.36 723.47,-622.36"/>
+<path fill="none" stroke="midnightblue" d="M722.57,-625.86C748.65,-624.95 780.07,-618.92 799,-598 850.86,-540.67 765.83,-482.94 817,-425 831.61,-408.46 857.51,-404.82 876.3,-404.62"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="722.47,-622.36 712.51,-625.97 722.55,-629.36 722.47,-622.36"/>
 </g>
 <!-- Node9 -->
 <g id="node9" class="node">
 <title>Node9</title>
 <g id="a_node9"><a xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="371.5,-627 371.5,-657 484.5,-657 484.5,-627 371.5,-627"/>
-<text text-anchor="start" x="379.5" y="-645" font-family="Helvetica,sans-Serif" font-size="10.00">std::vector&lt; boost</text>
-<text text-anchor="middle" x="428" y="-634" font-family="Helvetica,sans-Serif" font-size="10.00">::filesystem::path &gt;</text>
+<polygon fill="white" stroke="#bfbfbf" points="370.5,-627 370.5,-657 483.5,-657 483.5,-627 370.5,-627"/>
+<text text-anchor="start" x="378.5" y="-645" font-family="Helvetica,sans-Serif" font-size="10.00">std::vector&lt; boost</text>
+<text text-anchor="middle" x="427" y="-634" font-family="Helvetica,sans-Serif" font-size="10.00">::filesystem::path &gt;</text>
 </a>
 </g>
 </g>
 <!-- Node9&#45;&gt;Node8 -->
 <g id="edge8" class="edge">
 <title>Node9&#45;&gt;Node8</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M494.82,-636.96C542.14,-633.33 604.08,-628.59 642.18,-625.67"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="494.36,-633.48 484.66,-637.74 494.89,-640.46 494.36,-633.48"/>
-<text text-anchor="middle" x="557.5" y="-638" font-family="Helvetica,sans-Serif" font-size="10.00"> config_dirs_</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M493.82,-636.96C541.14,-633.33 603.08,-628.59 641.18,-625.67"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="493.36,-633.48 483.66,-637.74 493.89,-640.46 493.36,-633.48"/>
+<text text-anchor="middle" x="556.5" y="-638" font-family="Helvetica,sans-Serif" font-size="10.00"> config_dirs_</text>
 </g>
 <!-- Node10 -->
 <g id="node10" class="node">
 <title>Node10</title>
 <g id="a_node10"><a xlink:href="struct_tls_config.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="526.5,-494.5 526.5,-513.5 588.5,-513.5 588.5,-494.5 526.5,-494.5"/>
-<text text-anchor="middle" x="557.5" y="-501.5" font-family="Helvetica,sans-Serif" font-size="10.00">TlsConfig</text>
+<polygon fill="white" stroke="black" points="525.5,-494.5 525.5,-513.5 587.5,-513.5 587.5,-494.5 525.5,-494.5"/>
+<text text-anchor="middle" x="556.5" y="-501.5" font-family="Helvetica,sans-Serif" font-size="10.00">TlsConfig</text>
 </a>
 </g>
 </g>
 <!-- Node10&#45;&gt;Node7 -->
 <g id="edge10" class="edge">
 <title>Node10&#45;&gt;Node7</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M584.17,-489.06C601.33,-479.17 621.55,-467.7 626,-466 672.64,-448.22 820.29,-420.44 877.26,-410.08"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="581.98,-486.29 575.07,-494.33 585.48,-492.35 581.98,-486.29"/>
-<text text-anchor="middle" x="678" y="-469" font-family="Helvetica,sans-Serif" font-size="10.00"> tls</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M583.17,-489.06C600.33,-479.17 620.55,-467.7 625,-466 671.64,-448.22 819.29,-420.44 876.26,-410.08"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="580.98,-486.29 574.07,-494.33 584.48,-492.35 580.98,-486.29"/>
+<text text-anchor="middle" x="677" y="-469" font-family="Helvetica,sans-Serif" font-size="10.00"> tls</text>
 </g>
 <!-- Node11 -->
 <g id="node11" class="node">
@@ -254,130 +254,130 @@ var sectionId = 'dynsection-1';
 <!-- Node11&#45;&gt;Node1 -->
 <g id="edge34" class="edge">
 <title>Node11&#45;&gt;Node1</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M178.17,-371.11C183.61,-325.27 199.4,-214.38 227,-191 295.06,-133.33 337.79,-174 427,-174 427,-174 427,-174 902,-174 984.92,-174 1081.32,-168.4 1137.79,-164.55"/>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M178.17,-371.11C183.62,-325.28 199.41,-214.39 227,-191 294.71,-133.6 337.23,-174 426,-174 426,-174 426,-174 901,-174 983.92,-174 1080.32,-168.4 1136.79,-164.55"/>
 <polygon fill="#9a32cd" stroke="#9a32cd" points="174.67,-370.93 177.01,-381.26 181.63,-371.73 174.67,-370.93"/>
-<text text-anchor="middle" x="678" y="-188" font-family="Helvetica,sans-Serif" font-size="10.00"> device_id</text>
-<text text-anchor="middle" x="678" y="-177" font-family="Helvetica,sans-Serif" font-size="10.00">aktualizr_info_output</text>
+<text text-anchor="middle" x="677" y="-188" font-family="Helvetica,sans-Serif" font-size="10.00"> device_id</text>
+<text text-anchor="middle" x="677" y="-177" font-family="Helvetica,sans-Serif" font-size="10.00">aktualizr_info_output</text>
 </g>
 <!-- Node11&#45;&gt;Node10 -->
 <g id="edge11" class="edge">
 <title>Node11&#45;&gt;Node10</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M178.85,-410.84C183.71,-436.48 196.26,-480.18 227,-500 275.8,-531.46 454.4,-515.54 526.25,-507.6"/>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M178.85,-410.84C183.71,-436.48 196.26,-480.18 227,-500 275.65,-531.37 453.71,-515.5 525.35,-507.59"/>
 <polygon fill="#9a32cd" stroke="#9a32cd" points="182.27,-410.06 177.16,-400.78 175.36,-411.22 182.27,-410.06"/>
-<text text-anchor="middle" x="288" y="-521" font-family="Helvetica,sans-Serif" font-size="10.00"> server</text>
+<text text-anchor="middle" x="287.5" y="-521" font-family="Helvetica,sans-Serif" font-size="10.00"> server</text>
 </g>
 <!-- Node14 -->
 <g id="node14" class="node">
 <title>Node14</title>
 <g id="a_node14"><a xlink:href="struct_package_config.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="634,-396.5 634,-415.5 722,-415.5 722,-396.5 634,-396.5"/>
-<text text-anchor="middle" x="678" y="-403.5" font-family="Helvetica,sans-Serif" font-size="10.00">PackageConfig</text>
+<polygon fill="white" stroke="black" points="633.5,-396.5 633.5,-415.5 720.5,-415.5 720.5,-396.5 633.5,-396.5"/>
+<text text-anchor="middle" x="677" y="-403.5" font-family="Helvetica,sans-Serif" font-size="10.00">PackageConfig</text>
 </a>
 </g>
 </g>
 <!-- Node11&#45;&gt;Node14 -->
 <g id="edge17" class="edge">
 <title>Node11&#45;&gt;Node14</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M183.18,-409.94C190.99,-427.55 205.34,-452.71 227,-464 299.47,-501.77 550.1,-440.21 642.47,-415.52"/>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M183.18,-409.94C190.99,-427.55 205.34,-452.71 227,-464 299.31,-501.69 549.39,-440.18 641.55,-415.52"/>
 <polygon fill="#9a32cd" stroke="#9a32cd" points="186.38,-408.52 179.33,-400.61 179.91,-411.19 186.38,-408.52"/>
-<text text-anchor="middle" x="428" y="-496" font-family="Helvetica,sans-Serif" font-size="10.00"> os</text>
-<text text-anchor="middle" x="428" y="-485" font-family="Helvetica,sans-Serif" font-size="10.00">ostree_server</text>
-<text text-anchor="middle" x="428" y="-474" font-family="Helvetica,sans-Serif" font-size="10.00">type</text>
+<text text-anchor="middle" x="427" y="-496" font-family="Helvetica,sans-Serif" font-size="10.00"> os</text>
+<text text-anchor="middle" x="427" y="-485" font-family="Helvetica,sans-Serif" font-size="10.00">ostree_server</text>
+<text text-anchor="middle" x="427" y="-474" font-family="Helvetica,sans-Serif" font-size="10.00">type</text>
 </g>
 <!-- Node15 -->
 <g id="node15" class="node">
 <title>Node15</title>
 <g id="a_node15"><a xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="367,-393 367,-423 489,-423 489,-393 367,-393"/>
-<text text-anchor="start" x="375" y="-411" font-family="Helvetica,sans-Serif" font-size="10.00">std::map&lt; std::string,</text>
-<text text-anchor="middle" x="428" y="-400" font-family="Helvetica,sans-Serif" font-size="10.00"> std::string &gt;</text>
+<polygon fill="white" stroke="#bfbfbf" points="366,-393 366,-423 488,-423 488,-393 366,-393"/>
+<text text-anchor="start" x="374" y="-411" font-family="Helvetica,sans-Serif" font-size="10.00">std::map&lt; std::string,</text>
+<text text-anchor="middle" x="427" y="-400" font-family="Helvetica,sans-Serif" font-size="10.00"> std::string &gt;</text>
 </a>
 </g>
 </g>
 <!-- Node11&#45;&gt;Node15 -->
 <g id="edge16" class="edge">
 <title>Node11&#45;&gt;Node15</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M191.96,-407.62C201.27,-416.08 213.77,-425.52 227,-430 279.11,-447.64 342.8,-435.25 384.1,-423.1"/>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M191.96,-407.62C201.27,-416.08 213.77,-425.52 227,-430 278.85,-447.55 342.23,-435.18 383.32,-423.06"/>
 <polygon fill="#9a32cd" stroke="#9a32cd" points="194.29,-405 184.66,-400.57 189.43,-410.03 194.29,-405"/>
-<text text-anchor="middle" x="288" y="-452" font-family="Helvetica,sans-Serif" font-size="10.00"> keys</text>
-<text text-anchor="middle" x="288" y="-441" font-family="Helvetica,sans-Serif" font-size="10.00">elements</text>
+<text text-anchor="middle" x="287.5" y="-452" font-family="Helvetica,sans-Serif" font-size="10.00"> keys</text>
+<text text-anchor="middle" x="287.5" y="-441" font-family="Helvetica,sans-Serif" font-size="10.00">elements</text>
 </g>
 <!-- Node16 -->
 <g id="node16" class="node">
 <title>Node16</title>
 <g id="a_node16"><a xlink:href="struct_provision_config.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="511.5,-338.5 511.5,-357.5 603.5,-357.5 603.5,-338.5 511.5,-338.5"/>
-<text text-anchor="middle" x="557.5" y="-345.5" font-family="Helvetica,sans-Serif" font-size="10.00">ProvisionConfig</text>
+<polygon fill="white" stroke="black" points="510.5,-338.5 510.5,-357.5 602.5,-357.5 602.5,-338.5 510.5,-338.5"/>
+<text text-anchor="middle" x="556.5" y="-345.5" font-family="Helvetica,sans-Serif" font-size="10.00">ProvisionConfig</text>
 </a>
 </g>
 </g>
 <!-- Node11&#45;&gt;Node16 -->
 <g id="edge19" class="edge">
 <title>Node11&#45;&gt;Node16</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M184.96,-372.21C193.41,-356.89 207.68,-336.31 227,-327 275.93,-303.43 432.97,-326.26 511.25,-339.71"/>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M184.96,-372.21C193.41,-356.89 207.68,-336.31 227,-327 275.78,-303.5 432.34,-326.3 510.39,-339.73"/>
 <polygon fill="#9a32cd" stroke="#9a32cd" points="181.72,-370.86 180.24,-381.35 187.94,-374.07 181.72,-370.86"/>
-<text text-anchor="middle" x="288" y="-418" font-family="Helvetica,sans-Serif" font-size="10.00"> server</text>
-<text text-anchor="middle" x="288" y="-407" font-family="Helvetica,sans-Serif" font-size="10.00">p12_password</text>
-<text text-anchor="start" x="232" y="-396" font-family="Helvetica,sans-Serif" font-size="10.00">primary_ecu_hardware</text>
-<text text-anchor="middle" x="288" y="-385" font-family="Helvetica,sans-Serif" font-size="10.00">_id</text>
-<text text-anchor="middle" x="288" y="-374" font-family="Helvetica,sans-Serif" font-size="10.00">expiry_days</text>
-<text text-anchor="middle" x="288" y="-363" font-family="Helvetica,sans-Serif" font-size="10.00">device_id</text>
-<text text-anchor="start" x="232" y="-352" font-family="Helvetica,sans-Serif" font-size="10.00">ecu_registration</text>
-<text text-anchor="middle" x="288" y="-341" font-family="Helvetica,sans-Serif" font-size="10.00">_endpoint</text>
-<text text-anchor="middle" x="288" y="-330" font-family="Helvetica,sans-Serif" font-size="10.00">primary_ecu_serial</text>
+<text text-anchor="middle" x="287.5" y="-418" font-family="Helvetica,sans-Serif" font-size="10.00"> server</text>
+<text text-anchor="middle" x="287.5" y="-407" font-family="Helvetica,sans-Serif" font-size="10.00">p12_password</text>
+<text text-anchor="start" x="231.5" y="-396" font-family="Helvetica,sans-Serif" font-size="10.00">primary_ecu_hardware</text>
+<text text-anchor="middle" x="287.5" y="-385" font-family="Helvetica,sans-Serif" font-size="10.00">_id</text>
+<text text-anchor="middle" x="287.5" y="-374" font-family="Helvetica,sans-Serif" font-size="10.00">expiry_days</text>
+<text text-anchor="middle" x="287.5" y="-363" font-family="Helvetica,sans-Serif" font-size="10.00">device_id</text>
+<text text-anchor="start" x="231.5" y="-352" font-family="Helvetica,sans-Serif" font-size="10.00">ecu_registration</text>
+<text text-anchor="middle" x="287.5" y="-341" font-family="Helvetica,sans-Serif" font-size="10.00">_endpoint</text>
+<text text-anchor="middle" x="287.5" y="-330" font-family="Helvetica,sans-Serif" font-size="10.00">primary_ecu_serial</text>
 </g>
 <!-- Node17 -->
 <g id="node17" class="node">
 <title>Node17</title>
 <g id="a_node17"><a xlink:href="struct_p11_config.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="525,-248.5 525,-267.5 590,-267.5 590,-248.5 525,-248.5"/>
-<text text-anchor="middle" x="557.5" y="-255.5" font-family="Helvetica,sans-Serif" font-size="10.00">P11Config</text>
+<polygon fill="white" stroke="black" points="524,-248.5 524,-267.5 589,-267.5 589,-248.5 524,-248.5"/>
+<text text-anchor="middle" x="556.5" y="-255.5" font-family="Helvetica,sans-Serif" font-size="10.00">P11Config</text>
 </a>
 </g>
 </g>
 <!-- Node11&#45;&gt;Node17 -->
 <g id="edge21" class="edge">
 <title>Node11&#45;&gt;Node17</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M176.9,-371.11C179.49,-340.56 189.38,-282.93 227,-257 274.51,-224.25 451.78,-243.74 524.78,-253.47"/>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M176.9,-371.11C179.49,-340.56 189.38,-282.93 227,-257 274.37,-224.35 451.1,-243.78 523.88,-253.49"/>
 <polygon fill="#9a32cd" stroke="#9a32cd" points="173.39,-371.16 176.23,-381.37 180.38,-371.62 173.39,-371.16"/>
-<text text-anchor="middle" x="288" y="-304" font-family="Helvetica,sans-Serif" font-size="10.00"> tls_pkey_id</text>
-<text text-anchor="middle" x="288" y="-293" font-family="Helvetica,sans-Serif" font-size="10.00">tls_clientcert_id</text>
-<text text-anchor="middle" x="288" y="-282" font-family="Helvetica,sans-Serif" font-size="10.00">pass</text>
-<text text-anchor="middle" x="288" y="-271" font-family="Helvetica,sans-Serif" font-size="10.00">uptane_key_id</text>
-<text text-anchor="middle" x="288" y="-260" font-family="Helvetica,sans-Serif" font-size="10.00">tls_cacert_id</text>
+<text text-anchor="middle" x="287.5" y="-304" font-family="Helvetica,sans-Serif" font-size="10.00"> tls_pkey_id</text>
+<text text-anchor="middle" x="287.5" y="-293" font-family="Helvetica,sans-Serif" font-size="10.00">tls_clientcert_id</text>
+<text text-anchor="middle" x="287.5" y="-282" font-family="Helvetica,sans-Serif" font-size="10.00">pass</text>
+<text text-anchor="middle" x="287.5" y="-271" font-family="Helvetica,sans-Serif" font-size="10.00">uptane_key_id</text>
+<text text-anchor="middle" x="287.5" y="-260" font-family="Helvetica,sans-Serif" font-size="10.00">tls_cacert_id</text>
 </g>
 <!-- Node18 -->
 <g id="node18" class="node">
 <title>Node18</title>
 <g id="a_node18"><a xlink:href="struct_uptane_config.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="516,-216.5 516,-235.5 599,-235.5 599,-216.5 516,-216.5"/>
-<text text-anchor="middle" x="557.5" y="-223.5" font-family="Helvetica,sans-Serif" font-size="10.00">UptaneConfig</text>
+<polygon fill="white" stroke="black" points="515,-216.5 515,-235.5 598,-235.5 598,-216.5 515,-216.5"/>
+<text text-anchor="middle" x="556.5" y="-223.5" font-family="Helvetica,sans-Serif" font-size="10.00">UptaneConfig</text>
 </a>
 </g>
 </g>
 <!-- Node11&#45;&gt;Node18 -->
 <g id="edge23" class="edge">
 <title>Node11&#45;&gt;Node18</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M178.62,-371.34C184.72,-328.98 201.31,-231.39 227,-212 271.38,-178.5 438.13,-203.9 515.98,-218.1"/>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M178.62,-371.34C184.72,-328.98 201.31,-231.39 227,-212 271.19,-178.64 437.06,-203.88 514.81,-218.06"/>
 <polygon fill="#9a32cd" stroke="#9a32cd" points="175.15,-370.89 177.24,-381.27 182.09,-371.85 175.15,-370.89"/>
-<text text-anchor="middle" x="288" y="-226" font-family="Helvetica,sans-Serif" font-size="10.00"> repo_server</text>
-<text text-anchor="middle" x="288" y="-215" font-family="Helvetica,sans-Serif" font-size="10.00">director_server</text>
+<text text-anchor="middle" x="287.5" y="-226" font-family="Helvetica,sans-Serif" font-size="10.00"> repo_server</text>
+<text text-anchor="middle" x="287.5" y="-215" font-family="Helvetica,sans-Serif" font-size="10.00">director_server</text>
 </g>
 <!-- Node21 -->
 <g id="node21" class="node">
 <title>Node21</title>
 <g id="a_node21"><a xlink:href="struct_bootloader_config.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="507,-533.5 507,-552.5 608,-552.5 608,-533.5 507,-533.5"/>
-<text text-anchor="middle" x="557.5" y="-540.5" font-family="Helvetica,sans-Serif" font-size="10.00">BootloaderConfig</text>
+<polygon fill="white" stroke="black" points="506,-533.5 506,-552.5 607,-552.5 607,-533.5 506,-533.5"/>
+<text text-anchor="middle" x="556.5" y="-540.5" font-family="Helvetica,sans-Serif" font-size="10.00">BootloaderConfig</text>
 </a>
 </g>
 </g>
 <!-- Node11&#45;&gt;Node21 -->
 <g id="edge28" class="edge">
 <title>Node11&#45;&gt;Node21</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M176.54,-411.01C178.59,-442.88 187.74,-504.48 227,-533 270.24,-564.4 425.74,-555.31 506.7,-548.09"/>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M176.54,-411.01C178.59,-442.88 187.74,-504.48 227,-533 270.11,-564.31 425.14,-555.26 505.85,-548.07"/>
 <polygon fill="#9a32cd" stroke="#9a32cd" points="180.02,-410.55 176.06,-400.73 173.03,-410.88 180.02,-410.55"/>
-<text text-anchor="middle" x="288" y="-557" font-family="Helvetica,sans-Serif" font-size="10.00"> reboot_command</text>
+<text text-anchor="middle" x="287.5" y="-557" font-family="Helvetica,sans-Serif" font-size="10.00"> reboot_command</text>
 </g>
 <!-- Node12 -->
 <g id="node12" class="node">
@@ -399,162 +399,162 @@ var sectionId = 'dynsection-1';
 <g id="node13" class="node">
 <title>Node13</title>
 <g id="a_node13"><a xlink:href="struct_logger_config.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="638,-528.5 638,-547.5 718,-547.5 718,-528.5 638,-528.5"/>
-<text text-anchor="middle" x="678" y="-535.5" font-family="Helvetica,sans-Serif" font-size="10.00">LoggerConfig</text>
+<polygon fill="white" stroke="black" points="637,-528.5 637,-547.5 717,-547.5 717,-528.5 637,-528.5"/>
+<text text-anchor="middle" x="677" y="-535.5" font-family="Helvetica,sans-Serif" font-size="10.00">LoggerConfig</text>
 </a>
 </g>
 </g>
 <!-- Node13&#45;&gt;Node7 -->
 <g id="edge13" class="edge">
 <title>Node13&#45;&gt;Node7</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M728.52,-539.85C753.14,-538.08 781.5,-531.53 800,-513 828.2,-484.74 790.14,-453.59 818,-425 833.3,-409.3 858.82,-405.48 877.33,-405"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="728.06,-536.37 718.24,-540.34 728.39,-543.36 728.06,-536.37"/>
-<text text-anchor="middle" x="774" y="-539" font-family="Helvetica,sans-Serif" font-size="10.00"> logger</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M727.52,-539.85C752.14,-538.08 780.5,-531.53 799,-513 827.2,-484.74 789.14,-453.59 817,-425 832.3,-409.3 857.82,-405.48 876.33,-405"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="727.06,-536.37 717.24,-540.34 727.39,-543.36 727.06,-536.37"/>
+<text text-anchor="middle" x="773" y="-539" font-family="Helvetica,sans-Serif" font-size="10.00"> logger</text>
 </g>
 <!-- Node14&#45;&gt;Node7 -->
 <g id="edge14" class="edge">
 <title>Node14&#45;&gt;Node7</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M732.3,-406C778.59,-406 843.37,-406 877.27,-406"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="732.14,-402.5 722.14,-406 732.14,-409.5 732.14,-402.5"/>
-<text text-anchor="middle" x="774" y="-409" font-family="Helvetica,sans-Serif" font-size="10.00"> pacman</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M730.79,-406C777.2,-406 842.48,-406 876.45,-406"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="730.61,-402.5 720.61,-406 730.61,-409.5 730.61,-402.5"/>
+<text text-anchor="middle" x="773" y="-409" font-family="Helvetica,sans-Serif" font-size="10.00"> pacman</text>
 </g>
 <!-- Node15&#45;&gt;Node14 -->
 <g id="edge15" class="edge">
 <title>Node15&#45;&gt;Node14</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M499.23,-407.43C542.56,-407.08 596.75,-406.65 633.84,-406.35"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="499.01,-403.94 489.03,-407.52 499.06,-410.94 499.01,-403.94"/>
-<text text-anchor="middle" x="557.5" y="-410" font-family="Helvetica,sans-Serif" font-size="10.00"> extra</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M498.26,-407.43C541.74,-407.08 596.13,-406.64 633.22,-406.34"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="498.01,-403.94 488.03,-407.52 498.06,-410.94 498.01,-403.94"/>
+<text text-anchor="middle" x="556.5" y="-410" font-family="Helvetica,sans-Serif" font-size="10.00"> extra</text>
 </g>
 <!-- Node16&#45;&gt;Node7 -->
 <g id="edge18" class="edge">
 <title>Node16&#45;&gt;Node7</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M613.75,-356.84C647.38,-362.26 691.19,-369.41 730,-376 782.89,-384.98 844.93,-396.07 877.47,-401.93"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="614.09,-353.35 603.66,-355.21 612.98,-360.26 614.09,-353.35"/>
-<text text-anchor="middle" x="678" y="-379" font-family="Helvetica,sans-Serif" font-size="10.00"> provision</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M612.75,-356.84C646.38,-362.26 690.19,-369.41 729,-376 781.89,-384.98 843.93,-396.07 876.47,-401.93"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="613.09,-353.35 602.66,-355.21 611.98,-360.26 613.09,-353.35"/>
+<text text-anchor="middle" x="677" y="-379" font-family="Helvetica,sans-Serif" font-size="10.00"> provision</text>
 </g>
 <!-- Node17&#45;&gt;Node7 -->
 <g id="edge20" class="edge">
 <title>Node17&#45;&gt;Node7</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M600,-263.02C635.19,-267.97 686.71,-276.88 730,-291 762.7,-301.67 770.93,-305.62 800,-324 835.68,-346.55 872.89,-380.2 890.13,-396.49"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="600.46,-259.55 590.08,-261.66 599.51,-266.48 600.46,-259.55"/>
-<text text-anchor="middle" x="678" y="-294" font-family="Helvetica,sans-Serif" font-size="10.00"> p11</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M599,-263.02C634.19,-267.97 685.71,-276.88 729,-291 761.7,-301.67 769.93,-305.62 799,-324 834.68,-346.55 871.89,-380.2 889.13,-396.49"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="599.46,-259.55 589.08,-261.66 598.51,-266.48 599.46,-259.55"/>
+<text text-anchor="middle" x="677" y="-294" font-family="Helvetica,sans-Serif" font-size="10.00"> p11</text>
 </g>
 <!-- Node18&#45;&gt;Node7 -->
 <g id="edge22" class="edge">
 <title>Node18&#45;&gt;Node7</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M609.44,-228.66C644.22,-231.69 690.89,-238.16 730,-252 809.59,-280.17 873.94,-367.29 893.71,-396.41"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="609.3,-225.14 599.05,-227.83 608.74,-232.11 609.3,-225.14"/>
-<text text-anchor="middle" x="678" y="-255" font-family="Helvetica,sans-Serif" font-size="10.00"> uptane</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M608.44,-228.66C643.22,-231.69 689.89,-238.16 729,-252 808.59,-280.17 872.94,-367.29 892.71,-396.41"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="608.3,-225.14 598.05,-227.83 607.74,-232.11 608.3,-225.14"/>
+<text text-anchor="middle" x="677" y="-255" font-family="Helvetica,sans-Serif" font-size="10.00"> uptane</text>
 </g>
 <!-- Node19 -->
 <g id="node19" class="node">
 <title>Node19</title>
 <g id="a_node19"><a xlink:href="struct_telemetry_config.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="630,-311.5 630,-330.5 726,-330.5 726,-311.5 630,-311.5"/>
-<text text-anchor="middle" x="678" y="-318.5" font-family="Helvetica,sans-Serif" font-size="10.00">TelemetryConfig</text>
+<polygon fill="white" stroke="black" points="629,-311.5 629,-330.5 725,-330.5 725,-311.5 629,-311.5"/>
+<text text-anchor="middle" x="677" y="-318.5" font-family="Helvetica,sans-Serif" font-size="10.00">TelemetryConfig</text>
 </a>
 </g>
 </g>
 <!-- Node19&#45;&gt;Node7 -->
 <g id="edge24" class="edge">
 <title>Node19&#45;&gt;Node7</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M736.32,-326.2C756.88,-329.29 779.94,-334.21 800,-342 834.97,-355.59 870.76,-382.2 888.53,-396.45"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="736.52,-322.7 726.13,-324.79 735.55,-329.63 736.52,-322.7"/>
-<text text-anchor="middle" x="774" y="-345" font-family="Helvetica,sans-Serif" font-size="10.00"> telemetry</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M735.32,-326.2C755.88,-329.29 778.94,-334.21 799,-342 833.97,-355.59 869.76,-382.2 887.53,-396.45"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="735.52,-322.7 725.13,-324.79 734.55,-329.63 735.52,-322.7"/>
+<text text-anchor="middle" x="773" y="-345" font-family="Helvetica,sans-Serif" font-size="10.00"> telemetry</text>
 </g>
 <!-- Node20&#45;&gt;Node7 -->
 <g id="edge25" class="edge">
 <title>Node20&#45;&gt;Node7</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M478.11,-595.06C573.7,-588.87 777.43,-573.22 800,-551 840.32,-511.32 779.75,-466.68 818,-425 832.92,-408.74 858.77,-405.05 877.46,-404.76"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="477.86,-591.57 468.1,-595.7 478.31,-598.56 477.86,-591.57"/>
-<text text-anchor="middle" x="678" y="-586" font-family="Helvetica,sans-Serif" font-size="10.00"> import</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M477.11,-595.06C572.7,-588.87 776.43,-573.22 799,-551 839.32,-511.32 778.75,-466.68 817,-425 831.92,-408.74 857.77,-405.05 876.46,-404.76"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="476.86,-591.57 467.1,-595.7 477.31,-598.56 476.86,-591.57"/>
+<text text-anchor="middle" x="677" y="-586" font-family="Helvetica,sans-Serif" font-size="10.00"> import</text>
 </g>
 <!-- Node21&#45;&gt;Node7 -->
 <g id="edge27" class="edge">
 <title>Node21&#45;&gt;Node7</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M595.72,-529.44C599.96,-527.47 604.14,-525.31 608,-523 616.94,-517.65 616.82,-512.92 626,-508 668.51,-485.21 685.05,-494.48 730,-477 762.23,-464.46 771.83,-463.06 800,-443 809.22,-436.44 808.11,-430.49 818,-425 836.4,-414.79 860.05,-410.06 877.21,-407.87"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="594.24,-526.27 586.46,-533.46 597.03,-532.69 594.24,-526.27"/>
-<text text-anchor="middle" x="678" y="-511" font-family="Helvetica,sans-Serif" font-size="10.00"> bootloader</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M594.72,-529.44C598.96,-527.47 603.14,-525.31 607,-523 615.94,-517.65 615.82,-512.92 625,-508 667.51,-485.21 684.05,-494.48 729,-477 761.23,-464.46 770.83,-463.06 799,-443 808.22,-436.44 807.11,-430.49 817,-425 835.4,-414.79 859.05,-410.06 876.21,-407.87"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="593.24,-526.27 585.46,-533.46 596.03,-532.69 593.24,-526.27"/>
+<text text-anchor="middle" x="677" y="-511" font-family="Helvetica,sans-Serif" font-size="10.00"> bootloader</text>
 </g>
 <!-- Node22 -->
 <g id="node22" class="node">
 <title>Node22</title>
 <g id="a_node22"><a xlink:href="class_aktualizr_info_test_1_1_aktualizr_info_process.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="843,-115 843,-145 959,-145 959,-115 843,-115"/>
-<text text-anchor="start" x="851" y="-133" font-family="Helvetica,sans-Serif" font-size="10.00">AktualizrInfoTest::</text>
-<text text-anchor="middle" x="901" y="-122" font-family="Helvetica,sans-Serif" font-size="10.00">AktualizrInfoProcess</text>
+<polygon fill="white" stroke="black" points="842,-115 842,-145 958,-145 958,-115 842,-115"/>
+<text text-anchor="start" x="850" y="-133" font-family="Helvetica,sans-Serif" font-size="10.00">AktualizrInfoTest::</text>
+<text text-anchor="middle" x="900" y="-122" font-family="Helvetica,sans-Serif" font-size="10.00">AktualizrInfoProcess</text>
 </a>
 </g>
 </g>
 <!-- Node22&#45;&gt;Node1 -->
 <g id="edge29" class="edge">
 <title>Node22&#45;&gt;Node1</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M969.18,-134.24C1012.37,-137.36 1069.63,-142.24 1120,-149 1125.77,-149.77 1131.81,-150.7 1137.78,-151.7"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="969.3,-130.73 959.08,-133.52 968.8,-137.72 969.3,-130.73"/>
-<text text-anchor="middle" x="1061" y="-152" font-family="Helvetica,sans-Serif" font-size="10.00"> aktualizr_info_process_</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M968.18,-134.24C1011.37,-137.36 1068.63,-142.24 1119,-149 1124.77,-149.77 1130.81,-150.7 1136.78,-151.7"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="968.3,-130.73 958.08,-133.52 967.8,-137.72 968.3,-130.73"/>
+<text text-anchor="middle" x="1060" y="-152" font-family="Helvetica,sans-Serif" font-size="10.00"> aktualizr_info_process_</text>
 </g>
 <!-- Node23 -->
 <g id="node23" class="node">
 <title>Node23</title>
 <g id="a_node23"><a xlink:href="class_process.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="651,-118.5 651,-137.5 705,-137.5 705,-118.5 651,-118.5"/>
-<text text-anchor="middle" x="678" y="-125.5" font-family="Helvetica,sans-Serif" font-size="10.00">Process</text>
+<polygon fill="white" stroke="black" points="650,-118.5 650,-137.5 704,-137.5 704,-118.5 650,-118.5"/>
+<text text-anchor="middle" x="677" y="-125.5" font-family="Helvetica,sans-Serif" font-size="10.00">Process</text>
 </a>
 </g>
 </g>
 <!-- Node23&#45;&gt;Node22 -->
 <g id="edge30" class="edge">
 <title>Node23&#45;&gt;Node22</title>
-<path fill="none" stroke="midnightblue" d="M715.35,-128.33C749.98,-128.64 802.63,-129.12 842.87,-129.48"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="715.25,-124.83 705.22,-128.24 715.19,-131.83 715.25,-124.83"/>
+<path fill="none" stroke="midnightblue" d="M714.35,-128.33C748.98,-128.64 801.63,-129.12 841.87,-129.48"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="714.25,-124.83 704.22,-128.24 714.19,-131.83 714.25,-124.83"/>
 </g>
 <!-- Node24 -->
 <g id="node24" class="node">
 <title>Node24</title>
 <g id="a_node24"><a xlink:href="class_uptane_1_1_hardware_identifier.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="826.5,-76.5 826.5,-95.5 975.5,-95.5 975.5,-76.5 826.5,-76.5"/>
-<text text-anchor="middle" x="901" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">Uptane::HardwareIdentifier</text>
+<polygon fill="white" stroke="black" points="825.5,-76.5 825.5,-95.5 974.5,-95.5 974.5,-76.5 825.5,-76.5"/>
+<text text-anchor="middle" x="900" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">Uptane::HardwareIdentifier</text>
 </a>
 </g>
 </g>
 <!-- Node24&#45;&gt;Node1 -->
 <g id="edge31" class="edge">
 <title>Node24&#45;&gt;Node1</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M985.68,-92.5C1027.03,-97.54 1077.12,-106.41 1120,-122 1139.76,-129.18 1160.27,-142.36 1173.08,-151.39"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="985.97,-89.01 975.64,-91.33 985.16,-95.97 985.97,-89.01"/>
-<text text-anchor="middle" x="1061" y="-125" font-family="Helvetica,sans-Serif" font-size="10.00"> primary_hw_id</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M984.68,-92.5C1026.03,-97.54 1076.12,-106.41 1119,-122 1138.76,-129.18 1159.27,-142.36 1172.08,-151.39"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="984.97,-89.01 974.64,-91.33 984.16,-95.97 984.97,-89.01"/>
+<text text-anchor="middle" x="1060" y="-125" font-family="Helvetica,sans-Serif" font-size="10.00"> primary_hw_id</text>
 </g>
 <!-- Node25 -->
 <g id="node25" class="node">
 <title>Node25</title>
 <g id="a_node25"><a xlink:href="class_uptane_1_1_ecu_serial.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="849.5,-38.5 849.5,-57.5 952.5,-57.5 952.5,-38.5 849.5,-38.5"/>
-<text text-anchor="middle" x="901" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">Uptane::EcuSerial</text>
+<polygon fill="white" stroke="black" points="848.5,-38.5 848.5,-57.5 951.5,-57.5 951.5,-38.5 848.5,-38.5"/>
+<text text-anchor="middle" x="900" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">Uptane::EcuSerial</text>
 </a>
 </g>
 </g>
 <!-- Node25&#45;&gt;Node1 -->
 <g id="edge32" class="edge">
 <title>Node25&#45;&gt;Node1</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M963.07,-45.4C1009.02,-46.07 1072.07,-52.78 1120,-80 1150.13,-97.11 1172.04,-133.78 1181.22,-151.29"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="962.97,-41.9 952.95,-45.34 962.93,-48.9 962.97,-41.9"/>
-<text text-anchor="middle" x="1061" y="-83" font-family="Helvetica,sans-Serif" font-size="10.00"> primary_ecu_serial</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M962.07,-45.4C1008.02,-46.07 1071.07,-52.78 1119,-80 1149.13,-97.11 1171.04,-133.78 1180.22,-151.29"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="961.97,-41.9 951.95,-45.34 961.93,-48.9 961.97,-41.9"/>
+<text text-anchor="middle" x="1060" y="-83" font-family="Helvetica,sans-Serif" font-size="10.00"> primary_ecu_serial</text>
 </g>
 <!-- Node26 -->
 <g id="node26" class="node">
 <title>Node26</title>
 <g id="a_node26"><a xlink:href="class_temporary_directory.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="844.5,-0.5 844.5,-19.5 957.5,-19.5 957.5,-0.5 844.5,-0.5"/>
-<text text-anchor="middle" x="901" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">TemporaryDirectory</text>
+<polygon fill="white" stroke="black" points="843.5,-0.5 843.5,-19.5 956.5,-19.5 956.5,-0.5 843.5,-0.5"/>
+<text text-anchor="middle" x="900" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">TemporaryDirectory</text>
 </a>
 </g>
 </g>
 <!-- Node26&#45;&gt;Node1 -->
 <g id="edge33" class="edge">
 <title>Node26&#45;&gt;Node1</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M967.79,-1.4C1014.21,1.19 1075.76,-2.74 1120,-33 1162.3,-61.94 1179.18,-126.61 1184.22,-151.23"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="967.27,2.07 957.53,-2.1 967.74,-4.92 967.27,2.07"/>
-<text text-anchor="middle" x="1061" y="-36" font-family="Helvetica,sans-Serif" font-size="10.00"> test_dir_</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M966.79,-1.4C1013.21,1.19 1074.76,-2.74 1119,-33 1161.3,-61.94 1178.18,-126.61 1183.22,-151.23"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="966.27,2.07 956.53,-2.1 966.74,-4.92 966.27,2.07"/>
+<text text-anchor="middle" x="1060" y="-36" font-family="Helvetica,sans-Serif" font-size="10.00"> test_dir_</text>
 </g>
 </g>
 </svg>

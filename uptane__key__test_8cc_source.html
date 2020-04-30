@@ -137,7 +137,7 @@ $(function() {
 <div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;    EXPECT_GT(cert.size(), 0);</div>
 <div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;    EXPECT_GT(pkey.size(), 0);</div>
 <div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160; </div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;    <span class="comment">// Verify that primary keys are valid.</span></div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;    <span class="comment">// Verify that Primary keys are valid.</span></div>
 <div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;    std::string primary_public;</div>
 <div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;    std::string primary_private;</div>
 <div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;    EXPECT_TRUE(storage-&gt;loadPrimaryKeys(&amp;primary_public, &amp;primary_private));</div>
@@ -153,7 +153,7 @@ $(function() {
 <div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;    public_keys.push_back(primary_public);</div>
 <div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;    private_keys.push_back(primary_private);</div>
 <div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160; </div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;    <span class="comment">// Verify that each secondary has valid keys.</span></div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;    <span class="comment">// Verify that each Secondary has valid keys.</span></div>
 <div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;    <span class="keywordflow">for</span> (<span class="keyword">auto</span> it = sota_client.secondaries.begin(); it != sota_client.secondaries.end(); it++) {</div>
 <div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;      std::shared_ptr&lt;Primary::ManagedSecondary&gt; managed =</div>
 <div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;          boost::polymorphic_pointer_downcast&lt;Primary::ManagedSecondary&gt;(it-&gt;second);</div>
@@ -254,7 +254,7 @@ $(function() {
 <div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;<span class="preprocessor">#endif</span></div>
 </div><!-- fragment --></div><!-- contents -->
 <div class="ttc" id="aclass_sota_uptane_client_html"><div class="ttname"><a href="class_sota_uptane_client.html">SotaUptaneClient</a></div><div class="ttdef"><b>Definition:</b> <a href="sotauptaneclient_8h_source.html#l00031">sotauptaneclient.h:31</a></div></div>
-<div class="ttc" id="aclass_config_html"><div class="ttname"><a href="class_config.html">Config</a></div><div class="ttdoc">Configuration object for an aktualizr instance running on a primary ECU.</div><div class="ttdef"><b>Definition:</b> <a href="config_8h_source.html#l00074">config.h:74</a></div></div>
+<div class="ttc" id="aclass_config_html"><div class="ttname"><a href="class_config.html">Config</a></div><div class="ttdoc">Configuration object for an aktualizr instance running on a Primary ECU.</div><div class="ttdef"><b>Definition:</b> <a href="config_8h_source.html#l00074">config.h:74</a></div></div>
 <div class="ttc" id="aclass_primary_1_1_virtual_secondary_config_html"><div class="ttname"><a href="class_primary_1_1_virtual_secondary_config.html">Primary::VirtualSecondaryConfig</a></div><div class="ttdef"><b>Definition:</b> <a href="virtualsecondary_8h_source.html#l00011">virtualsecondary.h:11</a></div></div>
 <div class="ttc" id="aclass_temporary_directory_html"><div class="ttname"><a href="class_temporary_directory.html">TemporaryDirectory</a></div><div class="ttdef"><b>Definition:</b> <a href="utils_8h_source.html#l00082">utils.h:82</a></div></div>
 <div class="ttc" id="aclass_uptane_key___check___test_html"><div class="ttname"><a href="class_uptane_key___check___test.html">UptaneKey_Check_Test</a></div><div class="ttdef"><b>Definition:</b> <a href="uptane__key__test_8cc_source.html#l00056">uptane_key_test.cc:56</a></div></div>

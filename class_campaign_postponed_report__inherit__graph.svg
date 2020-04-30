@@ -22,7 +22,7 @@
 <g id="node2" class="node">
 <title>Node2</title>
 <g id="a_node2"><a xlink:href="class_report_event.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="36.5,-56.5 36.5,-75.5 112.5,-75.5 112.5,-56.5 36.5,-56.5"/>
+<polygon fill="white" stroke="black" points="36,-56.5 36,-75.5 113,-75.5 113,-56.5 36,-56.5"/>
 <text text-anchor="middle" x="74.5" y="-63.5" font-family="Helvetica,sans-Serif" font-size="10.00">ReportEvent</text>
 </a>
 </g>

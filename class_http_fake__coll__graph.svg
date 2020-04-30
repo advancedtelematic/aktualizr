@@ -13,7 +13,7 @@
 <g id="node1" class="node">
 <title>Node1</title>
 <g id="a_node1"><a xlink:title=" ">
-<polygon fill="#bfbfbf" stroke="black" points="125.5,-0.5 125.5,-19.5 185.5,-19.5 185.5,-0.5 125.5,-0.5"/>
+<polygon fill="#bfbfbf" stroke="black" points="126,-0.5 126,-19.5 185,-19.5 185,-0.5 126,-0.5"/>
 <text text-anchor="middle" x="155.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">HttpFake</text>
 </a>
 </g>
@@ -61,7 +61,7 @@
 <!-- Node4&#45;&gt;Node1 -->
 <g id="edge3" class="edge">
 <title>Node4&#45;&gt;Node1</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M257.07,-68.74C253.14,-58.42 246.86,-46.03 237.5,-38 222.93,-25.52 202.43,-18.77 185.57,-15.14"/>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M257.07,-68.74C253.14,-58.42 246.86,-46.03 237.5,-38 222.82,-25.42 202.11,-18.66 185.18,-15.05"/>
 <polygon fill="#9a32cd" stroke="#9a32cd" points="253.83,-70.1 260.33,-78.47 260.47,-67.87 253.83,-70.1"/>
 <text text-anchor="middle" x="278.5" y="-52" font-family="Helvetica,sans-Serif" font-size="10.00"> tls_server</text>
 <text text-anchor="middle" x="278.5" y="-41" font-family="Helvetica,sans-Serif" font-size="10.00">flavor_</text>

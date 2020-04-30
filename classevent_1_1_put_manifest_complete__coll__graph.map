@@ -1,6 +1,6 @@
 <map id="event::PutManifestComplete" name="event::PutManifestComplete">
-<area shape="rect" id="node1" title="A manifest has been sent to the server." alt="" coords="5,261,212,288"/>
+<area shape="rect" id="node1" title="A manifest has been sent to the server." alt="" coords="5,261,213,288"/>
 <area shape="rect" id="node2" href="$classevent_1_1_base_event.html" title="Base class for all event objects." alt="" coords="41,185,177,212"/>
-<area shape="rect" id="node3" title="STL class." alt="" coords="65,96,152,123"/>
-<area shape="rect" id="node4" title="STL class." alt="" coords="39,5,178,47"/>
+<area shape="rect" id="node3" title="STL class." alt="" coords="66,96,153,123"/>
+<area shape="rect" id="node4" title="STL class." alt="" coords="40,5,179,47"/>
 </map>

@@ -46,7 +46,7 @@ if (edges && edges.length) {
         </defs>
 
 <script type="text/javascript">
-var viewWidth = 506;
+var viewWidth = 505;
 var viewHeight = 274;
 var sectionId = 'dynsection-1';
 </script>
@@ -54,7 +54,7 @@ var sectionId = 'dynsection-1';
 <svg id="graph" class="graph">
 <g id="viewport">
 <title>AktualizrCertProviderTest</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-270 502,-270 502,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-270 501,-270 501,4 -4,4"/>
 <!-- Node1 -->
 <g id="node1" class="node">
 <title>Node1</title>
@@ -163,10 +163,10 @@ var sectionId = 'dynsection-1';
 <title>Node7&#45;&gt;Node6</title>
 <path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M396,-168C396,-147.74 396,-116.11 396,-97.84"/>
 <polygon fill="#9a32cd" stroke="#9a32cd" points="392.5,-168.18 396,-178.18 399.5,-168.18 392.5,-168.18"/>
-<text text-anchor="middle" x="447" y="-152" font-family="Helvetica,sans-Serif" font-size="10.00"> credentials_path</text>
-<text text-anchor="middle" x="447" y="-141" font-family="Helvetica,sans-Serif" font-size="10.00">fleet_ca_private_key</text>
-<text text-anchor="middle" x="447" y="-130" font-family="Helvetica,sans-Serif" font-size="10.00">fleet_ca_cert</text>
-<text text-anchor="middle" x="447" y="-119" font-family="Helvetica,sans-Serif" font-size="10.00">test_dir</text>
+<text text-anchor="middle" x="446.5" y="-152" font-family="Helvetica,sans-Serif" font-size="10.00"> credentials_path</text>
+<text text-anchor="middle" x="446.5" y="-141" font-family="Helvetica,sans-Serif" font-size="10.00">fleet_ca_private_key</text>
+<text text-anchor="middle" x="446.5" y="-130" font-family="Helvetica,sans-Serif" font-size="10.00">fleet_ca_cert</text>
+<text text-anchor="middle" x="446.5" y="-119" font-family="Helvetica,sans-Serif" font-size="10.00">test_dir</text>
 </g>
 <!-- Node8 -->
 <g id="node8" class="node">

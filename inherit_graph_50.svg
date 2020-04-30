@@ -172,7 +172,7 @@
 <g id="node12" class="node">
 <title>Node11</title>
 <g id="a_node12"><a xlink:href="classevent_1_1_put_manifest_complete.html" target="_top" xlink:title="A manifest has been sent to the server.">
-<polygon fill="white" stroke="black" points="156.5,-76.5 156.5,-95.5 311.5,-95.5 311.5,-76.5 156.5,-76.5"/>
+<polygon fill="white" stroke="black" points="156,-76.5 156,-95.5 312,-95.5 312,-76.5 156,-76.5"/>
 <text text-anchor="middle" x="234" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">event::PutManifestComplete</text>
 </a>
 </g>

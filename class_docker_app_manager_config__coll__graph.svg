@@ -32,7 +32,7 @@
 <title>Node2&#45;&gt;Node1</title>
 <path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M71.5,-57.04C71.5,-44.67 71.5,-29.12 71.5,-19.63"/>
 <polygon fill="#9a32cd" stroke="#9a32cd" points="68,-57.23 71.5,-67.23 75,-57.23 68,-57.23"/>
-<text text-anchor="middle" x="104" y="-41" font-family="Helvetica,sans-Serif" font-size="10.00"> docker_apps</text>
+<text text-anchor="middle" x="103.5" y="-41" font-family="Helvetica,sans-Serif" font-size="10.00"> docker_apps</text>
 </g>
 <!-- Node3 -->
 <g id="node3" class="node">

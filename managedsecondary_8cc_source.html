@@ -226,7 +226,7 @@ $(function() {
 <div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
 <div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;  }</div>
 <div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160; </div>
-<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;  std::vector&lt;Uptane::Hash&gt;::const_iterator it;</div>
+<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;  std::vector&lt;Hash&gt;::const_iterator it;</div>
 <div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;  <span class="keywordflow">for</span> (it = expected_target_hashes.begin(); it != expected_target_hashes.end(); it++) {</div>
 <div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;    <span class="keywordflow">if</span> (it-&gt;TypeString() == <span class="stringliteral">&quot;sha256&quot;</span>) {</div>
 <div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;      <span class="keywordflow">if</span> (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(<a class="code" href="namespacedata.html">data</a>))) !=</div>
@@ -300,17 +300,17 @@ $(function() {
 <div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;}  <span class="comment">// namespace Primary</span></div>
 </div><!-- fragment --></div><!-- contents -->
 <div class="ttc" id="anamespacedata_html"><div class="ttname"><a href="namespacedata.html">data</a></div><div class="ttdoc">General data structures.</div><div class="ttdef"><b>Definition:</b> <a href="types_8cc_source.html#l00055">types.cc:55</a></div></div>
-<div class="ttc" id="aclass_uptane_1_1_snapshot_html"><div class="ttname"><a href="class_uptane_1_1_snapshot.html">Uptane::Snapshot</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00505">tuf.h:505</a></div></div>
-<div class="ttc" id="astruct_uptane_1_1_raw_meta_pack_html"><div class="ttname"><a href="struct_uptane_1_1_raw_meta_pack.html">Uptane::RawMetaPack</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00535">tuf.h:535</a></div></div>
-<div class="ttc" id="astruct_uptane_1_1_installed_image_info_html"><div class="ttname"><a href="struct_uptane_1_1_installed_image_info.html">Uptane::InstalledImageInfo</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00132">tuf.h:132</a></div></div>
-<div class="ttc" id="aclass_uptane_1_1_targets_html"><div class="ttname"><a href="class_uptane_1_1_targets.html">Uptane::Targets</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00440">tuf.h:440</a></div></div>
+<div class="ttc" id="aclass_uptane_1_1_snapshot_html"><div class="ttname"><a href="class_uptane_1_1_snapshot.html">Uptane::Snapshot</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00477">tuf.h:477</a></div></div>
+<div class="ttc" id="astruct_uptane_1_1_raw_meta_pack_html"><div class="ttname"><a href="struct_uptane_1_1_raw_meta_pack.html">Uptane::RawMetaPack</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00507">tuf.h:507</a></div></div>
+<div class="ttc" id="astruct_uptane_1_1_installed_image_info_html"><div class="ttname"><a href="struct_uptane_1_1_installed_image_info.html">Uptane::InstalledImageInfo</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00135">tuf.h:135</a></div></div>
+<div class="ttc" id="aclass_uptane_1_1_targets_html"><div class="ttname"><a href="class_uptane_1_1_targets.html">Uptane::Targets</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00412">tuf.h:412</a></div></div>
 <div class="ttc" id="aclass_primary_1_1_managed_secondary_config_html"><div class="ttname"><a href="class_primary_1_1_managed_secondary_config.html">Primary::ManagedSecondaryConfig</a></div><div class="ttdef"><b>Definition:</b> <a href="managedsecondary_8h_source.html#l00017">managedsecondary.h:17</a></div></div>
 <div class="ttc" id="aclass_public_key_html"><div class="ttname"><a href="class_public_key.html">PublicKey</a></div><div class="ttdef"><b>Definition:</b> <a href="crypto_8h_source.html#l00026">crypto.h:26</a></div></div>
 <div class="ttc" id="anamespaceresult_html"><div class="ttname"><a href="namespaceresult.html">result</a></div><div class="ttdoc">Results of libaktualizr API calls.</div><div class="ttdef"><b>Definition:</b> <a href="results_8h_source.html#l00013">results.h:13</a></div></div>
 <div class="ttc" id="astructdata_1_1_result_code_html_a1217cbd9c97e19df1ade7b0384cd5aae"><div class="ttname"><a href="structdata_1_1_result_code.html#a1217cbd9c97e19df1ade7b0384cd5aae">data::ResultCode::Numeric</a></div><div class="ttdeci">Numeric</div><div class="ttdef"><b>Definition:</b> <a href="types_8h_source.html#l00128">types.h:128</a></div></div>
-<div class="ttc" id="aclass_uptane_1_1_root_html"><div class="ttname"><a href="class_uptane_1_1_root.html">Uptane::Root</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00385">tuf.h:385</a></div></div>
-<div class="ttc" id="aclass_uptane_1_1_timestamp_meta_html"><div class="ttname"><a href="class_uptane_1_1_timestamp_meta.html">Uptane::TimestampMeta</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00488">tuf.h:488</a></div></div>
-<div class="ttc" id="aclass_uptane_1_1_manifest_html"><div class="ttname"><a href="class_uptane_1_1_manifest.html">Uptane::Manifest</a></div><div class="ttdef"><b>Definition:</b> <a href="manifest_8h_source.html#l00013">manifest.h:13</a></div></div>
+<div class="ttc" id="aclass_uptane_1_1_root_html"><div class="ttname"><a href="class_uptane_1_1_root.html">Uptane::Root</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00357">tuf.h:357</a></div></div>
+<div class="ttc" id="aclass_uptane_1_1_timestamp_meta_html"><div class="ttname"><a href="class_uptane_1_1_timestamp_meta.html">Uptane::TimestampMeta</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00460">tuf.h:460</a></div></div>
+<div class="ttc" id="aclass_uptane_1_1_manifest_html"><div class="ttname"><a href="class_uptane_1_1_manifest.html">Uptane::Manifest</a></div><div class="ttdef"><b>Definition:</b> <a href="manifest_8h_source.html#l00015">manifest.h:15</a></div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">

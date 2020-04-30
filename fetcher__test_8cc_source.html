@@ -302,132 +302,172 @@ $(function() {
 <div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;  <a class="code" href="class_http_zero_length.html">HttpZeroLength</a>(<span class="keyword">const</span> boost::filesystem::path&amp; test_dir_in) : <a class="code" href="class_http_fake.html">HttpFake</a>(test_dir_in) {}</div>
 <div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;  <a class="code" href="struct_http_response.html">HttpResponse</a> download(<span class="keyword">const</span> std::string&amp; url, curl_write_callback write_cb, curl_xferinfo_callback progress_cb,</div>
 <div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;                        <span class="keywordtype">void</span>* userp, curl_off_t from)<span class="keyword"> override </span>{</div>
-<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;    (void)write_cb;</div>
-<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;    (void)progress_cb;</div>
-<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;    (void)userp;</div>
-<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;    (void)from;</div>
-<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160; </div>
-<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;    EXPECT_EQ(url, server + <span class="stringliteral">&quot;/targets/fake_file&quot;</span>);</div>
+<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;    (void)progress_cb;</div>
+<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;    (void)from;</div>
+<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160; </div>
+<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;    EXPECT_EQ(url, server + <span class="stringliteral">&quot;/targets/fake_file&quot;</span>);</div>
+<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;    <span class="keyword">const</span> std::string content = <span class="stringliteral">&quot;0&quot;</span>;</div>
+<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;    write_cb(const_cast&lt;char*&gt;(&amp;content[0]), 1, 1, userp);</div>
 <div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160;    counter++;</div>
-<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;    <span class="keywordflow">return</span> <a class="code" href="struct_http_response.html">HttpResponse</a>(<span class="stringliteral">&quot;0&quot;</span>, 200, CURLE_OK, <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;    <span class="keywordflow">return</span> <a class="code" href="struct_http_response.html">HttpResponse</a>(content, 200, CURLE_OK, <span class="stringliteral">&quot;&quot;</span>);</div>
 <div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;  }</div>
 <div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160; </div>
 <div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;  <span class="keywordtype">int</span> counter = 0;</div>
 <div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;};</div>
 <div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160; </div>
-<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;<span class="comment">/* Don&#39;t bother downloading a target with length 0. */</span></div>
-<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;TEST(Fetcher, DownloadLengthZero) {</div>
-<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;  <a class="code" href="class_temporary_directory.html">TemporaryDirectory</a> temp_dir;</div>
-<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;  config.storage.path = temp_dir.Path();</div>
-<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;  config.uptane.repo_server = server;</div>
-<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160; </div>
-<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;  std::shared_ptr&lt;INvStorage&gt; storage(<span class="keyword">new</span> <a class="code" href="class_s_q_l_storage.html">SQLStorage</a>(config.storage, <span class="keyword">false</span>));</div>
-<div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;  <span class="keyword">auto</span> http = std::make_shared&lt;HttpZeroLength&gt;(temp_dir.Path());</div>
-<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;  <span class="keyword">auto</span> pacman = std::make_shared&lt;PackageManagerFake&gt;(config.pacman, config.bootloader, storage, http);</div>
-<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;  <a class="code" href="class_key_manager.html">KeyManager</a> keys(storage, config.keymanagerConfig());</div>
-<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;  <a class="code" href="class_uptane_1_1_fetcher.html">Uptane::Fetcher</a> fetcher(config, http);</div>
-<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160; </div>
-<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;  <span class="comment">// Empty target: download succeeds, but http module is never called.</span></div>
-<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;  Json::Value empty_target_json;</div>
-<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;  empty_target_json[<span class="stringliteral">&quot;hashes&quot;</span>][<span class="stringliteral">&quot;sha256&quot;</span>] = <span class="stringliteral">&quot;e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855&quot;</span>;</div>
-<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;  empty_target_json[<span class="stringliteral">&quot;length&quot;</span>] = 0;</div>
-<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;  <a class="code" href="class_uptane_1_1_target.html">Uptane::Target</a> empty_target(<span class="stringliteral">&quot;empty_file&quot;</span>, empty_target_json);</div>
-<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;  EXPECT_TRUE(pacman-&gt;fetchTarget(empty_target, fetcher, keys, progress_cb, <span class="keyword">nullptr</span>));</div>
-<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;  EXPECT_EQ(http-&gt;counter, 0);</div>
-<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160; </div>
-<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;  <span class="comment">// Non-empty target: download succeeds, and http module is called. This is</span></div>
-<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;  <span class="comment">// done purely to make sure the test is designed correctly.</span></div>
-<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;  Json::Value nonempty_target_json;</div>
-<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;  nonempty_target_json[<span class="stringliteral">&quot;hashes&quot;</span>][<span class="stringliteral">&quot;sha256&quot;</span>] = <span class="stringliteral">&quot;e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855&quot;</span>;</div>
-<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;  nonempty_target_json[<span class="stringliteral">&quot;length&quot;</span>] = 1;</div>
-<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;  <a class="code" href="class_uptane_1_1_target.html">Uptane::Target</a> nonempty_target(<span class="stringliteral">&quot;fake_file&quot;</span>, nonempty_target_json);</div>
-<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;  EXPECT_TRUE(pacman-&gt;fetchTarget(nonempty_target, fetcher, keys, progress_cb, <span class="keyword">nullptr</span>));</div>
-<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;  EXPECT_EQ(http-&gt;counter, 1);</div>
-<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;}</div>
-<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160; </div>
-<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;<span class="comment">/* Don&#39;t bother downloading a target that is larger than the available disk</span></div>
-<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;<span class="comment"> * space. */</span></div>
-<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;TEST(Fetcher, NotEnoughDiskSpace) {</div>
-<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;  <a class="code" href="class_temporary_directory.html">TemporaryDirectory</a> temp_dir;</div>
-<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;  config.storage.path = temp_dir.Path();</div>
-<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;  config.uptane.repo_server = server;</div>
-<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160; </div>
-<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;  std::shared_ptr&lt;INvStorage&gt; storage(<span class="keyword">new</span> <a class="code" href="class_s_q_l_storage.html">SQLStorage</a>(config.storage, <span class="keyword">false</span>));</div>
-<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;  <span class="keyword">auto</span> http = std::make_shared&lt;HttpZeroLength&gt;(temp_dir.Path());</div>
-<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;  <span class="keyword">auto</span> pacman = std::make_shared&lt;PackageManagerFake&gt;(config.pacman, config.bootloader, storage, http);</div>
-<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;  <a class="code" href="class_key_manager.html">KeyManager</a> keys(storage, config.keymanagerConfig());</div>
-<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;  <a class="code" href="class_uptane_1_1_fetcher.html">Uptane::Fetcher</a> fetcher(config, http);</div>
-<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160; </div>
-<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;  <span class="comment">// Find how much space is available on disk.</span></div>
-<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;  <span class="keyword">struct </span>statvfs stvfsbuf {};</div>
-<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;  EXPECT_EQ(statvfs(temp_dir.Path().c_str(), &amp;stvfsbuf), 0);</div>
-<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;  <span class="keyword">const</span> uint64_t available_bytes = (stvfsbuf.f_bsize * stvfsbuf.f_bavail);</div>
+<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;<span class="comment">/* Don&#39;t bother downloading a target with length 0, but make sure verification</span></div>
+<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;<span class="comment"> * still succeeds so that installation is possible. */</span></div>
+<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;TEST(Fetcher, DownloadLengthZero) {</div>
+<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;  <a class="code" href="class_temporary_directory.html">TemporaryDirectory</a> temp_dir;</div>
+<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;  config.storage.path = temp_dir.Path();</div>
+<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;  config.uptane.repo_server = server;</div>
+<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160; </div>
+<div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;  std::shared_ptr&lt;INvStorage&gt; storage(<span class="keyword">new</span> <a class="code" href="class_s_q_l_storage.html">SQLStorage</a>(config.storage, <span class="keyword">false</span>));</div>
+<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;  <span class="keyword">auto</span> http = std::make_shared&lt;HttpZeroLength&gt;(temp_dir.Path());</div>
+<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;  <span class="keyword">auto</span> pacman = std::make_shared&lt;PackageManagerFake&gt;(config.pacman, config.bootloader, storage, http);</div>
+<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;  <a class="code" href="class_key_manager.html">KeyManager</a> keys(storage, config.keymanagerConfig());</div>
+<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;  <a class="code" href="class_uptane_1_1_fetcher.html">Uptane::Fetcher</a> fetcher(config, http);</div>
+<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160; </div>
+<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;  <span class="comment">// Empty target: download succeeds, but http module is never called.</span></div>
+<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;  Json::Value empty_target_json;</div>
+<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;  empty_target_json[<span class="stringliteral">&quot;hashes&quot;</span>][<span class="stringliteral">&quot;sha256&quot;</span>] = <span class="stringliteral">&quot;e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855&quot;</span>;</div>
+<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;  empty_target_json[<span class="stringliteral">&quot;length&quot;</span>] = 0;</div>
+<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;  <span class="comment">// Make sure this isn&#39;t confused for an old-style OSTree target.</span></div>
+<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;  empty_target_json[<span class="stringliteral">&quot;custom&quot;</span>][<span class="stringliteral">&quot;targetFormat&quot;</span>] = <span class="stringliteral">&quot;binary&quot;</span>;</div>
+<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;  <a class="code" href="class_uptane_1_1_target.html">Uptane::Target</a> empty_target(<span class="stringliteral">&quot;empty_file&quot;</span>, empty_target_json);</div>
+<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;  EXPECT_TRUE(pacman-&gt;fetchTarget(empty_target, fetcher, keys, progress_cb, <span class="keyword">nullptr</span>));</div>
+<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;  EXPECT_EQ(pacman-&gt;verifyTarget(empty_target), TargetStatus::kGood);</div>
+<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;  EXPECT_EQ(http-&gt;counter, 0);</div>
+<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160; </div>
+<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;  <span class="comment">// Non-empty target: download succeeds, and http module is called. This is</span></div>
+<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;  <span class="comment">// done purely to make sure the test is designed correctly.</span></div>
+<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;  Json::Value nonempty_target_json;</div>
+<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;  nonempty_target_json[<span class="stringliteral">&quot;hashes&quot;</span>][<span class="stringliteral">&quot;sha256&quot;</span>] = <span class="stringliteral">&quot;5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9&quot;</span>;</div>
+<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;  nonempty_target_json[<span class="stringliteral">&quot;length&quot;</span>] = 1;</div>
+<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;  <a class="code" href="class_uptane_1_1_target.html">Uptane::Target</a> nonempty_target(<span class="stringliteral">&quot;fake_file&quot;</span>, nonempty_target_json);</div>
+<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;  EXPECT_TRUE(pacman-&gt;fetchTarget(nonempty_target, fetcher, keys, progress_cb, <span class="keyword">nullptr</span>));</div>
+<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;  EXPECT_EQ(pacman-&gt;verifyTarget(nonempty_target), TargetStatus::kGood);</div>
+<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;  EXPECT_EQ(http-&gt;counter, 1);</div>
+<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;}</div>
+<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160; </div>
+<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;<span class="comment">/* Don&#39;t bother downloading a target that is larger than the available disk</span></div>
+<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;<span class="comment"> * space. */</span></div>
+<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;TEST(Fetcher, NotEnoughDiskSpace) {</div>
+<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;  <a class="code" href="class_temporary_directory.html">TemporaryDirectory</a> temp_dir;</div>
+<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;  config.storage.path = temp_dir.Path();</div>
+<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;  config.uptane.repo_server = server;</div>
+<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160; </div>
+<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;  std::shared_ptr&lt;INvStorage&gt; storage(<span class="keyword">new</span> <a class="code" href="class_s_q_l_storage.html">SQLStorage</a>(config.storage, <span class="keyword">false</span>));</div>
+<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;  <span class="keyword">auto</span> http = std::make_shared&lt;HttpZeroLength&gt;(temp_dir.Path());</div>
+<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;  <span class="keyword">auto</span> pacman = std::make_shared&lt;PackageManagerFake&gt;(config.pacman, config.bootloader, storage, http);</div>
+<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;  <a class="code" href="class_key_manager.html">KeyManager</a> keys(storage, config.keymanagerConfig());</div>
+<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;  <a class="code" href="class_uptane_1_1_fetcher.html">Uptane::Fetcher</a> fetcher(config, http);</div>
 <div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160; </div>
-<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;  <span class="comment">// Try to fetch a target larger than the available disk space: an exception is</span></div>
-<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;  <span class="comment">// thrown and the http module is never called.</span></div>
-<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;  Json::Value empty_target_json;</div>
-<div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;  empty_target_json[<span class="stringliteral">&quot;hashes&quot;</span>][<span class="stringliteral">&quot;sha256&quot;</span>] = <span class="stringliteral">&quot;e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855&quot;</span>;</div>
-<div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;  empty_target_json[<span class="stringliteral">&quot;length&quot;</span>] = available_bytes * 2;</div>
-<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;  <a class="code" href="class_uptane_1_1_target.html">Uptane::Target</a> empty_target(<span class="stringliteral">&quot;empty_file&quot;</span>, empty_target_json);</div>
-<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;  EXPECT_FALSE(pacman-&gt;fetchTarget(empty_target, fetcher, keys, progress_cb, <span class="keyword">nullptr</span>));</div>
-<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;  EXPECT_EQ(http-&gt;counter, 0);</div>
-<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160; </div>
-<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;  <span class="comment">// Try to fetch a 1-byte target: download succeeds, and http module is called.</span></div>
-<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;  <span class="comment">// This is done purely to make sure the test is designed correctly.</span></div>
-<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;  Json::Value nonempty_target_json;</div>
-<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;  nonempty_target_json[<span class="stringliteral">&quot;hashes&quot;</span>][<span class="stringliteral">&quot;sha256&quot;</span>] = <span class="stringliteral">&quot;e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855&quot;</span>;</div>
-<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;  nonempty_target_json[<span class="stringliteral">&quot;length&quot;</span>] = 1;</div>
-<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;  <a class="code" href="class_uptane_1_1_target.html">Uptane::Target</a> nonempty_target(<span class="stringliteral">&quot;fake_file&quot;</span>, nonempty_target_json);</div>
-<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;  EXPECT_TRUE(pacman-&gt;fetchTarget(nonempty_target, fetcher, keys, progress_cb, <span class="keyword">nullptr</span>));</div>
-<div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160;  EXPECT_EQ(http-&gt;counter, 1);</div>
-<div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160;}</div>
-<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160; </div>
-<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;<span class="preprocessor">#ifndef __NO_MAIN__</span></div>
-<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;<span class="keywordtype">int</span> main(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span>** argv) {</div>
-<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;  ::testing::InitGoogleTest(&amp;argc, argv);</div>
-<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160; </div>
-<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;  logger_init();</div>
-<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;  logger_set_threshold(boost::log::trivial::debug);</div>
+<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;  <span class="comment">// Find how much space is available on disk.</span></div>
+<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;  <span class="keyword">struct </span>statvfs stvfsbuf {};</div>
+<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;  EXPECT_EQ(statvfs(temp_dir.Path().c_str(), &amp;stvfsbuf), 0);</div>
+<div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;  <span class="keyword">const</span> uint64_t available_bytes = (stvfsbuf.f_bsize * stvfsbuf.f_bavail);</div>
+<div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160; </div>
+<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;  <span class="comment">// Try to fetch a target larger than the available disk space: an exception is</span></div>
+<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;  <span class="comment">// thrown and the http module is never called. Note the hash is bogus.</span></div>
+<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;  Json::Value empty_target_json;</div>
+<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;  empty_target_json[<span class="stringliteral">&quot;hashes&quot;</span>][<span class="stringliteral">&quot;sha256&quot;</span>] = <span class="stringliteral">&quot;e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855&quot;</span>;</div>
+<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;  empty_target_json[<span class="stringliteral">&quot;length&quot;</span>] = available_bytes * 2;</div>
+<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;  <a class="code" href="class_uptane_1_1_target.html">Uptane::Target</a> empty_target(<span class="stringliteral">&quot;empty_file&quot;</span>, empty_target_json);</div>
+<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;  EXPECT_FALSE(pacman-&gt;fetchTarget(empty_target, fetcher, keys, progress_cb, <span class="keyword">nullptr</span>));</div>
+<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;  EXPECT_NE(pacman-&gt;verifyTarget(empty_target), TargetStatus::kGood);</div>
+<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;  EXPECT_EQ(http-&gt;counter, 0);</div>
+<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160; </div>
+<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;  <span class="comment">// Try to fetch a 1-byte target: download succeeds, and http module is called.</span></div>
+<div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160;  <span class="comment">// This is done purely to make sure the test is designed correctly.</span></div>
+<div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160;  Json::Value nonempty_target_json;</div>
+<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160;  nonempty_target_json[<span class="stringliteral">&quot;hashes&quot;</span>][<span class="stringliteral">&quot;sha256&quot;</span>] = <span class="stringliteral">&quot;5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9&quot;</span>;</div>
+<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;  nonempty_target_json[<span class="stringliteral">&quot;length&quot;</span>] = 1;</div>
+<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;  <a class="code" href="class_uptane_1_1_target.html">Uptane::Target</a> nonempty_target(<span class="stringliteral">&quot;fake_file&quot;</span>, nonempty_target_json);</div>
+<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;  EXPECT_TRUE(pacman-&gt;fetchTarget(nonempty_target, fetcher, keys, progress_cb, <span class="keyword">nullptr</span>));</div>
+<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;  EXPECT_EQ(pacman-&gt;verifyTarget(nonempty_target), TargetStatus::kGood);</div>
+<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;  EXPECT_EQ(http-&gt;counter, 1);</div>
+<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;}</div>
 <div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160; </div>
-<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;  std::string port = TestUtils::getFreePort();</div>
-<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;  server += port;</div>
-<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160;  boost::process::child http_server_process(<span class="stringliteral">&quot;tests/fake_http_server/fake_test_server.py&quot;</span>, port, <span class="stringliteral">&quot;-f&quot;</span>);</div>
-<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;  TestUtils::waitForServer(server + <span class="stringliteral">&quot;/&quot;</span>);</div>
-<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160;<span class="preprocessor">#ifdef BUILD_OSTREE</span></div>
-<div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160;  std::string treehub_port = TestUtils::getFreePort();</div>
-<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160;  treehub_server += treehub_port;</div>
-<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;  <a class="code" href="class_temporary_directory.html">TemporaryDirectory</a> treehub_dir;</div>
-<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160;  boost::process::child ostree_server_process(<span class="stringliteral">&quot;tests/sota_tools/treehub_server.py&quot;</span>, std::string(<span class="stringliteral">&quot;-p&quot;</span>), treehub_port,</div>
-<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;                                              std::string(<span class="stringliteral">&quot;-d&quot;</span>), treehub_dir.PathString(), std::string(<span class="stringliteral">&quot;-s0.5&quot;</span>),</div>
-<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;                                              std::string(<span class="stringliteral">&quot;--create&quot;</span>));</div>
-<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;  <a class="code" href="class_temporary_directory.html">TemporaryDirectory</a> temp_dir;</div>
-<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;  <span class="keywordtype">int</span> r = system((std::string(<span class="stringliteral">&quot;ostree admin init-fs &quot;</span>) + temp_dir.PathString()).c_str());</div>
-<div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;  <span class="keywordflow">if</span> (r != 0) {</div>
-<div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160;    <span class="keywordflow">return</span> -1;</div>
-<div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;  }</div>
-<div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;  r = system((std::string(<span class="stringliteral">&quot;ostree config --repo=&quot;</span>) + temp_dir.PathString() +</div>
-<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;              std::string(<span class="stringliteral">&quot;/ostree/repo set core.mode bare-user-only&quot;</span>))</div>
-<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;                 .c_str());</div>
-<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;  <span class="keywordflow">if</span> (r != 0) {</div>
-<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;    <span class="keywordflow">return</span> -1;</div>
-<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;  }</div>
-<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;  sysroot = temp_dir.Path().string();</div>
-<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;  TestUtils::waitForServer(treehub_server + <span class="stringliteral">&quot;/&quot;</span>);</div>
-<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;<span class="preprocessor">#endif  // BUILD_OSTREE</span></div>
-<div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160;  <span class="keywordflow">return</span> RUN_ALL_TESTS();</div>
-<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160;}</div>
-<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;<span class="preprocessor">#endif  // __NO_MAIN__</span></div>
+<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;<span class="comment">/* Abort downloading an OSTree target with the fake/binary package manager. */</span></div>
+<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;TEST(Fetcher, DownloadOstreeFail) {</div>
+<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160;  <a class="code" href="class_temporary_directory.html">TemporaryDirectory</a> temp_dir;</div>
+<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;  config.storage.path = temp_dir.Path();</div>
+<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160;  config.uptane.repo_server = server;</div>
+<div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160; </div>
+<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160;  std::shared_ptr&lt;INvStorage&gt; storage(<span class="keyword">new</span> <a class="code" href="class_s_q_l_storage.html">SQLStorage</a>(config.storage, <span class="keyword">false</span>));</div>
+<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;  <span class="keyword">auto</span> http = std::make_shared&lt;HttpZeroLength&gt;(temp_dir.Path());</div>
+<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160;  <span class="keyword">auto</span> pacman = std::make_shared&lt;PackageManagerFake&gt;(config.pacman, config.bootloader, storage, http);</div>
+<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;  <a class="code" href="class_key_manager.html">KeyManager</a> keys(storage, config.keymanagerConfig());</div>
+<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;  <a class="code" href="class_uptane_1_1_fetcher.html">Uptane::Fetcher</a> fetcher(config, http);</div>
+<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160; </div>
+<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;  <span class="comment">// Empty target: download succeeds, but http module is never called.</span></div>
+<div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;  Json::Value empty_target_json;</div>
+<div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160;  empty_target_json[<span class="stringliteral">&quot;hashes&quot;</span>][<span class="stringliteral">&quot;sha256&quot;</span>] = <span class="stringliteral">&quot;e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855&quot;</span>;</div>
+<div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;  empty_target_json[<span class="stringliteral">&quot;length&quot;</span>] = 0;</div>
+<div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;  empty_target_json[<span class="stringliteral">&quot;custom&quot;</span>][<span class="stringliteral">&quot;targetFormat&quot;</span>] = <span class="stringliteral">&quot;OSTREE&quot;</span>;</div>
+<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;  <a class="code" href="class_uptane_1_1_target.html">Uptane::Target</a> empty_target(<span class="stringliteral">&quot;empty_file&quot;</span>, empty_target_json);</div>
+<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;  EXPECT_FALSE(pacman-&gt;fetchTarget(empty_target, fetcher, keys, progress_cb, <span class="keyword">nullptr</span>));</div>
+<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;  EXPECT_NE(pacman-&gt;verifyTarget(empty_target), TargetStatus::kGood);</div>
+<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;  EXPECT_EQ(http-&gt;counter, 0);</div>
+<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160; </div>
+<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;  <span class="comment">// Non-empty target: download succeeds, and http module is called. This is</span></div>
+<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;  <span class="comment">// done purely to make sure the test is designed correctly.</span></div>
+<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;  Json::Value nonempty_target_json;</div>
+<div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160;  nonempty_target_json[<span class="stringliteral">&quot;hashes&quot;</span>][<span class="stringliteral">&quot;sha256&quot;</span>] = <span class="stringliteral">&quot;5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9&quot;</span>;</div>
+<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160;  nonempty_target_json[<span class="stringliteral">&quot;length&quot;</span>] = 1;</div>
+<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;  <a class="code" href="class_uptane_1_1_target.html">Uptane::Target</a> nonempty_target(<span class="stringliteral">&quot;fake_file&quot;</span>, nonempty_target_json);</div>
+<div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160;  EXPECT_TRUE(pacman-&gt;fetchTarget(nonempty_target, fetcher, keys, progress_cb, <span class="keyword">nullptr</span>));</div>
+<div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160;  EXPECT_EQ(pacman-&gt;verifyTarget(nonempty_target), TargetStatus::kGood);</div>
+<div class="line"><a name="l00350"></a><span class="lineno">  350</span>&#160;  EXPECT_EQ(http-&gt;counter, 1);</div>
+<div class="line"><a name="l00351"></a><span class="lineno">  351</span>&#160;}</div>
+<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160; </div>
+<div class="line"><a name="l00353"></a><span class="lineno">  353</span>&#160;<span class="preprocessor">#ifndef __NO_MAIN__</span></div>
+<div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160;<span class="keywordtype">int</span> main(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span>** argv) {</div>
+<div class="line"><a name="l00355"></a><span class="lineno">  355</span>&#160;  ::testing::InitGoogleTest(&amp;argc, argv);</div>
+<div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160; </div>
+<div class="line"><a name="l00357"></a><span class="lineno">  357</span>&#160;  logger_init();</div>
+<div class="line"><a name="l00358"></a><span class="lineno">  358</span>&#160;  logger_set_threshold(boost::log::trivial::debug);</div>
+<div class="line"><a name="l00359"></a><span class="lineno">  359</span>&#160; </div>
+<div class="line"><a name="l00360"></a><span class="lineno">  360</span>&#160;  std::string port = TestUtils::getFreePort();</div>
+<div class="line"><a name="l00361"></a><span class="lineno">  361</span>&#160;  server += port;</div>
+<div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;  boost::process::child http_server_process(<span class="stringliteral">&quot;tests/fake_http_server/fake_test_server.py&quot;</span>, port, <span class="stringliteral">&quot;-f&quot;</span>);</div>
+<div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160;  TestUtils::waitForServer(server + <span class="stringliteral">&quot;/&quot;</span>);</div>
+<div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160;<span class="preprocessor">#ifdef BUILD_OSTREE</span></div>
+<div class="line"><a name="l00365"></a><span class="lineno">  365</span>&#160;  std::string treehub_port = TestUtils::getFreePort();</div>
+<div class="line"><a name="l00366"></a><span class="lineno">  366</span>&#160;  treehub_server += treehub_port;</div>
+<div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160;  <a class="code" href="class_temporary_directory.html">TemporaryDirectory</a> treehub_dir;</div>
+<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;  boost::process::child ostree_server_process(<span class="stringliteral">&quot;tests/sota_tools/treehub_server.py&quot;</span>, std::string(<span class="stringliteral">&quot;-p&quot;</span>), treehub_port,</div>
+<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;                                              std::string(<span class="stringliteral">&quot;-d&quot;</span>), treehub_dir.PathString(), std::string(<span class="stringliteral">&quot;-s0.5&quot;</span>),</div>
+<div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;                                              std::string(<span class="stringliteral">&quot;--create&quot;</span>));</div>
+<div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160;  <a class="code" href="class_temporary_directory.html">TemporaryDirectory</a> temp_dir;</div>
+<div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;  <span class="keywordtype">int</span> r = system((std::string(<span class="stringliteral">&quot;ostree admin init-fs &quot;</span>) + temp_dir.PathString()).c_str());</div>
+<div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160;  <span class="keywordflow">if</span> (r != 0) {</div>
+<div class="line"><a name="l00374"></a><span class="lineno">  374</span>&#160;    <span class="keywordflow">return</span> -1;</div>
+<div class="line"><a name="l00375"></a><span class="lineno">  375</span>&#160;  }</div>
+<div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160;  r = system((std::string(<span class="stringliteral">&quot;ostree config --repo=&quot;</span>) + temp_dir.PathString() +</div>
+<div class="line"><a name="l00377"></a><span class="lineno">  377</span>&#160;              std::string(<span class="stringliteral">&quot;/ostree/repo set core.mode bare-user-only&quot;</span>))</div>
+<div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;                 .c_str());</div>
+<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;  <span class="keywordflow">if</span> (r != 0) {</div>
+<div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160;    <span class="keywordflow">return</span> -1;</div>
+<div class="line"><a name="l00381"></a><span class="lineno">  381</span>&#160;  }</div>
+<div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160;  sysroot = temp_dir.Path().string();</div>
+<div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;  TestUtils::waitForServer(treehub_server + <span class="stringliteral">&quot;/&quot;</span>);</div>
+<div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160;<span class="preprocessor">#endif  // BUILD_OSTREE</span></div>
+<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;  <span class="keywordflow">return</span> RUN_ALL_TESTS();</div>
+<div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160;}</div>
+<div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;<span class="preprocessor">#endif  // __NO_MAIN__</span></div>
 </div><!-- fragment --></div><!-- contents -->
 <div class="ttc" id="aclass_uptane_1_1_fetcher_html"><div class="ttname"><a href="class_uptane_1_1_fetcher.html">Uptane::Fetcher</a></div><div class="ttdef"><b>Definition:</b> <a href="fetcher_8h_source.html#l00033">fetcher.h:33</a></div></div>
 <div class="ttc" id="aclass_http_fake_html"><div class="ttname"><a href="class_http_fake.html">HttpFake</a></div><div class="ttdef"><b>Definition:</b> <a href="httpfake_8h_source.html#l00020">httpfake.h:20</a></div></div>
 <div class="ttc" id="aclass_key_manager_html"><div class="ttname"><a href="class_key_manager.html">KeyManager</a></div><div class="ttdef"><b>Definition:</b> <a href="keymanager_8h_source.html#l00013">keymanager.h:13</a></div></div>
 <div class="ttc" id="astruct_http_response_html"><div class="ttname"><a href="struct_http_response.html">HttpResponse</a></div><div class="ttdef"><b>Definition:</b> <a href="httpinterface_8h_source.html#l00017">httpinterface.h:17</a></div></div>
-<div class="ttc" id="aclass_config_html"><div class="ttname"><a href="class_config.html">Config</a></div><div class="ttdoc">Configuration object for an aktualizr instance running on a primary ECU.</div><div class="ttdef"><b>Definition:</b> <a href="config_8h_source.html#l00074">config.h:74</a></div></div>
+<div class="ttc" id="aclass_config_html"><div class="ttname"><a href="class_config.html">Config</a></div><div class="ttdoc">Configuration object for an aktualizr instance running on a Primary ECU.</div><div class="ttdef"><b>Definition:</b> <a href="config_8h_source.html#l00074">config.h:74</a></div></div>
 <div class="ttc" id="aclass_http_default_uri_html"><div class="ttname"><a href="class_http_default_uri.html">HttpDefaultUri</a></div><div class="ttdef"><b>Definition:</b> <a href="fetcher__test_8cc_source.html#l00171">fetcher_test.cc:171</a></div></div>
 <div class="ttc" id="aclassapi_1_1_flow_control_token_html"><div class="ttname"><a href="classapi_1_1_flow_control_token.html">api::FlowControlToken</a></div><div class="ttdoc">Provides a thread-safe way to pause and terminate task execution.</div><div class="ttdef"><b>Definition:</b> <a href="apiqueue_8h_source.html#l00019">apiqueue.h:19</a></div></div>
 <div class="ttc" id="aclass_temporary_directory_html"><div class="ttname"><a href="class_temporary_directory.html">TemporaryDirectory</a></div><div class="ttdef"><b>Definition:</b> <a href="utils_8h_source.html#l00082">utils.h:82</a></div></div>
 <div class="ttc" id="anamespaceresult_html"><div class="ttname"><a href="namespaceresult.html">result</a></div><div class="ttdoc">Results of libaktualizr API calls.</div><div class="ttdef"><b>Definition:</b> <a href="results_8h_source.html#l00013">results.h:13</a></div></div>
-<div class="ttc" id="aclass_uptane_1_1_target_html"><div class="ttname"><a href="class_uptane_1_1_target.html">Uptane::Target</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00238">tuf.h:238</a></div></div>
+<div class="ttc" id="aclass_uptane_1_1_target_html"><div class="ttname"><a href="class_uptane_1_1_target.html">Uptane::Target</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00210">tuf.h:210</a></div></div>
 <div class="ttc" id="aclassapi_1_1_flow_control_token_html_a891ee41998077ccaf37b52e92623235d"><div class="ttname"><a href="classapi_1_1_flow_control_token.html#a891ee41998077ccaf37b52e92623235d">api::FlowControlToken::setPause</a></div><div class="ttdeci">bool setPause(bool set_paused)</div><div class="ttdoc">Called by the controlling thread to request the task to pause or resume.</div><div class="ttdef"><b>Definition:</b> <a href="apiqueue_8cc_source.html#l00006">apiqueue.cc:6</a></div></div>
 <div class="ttc" id="aclass_s_q_l_storage_html"><div class="ttname"><a href="class_s_q_l_storage.html">SQLStorage</a></div><div class="ttdef"><b>Definition:</b> <a href="sqlstorage_8h_source.html#l00018">sqlstorage.h:18</a></div></div>
 <div class="ttc" id="aclass_http_custom_uri_html"><div class="ttname"><a href="class_http_custom_uri.html">HttpCustomUri</a></div><div class="ttdef"><b>Definition:</b> <a href="fetcher__test_8cc_source.html#l00134">fetcher_test.cc:134</a></div></div>

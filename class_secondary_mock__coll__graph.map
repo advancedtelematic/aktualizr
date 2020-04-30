@@ -1,12 +1,12 @@
 <map id="SecondaryMock" name="SecondaryMock">
-<area shape="rect" id="node1" title=" " alt="" coords="783,169,907,196"/>
-<area shape="rect" id="node2" href="$class_uptane_1_1_secondary_interface.html" title=" " alt="" coords="455,5,657,32"/>
-<area shape="rect" id="node3" href="$struct_uptane_1_1_raw_meta_pack.html" title=" " alt="" coords="473,119,639,145"/>
+<area shape="rect" id="node1" title=" " alt="" coords="779,169,904,196"/>
+<area shape="rect" id="node2" href="$class_i_aktualizr_secondary.html" title=" " alt="" coords="478,5,630,32"/>
+<area shape="rect" id="node3" href="$struct_uptane_1_1_raw_meta_pack.html" title=" " alt="" coords="470,119,638,145"/>
 <area shape="rect" id="node4" title="STL class." alt="" coords="197,112,283,139"/>
 <area shape="rect" id="node5" title="STL class." alt="" coords="5,105,144,146"/>
-<area shape="rect" id="node6" href="$class_uptane_1_1_hardware_identifier.html" title=" " alt="" coords="457,169,655,196"/>
-<area shape="rect" id="node7" href="$class_uptane_1_1_ecu_serial.html" title=" " alt="" coords="487,220,625,247"/>
-<area shape="rect" id="node8" href="$class_public_key.html" title=" " alt="" coords="513,271,599,297"/>
-<area shape="rect" id="node9" href="$class_uptane_1_1_manifest.html" title=" " alt="" coords="489,321,623,348"/>
+<area shape="rect" id="node6" href="$class_uptane_1_1_hardware_identifier.html" title=" " alt="" coords="455,169,653,196"/>
+<area shape="rect" id="node7" href="$class_uptane_1_1_ecu_serial.html" title=" " alt="" coords="485,220,623,247"/>
+<area shape="rect" id="node8" href="$class_public_key.html" title=" " alt="" coords="511,271,597,297"/>
+<area shape="rect" id="node9" href="$class_uptane_1_1_manifest.html" title=" " alt="" coords="487,321,621,348"/>
 <area shape="rect" id="node10" title=" " alt="" coords="193,321,287,348"/>
 </map>

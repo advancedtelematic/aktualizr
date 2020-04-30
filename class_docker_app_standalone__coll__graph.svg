@@ -59,7 +59,7 @@ var sectionId = 'dynsection-1';
 <g id="node1" class="node">
 <title>Node1</title>
 <g id="a_node1"><a xlink:title=" ">
-<polygon fill="#bfbfbf" stroke="black" points="176.5,-0.5 176.5,-19.5 301.5,-19.5 301.5,-0.5 176.5,-0.5"/>
+<polygon fill="#bfbfbf" stroke="black" points="177,-0.5 177,-19.5 301,-19.5 301,-0.5 177,-0.5"/>
 <text text-anchor="middle" x="239" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">DockerAppStandalone</text>
 </a>
 </g>
@@ -68,7 +68,7 @@ var sectionId = 'dynsection-1';
 <g id="node2" class="node">
 <title>Node2</title>
 <g id="a_node2"><a xlink:href="class_ostree_manager.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="193.5,-57.5 193.5,-76.5 284.5,-76.5 284.5,-57.5 193.5,-57.5"/>
+<polygon fill="white" stroke="black" points="193,-57.5 193,-76.5 285,-76.5 285,-57.5 193,-57.5"/>
 <text text-anchor="middle" x="239" y="-64.5" font-family="Helvetica,sans-Serif" font-size="10.00">OstreeManager</text>
 </a>
 </g>
@@ -156,20 +156,20 @@ var sectionId = 'dynsection-1';
 <title>Node7&#45;&gt;Node6</title>
 <path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M60,-478.37C60,-446 60,-381.7 60,-358.55"/>
 <polygon fill="#9a32cd" stroke="#9a32cd" points="56.5,-478.71 60,-488.71 63.5,-478.71 56.5,-478.71"/>
-<text text-anchor="middle" x="121" y="-457" font-family="Helvetica,sans-Serif" font-size="10.00"> uptane_public_key_path</text>
-<text text-anchor="middle" x="121" y="-446" font-family="Helvetica,sans-Serif" font-size="10.00">tls_pkey_path</text>
-<text text-anchor="middle" x="121" y="-435" font-family="Helvetica,sans-Serif" font-size="10.00">uptane_metadata_path</text>
-<text text-anchor="middle" x="121" y="-424" font-family="Helvetica,sans-Serif" font-size="10.00">sqldb_path</text>
+<text text-anchor="middle" x="120.5" y="-457" font-family="Helvetica,sans-Serif" font-size="10.00"> uptane_public_key_path</text>
+<text text-anchor="middle" x="120.5" y="-446" font-family="Helvetica,sans-Serif" font-size="10.00">tls_pkey_path</text>
+<text text-anchor="middle" x="120.5" y="-435" font-family="Helvetica,sans-Serif" font-size="10.00">uptane_metadata_path</text>
+<text text-anchor="middle" x="120.5" y="-424" font-family="Helvetica,sans-Serif" font-size="10.00">sqldb_path</text>
 <text text-anchor="start" x="60" y="-413" font-family="Helvetica,sans-Serif" font-size="10.00">uptane_private_key</text>
-<text text-anchor="middle" x="121" y="-402" font-family="Helvetica,sans-Serif" font-size="10.00">_path</text>
-<text text-anchor="middle" x="121" y="-391" font-family="Helvetica,sans-Serif" font-size="10.00">tls_cacert_path</text>
-<text text-anchor="middle" x="121" y="-380" font-family="Helvetica,sans-Serif" font-size="10.00">tls_clientcert_path</text>
+<text text-anchor="middle" x="120.5" y="-402" font-family="Helvetica,sans-Serif" font-size="10.00">_path</text>
+<text text-anchor="middle" x="120.5" y="-391" font-family="Helvetica,sans-Serif" font-size="10.00">tls_cacert_path</text>
+<text text-anchor="middle" x="120.5" y="-380" font-family="Helvetica,sans-Serif" font-size="10.00">tls_clientcert_path</text>
 </g>
 <!-- Node8 -->
 <g id="node8" class="node">
 <title>Node8</title>
 <g id="a_node8"><a xlink:href="struct_package_config.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="195,-181.5 195,-200.5 283,-200.5 283,-181.5 195,-181.5"/>
+<polygon fill="white" stroke="black" points="195.5,-181.5 195.5,-200.5 282.5,-200.5 282.5,-181.5 195.5,-181.5"/>
 <text text-anchor="middle" x="239" y="-188.5" font-family="Helvetica,sans-Serif" font-size="10.00">PackageConfig</text>
 </a>
 </g>

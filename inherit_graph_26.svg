@@ -51,7 +51,7 @@
 <!-- Node3 -->
 <g id="node4" class="node">
 <title>Node3</title>
-<g id="a_node4"><a xlink:href="class_config.html" target="_top" xlink:title="Configuration object for an aktualizr instance running on a primary ECU.">
+<g id="a_node4"><a xlink:href="class_config.html" target="_top" xlink:title="Configuration object for an aktualizr instance running on a Primary ECU.">
 <polygon fill="white" stroke="black" points="154.5,-0.5 154.5,-19.5 201.5,-19.5 201.5,-0.5 154.5,-0.5"/>
 <text text-anchor="middle" x="178" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">Config</text>
 </a>

@@ -1,6 +1,6 @@
 <map id="ExecutionController" name="ExecutionController">
-<area shape="rect" id="node1" title=" " alt="" coords="5,56,156,83"/>
-<area shape="rect" id="node2" href="$class_fixed_execution_controller.html" title=" " alt="" coords="229,5,413,32"/>
-<area shape="rect" id="node3" href="$class_interruptable_execution_controller.html" title=" " alt="" coords="204,56,439,83"/>
-<area shape="rect" id="node4" href="$class_unbounded_execution_controller.html" title=" " alt="" coords="209,107,433,133"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,56,155,83"/>
+<area shape="rect" id="node2" href="$class_fixed_execution_controller.html" title=" " alt="" coords="228,5,411,32"/>
+<area shape="rect" id="node3" href="$class_interruptable_execution_controller.html" title=" " alt="" coords="203,56,436,83"/>
+<area shape="rect" id="node4" href="$class_unbounded_execution_controller.html" title=" " alt="" coords="208,107,431,133"/>
 </map>

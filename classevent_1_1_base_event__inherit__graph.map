@@ -10,7 +10,7 @@
 <area shape="rect" id="node9" href="$classevent_1_1_download_target_complete.html" title="A target has been downloaded." alt="" coords="200,360,435,387"/>
 <area shape="rect" id="node10" href="$classevent_1_1_install_started.html" title="An ECU has begun installation of an update." alt="" coords="240,411,395,437"/>
 <area shape="rect" id="node11" href="$classevent_1_1_install_target_complete.html" title="An installation attempt on an ECU has completed." alt="" coords="212,461,423,488"/>
-<area shape="rect" id="node12" href="$classevent_1_1_put_manifest_complete.html" title="A manifest has been sent to the server." alt="" coords="214,512,421,539"/>
+<area shape="rect" id="node12" href="$classevent_1_1_put_manifest_complete.html" title="A manifest has been sent to the server." alt="" coords="213,512,421,539"/>
 <area shape="rect" id="node13" href="$classevent_1_1_send_device_data_complete.html" title="Device data has been sent to the server." alt="" coords="198,563,437,589"/>
 <area shape="rect" id="node14" href="$classevent_1_1_update_check_complete.html" title="An update is available for download from the server." alt="" coords="209,613,426,640"/>
 </map>

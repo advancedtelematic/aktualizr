@@ -54,8 +54,8 @@
 <g id="node4" class="node">
 <title>Node4</title>
 <g id="a_node4"><a xlink:href="class_primary_1_1_managed_secondary_config.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="89.5,-135.5 89.5,-165.5 244.5,-165.5 244.5,-135.5 89.5,-135.5"/>
-<text text-anchor="start" x="97.5" y="-153.5" font-family="Helvetica,sans-Serif" font-size="10.00">Primary::ManagedSecondary</text>
+<polygon fill="white" stroke="black" points="89,-135.5 89,-165.5 245,-165.5 245,-135.5 89,-135.5"/>
+<text text-anchor="start" x="97" y="-153.5" font-family="Helvetica,sans-Serif" font-size="10.00">Primary::ManagedSecondary</text>
 <text text-anchor="middle" x="167" y="-142.5" font-family="Helvetica,sans-Serif" font-size="10.00">Config</text>
 </a>
 </g>
@@ -95,10 +95,10 @@
 <title>Node6&#45;&gt;Node4</title>
 <path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M256.63,-239.01C236.14,-219.01 201.35,-185.04 181.69,-165.84"/>
 <polygon fill="#9a32cd" stroke="#9a32cd" points="254.36,-241.69 263.96,-246.18 259.25,-236.69 254.36,-241.69"/>
-<text text-anchor="middle" x="286" y="-220" font-family="Helvetica,sans-Serif" font-size="10.00"> ecu_private_key</text>
-<text text-anchor="middle" x="286" y="-209" font-family="Helvetica,sans-Serif" font-size="10.00">ecu_hardware_id</text>
-<text text-anchor="middle" x="286" y="-198" font-family="Helvetica,sans-Serif" font-size="10.00">ecu_serial</text>
-<text text-anchor="middle" x="286" y="-187" font-family="Helvetica,sans-Serif" font-size="10.00">ecu_public_key</text>
+<text text-anchor="middle" x="285.5" y="-220" font-family="Helvetica,sans-Serif" font-size="10.00"> ecu_private_key</text>
+<text text-anchor="middle" x="285.5" y="-209" font-family="Helvetica,sans-Serif" font-size="10.00">ecu_hardware_id</text>
+<text text-anchor="middle" x="285.5" y="-198" font-family="Helvetica,sans-Serif" font-size="10.00">ecu_serial</text>
+<text text-anchor="middle" x="285.5" y="-187" font-family="Helvetica,sans-Serif" font-size="10.00">ecu_public_key</text>
 </g>
 <!-- Node7 -->
 <g id="node7" class="node">

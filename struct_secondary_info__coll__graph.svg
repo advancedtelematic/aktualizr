@@ -48,7 +48,7 @@
 <title>Node3&#45;&gt;Node1</title>
 <path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M230.2,-69.57C240.68,-53.95 255.61,-31.7 263.72,-19.62"/>
 <polygon fill="#9a32cd" stroke="#9a32cd" points="227.02,-68.03 224.35,-78.28 232.83,-71.93 227.02,-68.03"/>
-<text text-anchor="middle" x="266" y="-46.5" font-family="Helvetica,sans-Serif" font-size="10.00"> serial</text>
+<text text-anchor="middle" x="265" y="-46.5" font-family="Helvetica,sans-Serif" font-size="10.00"> serial</text>
 </g>
 <!-- Node4 -->
 <g id="node4" class="node">
@@ -64,7 +64,7 @@
 <title>Node4&#45;&gt;Node1</title>
 <path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M308.8,-69.57C298.32,-53.95 283.39,-31.7 275.28,-19.62"/>
 <polygon fill="#9a32cd" stroke="#9a32cd" points="306.17,-71.93 314.65,-78.28 311.98,-68.03 306.17,-71.93"/>
-<text text-anchor="middle" x="323" y="-46.5" font-family="Helvetica,sans-Serif" font-size="10.00"> pub_key</text>
+<text text-anchor="middle" x="322.5" y="-46.5" font-family="Helvetica,sans-Serif" font-size="10.00"> pub_key</text>
 </g>
 <!-- Node5 -->
 <g id="node5" class="node">
@@ -78,10 +78,10 @@
 <!-- Node5&#45;&gt;Node1 -->
 <g id="edge4" class="edge">
 <title>Node5&#45;&gt;Node1</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M389.05,-70.79C378.88,-60.21 364.46,-46.79 349.5,-38 335.85,-29.98 319.48,-23.92 305.11,-19.6"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="386.57,-73.26 395.94,-78.2 391.69,-68.49 386.57,-73.26"/>
-<text text-anchor="middle" x="390.5" y="-52" font-family="Helvetica,sans-Serif" font-size="10.00"> type</text>
-<text text-anchor="middle" x="390.5" y="-41" font-family="Helvetica,sans-Serif" font-size="10.00">extra</text>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M388.72,-70.82C378.33,-60.26 363.64,-46.84 348.5,-38 334.86,-30.03 318.51,-23.96 304.24,-19.6"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="386.33,-73.39 395.76,-78.22 391.4,-68.56 386.33,-73.39"/>
+<text text-anchor="middle" x="389.5" y="-52" font-family="Helvetica,sans-Serif" font-size="10.00"> type</text>
+<text text-anchor="middle" x="389.5" y="-41" font-family="Helvetica,sans-Serif" font-size="10.00">extra</text>
 </g>
 <!-- Node6 -->
 <g id="node6" class="node">

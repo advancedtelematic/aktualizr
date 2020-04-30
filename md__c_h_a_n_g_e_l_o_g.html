@@ -69,6 +69,27 @@ $(function() {
 <div class="textblock"><p>This file summarizes notable changes introduced in aktualizr version. It roughly follows the guidelines from <a href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a>.</p>
 <p>Our versioning scheme is <code>YEAR.N</code> where <code>N</code> is incremented whenever a new release is issued. Thus <code>N</code> does not necessarily map to months of the year.</p>
 <h1>[??? (unreleased)]</h1>
+<h1>[2020.6] - 2020-04-30</h1>
+<h2>Added</h2>
+<ul>
+<li>libaktualizr API and aktualizr-primary command line parameter to provide custom hardware information in JSON format: <a href="https://github.com/advancedtelematic/aktualizr/pull/1644">PR</a></li>
+</ul>
+<h2>Changed</h2>
+<ul>
+<li>Improved garage-deploy object fetching performance by reusing the curl handle: <a href="https://github.com/advancedtelematic/aktualizr/pull/1643">PR</a></li>
+<li>Added an SQL busy handler with 2 seconds timeout: <a href="https://github.com/advancedtelematic/aktualizr/pull/1648">PR</a></li>
+<li>Improved internal exception handling: <a href="https://github.com/advancedtelematic/aktualizr/pull/1654">PR #1654</a> and <a href="https://github.com/advancedtelematic/aktualizr/pull/1658">PR #1658</a></li>
+</ul>
+<h2>Fixed</h2>
+<ul>
+<li>Prevented more failure states from resulting in an installation loop: <a href="https://github.com/advancedtelematic/aktualizr/pull/1632">PR #1632</a> and <a href="https://github.com/advancedtelematic/aktualizr/pull/1635">PR #1635</a></li>
+<li>Allow installaton of 0-byte binary files: <a href="https://github.com/advancedtelematic/aktualizr/pull/1652">PR</a></li>
+<li>Refuse to download OSTree targets with the fake/binary package manager: <a href="https://github.com/advancedtelematic/aktualizr/pull/1653">PR</a></li>
+</ul>
+<h2>Removed</h2>
+<ul>
+<li>No longer fetch unnumbered Root metadata from the Director: <a href="https://github.com/advancedtelematic/aktualizr/pull/1661">PR</a></li>
+</ul>
 <h1>[2020.5] - 2020-04-01</h1>
 <h2>Changed</h2>
 <ul>
@@ -124,7 +145,7 @@ $(function() {
 <h2>Fixed</h2>
 <ul>
 <li>Catch the disk space availability exception: <a href="https://github.com/advancedtelematic/aktualizr/pull/1530">PR</a></li>
-<li>Correct secondary target name/filepath in a manifest: <a href="https://github.com/advancedtelematic/aktualizr/pull/1529">PR</a></li>
+<li>Correct Secondary target name/filepath in a manifest: <a href="https://github.com/advancedtelematic/aktualizr/pull/1529">PR</a></li>
 </ul>
 <h1>[2020.1] - 2020-01-17</h1>
 <h2>Added</h2>
@@ -142,7 +163,7 @@ $(function() {
 <h2>Fixed</h2>
 <ul>
 <li>Do not provision if the Primary times out while connecting to Secondaries: <a href="https://github.com/advancedtelematic/aktualizr/pull/1491">PR</a></li>
-<li>Use a bool type instead of a string in the virtual secondary config: <a href="https://github.com/advancedtelematic/aktualizr/pull/1505">PR</a></li>
+<li>Use a bool type instead of a string in the virtual Secondary config: <a href="https://github.com/advancedtelematic/aktualizr/pull/1505">PR</a></li>
 <li>Correctly read blob data with null terminators from the SQL database: <a href="https://github.com/advancedtelematic/aktualizr/pull/1502">PR</a></li>
 <li>Report installation failure if download or target matching fails: <a href="https://github.com/advancedtelematic/aktualizr/pull/1510">PR</a></li>
 <li>Disk space is now checked before downloading binary files to ensure sufficient available disk space: <a href="https://github.com/advancedtelematic/aktualizr/pull/1520">PR</a></li>
@@ -199,7 +220,7 @@ $(function() {
 <h2>Fixed</h2>
 <ul>
 <li>Incorrect installation status reported if installation interrupted: <a href="https://github.com/advancedtelematic/aktualizr/pull/1402">PR</a></li>
-<li>Binary updates of secondaries from an OSTree primary is again possible: <a href="https://github.com/advancedtelematic/aktualizr/pull/1395">PR</a></li>
+<li>Binary updates of Secondaries from an OSTree Primary is again possible: <a href="https://github.com/advancedtelematic/aktualizr/pull/1395">PR</a></li>
 <li>Applications built from release tarballs now report a valid version: <a href="https://github.com/advancedtelematic/aktualizr/pull/1415">PR</a></li>
 </ul>
 <h1>[2019.8] - 2019-09-12</h1>
@@ -227,7 +248,7 @@ $(function() {
 <li><a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of Uptane.">Uptane</a> metadata is now rechecked (offline) before downloading and installing: <a href="https://github.com/advancedtelematic/aktualizr/pull/1296">PR</a></li>
 <li>Downloaded target hashes are rechecked before installation: <a href="https://github.com/advancedtelematic/aktualizr/pull/1296">PR</a></li>
 <li>Failed downloads are now reported to the backend in the installation report: <a href="https://github.com/advancedtelematic/aktualizr/pull/1301">PR</a></li>
-<li>Binary targets for an OSTree-based primary are now rejected immediately: <a href="https://github.com/advancedtelematic/aktualizr/pull/1282">PR</a></li>
+<li>Binary targets for an OSTree-based Primary are now rejected immediately: <a href="https://github.com/advancedtelematic/aktualizr/pull/1282">PR</a></li>
 </ul>
 <h1>[2019.6] - 2019-08-21</h1>
 <h2>Added</h2>
@@ -284,7 +305,7 @@ $(function() {
 <li>Campaigns can be declined and postponed via the API: <a href="https://github.com/advancedtelematic/aktualizr/pull/1225">PR</a></li>
 <li>Warn when running two libaktualizr instances simultaneously: <a href="https://github.com/advancedtelematic/aktualizr/pull/1217">PR #1217</a> and <a href="https://github.com/advancedtelematic/aktualizr/pull/1229">PR #1229</a></li>
 <li>aktualizr-info can output the Snapshot and Timestamp metadata from the Image repository: <a href="https://github.com/advancedtelematic/aktualizr/pull/1207">PR</a></li>
-<li>aktualizr-info can output the current and pending image versions for secondaries: <a href="https://github.com/advancedtelematic/aktualizr/pull/1201">PR</a></li>
+<li>aktualizr-info can output the current and pending image versions for Secondaries: <a href="https://github.com/advancedtelematic/aktualizr/pull/1201">PR</a></li>
 <li><a href="src/libaktualizr/package_manager/dockerappmanager.h">Support for docker-app package management on top of OSTree</a>: <a href="https://github.com/advancedtelematic/aktualizr/pull/1189">PR</a></li>
 </ul>
 <h2>Changed</h2>
@@ -292,7 +313,7 @@ $(function() {
 <li><a href="https://github.com/advancedtelematic/aktualizr/blob/master/docs/client-provisioning-methods.adoc">Provisioning methods have been renamed</a>. "Autoprovisioning" or "automatic provisioning" is now known as "shared credential provisioning". "Implicit provisioning" is now known as "device credential provisioning". "HSM provisioning" was always a misnomer, so it is now refered to as "device credential provisioning with an HSM". <a href="https://github.com/advancedtelematic/aktualizr/pull/1208">PR# 1208</a> and <a href="https://github.com/advancedtelematic/aktualizr/pull/1220">PR #1220</a></li>
 <li>aktualizr-cert-provider is now included in the garage_deploy.deb releases: <a href="https://github.com/advancedtelematic/aktualizr/pull/1218">PR</a></li>
 <li>aktualizr-info metadata and key output is now printed without additional text for easier machine parsing (and piping to jq): <a href="https://github.com/advancedtelematic/aktualizr/pull/1215">PR</a></li>
-<li>The IP secondary implementation has been substantially refactored and improved with support for POSIX sockets and easier configuration: <a href="https://github.com/advancedtelematic/aktualizr/pull/1183">PR #1183</a> and <a href="https://github.com/advancedtelematic/aktualizr/pull/1198">PR #1198</a></li>
+<li>The IP Secondary implementation has been substantially refactored and improved with support for POSIX sockets and easier configuration: <a href="https://github.com/advancedtelematic/aktualizr/pull/1183">PR #1183</a> and <a href="https://github.com/advancedtelematic/aktualizr/pull/1198">PR #1198</a></li>
 </ul>
 <h2>Removed</h2>
 <ul>
@@ -317,7 +338,7 @@ $(function() {
 <h2>Removed</h2>
 <ul>
 <li>example.com is no longer set as the default URL when using garage-sign via garage-deploy: <a href="https://github.com/advancedtelematic/aktualizr/pull/1169">PR</a></li>
-<li>OPC-UA secondary support: <a href="https://github.com/advancedtelematic/aktualizr/pull/1177">PR</a></li>
+<li>OPC-UA Secondary support: <a href="https://github.com/advancedtelematic/aktualizr/pull/1177">PR</a></li>
 </ul>
 <h2>Fixed</h2>
 <ul>
@@ -343,7 +364,7 @@ $(function() {
 <h2>Changed</h2>
 <ul>
 <li><a href="src/libaktualizr/primary/aktualizr.h">Most API calls refactored to return immediately with a future</a></li>
-<li>With an OSTree primary, an installation is now considered successful when the device reboots with the new file system version. Before that, the installation is still considered in progress.</li>
+<li>With an OSTree Primary, an installation is now considered successful when the device reboots with the new file system version. Before that, the installation is still considered in progress.</li>
 <li><a href="src/aktualizr_primary/main.cc">Running modes in libaktualizr have been replaced by simpler logic in the aktualizr wrapper</a>: <a href="https://github.com/advancedtelematic/aktualizr/pull/1039">PR</a></li>
 <li>Tests now use ed25519 as the default key type: <a href="https://github.com/advancedtelematic/aktualizr/pull/1038">PR</a></li>
 <li>Improved performance of garage-deploy: <a href="https://github.com/advancedtelematic/aktualizr/pull/1020">PR</a></li>

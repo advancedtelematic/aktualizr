@@ -160,7 +160,7 @@ $(function() {
 <div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;  <a class="code" href="class_connection_socket.html">ConnectionSocket</a> connection(addr.first, addr.second);</div>
 <div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160; </div>
 <div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;  <span class="keywordflow">if</span> (connection.connect() &lt; 0) {</div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;    LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Failed to connect to the secondary ( &quot;</span> &lt;&lt; addr.first &lt;&lt; <span class="stringliteral">&quot;:&quot;</span> &lt;&lt; addr.second</div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;    LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Failed to connect to the Secondary ( &quot;</span> &lt;&lt; addr.first &lt;&lt; <span class="stringliteral">&quot;:&quot;</span> &lt;&lt; addr.second</div>
 <div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;              &lt;&lt; <span class="stringliteral">&quot;): &quot;</span> &lt;&lt; std::strerror(errno);</div>
 <div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;    <span class="keywordflow">return</span> <a class="code" href="class_asn1_message.html#ad80adf0d299e3918745be59b6e9ac70b">Asn1Message::Empty</a>();</div>
 <div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;  }</div>

@@ -22,7 +22,7 @@
 <g id="node2" class="node">
 <title>Node2</title>
 <g id="a_node2"><a xlink:href="class_o_s_tree_repo.html" target="_top" xlink:title="A source repository to read OSTree objects from.">
-<polygon fill="white" stroke="black" points="29,-57.5 29,-76.5 103,-76.5 103,-57.5 29,-57.5"/>
+<polygon fill="white" stroke="black" points="28.5,-57.5 28.5,-76.5 103.5,-76.5 103.5,-57.5 28.5,-57.5"/>
 <text text-anchor="middle" x="66" y="-64.5" font-family="Helvetica,sans-Serif" font-size="10.00">OSTreeRepo</text>
 </a>
 </g>
@@ -64,7 +64,7 @@
 <title>Node4&#45;&gt;Node3</title>
 <path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M66,-192.24C66,-180.41 66,-165.38 66,-154.58"/>
 <polygon fill="#9a32cd" stroke="#9a32cd" points="62.5,-192.36 66,-202.36 69.5,-192.36 62.5,-192.36"/>
-<text text-anchor="middle" x="79.5" y="-176" font-family="Helvetica,sans-Serif" font-size="10.00"> keys</text>
+<text text-anchor="middle" x="79" y="-176" font-family="Helvetica,sans-Serif" font-size="10.00"> keys</text>
 </g>
 </g>
 </svg>

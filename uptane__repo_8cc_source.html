@@ -105,7 +105,7 @@ $(function() {
 <div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;                          <span class="keyword">const</span> std::string &amp;hardware_id, <span class="keyword">const</span> std::string &amp;url, <span class="keyword">const</span> <a class="code" href="struct_delegation.html">Delegation</a> &amp;delegation) {</div>
 <div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;  image_repo_.addBinaryImage(image_path, targetname, hardware_id, url, delegation);</div>
 <div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;}</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="keywordtype">void</span> UptaneRepo::addCustomImage(<span class="keyword">const</span> std::string &amp;name, <span class="keyword">const</span> <a class="code" href="class_uptane_1_1_hash.html">Uptane::Hash</a> &amp;hash, uint64_t length,</div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="keywordtype">void</span> UptaneRepo::addCustomImage(<span class="keyword">const</span> std::string &amp;name, <span class="keyword">const</span> <a class="code" href="class_hash.html">Hash</a> &amp;hash, uint64_t length,</div>
 <div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;                                <span class="keyword">const</span> std::string &amp;hardware_id, <span class="keyword">const</span> std::string &amp;url, <span class="keyword">const</span> <a class="code" href="struct_delegation.html">Delegation</a> &amp;delegation,</div>
 <div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;                                <span class="keyword">const</span> Json::Value &amp;custom) {</div>
 <div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;  image_repo_.addCustomImage(name, hash, length, hardware_id, url, delegation, custom);</div>
@@ -126,9 +126,9 @@ $(function() {
 <div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;  }</div>
 <div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;}</div>
 </div><!-- fragment --></div><!-- contents -->
-<div class="ttc" id="aclass_uptane_1_1_hash_html"><div class="ttname"><a href="class_uptane_1_1_hash.html">Uptane::Hash</a></div><div class="ttdoc">The hash of a file or TUF metadata.</div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00209">tuf.h:209</a></div></div>
+<div class="ttc" id="aclass_hash_html"><div class="ttname"><a href="class_hash.html">Hash</a></div><div class="ttdoc">The hash of a file or Uptane metadata.</div><div class="ttdef"><b>Definition:</b> <a href="crypto_8h_source.html#l00065">crypto.h:65</a></div></div>
 <div class="ttc" id="aclass_uptane_1_1_repository_type_html"><div class="ttname"><a href="class_uptane_1_1_repository_type.html">Uptane::RepositoryType</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00020">tuf.h:20</a></div></div>
-<div class="ttc" id="aclass_uptane_1_1_role_html"><div class="ttname"><a href="class_uptane_1_1_role.html">Uptane::Role</a></div><div class="ttdoc">TUF Roles.</div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00057">tuf.h:57</a></div></div>
+<div class="ttc" id="aclass_uptane_1_1_role_html"><div class="ttname"><a href="class_uptane_1_1_role.html">Uptane::Role</a></div><div class="ttdoc">TUF Roles.</div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00060">tuf.h:60</a></div></div>
 <div class="ttc" id="astruct_delegation_html"><div class="ttname"><a href="struct_delegation.html">Delegation</a></div><div class="ttdef"><b>Definition:</b> <a href="repo_8h_source.html#l00019">repo.h:19</a></div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

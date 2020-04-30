@@ -38,7 +38,7 @@
 <g id="node3" class="node">
 <title>Node3</title>
 <g id="a_node3"><a xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="3.5,-123.5 3.5,-142.5 156.5,-142.5 156.5,-123.5 3.5,-123.5"/>
+<polygon fill="white" stroke="#bfbfbf" points="3,-123.5 3,-142.5 157,-142.5 157,-123.5 3,-123.5"/>
 <text text-anchor="middle" x="80" y="-130.5" font-family="Helvetica,sans-Serif" font-size="10.00">SimpleHTTPRequestHandler</text>
 </a>
 </g>

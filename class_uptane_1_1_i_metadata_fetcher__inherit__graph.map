@@ -1,6 +1,6 @@
 <map id="Uptane::IMetadataFetcher" name="Uptane::IMetadataFetcher">
-<area shape="rect" id="node1" title=" " alt="" coords="62,5,251,32"/>
-<area shape="rect" id="node2" href="$class_metadata.html" title=" " alt="" coords="51,80,134,107"/>
-<area shape="rect" id="node4" href="$class_uptane_1_1_fetcher.html" title=" " alt="" coords="159,80,283,107"/>
+<area shape="rect" id="node1" title=" " alt="" coords="61,5,252,32"/>
+<area shape="rect" id="node2" href="$class_metadata.html" title=" " alt="" coords="51,80,135,107"/>
+<area shape="rect" id="node4" href="$class_uptane_1_1_fetcher.html" title=" " alt="" coords="159,80,285,107"/>
 <area shape="rect" id="node3" href="$class_secondary_test_negative_1_1_metadata_invalidator.html" title=" " alt="" coords="5,155,180,196"/>
 </map>

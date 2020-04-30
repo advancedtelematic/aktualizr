@@ -122,79 +122,81 @@ $(function() {
 <div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160; </div>
 <div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;  <span class="keywordflow">if</span> (root_object-&gt;is_on_server() == PresenceOnServer::kObjectPresent) {</div>
 <div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;    <span class="keywordflow">if</span> (mode == <a class="code" href="garage__common_8h.html#a3dfe11cf1a3a8121f6cd7fec4bf5947ea6867faeaa475fda467e48267db2bb8a8">RunMode::kDefault</a> || mode == <a class="code" href="garage__common_8h.html#a3dfe11cf1a3a8121f6cd7fec4bf5947eaeae10bfd9d626d745beb1e5bf2c6f345">RunMode::kPushTree</a>) {</div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;      LOG_INFO &lt;&lt; <span class="stringliteral">&quot;Upload to Treehub complete after &quot;</span> &lt;&lt; request_pool.<a class="code" href="class_request_pool.html#a974b7007d9648c565e5983da3def1952">total_requests_made</a>() &lt;&lt; <span class="stringliteral">&quot; requests&quot;</span>;</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    } <span class="keywordflow">else</span> {</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;      LOG_INFO &lt;&lt; <span class="stringliteral">&quot;Dry run. No objects uploaded.&quot;</span>;</div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;    }</div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;  } <span class="keywordflow">else</span> {</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;    LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;One or more errors while pushing&quot;</span>;</div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;  }</div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160; </div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;  <span class="keywordflow">return</span> root_object-&gt;is_on_server() == PresenceOnServer::kObjectPresent;</div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;}</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160; </div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;<span class="keywordtype">bool</span> OfflineSignRepo(<span class="keyword">const</span> <a class="code" href="class_server_credentials.html">ServerCredentials</a> &amp;push_credentials, <span class="keyword">const</span> std::string &amp;name, <span class="keyword">const</span> <a class="code" href="class_o_s_tree_hash.html">OSTreeHash</a> &amp;hash,</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;                     <span class="keyword">const</span> std::string &amp;hardwareids) {</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;  <span class="keyword">const</span> boost::filesystem::path local_repo{<span class="stringliteral">&quot;./tuf/aktualizr&quot;</span>};</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160; </div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;  <span class="comment">// OTA-682: Do NOT keep the local tuf directory around in case the user tries</span></div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;  <span class="comment">// a different set of push credentials.</span></div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;  <span class="keywordflow">if</span> (boost::filesystem::is_directory(local_repo)) {</div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;    boost::filesystem::remove_all(local_repo);</div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;  }</div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160; </div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;  std::string init_cmd(<span class="stringliteral">&quot;garage-sign init --repo aktualizr --credentials &quot;</span>);</div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;  <span class="keywordflow">if</span> (system((init_cmd + push_credentials.<a class="code" href="class_server_credentials.html#a6886c0106de996c5c2e62d6c310d92f2">GetPathOnDisk</a>().string()).c_str()) != 0) {</div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;    LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Could not initilaize tuf repo for sign&quot;</span>;</div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;  }</div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160; </div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;  <span class="keywordflow">if</span> (system(<span class="stringliteral">&quot;garage-sign targets  pull --repo aktualizr&quot;</span>) != 0) {</div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;    LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Could not pull targets&quot;</span>;</div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;  }</div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160; </div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;  std::string cmd(<span class="stringliteral">&quot;garage-sign targets add --repo aktualizr --format OSTREE --length 0&quot;</span>);</div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;  cmd += <span class="stringliteral">&quot; --name &quot;</span> + name + <span class="stringliteral">&quot; --version &quot;</span> + hash.string() + <span class="stringliteral">&quot; --sha256 &quot;</span> + hash.string();</div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;  cmd += <span class="stringliteral">&quot; --hardwareids &quot;</span> + hardwareids;</div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;  <span class="keywordflow">if</span> (system(cmd.c_str()) != 0) {</div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;    LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Could not add targets&quot;</span>;</div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;  }</div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160; </div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;  LOG_INFO &lt;&lt; <span class="stringliteral">&quot;Signing...\n&quot;</span>;</div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;  <span class="keywordflow">if</span> (system(<span class="stringliteral">&quot;garage-sign targets  sign --key-name targets --repo aktualizr&quot;</span>) != 0) {</div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;    LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Could not sign targets&quot;</span>;</div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;  }</div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;  <span class="keywordflow">if</span> (system(<span class="stringliteral">&quot;garage-sign targets  push --repo aktualizr&quot;</span>) != 0) {</div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;    LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Could not push signed repo&quot;</span>;</div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;  }</div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160; </div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;  boost::filesystem::remove_all(local_repo);</div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;  LOG_INFO &lt;&lt; <span class="stringliteral">&quot;Success&quot;</span>;</div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;  <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;}</div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160; </div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;<span class="keywordtype">bool</span> PushRootRef(<span class="keyword">const</span> <a class="code" href="class_treehub_server.html">TreehubServer</a> &amp;push_server, <span class="keyword">const</span> <a class="code" href="class_o_s_tree_ref.html">OSTreeRef</a> &amp;ref) {</div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;  <a class="code" href="class_curl_easy_wrapper.html">CurlEasyWrapper</a> easy_handle;</div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;  curlEasySetoptWrapper(easy_handle.get(), CURLOPT_VERBOSE, get_curlopt_verbose());</div>
-<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;  ref.PushRef(push_server, easy_handle.get());</div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;  CURLcode err = curl_easy_perform(easy_handle.get());</div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;  <span class="keywordflow">if</span> (err != 0U) {</div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;    LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Error pushing root ref: &quot;</span> &lt;&lt; curl_easy_strerror(err);</div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;  }</div>
-<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;  <span class="keywordtype">long</span> rescode;  <span class="comment">// NOLINT(google-runtime-int)</span></div>
-<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;  curl_easy_getinfo(easy_handle.get(), CURLINFO_RESPONSE_CODE, &amp;rescode);</div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;  <span class="keywordflow">if</span> (rescode &lt; 200 || rescode &gt;= 400) {</div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;    LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Error pushing root ref, got &quot;</span> &lt;&lt; rescode &lt;&lt; <span class="stringliteral">&quot; HTTP response&quot;</span>;</div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;  }</div>
-<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160; </div>
-<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;  <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;}</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;      LOG_INFO &lt;&lt; <span class="stringliteral">&quot;Upload to Treehub complete after &quot;</span> &lt;&lt; request_pool.head_requests_made() &lt;&lt; <span class="stringliteral">&quot; HEAD requests and &quot;</span></div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;               &lt;&lt; request_pool.<a class="code" href="class_request_pool.html#acb002f3a22883e43cbdbde90aab0602a">put_requests_made</a>() &lt;&lt; <span class="stringliteral">&quot; PUT requests.&quot;</span>;</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;      LOG_INFO &lt;&lt; <span class="stringliteral">&quot;Total size of uploaded objects: &quot;</span> &lt;&lt; request_pool.total_object_size() &lt;&lt; <span class="stringliteral">&quot; bytes.&quot;</span>;</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;    } <span class="keywordflow">else</span> {</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;      LOG_INFO &lt;&lt; <span class="stringliteral">&quot;Dry run. No objects uploaded.&quot;</span>;</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;    }</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;  } <span class="keywordflow">else</span> {</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;    LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;One or more errors while pushing&quot;</span>;</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;  }</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160; </div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;  <span class="keywordflow">return</span> root_object-&gt;is_on_server() == PresenceOnServer::kObjectPresent;</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;}</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160; </div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;<span class="keywordtype">bool</span> OfflineSignRepo(<span class="keyword">const</span> <a class="code" href="class_server_credentials.html">ServerCredentials</a> &amp;push_credentials, <span class="keyword">const</span> std::string &amp;name, <span class="keyword">const</span> <a class="code" href="class_o_s_tree_hash.html">OSTreeHash</a> &amp;hash,</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;                     <span class="keyword">const</span> std::string &amp;hardwareids) {</div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;  <span class="keyword">const</span> boost::filesystem::path local_repo{<span class="stringliteral">&quot;./tuf/aktualizr&quot;</span>};</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160; </div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;  <span class="comment">// OTA-682: Do NOT keep the local tuf directory around in case the user tries</span></div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;  <span class="comment">// a different set of push credentials.</span></div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;  <span class="keywordflow">if</span> (boost::filesystem::is_directory(local_repo)) {</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;    boost::filesystem::remove_all(local_repo);</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;  }</div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160; </div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;  std::string init_cmd(<span class="stringliteral">&quot;garage-sign init --repo aktualizr --credentials &quot;</span>);</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;  <span class="keywordflow">if</span> (system((init_cmd + push_credentials.<a class="code" href="class_server_credentials.html#a6886c0106de996c5c2e62d6c310d92f2">GetPathOnDisk</a>().string()).c_str()) != 0) {</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;    LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Could not initilaize tuf repo for sign&quot;</span>;</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;  }</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160; </div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;  <span class="keywordflow">if</span> (system(<span class="stringliteral">&quot;garage-sign targets  pull --repo aktualizr&quot;</span>) != 0) {</div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;    LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Could not pull targets&quot;</span>;</div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;  }</div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160; </div>
+<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;  std::string cmd(<span class="stringliteral">&quot;garage-sign targets add --repo aktualizr --format OSTREE --length 0&quot;</span>);</div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;  cmd += <span class="stringliteral">&quot; --name &quot;</span> + name + <span class="stringliteral">&quot; --version &quot;</span> + hash.string() + <span class="stringliteral">&quot; --sha256 &quot;</span> + hash.string();</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;  cmd += <span class="stringliteral">&quot; --hardwareids &quot;</span> + hardwareids;</div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;  <span class="keywordflow">if</span> (system(cmd.c_str()) != 0) {</div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;    LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Could not add targets&quot;</span>;</div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;  }</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160; </div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;  LOG_INFO &lt;&lt; <span class="stringliteral">&quot;Signing...\n&quot;</span>;</div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;  <span class="keywordflow">if</span> (system(<span class="stringliteral">&quot;garage-sign targets  sign --key-name targets --repo aktualizr&quot;</span>) != 0) {</div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;    LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Could not sign targets&quot;</span>;</div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;  }</div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;  <span class="keywordflow">if</span> (system(<span class="stringliteral">&quot;garage-sign targets  push --repo aktualizr&quot;</span>) != 0) {</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;    LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Could not push signed repo&quot;</span>;</div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;  }</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160; </div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;  boost::filesystem::remove_all(local_repo);</div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;  LOG_INFO &lt;&lt; <span class="stringliteral">&quot;Success&quot;</span>;</div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;  <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;}</div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160; </div>
+<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;<span class="keywordtype">bool</span> PushRootRef(<span class="keyword">const</span> <a class="code" href="class_treehub_server.html">TreehubServer</a> &amp;push_server, <span class="keyword">const</span> <a class="code" href="class_o_s_tree_ref.html">OSTreeRef</a> &amp;ref) {</div>
+<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;  <a class="code" href="class_curl_easy_wrapper.html">CurlEasyWrapper</a> easy_handle;</div>
+<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;  curlEasySetoptWrapper(easy_handle.get(), CURLOPT_VERBOSE, get_curlopt_verbose());</div>
+<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;  ref.PushRef(push_server, easy_handle.get());</div>
+<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;  CURLcode err = curl_easy_perform(easy_handle.get());</div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;  <span class="keywordflow">if</span> (err != 0U) {</div>
+<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;    LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Error pushing root ref: &quot;</span> &lt;&lt; curl_easy_strerror(err);</div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;  }</div>
+<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;  <span class="keywordtype">long</span> rescode;  <span class="comment">// NOLINT(google-runtime-int)</span></div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;  curl_easy_getinfo(easy_handle.get(), CURLINFO_RESPONSE_CODE, &amp;rescode);</div>
+<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;  <span class="keywordflow">if</span> (rescode &lt; 200 || rescode &gt;= 400) {</div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;    LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Error pushing root ref, got &quot;</span> &lt;&lt; rescode &lt;&lt; <span class="stringliteral">&quot; HTTP response&quot;</span>;</div>
+<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;  }</div>
+<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160; </div>
+<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;  <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;}</div>
 </div><!-- fragment --></div><!-- contents -->
 <div class="ttc" id="aclass_curl_easy_wrapper_html"><div class="ttname"><a href="class_curl_easy_wrapper.html">CurlEasyWrapper</a></div><div class="ttdef"><b>Definition:</b> <a href="utils_8h_source.html#l00168">utils.h:168</a></div></div>
 <div class="ttc" id="aclass_o_s_tree_object_missing_html"><div class="ttname"><a href="class_o_s_tree_object_missing.html">OSTreeObjectMissing</a></div><div class="ttdoc">Thrown by GetObject when the object requested is not present in the repository.</div><div class="ttdef"><b>Definition:</b> <a href="ostree__repo_8h_source.html#l00045">ostree_repo.h:45</a></div></div>
@@ -203,11 +205,11 @@ $(function() {
 <div class="ttc" id="aclass_server_credentials_html"><div class="ttname"><a href="class_server_credentials.html">ServerCredentials</a></div><div class="ttdef"><b>Definition:</b> <a href="server__credentials_8h_source.html#l00025">server_credentials.h:25</a></div></div>
 <div class="ttc" id="aclass_server_credentials_html_a6886c0106de996c5c2e62d6c310d92f2"><div class="ttname"><a href="class_server_credentials.html#a6886c0106de996c5c2e62d6c310d92f2">ServerCredentials::GetPathOnDisk</a></div><div class="ttdeci">boost::filesystem::path GetPathOnDisk() const</div><div class="ttdoc">Path to the original credentials.zip on disk.</div><div class="ttdef"><b>Definition:</b> <a href="server__credentials_8h_source.html#l00043">server_credentials.h:43</a></div></div>
 <div class="ttc" id="agarage__common_8h_html_a3dfe11cf1a3a8121f6cd7fec4bf5947eaa0e076808029a98cda5a5b88203558c2"><div class="ttname"><a href="garage__common_8h.html#a3dfe11cf1a3a8121f6cd7fec4bf5947eaa0e076808029a98cda5a5b88203558c2">RunMode::kWalkTree</a></div><div class="ttdoc">Walk the entire tree (without uploading).</div></div>
-<div class="ttc" id="aclass_request_pool_html_a0ccb0fadde5bd62a2bec10a53d31f6b5"><div class="ttname"><a href="class_request_pool.html#a0ccb0fadde5bd62a2bec10a53d31f6b5">RequestPool::Loop</a></div><div class="ttdeci">void Loop()</div><div class="ttdoc">One iteration of request-listen loop, launches multiple requests, then listens for the result.</div><div class="ttdef"><b>Definition:</b> <a href="request__pool_8cc_source.html#l00158">request_pool.cc:158</a></div></div>
+<div class="ttc" id="aclass_request_pool_html_acb002f3a22883e43cbdbde90aab0602a"><div class="ttname"><a href="class_request_pool.html#acb002f3a22883e43cbdbde90aab0602a">RequestPool::put_requests_made</a></div><div class="ttdeci">int put_requests_made()</div><div class="ttdoc">The number of HEAD + PUT requests that have been sent to curl.</div><div class="ttdef"><b>Definition:</b> <a href="request__pool_8h_source.html#l00036">request_pool.h:36</a></div></div>
+<div class="ttc" id="aclass_request_pool_html_a0ccb0fadde5bd62a2bec10a53d31f6b5"><div class="ttname"><a href="class_request_pool.html#a0ccb0fadde5bd62a2bec10a53d31f6b5">RequestPool::Loop</a></div><div class="ttdeci">void Loop()</div><div class="ttdoc">One iteration of request-listen loop, launches multiple requests, then listens for the result.</div><div class="ttdef"><b>Definition:</b> <a href="request__pool_8cc_source.html#l00159">request_pool.cc:159</a></div></div>
 <div class="ttc" id="aclass_treehub_server_html"><div class="ttname"><a href="class_treehub_server.html">TreehubServer</a></div><div class="ttdef"><b>Definition:</b> <a href="treehub__server_8h_source.html#l00011">treehub_server.h:11</a></div></div>
 <div class="ttc" id="aclass_request_pool_html"><div class="ttname"><a href="class_request_pool.html">RequestPool</a></div><div class="ttdef"><b>Definition:</b> <a href="request__pool_8h_source.html#l00012">request_pool.h:12</a></div></div>
 <div class="ttc" id="agarage__common_8h_html_a3dfe11cf1a3a8121f6cd7fec4bf5947ea6867faeaa475fda467e48267db2bb8a8"><div class="ttname"><a href="garage__common_8h.html#a3dfe11cf1a3a8121f6cd7fec4bf5947ea6867faeaa475fda467e48267db2bb8a8">RunMode::kDefault</a></div><div class="ttdoc">Default operation.</div></div>
-<div class="ttc" id="aclass_request_pool_html_a974b7007d9648c565e5983da3def1952"><div class="ttname"><a href="class_request_pool.html#a974b7007d9648c565e5983da3def1952">RequestPool::total_requests_made</a></div><div class="ttdeci">int total_requests_made()</div><div class="ttdoc">The number of HEAD + PUT requests that have been sent to curl.</div><div class="ttdef"><b>Definition:</b> <a href="request__pool_8h_source.html#l00036">request_pool.h:36</a></div></div>
 <div class="ttc" id="agarage__common_8h_html_a3dfe11cf1a3a8121f6cd7fec4bf5947ea040879143abc72deb4c5adae815b24a5"><div class="ttname"><a href="garage__common_8h.html#a3dfe11cf1a3a8121f6cd7fec4bf5947ea040879143abc72deb4c5adae815b24a5">RunMode::kDryRun</a></div><div class="ttdoc">Dry run.</div></div>
 <div class="ttc" id="aclass_o_s_tree_ref_html"><div class="ttname"><a href="class_o_s_tree_ref.html">OSTreeRef</a></div><div class="ttdef"><b>Definition:</b> <a href="ostree__ref_8h_source.html#l00013">ostree_ref.h:13</a></div></div>
 <div class="ttc" id="agarage__common_8h_html_a3dfe11cf1a3a8121f6cd7fec4bf5947e"><div class="ttname"><a href="garage__common_8h.html#a3dfe11cf1a3a8121f6cd7fec4bf5947e">RunMode</a></div><div class="ttdeci">RunMode</div><div class="ttdoc">Execution mode to run garage tools in.</div><div class="ttdef"><b>Definition:</b> <a href="garage__common_8h_source.html#l00006">garage_common.h:6</a></div></div>

@@ -37,7 +37,7 @@
 <g id="node3" class="node">
 <title>Node3</title>
 <g id="a_node3"><a xlink:href="class_uptane_1_1_base_meta.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="11,-112.5 11,-131.5 117,-131.5 117,-112.5 11,-112.5"/>
+<polygon fill="white" stroke="black" points="10.5,-112.5 10.5,-131.5 117.5,-131.5 117.5,-112.5 10.5,-112.5"/>
 <text text-anchor="middle" x="64" y="-119.5" font-family="Helvetica,sans-Serif" font-size="10.00">Uptane::BaseMeta</text>
 </a>
 </g>

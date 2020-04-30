@@ -246,7 +246,7 @@ $(function() {
 <div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;        device_status = self.<a class="code" href="classtest__fixtures_1_1_aktualizr.html#a59cb2f1afd197e594cc7167003868b21">get_info</a>()</div>
 <div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;        <span class="keywordflow">if</span> <span class="keywordflow">not</span> ((device_status.find(ecu_id[0]) != -1) <span class="keywordflow">and</span> (device_status.find(ecu_id[1]) != -1)):</div>
 <div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;            <span class="keywordflow">return</span> <span class="keyword">False</span></div>
-<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;        not_registered_field = <span class="stringliteral">&quot;Removed or not registered ecus:&quot;</span></div>
+<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;        not_registered_field = <span class="stringliteral">&quot;Removed or not registered ECUs:&quot;</span></div>
 <div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;        not_reg_start = device_status.find(not_registered_field)</div>
 <div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;        <span class="keywordflow">return</span> not_reg_start == -1 <span class="keywordflow">or</span> (device_status.find(ecu_id[1], not_reg_start) == -1)</div>
 <div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160; </div>
@@ -259,9 +259,9 @@ $(function() {
 <div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;    <span class="keyword">def </span>get_current_pending_image_info(self, ecu_id):</div>
 <div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;        <span class="keywordflow">return</span> self.<a class="code" href="classtest__fixtures_1_1_aktualizr.html#a40b55d6107888975e2e8acbfc02ca87d">_get_current_image_info</a>(ecu_id, secondary_image_hash_field=<span class="stringliteral">&#39;pending image hash: &#39;</span>)</div>
 <div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160; </div>
-<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;    <span class="comment"># applicable only to secondary ECUs due to inconsistency in presenting information</span></div>
-<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;    <span class="comment"># about primary and secondary ECUs</span></div>
-<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;    <span class="comment"># ugly stuff that could be removed if Aktualizr had exposed API to check status</span></div>
+<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;    <span class="comment"># applicable only to Secondary ECUs due to inconsistency in presenting information</span></div>
+<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;    <span class="comment"># about Primary and Secondary ECUs</span></div>
+<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;    <span class="comment"># ugly stuff that could be removed if aktualizr had exposed API to check status</span></div>
 <div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;    <span class="comment"># or aktializr-info had output status/info in a structured way (e.g. json)</span></div>
 <div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;    <span class="keyword">def </span>_get_current_image_info(self, ecu_id, secondary_image_hash_field=&#39;installed image hash: <span class="stringliteral">&#39;):</span></div>
 <div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;<span class="stringliteral">        </span><span class="comment">#secondary_image_filename_field = &#39;installed image filename: &#39;</span></div>
