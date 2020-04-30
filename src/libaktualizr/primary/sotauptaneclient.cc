@@ -883,12 +883,13 @@ result::UpdateStatus SotaUptaneClient::checkUpdatesOffline(const std::vector<Upt
   try {
     uptaneOfflineIteration(&director_targets, &ecus_count);
   } catch (const std::exception &e) {
-    LOG_ERROR << "Invalid Uptane metadata in storage.";
+    LOG_ERROR << "Aborting; invalid Uptane metadata in storage.";
     throw;
   }
 
   if (director_targets.empty()) {
-    LOG_ERROR << "No new updates found in Uptane metadata, but expected " << targets.size() << ".";
+    LOG_ERROR << "No new updates found while rechecking stored Director Targets metadata, but " << targets.size()
+              << " target(s) were requested.";
     return result::UpdateStatus::kNoUpdatesAvailable;
   }
 
