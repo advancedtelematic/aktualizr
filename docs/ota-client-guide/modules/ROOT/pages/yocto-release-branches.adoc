@@ -12,6 +12,7 @@ endif::[]
 
 Yocto has a number of release branches. Their details are documented in the https://wiki.yoctoproject.org/wiki/Releases[Yocto wiki]. HERE OTA Connect currently actively supports the following branches:
 
+* dunfell
 * zeus
 * warrior
 * thud
