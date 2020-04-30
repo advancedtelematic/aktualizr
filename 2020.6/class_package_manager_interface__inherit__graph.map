@@ -1,0 +1,10 @@
+<map id="PackageManagerInterface" name="PackageManagerInterface">
+<area shape="rect" id="node1" title=" " alt="" coords="200,5,391,32"/>
+<area shape="rect" id="node2" href="$class_android_manager.html" title=" " alt="" coords="5,80,135,107"/>
+<area shape="rect" id="node3" href="$class_debian_manager.html" title=" " alt="" coords="159,80,285,107"/>
+<area shape="rect" id="node4" href="$class_ostree_manager.html" title=" " alt="" coords="309,80,431,107"/>
+<area shape="rect" id="node8" href="$class_package_manager_fake.html" title=" " alt="" coords="456,80,617,107"/>
+<area shape="rect" id="node5" href="$class_docker_app_bundles.html" title=" " alt="" coords="127,155,271,181"/>
+<area shape="rect" id="node6" href="$class_docker_app_manager.html" title=" " alt="" coords="295,155,445,181"/>
+<area shape="rect" id="node7" href="$class_docker_app_standalone.html" title=" " alt="" coords="469,155,634,181"/>
+</map>

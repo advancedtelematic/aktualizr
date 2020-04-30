@@ -1,0 +1,10 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$class_package_manager_interface.html" title=" " alt="" coords="5,81,196,108"/>
+<area shape="rect" id="node2" href="$class_android_manager.html" title=" " alt="" coords="260,5,389,32"/>
+<area shape="rect" id="node3" href="$class_debian_manager.html" title=" " alt="" coords="262,56,387,83"/>
+<area shape="rect" id="node4" href="$class_ostree_manager.html" title=" " alt="" coords="263,107,386,133"/>
+<area shape="rect" id="node8" href="$class_package_manager_fake.html" title=" " alt="" coords="244,157,405,184"/>
+<area shape="rect" id="node5" href="$class_docker_app_bundles.html" title=" " alt="" coords="464,56,608,83"/>
+<area shape="rect" id="node6" href="$class_docker_app_manager.html" title=" " alt="" coords="461,107,611,133"/>
+<area shape="rect" id="node7" href="$class_docker_app_standalone.html" title=" " alt="" coords="453,157,619,184"/>
+</map>
