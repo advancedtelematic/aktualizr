@@ -491,6 +491,9 @@ void SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
         is_new = true;
       }
 
+      // Reject non-OSTree updates for the Primary if using OSTree.
+      // TODO(OTA-4939): Unify this with the check in
+      // SotaUptaneClient::getNewTargets() and make it more generic.
       if (primary_ecu_serial == ecu_serial) {
         if (!target.IsOstree() &&
             (config.pacman.type == PACKAGE_MANAGER_OSTREE || config.pacman.type == PACKAGE_MANAGER_OSTREEDOCKERAPP)) {
