@@ -714,23 +714,14 @@ void SotaUptaneClient::uptaneIteration(std::vector<Uptane::Target> *targets, uns
   try {
     getNewTargets(&tmp_targets, &ecus);
   } catch (const std::exception &e) {
-    LOG_ERROR << "Inconsistency between Director metadata and discovered ECUs";
+    LOG_ERROR << "Inconsistency between Director metadata and available ECUs: " << e.what();
     throw;
   }
 
-  if (tmp_targets.empty()) {
-    if (targets != nullptr) {
-      *targets = std::move(tmp_targets);
-    }
-    if (ecus_count != nullptr) {
-      *ecus_count = ecus;
-    }
-    return;
+  if (!tmp_targets.empty()) {
+    LOG_INFO << "New updates found in Director metadata. Checking Image repo metadata...";
+    updateImageMeta();
   }
-
-  LOG_INFO << "New updates found in Director metadata. Checking Image repo metadata...";
-
-  updateImageMeta();
 
   if (targets != nullptr) {
     *targets = std::move(tmp_targets);
@@ -748,21 +739,18 @@ void SotaUptaneClient::uptaneOfflineIteration(std::vector<Uptane::Target> *targe
   try {
     getNewTargets(&tmp_targets, &ecus);
   } catch (const std::exception &e) {
-    LOG_ERROR << "Inconsistency between Director metadata and existing ECUs: " << e.what();
+    LOG_ERROR << "Inconsistency between Director metadata and available ECUs: " << e.what();
     throw;
   }
 
-  if (tmp_targets.empty()) {
-    *targets = std::move(tmp_targets);
-    if (ecus_count != nullptr) {
-      *ecus_count = ecus;
-    }
-    return;
+  if (!tmp_targets.empty()) {
+    LOG_DEBUG << "New updates found in stored Director metadata. Checking stored Image repo metadata...";
+    checkImageMetaOffline();
   }
 
-  checkImageMetaOffline();
-
-  *targets = std::move(tmp_targets);
+  if (targets != nullptr) {
+    *targets = std::move(tmp_targets);
+  }
   if (ecus_count != nullptr) {
     *ecus_count = ecus;
   }
