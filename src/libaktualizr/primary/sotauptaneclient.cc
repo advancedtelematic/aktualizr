@@ -452,22 +452,22 @@ void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult 
 }
 
 void SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, unsigned int *ecus_count) {
-  std::vector<Uptane::Target> targets = director_repo.getTargets().targets;
-  Uptane::EcuSerial primary_ecu_serial = primaryEcuSerial();
+  const std::vector<Uptane::Target> targets = director_repo.getTargets().targets;
+  const Uptane::EcuSerial primary_ecu_serial = primaryEcuSerial();
   if (ecus_count != nullptr) {
     *ecus_count = 0;
   }
   for (const Uptane::Target &target : targets) {
     bool is_new = false;
     for (const auto &ecu : target.ecus()) {
-      Uptane::EcuSerial ecu_serial = ecu.first;
-      Uptane::HardwareIdentifier hw_id = ecu.second;
+      const Uptane::EcuSerial ecu_serial = ecu.first;
+      const Uptane::HardwareIdentifier hw_id = ecu.second;
 
       // 5.4.4.6.8. If checking Targets metadata from the Director repository,
       // and the ECU performing the verification is the Primary ECU, check that
       // all listed ECU identifiers correspond to ECUs that are actually present
       // in the vehicle.
-      auto hw_id_known = ecuHwId(ecu_serial);
+      const auto hw_id_known = ecuHwId(ecu_serial);
       if (!hw_id_known) {
         LOG_ERROR << "Unknown ECU ID in Director Targets metadata: " << ecu_serial.ToString();
         throw Uptane::BadEcuId(target.filename());
