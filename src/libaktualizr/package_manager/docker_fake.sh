@@ -22,12 +22,16 @@ if [ "$1" = "app" ] ; then
 fi
 
 if [ "$1" = "render" ] ; then
-  echo "DOCKER-APP RENDER OUTPUT"
   if [ ! -f app1.dockerapp ] ; then
     echo "Missing docker app file!"
     exit 1
   fi
-  cat app1.dockerapp
+  if [ "$3" != "-o" ] ; then
+    echo "Unexpected arguments to render: $*"
+    exit 1
+  fi
+  echo "DOCKER-APP RENDER OUTPUT" > $4
+  cat app1.dockerapp >> $4
   exit 0
 fi
 if [ "$1" = "pull" ] ; then

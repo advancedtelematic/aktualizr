@@ -56,13 +56,13 @@ struct DockerApp {
     if (!app_params.empty()) {
       cmd += " --parameters-file " + app_params.string();
     }
-    std::string yaml;
-    if (Utils::shell(cmd, &yaml, true) != 0) {
-      LOG_ERROR << "Unable to run " << cmd << " output:\n" << yaml;
-      return false;
-    }
     if (persist) {
-      Utils::writeFile(app_root / "docker-compose.yml", yaml);
+      cmd += " -o " + (app_root / "docker-compose.yml").string();
+    }
+    std::string output;
+    if (Utils::shell(cmd, &output, true) != 0) {
+      LOG_ERROR << "Unable to run " << cmd << " output:\n" << output;
+      return false;
     }
     return true;
   }
