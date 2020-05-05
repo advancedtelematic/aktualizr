@@ -31,6 +31,13 @@ class SecurityException : public Exception {
   ~SecurityException() noexcept override = default;
 };
 
+class TargetContentMismatch : public Exception {
+ public:
+  explicit TargetContentMismatch(const std::string& targetname)
+      : Exception(targetname, "Director Target filename matches currently installed version, but content differs.") {}
+  ~TargetContentMismatch() noexcept override = default;
+};
+
 class TargetHashMismatch : public Exception {
  public:
   explicit TargetHashMismatch(const std::string& targetname)

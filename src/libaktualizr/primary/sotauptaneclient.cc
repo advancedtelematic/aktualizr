@@ -487,7 +487,12 @@ void SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
       if (!current_version) {
         LOG_WARNING << "Current version for ECU ID: " << ecu_serial.ToString() << " is unknown";
         is_new = true;
-      } else if (current_version->filename() != target.filename()) {
+      } else if (current_version->MatchTarget(target)) {
+        // Do nothing; target is already installed.
+      } else if (current_version->filename() == target.filename()) {
+        LOG_ERROR << "Director Target filename matches currently installed version, but content differs!";
+        throw Uptane::TargetContentMismatch(target.filename());
+      } else {
         is_new = true;
       }
 

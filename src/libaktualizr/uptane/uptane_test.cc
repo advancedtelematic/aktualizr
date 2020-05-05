@@ -323,9 +323,12 @@ void process_events_Install(const std::shared_ptr<event::BaseEvent> &event) {
     auto concrete_event = std::static_pointer_cast<event::AllInstallsComplete>(event);
     if (num_events_AllInstalls == 0) {
       EXPECT_TRUE(concrete_event->result.dev_report.isSuccess());
-    } else {
+    } else if (num_events_AllInstalls == 1) {
       EXPECT_FALSE(concrete_event->result.dev_report.isSuccess());
       EXPECT_EQ(concrete_event->result.dev_report.result_code, data::ResultCode::Numeric::kAlreadyProcessed);
+    } else {
+      EXPECT_FALSE(concrete_event->result.dev_report.isSuccess());
+      EXPECT_EQ(concrete_event->result.dev_report.result_code, data::ResultCode::Numeric::kInternalError);
     }
     num_events_AllInstalls++;
   }
@@ -340,6 +343,8 @@ void process_events_Install(const std::shared_ptr<event::BaseEvent> &event) {
  * Store installation result for Primary.
  * Store installation result for device.
  * Check if an update is already installed.
+ * Reject an update that matches the currently installed version's filename but
+ * not the length and/or hashes.
  */
 TEST(Uptane, InstallFakeGood) {
   Config conf("tests/config/basic.toml");
@@ -390,7 +395,8 @@ TEST(Uptane, InstallFakeGood) {
   EXPECT_EQ(installation_report["items"][1]["result"]["success"].asBool(), true);
   EXPECT_EQ(installation_report["items"][1]["result"]["code"].asString(), "OK");
 
-  // second install
+  // Second install to verify that we detect already installed updates
+  // correctly.
   result::Install install_result2 = up->uptaneInstall(download_result.updates);
   EXPECT_FALSE(install_result2.dev_report.isSuccess());
   EXPECT_EQ(install_result2.dev_report.result_code, data::ResultCode::Numeric::kAlreadyProcessed);
@@ -399,6 +405,28 @@ TEST(Uptane, InstallFakeGood) {
   manifest = up->AssembleManifest();
   installation_report = manifest["installation_report"]["report"];
   EXPECT_EQ(installation_report["result"]["success"].asBool(), false);
+
+  // Recheck updates in order to repopulate Director Targets metadata in the
+  // database (it gets dropped after failure).
+  result::UpdateCheck update_result2 = up->fetchMeta();
+  EXPECT_EQ(update_result2.status, result::UpdateStatus::kNoUpdatesAvailable);
+
+  // Remove the hashes from the current Target version stored in the database
+  // for the Primary.
+  boost::optional<Uptane::Target> current_version;
+  EXPECT_TRUE(storage->loadInstalledVersions("CA:FE:A6:D2:84:9D", &current_version, nullptr));
+  const auto bad_target = Uptane::Target(current_version->filename(), current_version->ecus(), std::vector<Hash>{},
+                                         current_version->length());
+  storage->saveInstalledVersion("CA:FE:A6:D2:84:9D", bad_target, InstalledVersionUpdateMode::kCurrent);
+
+  // Third install to verify that we reject updates with the same filename but
+  // different contents.
+  result::Install install_result3 = up->uptaneInstall(download_result.updates);
+  EXPECT_FALSE(install_result3.dev_report.isSuccess());
+  EXPECT_EQ(install_result3.dev_report.result_code, data::ResultCode::Numeric::kInternalError);
+  EXPECT_THROW(std::rethrow_exception(up->getLastException()), Uptane::TargetContentMismatch);
+  EXPECT_EQ(num_events_InstallTarget, 2);
+  EXPECT_EQ(num_events_AllInstalls, 3);
 }
 
 /*
