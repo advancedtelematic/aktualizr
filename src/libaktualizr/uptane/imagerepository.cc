@@ -115,7 +115,7 @@ void ImageRepository::fetchTargets(INvStorage& storage, const IMetadataFetcher& 
   verifyTargets(image_targets, false);
 
   if (local_version > remote_version) {
-    throw Uptane::SecurityException(RepositoryType::IMAGE, "Mismatched target versions");
+    throw Uptane::SecurityException(RepositoryType::IMAGE, "Rollback attempt");
   } else if (local_version < remote_version) {
     storage.storeNonRoot(image_targets, RepositoryType::Image(), targets_role);
   }

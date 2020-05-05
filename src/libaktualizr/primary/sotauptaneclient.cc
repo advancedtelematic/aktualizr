@@ -452,22 +452,22 @@ void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult 
 }
 
 void SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, unsigned int *ecus_count) {
-  std::vector<Uptane::Target> targets = director_repo.getTargets().targets;
-  Uptane::EcuSerial primary_ecu_serial = primaryEcuSerial();
+  const std::vector<Uptane::Target> targets = director_repo.getTargets().targets;
+  const Uptane::EcuSerial primary_ecu_serial = primaryEcuSerial();
   if (ecus_count != nullptr) {
     *ecus_count = 0;
   }
   for (const Uptane::Target &target : targets) {
     bool is_new = false;
     for (const auto &ecu : target.ecus()) {
-      Uptane::EcuSerial ecu_serial = ecu.first;
-      Uptane::HardwareIdentifier hw_id = ecu.second;
+      const Uptane::EcuSerial ecu_serial = ecu.first;
+      const Uptane::HardwareIdentifier hw_id = ecu.second;
 
       // 5.4.4.6.8. If checking Targets metadata from the Director repository,
       // and the ECU performing the verification is the Primary ECU, check that
       // all listed ECU identifiers correspond to ECUs that are actually present
       // in the vehicle.
-      auto hw_id_known = ecuHwId(ecu_serial);
+      const auto hw_id_known = ecuHwId(ecu_serial);
       if (!hw_id_known) {
         LOG_ERROR << "Unknown ECU ID in Director Targets metadata: " << ecu_serial.ToString();
         throw Uptane::BadEcuId(target.filename());
@@ -487,10 +487,18 @@ void SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
       if (!current_version) {
         LOG_WARNING << "Current version for ECU ID: " << ecu_serial.ToString() << " is unknown";
         is_new = true;
-      } else if (current_version->filename() != target.filename()) {
+      } else if (current_version->MatchTarget(target)) {
+        // Do nothing; target is already installed.
+      } else if (current_version->filename() == target.filename()) {
+        LOG_ERROR << "Director Target filename matches currently installed version, but content differs!";
+        throw Uptane::TargetContentMismatch(target.filename());
+      } else {
         is_new = true;
       }
 
+      // Reject non-OSTree updates for the Primary if using OSTree.
+      // TODO(OTA-4939): Unify this with the check in
+      // SotaUptaneClient::getNewTargets() and make it more generic.
       if (primary_ecu_serial == ecu_serial) {
         if (!target.IsOstree() &&
             (config.pacman.type == PACKAGE_MANAGER_OSTREE || config.pacman.type == PACKAGE_MANAGER_OSTREEDOCKERAPP)) {
@@ -711,23 +719,14 @@ void SotaUptaneClient::uptaneIteration(std::vector<Uptane::Target> *targets, uns
   try {
     getNewTargets(&tmp_targets, &ecus);
   } catch (const std::exception &e) {
-    LOG_ERROR << "Inconsistency between Director metadata and discovered ECUs";
+    LOG_ERROR << "Inconsistency between Director metadata and available ECUs: " << e.what();
     throw;
   }
 
-  if (tmp_targets.empty()) {
-    if (targets != nullptr) {
-      *targets = std::move(tmp_targets);
-    }
-    if (ecus_count != nullptr) {
-      *ecus_count = ecus;
-    }
-    return;
+  if (!tmp_targets.empty()) {
+    LOG_INFO << "New updates found in Director metadata. Checking Image repo metadata...";
+    updateImageMeta();
   }
-
-  LOG_INFO << "New updates found in Director metadata. Checking Image repo metadata...";
-
-  updateImageMeta();
 
   if (targets != nullptr) {
     *targets = std::move(tmp_targets);
@@ -745,21 +744,18 @@ void SotaUptaneClient::uptaneOfflineIteration(std::vector<Uptane::Target> *targe
   try {
     getNewTargets(&tmp_targets, &ecus);
   } catch (const std::exception &e) {
-    LOG_ERROR << "Inconsistency between Director metadata and existing ECUs: " << e.what();
+    LOG_ERROR << "Inconsistency between Director metadata and available ECUs: " << e.what();
     throw;
   }
 
-  if (tmp_targets.empty()) {
-    *targets = std::move(tmp_targets);
-    if (ecus_count != nullptr) {
-      *ecus_count = ecus;
-    }
-    return;
+  if (!tmp_targets.empty()) {
+    LOG_DEBUG << "New updates found in stored Director metadata. Checking stored Image repo metadata...";
+    checkImageMetaOffline();
   }
 
-  checkImageMetaOffline();
-
-  *targets = std::move(tmp_targets);
+  if (targets != nullptr) {
+    *targets = std::move(tmp_targets);
+  }
   if (ecus_count != nullptr) {
     *ecus_count = ecus;
   }

@@ -110,6 +110,8 @@ bool PackageManagerFake::fetchTarget(const Uptane::Target& target, Uptane::Fetch
     return false;
   }
 
+  // TODO(OTA-4939): Unify this with the check in
+  // SotaUptaneClient::getNewTargets() and make it more generic.
   if (target.IsOstree()) {
     LOG_ERROR << "Cannot download OSTree target " << target.filename() << " with the fake package manager!";
     return false;

@@ -122,6 +122,9 @@ void DirectorRepository::updateMeta(INvStorage& storage, const IMetadataFetcher&
 
     verifyTargets(director_targets);
 
+    // TODO(OTA-4940): check if versions are equal but content is different. In
+    // that case, the member variable targets is updated, but it isn't stored in
+    // the database, which can cause some minor confusion.
     if (local_version > remote_version) {
       throw Uptane::SecurityException(RepositoryType::DIRECTOR, "Rollback attempt");
     } else if (local_version < remote_version && !usePreviousTargets()) {
