@@ -7,6 +7,8 @@
 static void extractCredentialsArchive(const std::string& archive, std::string* ca, std::string* cert, std::string* pkey,
                                       std::string* treehub_server);
 
+// TODO(OTA-4939): Unify this with the check in
+// SotaUptaneClient::getNewTargets() and make it more generic.
 bool OstreeUpdateAgent::isTargetSupported(const Uptane::Target& target) const { return target.IsOstree(); }
 
 bool OstreeUpdateAgent::getInstalledImageInfo(Uptane::InstalledImageInfo& installed_image_info) const {
