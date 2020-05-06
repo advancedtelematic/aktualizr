@@ -188,7 +188,7 @@ void AktualizrSecondary::registerHandlers() {
   registerHandler(AKIpUptaneMes_PR_manifestReq,
                   std::bind(&AktualizrSecondary::getManifestHdlr, this, std::placeholders::_1, std::placeholders::_2));
 
-  registerHandler(AKIpUptaneMes_PR_putMetaReq,
+  registerHandler(AKIpUptaneMes_PR_putMetaReq2,
                   std::bind(&AktualizrSecondary::putMetaHdlr, this, std::placeholders::_1, std::placeholders::_2));
 
   registerHandler(AKIpUptaneMes_PR_installReq,
@@ -218,35 +218,62 @@ AktualizrSecondary::ReturnCode AktualizrSecondary::getManifestHdlr(Asn1Message& 
   manifest_resp->manifest.present = manifest_PR_json;
   SetString(&manifest_resp->manifest.choice.json, Utils::jsonToStr(getManifest()));  // NOLINT
 
-  LOG_TRACE << "Manifest : \n" << getManifest();
+  LOG_TRACE << "Manifest: \n" << getManifest();
   return ReturnCode::kOk;
 }
 
 AktualizrSecondary::ReturnCode AktualizrSecondary::putMetaHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
-  auto md = in_msg.putMetaReq();
+  auto md = in_msg.putMetaReq2();
   Uptane::RawMetaPack meta_pack;
 
-  if (md->director.present == director_PR_json) {
-    meta_pack.director_root = ToString(md->director.choice.json.root);        // NOLINT
-    meta_pack.director_targets = ToString(md->director.choice.json.targets);  // NOLINT
-    LOG_DEBUG << "Received Director repo Root metadata:\n" << meta_pack.director_root;
-    LOG_DEBUG << "Received Director repo Targets metadata:\n" << meta_pack.director_targets;
-  } else {
-    LOG_WARNING << "Director metadata in unknown format:" << md->director.present;
+  // TODO: what happens if something expected is missing? Or if something
+  // appears twice?
+  if (md->directorRepo.present == directorRepo_PR_collection) {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+    const int director_meta_count = md->directorRepo.choice.collection.list.count;
+    for (int i = 0; i < director_meta_count; i++) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic, cppcoreguidelines-pro-type-union-access)
+      const AKMetaJson_t object = *md->directorRepo.choice.collection.list.array[i];
+      const std::string role = ToString(object.role);
+      std::string json = ToString(object.json);
+      if (role == Uptane::Role::ROOT) {
+        meta_pack.director_root = std::move(json);
+        LOG_DEBUG << "Received Director repo Root metadata:\n" << meta_pack.director_root;
+      } else if (role == Uptane::Role::TARGETS) {
+        meta_pack.director_targets = std::move(json);
+        LOG_DEBUG << "Received Director repo Targets metadata:\n" << meta_pack.director_targets;
+      } else {
+        LOG_WARNING << "Director metadata in unknown format:" << md->directorRepo.present;
+      }
+    }
   }
 
-  if (md->image.present == image_PR_json) {
-    meta_pack.image_root = ToString(md->image.choice.json.root);            // NOLINT
-    meta_pack.image_timestamp = ToString(md->image.choice.json.timestamp);  // NOLINT
-    meta_pack.image_snapshot = ToString(md->image.choice.json.snapshot);    // NOLINT
-    meta_pack.image_targets = ToString(md->image.choice.json.targets);      // NOLINT
-    LOG_DEBUG << "Received Image repo Root metadata:\n" << meta_pack.image_root;
-    LOG_DEBUG << "Received Image repo Timestamp metadata:\n" << meta_pack.image_timestamp;
-    LOG_DEBUG << "Received Image repo Snapshot metadata:\n" << meta_pack.image_snapshot;
-    LOG_DEBUG << "Received Image repo Targets metadata:\n" << meta_pack.image_targets;
-  } else {
-    LOG_WARNING << "Image repo metadata in unknown format:" << md->image.present;
+  if (md->imageRepo.present == imageRepo_PR_collection) {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+    const int image_meta_count = md->imageRepo.choice.collection.list.count;
+    for (int i = 0; i < image_meta_count; i++) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic, cppcoreguidelines-pro-type-union-access)
+      const AKMetaJson_t object = *md->imageRepo.choice.collection.list.array[i];
+      const std::string role = ToString(object.role);
+      std::string json = ToString(object.json);
+      if (role == Uptane::Role::ROOT) {
+        meta_pack.image_root = std::move(json);
+        LOG_DEBUG << "Received Image repo Root metadata:\n" << meta_pack.image_root;
+      } else if (role == Uptane::Role::TIMESTAMP) {
+        meta_pack.image_timestamp = std::move(json);
+        LOG_DEBUG << "Received Image repo Timestamp metadata:\n" << meta_pack.image_timestamp;
+      } else if (role == Uptane::Role::SNAPSHOT) {
+        meta_pack.image_snapshot = std::move(json);
+        LOG_DEBUG << "Received Image repo Snapshot metadata:\n" << meta_pack.image_snapshot;
+      } else if (role == Uptane::Role::TARGETS) {
+        meta_pack.image_targets = std::move(json);
+        LOG_DEBUG << "Received Image repo Targets metadata:\n" << meta_pack.image_targets;
+      } else {
+        LOG_WARNING << "Image metadata in unknown format:" << md->imageRepo.present;
+      }
+    }
   }
+
   bool ok = putMetadata(meta_pack);
 
   out_msg.present(AKIpUptaneMes_PR_putMetaResp).putMetaResp()->result =

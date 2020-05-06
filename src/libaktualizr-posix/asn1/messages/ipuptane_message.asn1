@@ -45,6 +45,16 @@ IpUptane DEFINITIONS ::= BEGIN
     ...
   }
 
+  -- Json format generic single metadata object
+  AKMetaJson ::= SEQUENCE {
+    role OCTET STRING,
+    json OCTET STRING,
+    ...
+  }
+
+  -- Collection of metadata objects from one repo
+  AKMetaCollection ::= SEQUENCE OF AKMetaJson
+
   AKGetInfoReqMes ::= SEQUENCE {
     ...
   }
@@ -68,13 +78,22 @@ IpUptane DEFINITIONS ::= BEGIN
     ...
   }
 
-
   AKPutMetaReqMes ::= SEQUENCE {
     image CHOICE {
       json AKImageMetaJson
     },
     director CHOICE {
       json AKDirectorMetaJson
+    },
+    ...
+  }
+
+  AKPutMetaReq2Mes ::= SEQUENCE {
+    imageRepo CHOICE {
+      collection AKMetaCollection
+    },
+    directorRepo CHOICE {
+      collection AKMetaCollection
     },
     ...
   }
@@ -140,6 +159,7 @@ IpUptane DEFINITIONS ::= BEGIN
     uploadDataResp [11] AKUploadDataRespMes,
     downloadOstreeRevReq [12] AKDownloadOstreeRevReqMes,
     downloadOstreeRevResp [13] AKDownloadOstreeRevRespMes,
+    putMetaReq2 [14] AKPutMetaReq2Mes,
     ...
   }
 
