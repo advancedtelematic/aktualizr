@@ -15,6 +15,8 @@ void PackageConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt
       CopyFromConfig(sysroot, cp.first, pt);
     } else if (cp.first == "ostree_server") {
       CopyFromConfig(ostree_server, cp.first, pt);
+    } else if (cp.first == "images_path") {
+      CopyFromConfig(images_path, cp.first, pt);
     } else if (cp.first == "packages_file") {
       CopyFromConfig(packages_file, cp.first, pt);
     } else if (cp.first == "fake_need_reboot") {
@@ -30,6 +32,7 @@ void PackageConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, os, "os");
   writeOption(out_stream, sysroot, "sysroot");
   writeOption(out_stream, ostree_server, "ostree_server");
+  writeOption(out_stream, images_path, "images_path");
   writeOption(out_stream, packages_file, "packages_file");
   writeOption(out_stream, fake_need_reboot, "fake_need_reboot");
 

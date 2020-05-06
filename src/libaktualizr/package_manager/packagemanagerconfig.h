@@ -28,6 +28,7 @@ struct PackageConfig {
   std::string os;
   boost::filesystem::path sysroot;
   std::string ostree_server;
+  boost::filesystem::path images_path{"/var/sota/images"};
   boost::filesystem::path packages_file{"/usr/package.manifest"};
 
   // Options for simulation (to be used with "none")
