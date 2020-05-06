@@ -12,6 +12,7 @@ class SecondaryProvider {
   SecondaryProvider(Config& config_in, const std::shared_ptr<const INvStorage>& storage_in)
       : config_(config_in), storage_(storage_in) {}
 
+  bool getMetadata(Uptane::MetaBundle* meta_bundle, const Uptane::Target& target) const;
   bool getDirectorMetadata(std::string* root, std::string* targets) const;
   bool getImageRepoMetadata(std::string* root, std::string* timestamp, std::string* snapshot,
                             std::string* targets) const;

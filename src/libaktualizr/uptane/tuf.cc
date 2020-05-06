@@ -463,3 +463,12 @@ int Uptane::extractVersionUntrusted(const std::string &meta) {
     return version_json.asInt();
   }
 }
+
+std::string Uptane::getMetaFromBundle(const MetaBundle &bundle, const RepositoryType repo, const Role &role) {
+  auto it = bundle.find(std::make_pair(repo, role));
+  if (it == bundle.end()) {
+    throw std::runtime_error("Metadata not found for " + role.ToString() + " role from the " + repo.toString() +
+                             " repository.");
+  }
+  return it->second;
+}

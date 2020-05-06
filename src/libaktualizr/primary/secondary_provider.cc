@@ -1,5 +1,32 @@
 #include "secondary_provider.h"
 
+bool SecondaryProvider::getMetadata(Uptane::MetaBundle* meta_bundle, const Uptane::Target& target) const {
+  std::string root;
+  std::string timestamp;
+  std::string snapshot;
+  std::string targets;
+
+  if (!getDirectorMetadata(&root, &targets)) {
+    return false;
+  }
+  meta_bundle->emplace(std::make_pair(Uptane::RepositoryType::Director(), Uptane::Role::Root()), root);
+  meta_bundle->emplace(std::make_pair(Uptane::RepositoryType::Director(), Uptane::Role::Targets()), targets);
+
+  if (!getImageRepoMetadata(&root, &timestamp, &snapshot, &targets)) {
+    return false;
+  }
+  meta_bundle->emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Root()), root);
+  meta_bundle->emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()), timestamp);
+  meta_bundle->emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()), snapshot);
+  meta_bundle->emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Targets()), targets);
+
+  // TODO: Support delegations for Secondaries. This is the purpose of providing
+  // the desired Target.
+  (void)target;
+
+  return true;
+}
+
 bool SecondaryProvider::getDirectorMetadata(std::string* root, std::string* targets) const {
   if (!storage_->loadLatestRoot(root, Uptane::RepositoryType::Director())) {
     LOG_ERROR << "No Director Root metadata to send";

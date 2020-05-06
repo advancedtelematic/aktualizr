@@ -9,10 +9,11 @@
 #include <map>
 #include <ostream>
 #include <set>
+#include <unordered_map>
 #include <vector>
-#include "uptane/exceptions.h"
 
 #include "crypto/crypto.h"
+#include "uptane/exceptions.h"
 #include "utilities/types.h"
 
 namespace Uptane {
@@ -494,14 +495,15 @@ class Snapshot : public BaseMeta {
   std::map<Uptane::Role, std::vector<Hash>> role_hashes_;
 };
 
-struct RawMetaPack {
-  std::string director_root;
-  std::string director_targets;
-  std::string image_root;
-  std::string image_targets;
-  std::string image_timestamp;
-  std::string image_snapshot;
+struct MetaPairHash {
+  std::size_t operator()(const std::pair<RepositoryType, Role> &pair) const {
+    return std::hash<std::string>()(pair.first.toString()) ^ std::hash<std::string>()(pair.second.ToString());
+  }
 };
+
+using MetaBundle = std::unordered_map<std::pair<RepositoryType, Role>, std::string, MetaPairHash>;
+
+std::string getMetaFromBundle(const MetaBundle &bundle, RepositoryType repo, const Role &role);
 
 int extractVersionUntrusted(const std::string &meta);  // returns negative number if parsing fails
 
