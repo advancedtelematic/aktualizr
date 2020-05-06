@@ -494,16 +494,6 @@ class Snapshot : public BaseMeta {
   std::map<Uptane::Role, std::vector<Hash>> role_hashes_;
 };
 
-struct MetaPack {
-  Root director_root;
-  Targets director_targets;
-  Root image_root;
-  Targets image_targets;
-  TimestampMeta image_timestamp;
-  Snapshot image_snapshot;
-  bool isConsistent() const;
-};
-
 struct RawMetaPack {
   std::string director_root;
   std::string director_targets;

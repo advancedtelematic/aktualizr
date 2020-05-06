@@ -34,6 +34,16 @@ class ManagedSecondaryConfig : public SecondaryConfig {
   KeyType key_type{KeyType::kRSA2048};
 };
 
+struct MetaPack {
+  Uptane::Root director_root;
+  Uptane::Targets director_targets;
+  Uptane::Root image_root;
+  Uptane::Targets image_targets;
+  Uptane::TimestampMeta image_timestamp;
+  Uptane::Snapshot image_snapshot;
+  bool isConsistent() const;
+};
+
 // ManagedSecondary is an abstraction over virtual and other types of legacy
 // (non-Uptane) Secondaries. They require any the Uptane-related functionality
 // to be implemented in aktualizr itself.
@@ -87,7 +97,7 @@ class ManagedSecondary : public SecondaryInterface {
   std::shared_ptr<SecondaryProvider> secondary_provider_;
   PublicKey public_key_;
   std::string private_key;
-  Uptane::MetaPack current_meta;
+  MetaPack current_meta;
   Uptane::RawMetaPack current_raw_meta;
 };
 

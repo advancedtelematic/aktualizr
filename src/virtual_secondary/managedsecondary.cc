@@ -195,4 +195,22 @@ bool ManagedSecondary::loadKeys(std::string *pub_key, std::string *priv_key) {
   return true;
 }
 
+bool MetaPack::isConsistent() const {
+  TimeStamp now(TimeStamp::Now());
+  try {
+    if (director_root.original() != Json::nullValue) {
+      Uptane::Root original_root(director_root);
+      Uptane::Root new_root(Uptane::RepositoryType::Director(), director_root.original(), new_root);
+      if (director_targets.original() != Json::nullValue) {
+        Uptane::Targets(Uptane::RepositoryType::Director(), Uptane::Role::Targets(), director_targets.original(),
+                        std::make_shared<Uptane::MetaWithKeys>(original_root));
+      }
+    }
+  } catch (const std::logic_error &exc) {
+    LOG_WARNING << "Inconsistent metadata: " << exc.what();
+    return false;
+  }
+  return true;
+}
+
 }  // namespace Primary
