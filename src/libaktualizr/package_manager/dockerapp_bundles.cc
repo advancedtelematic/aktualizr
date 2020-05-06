@@ -131,7 +131,19 @@ bool DockerAppBundles::fetchTarget(const Uptane::Target &target, Uptane::Fetcher
 }
 
 data::InstallationResult DockerAppBundles::install(const Uptane::Target &target) const {
-  auto res = OstreeManager::install(target);
+  data::InstallationResult res;
+  Uptane::Target current = OstreeManager::getCurrent();
+  if (current.sha256Hash() != target.sha256Hash()) {
+    res = OstreeManager::install(target);
+    if (res.result_code.num_code == data::ResultCode::Numeric::kInstallFailed) {
+      LOG_ERROR << "Failed to install OSTree target, skipping Docker Apps";
+      return res;
+    }
+  } else {
+    LOG_INFO << "Target " << target.sha256Hash() << " is same as current";
+    res = data::InstallationResult(data::ResultCode::Numeric::kOk, "OSTree hash already installed, same as current");
+  }
+
   handleRemovedApps(target);
   for (const auto &pair : iterate_apps(target)) {
     LOG_INFO << "Installing " << pair.first << " -> " << pair.second;
