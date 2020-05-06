@@ -86,6 +86,7 @@ class Asn1Message {
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKUploadDataRespMes_t, uploadDataResp);
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKDownloadOstreeRevReqMes_t, downloadOstreeRevReq);
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKDownloadOstreeRevRespMes_t, downloadOstreeRevResp);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKPutMetaReq2Mes_t, putMetaReq2);
 
 #define ASN1_MESSAGE_DEFINE_STR_NAME(MessageID) \
   case MessageID:                               \
@@ -110,6 +111,7 @@ class Asn1Message {
         ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_uploadDataResp);
         ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_downloadOstreeRevReq);
         ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_downloadOstreeRevResp);
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_putMetaReq2);
     }
     return "Unknown";
   };
@@ -159,4 +161,18 @@ void SetString(OCTET_STRING_t* dest, const std::string& str);
  */
 Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, int con_fd);
 Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, const std::pair<std::string, uint16_t>& addr);
+
+/*
+ * Helper function for creating pointers to ASN.1 types. Note that the encoder
+ * will free these objects for you.
+ */
+template <typename T>
+T* Asn1Allocation() {
+  auto ptr = static_cast<T*>(calloc(1, sizeof(T)));
+  if (!ptr) {
+    throw std::bad_alloc();
+  }
+  return ptr;
+}
+
 #endif  // ASN1_MESSAGE_H_
