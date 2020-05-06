@@ -1,7 +1,6 @@
 #include "sqlstorage.h"
 
 #include <sys/stat.h>
-#include <sys/statvfs.h>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -1685,25 +1684,6 @@ void SQLStorage::clearDeviceData() {
   if (db.exec("DELETE FROM device_data;", nullptr, nullptr) != SQLITE_OK) {
     LOG_ERROR << "Can't clear device_data: " << db.errmsg();
     return;
-  }
-}
-
-bool SQLStorage::checkAvailableDiskSpace(const uint64_t required_bytes) const {
-  struct statvfs stvfsbuf {};
-  const int stat_res = statvfs(dbPath().c_str(), &stvfsbuf);
-  if (stat_res < 0) {
-    LOG_WARNING << "Unable to read filesystem statistics: error code " << stat_res;
-    return true;
-  }
-  const uint64_t available_bytes = (static_cast<uint64_t>(stvfsbuf.f_bsize) * stvfsbuf.f_bavail);
-  const uint64_t reserved_bytes = 1 << 20;
-
-  if (required_bytes + reserved_bytes < available_bytes) {
-    return true;
-  } else {
-    LOG_ERROR << "Insufficient disk space available to download target! Required: " << required_bytes
-              << ", available: " << available_bytes << ", reserved: " << reserved_bytes;
-    return false;
   }
 }
 

@@ -1,5 +1,7 @@
 #include "packagemanagerinterface.h"
 
+#include <sys/statvfs.h>
+
 #include "http/httpclient.h"
 #include "logging/logging.h"
 
@@ -114,7 +116,7 @@ bool PackageManagerInterface::fetchTarget(const Uptane::Target& target, Uptane::
     }
 
     const uint64_t required_bytes = target.length() - ds->downloaded_length;
-    if (!storage_->checkAvailableDiskSpace(required_bytes)) {
+    if (checkAvailableDiskSpace(required_bytes)) {
       throw std::runtime_error("Insufficient disk space available to download target");
     }
 
@@ -191,4 +193,23 @@ TargetStatus PackageManagerInterface::verifyTarget(const Uptane::Target& target)
   }
 
   return TargetStatus::kGood;
+}
+
+bool PackageManagerInterface::checkAvailableDiskSpace(const uint64_t required_bytes) const {
+  struct statvfs stvfsbuf {};
+  const int stat_res = statvfs(config.images_path.c_str(), &stvfsbuf);
+  if (stat_res < 0) {
+    LOG_WARNING << "Unable to read filesystem statistics: error code " << stat_res;
+    return true;
+  }
+  const uint64_t available_bytes = (static_cast<uint64_t>(stvfsbuf.f_bsize) * stvfsbuf.f_bavail);
+  const uint64_t reserved_bytes = 1 << 20;
+
+  if (required_bytes + reserved_bytes < available_bytes) {
+    return true;
+  } else {
+    LOG_ERROR << "Insufficient disk space available to download target! Required: " << required_bytes
+              << ", available: " << available_bytes << ", reserved: " << reserved_bytes;
+    return false;
+  }
 }

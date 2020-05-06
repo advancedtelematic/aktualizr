@@ -100,8 +100,6 @@ class SQLStorage : public SQLStorageBase, public INvStorage {
   bool loadDeviceDataHash(const std::string& data_type, std::string* hash) const override;
   void clearDeviceData() override;
 
-  bool checkAvailableDiskSpace(uint64_t required_bytes) const override;
-
   std::unique_ptr<StorageTargetWHandle> allocateTargetFile(const Uptane::Target& target) override;
   std::unique_ptr<StorageTargetRHandle> openTargetFile(const Uptane::Target& target) const override;
   boost::optional<std::pair<uintmax_t, std::string>> checkTargetFile(const Uptane::Target& target) const override;

@@ -219,7 +219,6 @@ class INvStorage {
   virtual bool loadDeviceDataHash(const std::string& data_type, std::string* hash) const = 0;
   virtual void clearDeviceData() = 0;
 
-  virtual bool checkAvailableDiskSpace(uint64_t required_bytes) const = 0;
   virtual boost::optional<std::pair<uintmax_t, std::string>> checkTargetFile(const Uptane::Target& target) const = 0;
 
   // Incremental file API
