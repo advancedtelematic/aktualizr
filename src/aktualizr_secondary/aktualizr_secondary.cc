@@ -66,26 +66,13 @@ bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
   // 5.4.4.2. Full verification  https://uptane.github.io/uptane-standard/uptane-standard.html#metadata_verification
 
   // 1. Load and verify the current time or the most recent securely attested time.
-  //
-  //    We trust the time that the given system/OS/ECU provides, In ECU We Trust :)
+  //    We trust the time that the given system/ECU provides.
   TimeStamp now(TimeStamp::Now());
 
-  // 2. Download and check the Root metadata file from the Director repository, following the procedure in
-  // Section 5.4.4.3. DirectorRepository::updateMeta() method implements this verification step, certain steps are
-  // missing though. see the method source code for details
-
-  // 3. NOT SUPPORTED: Download and check the Timestamp metadata file from the Director repository, following the
-  // procedure in Section 5.4.4.4.
-  // 4. NOT SUPPORTED: Download and check the Snapshot metadata file from the Director repository, following the
-  // procedure in Section 5.4.4.5.
-  //
-  // 5. Download and check the Targets metadata file from the Director repository, following the procedure in
-  // Section 5.4.4.6. DirectorRepository::updateMeta() method implements this verification step
-  //
-  // The following steps of the Director's Targets metadata verification are missing in DirectorRepository::updateMeta()
-  //  6. If checking Targets metadata from the Director repository, verify that there are no delegations.
-  //  7. If checking Targets metadata from the Director repository, check that no ECU identifier is represented more
-  //  than once.
+  // 2. Download and check the Root metadata file from the Director repository.
+  // 3. NOT SUPPORTED: Download and check the Timestamp metadata file from the Director repository.
+  // 4. NOT SUPPORTED: Download and check the Snapshot metadata file from the Director repository.
+  // 5. Download and check the Targets metadata file from the Director repository.
   try {
     director_repo_.updateMeta(*storage_, metadata);
   } catch (const std::exception& e) {
@@ -93,13 +80,10 @@ bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
     return false;
   }
 
-  // 6. Download and check the Root metadata file from the Image repository, following the procedure in Section 5.4.4.3.
-  // 7. Download and check the Timestamp metadata file from the Image repository, following the procedure in
-  // Section 5.4.4.4.
-  // 8. Download and check the Snapshot metadata file from the Image repository, following the procedure in
-  // Section 5.4.4.5.
-  // 9. Download and check the top-level Targets metadata file from the Image repository, following the procedure in
-  // Section 5.4.4.6.
+  // 6. Download and check the Root metadata file from the Image repository.
+  // 7. Download and check the Timestamp metadata file from the Image repository.
+  // 8. Download and check the Snapshot metadata file from the Image repository.
+  // 9. Download and check the top-level Targets metadata file from the Image repository.
   try {
     image_repo_.updateMeta(*storage_, metadata);
   } catch (const std::exception& e) {
