@@ -108,6 +108,21 @@ bool IpUptaneSecondary::putMetadata(const Target& target) {
   }
 
   LOG_INFO << "Sending Uptane metadata to the Secondary";
+
+  bool put_result = putMetadata_v2(meta_pack);
+  if (!put_result) {
+    // Fall back to the previous metadata sending version.
+    // TODO(OTA-4793): refactor to negotiate versioning once during
+    // initialization.
+    LOG_ERROR << "Failed to send metadata for target " << target.filename() << " to Secondary " << getSerial()
+              << "\nFalling back to previous version of the metadata sending procedure.";
+
+    put_result = putMetadata_v1(meta_pack);
+  }
+  return put_result;
+}
+
+bool IpUptaneSecondary::putMetadata_v1(const Uptane::RawMetaPack& meta_pack) {
   Asn1Message::Ptr req(Asn1Message::Empty());
   req->present(AKIpUptaneMes_PR_putMetaReq);
 
@@ -125,7 +140,62 @@ bool IpUptaneSecondary::putMetadata(const Target& target) {
   auto resp = Asn1Rpc(req, getAddr());
 
   if (resp->present() != AKIpUptaneMes_PR_putMetaResp) {
-    LOG_ERROR << "Failed to get response to sending manifest to Secondary";
+    LOG_ERROR << "Failed to get response from sending metadata to Secondary";
+    return false;
+  }
+
+  auto r = resp->putMetaResp();
+  return r->result == AKInstallationResult_success;
+}
+
+bool IpUptaneSecondary::putMetadata_v2(const Uptane::RawMetaPack& meta_pack) {
+  Asn1Message::Ptr req(Asn1Message::Empty());
+  req->present(AKIpUptaneMes_PR_putMetaReq2);
+
+  auto m = req->putMetaReq2();
+  m->directorRepo.present = directorRepo_PR_collection;
+  m->imageRepo.present = imageRepo_PR_collection;
+
+  auto director_root = Asn1Allocation<AKMetaJson_t>();
+  SetString(&director_root->role, Uptane::Role::ROOT);
+  SetString(&director_root->json, meta_pack.director_root);
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+  ASN_SEQUENCE_ADD(&m->directorRepo.choice.collection, director_root);
+
+  auto director_targets = Asn1Allocation<AKMetaJson_t>();
+  SetString(&director_targets->role, Uptane::Role::TARGETS);
+  SetString(&director_targets->json, meta_pack.director_targets);
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+  ASN_SEQUENCE_ADD(&m->directorRepo.choice.collection, director_targets);
+
+  auto image_root = Asn1Allocation<AKMetaJson_t>();
+  SetString(&image_root->role, Uptane::Role::ROOT);
+  SetString(&image_root->json, meta_pack.image_root);
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+  ASN_SEQUENCE_ADD(&m->imageRepo.choice.collection, image_root);
+
+  auto image_timestamp = Asn1Allocation<AKMetaJson_t>();
+  SetString(&image_timestamp->role, Uptane::Role::TIMESTAMP);
+  SetString(&image_timestamp->json, meta_pack.image_timestamp);
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+  ASN_SEQUENCE_ADD(&m->imageRepo.choice.collection, image_timestamp);
+
+  auto image_snapshot = Asn1Allocation<AKMetaJson_t>();
+  SetString(&image_snapshot->role, Uptane::Role::SNAPSHOT);
+  SetString(&image_snapshot->json, meta_pack.image_snapshot);
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+  ASN_SEQUENCE_ADD(&m->imageRepo.choice.collection, image_snapshot);
+
+  auto image_targets = Asn1Allocation<AKMetaJson_t>();
+  SetString(&image_targets->role, Uptane::Role::TARGETS);
+  SetString(&image_targets->json, meta_pack.image_targets);
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+  ASN_SEQUENCE_ADD(&m->imageRepo.choice.collection, image_targets);
+
+  auto resp = Asn1Rpc(req, getAddr());
+
+  if (resp->present() != AKIpUptaneMes_PR_putMetaResp) {
+    LOG_ERROR << "Failed to get response from sending metadata to Secondary";
     return false;
   }
 
@@ -169,7 +239,7 @@ bool IpUptaneSecondary::ping() const {
 data::ResultCode::Numeric IpUptaneSecondary::sendFirmware(const Uptane::Target& target) {
   auto send_result = sendFirmware_v2(target);
   if (send_result == data::ResultCode::Numeric::kUnknown) {
-    // fallback to the previous installation version
+    // Fall back to the previous installation version.
     // TODO(OTA-4793): refactor to negotiate versioning once during
     // initialization.
     LOG_ERROR << "Failed to send firmware for target " << target.filename() << " to Secondary " << getSerial()
@@ -228,7 +298,7 @@ data::ResultCode::Numeric IpUptaneSecondary::install(const Uptane::Target& targe
   std::lock_guard<std::mutex> l(install_mutex);
   auto install_result = install_v2(target);
   if (install_result == data::ResultCode::Numeric::kUnknown) {
-    // fallback to the previous installation version
+    // Fall back to the previous installation version.
     // TODO(OTA-4793): refactor to negotiate versioning once during
     // initialization.
     LOG_ERROR << "Failed to install " << target.filename() << " on Secondary " << getSerial()
