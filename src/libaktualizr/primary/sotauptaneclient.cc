@@ -1229,18 +1229,18 @@ void SotaUptaneClient::storeInstallationFailure(const data::InstallationResult &
   director_repo.dropTargets(*storage);
 }
 
+/* If the Root has been rotated more than once, we need to provide the Secondary
+ * with the incremental steps from what it has now. */
 void SotaUptaneClient::rotateSecondaryRoot(Uptane::RepositoryType repo, SecondaryInterface &secondary) {
   std::string latest_root;
-
   if (!storage->loadLatestRoot(&latest_root, repo)) {
     LOG_ERROR << "No Root metadata to send";
     return;
   }
 
-  int last_root_version = Uptane::extractVersionUntrusted(latest_root);
-
-  int sec_root_version = secondary.getRootVersion((repo == Uptane::RepositoryType::Director()));
-  if (sec_root_version >= 0) {
+  const int last_root_version = Uptane::extractVersionUntrusted(latest_root);
+  const int sec_root_version = secondary.getRootVersion((repo == Uptane::RepositoryType::Director()));
+  if (sec_root_version > 0 && last_root_version - sec_root_version > 1) {
     for (int v = sec_root_version + 1; v <= last_root_version; v++) {
       std::string root;
       if (!storage->loadRoot(&root, repo, Uptane::Version(v))) {

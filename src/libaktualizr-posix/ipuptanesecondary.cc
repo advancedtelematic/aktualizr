@@ -95,21 +95,13 @@ IpUptaneSecondary::IpUptaneSecondary(const std::string& address, unsigned short 
     : addr_{address, port}, serial_{std::move(serial)}, hw_id_{std::move(hw_id)}, pub_key_{std::move(pub_key)} {}
 
 bool IpUptaneSecondary::putMetadata(const Target& target) {
-  (void)target;
-  Uptane::RawMetaPack meta_pack;
-  if (!secondary_provider_->getDirectorMetadata(&meta_pack.director_root, &meta_pack.director_targets)) {
-    LOG_ERROR << "Unable to read Director metadata.";
-    return false;
-  }
-  if (!secondary_provider_->getImageRepoMetadata(&meta_pack.image_root, &meta_pack.image_timestamp,
-                                                 &meta_pack.image_snapshot, &meta_pack.image_targets)) {
-    LOG_ERROR << "Unable to read Image repo metadata.";
+  Uptane::MetaBundle meta_bundle;
+  if (!secondary_provider_->getMetadata(&meta_bundle, target)) {
     return false;
   }
 
   LOG_INFO << "Sending Uptane metadata to the Secondary";
-
-  bool put_result = putMetadata_v2(meta_pack);
+  bool put_result = putMetadata_v2(meta_bundle);
   if (!put_result) {
     // Fall back to the previous metadata sending version.
     // TODO(OTA-4793): refactor to negotiate versioning once during
@@ -117,25 +109,37 @@ bool IpUptaneSecondary::putMetadata(const Target& target) {
     LOG_ERROR << "Failed to send metadata for target " << target.filename() << " to Secondary " << getSerial()
               << "\nFalling back to previous version of the metadata sending procedure.";
 
-    put_result = putMetadata_v1(meta_pack);
+    put_result = putMetadata_v1(meta_bundle);
   }
   return put_result;
 }
 
-bool IpUptaneSecondary::putMetadata_v1(const Uptane::RawMetaPack& meta_pack) {
+bool IpUptaneSecondary::putMetadata_v1(const Uptane::MetaBundle& meta_bundle) {
   Asn1Message::Ptr req(Asn1Message::Empty());
   req->present(AKIpUptaneMes_PR_putMetaReq);
 
   auto m = req->putMetaReq();
-  m->image.present = image_PR_json;
-  SetString(&m->image.choice.json.root, meta_pack.image_root);            // NOLINT
-  SetString(&m->image.choice.json.targets, meta_pack.image_targets);      // NOLINT
-  SetString(&m->image.choice.json.snapshot, meta_pack.image_snapshot);    // NOLINT
-  SetString(&m->image.choice.json.timestamp, meta_pack.image_timestamp);  // NOLINT
-
   m->director.present = director_PR_json;
-  SetString(&m->director.choice.json.root, meta_pack.director_root);        // NOLINT
-  SetString(&m->director.choice.json.targets, meta_pack.director_targets);  // NOLINT
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+  SetString(&m->director.choice.json.root,
+            getMetaFromBundle(meta_bundle, Uptane::RepositoryType::Director(), Uptane::Role::Root()));
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+  SetString(&m->director.choice.json.targets,
+            getMetaFromBundle(meta_bundle, Uptane::RepositoryType::Director(), Uptane::Role::Targets()));
+
+  m->image.present = image_PR_json;
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+  SetString(&m->image.choice.json.root,
+            getMetaFromBundle(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Root()));
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+  SetString(&m->image.choice.json.timestamp,
+            getMetaFromBundle(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()));
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+  SetString(&m->image.choice.json.snapshot,
+            getMetaFromBundle(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()));
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+  SetString(&m->image.choice.json.targets,
+            getMetaFromBundle(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Targets()));
 
   auto resp = Asn1Rpc(req, getAddr());
 
@@ -148,7 +152,7 @@ bool IpUptaneSecondary::putMetadata_v1(const Uptane::RawMetaPack& meta_pack) {
   return r->result == AKInstallationResult_success;
 }
 
-bool IpUptaneSecondary::putMetadata_v2(const Uptane::RawMetaPack& meta_pack) {
+bool IpUptaneSecondary::putMetadata_v2(const Uptane::MetaBundle& meta_bundle) {
   Asn1Message::Ptr req(Asn1Message::Empty());
   req->present(AKIpUptaneMes_PR_putMetaReq2);
 
@@ -158,37 +162,42 @@ bool IpUptaneSecondary::putMetadata_v2(const Uptane::RawMetaPack& meta_pack) {
 
   auto director_root = Asn1Allocation<AKMetaJson_t>();
   SetString(&director_root->role, Uptane::Role::ROOT);
-  SetString(&director_root->json, meta_pack.director_root);
+  SetString(&director_root->json,
+            getMetaFromBundle(meta_bundle, Uptane::RepositoryType::Director(), Uptane::Role::Root()));
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
   ASN_SEQUENCE_ADD(&m->directorRepo.choice.collection, director_root);
 
   auto director_targets = Asn1Allocation<AKMetaJson_t>();
   SetString(&director_targets->role, Uptane::Role::TARGETS);
-  SetString(&director_targets->json, meta_pack.director_targets);
+  SetString(&director_targets->json,
+            getMetaFromBundle(meta_bundle, Uptane::RepositoryType::Director(), Uptane::Role::Targets()));
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
   ASN_SEQUENCE_ADD(&m->directorRepo.choice.collection, director_targets);
 
   auto image_root = Asn1Allocation<AKMetaJson_t>();
   SetString(&image_root->role, Uptane::Role::ROOT);
-  SetString(&image_root->json, meta_pack.image_root);
+  SetString(&image_root->json, getMetaFromBundle(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Root()));
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
   ASN_SEQUENCE_ADD(&m->imageRepo.choice.collection, image_root);
 
   auto image_timestamp = Asn1Allocation<AKMetaJson_t>();
   SetString(&image_timestamp->role, Uptane::Role::TIMESTAMP);
-  SetString(&image_timestamp->json, meta_pack.image_timestamp);
+  SetString(&image_timestamp->json,
+            getMetaFromBundle(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()));
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
   ASN_SEQUENCE_ADD(&m->imageRepo.choice.collection, image_timestamp);
 
   auto image_snapshot = Asn1Allocation<AKMetaJson_t>();
   SetString(&image_snapshot->role, Uptane::Role::SNAPSHOT);
-  SetString(&image_snapshot->json, meta_pack.image_snapshot);
+  SetString(&image_snapshot->json,
+            getMetaFromBundle(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()));
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
   ASN_SEQUENCE_ADD(&m->imageRepo.choice.collection, image_snapshot);
 
   auto image_targets = Asn1Allocation<AKMetaJson_t>();
   SetString(&image_targets->role, Uptane::Role::TARGETS);
-  SetString(&image_targets->json, meta_pack.image_targets);
+  SetString(&image_targets->json,
+            getMetaFromBundle(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Targets()));
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
   ASN_SEQUENCE_ADD(&m->imageRepo.choice.collection, image_targets);
 

@@ -36,8 +36,8 @@ class IpUptaneSecondary : public SecondaryInterface {
 
  private:
   const std::pair<std::string, uint16_t>& getAddr() const { return addr_; }
-  bool putMetadata_v1(const Uptane::RawMetaPack& meta_pack);
-  bool putMetadata_v2(const Uptane::RawMetaPack& meta_pack);
+  bool putMetadata_v1(const Uptane::MetaBundle& meta_bundle);
+  bool putMetadata_v2(const Uptane::MetaBundle& meta_bundle);
   data::ResultCode::Numeric sendFirmware_v1(const Uptane::Target& target);
   data::ResultCode::Numeric sendFirmware_v2(const Uptane::Target& target);
   data::ResultCode::Numeric install_v1(const Uptane::Target& target);

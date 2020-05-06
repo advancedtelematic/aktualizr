@@ -18,8 +18,7 @@
 namespace Primary {
 
 ManagedSecondary::ManagedSecondary(Primary::ManagedSecondaryConfig sconfig_in) : sconfig(std::move(sconfig_in)) {
-  // TODO: FIX
-  // loadMetadata(meta_pack);
+  loadMetadata();
   std::string public_key_string;
 
   if (!loadKeys(&public_key_string, &private_key)) {
@@ -63,38 +62,37 @@ void ManagedSecondary::Initialize() {
 
 void ManagedSecondary::rawToMeta() {
   // raw meta is trusted
-  current_meta.director_root =
-      Uptane::Root(Uptane::RepositoryType::Director(), Utils::parseJSON(current_raw_meta.director_root));
-  current_meta.director_targets = Uptane::Targets(Utils::parseJSON(current_raw_meta.director_targets));
-  current_meta.image_root =
-      Uptane::Root(Uptane::RepositoryType::Image(), Utils::parseJSON(current_raw_meta.image_root));
-  current_meta.image_targets = Uptane::Targets(Utils::parseJSON(current_raw_meta.image_targets));
-  current_meta.image_timestamp = Uptane::TimestampMeta(Utils::parseJSON(current_raw_meta.image_timestamp));
-  current_meta.image_snapshot = Uptane::Snapshot(Utils::parseJSON(current_raw_meta.image_snapshot));
+  current_meta.director_root = Uptane::Root(
+      Uptane::RepositoryType::Director(),
+      Utils::parseJSON(getMetaFromBundle(meta_bundle_, Uptane::RepositoryType::Director(), Uptane::Role::Root())));
+  current_meta.director_targets = Uptane::Targets(
+      Utils::parseJSON(getMetaFromBundle(meta_bundle_, Uptane::RepositoryType::Director(), Uptane::Role::Targets())));
+  current_meta.image_root = Uptane::Root(
+      Uptane::RepositoryType::Image(),
+      Utils::parseJSON(getMetaFromBundle(meta_bundle_, Uptane::RepositoryType::Image(), Uptane::Role::Root())));
+  current_meta.image_timestamp = Uptane::TimestampMeta(
+      Utils::parseJSON(getMetaFromBundle(meta_bundle_, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp())));
+  current_meta.image_snapshot = Uptane::Snapshot(
+      Utils::parseJSON(getMetaFromBundle(meta_bundle_, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot())));
+  current_meta.image_targets = Uptane::Targets(
+      Utils::parseJSON(getMetaFromBundle(meta_bundle_, Uptane::RepositoryType::Image(), Uptane::Role::Targets())));
 }
 
 bool ManagedSecondary::putMetadata(const Uptane::Target &target) {
-  (void)target;
-  Uptane::RawMetaPack meta;
-  if (!secondary_provider_->getDirectorMetadata(&meta.director_root, &meta.director_targets)) {
-    LOG_ERROR << "Unable to read Director metadata.";
-    return false;
-  }
-  if (!secondary_provider_->getImageRepoMetadata(&meta.image_root, &meta.image_timestamp, &meta.image_snapshot,
-                                                 &meta.image_targets)) {
-    LOG_ERROR << "Unable to read Image repo metadata.";
+  Uptane::MetaBundle temp_bundle;
+  if (!secondary_provider_->getMetadata(&temp_bundle, target)) {
     return false;
   }
 
   // No verification is currently performed, we can add verification in future for testing purposes
   detected_attack = "";
 
-  current_raw_meta = meta;
-  rawToMeta();  // current_raw_meta -> current_meta
+  meta_bundle_ = std::move(temp_bundle);
+  rawToMeta();  // meta_bundle_ -> current_meta
   if (!current_meta.isConsistent()) {
     return false;
   }
-  storeMetadata(current_raw_meta);
+  storeMetadata();
 
   return true;
 }
@@ -107,15 +105,15 @@ int ManagedSecondary::getRootVersion(const bool director) const {
 }
 
 bool ManagedSecondary::putRoot(const std::string &root, const bool director) {
+  const Uptane::RepositoryType repo = (director) ? Uptane::RepositoryType::Director() : Uptane::RepositoryType::Image();
   Uptane::Root &prev_root = (director) ? current_meta.director_root : current_meta.image_root;
-  std::string &prev_raw_root = (director) ? current_raw_meta.director_root : current_raw_meta.image_root;
-  Uptane::Root new_root = Uptane::Root(
-      (director) ? Uptane::RepositoryType::Director() : Uptane::RepositoryType::Image(), Utils::parseJSON(root));
+  const std::string prev_raw_root = getMetaFromBundle(meta_bundle_, repo, Uptane::Role::Root());
+  Uptane::Root new_root = Uptane::Root(repo, Utils::parseJSON(root));
 
   // No verification is currently performed, we can add verification in future for testing purposes
   if (new_root.version() == prev_root.version() + 1) {
     prev_root = new_root;
-    prev_raw_root = root;
+    meta_bundle_.insert({std::make_pair(repo, Uptane::Role::Root()), root});
   } else {
     detected_attack = "Tried to update Root version " + std::to_string(prev_root.version()) + " with version " +
                       std::to_string(new_root.version());
@@ -124,7 +122,7 @@ bool ManagedSecondary::putRoot(const std::string &root, const bool director) {
   if (!current_meta.isConsistent()) {
     return false;
   }
-  storeMetadata(current_raw_meta);
+  storeMetadata();
   return true;
 }
 

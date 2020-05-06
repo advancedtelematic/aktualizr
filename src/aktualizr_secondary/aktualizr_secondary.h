@@ -23,7 +23,7 @@ class AktualizrSecondary : public MsgDispatcher {
   Uptane::Manifest getManifest() const;
 
   virtual bool putMetadata(const Metadata& metadata);
-  virtual bool putMetadata(const Uptane::RawMetaPack& meta_pack) { return putMetadata(Metadata(meta_pack)); }
+  virtual bool putMetadata(const Uptane::MetaBundle& meta_bundle) { return putMetadata(Metadata(meta_bundle)); }
 
   virtual data::ResultCode::Numeric install();
   virtual void completeInstall() = 0;

@@ -222,7 +222,7 @@ AktualizrSecondary::ReturnCode AktualizrSecondary::getManifestHdlr(Asn1Message& 
 
 AktualizrSecondary::ReturnCode AktualizrSecondary::putMetaHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
   auto md = in_msg.putMetaReq2();
-  Uptane::RawMetaPack meta_pack;
+  Uptane::MetaBundle meta_bundle;
 
   // TODO: what happens if something expected is missing? Or if something
   // appears twice?
@@ -235,11 +235,12 @@ AktualizrSecondary::ReturnCode AktualizrSecondary::putMetaHdlr(Asn1Message& in_m
       const std::string role = ToString(object.role);
       std::string json = ToString(object.json);
       if (role == Uptane::Role::ROOT) {
-        meta_pack.director_root = std::move(json);
-        LOG_DEBUG << "Received Director repo Root metadata:\n" << meta_pack.director_root;
+        LOG_DEBUG << "Received Director repo Root metadata:\n" << json;
+        meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Director(), Uptane::Role::Root()), std::move(json));
       } else if (role == Uptane::Role::TARGETS) {
-        meta_pack.director_targets = std::move(json);
-        LOG_DEBUG << "Received Director repo Targets metadata:\n" << meta_pack.director_targets;
+        LOG_DEBUG << "Received Director repo Targets metadata:\n" << json;
+        meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Director(), Uptane::Role::Targets()),
+                            std::move(json));
       } else {
         LOG_WARNING << "Director metadata in unknown format:" << md->directorRepo.present;
       }
@@ -255,24 +256,25 @@ AktualizrSecondary::ReturnCode AktualizrSecondary::putMetaHdlr(Asn1Message& in_m
       const std::string role = ToString(object.role);
       std::string json = ToString(object.json);
       if (role == Uptane::Role::ROOT) {
-        meta_pack.image_root = std::move(json);
-        LOG_DEBUG << "Received Image repo Root metadata:\n" << meta_pack.image_root;
+        LOG_DEBUG << "Received Image repo Root metadata:\n" << json;
+        meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Root()), std::move(json));
       } else if (role == Uptane::Role::TIMESTAMP) {
-        meta_pack.image_timestamp = std::move(json);
-        LOG_DEBUG << "Received Image repo Timestamp metadata:\n" << meta_pack.image_timestamp;
+        LOG_DEBUG << "Received Image repo Timestamp metadata:\n" << json;
+        meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()),
+                            std::move(json));
       } else if (role == Uptane::Role::SNAPSHOT) {
-        meta_pack.image_snapshot = std::move(json);
-        LOG_DEBUG << "Received Image repo Snapshot metadata:\n" << meta_pack.image_snapshot;
+        LOG_DEBUG << "Received Image repo Snapshot metadata:\n" << json;
+        meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()), std::move(json));
       } else if (role == Uptane::Role::TARGETS) {
-        meta_pack.image_targets = std::move(json);
-        LOG_DEBUG << "Received Image repo Targets metadata:\n" << meta_pack.image_targets;
+        LOG_DEBUG << "Received Image repo Targets metadata:\n" << json;
+        meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Targets()), std::move(json));
       } else {
         LOG_WARNING << "Image metadata in unknown format:" << md->imageRepo.present;
       }
     }
   }
 
-  bool ok = putMetadata(meta_pack);
+  bool ok = putMetadata(meta_bundle);
 
   out_msg.present(AKIpUptaneMes_PR_putMetaResp).putMetaResp()->result =
       ok ? AKInstallationResult_success : AKInstallationResult_failure;

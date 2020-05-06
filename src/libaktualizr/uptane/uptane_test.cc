@@ -569,22 +569,15 @@ class SecondaryInterfaceMock : public SecondaryInterface {
   }
   Uptane::Manifest getManifest() const override { return manifest_; }
   bool ping() const override { return true; }
-  MOCK_METHOD(bool, putMetadataMock, (const Uptane::RawMetaPack &));
+  MOCK_METHOD(bool, putMetadataMock, (const Uptane::MetaBundle &));
   MOCK_METHOD(int32_t, getRootVersionMock, (bool), (const));
 
   bool putMetadata(const Uptane::Target &target) override {
-    (void)target;
-    Uptane::RawMetaPack meta;
-    if (!secondary_provider_->getDirectorMetadata(&meta.director_root, &meta.director_targets)) {
-      LOG_ERROR << "Unable to read Director metadata.";
+    Uptane::MetaBundle meta_bundle;
+    if (!secondary_provider_->getMetadata(&meta_bundle, target)) {
       return false;
     }
-    if (!secondary_provider_->getImageRepoMetadata(&meta.image_root, &meta.image_timestamp, &meta.image_snapshot,
-                                                   &meta.image_targets)) {
-      LOG_ERROR << "Unable to read Image repo metadata.";
-      return false;
-    }
-    putMetadataMock(meta);
+    putMetadataMock(meta_bundle);
     return true;
   }
   int32_t getRootVersion(bool director) const override { return getRootVersionMock(director); }
@@ -602,11 +595,7 @@ class SecondaryInterfaceMock : public SecondaryInterface {
   Primary::VirtualSecondaryConfig sconfig;
 };
 
-MATCHER_P(matchMeta, meta, "") {
-  return (arg.director_root == meta.director_root) && (arg.image_root == meta.image_root) &&
-         (arg.director_targets == meta.director_targets) && (arg.image_timestamp == meta.image_timestamp) &&
-         (arg.image_snapshot == meta.image_snapshot) && (arg.image_targets == meta.image_targets);
-}
+MATCHER_P(matchMeta, meta_bundle, "") { return (arg == meta_bundle); }
 
 /*
  * Send metadata to Secondary ECUs
@@ -642,15 +631,22 @@ TEST(Uptane, SendMetadataToSecondary) {
   result::UpdateCheck update_result = up->fetchMeta();
   EXPECT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
 
-  Uptane::RawMetaPack meta;
-  storage->loadLatestRoot(&meta.director_root, Uptane::RepositoryType::Director());
-  storage->loadNonRoot(&meta.director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets());
-  storage->loadLatestRoot(&meta.image_root, Uptane::RepositoryType::Image());
-  storage->loadNonRoot(&meta.image_timestamp, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp());
-  storage->loadNonRoot(&meta.image_snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot());
-  storage->loadNonRoot(&meta.image_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets());
+  Uptane::MetaBundle meta_bundle;
+  std::string metadata;
+  storage->loadLatestRoot(&metadata, Uptane::RepositoryType::Director());
+  meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Director(), Uptane::Role::Root()), metadata);
+  storage->loadNonRoot(&metadata, Uptane::RepositoryType::Director(), Uptane::Role::Targets());
+  meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Director(), Uptane::Role::Targets()), metadata);
+  storage->loadLatestRoot(&metadata, Uptane::RepositoryType::Image());
+  meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Root()), metadata);
+  storage->loadNonRoot(&metadata, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp());
+  meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()), metadata);
+  storage->loadNonRoot(&metadata, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot());
+  meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()), metadata);
+  storage->loadNonRoot(&metadata, Uptane::RepositoryType::Image(), Uptane::Role::Targets());
+  meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Targets()), metadata);
 
-  EXPECT_CALL(*sec, putMetadataMock(matchMeta(meta)));
+  EXPECT_CALL(*sec, putMetadataMock(matchMeta(meta_bundle)));
   result::Download download_result = up->downloadImages(update_result.updates);
   EXPECT_EQ(download_result.status, result::DownloadStatus::kSuccess);
   result::Install install_result = up->uptaneInstall(download_result.updates);

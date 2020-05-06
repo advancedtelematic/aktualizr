@@ -87,18 +87,15 @@ class ManagedSecondary : public SecondaryInterface {
   void storeKeys(const std::string& pub_key, const std::string& priv_key);
   void rawToMeta();
 
-  // TODO: implement
-  void storeMetadata(const Uptane::RawMetaPack& meta_pack) { (void)meta_pack; }
-  bool loadMetadata(Uptane::RawMetaPack* meta_pack) {
-    (void)meta_pack;
-    return true;
-  }
+  // TODO: implement persistent storage.
+  bool storeMetadata() { return true; }
+  bool loadMetadata() { return true; }
 
   std::shared_ptr<SecondaryProvider> secondary_provider_;
   PublicKey public_key_;
   std::string private_key;
   MetaPack current_meta;
-  Uptane::RawMetaPack current_raw_meta;
+  Uptane::MetaBundle meta_bundle_;
 };
 
 }  // namespace Primary
