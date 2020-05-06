@@ -83,11 +83,11 @@ void SQLStorage::storePrimaryKeys(const std::string& public_key, const std::stri
   }
 }
 
-bool SQLStorage::loadPrimaryKeys(std::string* public_key, std::string* private_key) {
+bool SQLStorage::loadPrimaryKeys(std::string* public_key, std::string* private_key) const {
   return loadPrimaryPublic(public_key) && loadPrimaryPrivate(private_key);
 }
 
-bool SQLStorage::loadPrimaryPublic(std::string* public_key) {
+bool SQLStorage::loadPrimaryPublic(std::string* public_key) const {
   SQLite3Guard db = dbConnection();
 
   auto statement = db.prepareStatement("SELECT public FROM primary_keys LIMIT 1;");
@@ -113,7 +113,7 @@ bool SQLStorage::loadPrimaryPublic(std::string* public_key) {
   return true;
 }
 
-bool SQLStorage::loadPrimaryPrivate(std::string* private_key) {
+bool SQLStorage::loadPrimaryPrivate(std::string* private_key) const {
   SQLite3Guard db = dbConnection();
 
   auto statement = db.prepareStatement("SELECT private FROM primary_keys LIMIT 1;");
@@ -214,7 +214,7 @@ void SQLStorage::saveSecondaryData(const Uptane::EcuSerial& ecu_serial, const st
   db.commitTransaction();
 }
 
-bool SQLStorage::loadSecondaryInfo(const Uptane::EcuSerial& ecu_serial, SecondaryInfo* secondary) {
+bool SQLStorage::loadSecondaryInfo(const Uptane::EcuSerial& ecu_serial, SecondaryInfo* secondary) const {
   SQLite3Guard db = dbConnection();
 
   SecondaryInfo new_sec{};
@@ -257,7 +257,7 @@ bool SQLStorage::loadSecondaryInfo(const Uptane::EcuSerial& ecu_serial, Secondar
   return true;
 }
 
-bool SQLStorage::loadSecondariesInfo(std::vector<SecondaryInfo>* secondaries) {
+bool SQLStorage::loadSecondariesInfo(std::vector<SecondaryInfo>* secondaries) const {
   SQLite3Guard db = dbConnection();
 
   std::vector<SecondaryInfo> new_secs;
@@ -386,7 +386,7 @@ void SQLStorage::storeTlsPkey(const std::string& pkey) {
   db.commitTransaction();
 }
 
-bool SQLStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* pkey) {
+bool SQLStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* pkey) const {
   SQLite3Guard db = dbConnection();
 
   db.beginTransaction();
@@ -435,7 +435,7 @@ void SQLStorage::clearTlsCreds() {
   }
 }
 
-bool SQLStorage::loadTlsCa(std::string* ca) {
+bool SQLStorage::loadTlsCa(std::string* ca) const {
   SQLite3Guard db = dbConnection();
 
   auto statement = db.prepareStatement("SELECT ca_cert FROM tls_creds LIMIT 1;");
@@ -461,7 +461,7 @@ bool SQLStorage::loadTlsCa(std::string* ca) {
   return true;
 }
 
-bool SQLStorage::loadTlsCert(std::string* cert) {
+bool SQLStorage::loadTlsCert(std::string* cert) const {
   SQLite3Guard db = dbConnection();
 
   auto statement = db.prepareStatement("SELECT client_cert FROM tls_creds LIMIT 1;");
@@ -487,7 +487,7 @@ bool SQLStorage::loadTlsCert(std::string* cert) {
   return true;
 }
 
-bool SQLStorage::loadTlsPkey(std::string* pkey) {
+bool SQLStorage::loadTlsPkey(std::string* pkey) const {
   SQLite3Guard db = dbConnection();
 
   auto statement = db.prepareStatement("SELECT client_pkey FROM tls_creds LIMIT 1;");
@@ -564,7 +564,7 @@ void SQLStorage::storeNonRoot(const std::string& data, Uptane::RepositoryType re
   db.commitTransaction();
 }
 
-bool SQLStorage::loadRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Version version) {
+bool SQLStorage::loadRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Version version) const {
   SQLite3Guard db = dbConnection();
 
   // version < 0 => latest metadata requested
@@ -613,7 +613,7 @@ bool SQLStorage::loadRoot(std::string* data, Uptane::RepositoryType repo, Uptane
   return true;
 }
 
-bool SQLStorage::loadNonRoot(std::string* data, Uptane::RepositoryType repo, const Uptane::Role role) {
+bool SQLStorage::loadNonRoot(std::string* data, Uptane::RepositoryType repo, const Uptane::Role role) const {
   SQLite3Guard db = dbConnection();
 
   auto statement = db.prepareStatement<int, int>(
@@ -671,7 +671,7 @@ void SQLStorage::storeDelegation(const std::string& data, const Uptane::Role rol
   db.commitTransaction();
 }
 
-bool SQLStorage::loadDelegation(std::string* data, const Uptane::Role role) {
+bool SQLStorage::loadDelegation(std::string* data, const Uptane::Role role) const {
   SQLite3Guard db = dbConnection();
 
   auto statement =
@@ -748,7 +748,7 @@ void SQLStorage::storeDeviceId(const std::string& device_id) {
   }
 }
 
-bool SQLStorage::loadDeviceId(std::string* device_id) {
+bool SQLStorage::loadDeviceId(std::string* device_id) const {
   SQLite3Guard db = dbConnection();
 
   auto statement = db.prepareStatement("SELECT device_id FROM device_info LIMIT 1;");
@@ -806,7 +806,7 @@ void SQLStorage::storeEcuRegistered() {
   db.commitTransaction();
 }
 
-bool SQLStorage::loadEcuRegistered() {
+bool SQLStorage::loadEcuRegistered() const {
   SQLite3Guard db = dbConnection();
 
   auto statement = db.prepareStatement("SELECT is_registered FROM device_info LIMIT 1;");
@@ -843,7 +843,7 @@ void SQLStorage::storeNeedReboot() {
   }
 }
 
-bool SQLStorage::loadNeedReboot(bool* need_reboot) {
+bool SQLStorage::loadNeedReboot(bool* need_reboot) const {
   SQLite3Guard db = dbConnection();
 
   auto statement = db.prepareStatement("SELECT flag FROM need_reboot LIMIT 1;");
@@ -923,7 +923,7 @@ void SQLStorage::storeEcuSerials(const EcuSerials& serials) {
   }
 }
 
-bool SQLStorage::loadEcuSerials(EcuSerials* serials) {
+bool SQLStorage::loadEcuSerials(EcuSerials* serials) const {
   SQLite3Guard db = dbConnection();
 
   // order by auto-incremented Primary key so that the ECU order is kept constant
@@ -983,7 +983,7 @@ void SQLStorage::storeCachedEcuManifest(const Uptane::EcuSerial& ecu_serial, con
   }
 }
 
-bool SQLStorage::loadCachedEcuManifest(const Uptane::EcuSerial& ecu_serial, std::string* manifest) {
+bool SQLStorage::loadCachedEcuManifest(const Uptane::EcuSerial& ecu_serial, std::string* manifest) const {
   SQLite3Guard db = dbConnection();
 
   std::string stmanifest;
@@ -1036,7 +1036,7 @@ void SQLStorage::storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecu
   }
 }
 
-bool SQLStorage::loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) {
+bool SQLStorage::loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) const {
   SQLite3Guard db = dbConnection();
 
   auto statement = db.prepareStatement("SELECT serial, hardware_id, state FROM misconfigured_ecus;");
@@ -1197,7 +1197,7 @@ static void loadEcuMap(SQLite3Guard& db, std::string& ecu_serial, Uptane::EcuMap
 }
 
 bool SQLStorage::loadInstallationLog(const std::string& ecu_serial, std::vector<Uptane::Target>* log,
-                                     bool only_installed) {
+                                     bool only_installed) const {
   SQLite3Guard db = dbConnection();
 
   std::string ecu_serial_real = ecu_serial;
@@ -1276,7 +1276,7 @@ bool SQLStorage::loadInstallationLog(const std::string& ecu_serial, std::vector<
 }
 
 bool SQLStorage::loadInstalledVersions(const std::string& ecu_serial, boost::optional<Uptane::Target>* current_version,
-                                       boost::optional<Uptane::Target>* pending_version) {
+                                       boost::optional<Uptane::Target>* pending_version) const {
   SQLite3Guard db = dbConnection();
 
   std::string ecu_serial_real = ecu_serial;
@@ -1420,7 +1420,7 @@ void SQLStorage::saveEcuInstallationResult(const Uptane::EcuSerial& ecu_serial,
 }
 
 bool SQLStorage::loadEcuInstallationResults(
-    std::vector<std::pair<Uptane::EcuSerial, data::InstallationResult>>* results) {
+    std::vector<std::pair<Uptane::EcuSerial, data::InstallationResult>>* results) const {
   SQLite3Guard db = dbConnection();
 
   std::vector<std::pair<Uptane::EcuSerial, data::InstallationResult>> ecu_res;
@@ -1476,7 +1476,7 @@ void SQLStorage::storeDeviceInstallationResult(const data::InstallationResult& r
 }
 
 bool SQLStorage::loadDeviceInstallationResult(data::InstallationResult* result, std::string* raw_report,
-                                              std::string* correlation_id) {
+                                              std::string* correlation_id) const {
   SQLite3Guard db = dbConnection();
 
   data::InstallationResult dev_res;
@@ -1534,7 +1534,7 @@ void SQLStorage::saveEcuReportCounter(const Uptane::EcuSerial& ecu_serial, const
   }
 }
 
-bool SQLStorage::loadEcuReportCounter(std::vector<std::pair<Uptane::EcuSerial, int64_t>>* results) {
+bool SQLStorage::loadEcuReportCounter(std::vector<std::pair<Uptane::EcuSerial, int64_t>>* results) const {
   SQLite3Guard db = dbConnection();
 
   std::vector<std::pair<Uptane::EcuSerial, int64_t>> ecu_cnt;
@@ -1583,7 +1583,7 @@ void SQLStorage::saveReportEvent(const Json::Value& json_value) {
   }
 }
 
-bool SQLStorage::loadReportEvents(Json::Value* report_array, int64_t* id_max) {
+bool SQLStorage::loadReportEvents(Json::Value* report_array, int64_t* id_max) const {
   SQLite3Guard db = dbConnection();
   auto statement = db.prepareStatement("SELECT id, json_string FROM report_events;");
   int statement_result = statement.step();
@@ -1860,7 +1860,7 @@ class SQLTargetRHandle : public StorageTargetRHandle {
   std::ifstream stream_;
 };
 
-std::unique_ptr<StorageTargetRHandle> SQLStorage::openTargetFile(const Uptane::Target& target) {
+std::unique_ptr<StorageTargetRHandle> SQLStorage::openTargetFile(const Uptane::Target& target) const {
   return std_::make_unique<SQLTargetRHandle>(*this, target);
 }
 

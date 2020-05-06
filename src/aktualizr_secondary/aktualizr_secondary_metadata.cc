@@ -1,16 +1,16 @@
 #include "aktualizr_secondary_metadata.h"
 
 Metadata::Metadata(const Uptane::RawMetaPack& meta_pack)
-    : _director_metadata{{Uptane::Role::ROOT, meta_pack.director_root},
+    : director_metadata_{{Uptane::Role::ROOT, meta_pack.director_root},
                          {Uptane::Role::TARGETS, meta_pack.director_targets}},
-      _image_metadata{
+      image_metadata_{
           {Uptane::Role::ROOT, meta_pack.image_root},
           {Uptane::Role::TIMESTAMP, meta_pack.image_timestamp},
           {Uptane::Role::SNAPSHOT, meta_pack.image_snapshot},
           {Uptane::Role::TARGETS, meta_pack.image_targets},
       } {
-  director_root_version = Uptane::Version(Uptane::extractVersionUntrusted(meta_pack.director_root));
-  image_root_version = Uptane::Version(Uptane::extractVersionUntrusted(meta_pack.image_root));
+  director_root_version_ = Uptane::Version(Uptane::extractVersionUntrusted(meta_pack.director_root));
+  image_root_version_ = Uptane::Version(Uptane::extractVersionUntrusted(meta_pack.image_root));
 }
 
 void Metadata::fetchRole(std::string* result, int64_t maxsize, Uptane::RepositoryType repo, const Uptane::Role& role,
@@ -31,9 +31,9 @@ void Metadata::getRoleMetadata(std::string* result, const Uptane::RepositoryType
   const std::unordered_map<std::string, std::string>* metadata_map = nullptr;
 
   if (repo == Uptane::RepositoryType::Director()) {
-    metadata_map = &_director_metadata;
+    metadata_map = &director_metadata_;
   } else if (repo == Uptane::RepositoryType::Image()) {
-    metadata_map = &_image_metadata;
+    metadata_map = &image_metadata_;
   }
 
   if (metadata_map == nullptr) {
@@ -51,12 +51,12 @@ void Metadata::getRoleMetadata(std::string* result, const Uptane::RepositoryType
     // If requesting a Root version beyond what we have available, fail as
     // expected. If requesting a version before what is available, just use what
     // is available, since root rotation isn't supported here.
-    if (repo == Uptane::RepositoryType::Director() && director_root_version < version) {
-      LOG_DEBUG << "Requested Director root version " << version << " but only version " << director_root_version
+    if (repo == Uptane::RepositoryType::Director() && director_root_version_ < version) {
+      LOG_DEBUG << "Requested Director root version " << version << " but only version " << director_root_version_
                 << " is available.";
       throw std::runtime_error("TODO");
-    } else if (repo == Uptane::RepositoryType::Image() && image_root_version < version) {
-      LOG_DEBUG << "Requested Image repo root version " << version << " but only version " << image_root_version
+    } else if (repo == Uptane::RepositoryType::Image() && image_root_version_ < version) {
+      LOG_DEBUG << "Requested Image repo root version " << version << " but only version " << image_root_version_
                 << " is available.";
       throw std::runtime_error("TODO");
     }

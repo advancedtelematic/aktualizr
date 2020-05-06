@@ -2,6 +2,8 @@
 #include "logging/logging.h"
 #include "uptane/manifest.h"
 
+// TODO(OTA-4939): Unify this with the check in
+// SotaUptaneClient::getNewTargets() and make it more generic.
 bool FileUpdateAgent::isTargetSupported(const Uptane::Target& target) const { return target.type() != "OSTREE"; }
 
 bool FileUpdateAgent::getInstalledImageInfo(Uptane::InstalledImageInfo& installed_image_info) const {

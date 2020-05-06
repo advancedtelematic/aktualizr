@@ -20,10 +20,10 @@ class Metadata : public Uptane::IMetadataFetcher {
                                Uptane::Version version) const;
 
  private:
-  const std::unordered_map<std::string, std::string> _director_metadata;
-  const std::unordered_map<std::string, std::string> _image_metadata;
-  Uptane::Version director_root_version;
-  Uptane::Version image_root_version;
+  const std::unordered_map<std::string, std::string> director_metadata_;
+  const std::unordered_map<std::string, std::string> image_metadata_;
+  Uptane::Version director_root_version_;
+  Uptane::Version image_root_version_;
 };
 
 #endif  // AKTUALIZR_SECONDARY_METADATA_H_
