@@ -41,7 +41,7 @@ class SecondaryMock : public MsgDispatcher {
   const Uptane::HardwareIdentifier& hwID() const { return hdw_id_; }
   const PublicKey& publicKey() const { return pub_key_; }
   const Uptane::Manifest& manifest() const { return manifest_; }
-  const Uptane::RawMetaPack& metadata() const { return metapack_; }
+  const Uptane::MetaBundle& metadata() const { return meta_bundle_; }
 
   Hash getReceivedImageHash() const { return hasher_->getHash(); }
 
@@ -109,17 +109,23 @@ class SecondaryMock : public MsgDispatcher {
   // This is basically the old implemention from AktualizrSecondary.
   MsgHandler::ReturnCode putMetaHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
     auto md = in_msg.putMetaReq();
-    Uptane::RawMetaPack meta_pack;
+    Uptane::MetaBundle meta_bundle;
 
-    meta_pack.director_root = ToString(md->director.choice.json.root);
-    meta_pack.director_targets = ToString(md->director.choice.json.targets);
+    meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Director(), Uptane::Role::Root()),
+                        ToString(md->director.choice.json.root));
+    meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Director(), Uptane::Role::Targets()),
+                        ToString(md->director.choice.json.targets));
 
-    meta_pack.image_root = ToString(md->image.choice.json.root);
-    meta_pack.image_timestamp = ToString(md->image.choice.json.timestamp);
-    meta_pack.image_snapshot = ToString(md->image.choice.json.snapshot);
-    meta_pack.image_targets = ToString(md->image.choice.json.targets);
+    meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Root()),
+                        ToString(md->image.choice.json.root));
+    meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()),
+                        ToString(md->image.choice.json.timestamp));
+    meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()),
+                        ToString(md->image.choice.json.snapshot));
+    meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Targets()),
+                        ToString(md->image.choice.json.targets));
 
-    bool ok = putMetadata(meta_pack);
+    bool ok = putMetadata(meta_bundle);
 
     out_msg.present(AKIpUptaneMes_PR_putMetaResp).putMetaResp()->result =
         ok ? AKInstallationResult_success : AKInstallationResult_failure;
@@ -130,7 +136,7 @@ class SecondaryMock : public MsgDispatcher {
   // This is annoyingly similar to AktualizrSecondary::putMetaHdlr().
   MsgHandler::ReturnCode putMeta2Hdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
     auto md = in_msg.putMetaReq2();
-    Uptane::RawMetaPack meta_pack;
+    Uptane::MetaBundle meta_bundle;
 
     EXPECT_EQ(md->directorRepo.present, directorRepo_PR_collection);
     // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
@@ -142,9 +148,10 @@ class SecondaryMock : public MsgDispatcher {
       const std::string role = ToString(object.role);
       std::string json = ToString(object.json);
       if (role == Uptane::Role::ROOT) {
-        meta_pack.director_root = std::move(json);
+        meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Director(), Uptane::Role::Root()), std::move(json));
       } else if (role == Uptane::Role::TARGETS) {
-        meta_pack.director_targets = std::move(json);
+        meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Director(), Uptane::Role::Targets()),
+                            std::move(json));
       }
     }
 
@@ -158,17 +165,18 @@ class SecondaryMock : public MsgDispatcher {
       const std::string role = ToString(object.role);
       std::string json = ToString(object.json);
       if (role == Uptane::Role::ROOT) {
-        meta_pack.image_root = std::move(json);
+        meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Root()), std::move(json));
       } else if (role == Uptane::Role::TIMESTAMP) {
-        meta_pack.image_timestamp = std::move(json);
+        meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()),
+                            std::move(json));
       } else if (role == Uptane::Role::SNAPSHOT) {
-        meta_pack.image_snapshot = std::move(json);
+        meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()), std::move(json));
       } else if (role == Uptane::Role::TARGETS) {
-        meta_pack.image_targets = std::move(json);
+        meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Targets()), std::move(json));
       }
     }
 
-    bool ok = putMetadata(meta_pack);
+    bool ok = putMetadata(meta_bundle);
 
     out_msg.present(AKIpUptaneMes_PR_putMetaResp).putMetaResp()->result =
         ok ? AKInstallationResult_success : AKInstallationResult_failure;
@@ -219,8 +227,8 @@ class SecondaryMock : public MsgDispatcher {
     return ReturnCode::kOk;
   }
 
-  bool putMetadata(const Uptane::RawMetaPack& meta_pack) {
-    metapack_ = meta_pack;
+  bool putMetadata(const Uptane::MetaBundle& meta_bundle) {
+    meta_bundle_ = meta_bundle;
     return true;
   }
 
@@ -253,7 +261,7 @@ class SecondaryMock : public MsgDispatcher {
   const PublicKey pub_key_;
   const Uptane::Manifest manifest_;
 
-  Uptane::RawMetaPack metapack_;
+  Uptane::MetaBundle meta_bundle_;
 
   TemporaryDirectory image_dir_;
   boost::filesystem::path image_filepath_;
@@ -262,12 +270,6 @@ class SecondaryMock : public MsgDispatcher {
   std::string tls_creds_;
   std::string received_firmware_data_;
 };
-
-bool operator==(const Uptane::RawMetaPack& lhs, const Uptane::RawMetaPack& rhs) {
-  return (lhs.director_root == rhs.director_root) && (lhs.image_root == rhs.image_root) &&
-         (lhs.director_targets == rhs.director_targets) && (lhs.image_snapshot == rhs.image_snapshot) &&
-         (lhs.image_timestamp == rhs.image_timestamp) && (lhs.image_targets == rhs.image_targets);
-}
 
 class TargetFile {
  public:
@@ -354,13 +356,19 @@ class SecondaryRpcTest : public ::testing::Test, public ::testing::WithParamInte
 
   void run_secondary_server() { secondary_server_.run(); }
 
-  void verifyMetadata(const Uptane::RawMetaPack& meta_pack) {
-    EXPECT_EQ(meta_pack.director_root, director_root_);
-    EXPECT_EQ(meta_pack.director_targets, director_targets_);
-    EXPECT_EQ(meta_pack.image_root, image_root_);
-    EXPECT_EQ(meta_pack.image_timestamp, image_timestamp_);
-    EXPECT_EQ(meta_pack.image_snapshot, image_snapshot_);
-    EXPECT_EQ(meta_pack.image_targets, image_targets_);
+  void verifyMetadata(const Uptane::MetaBundle& meta_bundle) {
+    EXPECT_EQ(Uptane::getMetaFromBundle(meta_bundle, Uptane::RepositoryType::Director(), Uptane::Role::Root()),
+              director_root_);
+    EXPECT_EQ(Uptane::getMetaFromBundle(meta_bundle, Uptane::RepositoryType::Director(), Uptane::Role::Targets()),
+              director_targets_);
+    EXPECT_EQ(Uptane::getMetaFromBundle(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Root()),
+              image_root_);
+    EXPECT_EQ(Uptane::getMetaFromBundle(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()),
+              image_timestamp_);
+    EXPECT_EQ(Uptane::getMetaFromBundle(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()),
+              image_snapshot_);
+    EXPECT_EQ(Uptane::getMetaFromBundle(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Targets()),
+              image_targets_);
   }
 
   data::ResultCode::Numeric sendAndInstallBinaryImage() {

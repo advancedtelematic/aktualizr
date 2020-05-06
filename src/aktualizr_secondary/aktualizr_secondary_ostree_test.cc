@@ -159,18 +159,28 @@ class UptaneRepoWrapper {
     return getCurrentMetadata();
   }
 
-  Uptane::RawMetaPack getCurrentMetadata() const {
-    Uptane::RawMetaPack metadata;
+  Uptane::MetaBundle getCurrentMetadata() const {
+    Uptane::MetaBundle meta_bundle;
+    std::string metadata;
 
-    boost::filesystem::load_string_file(director_dir_ / "root.json", metadata.director_root);
-    boost::filesystem::load_string_file(director_dir_ / "targets.json", metadata.director_targets);
+    boost::filesystem::load_string_file(director_dir_ / "root.json", metadata);
+    meta_bundle.insert({std::make_pair(Uptane::RepositoryType::Director(), Uptane::Role::Root()), std::move(metadata)});
+    boost::filesystem::load_string_file(director_dir_ / "targets.json", metadata);
+    meta_bundle.insert(
+        {std::make_pair(Uptane::RepositoryType::Director(), Uptane::Role::Targets()), std::move(metadata)});
 
-    boost::filesystem::load_string_file(imagerepo_dir_ / "root.json", metadata.image_root);
-    boost::filesystem::load_string_file(imagerepo_dir_ / "timestamp.json", metadata.image_timestamp);
-    boost::filesystem::load_string_file(imagerepo_dir_ / "snapshot.json", metadata.image_snapshot);
-    boost::filesystem::load_string_file(imagerepo_dir_ / "targets.json", metadata.image_targets);
+    boost::filesystem::load_string_file(imagerepo_dir_ / "root.json", metadata);
+    meta_bundle.insert({std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Root()), std::move(metadata)});
+    boost::filesystem::load_string_file(imagerepo_dir_ / "timestamp.json", metadata);
+    meta_bundle.insert(
+        {std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()), std::move(metadata)});
+    boost::filesystem::load_string_file(imagerepo_dir_ / "snapshot.json", metadata);
+    meta_bundle.insert(
+        {std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()), std::move(metadata)});
+    boost::filesystem::load_string_file(imagerepo_dir_ / "targets.json", metadata);
+    meta_bundle.insert({std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Targets()), std::move(metadata)});
 
-    return metadata;
+    return meta_bundle;
   }
 
   std::shared_ptr<std::string> getImageData(const std::string& targetname) const {
@@ -216,10 +226,10 @@ class SecondaryOstreeTest : public ::testing::Test {
  protected:
   SecondaryOstreeTest() {}
 
-  Uptane::RawMetaPack addDefaultTarget() { return addTarget(treehub_->curRev()); }
+  Uptane::MetaBundle addDefaultTarget() { return addTarget(treehub_->curRev()); }
 
-  Uptane::RawMetaPack addTarget(const std::string& rev = "", const std::string& hardware_id = "",
-                                const std::string& serial = "") {
+  Uptane::MetaBundle addTarget(const std::string& rev = "", const std::string& hardware_id = "",
+                               const std::string& serial = "") {
     auto rev_to_apply = rev.empty() ? treehub_->curRev() : rev;
     auto hw_id = hardware_id.empty() ? secondary_.hardwareID() : hardware_id;
     auto serial_id = serial.empty() ? secondary_.serial() : serial;
@@ -229,7 +239,7 @@ class SecondaryOstreeTest : public ::testing::Test {
     return currentMetadata();
   }
 
-  Uptane::RawMetaPack currentMetadata() const { return uptane_repo_.getCurrentMetadata(); }
+  Uptane::MetaBundle currentMetadata() const { return uptane_repo_.getCurrentMetadata(); }
 
   std::string getCredsToSend() const {
     std::map<std::string, std::string> creds_map = {
