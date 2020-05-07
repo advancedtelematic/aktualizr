@@ -11,6 +11,13 @@
 #include "storage/invstorage.h"
 #include "test_utils.h"
 
+/* This class allows us to divert messages from the regular handlers in
+ * AktualizrSecondary to our own test functions. This lets us test only what was
+ * received by the Secondary but not how it was processed.
+ *
+ * It also has handlers for both the old/v1 and new/v2 versions of the RPC
+ * protocol, so this is how we prove that the Primary is still
+ * backwards-compatible with older/v1 Secondaries. */
 class SecondaryMock : public MsgDispatcher {
  public:
   SecondaryMock(const Uptane::EcuSerial& serial, const Uptane::HardwareIdentifier& hdw_id, const PublicKey& pub_key,
@@ -42,14 +49,6 @@ class SecondaryMock : public MsgDispatcher {
 
   const std::string& getReceivedTlsCreds() const { return tls_creds_; }
 
-  void registerHandlersForNewRequests() {
-    registerHandler(AKIpUptaneMes_PR_uploadDataReq,
-                    std::bind(&SecondaryMock::uploadDataHdlr, this, std::placeholders::_1, std::placeholders::_2));
-
-    registerHandler(AKIpUptaneMes_PR_downloadOstreeRevReq,
-                    std::bind(&SecondaryMock::downloadOstreeRev, this, std::placeholders::_1, std::placeholders::_2));
-  }
-
   void registerBaseHandlers() {
     registerHandler(AKIpUptaneMes_PR_getInfoReq,
                     std::bind(&SecondaryMock::getInfoHdlr, this, std::placeholders::_1, std::placeholders::_2));
@@ -57,14 +56,25 @@ class SecondaryMock : public MsgDispatcher {
     registerHandler(AKIpUptaneMes_PR_manifestReq,
                     std::bind(&SecondaryMock::getManifestHdlr, this, std::placeholders::_1, std::placeholders::_2));
 
-    registerHandler(AKIpUptaneMes_PR_putMetaReq,
-                    std::bind(&SecondaryMock::putMetaHdlr, this, std::placeholders::_1, std::placeholders::_2));
-
     registerHandler(AKIpUptaneMes_PR_installReq,
                     std::bind(&SecondaryMock::installHdlr, this, std::placeholders::_1, std::placeholders::_2));
   }
 
+  void registerHandlersForNewRequests() {
+    registerHandler(AKIpUptaneMes_PR_putMetaReq2,
+                    std::bind(&SecondaryMock::putMeta2Hdlr, this, std::placeholders::_1, std::placeholders::_2));
+
+    registerHandler(AKIpUptaneMes_PR_uploadDataReq,
+                    std::bind(&SecondaryMock::uploadDataHdlr, this, std::placeholders::_1, std::placeholders::_2));
+
+    registerHandler(AKIpUptaneMes_PR_downloadOstreeRevReq,
+                    std::bind(&SecondaryMock::downloadOstreeRev, this, std::placeholders::_1, std::placeholders::_2));
+  }
+
   void registerHandlersForOldRequests() {
+    registerHandler(AKIpUptaneMes_PR_putMetaReq,
+                    std::bind(&SecondaryMock::putMetaHdlr, this, std::placeholders::_1, std::placeholders::_2));
+
     registerHandler(AKIpUptaneMes_PR_sendFirmwareReq,
                     std::bind(&SecondaryMock::sendFirmwareHdlr, this, std::placeholders::_1, std::placeholders::_2));
   }
@@ -96,6 +106,7 @@ class SecondaryMock : public MsgDispatcher {
     return ReturnCode::kOk;
   }
 
+  // This is basically the old implemention from AktualizrSecondary.
   MsgHandler::ReturnCode putMetaHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
     auto md = in_msg.putMetaReq();
     Uptane::RawMetaPack meta_pack;
@@ -107,6 +118,55 @@ class SecondaryMock : public MsgDispatcher {
     meta_pack.image_timestamp = ToString(md->image.choice.json.timestamp);
     meta_pack.image_snapshot = ToString(md->image.choice.json.snapshot);
     meta_pack.image_targets = ToString(md->image.choice.json.targets);
+
+    bool ok = putMetadata(meta_pack);
+
+    out_msg.present(AKIpUptaneMes_PR_putMetaResp).putMetaResp()->result =
+        ok ? AKInstallationResult_success : AKInstallationResult_failure;
+
+    return ReturnCode::kOk;
+  }
+
+  // This is annoyingly similar to AktualizrSecondary::putMetaHdlr().
+  MsgHandler::ReturnCode putMeta2Hdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+    auto md = in_msg.putMetaReq2();
+    Uptane::RawMetaPack meta_pack;
+
+    EXPECT_EQ(md->directorRepo.present, directorRepo_PR_collection);
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+    const int director_meta_count = md->directorRepo.choice.collection.list.count;
+    EXPECT_EQ(director_meta_count, 2);
+    for (int i = 0; i < director_meta_count; i++) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic, cppcoreguidelines-pro-type-union-access)
+      const AKMetaJson_t object = *md->directorRepo.choice.collection.list.array[i];
+      const std::string role = ToString(object.role);
+      std::string json = ToString(object.json);
+      if (role == Uptane::Role::ROOT) {
+        meta_pack.director_root = std::move(json);
+      } else if (role == Uptane::Role::TARGETS) {
+        meta_pack.director_targets = std::move(json);
+      }
+    }
+
+    EXPECT_EQ(md->imageRepo.present, imageRepo_PR_collection);
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+    const int image_meta_count = md->imageRepo.choice.collection.list.count;
+    EXPECT_EQ(image_meta_count, 4);
+    for (int i = 0; i < image_meta_count; i++) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic, cppcoreguidelines-pro-type-union-access)
+      const AKMetaJson_t object = *md->imageRepo.choice.collection.list.array[i];
+      const std::string role = ToString(object.role);
+      std::string json = ToString(object.json);
+      if (role == Uptane::Role::ROOT) {
+        meta_pack.image_root = std::move(json);
+      } else if (role == Uptane::Role::TIMESTAMP) {
+        meta_pack.image_timestamp = std::move(json);
+      } else if (role == Uptane::Role::SNAPSHOT) {
+        meta_pack.image_snapshot = std::move(json);
+      } else if (role == Uptane::Role::TARGETS) {
+        meta_pack.image_targets = std::move(json);
+      }
+    }
 
     bool ok = putMetadata(meta_pack);
 
@@ -253,7 +313,13 @@ class SecondaryRpcTest : public ::testing::Test, public ::testing::WithParamInte
   const std::string ca_ = "ca";
   const std::string cert_ = "cert";
   const std::string pkey_ = "pkey";
-  const std::string server_ = "ostree_server";
+  const std::string server_ = "ostree-server";
+  const std::string director_root_ = "director-root";
+  const std::string director_targets_ = "director-targets";
+  const std::string image_root_ = "image-root";
+  const std::string image_timestamp_ = "image-timestamp";
+  const std::string image_snapshot_ = "image-snapshot";
+  const std::string image_targets_ = "image-targets";
 
  protected:
   SecondaryRpcTest()
@@ -264,10 +330,19 @@ class SecondaryRpcTest : public ::testing::Test, public ::testing::WithParamInte
         image_file_{"mytarget_image.img", GetParam().first} {
     secondary_server_.wait_until_running();
     ip_secondary_ = Uptane::IpUptaneSecondary::connectAndCreate("localhost", secondary_server_.port());
+
     config_.pacman.ostree_server = server_;
     config_.storage.path = temp_dir_.Path();
+
     storage_ = INvStorage::newStorage(config_.storage);
     storage_->storeTlsCreds(ca_, cert_, pkey_);
+    storage_->storeRoot(director_root_, Uptane::RepositoryType::Director(), Uptane::Version(1));
+    storage_->storeNonRoot(director_targets_, Uptane::RepositoryType::Director(), Uptane::Role::Targets());
+    storage_->storeRoot(image_root_, Uptane::RepositoryType::Image(), Uptane::Version(1));
+    storage_->storeNonRoot(image_timestamp_, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp());
+    storage_->storeNonRoot(image_snapshot_, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot());
+    storage_->storeNonRoot(image_targets_, Uptane::RepositoryType::Image(), Uptane::Role::Targets());
+
     secondary_provider_ = std::make_shared<SecondaryProvider>(config_, storage_);
     ip_secondary_->init(secondary_provider_);
   }
@@ -278,6 +353,15 @@ class SecondaryRpcTest : public ::testing::Test, public ::testing::WithParamInte
   }
 
   void run_secondary_server() { secondary_server_.run(); }
+
+  void verifyMetadata(const Uptane::RawMetaPack& meta_pack) {
+    EXPECT_EQ(meta_pack.director_root, director_root_);
+    EXPECT_EQ(meta_pack.director_targets, director_targets_);
+    EXPECT_EQ(meta_pack.image_root, image_root_);
+    EXPECT_EQ(meta_pack.image_timestamp, image_timestamp_);
+    EXPECT_EQ(meta_pack.image_snapshot, image_snapshot_);
+    EXPECT_EQ(meta_pack.image_targets, image_targets_);
+  }
 
   data::ResultCode::Numeric sendAndInstallBinaryImage() {
     Json::Value target_json;
@@ -291,9 +375,8 @@ class SecondaryRpcTest : public ::testing::Test, public ::testing::WithParamInte
               image_file_.size());
     fhandle->wcommit();
 
-    // TODO: FIX (and test with OSTree as well?)
-    // EXPECT_TRUE(ip_secondary_->putMetadata(target));
-    // EXPECT_TRUE(meta_pack == secondary_.metadata());
+    EXPECT_TRUE(ip_secondary_->putMetadata(target));
+    verifyMetadata(secondary_.metadata());
 
     data::ResultCode::Numeric result = ip_secondary_->sendFirmware(target);
     if (result != data::ResultCode::Numeric::kOk) {
@@ -306,6 +389,10 @@ class SecondaryRpcTest : public ::testing::Test, public ::testing::WithParamInte
     Json::Value target_json;
     target_json["custom"]["targetFormat"] = "OSTREE";
     Uptane::Target target = Uptane::Target("OSTREE", target_json);
+
+    EXPECT_TRUE(ip_secondary_->putMetadata(target));
+    verifyMetadata(secondary_.metadata());
+
     data::ResultCode::Numeric result = ip_secondary_->sendFirmware(target);
     if (result != data::ResultCode::Numeric::kOk) {
       return result;
