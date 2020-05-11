@@ -3,7 +3,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
-#include "accumulator.h"
 #include "authenticate.h"
 #include "deploy.h"
 #include "garage_common.h"
@@ -18,7 +17,6 @@ namespace po = boost::program_options;
 int main(int argc, char **argv) {
   logger_init();
 
-  int verbosity;
   boost::filesystem::path repo_path;
   std::string ref;
   boost::filesystem::path credentials_path;
@@ -31,8 +29,9 @@ int main(int argc, char **argv) {
   desc.add_options()
     ("help", "print usage")
     ("version", "Current garage-push version")
-    ("verbose,v", accumulator<int>(&verbosity), "Verbose logging (use twice for more information)")
-    ("quiet,q", "Quiet mode")
+    ("verbose,v", "Verbose logging (loglevel 1)")
+    ("quiet,q", "Quiet mode (loglevel 3)")
+    ("loglevel", po::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
     ("repo,C", po::value<boost::filesystem::path>(&repo_path)->required(), "location of OSTree repo")
     ("ref,r", po::value<std::string>(&ref)->required(), "OSTree ref to push (or commit refhash)")
     ("credentials,j", po::value<boost::filesystem::path>(&credentials_path)->required(), "credentials (json or zip containing json)")
@@ -63,22 +62,18 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  // Configure logging
-  if (verbosity == 0) {
-    // 'verbose' trumps 'quiet'
-    if (static_cast<int>(vm.count("quiet")) != 0) {
-      logger_set_threshold(boost::log::trivial::warning);
-    } else {
-      logger_set_threshold(boost::log::trivial::info);
-    }
-  } else if (verbosity == 1) {
+  // Configure logging. Try loglevel first, then verbose, then quiet.
+  if (vm.count("loglevel") != 0) {
+    const int loglevel = vm["loglevel"].as<int>();
+    logger_set_threshold(static_cast<boost::log::trivial::severity_level>(loglevel));
+    LOG_INFO << "Loglevel set to " << loglevel;
+  } else if (static_cast<int>(vm.count("verbose")) != 0) {
     logger_set_threshold(boost::log::trivial::debug);
     LOG_DEBUG << "Debug level debugging enabled";
-  } else if (verbosity > 1) {
-    logger_set_threshold(boost::log::trivial::trace);
-    LOG_TRACE << "Trace level debugging enabled";
+  } else if (static_cast<int>(vm.count("quiet")) != 0) {
+    logger_set_threshold(boost::log::trivial::warning);
   } else {
-    assert(0);
+    logger_set_threshold(boost::log::trivial::info);
   }
 
   Utils::setUserAgent(std::string("garage-push/") + garage_tools_version());

@@ -100,7 +100,6 @@ endif (BUILD_SOTA_TOOLS)
 
 ##### For clang-format
 set(ALL_SOTA_TOOLS_HEADERS
-    accumulator.h
     authenticate.h
     check.h
     deploy.h
@@ -262,11 +261,11 @@ if (BUILD_SOTA_TOOLS)
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/tests/)
         set_tests_properties(garage-push-dry-run-commit PROPERTIES LABELS "credentials")
 
-        # Support debug logging.
-        add_test(NAME garage-push-verbose-logging
-            COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-verbose-logging $<TARGET_FILE:garage-push>
+        # Support trace logging.
+        add_test(NAME garage-push-trace-logging
+            COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-trace-logging $<TARGET_FILE:garage-push>
             ${SOTA_PACKED_CREDENTIALS} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/tests/)
-        set_tests_properties(garage-push-verbose-logging PROPERTIES LABELS "credentials")
+        set_tests_properties(garage-push-trace-logging PROPERTIES LABELS "credentials")
 
         if(STRACE)
             # Use a provided CA certificate.
@@ -294,16 +293,16 @@ if (BUILD_SOTA_TOOLS)
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
     # Support debug logging.
-    add_test(NAME garage-deploy-debug-level
+    add_test(NAME garage-deploy-debug-logging
         COMMAND garage-deploy -f tests/sota_tools/auth_test_good.zip -p tests/sota_tools/auth_test_good.zip --commit 123 -h 3 --name 123 -v
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-    set_tests_properties(garage-deploy-debug-level PROPERTIES PASS_REGULAR_EXPRESSION "Debug level debugging enabled")
+    set_tests_properties(garage-deploy-debug-logging PROPERTIES PASS_REGULAR_EXPRESSION "Debug level debugging enabled")
 
     # Support trace logging.
-    add_test(NAME garage-deploy-trace-level
-        COMMAND garage-deploy -f tests/sota_tools/auth_test_good.zip -p tests/sota_tools/auth_test_good.zip --commit 16ef2f2629dc9263fdf3c0f032563a2d757623bbc11cf99df25c3c3f258dccbe -h 3 --name 123 -v -v
+    add_test(NAME garage-deploy-trace-logging
+        COMMAND garage-deploy -f tests/sota_tools/auth_test_good.zip -p tests/sota_tools/auth_test_good.zip --commit 16ef2f2629dc9263fdf3c0f032563a2d757623bbc11cf99df25c3c3f258dccbe -h 3 --name 123 --loglevel 0
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-    set_tests_properties(garage-deploy-trace-level PROPERTIES PASS_REGULAR_EXPRESSION "Trace level debugging enabled")
+    set_tests_properties(garage-deploy-trace-logging PROPERTIES PASS_REGULAR_EXPRESSION "Loglevel set to 0")
 
     # Support dry run with local repos.
     add_test(NAME garage-deploy-dry-run

@@ -5,7 +5,6 @@ Creator: Organization: HERE Technologies
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-googletest
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-jsoncpp
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-HdrHistogram_c
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-program-options-accumulator
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-filesystem
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-program-options
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-log
@@ -63,17 +62,6 @@ FilesAnalyzed: false
 PackageComment: <text>Testing only.</text>
 
 
-PackageName: boost-program-options-accumulator
-SPDXID: SPDXRef-boost-program-options-accumulator
-PackageDownloadLocation: https://github.com/bskari/sqlassie/blob/master/src/accumulator.hpp
-PackageHomePage: http://benjaminwolsey.de/node/123
-PackageLicenseConcluded: BSL-1.0
-PackageLicenseDeclared: BSL-1.0
-PackageLicenseInfoFromFiles: BSL-1.0
-PackageCopyrightText: <text>(C) Copyright benjaminwolsey.de 2010-2011.</text>
-FilesAnalyzed: false
-
-
 PackageName: boost-filesystem
 SPDXID: SPDXRef-boost-filesystem
 PackageVersion: 1.58.0
@@ -84,6 +72,7 @@ PackageLicenseDeclared: BSL-1.0
 PackageLicenseInfoFromFiles: BSL-1.0
 PackageCopyrightText: <text>© Copyright Beman Dawes, 2002-2005</text>
 FilesAnalyzed: false
+PackageComment: <text>Dynamically linked.</text>
 
 
 PackageName: boost-program-options
@@ -96,6 +85,7 @@ PackageLicenseDeclared: BSL-1.0
 PackageLicenseInfoFromFiles: BSL-1.0
 PackageCopyrightText: <text>Copyright © 2002-2004 Vladimir Prus</text>
 FilesAnalyzed: false
+PackageComment: <text>Dynamically linked.</text>
 
 
 PackageName: boost-log
@@ -108,6 +98,7 @@ PackageLicenseDeclared: BSL-1.0
 PackageLicenseInfoFromFiles: BSL-1.0
 PackageCopyrightText: <text>Copyright © 2007-2016 Andrey Semashev</text>
 FilesAnalyzed: false
+PackageComment: <text>Dynamically linked.</text>
 
 
 PackageName: libcurl
