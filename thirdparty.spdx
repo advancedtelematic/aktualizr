@@ -5,7 +5,6 @@ Creator: Organization: HERE Technologies
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-googletest
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-jsoncpp
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-HdrHistogram_c
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-program-options-accumulator
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-filesystem
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-program-options
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-log
@@ -61,17 +60,6 @@ Copyright (c) 2014 Matt Warren
 All rights reserved.</text>
 FilesAnalyzed: false
 PackageComment: <text>Testing only.</text>
-
-
-PackageName: boost-program-options-accumulator
-SPDXID: SPDXRef-boost-program-options-accumulator
-PackageDownloadLocation: https://github.com/bskari/sqlassie/blob/master/src/accumulator.hpp
-PackageHomePage: http://benjaminwolsey.de/node/123
-PackageLicenseConcluded: BSL-1.0
-PackageLicenseDeclared: BSL-1.0
-PackageLicenseInfoFromFiles: BSL-1.0
-PackageCopyrightText: <text>(C) Copyright benjaminwolsey.de 2010-2011.</text>
-FilesAnalyzed: false
 
 
 PackageName: boost-filesystem
