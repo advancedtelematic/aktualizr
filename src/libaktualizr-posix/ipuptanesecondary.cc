@@ -1,8 +1,6 @@
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 
-#include "asn1/asn1_message.h"
-#include "der_encoder.h"
 #include "ipuptanesecondary.h"
 #include "logging/logging.h"
 #include "storage/invstorage.h"
@@ -152,6 +150,14 @@ bool IpUptaneSecondary::putMetadata_v1(const Uptane::MetaBundle& meta_bundle) {
   return r->result == AKInstallationResult_success;
 }
 
+void IpUptaneSecondary::addMetadata(const Uptane::MetaBundle& meta_bundle, const Uptane::RepositoryType repo,
+                                    const Uptane::Role& role, AKMetaCollection_t& collection) {
+  auto meta_json = Asn1Allocation<AKMetaJson_t>();
+  SetString(&meta_json->role, role.ToString());
+  SetString(&meta_json->json, getMetaFromBundle(meta_bundle, repo, role));
+  ASN_SEQUENCE_ADD(&collection, meta_json);
+}
+
 bool IpUptaneSecondary::putMetadata_v2(const Uptane::MetaBundle& meta_bundle) {
   Asn1Message::Ptr req(Asn1Message::Empty());
   req->present(AKIpUptaneMes_PR_putMetaReq2);
@@ -160,46 +166,18 @@ bool IpUptaneSecondary::putMetadata_v2(const Uptane::MetaBundle& meta_bundle) {
   m->directorRepo.present = directorRepo_PR_collection;
   m->imageRepo.present = imageRepo_PR_collection;
 
-  auto director_root = Asn1Allocation<AKMetaJson_t>();
-  SetString(&director_root->role, Uptane::Role::ROOT);
-  SetString(&director_root->json,
-            getMetaFromBundle(meta_bundle, Uptane::RepositoryType::Director(), Uptane::Role::Root()));
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
-  ASN_SEQUENCE_ADD(&m->directorRepo.choice.collection, director_root);
-
-  auto director_targets = Asn1Allocation<AKMetaJson_t>();
-  SetString(&director_targets->role, Uptane::Role::TARGETS);
-  SetString(&director_targets->json,
-            getMetaFromBundle(meta_bundle, Uptane::RepositoryType::Director(), Uptane::Role::Targets()));
+  addMetadata(meta_bundle, Uptane::RepositoryType::Director(), Uptane::Role::Root(), m->directorRepo.choice.collection);
+  addMetadata(meta_bundle, Uptane::RepositoryType::Director(), Uptane::Role::Targets(),
+              m->directorRepo.choice.collection);  // NOLINT(cppcoreguidelines-pro-type-union-access)
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
-  ASN_SEQUENCE_ADD(&m->directorRepo.choice.collection, director_targets);
-
-  auto image_root = Asn1Allocation<AKMetaJson_t>();
-  SetString(&image_root->role, Uptane::Role::ROOT);
-  SetString(&image_root->json, getMetaFromBundle(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Root()));
+  addMetadata(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Root(), m->imageRepo.choice.collection);
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
-  ASN_SEQUENCE_ADD(&m->imageRepo.choice.collection, image_root);
-
-  auto image_timestamp = Asn1Allocation<AKMetaJson_t>();
-  SetString(&image_timestamp->role, Uptane::Role::TIMESTAMP);
-  SetString(&image_timestamp->json,
-            getMetaFromBundle(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()));
+  addMetadata(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp(), m->imageRepo.choice.collection);
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
-  ASN_SEQUENCE_ADD(&m->imageRepo.choice.collection, image_timestamp);
-
-  auto image_snapshot = Asn1Allocation<AKMetaJson_t>();
-  SetString(&image_snapshot->role, Uptane::Role::SNAPSHOT);
-  SetString(&image_snapshot->json,
-            getMetaFromBundle(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()));
+  addMetadata(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot(), m->imageRepo.choice.collection);
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
-  ASN_SEQUENCE_ADD(&m->imageRepo.choice.collection, image_snapshot);
-
-  auto image_targets = Asn1Allocation<AKMetaJson_t>();
-  SetString(&image_targets->role, Uptane::Role::TARGETS);
-  SetString(&image_targets->json,
-            getMetaFromBundle(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Targets()));
-  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
-  ASN_SEQUENCE_ADD(&m->imageRepo.choice.collection, image_targets);
+  addMetadata(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Targets(), m->imageRepo.choice.collection);
 
   auto resp = Asn1Rpc(req, getAddr());
 
