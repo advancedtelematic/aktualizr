@@ -48,6 +48,8 @@ class AktualizrSecondary : public MsgDispatcher {
   void initPendingTargetIfAny();
 
  private:
+  void copyMetadata(Uptane::MetaBundle& meta_bundle, Uptane::RepositoryType repo, const Uptane::Role& role,
+                    std::string& json);
   bool doFullVerification(const Metadata& metadata);
   void uptaneInitialize();
   void registerHandlers();
