@@ -3,6 +3,8 @@
 
 #include <mutex>
 
+#include "asn1/asn1_message.h"
+#include "der_encoder.h"
 #include "primary/secondaryinterface.h"
 
 namespace Uptane {
@@ -42,6 +44,8 @@ class IpUptaneSecondary : public SecondaryInterface {
   data::ResultCode::Numeric sendFirmware_v2(const Uptane::Target& target);
   data::ResultCode::Numeric install_v1(const Uptane::Target& target);
   data::ResultCode::Numeric install_v2(const Uptane::Target& target);
+  void addMetadata(const Uptane::MetaBundle& meta_bundle, Uptane::RepositoryType repo, const Uptane::Role& role,
+                   AKMetaCollection_t& collection);
   data::ResultCode::Numeric invokeInstallOnSecondary(const Uptane::Target& target);
   data::ResultCode::Numeric downloadOstreeRev(const Uptane::Target& target);
   data::ResultCode::Numeric uploadFirmware(const Uptane::Target& target);
