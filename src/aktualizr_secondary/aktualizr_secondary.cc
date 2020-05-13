@@ -220,12 +220,20 @@ AktualizrSecondary::ReturnCode AktualizrSecondary::getManifestHdlr(Asn1Message& 
   return ReturnCode::kOk;
 }
 
+void AktualizrSecondary::copyMetadata(Uptane::MetaBundle& meta_bundle, const Uptane::RepositoryType repo,
+                                      const Uptane::Role& role, std::string& json) {
+  auto key = std::make_pair(repo, role);
+  if (meta_bundle.count(key) > 0) {
+    LOG_WARNING << repo.toString() << " metadata in contains multiple " << role.ToString() << " objects.";
+    return;
+  }
+  meta_bundle.emplace(key, std::move(json));
+}
+
 AktualizrSecondary::ReturnCode AktualizrSecondary::putMetaHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
   auto md = in_msg.putMetaReq2();
   Uptane::MetaBundle meta_bundle;
 
-  // TODO: what happens if something expected is missing? Or if something
-  // appears twice?
   if (md->directorRepo.present == directorRepo_PR_collection) {
     // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
     const int director_meta_count = md->directorRepo.choice.collection.list.count;
@@ -234,13 +242,11 @@ AktualizrSecondary::ReturnCode AktualizrSecondary::putMetaHdlr(Asn1Message& in_m
       const AKMetaJson_t object = *md->directorRepo.choice.collection.list.array[i];
       const std::string role = ToString(object.role);
       std::string json = ToString(object.json);
+      LOG_DEBUG << "Received Director repo " << role << " metadata:\n" << json;
       if (role == Uptane::Role::ROOT) {
-        LOG_DEBUG << "Received Director repo Root metadata:\n" << json;
-        meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Director(), Uptane::Role::Root()), std::move(json));
+        copyMetadata(meta_bundle, Uptane::RepositoryType::Director(), Uptane::Role::Root(), json);
       } else if (role == Uptane::Role::TARGETS) {
-        LOG_DEBUG << "Received Director repo Targets metadata:\n" << json;
-        meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Director(), Uptane::Role::Targets()),
-                            std::move(json));
+        copyMetadata(meta_bundle, Uptane::RepositoryType::Director(), Uptane::Role::Targets(), json);
       } else {
         LOG_WARNING << "Director metadata in unknown format:" << md->directorRepo.present;
       }
@@ -255,23 +261,23 @@ AktualizrSecondary::ReturnCode AktualizrSecondary::putMetaHdlr(Asn1Message& in_m
       const AKMetaJson_t object = *md->imageRepo.choice.collection.list.array[i];
       const std::string role = ToString(object.role);
       std::string json = ToString(object.json);
+      LOG_DEBUG << "Received Image repo " << role << " metadata:\n" << json;
       if (role == Uptane::Role::ROOT) {
-        LOG_DEBUG << "Received Image repo Root metadata:\n" << json;
-        meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Root()), std::move(json));
+        copyMetadata(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Root(), json);
       } else if (role == Uptane::Role::TIMESTAMP) {
-        LOG_DEBUG << "Received Image repo Timestamp metadata:\n" << json;
-        meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()),
-                            std::move(json));
+        copyMetadata(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp(), json);
       } else if (role == Uptane::Role::SNAPSHOT) {
-        LOG_DEBUG << "Received Image repo Snapshot metadata:\n" << json;
-        meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()), std::move(json));
+        copyMetadata(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot(), json);
       } else if (role == Uptane::Role::TARGETS) {
-        LOG_DEBUG << "Received Image repo Targets metadata:\n" << json;
-        meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Targets()), std::move(json));
+        copyMetadata(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Targets(), json);
       } else {
         LOG_WARNING << "Image metadata in unknown format:" << md->imageRepo.present;
       }
     }
+  }
+
+  if (meta_bundle.size() != 6) {
+    LOG_WARNING << "Metadata received from Primary is incomplete: " << md->imageRepo.present;
   }
 
   bool ok = putMetadata(meta_bundle);
