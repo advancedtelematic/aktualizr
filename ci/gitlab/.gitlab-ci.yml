@@ -377,11 +377,11 @@ app-docker-image:
     - docker build -t $CI_REGISTRY_IMAGE/app:ci-$CI_COMMIT_REF_SLUG -f ./ci/gitlab/Dockerfile .
     - docker push $CI_REGISTRY_IMAGE/app:ci-$CI_COMMIT_REF_SLUG
 
-trigger-e2e-pipeline:
+trigger-device-farm-pipeline:
   stage: trigger
   only:
     - master
-  trigger: olp/edge/ota/testing/ota-plus-test-driver
+  trigger: olp/edge/ota/testing/device-farm
 
 # -- otf
 
