@@ -78,10 +78,11 @@ void ManagedSecondary::rawToMeta() {
       Utils::parseJSON(getMetaFromBundle(meta_bundle_, Uptane::RepositoryType::Image(), Uptane::Role::Targets())));
 }
 
-bool ManagedSecondary::putMetadata(const Uptane::Target &target) {
+data::InstallationResult ManagedSecondary::putMetadata(const Uptane::Target &target) {
   Uptane::MetaBundle temp_bundle;
   if (!secondary_provider_->getMetadata(&temp_bundle, target)) {
-    return false;
+    return data::InstallationResult(data::ResultCode::Numeric::kInternalError,
+                                    "Unable to load stored metadata from Primary");
   }
 
   // No verification is currently performed, we can add verification in future for testing purposes
@@ -90,11 +91,12 @@ bool ManagedSecondary::putMetadata(const Uptane::Target &target) {
   meta_bundle_ = std::move(temp_bundle);
   rawToMeta();  // meta_bundle_ -> current_meta
   if (!current_meta.isConsistent()) {
-    return false;
+    return data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed,
+                                    "Error verifying metadata received from Primary");
   }
   storeMetadata();
 
-  return true;
+  return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
 }
 
 int ManagedSecondary::getRootVersion(const bool director) const {
@@ -104,7 +106,7 @@ int ManagedSecondary::getRootVersion(const bool director) const {
   return current_meta.image_root.version();
 }
 
-bool ManagedSecondary::putRoot(const std::string &root, const bool director) {
+data::InstallationResult ManagedSecondary::putRoot(const std::string &root, const bool director) {
   const Uptane::RepositoryType repo = (director) ? Uptane::RepositoryType::Director() : Uptane::RepositoryType::Image();
   Uptane::Root &prev_root = (director) ? current_meta.director_root : current_meta.image_root;
   const std::string prev_raw_root = getMetaFromBundle(meta_bundle_, repo, Uptane::Role::Root());
@@ -120,18 +122,18 @@ bool ManagedSecondary::putRoot(const std::string &root, const bool director) {
   }
 
   if (!current_meta.isConsistent()) {
-    return false;
+    return data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed, "Error verifying metadata");
   }
   storeMetadata();
-  return true;
+  return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
 }
 
-data::ResultCode::Numeric ManagedSecondary::sendFirmware(const Uptane::Target &target) {
+data::InstallationResult ManagedSecondary::sendFirmware(const Uptane::Target &target) {
   (void)target;
-  return data::ResultCode::Numeric::kOk;
+  return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
 }
 
-data::ResultCode::Numeric ManagedSecondary::install(const Uptane::Target &target) {
+data::InstallationResult ManagedSecondary::install(const Uptane::Target &target) {
   if (fiu_fail((std::string("secondary_install_") + getSerial().ToString()).c_str()) != 0) {
     // consider changing this approach of the fault injection, since the current approach impacts the non-test code flow
     // here as well as it doesn't test the installation failure on secondary from an end-to-end perspective as it
@@ -139,7 +141,7 @@ data::ResultCode::Numeric ManagedSecondary::install(const Uptane::Target &target
     // in case of the virtual or the ip-secondary or any other secondary, e.g. add a mock secondary that returns an
     // error to sendFirmware/install request we might consider passing the installation description message from
     // Secondary, not just bool and/or data::ResultCode::Numeric
-    return data::ResultCode::Numeric::kInstallFailed;
+    return data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, "Forced failure");
   }
 
   auto str = secondary_provider_->getTargetFileHandle(target);
@@ -149,7 +151,7 @@ data::ResultCode::Numeric ManagedSecondary::install(const Uptane::Target &target
   out_file.close();
 
   Utils::writeFile(sconfig.target_name_path, target.filename());
-  return data::ResultCode::Numeric::kOk;
+  return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
 }
 
 Uptane::Manifest ManagedSecondary::getManifest() const {

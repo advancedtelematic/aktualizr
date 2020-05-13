@@ -122,40 +122,50 @@ int IsoTpSecondary::getRootVersion(bool director) const {
   }
 }
 
-bool IsoTpSecondary::putRoot(const std::string& root, bool director) {
+data::InstallationResult IsoTpSecondary::putRoot(const std::string& root, bool director) {
   if (!director) {
-    return true;
+    return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
   }
   std::string out;
   out += static_cast<char>(IsoTpUptaneMesType::kPutRoot);
   out += root;
 
-  return conn.Send(out);
+  if (conn.Send(out)) {
+    return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
+  } else {
+    return data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed,
+                                    "Error sending metadata to Secondary");
+  }
 }
 
-bool IsoTpSecondary::putMetadata(const Target& target) {
+data::InstallationResult IsoTpSecondary::putMetadata(const Target& target) {
   (void)target;
   // Partial verification only.
   std::string director_targets;
   if (!secondary_provider_->getDirectorMetadata(nullptr, &director_targets)) {
     LOG_ERROR << "Unable to read Director metadata.";
-    return false;
+    return data::InstallationResult(data::ResultCode::Numeric::kInternalError, "Unable to read Director metadata");
   }
 
   std::string out;
   out += static_cast<char>(IsoTpUptaneMesType::kPutTargets);
   out += director_targets;
 
-  return conn.Send(out);
+  if (conn.Send(out)) {
+    return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
+  } else {
+    return data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed,
+                                    "Error sending metadata to Secondary");
+  }
 }
 
-data::ResultCode::Numeric IsoTpSecondary::sendFirmware(const Target& target) {
+data::InstallationResult IsoTpSecondary::sendFirmware(const Target& target) {
   (void)target;
-  return data::ResultCode::Numeric::kOk;
+  return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
 }
 
-data::ResultCode::Numeric IsoTpSecondary::install(const Target& target) {
-  auto result = data::ResultCode::Numeric::kOk;
+data::InstallationResult IsoTpSecondary::install(const Target& target) {
+  auto result = data::InstallationResult(data::ResultCode::Numeric::kOk, "");
 
   try {
     auto image_reader = secondary_provider_->getTargetFileHandle(target);
@@ -164,7 +174,7 @@ data::ResultCode::Numeric IsoTpSecondary::install(const Target& target) {
     size_t num_chunks = (image_size / kChunkSize) + (static_cast<bool>(image_size % kChunkSize) ? 1 : 0);
 
     if (num_chunks > 127) {
-      return data::ResultCode::Numeric::kInternalError;
+      return data::InstallationResult(data::ResultCode::Numeric::kInternalError, "Too many chunks");
     }
 
     for (size_t i = 0; i < num_chunks; ++i) {
@@ -179,22 +189,25 @@ data::ResultCode::Numeric IsoTpSecondary::install(const Target& target) {
       out += std::string(buf.data());
 
       if (!conn.SendRecv(out, &in)) {
-        result = data::ResultCode::Numeric::kDownloadFailed;
+        return data::InstallationResult(data::ResultCode::Numeric::kDownloadFailed,
+                                        "Error sending metadata to Secondary");
         break;
       }
       if (in[0] != static_cast<char>(IsoTpUptaneMesType::kPutImageChunkAckErr)) {
-        result = data::ResultCode::Numeric::kDownloadFailed;
+        return data::InstallationResult(data::ResultCode::Numeric::kDownloadFailed,
+                                        "Error sending metadata to Secondary");
         break;
       }
       if (in[1] != 0x00) {
-        result = data::ResultCode::Numeric::kDownloadFailed;
+        return data::InstallationResult(data::ResultCode::Numeric::kDownloadFailed,
+                                        "Error sending metadata to Secondary");
         break;
       }
     }
 
   } catch (const std::exception& exc) {
     LOG_ERROR << "Failed to upload a target image: " << target.filename() << ", error " << exc.what();
-    result = data::ResultCode::Numeric::kDownloadFailed;
+    return data::InstallationResult(data::ResultCode::Numeric::kDownloadFailed, "Error sending metadata to Secondary");
   }
   return result;
 }

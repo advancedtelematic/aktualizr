@@ -17,11 +17,11 @@ class IsoTpSecondary : public SecondaryInterface {
   EcuSerial getSerial() const override;
   HardwareIdentifier getHwId() const override;
   PublicKey getPublicKey() const override;
-  bool putMetadata(const Target& target) override;
   int getRootVersion(bool director) const override;
-  bool putRoot(const std::string& root, bool director) override;
-  data::ResultCode::Numeric sendFirmware(const Target& target) override;
-  data::ResultCode::Numeric install(const Target& target) override;
+  data::InstallationResult putRoot(const std::string& root, bool director) override;
+  data::InstallationResult putMetadata(const Target& target) override;
+  data::InstallationResult sendFirmware(const Target& target) override;
+  data::InstallationResult install(const Target& target) override;
   Uptane::Manifest getManifest() const override;
 
  private:

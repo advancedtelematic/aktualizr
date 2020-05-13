@@ -575,21 +575,26 @@ class SecondaryInterfaceMock : public SecondaryInterface {
   MOCK_METHOD(bool, putMetadataMock, (const Uptane::MetaBundle &));
   MOCK_METHOD(int32_t, getRootVersionMock, (bool), (const));
 
-  bool putMetadata(const Uptane::Target &target) override {
+  data::InstallationResult putMetadata(const Uptane::Target &target) override {
     Uptane::MetaBundle meta_bundle;
     if (!secondary_provider_->getMetadata(&meta_bundle, target)) {
-      return false;
+      return data::InstallationResult(data::ResultCode::Numeric::kInternalError,
+                                      "Unable to load stored metadata from Primary");
     }
     putMetadataMock(meta_bundle);
-    return true;
+    return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
   }
   int32_t getRootVersion(bool director) const override { return getRootVersionMock(director); }
 
-  bool putRoot(const std::string &, bool) override { return true; }
-  virtual data::ResultCode::Numeric sendFirmware(const Uptane::Target &) override {
-    return data::ResultCode::Numeric::kOk;
+  data::InstallationResult putRoot(const std::string &, bool) override {
+    return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
   }
-  virtual data::ResultCode::Numeric install(const Uptane::Target &) override { return data::ResultCode::Numeric::kOk; }
+  virtual data::InstallationResult sendFirmware(const Uptane::Target &) override {
+    return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
+  }
+  virtual data::InstallationResult install(const Uptane::Target &) override {
+    return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
+  }
 
   std::shared_ptr<SecondaryProvider> secondary_provider_;
   PublicKey public_key_;
