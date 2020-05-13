@@ -1,0 +1,67 @@
+= Upload a Large Binary file
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
+Software packages can be uploaded on the OTA Connect Portal by following the section xref:ota-web::upload-software-ui.adoc[Upload software versions, window="_blank"] of the OTA Connect User Guide.
+
+You can also upload large binary files (up to 3 GB) using the `garage-sign` tool on the command line.
+
+*To upload a large binary file, follow these steps:*
+
+. Ensure you have the latest version of the `targets.json` file from OTA Connect by pulling the latest version to your local repository.
++
+[source,bash]
+----
+garage-sign targets pull \
+  --repo <reponame>
+----
+
+. Next, upload the large binary file you want with the command below.
++
+[source,bash]
+----
+garage-sign targets upload \
+  --repo <reponame> \
+  --input </path/to/bigfile.bin> \ <1>
+  --name <name-of-target> \
+  --version <target-version> <2>
+----
++
+<1> The path to the file you want to upload is specified here.
+<2> The `name` and `version` of your `targets.json` file are specified here. These can be seen in the `targets.json` file under the `custom` field as shown in the example xref:customise-targets-metadata.adoc#_anatomy_of_targets_json_metadata[here].
+
+. After the upload is successful, add metadata about the file to your `targets.json`.
++
+[source,bash]
+----
+garage-sign targets add-uploaded \
+  --repo <reponame> \
+  --input </path/to/bigfile.bin> \
+  --name <name-of-target> \
+  --version <target-version> \
+  --hardwareids <hardware-id1>,<hardware-id2> <1>
+----
++
+<1> This refers to the ids of hardware that your binary file supports. An example can be seen in the `targets.json` file xref:customise-targets-metadata.adoc#_anatomy_of_targets_json_metadata[here] under the `custom` field.
+
+. Sign the new `targets.json` file with your `targets` key.
++
+[source,bash]
+----
+garage-sign targets sign \
+  --repo <reponame> \
+  --key-name mytargets
+----
+
+. Finally, push the new `targets.json` file to OTA Connect.
++
+[source,bash]
+----
+garage-sign targets push \
+  --repo <reponame>
+----
