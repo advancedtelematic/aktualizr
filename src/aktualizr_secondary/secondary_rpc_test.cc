@@ -376,7 +376,7 @@ class SecondaryRpcTest : public ::testing::Test, public ::testing::WithParamInte
               image_targets_);
   }
 
-  data::ResultCode::Numeric sendAndInstallBinaryImage() {
+  data::InstallationResult sendAndInstallBinaryImage() {
     Json::Value target_json;
     target_json["custom"]["targetFormat"] = "BINARY";
     target_json["hashes"]["sha256"] = image_file_.hash().HashString();
@@ -388,26 +388,26 @@ class SecondaryRpcTest : public ::testing::Test, public ::testing::WithParamInte
     fhandle.write(const_cast<char*>(content.c_str()), static_cast<std::streamsize>(image_file_.size()));
     fhandle.close();
 
-    EXPECT_TRUE(ip_secondary_->putMetadata(target));
+    EXPECT_TRUE(ip_secondary_->putMetadata(target).isSuccess());
     verifyMetadata(secondary_.metadata());
 
-    data::ResultCode::Numeric result = ip_secondary_->sendFirmware(target);
-    if (result != data::ResultCode::Numeric::kOk) {
+    data::InstallationResult result = ip_secondary_->sendFirmware(target);
+    if (!result.isSuccess()) {
       return result;
     }
     return ip_secondary_->install(target);
   }
 
-  data::ResultCode::Numeric installOstreeRev() {
+  data::InstallationResult installOstreeRev() {
     Json::Value target_json;
     target_json["custom"]["targetFormat"] = "OSTREE";
     Uptane::Target target = Uptane::Target("OSTREE", target_json);
 
-    EXPECT_TRUE(ip_secondary_->putMetadata(target));
+    EXPECT_TRUE(ip_secondary_->putMetadata(target).isSuccess());
     verifyMetadata(secondary_.metadata());
 
-    data::ResultCode::Numeric result = ip_secondary_->sendFirmware(target);
-    if (result != data::ResultCode::Numeric::kOk) {
+    data::InstallationResult result = ip_secondary_->sendFirmware(target);
+    if (!result.isSuccess()) {
       return result;
     }
     return ip_secondary_->install(target);
@@ -434,10 +434,10 @@ TEST_P(SecondaryRpcTest, AllRpcCallsTest) {
   EXPECT_EQ(ip_secondary_->getPublicKey(), secondary_.publicKey());
   EXPECT_EQ(ip_secondary_->getManifest(), secondary_.manifest());
 
-  EXPECT_EQ(sendAndInstallBinaryImage(), data::ResultCode::Numeric::kOk);
+  EXPECT_TRUE(sendAndInstallBinaryImage().isSuccess());
   EXPECT_EQ(image_file_.hash(), secondary_.getReceivedImageHash());
 
-  EXPECT_EQ(installOstreeRev(), data::ResultCode::Numeric::kOk);
+  EXPECT_TRUE(installOstreeRev().isSuccess());
 
   std::string archive = secondary_.getReceivedTlsCreds();
   {
@@ -515,9 +515,9 @@ TEST(SecondaryTcpServer, TestIpSecondaryIfSecondaryIsNotRunning) {
   fhandle.write(const_cast<char*>(content.c_str()), static_cast<std::streamsize>(target_file.size()));
   fhandle.close();
 
-  EXPECT_FALSE(ip_secondary->putMetadata(target));
-  EXPECT_NE(ip_secondary->sendFirmware(target), data::ResultCode::Numeric::kOk);
-  EXPECT_NE(ip_secondary->install(target), data::ResultCode::Numeric::kOk);
+  EXPECT_FALSE(ip_secondary->putMetadata(target).isSuccess());
+  EXPECT_FALSE(ip_secondary->sendFirmware(target).isSuccess());
+  EXPECT_FALSE(ip_secondary->install(target).isSuccess());
 }
 
 class SecondaryRpcTestNegative : public ::testing::Test, public MsgHandler {

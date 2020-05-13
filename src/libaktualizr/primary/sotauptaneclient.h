@@ -140,14 +140,14 @@ class SotaUptaneClient {
   void reportAktualizrConfiguration();
   void initSecondaries();
   bool waitSecondariesReachable(const std::vector<Uptane::Target> &updates);
-  bool sendMetadataToEcus(const std::vector<Uptane::Target> &targets);
-  std::future<data::ResultCode::Numeric> sendFirmwareAsync(SecondaryInterface &secondary, const Uptane::Target &target);
+  void storeInstallationFailure(const data::InstallationResult &result);
+  data::InstallationResult rotateSecondaryRoot(Uptane::RepositoryType repo, SecondaryInterface &secondary);
+  data::InstallationResult sendMetadataToEcus(const std::vector<Uptane::Target> &targets);
+  std::future<data::InstallationResult> sendFirmwareAsync(SecondaryInterface &secondary, const Uptane::Target &target);
   std::vector<result::Install::EcuReport> sendImagesToEcus(const std::vector<Uptane::Target> &targets);
 
   bool putManifestSimple(const Json::Value &custom = Json::nullValue);
-  void storeInstallationFailure(const data::InstallationResult &result);
   void getNewTargets(std::vector<Uptane::Target> *new_targets, unsigned int *ecus_count = nullptr);
-  void rotateSecondaryRoot(Uptane::RepositoryType repo, SecondaryInterface &secondary);
   void updateDirectorMeta();
   void checkDirectorMetaOffline();
   void computeDeviceInstallationResult(data::InstallationResult *result, std::string *raw_installation_report) const;

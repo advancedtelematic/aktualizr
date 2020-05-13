@@ -84,9 +84,9 @@ bool VirtualSecondary::getFirmwareInfo(Uptane::InstalledImageInfo& firmware_info
   return true;
 }
 
-bool VirtualSecondary::putMetadata(const Uptane::Target& target) {
+data::InstallationResult VirtualSecondary::putMetadata(const Uptane::Target& target) {
   if (fiu_fail("secondary_putmetadata") != 0) {
-    return false;
+    return data::InstallationResult(data::ResultCode::Numeric::kCustomError, "Forced failure");
   }
 
   return ManagedSecondary::putMetadata(target);

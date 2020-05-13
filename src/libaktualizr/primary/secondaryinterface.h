@@ -18,14 +18,14 @@ class SecondaryInterface {
   virtual PublicKey getPublicKey() const = 0;
 
   virtual Uptane::Manifest getManifest() const = 0;
-  virtual bool putMetadata(const Uptane::Target& target) = 0;
+  virtual data::InstallationResult putMetadata(const Uptane::Target& target) = 0;
   virtual bool ping() const = 0;
 
   virtual int32_t getRootVersion(bool director) const = 0;
-  virtual bool putRoot(const std::string& root, bool director) = 0;
+  virtual data::InstallationResult putRoot(const std::string& root, bool director) = 0;
 
-  virtual data::ResultCode::Numeric sendFirmware(const Uptane::Target& target) = 0;
-  virtual data::ResultCode::Numeric install(const Uptane::Target& target) = 0;
+  virtual data::InstallationResult sendFirmware(const Uptane::Target& target) = 0;
+  virtual data::InstallationResult install(const Uptane::Target& target) = 0;
 
   virtual ~SecondaryInterface() = default;
 };

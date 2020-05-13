@@ -30,7 +30,7 @@ PartialVerificationSecondary::PartialVerificationSecondary(Primary::PartialVerif
   public_key_ = PublicKey(public_key_string, sconfig.key_type);
 }
 
-bool PartialVerificationSecondary::putMetadata(const Target &target) {
+data::InstallationResult PartialVerificationSecondary::putMetadata(const Target &target) {
   (void)target;
   TimeStamp now(TimeStamp::Now());
   detected_attack_.clear();
@@ -39,7 +39,7 @@ bool PartialVerificationSecondary::putMetadata(const Target &target) {
   std::string director_targets;
   if (!secondary_provider_->getDirectorMetadata(&director_root, &director_targets)) {
     LOG_ERROR << "Unable to read Director metadata.";
-    return false;
+    return data::InstallationResult(data::ResultCode::Numeric::kInternalError, "Unable to read Director metadata");
   }
 
   // TODO(OTA-2484): check for expiration and version downgrade
@@ -48,10 +48,10 @@ bool PartialVerificationSecondary::putMetadata(const Target &target) {
                           std::make_shared<Uptane::Root>(root_));
   if (meta_targets_.version() > targets.version()) {
     detected_attack_ = "Rollback attack detected";
-    return true;
+    return data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed, "Rollback attack detected");
   }
   meta_targets_ = targets;
-  return true;
+  return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
 }
 
 Uptane::Manifest PartialVerificationSecondary::getManifest() const {
@@ -65,22 +65,24 @@ int PartialVerificationSecondary::getRootVersion(bool director) const {
   return 0;
 }
 
-bool PartialVerificationSecondary::putRoot(const std::string &root, bool director) {
+data::InstallationResult PartialVerificationSecondary::putRoot(const std::string &root, bool director) {
   (void)root;
   (void)director;
 
   throw NotImplementedException();
-  return false;
+  return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
 }
 
-data::ResultCode::Numeric PartialVerificationSecondary::sendFirmware(const Uptane::Target &target) {
+data::InstallationResult PartialVerificationSecondary::sendFirmware(const Uptane::Target &target) {
   (void)target;
   throw NotImplementedException();
+  return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
 }
 
-data::ResultCode::Numeric PartialVerificationSecondary::install(const Uptane::Target &target) {
+data::InstallationResult PartialVerificationSecondary::install(const Uptane::Target &target) {
   (void)target;
   throw NotImplementedException();
+  return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
 }
 
 void PartialVerificationSecondary::storeKeys(const std::string &public_key, const std::string &private_key) {

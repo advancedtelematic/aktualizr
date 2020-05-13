@@ -997,8 +997,9 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
     std::vector<Uptane::Target> primary_updates = findForEcu(updates, primary_ecu_serial);
 
     //   6 - send metadata to all the ECUs
-    if (!sendMetadataToEcus(updates)) {
-      result.dev_report = {false, data::ResultCode::Numeric::kInternalError, "Metadata verification failed"};
+    data::InstallationResult metadata_res = sendMetadataToEcus(updates);
+    if (!metadata_res.isSuccess()) {
+      result.dev_report = std::move(metadata_res);
       return std::make_tuple(result, "Secondary metadata verification failed");
     }
 
@@ -1249,13 +1250,15 @@ void SotaUptaneClient::storeInstallationFailure(const data::InstallationResult &
 
 /* If the Root has been rotated more than once, we need to provide the Secondary
  * with the incremental steps from what it has now. */
-void SotaUptaneClient::rotateSecondaryRoot(Uptane::RepositoryType repo, SecondaryInterface &secondary) {
+data::InstallationResult SotaUptaneClient::rotateSecondaryRoot(Uptane::RepositoryType repo,
+                                                               SecondaryInterface &secondary) {
   std::string latest_root;
   if (!storage->loadLatestRoot(&latest_root, repo)) {
-    LOG_ERROR << "No Root metadata to send";
-    return;
+    LOG_ERROR << "Error reading Root metadata";
+    return data::InstallationResult(data::ResultCode::Numeric::kInternalError, "Error reading Root metadata");
   }
 
+  data::InstallationResult result{data::ResultCode::Numeric::kOk, ""};
   const int last_root_version = Uptane::extractVersionUntrusted(latest_root);
   const int sec_root_version = secondary.getRootVersion((repo == Uptane::RepositoryType::Director()));
   if (sec_root_version > 0 && last_root_version - sec_root_version > 1) {
@@ -1268,19 +1271,25 @@ void SotaUptaneClient::rotateSecondaryRoot(Uptane::RepositoryType repo, Secondar
         } catch (const std::exception &e) {
           // TODO(OTA-4552): looks problematic, robust procedure needs to be defined
           LOG_ERROR << "Root metadata could not be fetched, skipping to the next Secondary";
-          return;
+          result = data::InstallationResult(data::ResultCode::Numeric::kInternalError,
+                                            "Root metadata could not be fetched, skipping to the next Secondary");
+          break;
         }
       }
-      if (!secondary.putRoot(root, repo == Uptane::RepositoryType::Director())) {
-        LOG_ERROR << "Sending metadata to " << secondary.getSerial() << " failed";
+      result = secondary.putRoot(root, repo == Uptane::RepositoryType::Director());
+      if (!result.isSuccess()) {
+        LOG_ERROR << "Sending metadata to " << secondary.getSerial() << " failed: " << result.result_code << " "
+                  << result.description;
+        break;
       }
     }
   }
+  return result;
 }
 
 // TODO: the function blocks until it updates all the Secondaries. Consider non-blocking operation.
-bool SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &targets) {
-  bool put_meta_succeed = true;
+data::InstallationResult SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &targets) {
+  data::InstallationResult final_result{data::ResultCode::Numeric::kOk, ""};
   for (const auto &target : targets) {
     for (const auto &ecu : target.ecus()) {
       const Uptane::EcuSerial ecu_serial = ecu.first;
@@ -1290,40 +1299,50 @@ bool SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &tar
       }
 
       /* Root rotation if necessary */
-      rotateSecondaryRoot(Uptane::RepositoryType::Director(), *(sec->second));
-      rotateSecondaryRoot(Uptane::RepositoryType::Image(), *(sec->second));
-      if (!sec->second->putMetadata(target)) {
-        LOG_ERROR << "Sending metadata to " << sec->first << " failed";
-        put_meta_succeed = false;
+      auto result = rotateSecondaryRoot(Uptane::RepositoryType::Director(), *(sec->second));
+      if (!result.isSuccess()) {
+        final_result = result;
+        continue;
+      }
+      result = rotateSecondaryRoot(Uptane::RepositoryType::Image(), *(sec->second));
+      if (!result.isSuccess()) {
+        final_result = result;
+        continue;
+      }
+      result = sec->second->putMetadata(target);
+      if (!result.isSuccess()) {
+        LOG_ERROR << "Sending metadata to " << sec->first << " failed: " << result.result_code << " "
+                  << result.description;
+        final_result = result;
       }
     }
   }
 
-  return put_meta_succeed;
+  return final_result;
 }
 
-std::future<data::ResultCode::Numeric> SotaUptaneClient::sendFirmwareAsync(SecondaryInterface &secondary,
-                                                                           const Uptane::Target &target) {
+std::future<data::InstallationResult> SotaUptaneClient::sendFirmwareAsync(SecondaryInterface &secondary,
+                                                                          const Uptane::Target &target) {
   auto f = [this, &secondary, target]() {
     const std::string &correlation_id = director_repo.getCorrelationId();
 
     sendEvent<event::InstallStarted>(secondary.getSerial());
     report_queue->enqueue(std_::make_unique<EcuInstallationStartedReport>(secondary.getSerial(), correlation_id));
 
-    data::ResultCode::Numeric result = secondary.sendFirmware(target);
+    data::InstallationResult result = secondary.sendFirmware(target);
 
-    if (result == data::ResultCode::Numeric::kOk) {
+    if (result.isSuccess()) {
       result = secondary.install(target);
     }
 
-    if (result == data::ResultCode::Numeric::kNeedCompletion) {
+    if (result.result_code == data::ResultCode::Numeric::kNeedCompletion) {
       report_queue->enqueue(std_::make_unique<EcuInstallationAppliedReport>(secondary.getSerial(), correlation_id));
     } else {
-      report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(
-          secondary.getSerial(), correlation_id, result == data::ResultCode::Numeric::kOk));
+      report_queue->enqueue(
+          std_::make_unique<EcuInstallationCompletedReport>(secondary.getSerial(), correlation_id, result.isSuccess()));
     }
 
-    sendEvent<event::InstallTargetComplete>(secondary.getSerial(), result == data::ResultCode::Numeric::kOk);
+    sendEvent<event::InstallTargetComplete>(secondary.getSerial(), result.isSuccess());
     return result;
   };
 
@@ -1332,7 +1351,7 @@ std::future<data::ResultCode::Numeric> SotaUptaneClient::sendFirmwareAsync(Secon
 
 std::vector<result::Install::EcuReport> SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targets) {
   std::vector<result::Install::EcuReport> reports;
-  std::vector<std::pair<result::Install::EcuReport, std::future<data::ResultCode::Numeric>>> firmwareFutures;
+  std::vector<std::pair<result::Install::EcuReport, std::future<data::InstallationResult>>> firmwareFutures;
 
   const Uptane::EcuSerial &primary_ecu_serial = primaryEcuSerial();
   // target images should already have been downloaded to metadata_path/targets/
@@ -1357,10 +1376,7 @@ std::vector<result::Install::EcuReport> SotaUptaneClient::sendImagesToEcus(const
   }
 
   for (auto &f : firmwareFutures) {
-    data::ResultCode::Numeric fut_result = data::ResultCode::Numeric::kUnknown;
-
-    fut_result = f.second.get();
-    f.first.install_res = data::InstallationResult(fut_result, "");
+    data::InstallationResult fut_result = f.second.get();
 
     if (fiu_fail((std::string("secondary_install_") + f.first.serial.ToString()).c_str()) != 0) {
       // consider changing this approach of the fault injection, since the current approach impacts the non-test code
@@ -1371,17 +1387,19 @@ std::vector<result::Install::EcuReport> SotaUptaneClient::sendImagesToEcus(const
       // from Secondary, not just bool and/or data::ResultCode::Numeric
 
       // fault injection
-      fut_result = data::ResultCode::Numeric::kInstallFailed;
-      f.first.install_res = data::InstallationResult(data::ResultCode(fut_result, fault_injection_last_info()), "");
+      fut_result = data::InstallationResult(
+          data::ResultCode(data::ResultCode::Numeric::kInstallFailed, fault_injection_last_info()),
+          fault_injection_last_info());
     }
 
-    if (fut_result == data::ResultCode::Numeric::kOk || fut_result == data::ResultCode::Numeric::kNeedCompletion) {
+    if (fut_result.isSuccess() || fut_result.result_code == data::ResultCode::Numeric::kNeedCompletion) {
       f.first.update.setCorrelationId(director_repo.getCorrelationId());
-      auto update_mode = fut_result == data::ResultCode::Numeric::kOk ? InstalledVersionUpdateMode::kCurrent
-                                                                      : InstalledVersionUpdateMode::kPending;
+      auto update_mode =
+          fut_result.isSuccess() ? InstalledVersionUpdateMode::kCurrent : InstalledVersionUpdateMode::kPending;
       storage->saveInstalledVersion(f.first.serial.ToString(), f.first.update, update_mode);
     }
 
+    f.first.install_res = fut_result;
     storage->saveEcuInstallationResult(f.first.serial, f.first.install_res);
     reports.push_back(f.first);
   }

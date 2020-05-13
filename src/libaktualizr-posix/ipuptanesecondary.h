@@ -28,28 +28,31 @@ class IpUptaneSecondary : public SecondaryInterface {
   void init(std::shared_ptr<SecondaryProvider> secondary_provider_in) override {
     secondary_provider_ = std::move(secondary_provider_in);
   }
-  bool putMetadata(const Target& target) override;
+  data::InstallationResult putMetadata(const Target& target) override;
   int32_t getRootVersion(bool /* director */) const override { return 0; }
-  bool putRoot(const std::string& /* root */, bool /* director */) override { return true; }
+  // TODO(OTA-4552): Support multiple Root rotations.
+  data::InstallationResult putRoot(const std::string& /* root */, bool /* director */) override {
+    return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
+  }
   Manifest getManifest() const override;
   bool ping() const override;
-  data::ResultCode::Numeric sendFirmware(const Uptane::Target& target) override;
-  data::ResultCode::Numeric install(const Uptane::Target& target) override;
+  data::InstallationResult sendFirmware(const Uptane::Target& target) override;
+  data::InstallationResult install(const Uptane::Target& target) override;
 
  private:
   const std::pair<std::string, uint16_t>& getAddr() const { return addr_; }
-  bool putMetadata_v1(const Uptane::MetaBundle& meta_bundle);
-  bool putMetadata_v2(const Uptane::MetaBundle& meta_bundle);
-  data::ResultCode::Numeric sendFirmware_v1(const Uptane::Target& target);
-  data::ResultCode::Numeric sendFirmware_v2(const Uptane::Target& target);
-  data::ResultCode::Numeric install_v1(const Uptane::Target& target);
-  data::ResultCode::Numeric install_v2(const Uptane::Target& target);
+  data::InstallationResult putMetadata_v1(const Uptane::MetaBundle& meta_bundle);
+  data::InstallationResult putMetadata_v2(const Uptane::MetaBundle& meta_bundle);
+  data::InstallationResult sendFirmware_v1(const Uptane::Target& target);
+  data::InstallationResult sendFirmware_v2(const Uptane::Target& target);
+  data::InstallationResult install_v1(const Uptane::Target& target);
+  data::InstallationResult install_v2(const Uptane::Target& target);
   void addMetadata(const Uptane::MetaBundle& meta_bundle, Uptane::RepositoryType repo, const Uptane::Role& role,
                    AKMetaCollection_t& collection);
-  data::ResultCode::Numeric invokeInstallOnSecondary(const Uptane::Target& target);
-  data::ResultCode::Numeric downloadOstreeRev(const Uptane::Target& target);
-  data::ResultCode::Numeric uploadFirmware(const Uptane::Target& target);
-  data::ResultCode::Numeric uploadFirmwareData(const uint8_t* data, size_t size);
+  data::InstallationResult invokeInstallOnSecondary(const Uptane::Target& target);
+  data::InstallationResult downloadOstreeRev(const Uptane::Target& target);
+  data::InstallationResult uploadFirmware(const Uptane::Target& target);
+  data::InstallationResult uploadFirmwareData(const uint8_t* data, size_t size);
 
   std::shared_ptr<SecondaryProvider> secondary_provider_;
   std::mutex install_mutex;

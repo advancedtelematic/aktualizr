@@ -42,12 +42,12 @@ class PartialVerificationSecondary : public SecondaryInterface {
   Uptane::HardwareIdentifier getHwId() const override { return Uptane::HardwareIdentifier(sconfig.ecu_hardware_id); }
   PublicKey getPublicKey() const override { return public_key_; }
 
-  bool putMetadata(const Target& target) override;
+  data::InstallationResult putMetadata(const Target& target) override;
   int getRootVersion(bool director) const override;
-  bool putRoot(const std::string& root, bool director) override;
+  data::InstallationResult putRoot(const std::string& root, bool director) override;
 
-  data::ResultCode::Numeric sendFirmware(const Uptane::Target& target) override;
-  data::ResultCode::Numeric install(const Uptane::Target& target) override;
+  data::InstallationResult sendFirmware(const Uptane::Target& target) override;
+  data::InstallationResult install(const Uptane::Target& target) override;
   Uptane::Manifest getManifest() const override;
   bool ping() const override { return true; }
 
