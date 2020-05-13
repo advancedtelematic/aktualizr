@@ -33,6 +33,7 @@ TEST(KeyManager, SignTuf) {
   EXPECT_EQ(signed_json["signatures"][0]["keyid"].asString(),
             "6a809c62b4f6c2ae11abfb260a6a9a57d205fc2887ab9c83bd6be0790293e187");
   EXPECT_NE(signed_json["signatures"][0]["sig"].asString().size(), 0);
+  EXPECT_EQ(signed_json["signatures"][0]["method"].asString(), "rsassa-pss");
 }
 
 /* Sign TUF metadata with ED25519. */
@@ -58,6 +59,7 @@ TEST(KeyManager, SignED25519Tuf) {
   EXPECT_EQ(signed_json["signatures"][0]["keyid"].asString(),
             "a6d0f6b52ae833175dd7724899507709231723037845715c7677670e0195f850");
   EXPECT_NE(signed_json["signatures"][0]["sig"].asString().size(), 0);
+  EXPECT_EQ(signed_json["signatures"][0]["method"].asString(), "ed25519");
 }
 
 TEST(KeyManager, InitFileEmpty) {

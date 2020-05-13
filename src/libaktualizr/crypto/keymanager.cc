@@ -298,7 +298,18 @@ Json::Value KeyManager::signTuf(const Json::Value &in_data) const {
   }
 
   Json::Value signature;
-  signature["method"] = "rsassa-pss";
+  switch (config_.uptane_key_type) {
+    case KeyType::kRSA2048:
+    case KeyType::kRSA3072:
+    case KeyType::kRSA4096:
+      signature["method"] = "rsassa-pss";
+      break;
+    case KeyType::kED25519:
+      signature["method"] = "ed25519";
+      break;
+    default:
+      throw std::runtime_error("Unknown key type");
+  }
   signature["sig"] = b64sig;
 
   Json::Value out_data;
