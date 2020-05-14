@@ -1,4 +1,4 @@
-= Upload a Large Binary file
+= Upload a large binary file
 ifdef::env-github[]
 
 [NOTE]
@@ -47,7 +47,7 @@ garage-sign targets add-uploaded \
   --hardwareids <hardware-id1>,<hardware-id2> <1>
 ----
 +
-<1> This refers to the ids of hardware that your binary file supports. An example can be seen in the `targets.json` file xref:customise-targets-metadata.adoc#_anatomy_of_targets_json_metadata[here] under the `custom` field.
+<1> This refers to the types of hardware that your binary file is intended for. An example can be seen in the `targets.json` file xref:customise-targets-metadata.adoc#_anatomy_of_targets_json_metadata[here] under the `custom` field.
 
 . Sign the new `targets.json` file with your `targets` key.
 +
