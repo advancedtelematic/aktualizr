@@ -57,6 +57,7 @@ static void progress_cb(const Uptane::Target& target, const std::string& descrip
 void test_pause(const Uptane::Target& target, const std::string& type = PACKAGE_MANAGER_NONE) {
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
+  config.pacman.images_path = temp_dir.Path() / "images";
   config.uptane.repo_server = server;
   config.pacman.type = type;
   config.pacman.sysroot = sysroot;
@@ -146,6 +147,7 @@ class HttpCustomUri : public HttpFake {
 /* Download from URI specified in target metadata. */
 TEST(Fetcher, DownloadCustomUri) {
   TemporaryDirectory temp_dir;
+  config.pacman.images_path = temp_dir.Path() / "images";
   config.storage.path = temp_dir.Path();
   config.uptane.repo_server = server;
 
@@ -184,6 +186,7 @@ class HttpDefaultUri : public HttpFake {
 TEST(Fetcher, DownloadDefaultUri) {
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
+  config.pacman.images_path = temp_dir.Path() / "images";
   config.uptane.repo_server = server;
 
   std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
@@ -246,6 +249,7 @@ class HttpZeroLength : public HttpFake {
 TEST(Fetcher, DownloadLengthZero) {
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
+  config.pacman.images_path = temp_dir.Path() / "images";
   config.uptane.repo_server = server;
 
   std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
@@ -281,6 +285,7 @@ TEST(Fetcher, DownloadLengthZero) {
 TEST(Fetcher, NotEnoughDiskSpace) {
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
+  config.pacman.images_path = temp_dir.Path() / "images";
   config.uptane.repo_server = server;
 
   std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
@@ -319,6 +324,7 @@ TEST(Fetcher, NotEnoughDiskSpace) {
 TEST(Fetcher, DownloadOstreeFail) {
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
+  config.pacman.images_path = temp_dir.Path() / "images";
   config.uptane.repo_server = server;
 
   std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));

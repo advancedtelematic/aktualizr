@@ -86,6 +86,7 @@ void try_and_die(const Uptane::Target& target, bool graceful) {
 TEST(FetcherDeathTest, TestResumeAfterPause) {
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
+  config.pacman.images_path = temp_dir.Path() / "images";
 
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "dd7bd1c37a3226e520b8d6939c30991b1c08772d5dab62b381c3a63541dc629a";

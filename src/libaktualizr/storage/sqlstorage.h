@@ -100,17 +100,15 @@ class SQLStorage : public SQLStorageBase, public INvStorage {
   bool loadDeviceDataHash(const std::string& data_type, std::string* hash) const override;
   void clearDeviceData() override;
 
-  std::unique_ptr<StorageTargetWHandle> allocateTargetFile(const Uptane::Target& target) override;
-  std::unique_ptr<StorageTargetRHandle> openTargetFile(const Uptane::Target& target) const override;
-  boost::optional<std::pair<uintmax_t, std::string>> checkTargetFile(const Uptane::Target& target) const override;
-  std::vector<Uptane::Target> getTargetFiles() override;
-  void removeTargetFile(const std::string& target_name) override;
+  void storeTargetFilename(const std::string& targetname, const std::string& filename) const override;
+  std::string getTargetFilename(const std::string& targetname) const override;
+  std::vector<std::string> getAllTargetNames() const override;
+  void deleteTargetInfo(const std::string& targetname) const override;
+
   void cleanUp() override;
   StorageType type() override { return StorageType::kSqlite; };
 
  private:
-  boost::filesystem::path images_path_{sqldb_path_.parent_path() / "images"};
-
   void cleanMetaVersion(Uptane::RepositoryType repo, const Uptane::Role& role);
 };
 

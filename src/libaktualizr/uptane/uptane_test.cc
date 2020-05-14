@@ -353,6 +353,7 @@ TEST(Uptane, InstallFakeGood) {
   conf.uptane.director_server = http->tls_server + "director";
   conf.uptane.repo_server = http->tls_server + "repo";
   conf.pacman.type = PACKAGE_MANAGER_NONE;
+  conf.pacman.images_path = temp_dir.Path() / "images";
   conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   conf.provision.primary_ecu_hardware_id = "primary_hw";
   conf.storage.path = temp_dir.Path();
@@ -440,6 +441,7 @@ TEST(Uptane, InstallFakeBad) {
   conf.uptane.director_server = http->tls_server + "director";
   conf.uptane.repo_server = http->tls_server + "repo";
   conf.pacman.type = PACKAGE_MANAGER_NONE;
+  conf.pacman.images_path = temp_dir.Path() / "images";
   conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   conf.provision.primary_ecu_hardware_id = "primary_hw";
   conf.storage.path = temp_dir.Path();
@@ -459,29 +461,30 @@ TEST(Uptane, InstallFakeBad) {
 
   std::string hash = download_result.updates[0].sha256Hash();
   std::transform(hash.begin(), hash.end(), hash.begin(), ::toupper);
-  boost::filesystem::path image = temp_dir / "images" / hash;
+  auto image = (conf.pacman.images_path / hash).string();
 
   // Overwrite the file on disk with garbage so that the target verification
   // fails. First read the existing data so we can re-write it later.
-  auto rhandle = storage->openTargetFile(download_result.updates[0]);
   const uint64_t length = download_result.updates[0].length();
-  uint8_t content[length];
-  EXPECT_EQ(rhandle->rread(content, length), length);
-  rhandle->rclose();
-  auto whandle = storage->allocateTargetFile(download_result.updates[0]);
-  uint8_t content_bad[length + 1];
+  char content[length];
+  auto r = std::ifstream(image, std::ios::binary);
+  r.read(content, static_cast<std::streamsize>(length));
+  EXPECT_EQ(r.gcount(), length);
+  r.close();
+  auto w = std::ofstream(image, std::ios::binary | std::ios::ate);
+  char content_bad[length + 1];
   memset(content_bad, 0, length + 1);
-  EXPECT_EQ(whandle->wfeed(content_bad, 3), 3);
-  whandle->wcommit();
+  w.write(content_bad, 3);
+  w.close();
 
   result::Install install_result = up->uptaneInstall(download_result.updates);
   EXPECT_FALSE(install_result.dev_report.isSuccess());
   EXPECT_EQ(install_result.dev_report.result_code, data::ResultCode::Numeric::kInternalError);
 
   // Try again with oversized data.
-  whandle = storage->allocateTargetFile(download_result.updates[0]);
-  EXPECT_EQ(whandle->wfeed(content_bad, length + 1), length + 1);
-  whandle->wcommit();
+  w = std::ofstream(image, std::ios::binary | std::ios::ate);
+  w.write(content_bad, static_cast<std::streamsize>(length + 1));
+  w.close();
 
   install_result = up->uptaneInstall(download_result.updates);
   EXPECT_FALSE(install_result.dev_report.isSuccess());
@@ -489,27 +492,27 @@ TEST(Uptane, InstallFakeBad) {
 
   // Try again with equally long data to make sure the hash check actually gets
   // triggered.
-  whandle = storage->allocateTargetFile(download_result.updates[0]);
-  EXPECT_EQ(whandle->wfeed(content_bad, length), length);
-  whandle->wcommit();
+  w = std::ofstream(image, std::ios::binary | std::ios::ate);
+  w.write(content_bad, static_cast<std::streamsize>(length));
+  w.close();
 
   install_result = up->uptaneInstall(download_result.updates);
   EXPECT_FALSE(install_result.dev_report.isSuccess());
   EXPECT_EQ(install_result.dev_report.result_code, data::ResultCode::Numeric::kInternalError);
 
   // Try with the real data, but incomplete.
-  whandle = storage->allocateTargetFile(download_result.updates[0]);
-  EXPECT_EQ(whandle->wfeed(reinterpret_cast<uint8_t *>(content), length - 1), length - 1);
-  whandle->wcommit();
+  w = std::ofstream(image, std::ios::binary | std::ios::ate);
+  w.write(content, static_cast<std::streamsize>(length - 1));
+  w.close();
 
   install_result = up->uptaneInstall(download_result.updates);
   EXPECT_FALSE(install_result.dev_report.isSuccess());
   EXPECT_EQ(install_result.dev_report.result_code, data::ResultCode::Numeric::kInternalError);
 
   // Restore the original data to the file so that verification succeeds.
-  whandle = storage->allocateTargetFile(download_result.updates[0]);
-  EXPECT_EQ(whandle->wfeed(reinterpret_cast<uint8_t *>(content), length), length);
-  whandle->wcommit();
+  w = std::ofstream(image, std::ios::binary | std::ios::ate);
+  w.write(content, static_cast<std::streamsize>(length));
+  w.close();
 
   install_result = up->uptaneInstall(download_result.updates);
   EXPECT_TRUE(install_result.dev_report.isSuccess());
@@ -603,6 +606,7 @@ TEST(Uptane, SendMetadataToSecondary) {
   conf.provision.primary_ecu_hardware_id = "primary_hw";
   conf.uptane.director_server = http->tls_server + "/director";
   conf.uptane.repo_server = http->tls_server + "/repo";
+  conf.pacman.images_path = temp_dir.Path() / "images";
   conf.storage.path = temp_dir.Path();
   conf.tls.server = http->tls_server;
 
@@ -990,6 +994,7 @@ TEST(Uptane, ProvisionOnServer) {
   config.provision.device_id = "tst149_device_id";
   config.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   config.provision.primary_ecu_hardware_id = "primary_hw";
+  config.pacman.images_path = temp_dir.Path() / "images";
   config.storage.path = temp_dir.Path();
   UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hw");
   logger_set_threshold(boost::log::trivial::trace);

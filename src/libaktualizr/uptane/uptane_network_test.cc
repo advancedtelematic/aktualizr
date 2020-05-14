@@ -129,6 +129,7 @@ TEST(UptaneNetwork, no_errors_sqlite) {
 TEST(UptaneNetwork, DownloadFailure) {
   TemporaryDirectory temp_dir;
   conf.storage.path = temp_dir.Path();
+  conf.pacman.images_path = temp_dir.Path() / "images";
   conf.provision.expiry_days = "download_failure";
   conf.provision.primary_ecu_serial = "download_failure";
   conf.provision.primary_ecu_hardware_id = "hardware_id";

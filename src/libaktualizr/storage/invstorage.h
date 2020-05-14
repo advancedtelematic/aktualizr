@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <boost/filesystem.hpp>
 #include <boost/optional.hpp>
@@ -31,74 +32,6 @@ struct MisconfiguredEcu {
   Uptane::EcuSerial serial;
   Uptane::HardwareIdentifier hardware_id;
   EcuState state;
-};
-
-class StorageTargetWHandle {
- public:
-  class WriteError : public std::runtime_error {
-   public:
-    explicit WriteError(const std::string& what) : std::runtime_error(what) {}
-  };
-  virtual ~StorageTargetWHandle() = default;
-  virtual size_t wfeed(const uint8_t* buf, size_t size) = 0;
-  virtual void wcommit() = 0;
-  virtual void wabort() = 0;
-  uintmax_t getWrittenSize() const { return written_size_; }
-
-  friend std::istream& operator>>(std::istream& is, StorageTargetWHandle& handle) {
-    std::array<uint8_t, 256> arr{};
-    while (!is.eof()) {
-      is.read(reinterpret_cast<char*>(arr.data()), arr.size());
-      handle.wfeed(arr.data(), static_cast<size_t>(is.gcount()));
-    }
-    return is;
-  }
-
- protected:
-  uintmax_t written_size_{0};
-};
-
-class StorageTargetRHandle {
- public:
-  class ReadError : public std::runtime_error {
-   public:
-    explicit ReadError(const std::string& what) : std::runtime_error(what) {}
-  };
-  virtual ~StorageTargetRHandle() = default;
-  virtual bool isPartial() const = 0;
-  virtual std::unique_ptr<StorageTargetWHandle> toWriteHandle() = 0;
-
-  virtual uintmax_t rsize() const = 0;
-  virtual size_t rread(uint8_t* buf, size_t size) = 0;
-  virtual void rclose() = 0;
-
-  void writeToFile(const boost::filesystem::path& path) {
-    std::array<uint8_t, 1024> arr{};
-    uintmax_t written = 0;
-    std::ofstream file(path.c_str());
-    if (!file.good()) {
-      throw std::runtime_error(std::string("Error opening file ") + path.string());
-    }
-    while (written < rsize()) {
-      size_t nread = rread(arr.data(), arr.size());
-      file.write(reinterpret_cast<char*>(arr.data()), static_cast<std::streamsize>(nread));
-      written += nread;
-    }
-    file.close();
-  }
-
-  friend std::ostream& operator<<(std::ostream& os, StorageTargetRHandle& handle) {
-    std::array<uint8_t, 256> arr{};
-    uintmax_t written = 0;
-    while (written < handle.rsize()) {
-      size_t nread = handle.rread(arr.data(), arr.size());
-
-      os.write(reinterpret_cast<char*>(arr.data()), static_cast<std::streamsize>(nread));
-      written += nread;
-    }
-
-    return os;
-  }
 };
 
 enum class InstalledVersionUpdateMode { kNone, kCurrent, kPending };
@@ -219,14 +152,11 @@ class INvStorage {
   virtual bool loadDeviceDataHash(const std::string& data_type, std::string* hash) const = 0;
   virtual void clearDeviceData() = 0;
 
-  virtual boost::optional<std::pair<uintmax_t, std::string>> checkTargetFile(const Uptane::Target& target) const = 0;
-
-  // Incremental file API
-  virtual std::unique_ptr<StorageTargetWHandle> allocateTargetFile(const Uptane::Target& target) = 0;
-
-  virtual std::unique_ptr<StorageTargetRHandle> openTargetFile(const Uptane::Target& target) const = 0;
-  virtual std::vector<Uptane::Target> getTargetFiles() = 0;
-  virtual void removeTargetFile(const std::string& target_name) = 0;
+  // Downloaded files info API
+  virtual void storeTargetFilename(const std::string& targetname, const std::string& filename) const = 0;
+  virtual std::string getTargetFilename(const std::string& targetname) const = 0;
+  virtual std::vector<std::string> getAllTargetNames() const = 0;
+  virtual void deleteTargetInfo(const std::string& targetname) const = 0;
 
   virtual void cleanUp() = 0;
 

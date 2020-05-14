@@ -32,9 +32,9 @@ TEST(PackageManagerFactory, Debian_Install_Good) {
   target_json_test["length"] = 2;
   Uptane::Target target_test("test.deb", target_json_test);
   storage->savePrimaryInstalledVersion(target_test, InstalledVersionUpdateMode::kCurrent);
-  std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(target);
-  std::stringstream("ab") >> *fhandle;
-  fhandle->wcommit();
+  auto fhandle = pacman->createTargetFile(target);
+  fhandle << "ab";
+  fhandle.close();
 
   EXPECT_EQ(pacman->install(target).result_code.num_code, data::ResultCode::Numeric::kOk);
   EXPECT_TRUE(pacman->getCurrent().MatchTarget(target));
@@ -55,9 +55,9 @@ TEST(PackageManagerFactory, Debian_Install_Bad) {
   target_json["custom"]["ecuIdentifiers"]["primary_serial"]["hardwareId"] = "primary_hwid";
   Uptane::Target target("bad.deb", target_json);
 
-  std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(target);
-  std::stringstream("ab") >> *fhandle;
-  fhandle->wcommit();
+  auto fhandle = pacman->createTargetFile(target);
+  fhandle << "ab";
+  fhandle.close();
 
   auto result = pacman->install(target);
   EXPECT_EQ(result.result_code.num_code, data::ResultCode::Numeric::kInstallFailed);

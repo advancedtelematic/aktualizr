@@ -25,8 +25,17 @@ $1/src/uptane_generator/uptane-generator signtargets --path "$TEST_INSTALL_DESTD
 
 mkdir -m 700 -p "$TEMP_DIR/import"
 cp ./tests/test_data/prov_testupdate/* "$TEMP_DIR/import"
-echo -e "[storage]\\npath = \"$TEMP_DIR\"\\n[import]\\nbase_path = \"$TEMP_DIR/import\"" > "$TEMP_DIR/conf.toml"
-echo -e "[tls]\\nserver = \"http://localhost:$PORT\"" >> "$TEMP_DIR/conf.toml"
+cat << EOF > "$TEMP_DIR/conf.toml"
+[storage]
+path = "$TEMP_DIR"
+[import]
+base_path = "$TEMP_DIR/import"
+[tls]
+server = "http://localhost:$PORT"
+[pacman]
+images_path = "$TEMP_DIR/images"
+EOF
+
 $1/src/aktualizr_primary/aktualizr -c ./tests/config/testupdate.toml -c "$TEMP_DIR/conf.toml" once
 
 # check the updated file appeared in the installation directory and sha256sum matches expectation

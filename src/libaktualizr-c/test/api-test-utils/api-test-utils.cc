@@ -34,6 +34,7 @@ Config *Get_test_config() {
   temp_dir = std_::make_unique<TemporaryDirectory>();
   config->storage.path = temp_dir->Path();
   config->pacman.type = PACKAGE_MANAGER_NONE;
+  config->pacman.images_path = temp_dir->Path() / "images";
 
   config->postUpdateValues();
   return config;

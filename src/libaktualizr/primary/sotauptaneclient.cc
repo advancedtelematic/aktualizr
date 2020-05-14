@@ -1340,7 +1340,8 @@ std::future<data::ResultCode::Numeric> SotaUptaneClient::sendFirmwareAsync(Uptan
       data_to_send = secondaryTreehubCredentials();
     } else {
       std::stringstream sstr;
-      sstr << *storage->openTargetFile(target);
+      auto str = package_manager_->openTargetFile(target);
+      sstr << str.rdbuf();
       data_to_send = sstr.str();
     }
 

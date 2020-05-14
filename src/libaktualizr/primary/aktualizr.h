@@ -129,7 +129,7 @@ class Aktualizr {
    * @param target Target object matching the desired target in the storage.
    * @return Handle to the stored binary. nullptr if none is found.
    */
-  std::unique_ptr<StorageTargetRHandle> OpenStoredTarget(const Uptane::Target& target);
+  std::ifstream OpenStoredTarget(const Uptane::Target& target);
 
   /**
    * Install targets.

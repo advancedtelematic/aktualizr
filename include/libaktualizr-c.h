@@ -9,7 +9,7 @@
 using Campaign = campaign::Campaign;
 using Updates = std::vector<Uptane::Target>;
 using Target = Uptane::Target;
-using StorageTargetHandle = StorageTargetRHandle;
+using StorageTargetHandle = std::ifstream;
 
 extern "C" {
 #else

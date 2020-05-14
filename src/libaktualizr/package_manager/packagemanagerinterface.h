@@ -52,6 +52,12 @@ class PackageManagerInterface {
                            const FetcherProgressCb& progress_cb, const api::FlowControlToken* token);
   virtual TargetStatus verifyTarget(const Uptane::Target& target) const;
   virtual bool checkAvailableDiskSpace(const uint64_t required_bytes) const;
+  virtual boost::optional<std::pair<uintmax_t, std::string>> checkTargetFile(const Uptane::Target& target) const;
+  virtual std::ofstream createTargetFile(const Uptane::Target& target);
+  virtual std::ofstream appendTargetFile(const Uptane::Target& target);
+  virtual std::ifstream openTargetFile(const Uptane::Target& target) const;
+  virtual void removeTargetFile(const Uptane::Target& target);
+  virtual std::vector<Uptane::Target> getTargetFiles();
 
  protected:
   PackageConfig config;

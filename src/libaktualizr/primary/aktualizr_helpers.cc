@@ -17,7 +17,7 @@ void targets_autoclean_cb(Aktualizr &aktualizr, const std::shared_ptr<event::Bas
     auto start = entry.installs.size() >= 2 ? entry.installs.end() - 2 : entry.installs.begin();
     for (auto it = start; it != entry.installs.end(); it++) {
       auto fit = std::find_if(installed_targets.begin(), installed_targets.end(),
-                              [&it](const Uptane::Target &t2) { return it->sha256Hash() == t2.sha256Hash(); });
+                              [&it](const Uptane::Target &t2) { return it->filename() == t2.filename(); });
 
       if (fit == installed_targets.end()) {
         continue;

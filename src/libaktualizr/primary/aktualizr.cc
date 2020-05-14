@@ -210,14 +210,10 @@ Aktualizr::InstallationLog Aktualizr::GetInstallationLog() {
   return ilog;
 }
 
-std::vector<Uptane::Target> Aktualizr::GetStoredTargets() { return storage_->getTargetFiles(); }
+std::vector<Uptane::Target> Aktualizr::GetStoredTargets() { return uptane_client_->getStoredTargets(); }
 
-void Aktualizr::DeleteStoredTarget(const Uptane::Target &target) { storage_->removeTargetFile(target.filename()); }
+void Aktualizr::DeleteStoredTarget(const Uptane::Target &target) { uptane_client_->deleteStoredTarget(target); }
 
-std::unique_ptr<StorageTargetRHandle> Aktualizr::OpenStoredTarget(const Uptane::Target &target) {
-  auto handle = storage_->openTargetFile(target);
-  if (handle->isPartial()) {
-    throw std::runtime_error("Target was partially downloaded");
-  }
-  return handle;
+std::ifstream Aktualizr::OpenStoredTarget(const Uptane::Target &target) {
+  return uptane_client_->openStoredTarget(target);
 }
