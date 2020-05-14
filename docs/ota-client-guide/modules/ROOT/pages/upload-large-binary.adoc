@@ -1,4 +1,4 @@
-= Upload a large binary file
+= Upload a binary file
 ifdef::env-github[]
 
 [NOTE]
@@ -7,61 +7,73 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
-Software packages can be uploaded on the OTA Connect Portal by following the section xref:ota-web::upload-software-ui.adoc[Upload software versions, window="_blank"] of the OTA Connect User Guide.
+If you want to upload large binary files (up to 3 GB) or your software signing keys are xref:ota-client::rotating-signing-keys.adoc[offline], use the `garage-sign` tool on the command line.
 
-You can also upload large binary files (up to 3 GB) using the `garage-sign` tool on the command line.
+NOTE: You can upload software packages of up to 1 GB on the OTA Connect Portal. For instructions, see xref:ota-web::upload-software-ui.adoc[Upload software versions] in the OTA Connect User Guide.
 
-*To upload a large binary file, follow these steps:*
+*To upload a binary file using `garage-sign`:*
 
-. Ensure you have the latest version of the `targets.json` file from OTA Connect by pulling the latest version to your local repository.
+. Make sure you have the link:https://tuf-cli-releases.ota.here.com/index.html[latest version,window="_blank"] of the `garage-sign` tool.
+. Get the .zip file with your provisioning credentials.
++
+For instructions, see the xref:ota-client::generating-provisioning-credentials.adoc[related] section in this guide.
+
+. To initialize a local repository, specify a name and the path to the .zip file with your provisioning credentials.
++
+[source, bash]
+----
+garage-sign init \
+  --repo <localreponame> \
+  --credentials </path/to/credentials.zip>
+----
++
+
+. Pull the latest version of the `targets.json` file to your local repository.
 +
 [source,bash]
 ----
 garage-sign targets pull \
-  --repo <reponame>
+  --repo <localreponame>
 ----
 
-. Next, upload the large binary file you want with the command below.
+. Upload your binary file to your local repository and specify the name and version of your `targets.json` file.
++
+TIP: You can find the `name` and `version` fields in the `targets.json` file under the `custom` field, as shown in the xref:customise-targets-metadata.adoc#_anatomy_of_targets_json_metadata[example].
 +
 [source,bash]
 ----
 garage-sign targets upload \
-  --repo <reponame> \
-  --input </path/to/bigfile.bin> \ <1>
+  --repo <localreponame> \
+  --input </path/to/binary-file.bin> \
   --name <name-of-target> \
-  --version <target-version> <2>
+  --version <target-version>
 ----
-+
-<1> The path to the file you want to upload is specified here.
-<2> The `name` and `version` of your `targets.json` file are specified here. These can be seen in the `targets.json` file under the `custom` field as shown in the example xref:customise-targets-metadata.adoc#_anatomy_of_targets_json_metadata[here].
 
-. After the upload is successful, add metadata about the file to your `targets.json`.
+. If the upload is successful, in the `targets.json` file, specify the following metadata about the binary file: name, version, and types of hardware for which your binary file is intended, as shown in the xref:customise-targets-metadata.adoc#_anatomy_of_targets_json_metadata[example].
 +
 [source,bash]
 ----
 garage-sign targets add-uploaded \
-  --repo <reponame> \
-  --input </path/to/bigfile.bin> \
+  --repo <localreponame> \
+  --input </path/to/binary-file.bin> \
   --name <name-of-target> \
   --version <target-version> \
-  --hardwareids <hardware-id1>,<hardware-id2> <1>
+  --hardwareids <hardware-id1>,<hardware-id2>
 ----
-+
-<1> This refers to the types of hardware that your binary file is intended for. An example can be seen in the `targets.json` file xref:customise-targets-metadata.adoc#_anatomy_of_targets_json_metadata[here] under the `custom` field.
 
 . Sign the new `targets.json` file with your `targets` key.
 +
 [source,bash]
 ----
 garage-sign targets sign \
-  --repo <reponame> \
+  --repo <localreponame> \
   --key-name mytargets
 ----
 
-. Finally, push the new `targets.json` file to OTA Connect.
+. Push the new `targets.json` file to OTA Connect.
 +
 [source,bash]
 ----
 garage-sign targets push \
-  --repo <reponame>
+  --repo <localreponame>
 ----

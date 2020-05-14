@@ -85,7 +85,7 @@ ifndef::env-github[:pageroot:]
 * xref:{pageroot}build-only-ostree.adoc[Build only the OSTree part]
 * xref:{pageroot}rollback.adoc[Set up rollback behavior]
 * xref:{pageroot}deb-package-install.adoc[Install the client from a deb package]
-* xref:{pageroot}upload-large-binary.adoc[Upload a large binary file]
+* xref:{pageroot}upload-large-binary.adoc[Upload a binary file]
 * xref:{pageroot}virtual-secondaries.adoc[Use Virtual Secondaries]
 
 .Reference
