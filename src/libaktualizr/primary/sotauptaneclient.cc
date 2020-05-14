@@ -1378,20 +1378,6 @@ std::vector<result::Install::EcuReport> SotaUptaneClient::sendImagesToEcus(const
   for (auto &f : firmwareFutures) {
     data::InstallationResult fut_result = f.second.get();
 
-    if (fiu_fail((std::string("secondary_install_") + f.first.serial.ToString()).c_str()) != 0) {
-      // consider changing this approach of the fault injection, since the current approach impacts the non-test code
-      // flow here as well as it doesn't test the installation failure on Secondary from an end-to-end perspective as it
-      // injects an error on the middle of the control flow that would have happened if an installation error had
-      // happened in case of the virtual or the IP Secondary or any other Secondary, e.g. add a mock Secondary that
-      // returns an error to sendFirmware/install request we might consider passing the installation description message
-      // from Secondary, not just bool and/or data::ResultCode::Numeric
-
-      // fault injection
-      fut_result = data::InstallationResult(
-          data::ResultCode(data::ResultCode::Numeric::kInstallFailed, fault_injection_last_info()),
-          fault_injection_last_info());
-    }
-
     if (fut_result.isSuccess() || fut_result.result_code == data::ResultCode::Numeric::kNeedCompletion) {
       f.first.update.setCorrelationId(director_repo.getCorrelationId());
       auto update_mode =

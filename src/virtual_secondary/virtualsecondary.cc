@@ -86,10 +86,19 @@ bool VirtualSecondary::getFirmwareInfo(Uptane::InstalledImageInfo& firmware_info
 
 data::InstallationResult VirtualSecondary::putMetadata(const Uptane::Target& target) {
   if (fiu_fail("secondary_putmetadata") != 0) {
-    return data::InstallationResult(data::ResultCode::Numeric::kCustomError, "Forced failure");
+    return data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed, fault_injection_last_info());
   }
 
   return ManagedSecondary::putMetadata(target);
+}
+
+data::InstallationResult VirtualSecondary::install(const Uptane::Target& target) {
+  if (fiu_fail((std::string("secondary_install_") + getSerial().ToString()).c_str()) != 0) {
+    return data::InstallationResult(
+        data::ResultCode(data::ResultCode::Numeric::kInstallFailed, fault_injection_last_info()), "Forced failure");
+  }
+
+  return ManagedSecondary::install(target);
 }
 
 }  // namespace Primary

@@ -27,6 +27,7 @@ class VirtualSecondary : public ManagedSecondary {
 
   std::string Type() const override { return VirtualSecondaryConfig::Type; }
   data::InstallationResult putMetadata(const Uptane::Target& target) override;
+  data::InstallationResult install(const Uptane::Target& target) override;
 
   bool ping() const override { return true; }
 
