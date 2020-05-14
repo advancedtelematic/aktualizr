@@ -134,16 +134,6 @@ data::InstallationResult ManagedSecondary::sendFirmware(const Uptane::Target &ta
 }
 
 data::InstallationResult ManagedSecondary::install(const Uptane::Target &target) {
-  if (fiu_fail((std::string("secondary_install_") + getSerial().ToString()).c_str()) != 0) {
-    // consider changing this approach of the fault injection, since the current approach impacts the non-test code flow
-    // here as well as it doesn't test the installation failure on secondary from an end-to-end perspective as it
-    // injects an error on the middle of the control flow that would have happened if an installation error had happened
-    // in case of the virtual or the ip-secondary or any other secondary, e.g. add a mock secondary that returns an
-    // error to sendFirmware/install request we might consider passing the installation description message from
-    // Secondary, not just bool and/or data::ResultCode::Numeric
-    return data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, "Forced failure");
-  }
-
   auto str = secondary_provider_->getTargetFileHandle(target);
   std::ofstream out_file(sconfig.firmware_path.string(), std::ios::binary);
   out_file << str.rdbuf();
