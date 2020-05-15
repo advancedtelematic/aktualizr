@@ -68,22 +68,6 @@ void VirtualSecondaryConfig::dump(const boost::filesystem::path& file_full_path)
 VirtualSecondary::VirtualSecondary(Primary::VirtualSecondaryConfig sconfig_in)
     : ManagedSecondary(std::move(sconfig_in)) {}
 
-bool VirtualSecondary::getFirmwareInfo(Uptane::InstalledImageInfo& firmware_info) const {
-  std::string content;
-
-  if (!boost::filesystem::exists(sconfig.target_name_path) || !boost::filesystem::exists(sconfig.firmware_path)) {
-    firmware_info.name = std::string("noimage");
-    content = "";
-  } else {
-    firmware_info.name = Utils::readFile(sconfig.target_name_path.string());
-    content = Utils::readFile(sconfig.firmware_path.string());
-  }
-  firmware_info.hash = Uptane::ManifestIssuer::generateVersionHashStr(content);
-  firmware_info.len = content.size();
-
-  return true;
-}
-
 data::InstallationResult VirtualSecondary::putMetadata(const Uptane::Target& target) {
   if (fiu_fail("secondary_putmetadata") != 0) {
     return data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed, fault_injection_last_info());
