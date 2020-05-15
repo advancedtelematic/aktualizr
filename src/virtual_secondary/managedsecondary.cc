@@ -171,6 +171,22 @@ Uptane::Manifest ManagedSecondary::getManifest() const {
   return signed_ecu_version;
 }
 
+bool ManagedSecondary::getFirmwareInfo(Uptane::InstalledImageInfo &firmware_info) const {
+  std::string content;
+
+  if (!boost::filesystem::exists(sconfig.target_name_path) || !boost::filesystem::exists(sconfig.firmware_path)) {
+    firmware_info.name = std::string("noimage");
+    content = "";
+  } else {
+    firmware_info.name = Utils::readFile(sconfig.target_name_path.string());
+    content = Utils::readFile(sconfig.firmware_path.string());
+  }
+  firmware_info.hash = Uptane::ManifestIssuer::generateVersionHashStr(content);
+  firmware_info.len = content.size();
+
+  return true;
+}
+
 void ManagedSecondary::storeKeys(const std::string &pub_key, const std::string &priv_key) {
   Utils::writeFile((sconfig.full_client_dir / sconfig.ecu_private_key), priv_key);
   Utils::writeFile((sconfig.full_client_dir / sconfig.ecu_public_key), pub_key);

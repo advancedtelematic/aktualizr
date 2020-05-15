@@ -77,7 +77,7 @@ class ManagedSecondary : public SecondaryInterface {
   bool loadKeys(std::string* pub_key, std::string* priv_key);
 
  protected:
-  virtual bool getFirmwareInfo(Uptane::InstalledImageInfo& firmware_info) const = 0;
+  virtual bool getFirmwareInfo(Uptane::InstalledImageInfo& firmware_info) const;
 
   Primary::ManagedSecondaryConfig sconfig;
   std::string detected_attack;

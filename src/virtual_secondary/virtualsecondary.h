@@ -30,9 +30,6 @@ class VirtualSecondary : public ManagedSecondary {
   data::InstallationResult install(const Uptane::Target& target) override;
 
   bool ping() const override { return true; }
-
- private:
-  bool getFirmwareInfo(Uptane::InstalledImageInfo& firmware_info) const override;
 };
 
 }  // namespace Primary
