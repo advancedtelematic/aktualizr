@@ -993,6 +993,8 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
     std::vector<Uptane::Target> primary_updates = findForEcu(updates, primary_ecu_serial);
 
     //   6 - send metadata to all the ECUs
+    // TODO: Handle individual ECU metadata failures and combine output into
+    // the device report as is done for installation.
     data::InstallationResult metadata_res = sendMetadataToEcus(updates);
     if (!metadata_res.isSuccess()) {
       result.dev_report = std::move(metadata_res);

@@ -76,8 +76,30 @@ data::InstallationResult VirtualSecondary::putMetadata(const Uptane::Target& tar
   return ManagedSecondary::putMetadata(target);
 }
 
+data::InstallationResult VirtualSecondary::putRoot(const std::string& root, bool director) {
+  // TODO(OTA-4552): Use this for testing.
+  if (fiu_fail("secondary_putroot") != 0) {
+    return data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed, fault_injection_last_info());
+  }
+
+  return ManagedSecondary::putRoot(root, director);
+}
+
+data::InstallationResult VirtualSecondary::sendFirmware(const Uptane::Target& target) {
+  if (fiu_fail((std::string("secondary_sendfirmware_") + getSerial().ToString()).c_str()) != 0) {
+    // Put the injected failure string into the ResultCode so that it shows up
+    // in the device's concatenated InstallationResult.
+    return data::InstallationResult(
+        data::ResultCode(data::ResultCode::Numeric::kDownloadFailed, fault_injection_last_info()), "Forced failure");
+  }
+
+  return ManagedSecondary::sendFirmware(target);
+}
+
 data::InstallationResult VirtualSecondary::install(const Uptane::Target& target) {
   if (fiu_fail((std::string("secondary_install_") + getSerial().ToString()).c_str()) != 0) {
+    // Put the injected failure string into the ResultCode so that it shows up
+    // in the device's concatenated InstallationResult.
     return data::InstallationResult(
         data::ResultCode(data::ResultCode::Numeric::kInstallFailed, fault_injection_last_info()), "Forced failure");
   }

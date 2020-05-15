@@ -39,10 +39,13 @@ Usage is as follow:
 
 Please try to keep this list up-to-date when inserting/removing fail points.
 
-- `fake_package_download`: force the fake package manager download to fail, optionally with a failure code supplied via `failinfo`
-- `fake_package_install`: force the fake package manager installation to fail, optionally with a failure code supplied via `failinfo`
-- `secondary_install_xxx` (xxx is a virtual Secondary ECU ID): force a virtual Secondary installation to fail, optionally with a failure code supplied via `failinfo`
+- `fake_package_download`: force the fake package manager download to fail
+- `fake_package_install`: force the fake package manager installation to fail
 - `fake_install_finalization_failure`: force the fake package manager installation finalization to fail
+- `secondary_putmetadata`: force virtual Secondary metadata verification to fail
+- `secondary_putroot`: force virtual Secondary Root rotation to fail
+- `secondary_sendFirmware_xxx` (xxx is a virtual Secondary ECU ID): force a virtual Secondary firmware send to fail
+- `secondary_install_xxx` (xxx is a virtual Secondary ECU ID): force a virtual Secondary installation to fail
 
 == Use in unit tests
 
