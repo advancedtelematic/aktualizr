@@ -1016,12 +1016,12 @@ TEST(Aktualizr, InstallationFailure) {
   }
 
   // Primary and Secondary failure
-  {
+  for (std::string prefix : {"secondary_install_", "secondary_sendfirmware_"}) {
     TemporaryDirectory temp_dir;
     auto http_server_mock = std::make_shared<HttpInstallationFailed>(temp_dir.Path(), fake_meta_dir);
     Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http_server_mock->tls_server);
     auto storage = INvStorage::newStorage(conf.storage);
-    const std::string sec_fault_name = std::string("secondary_install_") + secondary_ecu_id;
+    const std::string sec_fault_name = prefix + secondary_ecu_id;
 
     fault_injection_init();
     fault_injection_enable("fake_package_install", 1, "PRIMFAIL", 0);

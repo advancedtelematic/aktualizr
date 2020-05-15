@@ -160,7 +160,9 @@ struct ResultCode {
   std::string text_code;
 
   // Allows to have a numeric code with a default representation, but also with
-  // any string representation
+  // any string representation. This is specifically useful for campaign success
+  // analysis, because the device installation report concatenates the
+  // individual ECU ResultCodes.
   std::string toString() const {
     if (text_code != "") {
       return text_code;
