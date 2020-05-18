@@ -163,8 +163,7 @@ void SQLStorage::saveSecondaryInfo(const Uptane::EcuSerial& ecu_serial, const st
   auto statement =
       db.prepareStatement<std::string>("SELECT count(*) FROM secondary_ecus WHERE serial = ?;", ecu_serial.ToString());
   if (statement.step() != SQLITE_ROW) {
-    LOG_ERROR << "Can't get count of secondary_ecus table: " << db.errmsg();
-    return;
+    throw std::runtime_error(db.errmsg().insert(0, "Can't get count of secondary_ecus table: "));
   }
 
   const char* req;
@@ -179,8 +178,7 @@ void SQLStorage::saveSecondaryInfo(const Uptane::EcuSerial& ecu_serial, const st
   statement = db.prepareStatement<std::string, std::string, std::string, std::string>(
       req, sec_type, key_type_str, public_key.Value(), ecu_serial.ToString());
   if (statement.step() != SQLITE_DONE || sqlite3_changes(db.get()) != 1) {
-    LOG_ERROR << "Can't save Secondary key: " << db.errmsg();
-    return;
+    throw std::runtime_error(db.errmsg().insert(0, "Can't save Secondary key: "));
   }
 
   db.commitTransaction();
@@ -194,8 +192,7 @@ void SQLStorage::saveSecondaryData(const Uptane::EcuSerial& ecu_serial, const st
   auto statement =
       db.prepareStatement<std::string>("SELECT count(*) FROM secondary_ecus WHERE serial = ?;", ecu_serial.ToString());
   if (statement.step() != SQLITE_ROW) {
-    LOG_ERROR << "Can't get count of secondary_ecus table: " << db.errmsg();
-    return;
+    throw std::runtime_error(db.errmsg().insert(0, "Can't get count of secondary_ecus table: "));
   }
 
   const char* req;
@@ -207,8 +204,7 @@ void SQLStorage::saveSecondaryData(const Uptane::EcuSerial& ecu_serial, const st
 
   statement = db.prepareStatement<std::string, std::string>(req, data, ecu_serial.ToString());
   if (statement.step() != SQLITE_DONE || sqlite3_changes(db.get()) != 1) {
-    LOG_ERROR << "Can't save Secondary data: " << db.errmsg();
-    return;
+    throw std::runtime_error(db.errmsg().insert(0, "Can't save Secondary data: "));
   }
 
   db.commitTransaction();
