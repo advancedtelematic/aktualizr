@@ -208,6 +208,8 @@ void Initializer::initEcuRegister() {
     throw ServerError(err);
   }
 
+  storage_->storeEcuRegistered();
+
   LOG_INFO << "ECUs have been successfully registered with the server.";
 }
 
@@ -256,8 +258,6 @@ Initializer::Initializer(const ProvisionConfig& config_in, std::shared_ptr<INvSt
     initEcuReportCounter();
 
     initEcuRegister();
-
-    storage_->storeEcuRegistered();
 
     return;
   }
