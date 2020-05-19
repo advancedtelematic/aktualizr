@@ -766,7 +766,6 @@ void SotaUptaneClient::sendDeviceData(const Json::Value &custom_hwinfo) {
   reportInstalledPackages();
   reportNetworkInfo();
   reportAktualizrConfiguration();
-  putManifestSimple();
   sendEvent<event::SendDeviceDataComplete>();
 }
 

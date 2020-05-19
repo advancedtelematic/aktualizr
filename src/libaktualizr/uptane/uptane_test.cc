@@ -890,7 +890,7 @@ class HttpFakeProv : public HttpFake {
       std::string file_secondary;
       std::string hash_primary;
       std::string hash_secondary;
-      if (manifest_count <= 2) {
+      if (manifest_count <= 1) {
         file_primary = "unknown";
         file_secondary = "noimage";
         // Check for default initial value of packagemanagerfake.
@@ -990,14 +990,13 @@ TEST(Uptane, ProvisionOnServer) {
   EXPECT_EQ(http->ecus_count, 1);
 
   EXPECT_NO_THROW(up->sendDeviceData());
-  EXPECT_EQ(http->manifest_count, 1);
   EXPECT_EQ(http->installed_count, 1);
   EXPECT_EQ(http->system_info_count, 1);
   EXPECT_EQ(http->network_count, 1);
 
   result::UpdateCheck update_result = up->fetchMeta();
   EXPECT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
-  EXPECT_EQ(http->manifest_count, 2);
+  EXPECT_EQ(http->manifest_count, 1);
 
   // Test installation to make sure the metadata put to the server is correct.
   result::Download download_result = up->downloadImages(update_result.updates);
@@ -1009,7 +1008,7 @@ TEST(Uptane, ProvisionOnServer) {
 
   EXPECT_EQ(http->devices_count, 1);
   EXPECT_EQ(http->ecus_count, 1);
-  EXPECT_EQ(http->manifest_count, 3);
+  EXPECT_EQ(http->manifest_count, 2);
   EXPECT_EQ(http->installed_count, 1);
   EXPECT_EQ(http->system_info_count, 1);
   EXPECT_EQ(http->network_count, 1);
