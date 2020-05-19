@@ -173,43 +173,78 @@ void SotaUptaneClient::reportHwInfo(const Json::Value &custom_hwinfo) {
   }
 
   const Json::Value &hw_info = custom_hwinfo.empty() ? system_info : custom_hwinfo;
-  if (hw_info != last_hw_info_reported) {
-    if (http->put(config.tls.server + "/system_info", hw_info).isOk()) {
-      last_hw_info_reported = hw_info;
+  const Hash new_hash = Hash::generate(Hash::Type::kSha256, Utils::jsonToCanonicalStr(hw_info));
+  std::string stored_hash;
+  if (!(storage->loadDeviceDataHash("hardware_info", &stored_hash) &&
+        new_hash == Hash(Hash::Type::kSha256, stored_hash))) {
+    LOG_DEBUG << "Reporting hardware information";
+    const HttpResponse response = http->put(config.tls.server + "/system_info", hw_info);
+    if (response.isOk()) {
+      storage->storeDeviceDataHash("hardware_info", new_hash.HashString());
     }
+  } else {
+    LOG_TRACE << "Not reporting hardware information because it has not changed";
   }
 }
 
 void SotaUptaneClient::reportInstalledPackages() {
-  http->put(config.tls.server + "/core/installed", package_manager_->getInstalledPackages());
+  const Json::Value packages = package_manager_->getInstalledPackages();
+  const Hash new_hash = Hash::generate(Hash::Type::kSha256, Utils::jsonToCanonicalStr(packages));
+  std::string stored_hash;
+  if (!(storage->loadDeviceDataHash("installed_packages", &stored_hash) &&
+        new_hash == Hash(Hash::Type::kSha256, stored_hash))) {
+    LOG_DEBUG << "Reporting installed packages";
+    const HttpResponse response = http->put(config.tls.server + "/core/installed", packages);
+    if (response.isOk()) {
+      storage->storeDeviceDataHash("installed_packages", new_hash.HashString());
+    }
+  } else {
+    LOG_TRACE << "Not reporting installed packages because they have not changed";
+  }
 }
 
 void SotaUptaneClient::reportNetworkInfo() {
-  if (config.telemetry.report_network) {
-    LOG_DEBUG << "Reporting network information";
-    Json::Value network_info = Utils::getNetworkInfo();
-    if (network_info != last_network_info_reported) {
-      HttpResponse response = http->put(config.tls.server + "/system_info/network", network_info);
-      if (response.isOk()) {
-        last_network_info_reported = network_info;
-      }
-    }
+  if (!config.telemetry.report_network) {
+    LOG_TRACE << "Not reporting network information because telemetry is disabled";
+    return;
+  }
 
+  const Json::Value network_info = Utils::getNetworkInfo();
+  const Hash new_hash = Hash::generate(Hash::Type::kSha256, Utils::jsonToCanonicalStr(network_info));
+  std::string stored_hash;
+  if (!(storage->loadDeviceDataHash("network_info", &stored_hash) &&
+        new_hash == Hash(Hash::Type::kSha256, stored_hash))) {
+    LOG_DEBUG << "Reporting network information";
+    const HttpResponse response = http->put(config.tls.server + "/system_info/network", network_info);
+    if (response.isOk()) {
+      storage->storeDeviceDataHash("network_info", new_hash.HashString());
+    }
   } else {
-    LOG_DEBUG << "Not reporting network information because telemetry is disabled";
+    LOG_TRACE << "Not reporting network information because it has not changed";
   }
 }
 
 void SotaUptaneClient::reportAktualizrConfiguration() {
   if (!config.telemetry.report_config) {
-    LOG_DEBUG << "Not reporting network information because telemetry is disabled";
+    LOG_TRACE << "Not reporting libaktualizr configuration because telemetry is disabled";
     return;
   }
 
-  LOG_DEBUG << "Reporting libaktualizr configuration";
   std::stringstream conf_ss;
   config.writeToStream(conf_ss);
-  http->post(config.tls.server + "/system_info/config", "application/toml", conf_ss.str());
+  const std::string conf_str = conf_ss.str();
+  const Hash new_hash = Hash::generate(Hash::Type::kSha256, conf_str);
+  std::string stored_hash;
+  if (!(storage->loadDeviceDataHash("configuration", &stored_hash) &&
+        new_hash == Hash(Hash::Type::kSha256, stored_hash))) {
+    LOG_DEBUG << "Reporting libaktualizr configuration";
+    const HttpResponse response = http->post(config.tls.server + "/system_info/config", "application/toml", conf_str);
+    if (response.isOk()) {
+      storage->storeDeviceDataHash("configuration", new_hash.HashString());
+    }
+  } else {
+    LOG_TRACE << "Not reporting libaktualizr configuration because it has not changed";
+  }
 }
 
 Json::Value SotaUptaneClient::AssembleManifest() {

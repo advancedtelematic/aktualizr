@@ -937,11 +937,15 @@ class HttpFakeProv : public HttpFake {
     } else if (url.find("/system_info") != std::string::npos) {
       /* Send hardware info to the server. */
       system_info_count++;
-      Json::Value hwinfo = Utils::getHardwareInfo();
-      EXPECT_EQ(hwinfo["id"].asString(), data["id"].asString());
-      EXPECT_EQ(hwinfo["description"].asString(), data["description"].asString());
-      EXPECT_EQ(hwinfo["class"].asString(), data["class"].asString());
-      EXPECT_EQ(hwinfo["product"].asString(), data["product"].asString());
+      if (system_info_count <= 1) {
+        Json::Value hwinfo = Utils::getHardwareInfo();
+        EXPECT_EQ(hwinfo["id"].asString(), data["id"].asString());
+        EXPECT_EQ(hwinfo["description"].asString(), data["description"].asString());
+        EXPECT_EQ(hwinfo["class"].asString(), data["class"].asString());
+        EXPECT_EQ(hwinfo["product"].asString(), data["product"].asString());
+      } else {
+        EXPECT_EQ(custom_hw_info, data);
+      }
     } else {
       EXPECT_EQ(0, 1) << "Unexpected put to URL: " << url;
     }
@@ -957,6 +961,7 @@ class HttpFakeProv : public HttpFake {
   int system_info_count{0};
   int network_count{0};
   int config_count{0};
+  Json::Value custom_hw_info;
 
  private:
   Config &config;
@@ -1034,6 +1039,31 @@ TEST(Uptane, ProvisionOnServer) {
   EXPECT_EQ(http->network_count, 1);
   EXPECT_EQ(http->config_count, 1);
   EXPECT_EQ(http->events_seen, 8);
+
+  // Try sending device data again. Set hardware info to a custom value, because
+  // on some systems lshw returns inconsistent results. Nothing else should have
+  // changed.
+  http->custom_hw_info["hardware"] = "test-hw";
+  EXPECT_NO_THROW(up->sendDeviceData(http->custom_hw_info));
+  EXPECT_EQ(http->installed_count, 1);
+  EXPECT_EQ(http->system_info_count, 2);
+  EXPECT_EQ(http->network_count, 1);
+  EXPECT_EQ(http->config_count, 1);
+
+  // Try sending device data again to confirm hardware info isn't resent.
+  EXPECT_NO_THROW(up->sendDeviceData(http->custom_hw_info));
+  EXPECT_EQ(http->installed_count, 1);
+  EXPECT_EQ(http->system_info_count, 2);
+  EXPECT_EQ(http->network_count, 1);
+  EXPECT_EQ(http->config_count, 1);
+
+  // Clear the stored values and resend to verify the data is resent.
+  storage->clearDeviceData();
+  EXPECT_NO_THROW(up->sendDeviceData(http->custom_hw_info));
+  EXPECT_EQ(http->installed_count, 2);
+  EXPECT_EQ(http->system_info_count, 3);
+  EXPECT_EQ(http->network_count, 2);
+  EXPECT_EQ(http->config_count, 2);
 }
 
 /* Migrate from the legacy filesystem storage. */

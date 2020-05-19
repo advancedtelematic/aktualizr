@@ -96,6 +96,10 @@ class SQLStorage : public SQLStorageBase, public INvStorage {
   void deleteReportEvents(int64_t id_max) override;
   void clearInstallationResults() override;
 
+  void storeDeviceDataHash(const std::string& data_type, const std::string& hash) override;
+  bool loadDeviceDataHash(const std::string& data_type, std::string* hash) const override;
+  void clearDeviceData() override;
+
   bool checkAvailableDiskSpace(uint64_t required_bytes) const override;
 
   std::unique_ptr<StorageTargetWHandle> allocateTargetFile(const Uptane::Target& target) override;

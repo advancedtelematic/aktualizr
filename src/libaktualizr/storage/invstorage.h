@@ -215,6 +215,10 @@ class INvStorage {
   virtual bool loadReportEvents(Json::Value* report_array, int64_t* id_max) const = 0;
   virtual void deleteReportEvents(int64_t id_max) = 0;
 
+  virtual void storeDeviceDataHash(const std::string& data_type, const std::string& hash) = 0;
+  virtual bool loadDeviceDataHash(const std::string& data_type, std::string* hash) const = 0;
+  virtual void clearDeviceData() = 0;
+
   virtual bool checkAvailableDiskSpace(uint64_t required_bytes) const = 0;
   virtual boost::optional<std::pair<uintmax_t, std::string>> checkTargetFile(const Uptane::Target& target) const = 0;
 
