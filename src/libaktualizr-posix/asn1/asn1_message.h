@@ -87,6 +87,8 @@ class Asn1Message {
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKDownloadOstreeRevReqMes_t, downloadOstreeRevReq);
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKDownloadOstreeRevRespMes_t, downloadOstreeRevResp);
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKPutMetaReq2Mes_t, putMetaReq2);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKPutMetaResp2Mes_t, putMetaResp2);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKInstallResp2Mes_t, installResp2);
 
 #define ASN1_MESSAGE_DEFINE_STR_NAME(MessageID) \
   case MessageID:                               \
@@ -112,6 +114,8 @@ class Asn1Message {
         ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_downloadOstreeRevReq);
         ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_downloadOstreeRevResp);
         ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_putMetaReq2);
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_putMetaResp2);
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_installResp2);
     }
     return "Unknown";
   };

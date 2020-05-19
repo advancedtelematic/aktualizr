@@ -30,10 +30,11 @@ AktualizrSecondaryFile::AktualizrSecondaryFile(const AktualizrSecondaryConfig& c
 
 void AktualizrSecondaryFile::initialize() { initPendingTargetIfAny(); }
 
-data::ResultCode::Numeric AktualizrSecondaryFile::receiveData(const uint8_t* data, size_t size) {
+data::InstallationResult AktualizrSecondaryFile::receiveData(const uint8_t* data, size_t size) {
   if (!pendingTarget().IsValid()) {
-    LOG_ERROR << "Aborting image download/receiving; no valid target found.";
-    return data::ResultCode::Numeric::kGeneralError;
+    LOG_ERROR << "Aborting image download; no valid target found.";
+    return data::InstallationResult(data::ResultCode::Numeric::kGeneralError,
+                                    "Aborting image download; no valid target found.");
   }
 
   LOG_INFO << "Receiving target image data from Primary: " << size;
@@ -52,7 +53,7 @@ bool AktualizrSecondaryFile::getInstalledImageInfo(Uptane::InstalledImageInfo& i
   return update_agent_->getInstalledImageInfo(installed_image_info);
 }
 
-data::ResultCode::Numeric AktualizrSecondaryFile::installPendingTarget(const Uptane::Target& target) {
+data::InstallationResult AktualizrSecondaryFile::installPendingTarget(const Uptane::Target& target) {
   return update_agent_->install(target);
 }
 
@@ -63,15 +64,15 @@ MsgHandler::ReturnCode AktualizrSecondaryFile::uploadDataHdlr(Asn1Message& in_ms
 
   auto rec_buf_size = in_msg.uploadDataReq()->data.size;
   if (rec_buf_size < 0) {
-    LOG_ERROR << "The received data buffer size has a negative size: " << rec_buf_size;
+    LOG_ERROR << "The received data buffer size is negative: " << rec_buf_size;
     return ReturnCode::kOk;
   }
 
-  auto send_firmware_result = receiveData(in_msg.uploadDataReq()->data.buf, static_cast<size_t>(rec_buf_size));
+  auto result = receiveData(in_msg.uploadDataReq()->data.buf, static_cast<size_t>(rec_buf_size));
 
-  out_msg.present(AKIpUptaneMes_PR_uploadDataResp).uploadDataResp()->result =
-      (send_firmware_result == data::ResultCode::Numeric::kOk) ? AKInstallationResult_success
-                                                               : AKInstallationResult_failure;
+  auto m = out_msg.present(AKIpUptaneMes_PR_uploadDataResp).uploadDataResp();
+  m->result = static_cast<AKInstallationResultCode_t>(result.result_code.num_code);
+  SetString(&m->description, result.description);
 
   return ReturnCode::kOk;
 }

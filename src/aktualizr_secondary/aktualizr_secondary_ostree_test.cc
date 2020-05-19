@@ -269,16 +269,16 @@ std::string SecondaryOstreeTest::ostree_rootfs_template_{"./build/ostree_repo"};
 std::shared_ptr<OstreeRootfs> SecondaryOstreeTest::sysroot_{nullptr};
 
 TEST_F(SecondaryOstreeTest, fullUptaneVerificationInvalidRevision) {
-  EXPECT_TRUE(secondary_->putMetadata(addTarget("invalid-revision")));
-  EXPECT_NE(secondary_->downloadOstreeUpdate(getCredsToSend()), data::ResultCode::Numeric::kOk);
+  EXPECT_TRUE(secondary_->putMetadata(addTarget("invalid-revision")).isSuccess());
+  EXPECT_FALSE(secondary_->downloadOstreeUpdate(getCredsToSend()).isSuccess());
 }
 
 TEST_F(SecondaryOstreeTest, fullUptaneVerificationInvalidHwID) {
-  EXPECT_FALSE(secondary_->putMetadata(addTarget("", "invalid-hardware-id", "")));
+  EXPECT_FALSE(secondary_->putMetadata(addTarget("", "invalid-hardware-id", "")).isSuccess());
 }
 
 TEST_F(SecondaryOstreeTest, fullUptaneVerificationInvalidSerial) {
-  EXPECT_FALSE(secondary_->putMetadata(addTarget("", "", "invalid-serial-id")));
+  EXPECT_FALSE(secondary_->putMetadata(addTarget("", "", "invalid-serial-id")).isSuccess());
 }
 
 TEST_F(SecondaryOstreeTest, verifyUpdatePositive) {
@@ -288,13 +288,13 @@ TEST_F(SecondaryOstreeTest, verifyUpdatePositive) {
   EXPECT_EQ(manifest.installedImageHash(), sysrootCurRevHash());
 
   // send metadata and do their full Uptane verification
-  EXPECT_TRUE(secondary_->putMetadata(addDefaultTarget()));
+  EXPECT_TRUE(secondary_->putMetadata(addDefaultTarget()).isSuccess());
 
   // emulate reboot to make sure that we can continue with an update installation after reboot
   secondary_.reboot();
 
-  EXPECT_EQ(secondary_->downloadOstreeUpdate(getCredsToSend()), data::ResultCode::Numeric::kOk);
-  EXPECT_EQ(secondary_->install(), data::ResultCode::Numeric::kNeedCompletion);
+  EXPECT_TRUE(secondary_->downloadOstreeUpdate(getCredsToSend()).isSuccess());
+  EXPECT_EQ(secondary_->install().result_code.num_code, data::ResultCode::Numeric::kNeedCompletion);
 
   // check if the update was installed and pending
   EXPECT_TRUE(secondary_.getPendingVersion().MatchHash(treehubCurRevHash()));

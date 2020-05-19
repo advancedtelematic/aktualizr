@@ -14,8 +14,8 @@ class FileUpdateAgent : public UpdateAgent {
   bool isTargetSupported(const Uptane::Target& target) const override;
   bool getInstalledImageInfo(Uptane::InstalledImageInfo& installed_image_info) const override;
 
-  virtual data::ResultCode::Numeric receiveData(const Uptane::Target& target, const uint8_t* data, size_t size);
-  data::ResultCode::Numeric install(const Uptane::Target& target) override;
+  virtual data::InstallationResult receiveData(const Uptane::Target& target, const uint8_t* data, size_t size);
+  data::InstallationResult install(const Uptane::Target& target) override;
 
   void completeInstall() override;
   data::InstallationResult applyPendingInstall(const Uptane::Target& target) override;

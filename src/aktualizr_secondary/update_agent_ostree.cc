@@ -37,9 +37,9 @@ bool OstreeUpdateAgent::getInstalledImageInfo(Uptane::InstalledImageInfo& instal
   return result;
 }
 
-bool OstreeUpdateAgent::downloadTargetRev(const Uptane::Target& target, const std::string& treehub_tls_creds) {
+data::InstallationResult OstreeUpdateAgent::downloadTargetRev(const Uptane::Target& target,
+                                                              const std::string& treehub_tls_creds) {
   std::string treehub_server;
-  bool download_result = false;
 
   try {
     std::string ca;
@@ -52,33 +52,32 @@ bool OstreeUpdateAgent::downloadTargetRev(const Uptane::Target& target, const st
     treehub_server = server_url;
   } catch (std::runtime_error& exc) {
     LOG_ERROR << exc.what();
-    return false;
+    return data::InstallationResult(data::ResultCode::Numeric::kDownloadFailed,
+                                    std::string("Error loading Treehub credentials: ") + exc.what());
   }
 
-  auto install_res = OstreeManager::pull(sysrootPath_, treehub_server, *keyMngr_, target);
+  auto result = OstreeManager::pull(sysrootPath_, treehub_server, *keyMngr_, target);
 
-  switch (install_res.result_code.num_code) {
+  switch (result.result_code.num_code) {
     case data::ResultCode::Numeric::kOk: {
       LOG_INFO << "The target revision has been successfully downloaded: " << target.sha256Hash();
-      download_result = true;
       break;
     }
     case data::ResultCode::Numeric::kAlreadyProcessed: {
       LOG_INFO << "The target revision is already present on the local OSTree repo: " << target.sha256Hash();
-      download_result = true;
       break;
     }
     default: {
       LOG_ERROR << "Failed to download the target revision: " << target.sha256Hash() << " ( "
-                << install_res.result_code.toString() << " ): " << install_res.description;
+                << result.result_code.toString() << " ): " << result.description;
     }
   }
 
-  return download_result;
+  return result;
 }
 
-data::ResultCode::Numeric OstreeUpdateAgent::install(const Uptane::Target& target) {
-  return (ostreePackMan_->install(target)).result_code.num_code;
+data::InstallationResult OstreeUpdateAgent::install(const Uptane::Target& target) {
+  return ostreePackMan_->install(target);
 }
 
 void OstreeUpdateAgent::completeInstall() { ostreePackMan_->completeInstall(); }

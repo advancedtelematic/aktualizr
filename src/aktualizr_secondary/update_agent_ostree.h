@@ -19,9 +19,9 @@ class OstreeUpdateAgent : public UpdateAgent {
   bool isTargetSupported(const Uptane::Target& target) const override;
   bool getInstalledImageInfo(Uptane::InstalledImageInfo& installed_image_info) const override;
 
-  bool downloadTargetRev(const Uptane::Target& target, const std::string& treehub_tls_creds);
+  data::InstallationResult downloadTargetRev(const Uptane::Target& target, const std::string& treehub_tls_creds);
 
-  data::ResultCode::Numeric install(const Uptane::Target& target) override;
+  data::InstallationResult install(const Uptane::Target& target) override;
 
   void completeInstall() override;
 

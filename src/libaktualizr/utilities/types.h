@@ -8,7 +8,7 @@
 #include <json/json.h>
 #include <boost/filesystem.hpp>
 
-// Keep these int sync with AKIpUptaneKeyType ASN.1 definitions
+// Keep these in sync with AKIpUptaneKeyType ASN.1 definitions.
 enum class KeyType {
   kED25519 = 0,
   kFirstKnown = kED25519,
@@ -123,8 +123,7 @@ struct Package {
 };
 
 struct ResultCode {
-  // These match the old enum representation
-  // A lot of them were unused and have been dropped
+  // Keep these in sync with AKInstallationResultCode ASN.1 definitions.
   enum class Numeric {
     kOk = 0,
     /// Operation has already been processed

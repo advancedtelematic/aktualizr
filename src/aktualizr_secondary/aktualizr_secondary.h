@@ -23,10 +23,12 @@ class AktualizrSecondary : public MsgDispatcher {
   PublicKey publicKey() const;
   Uptane::Manifest getManifest() const;
 
-  virtual bool putMetadata(const Metadata& metadata);
-  virtual bool putMetadata(const Uptane::MetaBundle& meta_bundle) { return putMetadata(Metadata(meta_bundle)); }
+  virtual data::InstallationResult putMetadata(const Metadata& metadata);
+  virtual data::InstallationResult putMetadata(const Uptane::MetaBundle& meta_bundle) {
+    return putMetadata(Metadata(meta_bundle));
+  }
 
-  virtual data::ResultCode::Numeric install();
+  virtual data::InstallationResult install();
   virtual void completeInstall() = 0;
 
  protected:
@@ -35,7 +37,7 @@ class AktualizrSecondary : public MsgDispatcher {
   // protected interface to be defined by child classes, i.e. a specific IP secondary type (e.g. OSTree, File, etc)
   virtual bool getInstalledImageInfo(Uptane::InstalledImageInfo& installed_image_info) const = 0;
   virtual bool isTargetSupported(const Uptane::Target& target) const = 0;
-  virtual data::ResultCode::Numeric installPendingTarget(const Uptane::Target& target) = 0;
+  virtual data::InstallationResult installPendingTarget(const Uptane::Target& target) = 0;
   virtual data::InstallationResult applyPendingInstall(const Uptane::Target& target) = 0;
 
   // protected interface to be used by child classes
@@ -50,7 +52,7 @@ class AktualizrSecondary : public MsgDispatcher {
  private:
   void copyMetadata(Uptane::MetaBundle& meta_bundle, Uptane::RepositoryType repo, const Uptane::Role& role,
                     std::string& json);
-  bool doFullVerification(const Metadata& metadata);
+  data::InstallationResult doFullVerification(const Metadata& metadata);
   void uptaneInitialize();
   void registerHandlers();
 

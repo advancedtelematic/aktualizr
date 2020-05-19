@@ -16,12 +16,12 @@ class AktualizrSecondaryFile : public AktualizrSecondary {
                          std::shared_ptr<FileUpdateAgent> update_agent = nullptr);
 
   void initialize() override;
-  data::ResultCode::Numeric receiveData(const uint8_t* data, size_t size);
+  data::InstallationResult receiveData(const uint8_t* data, size_t size);
 
  protected:
   bool getInstalledImageInfo(Uptane::InstalledImageInfo& installed_image_info) const override;
   bool isTargetSupported(const Uptane::Target& target) const override;
-  data::ResultCode::Numeric installPendingTarget(const Uptane::Target& target) override;
+  data::InstallationResult installPendingTarget(const Uptane::Target& target) override;
   data::InstallationResult applyPendingInstall(const Uptane::Target& target) override;
   void completeInstall() override;
 
