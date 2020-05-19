@@ -774,8 +774,24 @@ TEST(Uptane, UptaneSecondaryMisconfigured) {
  */
 class HttpFakeProv : public HttpFake {
  public:
-  HttpFakeProv(const boost::filesystem::path &test_dir_in, std::string flavor = "")
-      : HttpFake(test_dir_in, std::move(flavor)) {}
+  HttpFakeProv(const boost::filesystem::path &test_dir_in, std::string flavor, Config &config_in)
+      : HttpFake(test_dir_in, std::move(flavor)), config(config_in) {}
+
+  HttpResponse post(const std::string &url, const std::string &content_type, const std::string &data) override {
+    std::cout << "post " << url << "\n";
+
+    if (url.find("/system_info/config") != std::string::npos) {
+      /* Send libaktualizr configuration to the server. */
+      config_count++;
+      std::stringstream conf_ss;
+      config.writeToStream(conf_ss);
+      EXPECT_EQ(data, conf_ss.str());
+      EXPECT_EQ(content_type, "application/toml");
+    } else {
+      EXPECT_EQ(0, 1) << "Unexpected post to URL: " << url;
+    }
+    return HttpFake::post(url, content_type, data);
+  }
 
   HttpResponse post(const std::string &url, const Json::Value &data) override {
     std::cout << "post " << url << "\n";
@@ -940,8 +956,10 @@ class HttpFakeProv : public HttpFake {
   int installed_count{0};
   int system_info_count{0};
   int network_count{0};
+  int config_count{0};
 
  private:
+  Config &config;
   int primary_download_start{0};
   int primary_download_complete{0};
   int secondary_download_start{0};
@@ -957,7 +975,7 @@ TEST(Uptane, ProvisionOnServer) {
   RecordProperty("zephyr_key", "OTA-984,TST-149");
   TemporaryDirectory temp_dir;
   Config config("tests/config/basic.toml");
-  auto http = std::make_shared<HttpFakeProv>(temp_dir.Path(), "hasupdates");
+  auto http = std::make_shared<HttpFakeProv>(temp_dir.Path(), "hasupdates", config);
   const std::string &server = http->tls_server;
   config.provision.server = server;
   config.tls.server = server;
@@ -980,6 +998,7 @@ TEST(Uptane, ProvisionOnServer) {
   EXPECT_EQ(http->installed_count, 0);
   EXPECT_EQ(http->system_info_count, 0);
   EXPECT_EQ(http->network_count, 0);
+  EXPECT_EQ(http->config_count, 0);
 
   EXPECT_NO_THROW(up->initialize());
   EcuSerials serials;
@@ -993,6 +1012,7 @@ TEST(Uptane, ProvisionOnServer) {
   EXPECT_EQ(http->installed_count, 1);
   EXPECT_EQ(http->system_info_count, 1);
   EXPECT_EQ(http->network_count, 1);
+  EXPECT_EQ(http->config_count, 1);
 
   result::UpdateCheck update_result = up->fetchMeta();
   EXPECT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
@@ -1012,6 +1032,7 @@ TEST(Uptane, ProvisionOnServer) {
   EXPECT_EQ(http->installed_count, 1);
   EXPECT_EQ(http->system_info_count, 1);
   EXPECT_EQ(http->network_count, 1);
+  EXPECT_EQ(http->config_count, 1);
   EXPECT_EQ(http->events_seen, 8);
 }
 
