@@ -1,6 +1,7 @@
 IpUptane DEFINITIONS ::= BEGIN
-    -- Keep these in Sync with Uptane::KeyType
-    AKIpUptaneKeyType ::= ENUMERATED {
+  -- Keep these in sync with KeyType in types.h.
+  -- However, this is missing kRSA3072.
+  AKIpUptaneKeyType ::= ENUMERATED {
     ed25519(0),
     rsa2048(1),
     rsa4096(2),
@@ -8,13 +9,14 @@ IpUptane DEFINITIONS ::= BEGIN
     ...
   }
 
+  -- Deprecated (v1).
   AKInstallationResult ::= ENUMERATED {
     success,
     failure,
     ...
   }
 
-  -- Keep these in Sync with data::ResultCode::Numeric
+  -- Keep these in sync with data::ResultCode::Numeric in types.h.
   AKInstallationResultCode ::= ENUMERATED {
     ok(0),
     alreadyProcessed(1),
@@ -29,7 +31,7 @@ IpUptane DEFINITIONS ::= BEGIN
     ...
   }
 
-  -- Json format image repository metadata
+  -- Json format Image repository metadata. Deprecated (v1).
   AKImageMetaJson ::= SEQUENCE {
     root OCTET STRING,
     timestamp OCTET STRING,
@@ -38,7 +40,7 @@ IpUptane DEFINITIONS ::= BEGIN
     ...
   }
 
-  -- Json format director metadata
+  -- Json format Director metadata. Deprecated (v1).
   AKDirectorMetaJson ::= SEQUENCE {
     root OCTET STRING,
     targets OCTET STRING,
@@ -78,6 +80,7 @@ IpUptane DEFINITIONS ::= BEGIN
     ...
   }
 
+  -- Deprecated (v1).
   AKPutMetaReqMes ::= SEQUENCE {
     image CHOICE {
       json AKImageMetaJson
@@ -85,6 +88,12 @@ IpUptane DEFINITIONS ::= BEGIN
     director CHOICE {
       json AKDirectorMetaJson
     },
+    ...
+  }
+
+  -- Deprecated (v1).
+  AKPutMetaRespMes ::= SEQUENCE {
+    result AKInstallationResult,
     ...
   }
 
@@ -98,28 +107,39 @@ IpUptane DEFINITIONS ::= BEGIN
     ...
   }
 
-  AKPutMetaRespMes ::= SEQUENCE {
-    result AKInstallationResult,
+  AKPutMetaResp2Mes ::= SEQUENCE {
+    result AKInstallationResultCode,
+    description OCTET STRING,
     ...
   }
 
+  -- Deprecated (v1).
   AKSendFirmwareReqMes ::= SEQUENCE {
     firmware OCTET STRING,
     ...
   }
 
+  -- Deprecated (v1).
   AKSendFirmwareRespMes ::= SEQUENCE {
     result AKInstallationResult,
     ...
   }
 
+  -- Still used by v2.
   AKInstallReqMes ::= SEQUENCE {
     hash OCTET STRING,
     ...
   }
 
+  -- Deprecated (v1).
   AKInstallRespMes ::= SEQUENCE {
     result AKInstallationResultCode,
+    ...
+  }
+
+  AKInstallResp2Mes ::= SEQUENCE {
+    result AKInstallationResultCode,
+    description OCTET STRING,
     ...
   }
 
@@ -129,7 +149,8 @@ IpUptane DEFINITIONS ::= BEGIN
   }
 
   AKUploadDataRespMes ::= SEQUENCE {
-    result AKInstallationResult,
+    result AKInstallationResultCode,
+    description OCTET STRING,
     ...
   }
 
@@ -140,6 +161,7 @@ IpUptane DEFINITIONS ::= BEGIN
 
   AKDownloadOstreeRevRespMes ::= SEQUENCE {
     result AKInstallationResultCode,
+    description OCTET STRING,
     ...
   }
 
@@ -160,6 +182,8 @@ IpUptane DEFINITIONS ::= BEGIN
     downloadOstreeRevReq [12] AKDownloadOstreeRevReqMes,
     downloadOstreeRevResp [13] AKDownloadOstreeRevRespMes,
     putMetaReq2 [14] AKPutMetaReq2Mes,
+    putMetaResp2 [15] AKPutMetaResp2Mes,
+    installResp2 [16] AKInstallResp2Mes,
     ...
   }
 

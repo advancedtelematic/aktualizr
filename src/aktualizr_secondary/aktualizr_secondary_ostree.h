@@ -11,12 +11,12 @@ class AktualizrSecondaryOstree : public AktualizrSecondary {
   AktualizrSecondaryOstree(const AktualizrSecondaryConfig& config, const std::shared_ptr<INvStorage>& storage);
 
   void initialize() override;
-  data::ResultCode::Numeric downloadOstreeUpdate(const std::string& packed_tls_creds);
+  data::InstallationResult downloadOstreeUpdate(const std::string& packed_tls_creds);
 
  protected:
   bool getInstalledImageInfo(Uptane::InstalledImageInfo& installed_image_info) const override;
   bool isTargetSupported(const Uptane::Target& target) const override;
-  data::ResultCode::Numeric installPendingTarget(const Uptane::Target& target) override;
+  data::InstallationResult installPendingTarget(const Uptane::Target& target) override;
   data::InstallationResult applyPendingInstall(const Uptane::Target& target) override;
   void completeInstall() override;
 

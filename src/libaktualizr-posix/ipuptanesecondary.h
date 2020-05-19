@@ -60,6 +60,7 @@ class IpUptaneSecondary : public SecondaryInterface {
   const EcuSerial serial_;
   const HardwareIdentifier hw_id_;
   const PublicKey pub_key_;
+  uint32_t protocol_version{2};
 };
 
 }  // namespace Uptane

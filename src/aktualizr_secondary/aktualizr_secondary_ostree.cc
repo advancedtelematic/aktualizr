@@ -38,7 +38,7 @@ void AktualizrSecondaryOstree::initialize() {
       if (install_res.result_code != data::ResultCode::Numeric::kNeedCompletion) {
         AktualizrSecondary::storage().saveEcuInstallationResult(serial(), install_res);
 
-        if (install_res.success) {
+        if (install_res.isSuccess()) {
           LOG_INFO << "Pending update has been successfully applied: " << pending_target->sha256Hash();
           AktualizrSecondary::storage().saveInstalledVersion(serial().ToString(), *pending_target,
                                                              InstalledVersionUpdateMode::kCurrent);
@@ -58,26 +58,28 @@ void AktualizrSecondaryOstree::initialize() {
 }
 
 MsgHandler::ReturnCode AktualizrSecondaryOstree::downloadOstreeRev(Asn1Message& in_msg, Asn1Message& out_msg) {
-  LOG_INFO << "Received a request to download a new ostree revision from Treehub";
-  auto download_ostree_rev_result = downloadOstreeUpdate(ToString(in_msg.downloadOstreeRevReq()->tlsCred));
+  LOG_INFO << "Received a request to download a new OSTree revision from Treehub";
+  auto result = downloadOstreeUpdate(ToString(in_msg.downloadOstreeRevReq()->tlsCred));
 
-  out_msg.present(AKIpUptaneMes_PR_downloadOstreeRevResp).downloadOstreeRevResp()->result =
-      static_cast<AKInstallationResultCode_t>(download_ostree_rev_result);
+  auto m = out_msg.present(AKIpUptaneMes_PR_downloadOstreeRevResp).downloadOstreeRevResp();
+  m->result = static_cast<AKInstallationResultCode_t>(result.result_code.num_code);
+  SetString(&m->description, result.description);
 
   return ReturnCode::kOk;
 }
 
-data::ResultCode::Numeric AktualizrSecondaryOstree::downloadOstreeUpdate(const std::string& packed_tls_creds) {
+data::InstallationResult AktualizrSecondaryOstree::downloadOstreeUpdate(const std::string& packed_tls_creds) {
   if (!pendingTarget().IsValid()) {
-    LOG_ERROR << "Aborting image download/receiving; no valid target found.";
-    return data::ResultCode::Numeric::kGeneralError;
+    LOG_ERROR << "Aborting image download; no valid target found.";
+    return data::InstallationResult(data::ResultCode::Numeric::kGeneralError,
+                                    "Aborting image download; no valid target found.");
   }
 
-  if (!update_agent_->downloadTargetRev(pendingTarget(), packed_tls_creds)) {
+  auto result = update_agent_->downloadTargetRev(pendingTarget(), packed_tls_creds);
+  if (!result.isSuccess()) {
     pendingTarget() = Uptane::Target::Unknown();
-    return data::ResultCode::Numeric::kGeneralError;
   }
-  return data::ResultCode::Numeric::kOk;
+  return result;
 }
 
 bool AktualizrSecondaryOstree::isTargetSupported(const Uptane::Target& target) const {
@@ -92,7 +94,7 @@ bool AktualizrSecondaryOstree::getInstalledImageInfo(Uptane::InstalledImageInfo&
   return update_agent_->getInstalledImageInfo(installed_image_info);
 }
 
-data::ResultCode::Numeric AktualizrSecondaryOstree::installPendingTarget(const Uptane::Target& target) {
+data::InstallationResult AktualizrSecondaryOstree::installPendingTarget(const Uptane::Target& target) {
   return update_agent_->install(target);
 }
 

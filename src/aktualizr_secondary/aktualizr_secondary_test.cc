@@ -25,8 +25,8 @@ class UpdateAgentMock : public FileUpdateAgent {
     });
   }
 
-  MOCK_METHOD(data::ResultCode::Numeric, receiveData, (const Uptane::Target& target, const uint8_t* data, size_t size));
-  MOCK_METHOD(data::ResultCode::Numeric, install, (const Uptane::Target& target));
+  MOCK_METHOD(data::InstallationResult, receiveData, (const Uptane::Target& target, const uint8_t* data, size_t size));
+  MOCK_METHOD(data::InstallationResult, install, (const Uptane::Target& target));
 };
 
 class AktualizrSecondaryWrapper {
@@ -206,9 +206,9 @@ class SecondaryTest : public ::testing::Test {
       }
 
       auto result = secondary_->receiveData(buf, static_cast<size_t>(read_bytes));
-      if (result != data::ResultCode::Numeric::kOk) {
+      if (!result.isSuccess()) {
         file.close();
-        return result;
+        return result.result_code.num_code;
       }
       read_and_send_data_size += static_cast<size_t>(read_bytes);
     }
@@ -281,12 +281,12 @@ class SecondaryTestNegative : public ::testing::Test,
  * see INSTANTIATE_TEST_SUITE_P for the test instantiations with concrete parameter values
  */
 TEST_P(SecondaryTestNegative, MalformedMetadaJson) {
-  EXPECT_FALSE(secondary_->putMetadata(currentMetadata()));
+  EXPECT_FALSE(secondary_->putMetadata(currentMetadata()).isSuccess());
 
   EXPECT_CALL(update_agent_, receiveData).Times(0);
   EXPECT_CALL(update_agent_, install).Times(0);
 
-  EXPECT_NE(secondary_->install(), data::ResultCode::Numeric::kOk);
+  EXPECT_FALSE(secondary_->install().isSuccess());
 }
 
 /**
@@ -306,9 +306,9 @@ TEST_F(SecondaryTest, fullUptaneVerificationPositive) {
       .Times(target_size / send_buffer_size + (target_size % send_buffer_size ? 1 : 0));
   EXPECT_CALL(update_agent_, install).Times(1);
 
-  ASSERT_TRUE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()));
+  ASSERT_TRUE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()).isSuccess());
   ASSERT_EQ(sendImageFile(), data::ResultCode::Numeric::kOk);
-  ASSERT_EQ(secondary_->install(), data::ResultCode::Numeric::kOk);
+  ASSERT_TRUE(secondary_->install().isSuccess());
 
   // check if a file was actually updated
   ASSERT_TRUE(boost::filesystem::exists(secondary_.targetFilepath()));
@@ -330,7 +330,7 @@ TEST_F(SecondaryTest, TwoImagesAndOneTarget) {
   // default image and corresponding target has been already added, just add another image
   uptane_repo_.addImageFile("second_image_00", secondary_->hwID().ToString(), secondary_->serial().ToString(),
                             target_size, false, false);
-  EXPECT_TRUE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()));
+  EXPECT_TRUE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()).isSuccess());
 }
 
 TEST_F(SecondaryTest, IncorrectTargetQuantity) {
@@ -338,32 +338,32 @@ TEST_F(SecondaryTest, IncorrectTargetQuantity) {
     // two targets for the same ECU
     uptane_repo_.addImageFile("second_target", secondary_->hwID().ToString(), secondary_->serial().ToString());
 
-    EXPECT_FALSE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()));
+    EXPECT_FALSE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()).isSuccess());
   }
 
   {
     // zero targets for the ECU being tested
     auto metadata = UptaneRepoWrapper().addImageFile("mytarget", secondary_->hwID().ToString(), "non-existing-serial");
 
-    EXPECT_FALSE(secondary_->putMetadata(metadata));
+    EXPECT_FALSE(secondary_->putMetadata(metadata).isSuccess());
   }
 
   {
     // zero targets for the ECU being tested
     auto metadata = UptaneRepoWrapper().addImageFile("mytarget", "non-existig-hwid", secondary_->serial().ToString());
 
-    EXPECT_FALSE(secondary_->putMetadata(metadata));
+    EXPECT_FALSE(secondary_->putMetadata(metadata).isSuccess());
   }
 }
 
 TEST_F(SecondaryTest, DirectorRootVersionIncremented) {
   uptane_repo_.refreshRoot(Uptane::RepositoryType::Director());
-  EXPECT_TRUE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()));
+  EXPECT_TRUE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()).isSuccess());
 }
 
 TEST_F(SecondaryTest, ImageRootVersionIncremented) {
   uptane_repo_.refreshRoot(Uptane::RepositoryType::Image());
-  EXPECT_TRUE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()));
+  EXPECT_TRUE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()).isSuccess());
 }
 
 TEST_F(SecondaryTest, SmallerImageFileSize) {
@@ -372,10 +372,10 @@ TEST_F(SecondaryTest, SmallerImageFileSize) {
              ((target_size - inavlid_target_size_delta) % send_buffer_size ? 1 : 0));
   EXPECT_CALL(update_agent_, install).Times(1);
 
-  EXPECT_TRUE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()));
+  EXPECT_TRUE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()).isSuccess());
 
   EXPECT_EQ(sendImageFile(smaller_target_), data::ResultCode::Numeric::kOk);
-  EXPECT_NE(secondary_->install(), data::ResultCode::Numeric::kOk);
+  EXPECT_FALSE(secondary_->install().isSuccess());
 }
 
 TEST_F(SecondaryTest, BiggerImageFileSize) {
@@ -384,10 +384,10 @@ TEST_F(SecondaryTest, BiggerImageFileSize) {
              ((target_size + inavlid_target_size_delta) % send_buffer_size ? 1 : 0));
   EXPECT_CALL(update_agent_, install).Times(1);
 
-  EXPECT_TRUE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()));
+  EXPECT_TRUE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()).isSuccess());
 
   EXPECT_EQ(sendImageFile(bigger_target_), data::ResultCode::Numeric::kOk);
-  EXPECT_NE(secondary_->install(), data::ResultCode::Numeric::kOk);
+  EXPECT_FALSE(secondary_->install().isSuccess());
 }
 
 TEST_F(SecondaryTest, InvalidImageData) {
@@ -395,9 +395,9 @@ TEST_F(SecondaryTest, InvalidImageData) {
       .Times(target_size / send_buffer_size + (target_size % send_buffer_size ? 1 : 0));
   EXPECT_CALL(update_agent_, install).Times(1);
 
-  EXPECT_TRUE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()));
+  EXPECT_TRUE(secondary_->putMetadata(uptane_repo_.getCurrentMetadata()).isSuccess());
   EXPECT_EQ(sendImageFile(broken_target_), data::ResultCode::Numeric::kOk);
-  EXPECT_NE(secondary_->install(), data::ResultCode::Numeric::kOk);
+  EXPECT_FALSE(secondary_->install().isSuccess());
 }
 
 int main(int argc, char** argv) {

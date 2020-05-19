@@ -101,15 +101,20 @@ data::InstallationResult IpUptaneSecondary::putMetadata(const Target& target) {
   }
 
   LOG_INFO << "Sending Uptane metadata to the Secondary";
+  // TODO(OTA-4793): refactor to negotiate versioning once during
+  // initialization (and presumably check again after installation).
   data::InstallationResult put_result = putMetadata_v2(meta_bundle);
-  if (!put_result.isSuccess()) {
+  if (put_result.isSuccess()) {
+    protocol_version = 2;
+  } else if (put_result.result_code == data::ResultCode::Numeric::kInternalError) {
     // Fall back to the previous metadata sending version.
-    // TODO(OTA-4793): refactor to negotiate versioning once during
-    // initialization.
     LOG_ERROR << "Failed to send metadata for target " << target.filename() << " to Secondary " << getSerial()
-              << "\nFalling back to previous version of the metadata sending procedure.";
+              << "\nFalling back to protocol version 1.";
 
     put_result = putMetadata_v1(meta_bundle);
+    if (put_result.isSuccess()) {
+      protocol_version = 1;
+    }
   }
   return put_result;
 }
@@ -189,19 +194,14 @@ data::InstallationResult IpUptaneSecondary::putMetadata_v2(const Uptane::MetaBun
 
   auto resp = Asn1Rpc(req, getAddr());
 
-  if (resp->present() != AKIpUptaneMes_PR_putMetaResp) {
+  if (resp->present() != AKIpUptaneMes_PR_putMetaResp2) {
     LOG_ERROR << "Failed to get response from sending metadata to Secondary";
     return data::InstallationResult(data::ResultCode::Numeric::kInternalError,
                                     "Failed to get response from sending metadata to Secondary");
   }
 
-  auto r = resp->putMetaResp();
-  if (r->result == AKInstallationResult_success) {
-    return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
-  } else {
-    return data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed,
-                                    "Error sending metadata to Secondary");
-  }
+  auto r = resp->putMetaResp2();
+  return data::InstallationResult(static_cast<data::ResultCode::Numeric>(r->result), ToString(r->description));
 }
 
 Manifest IpUptaneSecondary::getManifest() const {
@@ -238,15 +238,15 @@ bool IpUptaneSecondary::ping() const {
 }
 
 data::InstallationResult IpUptaneSecondary::sendFirmware(const Uptane::Target& target) {
-  auto send_result = sendFirmware_v2(target);
-  if (send_result.result_code == data::ResultCode::Numeric::kUnknown) {
-    // Fall back to the previous installation version.
-    // TODO(OTA-4793): refactor to negotiate versioning once during
-    // initialization.
-    LOG_ERROR << "Failed to send firmware for target " << target.filename() << " to Secondary " << getSerial()
-              << "\nFalling back to previous version of the installation procedure.";
-
+  data::InstallationResult send_result;
+  if (protocol_version == 2) {
+    send_result = sendFirmware_v2(target);
+  } else if (protocol_version == 1) {
     send_result = sendFirmware_v1(target);
+  } else {
+    LOG_ERROR << "Unexpected protocol version: " << protocol_version;
+    send_result = data::InstallationResult(data::ResultCode::Numeric::kInternalError,
+                                           "Unexpected protocol version: " + std::to_string(protocol_version));
   }
   return send_result;
 }
@@ -296,15 +296,15 @@ data::InstallationResult IpUptaneSecondary::sendFirmware_v2(const Uptane::Target
 
 data::InstallationResult IpUptaneSecondary::install(const Uptane::Target& target) {
   std::lock_guard<std::mutex> l(install_mutex);
-  auto install_result = install_v2(target);
-  if (install_result.result_code == data::ResultCode::Numeric::kUnknown) {
-    // Fall back to the previous installation version.
-    // TODO(OTA-4793): refactor to negotiate versioning once during
-    // initialization.
-    LOG_ERROR << "Failed to install " << target.filename() << " on Secondary " << getSerial()
-              << "\nFalling back to the previous version of the installation procedure.";
-
+  data::InstallationResult install_result;
+  if (protocol_version == 2) {
+    install_result = install_v2(target);
+  } else if (protocol_version == 1) {
     install_result = install_v1(target);
+  } else {
+    LOG_ERROR << "Unexpected protocol version: " << protocol_version;
+    install_result = data::InstallationResult(data::ResultCode::Numeric::kInternalError,
+                                              "Unexpected protocol version: " + std::to_string(protocol_version));
   }
   return install_result;
 }
@@ -357,7 +357,7 @@ data::InstallationResult IpUptaneSecondary::downloadOstreeRev(const Uptane::Targ
   }
 
   auto r = resp->downloadOstreeRevResp();
-  return data::InstallationResult(static_cast<data::ResultCode::Numeric>(r->result), "");
+  return data::InstallationResult(static_cast<data::ResultCode::Numeric>(r->result), ToString(r->description));
 }
 
 data::InstallationResult IpUptaneSecondary::uploadFirmware(const Uptane::Target& target) {
@@ -410,12 +410,7 @@ data::InstallationResult IpUptaneSecondary::uploadFirmwareData(const uint8_t* da
   }
 
   auto r = resp->uploadDataResp();
-  if (r->result == AKInstallationResult_success) {
-    return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
-  } else {
-    return data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed,
-                                    "Error sending metadata to Secondary");
-  }
+  return data::InstallationResult(static_cast<data::ResultCode::Numeric>(r->result), ToString(r->description));
 }
 
 data::InstallationResult IpUptaneSecondary::invokeInstallOnSecondary(const Uptane::Target& target) {
@@ -429,16 +424,15 @@ data::InstallationResult IpUptaneSecondary::invokeInstallOnSecondary(const Uptan
   auto resp = Asn1Rpc(req, getAddr());
 
   // invalid type of an response message
-  if (resp->present() != AKIpUptaneMes_PR_installResp) {
+  if (resp->present() != AKIpUptaneMes_PR_installResp2) {
     LOG_ERROR << "Failed to get response to an installation request to Secondary";
     return data::InstallationResult(data::ResultCode::Numeric::kUnknown,
                                     "Failed to get response to an installation request to Secondary");
   }
 
   // deserialize the response message
-  auto r = resp->installResp();
-
-  return data::InstallationResult(static_cast<data::ResultCode::Numeric>(r->result), "");
+  auto r = resp->installResp2();
+  return data::InstallationResult(static_cast<data::ResultCode::Numeric>(r->result), ToString(r->description));
 }
 
 }  // namespace Uptane

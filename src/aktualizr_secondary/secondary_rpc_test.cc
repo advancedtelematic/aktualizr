@@ -51,17 +51,16 @@ class SecondaryMock : public MsgDispatcher {
 
   const std::string& getReceivedTlsCreds() const { return tls_creds_; }
 
+  // Used by both protocol versions:
   void registerBaseHandlers() {
     registerHandler(AKIpUptaneMes_PR_getInfoReq,
                     std::bind(&SecondaryMock::getInfoHdlr, this, std::placeholders::_1, std::placeholders::_2));
 
     registerHandler(AKIpUptaneMes_PR_manifestReq,
                     std::bind(&SecondaryMock::getManifestHdlr, this, std::placeholders::_1, std::placeholders::_2));
-
-    registerHandler(AKIpUptaneMes_PR_installReq,
-                    std::bind(&SecondaryMock::installHdlr, this, std::placeholders::_1, std::placeholders::_2));
   }
 
+  // Used by protocol v2 (based on current aktualizr-secondary implementation) only:
   void registerHandlersForNewRequests() {
     registerHandler(AKIpUptaneMes_PR_putMetaReq2,
                     std::bind(&SecondaryMock::putMeta2Hdlr, this, std::placeholders::_1, std::placeholders::_2));
@@ -71,14 +70,21 @@ class SecondaryMock : public MsgDispatcher {
 
     registerHandler(AKIpUptaneMes_PR_downloadOstreeRevReq,
                     std::bind(&SecondaryMock::downloadOstreeRev, this, std::placeholders::_1, std::placeholders::_2));
+
+    registerHandler(AKIpUptaneMes_PR_installReq,
+                    std::bind(&SecondaryMock::install2Hdlr, this, std::placeholders::_1, std::placeholders::_2));
   }
 
+  // Used by protocol v1 (deprecated, no longer implemented in production code) only:
   void registerHandlersForOldRequests() {
     registerHandler(AKIpUptaneMes_PR_putMetaReq,
                     std::bind(&SecondaryMock::putMetaHdlr, this, std::placeholders::_1, std::placeholders::_2));
 
     registerHandler(AKIpUptaneMes_PR_sendFirmwareReq,
                     std::bind(&SecondaryMock::sendFirmwareHdlr, this, std::placeholders::_1, std::placeholders::_2));
+
+    registerHandler(AKIpUptaneMes_PR_installReq,
+                    std::bind(&SecondaryMock::installHdlr, this, std::placeholders::_1, std::placeholders::_2));
   }
 
  private:
@@ -178,20 +184,36 @@ class SecondaryMock : public MsgDispatcher {
       }
     }
 
-    bool ok = putMetadata(meta_bundle);
+    data::InstallationResult result = putMetadata2(meta_bundle);
 
-    out_msg.present(AKIpUptaneMes_PR_putMetaResp).putMetaResp()->result =
-        ok ? AKInstallationResult_success : AKInstallationResult_failure;
+    auto m = out_msg.present(AKIpUptaneMes_PR_putMetaResp2).putMetaResp2();
+    m->result = static_cast<AKInstallationResultCode_t>(result.result_code.num_code);
+    SetString(&m->description, result.description);
 
     return ReturnCode::kOk;
   }
 
   MsgHandler::ReturnCode installHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
-    auto install_result = install(ToString(in_msg.installReq()->hash));
-    out_msg.present(AKIpUptaneMes_PR_installResp).installResp()->result =
-        static_cast<AKInstallationResultCode_t>(install_result);
+    auto result = install(ToString(in_msg.installReq()->hash)).result_code.num_code;
 
-    if (data::ResultCode::Numeric::kNeedCompletion == install_result) {
+    out_msg.present(AKIpUptaneMes_PR_installResp).installResp()->result =
+        static_cast<AKInstallationResultCode_t>(result);
+
+    if (data::ResultCode::Numeric::kNeedCompletion == result) {
+      return ReturnCode::kRebootRequired;
+    }
+
+    return ReturnCode::kOk;
+  }
+
+  MsgHandler::ReturnCode install2Hdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+    auto result = install(ToString(in_msg.installReq()->hash));
+
+    auto m = out_msg.present(AKIpUptaneMes_PR_installResp2).installResp2();
+    m->result = static_cast<AKInstallationResultCode_t>(result.result_code.num_code);
+    SetString(&m->description, result.description);
+
+    if (data::ResultCode::Numeric::kNeedCompletion == result.result_code.num_code) {
       return ReturnCode::kRebootRequired;
     }
 
@@ -205,11 +227,11 @@ class SecondaryMock : public MsgDispatcher {
     }
 
     size_t data_size = static_cast<size_t>(in_msg.uploadDataReq()->data.size);
-    auto send_firmware_result = receiveImageData(in_msg.uploadDataReq()->data.buf, data_size);
+    auto result = receiveImageData(in_msg.uploadDataReq()->data.buf, data_size);
 
-    out_msg.present(AKIpUptaneMes_PR_uploadDataResp).uploadDataResp()->result =
-        (send_firmware_result == data::ResultCode::Numeric::kOk) ? AKInstallationResult_success
-                                                                 : AKInstallationResult_failure;
+    auto m = out_msg.present(AKIpUptaneMes_PR_uploadDataResp).uploadDataResp();
+    m->result = static_cast<AKInstallationResultCode_t>(result.result_code.num_code);
+    SetString(&m->description, result.description);
 
     return ReturnCode::kOk;
   }
@@ -223,8 +245,9 @@ class SecondaryMock : public MsgDispatcher {
 
   MsgHandler::ReturnCode downloadOstreeRev(Asn1Message& in_msg, Asn1Message& out_msg) {
     tls_creds_ = ToString(in_msg.downloadOstreeRevReq()->tlsCred);
-    out_msg.present(AKIpUptaneMes_PR_downloadOstreeRevResp).downloadOstreeRevResp()->result =
-        AKInstallationResultCode_ok;
+    auto m = out_msg.present(AKIpUptaneMes_PR_downloadOstreeRevResp).downloadOstreeRevResp();
+    m->result = static_cast<AKInstallationResultCode_t>(data::ResultCode::Numeric::kOk);
+    SetString(&m->description, "");
 
     return ReturnCode::kOk;
   }
@@ -234,17 +257,22 @@ class SecondaryMock : public MsgDispatcher {
     return true;
   }
 
-  data::ResultCode::Numeric receiveImageData(const uint8_t* data, size_t size) {
+  data::InstallationResult putMetadata2(const Uptane::MetaBundle& meta_bundle) {
+    meta_bundle_ = meta_bundle;
+    return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
+  }
+
+  data::InstallationResult receiveImageData(const uint8_t* data, size_t size) {
     std::ofstream target_file(image_filepath_.c_str(), std::ofstream::out | std::ofstream::binary | std::ofstream::app);
 
     target_file.write(reinterpret_cast<const char*>(data), static_cast<std::streamsize>(size));
     hasher_->update(data, size);
 
     target_file.close();
-    return data::ResultCode::Numeric::kOk;
+    return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
   }
 
-  data::ResultCode::Numeric install(const std::string& target_name) {
+  data::InstallationResult install(const std::string& target_name) {
     if (!received_firmware_data_.empty()) {
       // data was received via the old request (sendFirmware)
       if (target_name == "OSTREE") {
@@ -254,7 +282,7 @@ class SecondaryMock : public MsgDispatcher {
                          received_firmware_data_.size());
       }
     }
-    return data::ResultCode::Numeric::kOk;
+    return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
   }
 
  private:

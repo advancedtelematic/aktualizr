@@ -7,15 +7,15 @@ void MsgDispatcher::registerHandler(AKIpUptaneMes_PR msg_id, Handler handler) {
 }
 
 MsgHandler::ReturnCode MsgDispatcher::handleMsg(const Asn1Message::Ptr& in_msg, Asn1Message::Ptr& out_msg) {
-  LOG_DEBUG << "Got a request message from Primary: " << in_msg->toStr();
+  LOG_DEBUG << "Received a request from Primary: " << in_msg->toStr();
 
   auto find_res_it = handler_map_.find(in_msg->present());
   if (find_res_it == handler_map_.end()) {
     return MsgHandler::kUnkownMsg;
   }
-  LOG_DEBUG << "Found a handler for the request message, processing it...";
+  LOG_DEBUG << "Found a handler for the request, processing it...";
   auto handle_status_code = find_res_it->second(*in_msg, *out_msg);
-  LOG_DEBUG << "Got a response message from a handler: " << out_msg->toStr();
+  LOG_DEBUG << "Request handler returned a response: " << out_msg->toStr();
 
   return handle_status_code;
 }

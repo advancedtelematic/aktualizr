@@ -31,18 +31,21 @@ Uptane::Manifest AktualizrSecondary::getManifest() const {
   return manifest;
 }
 
-bool AktualizrSecondary::putMetadata(const Metadata& metadata) { return doFullVerification(metadata); }
+data::InstallationResult AktualizrSecondary::putMetadata(const Metadata& metadata) {
+  return doFullVerification(metadata);
+}
 
-data::ResultCode::Numeric AktualizrSecondary::install() {
+data::InstallationResult AktualizrSecondary::install() {
   if (!pending_target_.IsValid()) {
     LOG_ERROR << "Aborting target image installation; no valid target found.";
-    return data::ResultCode::Numeric::kInternalError;
+    return data::InstallationResult(data::ResultCode::Numeric::kInternalError,
+                                    "Aborting target image installation; no valid target found.");
   }
 
   auto target_name = pending_target_.filename();
-  auto install_result = installPendingTarget(pending_target_);
+  auto result = installPendingTarget(pending_target_);
 
-  switch (install_result) {
+  switch (result.result_code.num_code) {
     case data::ResultCode::Numeric::kOk: {
       storage_->saveInstalledVersion(ecu_serial_.ToString(), pending_target_, InstalledVersionUpdateMode::kCurrent);
       pending_target_ = Uptane::Target::Unknown();
@@ -59,10 +62,10 @@ data::ResultCode::Numeric AktualizrSecondary::install() {
     }
   }
 
-  return install_result;
+  return result;
 }
 
-bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
+data::InstallationResult AktualizrSecondary::doFullVerification(const Metadata& metadata) {
   // 5.4.4.2. Full verification  https://uptane.github.io/uptane-standard/uptane-standard.html#metadata_verification
 
   // 1. Load and verify the current time or the most recent securely attested time.
@@ -77,7 +80,8 @@ bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
     director_repo_.updateMeta(*storage_, metadata);
   } catch (const std::exception& e) {
     LOG_ERROR << "Failed to update Director metadata: " << e.what();
-    return false;
+    return data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed,
+                                    std::string("Failed to update Director metadata: ") + e.what());
   }
 
   // 6. Download and check the Root metadata file from the Image repository.
@@ -88,31 +92,36 @@ bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
     image_repo_.updateMeta(*storage_, metadata);
   } catch (const std::exception& e) {
     LOG_ERROR << "Failed to update Image repo metadata: " << e.what();
-    return false;
+    return data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed,
+                                    std::string("Failed to update Image repo metadata: ") + e.what());
   }
 
   // 10. Verify that Targets metadata from the Director and Image repositories match.
   if (!director_repo_.matchTargetsWithImageTargets(*(image_repo_.getTargets()))) {
-    LOG_ERROR << "Targets metadata from the Director and Image repositories DOES NOT match ";
-    return false;
+    LOG_ERROR << "Targets metadata from the Director and Image repositories do not match";
+    return data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed,
+                                    "Targets metadata from the Director and Image repositories do not match");
   }
 
   auto targetsForThisEcu = director_repo_.getTargets(serial(), hwID());
 
   if (targetsForThisEcu.size() != 1) {
     LOG_ERROR << "Invalid number of targets (should be 1): " << targetsForThisEcu.size();
-    return false;
+    return data::InstallationResult(
+        data::ResultCode::Numeric::kVerificationFailed,
+        "Invalid number of targets (should be 1): " + std::to_string(targetsForThisEcu.size()));
   }
 
   if (!isTargetSupported(targetsForThisEcu[0])) {
     LOG_ERROR << "The given target type is not supported: " << targetsForThisEcu[0].type();
-    return false;
+    return data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed,
+                                    "The given target type is not supported: " + targetsForThisEcu[0].type());
   }
 
   pending_target_ = targetsForThisEcu[0];
 
   LOG_DEBUG << "Metadata verified, new update found.";
-  return true;
+  return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
 }
 
 void AktualizrSecondary::uptaneInitialize() {
@@ -282,21 +291,24 @@ AktualizrSecondary::ReturnCode AktualizrSecondary::putMetaHdlr(Asn1Message& in_m
     LOG_WARNING << "Metadata received from Primary is incomplete: " << md->imageRepo.present;
   }
 
-  bool ok = putMetadata(meta_bundle);
+  data::InstallationResult result = putMetadata(meta_bundle);
 
-  out_msg.present(AKIpUptaneMes_PR_putMetaResp).putMetaResp()->result =
-      ok ? AKInstallationResult_success : AKInstallationResult_failure;
+  auto m = out_msg.present(AKIpUptaneMes_PR_putMetaResp2).putMetaResp2();
+  m->result = static_cast<AKInstallationResultCode_t>(result.result_code.num_code);
+  SetString(&m->description, result.description);
 
   return ReturnCode::kOk;
 }
 
 AktualizrSecondary::ReturnCode AktualizrSecondary::installHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
   (void)in_msg;
-  auto install_result = install();
-  out_msg.present(AKIpUptaneMes_PR_installResp).installResp()->result =
-      static_cast<AKInstallationResultCode_t>(install_result);
+  auto result = install();
 
-  if (data::ResultCode::Numeric::kNeedCompletion == install_result) {
+  auto m = out_msg.present(AKIpUptaneMes_PR_installResp2).installResp2();
+  m->result = static_cast<AKInstallationResultCode_t>(result.result_code.num_code);
+  SetString(&m->description, result.description);
+
+  if (data::ResultCode::Numeric::kNeedCompletion == result.result_code.num_code) {
     return ReturnCode::kRebootRequired;
   }
 
