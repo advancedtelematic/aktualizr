@@ -161,10 +161,21 @@ data::InstallationResult SotaUptaneClient::PackageInstallSetResult(const Uptane:
   return result;
 }
 
+/* Hardware info is treated differently than the other device data. The default
+ * info (supplied via lshw) is only sent once and never again, even if it
+ * changes. (Unfortunately, it can change often due to CPU frequency scaling.)
+ * However, users can provide custom info via the API, and that will be sent if
+ * it has changed. */
 void SotaUptaneClient::reportHwInfo(const Json::Value &custom_hwinfo) {
   Json::Value system_info;
+  std::string stored_hash;
+  storage->loadDeviceDataHash("hardware_info", &stored_hash);
 
   if (custom_hwinfo.empty()) {
+    if (!stored_hash.empty()) {
+      LOG_TRACE << "Not reporting default hardware information because it has already been reported";
+      return;
+    }
     system_info = Utils::getHardwareInfo();
     if (system_info.empty()) {
       LOG_WARNING << "Unable to fetch hardware information from host system.";
@@ -174,10 +185,12 @@ void SotaUptaneClient::reportHwInfo(const Json::Value &custom_hwinfo) {
 
   const Json::Value &hw_info = custom_hwinfo.empty() ? system_info : custom_hwinfo;
   const Hash new_hash = Hash::generate(Hash::Type::kSha256, Utils::jsonToCanonicalStr(hw_info));
-  std::string stored_hash;
-  if (!(storage->loadDeviceDataHash("hardware_info", &stored_hash) &&
-        new_hash == Hash(Hash::Type::kSha256, stored_hash))) {
-    LOG_DEBUG << "Reporting hardware information";
+  if (new_hash != Hash(Hash::Type::kSha256, stored_hash)) {
+    if (custom_hwinfo.empty()) {
+      LOG_DEBUG << "Reporting default hardware information";
+    } else {
+      LOG_DEBUG << "Reporting custom hardware information";
+    }
     const HttpResponse response = http->put(config.tls.server + "/system_info", hw_info);
     if (response.isOk()) {
       storage->storeDeviceDataHash("hardware_info", new_hash.HashString());

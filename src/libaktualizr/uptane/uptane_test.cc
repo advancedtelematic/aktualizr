@@ -937,7 +937,7 @@ class HttpFakeProv : public HttpFake {
     } else if (url.find("/system_info") != std::string::npos) {
       /* Send hardware info to the server. */
       system_info_count++;
-      if (system_info_count <= 1) {
+      if (system_info_count <= 2) {
         Json::Value hwinfo = Utils::getHardwareInfo();
         EXPECT_EQ(hwinfo["id"].asString(), data["id"].asString());
         EXPECT_EQ(hwinfo["description"].asString(), data["description"].asString());
@@ -992,6 +992,7 @@ TEST(Uptane, ProvisionOnServer) {
   config.provision.primary_ecu_hardware_id = "primary_hw";
   config.storage.path = temp_dir.Path();
   UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hw");
+  logger_set_threshold(boost::log::trivial::trace);
 
   auto storage = INvStorage::newStorage(config.storage);
   auto events_channel = std::make_shared<event::Channel>();
@@ -1040,25 +1041,32 @@ TEST(Uptane, ProvisionOnServer) {
   EXPECT_EQ(http->config_count, 1);
   EXPECT_EQ(http->events_seen, 8);
 
-  // Try sending device data again. Set hardware info to a custom value, because
-  // on some systems lshw returns inconsistent results. Nothing else should have
-  // changed.
-  http->custom_hw_info["hardware"] = "test-hw";
+  // Try sending device data again to confirm that it isn't resent if it hasn't
+  // changed (and hardware info is only sent once).
   EXPECT_NO_THROW(up->sendDeviceData(http->custom_hw_info));
   EXPECT_EQ(http->installed_count, 1);
-  EXPECT_EQ(http->system_info_count, 2);
-  EXPECT_EQ(http->network_count, 1);
-  EXPECT_EQ(http->config_count, 1);
-
-  // Try sending device data again to confirm hardware info isn't resent.
-  EXPECT_NO_THROW(up->sendDeviceData(http->custom_hw_info));
-  EXPECT_EQ(http->installed_count, 1);
-  EXPECT_EQ(http->system_info_count, 2);
+  EXPECT_EQ(http->system_info_count, 1);
   EXPECT_EQ(http->network_count, 1);
   EXPECT_EQ(http->config_count, 1);
 
   // Clear the stored values and resend to verify the data is resent.
   storage->clearDeviceData();
+  EXPECT_NO_THROW(up->sendDeviceData(http->custom_hw_info));
+  EXPECT_EQ(http->installed_count, 2);
+  EXPECT_EQ(http->system_info_count, 2);
+  EXPECT_EQ(http->network_count, 2);
+  EXPECT_EQ(http->config_count, 2);
+
+  // Set hardware info to a custom value and send device data again.
+  http->custom_hw_info["hardware"] = "test-hw";
+  EXPECT_NO_THROW(up->sendDeviceData(http->custom_hw_info));
+  EXPECT_EQ(http->installed_count, 2);
+  EXPECT_EQ(http->system_info_count, 3);
+  EXPECT_EQ(http->network_count, 2);
+  EXPECT_EQ(http->config_count, 2);
+
+  // Try once again; nothing should be resent.
+  http->custom_hw_info["hardware"] = "test-hw";
   EXPECT_NO_THROW(up->sendDeviceData(http->custom_hw_info));
   EXPECT_EQ(http->installed_count, 2);
   EXPECT_EQ(http->system_info_count, 3);
