@@ -119,7 +119,6 @@ class SotaUptaneClient {
   Json::Value AssembleManifest();
   std::string secondaryTreehubCredentials() const;
   std::exception_ptr getLastException() const { return last_exception; }
-  bool isInstalledOnPrimary(const Uptane::Target &target);
   static std::vector<Uptane::Target> findForEcu(const std::vector<Uptane::Target> &targets,
                                                 const Uptane::EcuSerial &ecu_id);
   data::InstallationResult PackageInstallSetResult(const Uptane::Target &target);

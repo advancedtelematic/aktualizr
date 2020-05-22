@@ -44,13 +44,6 @@ void SotaUptaneClient::addSecondary(const std::shared_ptr<Uptane::SecondaryInter
   secondaries.emplace(serial, sec);
 }
 
-bool SotaUptaneClient::isInstalledOnPrimary(const Uptane::Target &target) {
-  if (target.ecus().find(primaryEcuSerial()) != target.ecus().end()) {
-    return target.MatchTarget(package_manager_->getCurrent());
-  }
-  return false;
-}
-
 std::vector<Uptane::Target> SotaUptaneClient::findForEcu(const std::vector<Uptane::Target> &targets,
                                                          const Uptane::EcuSerial &ecu_id) {
   std::vector<Uptane::Target> result;
@@ -1019,32 +1012,22 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
       sendEvent<event::InstallStarted>(primary_ecu_serial);
 
       data::InstallationResult install_res;
-      if (!isInstalledOnPrimary(primary_update)) {
-        // notify the bootloader before installation happens, because installation is not atomic and
-        //   a false notification doesn't hurt when rollbacks are implemented
-        package_manager_->updateNotify();
-        install_res = PackageInstallSetResult(primary_update);
-        if (install_res.result_code.num_code == data::ResultCode::Numeric::kNeedCompletion) {
-          // update needs a reboot, send distinct EcuInstallationApplied event
-          report_queue->enqueue(std_::make_unique<EcuInstallationAppliedReport>(primary_ecu_serial, correlation_id));
-          sendEvent<event::InstallTargetComplete>(primary_ecu_serial, true);
-        } else if (install_res.result_code.num_code == data::ResultCode::Numeric::kOk) {
-          storage->saveEcuInstallationResult(primary_ecu_serial, install_res);
-          report_queue->enqueue(
-              std_::make_unique<EcuInstallationCompletedReport>(primary_ecu_serial, correlation_id, true));
-          sendEvent<event::InstallTargetComplete>(primary_ecu_serial, true);
-        } else {
-          // general error case
-          storage->saveEcuInstallationResult(primary_ecu_serial, install_res);
-          report_queue->enqueue(
-              std_::make_unique<EcuInstallationCompletedReport>(primary_ecu_serial, correlation_id, false));
-          sendEvent<event::InstallTargetComplete>(primary_ecu_serial, false);
-        }
-      } else {
-        install_res =
-            data::InstallationResult(data::ResultCode::Numeric::kAlreadyProcessed, "Package already installed");
+      // notify the bootloader before installation happens, because installation is not atomic and
+      //   a false notification doesn't hurt when rollbacks are implemented
+      package_manager_->updateNotify();
+      install_res = PackageInstallSetResult(primary_update);
+      if (install_res.result_code.num_code == data::ResultCode::Numeric::kNeedCompletion) {
+        // update needs a reboot, send distinct EcuInstallationApplied event
+        report_queue->enqueue(std_::make_unique<EcuInstallationAppliedReport>(primary_ecu_serial, correlation_id));
+        sendEvent<event::InstallTargetComplete>(primary_ecu_serial, true);
+      } else if (install_res.result_code.num_code == data::ResultCode::Numeric::kOk) {
         storage->saveEcuInstallationResult(primary_ecu_serial, install_res);
-        // TODO: distinguish this case from regular failure for local and remote event reporting
+        report_queue->enqueue(
+            std_::make_unique<EcuInstallationCompletedReport>(primary_ecu_serial, correlation_id, true));
+        sendEvent<event::InstallTargetComplete>(primary_ecu_serial, true);
+      } else {
+        // general error case
+        storage->saveEcuInstallationResult(primary_ecu_serial, install_res);
         report_queue->enqueue(
             std_::make_unique<EcuInstallationCompletedReport>(primary_ecu_serial, correlation_id, false));
         sendEvent<event::InstallTargetComplete>(primary_ecu_serial, false);
