@@ -11,7 +11,7 @@ logger = logging.getLogger(__file__)
 
 
 """
-    Verifies whether aktualizr is updatable after failure of object(s) download from Treehub/ostree repo
+    Verifies whether aktualizr is updatable after failure of object(s) download from Treehub/OSTree repo
     with follow-up successful download.
 
     Currently, it's tested against two types of object download failure:
@@ -25,7 +25,7 @@ logger = logging.getLogger(__file__)
                         MalformedImageHandler(url='/objects/41/5ce9717fc7a5f4d743a4f911e11bd3ed83930e46756303fd13a3eb7ed35892.filez'),
                         RedirectHandler(number_of_redirects=1000, url='/objects/41/5ce9717fc7a5f4d743a4f911e11bd3ed83930e46756303fd13a3eb7ed35892.filez'),
 
-                        # TODO: ostree objects download is not resilient to `Slow Retrieval Attack`
+                        # TODO: OSTree object download is not resilient to `Slow Retrieval Attack`
                         # https://saeljira.it.here.com/browse/OTA-3737
                         #SlowRetrievalHandler(url='/objects/6b/1604b586fcbe052bbc0bd9e1c8040f62e085ca2e228f37df957ac939dff361.filez'),
 

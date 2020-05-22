@@ -18,11 +18,11 @@ bool OstreeUpdateAgent::getInstalledImageInfo(Uptane::InstalledImageInfo& instal
     installed_image_info.hash = ostreePackMan_->getCurrentHash();
 
     // TODO(OTA-4545): consider more elegant way of storing currently installed target name
-    // usage of the SQLStorage and ostree implementions aimed for Primary is
+    // usage of the SQLStorage and OSTree implementions aimed for Primary is
     // a quite overhead for Secondary
     auto currently_installed_target = ostreePackMan_->getCurrent();
     if (!currently_installed_target.IsValid()) {
-      // This is the policy on a target image name in case of ostree
+      // This is the policy on a target image name in case of OSTree
       // The policy in followed and implied in meta-updater (garage-sign/push) and the backend
       // installed_image_info.name = _targetname_prefix + "-" + installed_image_info.hash;
       installed_image_info.name = targetname_prefix_ + "-" + installed_image_info.hash;
@@ -61,7 +61,7 @@ bool OstreeUpdateAgent::download(const Uptane::Target& target, const std::string
       break;
     }
     case data::ResultCode::Numeric::kAlreadyProcessed: {
-      LOG_INFO << "The target revision is already present on the local ostree repo: " << target.sha256Hash();
+      LOG_INFO << "The target revision is already present on the local OSTree repo: " << target.sha256Hash();
       download_result = true;
       break;
     }

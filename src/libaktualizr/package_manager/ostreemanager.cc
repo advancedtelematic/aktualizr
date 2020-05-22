@@ -120,7 +120,7 @@ data::InstallationResult OstreeManager::pull(const boost::filesystem::path &sysr
   }
   ostree_async_progress_finish(progress.get());
   g_variant_unref(options);
-  return data::InstallationResult(data::ResultCode::Numeric::kOk, "Pulling ostree image was successful");
+  return data::InstallationResult(data::ResultCode::Numeric::kOk, "Pulling OSTree image was successful");
 }
 
 data::InstallationResult OstreeManager::install(const Uptane::Target &target) const {
@@ -252,8 +252,8 @@ OstreeManager::OstreeManager(const PackageConfig &pconfig, const BootloaderConfi
 bool OstreeManager::fetchTarget(const Uptane::Target &target, Uptane::Fetcher &fetcher, const KeyManager &keys,
                                 FetcherProgressCb progress_cb, const api::FlowControlToken *token) {
   if (!target.IsOstree()) {
-    // The case when the ostree package manager is set as a package manager for aktualizr
-    // while the target is aimed for a Secondary ECU that is configured with another/non-ostree package manager
+    // The case when the OSTree package manager is set as a package manager for aktualizr
+    // while the target is aimed for a Secondary ECU that is configured with another/non-OSTree package manager
     return PackageManagerInterface::fetchTarget(target, fetcher, keys, progress_cb, token);
   }
   return OstreeManager::pull(config.sysroot, config.ostree_server, keys, target, token, progress_cb).success;
@@ -261,8 +261,8 @@ bool OstreeManager::fetchTarget(const Uptane::Target &target, Uptane::Fetcher &f
 
 TargetStatus OstreeManager::verifyTarget(const Uptane::Target &target) const {
   if (!target.IsOstree()) {
-    // The case when the ostree package manager is set as a package manager for aktualizr
-    // while the target is aimed for a Secondary ECU that is configured with another/non-ostree package manager
+    // The case when the OSTree package manager is set as a package manager for aktualizr
+    // while the target is aimed for a Secondary ECU that is configured with another/non-OSTree package manager
     return PackageManagerInterface::verifyTarget(target);
   }
   return verifyTargetInternal(target);
@@ -339,7 +339,7 @@ Uptane::Target OstreeManager::getCurrent() const {
     return *current_version;
   }
 
-  LOG_ERROR << "Current versions in storage and reported by ostree do not match";
+  LOG_ERROR << "Current versions in storage and reported by OSTree do not match";
 
   // Look into installation log to find a possible candidate. Again, despite the
   // name, this will work for Secondaries as well.

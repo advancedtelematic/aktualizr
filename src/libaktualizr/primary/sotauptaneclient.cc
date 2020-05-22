@@ -121,7 +121,7 @@ data::InstallationResult SotaUptaneClient::PackageInstallSetResult(const Uptane:
   Uptane::EcuSerial ecu_serial = primaryEcuSerial();
 
   // This is to recover more gracefully if the install process was interrupted
-  // but ends up booting the new version anyway (e.g: ostree finished
+  // but ends up booting the new version anyway (e.g: OSTree finished
   // deploying but the device restarted before the final saveInstalledVersion
   // was called).
   // By storing the version in the table (as uninstalled), we can still pick
@@ -135,7 +135,7 @@ data::InstallationResult SotaUptaneClient::PackageInstallSetResult(const Uptane:
     // simple case: update already completed
     storage->saveInstalledVersion(ecu_serial.ToString(), target, InstalledVersionUpdateMode::kCurrent);
   } else if (result.result_code.num_code == data::ResultCode::Numeric::kNeedCompletion) {
-    // ostree case: need reboot
+    // OSTree case: need reboot
     storage->saveInstalledVersion(ecu_serial.ToString(), target, InstalledVersionUpdateMode::kPending);
   }
   storage->saveEcuInstallationResult(ecu_serial, result);
@@ -973,10 +973,10 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
     for (const auto &update : updates) {
       if (update.IsForEcu(primary_ecu_serial) || !update.IsOstree()) {
         // download binary images for any target, for both Primary and Secondary
-        // download an ostree revision just for Primary, Secondary will do it by itself
+        // download an OSTree revision just for Primary, Secondary will do it by itself
         // Primary cannot verify downloaded OSTree targets for Secondaries,
-        // Downloading of Secondary's ostree repo revision to the Primary's can fail
-        // if they differ signficantly as ostree has a certain cap/limit of the diff it pulls
+        // Downloading of Secondary's OSTree repo revision to the Primary's can fail
+        // if they differ signficantly as OSTree has a certain cap/limit of the diff it pulls
         if (package_manager_->verifyTarget(update) != TargetStatus::kGood) {
           result.dev_report = {false, data::ResultCode::Numeric::kInternalError, ""};
           return std::make_tuple(result, "Downloaded target is invalid");

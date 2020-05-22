@@ -92,7 +92,7 @@ class OstreeRootfs {
 class AktualizrSecondaryWrapper {
  public:
   AktualizrSecondaryWrapper(const OstreeRootfs& sysroot, const Treehub& treehub) {
-    // ostree update
+    // OSTree update
 
     config_.pacman.type = PACKAGE_MANAGER_OSTREE;
     config_.pacman.os = sysroot.getOSName();

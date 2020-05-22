@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 /**
- * @brief This mock allows the ostree package manager usage on non-ostree booted environment, e.g. local host
+ * @brief This mock allows the OSTree package manager usage on non-OSTree booted environment, e.g. local host
  *
  * in order to use it the following has to be pre-defined
  * 1) OSTREE_DEPLOYMENT_VERSION_FILE environment variable that points to the test file containing a revision

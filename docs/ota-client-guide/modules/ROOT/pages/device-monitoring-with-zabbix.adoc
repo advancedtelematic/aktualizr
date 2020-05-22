@@ -142,7 +142,7 @@ For instructions, see https://docs.ota.here.com/getstarted/dev/qemuvirtualbox.ht
 source meta-updater/scripts/envsetup.sh qemux86-64 <path-to-build-folder> poky
 ----
 +
-NOTE: It is important to specify `SOTA_HARDWARE_ID` in your conf/local.conf for non-ostree case in order to separate updates for ostree and non-ostree cases.
+NOTE: It is important to specify `SOTA_HARDWARE_ID` in your conf/local.conf for non-OSTree case in order to separate updates for OSTree and non-OSTree cases.
 +
 Edit your conf/local.conf file and add `SOTA_HARDWARE_ID`, provide your desired hardware id, see the example below.
 +

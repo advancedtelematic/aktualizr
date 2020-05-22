@@ -101,7 +101,7 @@ bool LocalPullRepo(const fs::path& src_repo_dir, const fs::path& dst_repo_dir, c
   // collect refs to pull
   //
   // Under some circumstances the following call may not be enough,
-  // see the comment before the same call in ostree sources
+  // see the comment before the same call in OSTree sources
   // (src/ostree/ot-builtin-pull-local.c).
   if (ostree_repo_list_refs(src_repo, nullptr, &refs, nullptr, &error) == 0) {
     LOG_ERROR << "OSTree sync error: unable to get refs on source repo, " << error->message;

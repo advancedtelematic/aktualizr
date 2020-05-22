@@ -24,7 +24,7 @@
 struct PackageConfig {
   std::string type{PACKAGE_MANAGER_DEFAULT};
 
-  // ostree options
+  // OSTree options
   std::string os;
   boost::filesystem::path sysroot;
   std::string ostree_server;
