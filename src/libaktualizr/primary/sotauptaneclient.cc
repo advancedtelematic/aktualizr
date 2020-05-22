@@ -27,18 +27,6 @@ static void report_progress_cb(event::Channel *channel, const Uptane::Target &ta
 void SotaUptaneClient::addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec) {
   Uptane::EcuSerial serial = sec->getSerial();
 
-  SecondaryInfo info;
-  if (!storage->loadSecondaryInfo(serial, &info) || info.type == "" || info.pub_key.Type() == KeyType::kUnknown) {
-    info.serial = serial;
-    info.hw_id = sec->getHwId();
-    info.type = sec->Type();
-    const PublicKey &p = sec->getPublicKey();
-    if (p.Type() != KeyType::kUnknown) {
-      info.pub_key = p;
-    }
-    storage->saveSecondaryInfo(info.serial, info.type, info.pub_key);
-  }
-
   if (storage->loadEcuRegistered()) {
     EcuSerials serials;
     storage->loadEcuSerials(&serials);

@@ -8,7 +8,6 @@
 #include "bootstrap/bootstrap.h"
 #include "crypto/keymanager.h"
 #include "logging/logging.h"
-#include "storage/invstorage.h"
 
 // Postcondition: device_id is in the storage
 void Initializer::initDeviceId() {
@@ -181,18 +180,11 @@ void Initializer::initEcuRegister() {
     all_ecus["ecus"].append(primary_ecu);
   }
 
-  for (const auto& sec : secondaries_) {
-    const Uptane::EcuSerial ecu_serial = sec.first;
-    Uptane::SecondaryInterface& itf = *sec.second;
-
-    const Uptane::HardwareIdentifier hw_id = itf.getHwId();
-    const PublicKey pub_key = itf.getPublicKey();
-    storage_->saveSecondaryInfo(ecu_serial, itf.Type(), pub_key);
-
+  for (const auto& info : sec_info_) {
     Json::Value ecu;
-    ecu["hardware_identifier"] = hw_id.ToString();
-    ecu["ecu_serial"] = ecu_serial.ToString();
-    ecu["clientKey"] = pub_key.ToUptane();
+    ecu["hardware_identifier"] = info.hw_id.ToString();
+    ecu["ecu_serial"] = info.serial.ToString();
+    ecu["clientKey"] = info.pub_key.ToUptane();
     all_ecus["ecus"].append(ecu);
   }
 
@@ -211,6 +203,31 @@ void Initializer::initEcuRegister() {
   storage_->storeEcuRegistered();
 
   LOG_INFO << "ECUs have been successfully registered with the server.";
+}
+
+void Initializer::initSecondaryInfo() {
+  for (const auto& s : secondaries_) {
+    const Uptane::EcuSerial serial = s.first;
+    Uptane::SecondaryInterface& sec = *s.second;
+
+    SecondaryInfo info;
+    // We must check this on every initialization, as this info
+    // won't be there in case of an upgrade from an older version.
+    // On the first initialization ECU serials should be already
+    // initialized by this point.
+    if (!storage_->loadSecondaryInfo(serial, &info) || info.type == "" || info.pub_key.Type() == KeyType::kUnknown) {
+      info.serial = serial;
+      info.hw_id = sec.getHwId();
+      info.type = sec.Type();
+      const PublicKey& p = sec.getPublicKey();
+      if (p.Type() != KeyType::kUnknown) {
+        info.pub_key = p;
+      }
+      storage_->saveSecondaryInfo(info.serial, info.type, info.pub_key);
+    }
+    // We will need this info later if the device is not yet provisioned
+    sec_info_.push_back(std::move(info));
+  }
 }
 
 void Initializer::initEcuReportCounter() {
@@ -256,6 +273,8 @@ Initializer::Initializer(const ProvisionConfig& config_in, std::shared_ptr<INvSt
     initEcuSerials();
 
     initEcuReportCounter();
+
+    initSecondaryInfo();
 
     initEcuRegister();
 
