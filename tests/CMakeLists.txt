@@ -215,10 +215,10 @@ if(BUILD_OSTREE)
              --build-dir ${PROJECT_BINARY_DIR} --src-dir ${PROJECT_SOURCE_DIR})
     set_tests_properties(test_treehub_failure PROPERTIES LABELS "noptest")
 
-    add_test(NAME test_update
-             COMMAND ${PROJECT_SOURCE_DIR}/tests/test_update.py
+    add_test(NAME test_misc_ostree_update
+             COMMAND ${PROJECT_SOURCE_DIR}/tests/test_misc_ostree_update.py
              --build-dir ${PROJECT_BINARY_DIR} --src-dir ${PROJECT_SOURCE_DIR})
-    set_tests_properties(test_update PROPERTIES LABELS "noptest")
+    set_tests_properties(test_misc_ostree_update PROPERTIES LABELS "noptest")
 endif(BUILD_OSTREE)
 
 add_test(NAME test_aktualizr_kill
