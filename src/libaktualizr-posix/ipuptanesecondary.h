@@ -1,8 +1,6 @@
 #ifndef UPTANE_IPUPTANESECONDARY_H_
 #define UPTANE_IPUPTANESECONDARY_H_
 
-#include <mutex>
-
 #include "asn1/asn1_message.h"
 #include "der_encoder.h"
 #include "primary/secondaryinterface.h"
@@ -55,7 +53,6 @@ class IpUptaneSecondary : public SecondaryInterface {
   data::InstallationResult uploadFirmwareData(const uint8_t* data, size_t size);
 
   std::shared_ptr<SecondaryProvider> secondary_provider_;
-  std::mutex install_mutex;
   std::pair<std::string, uint16_t> addr_;
   const EcuSerial serial_;
   const HardwareIdentifier hw_id_;
