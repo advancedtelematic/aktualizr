@@ -169,8 +169,6 @@ class SotaUptaneClient {
   std::shared_ptr<PackageManagerInterface> package_manager_;
   std::shared_ptr<Uptane::Fetcher> uptane_fetcher;
   std::unique_ptr<ReportQueue> report_queue;
-  Json::Value last_network_info_reported;
-  Json::Value last_hw_info_reported;
   std::shared_ptr<event::Channel> events_channel;
   boost::signals2::scoped_connection conn;
   std::exception_ptr last_exception;

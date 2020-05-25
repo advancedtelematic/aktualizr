@@ -1644,6 +1644,48 @@ void SQLStorage::clearInstallationResults() {
   db.commitTransaction();
 }
 
+void SQLStorage::storeDeviceDataHash(const std::string& data_type, const std::string& hash) {
+  SQLite3Guard db = dbConnection();
+
+  auto statement = db.prepareStatement<std::string, std::string>(
+      "INSERT OR REPLACE INTO device_data(data_type,hash) VALUES (?,?);", data_type, hash);
+  if (statement.step() != SQLITE_DONE) {
+    LOG_ERROR << "Can't set " << data_type << " hash: " << db.errmsg();
+    throw std::runtime_error("Can't set " + data_type + " hash: " + db.errmsg());
+  }
+}
+
+bool SQLStorage::loadDeviceDataHash(const std::string& data_type, std::string* hash) const {
+  SQLite3Guard db = dbConnection();
+
+  auto statement =
+      db.prepareStatement<std::string>("SELECT hash FROM device_data WHERE data_type = ? LIMIT 1;", data_type);
+
+  int result = statement.step();
+  if (result == SQLITE_DONE) {
+    LOG_TRACE << data_type << " hash not present in db";
+    return false;
+  } else if (result != SQLITE_ROW) {
+    LOG_ERROR << "Can't get " << data_type << " hash: " << db.errmsg();
+    return false;
+  }
+
+  if (hash != nullptr) {
+    *hash = statement.get_result_col_str(0).value();
+  }
+
+  return true;
+}
+
+void SQLStorage::clearDeviceData() {
+  SQLite3Guard db = dbConnection();
+
+  if (db.exec("DELETE FROM device_data;", nullptr, nullptr) != SQLITE_OK) {
+    LOG_ERROR << "Can't clear device_data: " << db.errmsg();
+    return;
+  }
+}
+
 bool SQLStorage::checkAvailableDiskSpace(const uint64_t required_bytes) const {
   struct statvfs stvfsbuf {};
   const int stat_res = statvfs(dbPath().c_str(), &stvfsbuf);

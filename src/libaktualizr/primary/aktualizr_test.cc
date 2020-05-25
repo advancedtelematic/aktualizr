@@ -1177,7 +1177,7 @@ TEST(Aktualizr, AutoRebootAfterUpdate) {
     storage->loadPrimaryInstalledVersions(&current_target, &pending_target);
     EXPECT_TRUE(!!current_target);
     EXPECT_FALSE(!!pending_target);
-    EXPECT_EQ(http->manifest_sends, 4);
+    EXPECT_EQ(http->manifest_sends, 3);
   }
 }
 
