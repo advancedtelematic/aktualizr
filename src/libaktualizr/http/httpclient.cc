@@ -223,6 +223,7 @@ std::future<HttpResponse> HttpClient::downloadAsync(const std::string& url, curl
     *easyp = curlp;
   }
 
+  curlEasySetoptWrapper(curl_download, CURLOPT_HTTPHEADER, headers);
   curlEasySetoptWrapper(curl_download, CURLOPT_URL, url.c_str());
   curlEasySetoptWrapper(curl_download, CURLOPT_HTTPGET, 1L);
   curlEasySetoptWrapper(curl_download, CURLOPT_FOLLOWLOCATION, 1L);
