@@ -586,10 +586,8 @@ TEST(storage, load_store_secondary_info) {
 
   storage->saveSecondaryInfo(Uptane::EcuSerial("secondary_1"), "ip", PublicKey("key1", KeyType::kED25519));
 
-  testing::internal::CaptureStdout();
-  storage->saveSecondaryInfo(Uptane::EcuSerial("primary"), "ip",
-                             PublicKey("key0", KeyType::kRSA2048));  // should show an error
-  EXPECT_NE(std::string::npos, testing::internal::GetCapturedStdout().find("Can't save Secondary"));
+  EXPECT_THROW(storage->saveSecondaryInfo(Uptane::EcuSerial("primary"), "ip", PublicKey("key0", KeyType::kRSA2048)),
+               std::runtime_error);
 
   std::vector<SecondaryInfo> sec_infos;
   EXPECT_TRUE(storage->loadSecondariesInfo(&sec_infos));

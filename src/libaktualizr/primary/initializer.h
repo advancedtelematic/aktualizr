@@ -4,6 +4,7 @@
 #include "config/config.h"
 #include "crypto/keymanager.h"
 #include "http/httpinterface.h"
+#include "storage/invstorage.h"
 #include "uptane/secondaryinterface.h"
 
 const int MaxInitializationAttempts = 3;
@@ -41,6 +42,7 @@ class Initializer {
   std::shared_ptr<HttpInterface> http_client_;
   KeyManager& keys_;
   const std::map<Uptane::EcuSerial, Uptane::SecondaryInterface::Ptr>& secondaries_;
+  std::vector<SecondaryInfo> sec_info_;
 
   void initDeviceId();
   void resetDeviceId();
@@ -50,6 +52,7 @@ class Initializer {
   void resetEcuKeys();
   void initTlsCreds();
   void resetTlsCreds();
+  void initSecondaryInfo();
   void initEcuRegister();
   bool loadSetTlsCreds();
   void initEcuReportCounter();

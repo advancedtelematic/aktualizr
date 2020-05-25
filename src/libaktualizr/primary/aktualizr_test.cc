@@ -175,6 +175,7 @@ TEST(Aktualizr, DeviceInstallationResult) {
 
   EcuSerials serials{
       {Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")},
+      {Uptane::EcuSerial("secondary_ecu_serial"), Uptane::HardwareIdentifier("secondary_hw")},
       {Uptane::EcuSerial("ecuserial3"), Uptane::HardwareIdentifier("hw_id3")},
   };
   storage->storeEcuSerials(serials);
