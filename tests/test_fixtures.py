@@ -1097,6 +1097,13 @@ class TestRunner:
         self._tests = tests
         self._test_runner_pool = NonDaemonPool(min(len(self._tests), cpu_count()))
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        # This must be called, see https://docs.python.org/3/library/multiprocessing.html#multiprocessing.pool.Pool
+        self._test_runner_pool.__exit__(exc_type, exc_value, traceback)
+
     @staticmethod
     def test_runner(test):
         logger.info('>>> Running {}...'.format(test.__name__))
