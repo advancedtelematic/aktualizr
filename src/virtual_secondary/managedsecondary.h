@@ -81,7 +81,6 @@ class ManagedSecondary : public SecondaryInterface {
 
   Primary::ManagedSecondaryConfig sconfig;
   std::string detected_attack;
-  std::mutex install_mutex;
 
  private:
   void storeKeys(const std::string& pub_key, const std::string& priv_key);
