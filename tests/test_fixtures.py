@@ -551,7 +551,7 @@ class CustomRepo(UptaneRepo):
 
 class Treehub(UptaneRepo):
     """
-    This server serves requests from an ostree client, i.e. emulates/mocks the treehub server
+    This server serves requests from an OSTree client, i.e. emulates/mocks the treehub server
     """
     def __init__(self, ifc, port, client_handler_map={}):
         self.root = tempfile.mkdtemp()

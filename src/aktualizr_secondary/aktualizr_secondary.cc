@@ -231,7 +231,7 @@ void AktualizrSecondary::uptaneInitialize() {
   // at the initial/provisioning stage and included into a device manifest
   // i.e. 'filepath' field or ["signed"]["installed_image"]["filepath"]
   // this value must match the value pushed to the backend during the bitbaking process,
-  // specifically, at its ostree push phase and is equal to
+  // specifically, at its OSTree push phase and is equal to
   // GARAGE_TARGET_NAME ?= "${OSTREE_BRANCHNAME}" which in turn is equal to OSTREE_BRANCHNAME ?= "${SOTA_HARDWARE_ID}"
   // therefore, by default GARAGE_TARGET_NAME == OSTREE_BRANCHNAME == SOTA_HARDWARE_ID
   // If there is no match then the backend/UI will not render/highlight currently installed version at all/correctly

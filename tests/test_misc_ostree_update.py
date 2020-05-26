@@ -20,7 +20,7 @@ logger = logging.getLogger(__file__)
  Aktualizr/Primary's package manager is set to `ostree`
  Secondary's package manager is set to `fake` which means a file/binary update
  Primary goal is to verify whether aktualizr succeeds with a binary/fake update of Secondary
- while aktualizr/Primary is configured with ostree package manager
+ while aktualizr/Primary is configured with OSTree package manager
 """
 @with_uptane_backend(start_generic_server=True)
 @with_secondary(start=True)
@@ -31,7 +31,7 @@ logger = logging.getLogger(__file__)
 def test_primary_ostree_secondary_file_updates(uptane_repo, secondary, aktualizr, director, sysroot,
                                                treehub, **kwargs):
     target_rev = treehub.revision
-    # add an ostree update for Primary
+    # add an OSTree update for Primary
     uptane_repo.add_ostree_target(aktualizr.id, target_rev)
     # add a fake/binary update for Secondary
     secondary_update_hash = uptane_repo.add_image(secondary.id, "secondary-update.bin")
@@ -65,9 +65,9 @@ def test_primary_ostree_secondary_file_updates(uptane_repo, secondary, aktualizr
 
 
 """
- Test update of Secondary's ostree repo if an ostree target metadata are expired
+ Test update of Secondary's OSTree repo if an OSTree target metadata are expired
 
- Metadata are valid at the moment of a new ostree revision installation,
+ Metadata are valid at the moment of a new OSTree revision installation,
  but are expired after that and before Secondary is rebooted,
  we still expect that the installed update is applied in this case
 """
@@ -123,9 +123,9 @@ def test_secondary_ostree_update_if_metadata_expires(uptane_repo, secondary, akt
 
 
 """
- Test update of Primary's ostree repo if an ostree target metadata are expired
+ Test update of Primary's OSTree repo if an OSTree target metadata are expired
 
- Metadata are valid at the moment of a new ostree revision installation,
+ Metadata are valid at the moment of a new OSTree revision installation,
  but are expired after that and before Primary is rebooted,
  we still expect that the installed update is applied in this case
 """

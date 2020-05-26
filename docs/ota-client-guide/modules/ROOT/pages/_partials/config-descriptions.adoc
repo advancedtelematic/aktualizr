@@ -27,9 +27,9 @@ The default polling internal designed to make it convenient for you test and dev
 //  end::pollconfig-dev[]
 
 //  tag::autorebootconfig-dev[]
-Forces installation completion. Causes a system reboot in case of an ostree package manager. Emulates a reboot in case of a fake package manager.
+Forces installation completion. Causes a system reboot when using the OSTree package manager. Emulates a reboot when using the fake package manager.
 
-You'll want to enable this option when developing because it's more convenient.
+You may want to enable this option for convenience during development.
 
 //  end::autorebootconfig-dev[]
 

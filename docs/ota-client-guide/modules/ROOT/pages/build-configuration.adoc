@@ -48,7 +48,7 @@ GARAGE_TARGET_EXPIRE_AFTER = "1Y3M5D"
 endif::[]
 More detail is available in the xref:metadata-expiry.adoc[metadata expiry] page.
 | `INITRAMFS_IMAGE`|The initramfs/initrd image that is used as a proxy while booting into OSTree deployment. Do not change this setting unless you are sure that your initramfs can serve as such a proxy.
-| `SOTA_PACKED_CREDENTIALS`|When set, your ostree commit will be pushed to a remote repo as a bitbake step. This should be the path to a zipped credentials file in xref:provisioning-methods-and-credentialszip.adoc[the format accepted by garage-push].
+| `SOTA_PACKED_CREDENTIALS`|When set, your OSTree commit will be pushed to a remote repo as a bitbake step. This should be the path to a zipped credentials file in xref:provisioning-methods-and-credentialszip.adoc[the format accepted by garage-push].
 | `SOTA_DEPLOY_CREDENTIALS`|When set to '1' (default value), deploys credentials to the built image. Override it in `local.conf` to built a generic image that can be provisioned manually after the build.
 | `SOTA_CLIENT_PROV`|Which provisioning method to use. Valid options are `aktualizr-shared-prov`, `aktualizr-device-prov`, and `aktualizr-device-prov-hsm`. See the xref:client-provisioning-methods.adoc[client provisioning methods] page for more information on these provisioning methods. The default is `aktualizr-shared-prov`. This can also be set to an empty string to avoid using a provisioning recipe.
 | `SOTA_CLIENT_FEATURES`|Extensions to aktualizr. The only valid options are `hsm` (to build with HSM support), `ubootenv` (to enable rollback support in U-Boot; currently only supported for Raspberry Pi), and `serialcan` (to enable serial CAN support).

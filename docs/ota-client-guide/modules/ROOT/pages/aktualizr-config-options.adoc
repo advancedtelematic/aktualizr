@@ -123,7 +123,7 @@ Options for Uptane.
 | `repo_server`                   |              | Image repository server URL. If empty, set to `tls.server` with `/repo` appended.
 | `key_source`                    | `"file"`     | Where to read the device's private key from. Options: `"file"`, `"pkcs11"`.
 | `key_type`                      | `"RSA2048"`  | Type of cryptographic keys to use. Options: `"ED25519"`, `"RSA2048"`, `"RSA3072"` or `"RSA4096"`.
-| `force_install_completion`      | false        | Forces installation completion. Causes a system reboot in case of an ostree package manager. Emulates a reboot in case of a fake package manager.
+| `force_install_completion`      | false        | Forces installation completion. Causes a system reboot when using the OSTree package manager. Emulates a reboot when using the fake package manager.
 | `secondary_config_file`         | `""`         | Secondary json configuration file. Example here: link:{aktualizr-github-url}/config/secondary/virtualsec.json[]
 | `secondary_preinstall_wait_sec` | `600`        | Time to wait for reachable secondaries before attempting an installation.
 |==========================================================================================

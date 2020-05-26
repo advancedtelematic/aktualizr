@@ -106,7 +106,7 @@ def sig_handler(signum, frame):
 
 def create_repo(path):
     """
-    Creates a new ostree repository with persistent object checksums.
+    Creates a new OSTree repository with persistent object checksums.
     To achive persistency, we generate files with the same seed(0).
     As OSTree content objects objects include uid, gid, and extended attributes,
     we strip the extended attributes and set the rest to constant values.
@@ -139,8 +139,8 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--port', type=int, required=True,
                         help='listening port')
     parser.add_argument('-c', '--create', action='store_true',
-                        help='create new ostree repo')
-    parser.add_argument('-d', '--dir', help='ostree repo directory')
+                        help='create new OSTree repo')
+    parser.add_argument('-d', '--dir', help='OSTree repo directory')
     parser.add_argument('-f', '--fail', type=int, help='fail every nth request')
     parser.add_argument('-s', '--sleep', type=float,
                         help='sleep for n.n seconds for every GET request')

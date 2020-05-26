@@ -44,13 +44,6 @@ void SotaUptaneClient::addSecondary(const std::shared_ptr<Uptane::SecondaryInter
   secondaries.emplace(serial, sec);
 }
 
-bool SotaUptaneClient::isInstalledOnPrimary(const Uptane::Target &target) {
-  if (target.ecus().find(primaryEcuSerial()) != target.ecus().end()) {
-    return target.MatchTarget(package_manager_->getCurrent());
-  }
-  return false;
-}
-
 std::vector<Uptane::Target> SotaUptaneClient::findForEcu(const std::vector<Uptane::Target> &targets,
                                                          const Uptane::EcuSerial &ecu_id) {
   std::vector<Uptane::Target> result;
@@ -128,7 +121,7 @@ data::InstallationResult SotaUptaneClient::PackageInstallSetResult(const Uptane:
   Uptane::EcuSerial ecu_serial = primaryEcuSerial();
 
   // This is to recover more gracefully if the install process was interrupted
-  // but ends up booting the new version anyway (e.g: ostree finished
+  // but ends up booting the new version anyway (e.g: OSTree finished
   // deploying but the device restarted before the final saveInstalledVersion
   // was called).
   // By storing the version in the table (as uninstalled), we can still pick
@@ -142,7 +135,7 @@ data::InstallationResult SotaUptaneClient::PackageInstallSetResult(const Uptane:
     // simple case: update already completed
     storage->saveInstalledVersion(ecu_serial.ToString(), target, InstalledVersionUpdateMode::kCurrent);
   } else if (result.result_code.num_code == data::ResultCode::Numeric::kNeedCompletion) {
-    // ostree case: need reboot
+    // OSTree case: need reboot
     storage->saveInstalledVersion(ecu_serial.ToString(), target, InstalledVersionUpdateMode::kPending);
   }
   storage->saveEcuInstallationResult(ecu_serial, result);
@@ -980,10 +973,10 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
     for (const auto &update : updates) {
       if (update.IsForEcu(primary_ecu_serial) || !update.IsOstree()) {
         // download binary images for any target, for both Primary and Secondary
-        // download an ostree revision just for Primary, Secondary will do it by itself
+        // download an OSTree revision just for Primary, Secondary will do it by itself
         // Primary cannot verify downloaded OSTree targets for Secondaries,
-        // Downloading of Secondary's ostree repo revision to the Primary's can fail
-        // if they differ signficantly as ostree has a certain cap/limit of the diff it pulls
+        // Downloading of Secondary's OSTree repo revision to the Primary's can fail
+        // if they differ signficantly as OSTree has a certain cap/limit of the diff it pulls
         if (package_manager_->verifyTarget(update) != TargetStatus::kGood) {
           result.dev_report = {false, data::ResultCode::Numeric::kInternalError, ""};
           return std::make_tuple(result, "Downloaded target is invalid");
@@ -1019,32 +1012,22 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
       sendEvent<event::InstallStarted>(primary_ecu_serial);
 
       data::InstallationResult install_res;
-      if (!isInstalledOnPrimary(primary_update)) {
-        // notify the bootloader before installation happens, because installation is not atomic and
-        //   a false notification doesn't hurt when rollbacks are implemented
-        package_manager_->updateNotify();
-        install_res = PackageInstallSetResult(primary_update);
-        if (install_res.result_code.num_code == data::ResultCode::Numeric::kNeedCompletion) {
-          // update needs a reboot, send distinct EcuInstallationApplied event
-          report_queue->enqueue(std_::make_unique<EcuInstallationAppliedReport>(primary_ecu_serial, correlation_id));
-          sendEvent<event::InstallTargetComplete>(primary_ecu_serial, true);
-        } else if (install_res.result_code.num_code == data::ResultCode::Numeric::kOk) {
-          storage->saveEcuInstallationResult(primary_ecu_serial, install_res);
-          report_queue->enqueue(
-              std_::make_unique<EcuInstallationCompletedReport>(primary_ecu_serial, correlation_id, true));
-          sendEvent<event::InstallTargetComplete>(primary_ecu_serial, true);
-        } else {
-          // general error case
-          storage->saveEcuInstallationResult(primary_ecu_serial, install_res);
-          report_queue->enqueue(
-              std_::make_unique<EcuInstallationCompletedReport>(primary_ecu_serial, correlation_id, false));
-          sendEvent<event::InstallTargetComplete>(primary_ecu_serial, false);
-        }
-      } else {
-        install_res =
-            data::InstallationResult(data::ResultCode::Numeric::kAlreadyProcessed, "Package already installed");
+      // notify the bootloader before installation happens, because installation is not atomic and
+      //   a false notification doesn't hurt when rollbacks are implemented
+      package_manager_->updateNotify();
+      install_res = PackageInstallSetResult(primary_update);
+      if (install_res.result_code.num_code == data::ResultCode::Numeric::kNeedCompletion) {
+        // update needs a reboot, send distinct EcuInstallationApplied event
+        report_queue->enqueue(std_::make_unique<EcuInstallationAppliedReport>(primary_ecu_serial, correlation_id));
+        sendEvent<event::InstallTargetComplete>(primary_ecu_serial, true);
+      } else if (install_res.result_code.num_code == data::ResultCode::Numeric::kOk) {
         storage->saveEcuInstallationResult(primary_ecu_serial, install_res);
-        // TODO: distinguish this case from regular failure for local and remote event reporting
+        report_queue->enqueue(
+            std_::make_unique<EcuInstallationCompletedReport>(primary_ecu_serial, correlation_id, true));
+        sendEvent<event::InstallTargetComplete>(primary_ecu_serial, true);
+      } else {
+        // general error case
+        storage->saveEcuInstallationResult(primary_ecu_serial, install_res);
         report_queue->enqueue(
             std_::make_unique<EcuInstallationCompletedReport>(primary_ecu_serial, correlation_id, false));
         sendEvent<event::InstallTargetComplete>(primary_ecu_serial, false);

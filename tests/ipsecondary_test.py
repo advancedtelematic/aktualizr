@@ -104,7 +104,7 @@ def test_secondary_update(uptane_repo, secondary, aktualizr, director, **kwargs)
 @with_secondary(start=False, output_logs=True)
 @with_aktualizr(start=False, run_mode='once', output_logs=True)
 def test_secondary_ostree_update(uptane_repo, secondary, aktualizr, treehub, sysroot, director, **kwargs):
-    """Test Secondary ostree update if a boot order of Secondary and Primary is undefined"""
+    """Test Secondary OSTree update if a boot order of Secondary and Primary is undefined"""
 
     target_rev = treehub.revision
     expected_targetname = uptane_repo.add_ostree_target(secondary.id, target_rev, "GARAGE_TARGET_NAME")
@@ -347,7 +347,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Test IP Secondary')
     parser.add_argument('-b', '--build-dir', help='build directory', default='build')
     parser.add_argument('-s', '--src-dir', help='source directory', default='.')
-    parser.add_argument('-o', '--ostree', help='ostree support', action='store_true')
+    parser.add_argument('-o', '--ostree', help='OSTree support', action='store_true')
 
     input_params = parser.parse_args()
 
