@@ -5,7 +5,7 @@ import sys
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-server_address = ('127.0.0.1', int(sys.argv[1]))
+server_address = ('localhost', int(sys.argv[1]))
 print('starting up on {} port {}'.format(*server_address))
 sock.bind(server_address)
 

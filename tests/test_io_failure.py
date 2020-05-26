@@ -95,7 +95,7 @@ def main():
             FakeTestServerBackground(repo_dir, srcdir=srcdir) as uptane_server, \
             multiprocessing.Pool(args.jobs) as pool:
 
-        server = f'http://127.0.0.1:{uptane_server.port}'
+        server = f'http://localhost:{uptane_server.port}'
         print(f'Running tests on {server} (repo directory: {repo_dir})')
 
         if args.serve_only:

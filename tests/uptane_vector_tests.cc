@@ -196,7 +196,7 @@ int main(int argc, char* argv[]) {
    * that parallel runs of this code don't cause problems that are difficult to
    * debug. */
   const std::string port = argv[1];
-  address = "http://127.0.0.1:" + port + "/";
+  address = "http://localhost:" + port + "/";
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

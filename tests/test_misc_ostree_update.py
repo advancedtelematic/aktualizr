@@ -193,7 +193,8 @@ if __name__ == "__main__":
         test_primary_ostree_update_if_metadata_expires
     ]
 
-    test_suite_run_result = TestRunner(test_suite).run()
+    with TestRunner(test_suite) as runner:
+        test_suite_run_result = runner.run()
 
     chdir(initial_cwd)
     exit(0 if test_suite_run_result else 1)

@@ -5,7 +5,7 @@
 #include "get.h"
 #include "test_utils.h"
 
-static std::string server = "http://127.0.0.1:";
+static std::string server = "http://localhost:";
 
 TEST(aktualizr_get, good) {
   Config config;

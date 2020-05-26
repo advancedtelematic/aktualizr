@@ -103,7 +103,8 @@ if __name__ == "__main__":
                     test_treehub_update_if_bad_ostree_checksum
     ]
 
-    test_suite_run_result = TestRunner(test_suite).run()
+    with TestRunner(test_suite) as runner:
+        test_suite_run_result = runner.run()
 
     chdir(initial_cwd)
     exit(0 if test_suite_run_result else 1)
