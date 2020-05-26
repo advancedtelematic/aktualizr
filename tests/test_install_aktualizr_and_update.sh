@@ -8,7 +8,7 @@ TEST_INSTALL_DESTDIR=$(mktemp -d)/install
 PORT=$("$SCRIPT_DIR/find_listening_port.sh" $!)
 trap 'kill %1' EXIT
 
-until curl 127.0.0.1:"$PORT" &> /dev/null; do
+until curl localhost:"$PORT" &> /dev/null; do
   sleep 0.2
 done
 

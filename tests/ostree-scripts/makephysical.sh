@@ -37,11 +37,11 @@ OSTREE_DIR=$(mktemp -d /tmp/ostreephys-XXXXXX)
     trap 'kill %1' EXIT
 
     # Wait for http server to start serving. This can take a while sometimes.
-    until curl 127.0.0.1:"$PORT" &> /dev/null; do
+    until curl localhost:"$PORT" &> /dev/null; do
       sleep 0.2
     done
 
-    ostree --repo="$OSTREE_SYSROOT/ostree/repo" remote add --no-gpg-verify generate-remote "http://127.0.0.1:$PORT" $BRANCHNAME
+    ostree --repo="$OSTREE_SYSROOT/ostree/repo" remote add --no-gpg-verify generate-remote "http://localhost:$PORT" $BRANCHNAME
     ostree --repo="$OSTREE_SYSROOT/ostree/repo" pull generate-remote  $BRANCHNAME
 )
 

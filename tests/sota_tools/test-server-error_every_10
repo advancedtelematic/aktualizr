@@ -33,7 +33,7 @@ def main():
     def handler(*args):
         TreehubServer(ostree_repo, *args)
 
-    httpd = ThreadingTCPServer(('127.0.0.1', 0), handler)
+    httpd = ThreadingTCPServer(('localhost', 0), handler)
     address, port = httpd.socket.getsockname()
     print("Serving at port", port)
     t = threading.Thread(target=httpd.serve_forever)
