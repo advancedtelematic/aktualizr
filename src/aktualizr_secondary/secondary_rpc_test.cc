@@ -13,6 +13,8 @@
 #include "storage/invstorage.h"
 #include "test_utils.h"
 
+enum class HandlerVersion { kV1, kV2, kV2Failure };
+
 /* This class allows us to divert messages from the regular handlers in
  * AktualizrSecondary to our own test functions. This lets us test only what was
  * received by the Secondary but not how it was processed.
@@ -23,27 +25,36 @@
 class SecondaryMock : public MsgDispatcher {
  public:
   SecondaryMock(const Uptane::EcuSerial& serial, const Uptane::HardwareIdentifier& hdw_id, const PublicKey& pub_key,
-                const Uptane::Manifest& manifest, bool new_install_msgs = true)
+                const Uptane::Manifest& manifest, HandlerVersion handler_version = HandlerVersion::kV2)
       : serial_(serial),
         hdw_id_(hdw_id),
         pub_key_(pub_key),
         manifest_(manifest),
         image_filepath_{image_dir_ / "image.bin"},
-        hasher_{MultiPartHasher::create(Hash::Type::kSha256)} {
+        hasher_{MultiPartHasher::create(Hash::Type::kSha256)},
+        handler_version_(handler_version) {
     registerBaseHandlers();
-    if (new_install_msgs) {
-      registerHandlersForNewRequests();
+    if (handler_version_ == HandlerVersion::kV1) {
+      registerV1Handlers();
+    } else if (handler_version_ == HandlerVersion::kV2) {
+      registerV2Handlers();
     } else {
-      registerHandlersForOldRequests();
+      registerV2FailureHandlers();
     }
   }
 
  public:
+  const std::string verification_failure = "Expected verification test failure";
+  const std::string upload_data_failure = "Expected data upload test failure";
+  const std::string ostree_failure = "Expected OSTree download test failure";
+  const std::string installation_failure = "Expected installation test failure";
+
   const Uptane::EcuSerial& serial() const { return serial_; }
   const Uptane::HardwareIdentifier& hwID() const { return hdw_id_; }
   const PublicKey& publicKey() const { return pub_key_; }
   const Uptane::Manifest& manifest() const { return manifest_; }
   const Uptane::MetaBundle& metadata() const { return meta_bundle_; }
+  HandlerVersion handler_version() const { return handler_version_; }
 
   Hash getReceivedImageHash() const { return hasher_->getHash(); }
 
@@ -60,8 +71,20 @@ class SecondaryMock : public MsgDispatcher {
                     std::bind(&SecondaryMock::getManifestHdlr, this, std::placeholders::_1, std::placeholders::_2));
   }
 
+  // Used by protocol v1 (deprecated, no longer implemented in production code) only:
+  void registerV1Handlers() {
+    registerHandler(AKIpUptaneMes_PR_putMetaReq,
+                    std::bind(&SecondaryMock::putMetaHdlr, this, std::placeholders::_1, std::placeholders::_2));
+
+    registerHandler(AKIpUptaneMes_PR_sendFirmwareReq,
+                    std::bind(&SecondaryMock::sendFirmwareHdlr, this, std::placeholders::_1, std::placeholders::_2));
+
+    registerHandler(AKIpUptaneMes_PR_installReq,
+                    std::bind(&SecondaryMock::installHdlr, this, std::placeholders::_1, std::placeholders::_2));
+  }
+
   // Used by protocol v2 (based on current aktualizr-secondary implementation) only:
-  void registerHandlersForNewRequests() {
+  void registerV2Handlers() {
     registerHandler(AKIpUptaneMes_PR_putMetaReq2,
                     std::bind(&SecondaryMock::putMeta2Hdlr, this, std::placeholders::_1, std::placeholders::_2));
 
@@ -75,16 +98,19 @@ class SecondaryMock : public MsgDispatcher {
                     std::bind(&SecondaryMock::install2Hdlr, this, std::placeholders::_1, std::placeholders::_2));
   }
 
-  // Used by protocol v1 (deprecated, no longer implemented in production code) only:
-  void registerHandlersForOldRequests() {
-    registerHandler(AKIpUptaneMes_PR_putMetaReq,
-                    std::bind(&SecondaryMock::putMetaHdlr, this, std::placeholders::_1, std::placeholders::_2));
+  // Procotol v2 handlers that fail in predictable ways.
+  void registerV2FailureHandlers() {
+    registerHandler(AKIpUptaneMes_PR_putMetaReq2,
+                    std::bind(&SecondaryMock::putMeta2FailureHdlr, this, std::placeholders::_1, std::placeholders::_2));
 
-    registerHandler(AKIpUptaneMes_PR_sendFirmwareReq,
-                    std::bind(&SecondaryMock::sendFirmwareHdlr, this, std::placeholders::_1, std::placeholders::_2));
+    registerHandler(AKIpUptaneMes_PR_uploadDataReq, std::bind(&SecondaryMock::uploadDataFailureHdlr, this,
+                                                              std::placeholders::_1, std::placeholders::_2));
+
+    registerHandler(AKIpUptaneMes_PR_downloadOstreeRevReq, std::bind(&SecondaryMock::downloadOstreeRevFailure, this,
+                                                                     std::placeholders::_1, std::placeholders::_2));
 
     registerHandler(AKIpUptaneMes_PR_installReq,
-                    std::bind(&SecondaryMock::installHdlr, this, std::placeholders::_1, std::placeholders::_2));
+                    std::bind(&SecondaryMock::install2FailureHdlr, this, std::placeholders::_1, std::placeholders::_2));
   }
 
  private:
@@ -117,26 +143,22 @@ class SecondaryMock : public MsgDispatcher {
   // This is basically the old implemention from AktualizrSecondary.
   MsgHandler::ReturnCode putMetaHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
     auto md = in_msg.putMetaReq();
-    Uptane::MetaBundle meta_bundle;
 
-    meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Director(), Uptane::Role::Root()),
-                        ToString(md->director.choice.json.root));
-    meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Director(), Uptane::Role::Targets()),
-                        ToString(md->director.choice.json.targets));
+    meta_bundle_.emplace(std::make_pair(Uptane::RepositoryType::Director(), Uptane::Role::Root()),
+                         ToString(md->director.choice.json.root));
+    meta_bundle_.emplace(std::make_pair(Uptane::RepositoryType::Director(), Uptane::Role::Targets()),
+                         ToString(md->director.choice.json.targets));
 
-    meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Root()),
-                        ToString(md->image.choice.json.root));
-    meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()),
-                        ToString(md->image.choice.json.timestamp));
-    meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()),
-                        ToString(md->image.choice.json.snapshot));
-    meta_bundle.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Targets()),
-                        ToString(md->image.choice.json.targets));
+    meta_bundle_.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Root()),
+                         ToString(md->image.choice.json.root));
+    meta_bundle_.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()),
+                         ToString(md->image.choice.json.timestamp));
+    meta_bundle_.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()),
+                         ToString(md->image.choice.json.snapshot));
+    meta_bundle_.emplace(std::make_pair(Uptane::RepositoryType::Image(), Uptane::Role::Targets()),
+                         ToString(md->image.choice.json.targets));
 
-    bool ok = putMetadata(meta_bundle);
-
-    out_msg.present(AKIpUptaneMes_PR_putMetaResp).putMetaResp()->result =
-        ok ? AKInstallationResult_success : AKInstallationResult_failure;
+    out_msg.present(AKIpUptaneMes_PR_putMetaResp).putMetaResp()->result = AKInstallationResult_success;
 
     return ReturnCode::kOk;
   }
@@ -193,6 +215,16 @@ class SecondaryMock : public MsgDispatcher {
     return ReturnCode::kOk;
   }
 
+  MsgHandler::ReturnCode putMeta2FailureHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+    (void)in_msg;
+
+    auto m = out_msg.present(AKIpUptaneMes_PR_putMetaResp2).putMetaResp2();
+    m->result = static_cast<AKInstallationResultCode_t>(data::ResultCode::Numeric::kVerificationFailed);
+    SetString(&m->description, verification_failure);
+
+    return ReturnCode::kOk;
+  }
+
   MsgHandler::ReturnCode installHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
     auto result = install(ToString(in_msg.installReq()->hash)).result_code.num_code;
 
@@ -220,6 +252,16 @@ class SecondaryMock : public MsgDispatcher {
     return ReturnCode::kOk;
   }
 
+  MsgHandler::ReturnCode install2FailureHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+    (void)in_msg;
+
+    auto m = out_msg.present(AKIpUptaneMes_PR_installResp2).installResp2();
+    m->result = static_cast<AKInstallationResultCode_t>(data::ResultCode::Numeric::kInstallFailed);
+    SetString(&m->description, installation_failure);
+
+    return ReturnCode::kOk;
+  }
+
   MsgHandler::ReturnCode uploadDataHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
     if (in_msg.uploadDataReq()->data.size < 0) {
       out_msg.present(AKIpUptaneMes_PR_uploadDataResp).uploadDataResp()->result = AKInstallationResult_failure;
@@ -232,6 +274,16 @@ class SecondaryMock : public MsgDispatcher {
     auto m = out_msg.present(AKIpUptaneMes_PR_uploadDataResp).uploadDataResp();
     m->result = static_cast<AKInstallationResultCode_t>(result.result_code.num_code);
     SetString(&m->description, result.description);
+
+    return ReturnCode::kOk;
+  }
+
+  MsgHandler::ReturnCode uploadDataFailureHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+    (void)in_msg;
+
+    auto m = out_msg.present(AKIpUptaneMes_PR_uploadDataResp).uploadDataResp();
+    m->result = static_cast<AKInstallationResultCode_t>(data::ResultCode::Numeric::kDownloadFailed);
+    SetString(&m->description, upload_data_failure);
 
     return ReturnCode::kOk;
   }
@@ -252,9 +304,14 @@ class SecondaryMock : public MsgDispatcher {
     return ReturnCode::kOk;
   }
 
-  bool putMetadata(const Uptane::MetaBundle& meta_bundle) {
-    meta_bundle_ = meta_bundle;
-    return true;
+  MsgHandler::ReturnCode downloadOstreeRevFailure(Asn1Message& in_msg, Asn1Message& out_msg) {
+    (void)in_msg;
+
+    auto m = out_msg.present(AKIpUptaneMes_PR_downloadOstreeRevResp).downloadOstreeRevResp();
+    m->result = static_cast<AKInstallationResultCode_t>(data::ResultCode::Numeric::kDownloadFailed);
+    SetString(&m->description, ostree_failure);
+
+    return ReturnCode::kOk;
   }
 
   data::InstallationResult putMetadata2(const Uptane::MetaBundle& meta_bundle) {
@@ -299,6 +356,7 @@ class SecondaryMock : public MsgDispatcher {
   std::unordered_map<unsigned int, Handler> handler_map_;
   std::string tls_creds_;
   std::string received_firmware_data_;
+  HandlerVersion handler_version_;
 };
 
 class TargetFile {
@@ -333,6 +391,21 @@ class TargetFile {
     return hasher->getHash();
   }
 
+  Uptane::Target createTarget(std::shared_ptr<PackageManagerInterface>& package_manager_) {
+    Json::Value target_json;
+    target_json["custom"]["targetFormat"] = "BINARY";
+    target_json["hashes"]["sha256"] = hash().HashString();
+    target_json["length"] = size();
+    Uptane::Target target = Uptane::Target(path(), target_json);
+
+    auto fhandle = package_manager_->createTargetFile(target);
+    const std::string content = Utils::readFile(path());
+    fhandle.write(const_cast<char*>(content.c_str()), static_cast<std::streamsize>(size()));
+    fhandle.close();
+
+    return target;
+  }
+
  private:
   TemporaryDirectory target_dir_;
   const size_t image_size_;
@@ -340,7 +413,8 @@ class TargetFile {
   Hash image_hash_;
 };
 
-class SecondaryRpcTest : public ::testing::Test, public ::testing::WithParamInterface<std::pair<size_t, bool>> {
+class SecondaryRpcTest : public ::testing::Test,
+                         public ::testing::WithParamInterface<std::pair<size_t, HandlerVersion>> {
  public:
   const std::string ca_ = "ca";
   const std::string cert_ = "cert";
@@ -404,41 +478,85 @@ class SecondaryRpcTest : public ::testing::Test, public ::testing::WithParamInte
               image_targets_);
   }
 
-  data::InstallationResult sendAndInstallBinaryImage() {
-    Json::Value target_json;
-    target_json["custom"]["targetFormat"] = "BINARY";
-    target_json["hashes"]["sha256"] = image_file_.hash().HashString();
-    target_json["length"] = image_file_.size();
-    Uptane::Target target = Uptane::Target(image_file_.path(), target_json);
+  void sendAndInstallBinaryImage() {
+    Uptane::Target target = image_file_.createTarget(package_manager_);
+    const HandlerVersion handler_version = secondary_.handler_version();
 
-    auto fhandle = package_manager_->createTargetFile(target);
-    const std::string content = Utils::readFile(image_file_.path());
-    fhandle.write(const_cast<char*>(content.c_str()), static_cast<std::streamsize>(image_file_.size()));
-    fhandle.close();
-
-    EXPECT_TRUE(ip_secondary_->putMetadata(target).isSuccess());
-    verifyMetadata(secondary_.metadata());
-
-    data::InstallationResult result = ip_secondary_->sendFirmware(target);
-    if (!result.isSuccess()) {
-      return result;
+    data::InstallationResult result = ip_secondary_->putMetadata(target);
+    if (handler_version == HandlerVersion::kV2Failure) {
+      EXPECT_EQ(result.result_code, data::ResultCode::Numeric::kVerificationFailed);
+      EXPECT_EQ(result.description, secondary_.verification_failure);
+    } else {
+      EXPECT_TRUE(result.isSuccess());
+      verifyMetadata(secondary_.metadata());
     }
-    return ip_secondary_->install(target);
+
+    result = ip_secondary_->sendFirmware(target);
+    if (handler_version == HandlerVersion::kV2Failure) {
+      EXPECT_EQ(result.result_code, data::ResultCode::Numeric::kDownloadFailed);
+      EXPECT_EQ(result.description, secondary_.upload_data_failure);
+    } else {
+      EXPECT_TRUE(result.isSuccess());
+    }
+
+    result = ip_secondary_->install(target);
+    if (handler_version == HandlerVersion::kV2Failure) {
+      EXPECT_EQ(result.result_code, data::ResultCode::Numeric::kInstallFailed);
+      EXPECT_EQ(result.description, secondary_.installation_failure);
+    } else {
+      EXPECT_TRUE(result.isSuccess());
+      EXPECT_EQ(image_file_.hash(), secondary_.getReceivedImageHash());
+    }
   }
 
-  data::InstallationResult installOstreeRev() {
+  void installOstreeRev() {
     Json::Value target_json;
     target_json["custom"]["targetFormat"] = "OSTREE";
     Uptane::Target target = Uptane::Target("OSTREE", target_json);
 
-    EXPECT_TRUE(ip_secondary_->putMetadata(target).isSuccess());
-    verifyMetadata(secondary_.metadata());
+    const HandlerVersion handler_version = secondary_.handler_version();
 
-    data::InstallationResult result = ip_secondary_->sendFirmware(target);
-    if (!result.isSuccess()) {
-      return result;
+    data::InstallationResult result = ip_secondary_->putMetadata(target);
+    if (handler_version == HandlerVersion::kV2Failure) {
+      EXPECT_EQ(result.result_code, data::ResultCode::Numeric::kVerificationFailed);
+      EXPECT_EQ(result.description, secondary_.verification_failure);
+    } else {
+      EXPECT_TRUE(result.isSuccess());
+      verifyMetadata(secondary_.metadata());
     }
-    return ip_secondary_->install(target);
+
+    result = ip_secondary_->sendFirmware(target);
+    if (handler_version == HandlerVersion::kV2Failure) {
+      EXPECT_EQ(result.result_code, data::ResultCode::Numeric::kDownloadFailed);
+      EXPECT_EQ(result.description, secondary_.ostree_failure);
+    } else {
+      EXPECT_TRUE(result.isSuccess());
+    }
+
+    result = ip_secondary_->install(target);
+    if (handler_version == HandlerVersion::kV2Failure) {
+      EXPECT_EQ(result.result_code, data::ResultCode::Numeric::kInstallFailed);
+      EXPECT_EQ(result.description, secondary_.installation_failure);
+    } else {
+      EXPECT_TRUE(result.isSuccess());
+      std::string archive = secondary_.getReceivedTlsCreds();
+      {
+        std::stringstream as(archive);
+        EXPECT_EQ(ca_, Utils::readFileFromArchive(as, "ca.pem"));
+      }
+      {
+        std::stringstream as(archive);
+        EXPECT_EQ(cert_, Utils::readFileFromArchive(as, "client.pem"));
+      }
+      {
+        std::stringstream as(archive);
+        EXPECT_EQ(pkey_, Utils::readFileFromArchive(as, "pkey.pem"));
+      }
+      {
+        std::stringstream as(archive);
+        EXPECT_EQ(server_, Utils::readFileFromArchive(as, "server.url", true));
+      }
+    }
   }
 
   SecondaryMock secondary_;
@@ -462,55 +580,32 @@ TEST_P(SecondaryRpcTest, AllRpcCallsTest) {
   EXPECT_EQ(ip_secondary_->getPublicKey(), secondary_.publicKey());
   EXPECT_EQ(ip_secondary_->getManifest(), secondary_.manifest());
 
-  EXPECT_TRUE(sendAndInstallBinaryImage().isSuccess());
-  EXPECT_EQ(image_file_.hash(), secondary_.getReceivedImageHash());
+  sendAndInstallBinaryImage();
 
-  EXPECT_TRUE(installOstreeRev().isSuccess());
-
-  std::string archive = secondary_.getReceivedTlsCreds();
-  {
-    std::stringstream as(archive);
-    EXPECT_EQ(ca_, Utils::readFileFromArchive(as, "ca.pem"));
-  }
-  {
-    std::stringstream as(archive);
-    EXPECT_EQ(cert_, Utils::readFileFromArchive(as, "client.pem"));
-  }
-  {
-    std::stringstream as(archive);
-    EXPECT_EQ(pkey_, Utils::readFileFromArchive(as, "pkey.pem"));
-  }
-  {
-    std::stringstream as(archive);
-    EXPECT_EQ(server_, Utils::readFileFromArchive(as, "server.url", true));
-  }
+  installOstreeRev();
 }
 
-INSTANTIATE_TEST_SUITE_P(SecondaryRpcTestCases, SecondaryRpcTest,
-                         ::testing::Values(
-                             // Binary update by using a new RPC API bteween Primary and Secondary
-                             std::make_pair(1024 * 3 + 1, true /* new API/messages */),
-
-                             // Binary update that tests the Primary's fallback to the previous/old version of RPC API
-                             // The Secondary mock is configured to handle the old RPC API (sendFirmware) while
-                             // Primary uses the new API and if it fails fallbacks to the old API usage
-                             // (false|true) defines whether to handle the new or old RPC API in the Secondary mock
-                             // `true` means to handle the new RPC API
-                             // `false` means to handle an old RPC API (sendFirmware request) * /
-                             std::make_pair(1024 * 3 + 1, false /* old messages/sendFirmware, fallback testing */),
-                             std::make_pair(1, true), std::make_pair(1024, true), std::make_pair(1024 - 1, true),
-                             std::make_pair(1024 + 1, true), std::make_pair(1024 * 10, false),
-                             std::make_pair(1024 * 10 - 1, false), std::make_pair(1024 * 10 + 1, false)));
+/* These tests use a mock of most of the Secondary internals in order to test
+ * the RPC mechanism between the Primary and IP Secondary. The tests cover the
+ * old/v1/fallback handlers as well as the new/v2 versions. */
+INSTANTIATE_TEST_SUITE_P(
+    SecondaryRpcTestCases, SecondaryRpcTest,
+    ::testing::Values(std::make_pair(1, HandlerVersion::kV2), std::make_pair(1024, HandlerVersion::kV2),
+                      std::make_pair(1024 - 1, HandlerVersion::kV2), std::make_pair(1024 + 1, HandlerVersion::kV2),
+                      std::make_pair(1024 * 10 + 1, HandlerVersion::kV2), std::make_pair(1, HandlerVersion::kV1),
+                      std::make_pair(1024, HandlerVersion::kV1), std::make_pair(1024 - 1, HandlerVersion::kV1),
+                      std::make_pair(1024 + 1, HandlerVersion::kV1), std::make_pair(1024 * 10 + 1, HandlerVersion::kV1),
+                      std::make_pair(1024, HandlerVersion::kV2Failure)));
 
 TEST(SecondaryTcpServer, TestIpSecondaryIfSecondaryIsNotRunning) {
   in_port_t secondary_port = TestUtils::getFreePortAsInt();
   SecondaryInterface::Ptr ip_secondary;
 
-  // trying to connect to a non-running Secondary and create a corresponding instance on Primary
+  // Try to connect to a non-running Secondary and create a corresponding instance on Primary.
   ip_secondary = Uptane::IpUptaneSecondary::connectAndCreate("localhost", secondary_port);
   EXPECT_EQ(ip_secondary, nullptr);
 
-  // create Primary's secondary without connecting to Secondary
+  // Create Secondary on Primary without actually connecting to Secondary.
   ip_secondary = std::make_shared<Uptane::IpUptaneSecondary>("localhost", secondary_port, Uptane::EcuSerial("serial"),
                                                              Uptane::HardwareIdentifier("hwid"),
                                                              PublicKey("key", KeyType::kED25519));
@@ -527,39 +622,33 @@ TEST(SecondaryTcpServer, TestIpSecondaryIfSecondaryIsNotRunning) {
       std::make_shared<SecondaryProvider>(config, storage, package_manager);
   ip_secondary->init(secondary_provider);
 
-  TargetFile target_file("mytarget_image.img");
-
-  // expect failures since the secondary is not running
+  // Expect nothing since the Secondary is not running.
   EXPECT_EQ(ip_secondary->getManifest(), Json::Value());
 
-  Json::Value target_json;
-  target_json["custom"]["targetFormat"] = "BINARY";
-  target_json["hashes"]["sha256"] = target_file.hash().HashString();
-  target_json["length"] = target_file.size();
-  Uptane::Target target = Uptane::Target(target_file.path(), target_json);
+  TargetFile target_file("mytarget_image.img");
+  Uptane::Target target = target_file.createTarget(package_manager);
 
-  auto fhandle = package_manager->createTargetFile(target);
-  const std::string content = Utils::readFile(target_file.path());
-  fhandle.write(const_cast<char*>(content.c_str()), static_cast<std::streamsize>(target_file.size()));
-  fhandle.close();
-
+  // Expect failures since the Secondary is not running.
   EXPECT_FALSE(ip_secondary->putMetadata(target).isSuccess());
   EXPECT_FALSE(ip_secondary->sendFirmware(target).isSuccess());
   EXPECT_FALSE(ip_secondary->install(target).isSuccess());
 }
 
-class SecondaryRpcTestNegative : public ::testing::Test, public MsgHandler {
+/* This class returns a positive result for every message. The test cases verify
+ * that the implementation can recover from situations where something goes wrong. */
+class SecondaryRpcTestPositive : public ::testing::Test, public MsgHandler {
  protected:
-  SecondaryRpcTestNegative()
+  SecondaryRpcTestPositive()
       : secondary_server_{*this, "", 0}, secondary_server_thread_{[&]() { secondary_server_.run(); }} {
     secondary_server_.wait_until_running();
   }
 
-  ~SecondaryRpcTestNegative() {
+  ~SecondaryRpcTestPositive() {
     secondary_server_.stop();
     secondary_server_thread_.join();
   }
 
+  // Override default implementation with a stub that always returns success.
   ReturnCode handleMsg(const Asn1Message::Ptr& in_msg, Asn1Message::Ptr& out_msg) override {
     (void)in_msg;
     out_msg->present(AKIpUptaneMes_PR_installResp).installResp()->result = AKInstallationResultCode_ok;
@@ -586,24 +675,25 @@ class SecondaryRpcTestNegative : public ::testing::Test, public MsgHandler {
   std::thread secondary_server_thread_;
 };
 
-// The given test fails because the Secondary TCP server implementation
-// is a single-threaded, synchronous and blocking hence it cannot accept any new connections
-// until the current one is closed. Therefore, if a client/Primary does not close its socket for some reason then
-// Secondary becomes "unavailable"
-// TEST_F(SecondaryRpcTestNegative, primaryNotClosingSocket) {
+/* This test fails because the Secondary TCP server implementation is a
+ * single-threaded, synchronous and blocking hence it cannot accept any new
+ * connections until the current one is closed. Therefore, if a client/Primary
+ * does not close its socket for some reason then Secondary becomes
+ * "unavailable" */
+// TEST_F(SecondaryRpcTestPositive, primaryNotClosingSocket) {
 //  ConnectionSocket con_sock{"127.0.0.1", secondary_server_.port()};
 //  con_sock.connect();
 //  ASSERT_EQ(sendInstallMsg(), AKIpUptaneMes_PR_installResp);
 //}
 
-TEST_F(SecondaryRpcTestNegative, primaryConnectAndDisconnect) {
+TEST_F(SecondaryRpcTestPositive, primaryConnectAndDisconnect) {
   ConnectionSocket{"127.0.0.1", secondary_server_.port()}.connect();
   // do a valid request/response exchange to verify if Secondary works as expected
   // after accepting and closing a new connection
   ASSERT_EQ(sendInstallMsg(), AKIpUptaneMes_PR_installResp);
 }
 
-TEST_F(SecondaryRpcTestNegative, primaryConnectAndSendValidButNotSupportedMsg) {
+TEST_F(SecondaryRpcTestPositive, primaryConnectAndSendValidButNotSupportedMsg) {
   {
     ConnectionSocket con_sock{"127.0.0.1", secondary_server_.port()};
     con_sock.connect();
@@ -616,7 +706,7 @@ TEST_F(SecondaryRpcTestNegative, primaryConnectAndSendValidButNotSupportedMsg) {
   ASSERT_EQ(sendInstallMsg(), AKIpUptaneMes_PR_installResp);
 }
 
-TEST_F(SecondaryRpcTestNegative, primaryConnectAndSendBrokenAsn1Msg) {
+TEST_F(SecondaryRpcTestPositive, primaryConnectAndSendBrokenAsn1Msg) {
   {
     ConnectionSocket con_sock{"127.0.0.1", secondary_server_.port()};
     con_sock.connect();
@@ -629,7 +719,7 @@ TEST_F(SecondaryRpcTestNegative, primaryConnectAndSendBrokenAsn1Msg) {
   ASSERT_EQ(sendInstallMsg(), AKIpUptaneMes_PR_installResp);
 }
 
-TEST_F(SecondaryRpcTestNegative, primaryConnectAndSendGarbage) {
+TEST_F(SecondaryRpcTestPositive, primaryConnectAndSendGarbage) {
   {
     ConnectionSocket con_sock{"127.0.0.1", secondary_server_.port()};
     con_sock.connect();
