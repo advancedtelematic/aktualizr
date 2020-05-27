@@ -95,6 +95,7 @@ Json::Value PublicKey::ToUptane() const {
 
 std::string PublicKey::KeyId() const {
   std::string key_content = value_;
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks)
   boost::algorithm::trim_right_if(key_content, boost::algorithm::is_any_of("\n"));
   std::string keyid = boost::algorithm::hex(Crypto::sha256digest(Utils::jsonToCanonicalStr(Json::Value(key_content))));
   std::transform(keyid.begin(), keyid.end(), keyid.begin(), ::tolower);

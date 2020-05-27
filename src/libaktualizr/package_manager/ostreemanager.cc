@@ -167,6 +167,7 @@ data::InstallationResult OstreeManager::install(const Uptane::Target &target) co
   std::string args_content =
       std::string(ostree_bootconfig_parser_get(ostree_deployment_get_bootconfig(merge_deployment.get()), "options"));
   std::vector<std::string> args_vector;
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks)
   boost::split(args_vector, args_content, boost::is_any_of(" "));
 
   std::vector<const char *> kargs_strv_vector;
@@ -301,6 +302,7 @@ TargetStatus OstreeManager::verifyTargetInternal(const Uptane::Target &target) c
 Json::Value OstreeManager::getInstalledPackages() const {
   std::string packages_str = Utils::readFile(config.packages_file);
   std::vector<std::string> package_lines;
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks)
   boost::split(package_lines, packages_str, boost::is_any_of("\n"));
   Json::Value packages(Json::arrayValue);
   for (auto it = package_lines.begin(); it != package_lines.end(); ++it) {

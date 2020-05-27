@@ -6,6 +6,7 @@ AUTO_REGISTER_PACKAGE_MANAGER(PACKAGE_MANAGER_OSTREEDOCKERAPP, DockerAppManager)
 DockerAppManagerConfig::DockerAppManagerConfig(const PackageConfig &pconfig) {
   const std::map<std::string, std::string> raw = pconfig.extra;
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks)
   if (raw.count("docker_apps") == 1) {
     std::string val = raw.at("docker_apps");
     if (val.length() > 0) {
