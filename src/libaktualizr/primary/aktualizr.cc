@@ -156,8 +156,8 @@ std::future<result::Install> Aktualizr::Install(const std::vector<Uptane::Target
   return api_queue_.enqueue(task);
 }
 
-bool Aktualizr::SetInstallationRawReport(const Json::Value &custom_raw_report) {
-  return storage_->storeDeviceInstallationRawReport(custom_raw_report.toStyledString());
+bool Aktualizr::SetInstallationRawReport(const std::string &custom_raw_report) {
+  return storage_->storeDeviceInstallationRawReport(custom_raw_report);
 }
 
 std::future<bool> Aktualizr::SendManifest(const Json::Value &custom) {

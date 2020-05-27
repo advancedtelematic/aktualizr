@@ -139,12 +139,11 @@ class Aktualizr {
    *
    * @note An invocation of this method will have effect only after call of  Aktualizr::Install and before calling
    * Aktualizr::SendManifest member function.
-   * @param custom_raw_report is an arbitrary json object which is intended to replace a default value in the device
-   * installation report.
+   * @param custom_raw_report is intended to replace a default value in the device installation report.
    * @return true if the custom raw report was successfully applied to the device installation result.
    * If there is no installation report in the storage the function will always return false.
    */
-  bool SetInstallationRawReport(const Json::Value& custom_raw_report);
+  bool SetInstallationRawReport(const std::string& custom_raw_report);
 
   /**
    * Send installation report to the backend.
