@@ -15,11 +15,15 @@ class CampaignParseError : std::exception {
   const char *what() const noexcept override { return "Could not parse Campaign metadata"; }
 };
 
+//! @cond Doxygen_Suppress
+// Annoying bug in doxygen 1.8.13
+// Looks like it's fixed in later versions: https://sourceforge.net/p/doxygen/mailman/message/35481387/
 enum class Cmd {
   Accept,
   Decline,
   Postpone,
 };
+///! @endcond
 
 static inline Cmd cmdFromName(const std::string &name) {
   return std::map<std::string, Cmd>{
