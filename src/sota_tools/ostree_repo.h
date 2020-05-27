@@ -27,6 +27,7 @@ class OSTreeRepo {
   virtual OSTreeRef GetRef(const std::string& refname) const = 0;
 
   OSTreeObject::ptr GetObject(OSTreeHash hash, OstreeObjectType type) const;
+  // NOLINTNEXTLINE(modernize-avoid-c-arrays)
   OSTreeObject::ptr GetObject(const uint8_t sha256[32], OstreeObjectType type) const;
 
  protected:

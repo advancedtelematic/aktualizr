@@ -95,7 +95,7 @@ data::InstallationResult PackageManagerFake::finalizeInstall(const Uptane::Targe
 }
 
 bool PackageManagerFake::fetchTarget(const Uptane::Target& target, Uptane::Fetcher& fetcher, const KeyManager& keys,
-                                     FetcherProgressCb progress_cb, const api::FlowControlToken* token) {
+                                     const FetcherProgressCb& progress_cb, const api::FlowControlToken* token) {
   // fault injection: only enabled with FIU_ENABLE defined. Note that all
   // exceptions thrown in PackageManagerInterface::fetchTarget are caught by a
   // try in the same function, so we can only emulate the warning and return

@@ -246,7 +246,7 @@ Json::Value Target::toDebugJson() const {
   }
   if (!hwids_.empty()) {
     Json::Value hwids;
-    for (Json::Value::ArrayIndex i = 0; i < hwids_.size(); ++i) {
+    for (Json::Value::ArrayIndex i = 0; i < static_cast<Json::Value::ArrayIndex>(hwids_.size()); ++i) {
       hwids[i] = hwids_[i].ToString();
     }
     res["custom"]["hardwareIds"] = hwids;

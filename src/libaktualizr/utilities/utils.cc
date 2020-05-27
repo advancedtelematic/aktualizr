@@ -630,11 +630,11 @@ int Utils::ipPort(const sockaddr_storage &saddr) {
     return -1;
   }
 
-  return ntohs(p);
+  return ntohs(p);  // NOLINT(readability-isolate-declaration)
 }
 
 int Utils::shell(const std::string &command, std::string *output, bool include_stderr) {
-  char buffer[128];
+  std::array<char, 128> buffer{};
   std::string full_command(command);
   if (include_stderr) {
     full_command += " 2>&1";
@@ -645,8 +645,8 @@ int Utils::shell(const std::string &command, std::string *output, bool include_s
     return -1;
   }
   while (feof(pipe) == 0) {
-    if (fgets(buffer, 128, pipe) != nullptr) {
-      *output += buffer;
+    if (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
+      *output += buffer.data();
     }
   }
   int exitcode = pclose(pipe);
@@ -665,7 +665,8 @@ boost::filesystem::path Utils::absolutePath(const boost::filesystem::path &root,
 std::vector<boost::filesystem::path> Utils::getDirEntriesByExt(const boost::filesystem::path &dir_path,
                                                                const std::string &ext) {
   std::vector<boost::filesystem::path> entries;
-  boost::filesystem::directory_iterator entryItEnd, entryIt(dir_path);
+  boost::filesystem::directory_iterator entryItEnd;
+  boost::filesystem::directory_iterator entryIt(dir_path);
   for (; entryIt != entryItEnd; ++entryIt) {
     const auto &entry_path = entryIt->path();
     if (!boost::filesystem::is_directory(*entryIt) && entry_path.extension().string() == ext) {
@@ -869,8 +870,8 @@ void Socket::bind(in_port_t port, bool reuse) const {
   sockaddr_in sa{};
   memset(&sa, 0, sizeof(sa));
   sa.sin_family = AF_INET;
-  sa.sin_port = htons(port);
-  sa.sin_addr.s_addr = htonl(INADDR_ANY);
+  sa.sin_port = htons(port);               // NOLINT(readability-isolate-declaration)
+  sa.sin_addr.s_addr = htonl(INADDR_ANY);  // NOLINT(readability-isolate-declaration)
 
   int reuseaddr = reuse ? 1 : 0;
   if (-1 == setsockopt(socket_fd_, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr))) {
@@ -900,7 +901,7 @@ ConnectionSocket::ConnectionSocket(const std::string &ip, in_port_t port, in_por
   if (-1 == inet_pton(AF_INET, ip.c_str(), &(remote_sock_address_.sin_addr))) {
     throw std::system_error(errno, std::system_category(), "socket");
   }
-  remote_sock_address_.sin_port = htons(port);
+  remote_sock_address_.sin_port = htons(port);  // NOLINT(readability-isolate-declaration)
 
   if (bind_port > 0) {
     bind(bind_port);

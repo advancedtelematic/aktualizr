@@ -1433,7 +1433,9 @@ std::string SotaUptaneClient::secondaryTreehubCredentials() const {
     LOG_ERROR << "Cannot send OSTree update to a Secondary when not using file as credential sources";
     return "";
   }
-  std::string ca, cert, pkey;
+  std::string ca;
+  std::string cert;
+  std::string pkey;
   if (!storage->loadTlsCreds(&ca, &cert, &pkey)) {
     LOG_ERROR << "Could not load TLS credentials from storage";
     return "";

@@ -114,7 +114,7 @@ std::vector<std::pair<std::string, std::string>> DockerAppBundles::iterate_apps(
 }
 
 bool DockerAppBundles::fetchTarget(const Uptane::Target &target, Uptane::Fetcher &fetcher, const KeyManager &keys,
-                                   FetcherProgressCb progress_cb, const api::FlowControlToken *token) {
+                                   const FetcherProgressCb &progress_cb, const api::FlowControlToken *token) {
   if (!OstreeManager::fetchTarget(target, fetcher, keys, progress_cb, token)) {
     return false;
   }

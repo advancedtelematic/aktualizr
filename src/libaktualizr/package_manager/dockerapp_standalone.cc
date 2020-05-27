@@ -144,7 +144,7 @@ bool DockerAppStandalone::iterate_apps(const Uptane::Target &target, const Docke
 }
 
 bool DockerAppStandalone::fetchTarget(const Uptane::Target &target, Uptane::Fetcher &fetcher, const KeyManager &keys,
-                                      FetcherProgressCb progress_cb, const api::FlowControlToken *token) {
+                                      const FetcherProgressCb &progress_cb, const api::FlowControlToken *token) {
   if (!OstreeManager::fetchTarget(target, fetcher, keys, progress_cb, token)) {
     return false;
   }
@@ -152,6 +152,7 @@ bool DockerAppStandalone::fetchTarget(const Uptane::Target &target, Uptane::Fetc
   LOG_INFO << "Looking for DockerApps to fetch";
   auto cb = [this, &fetcher, &keys, progress_cb, token](const std::string &app, const Uptane::Target &app_target) {
     LOG_INFO << "Fetching " << app << " -> " << app_target;
+    // NOLINTNEXTLINE(bugprone-parent-virtual-call)
     if (!PackageManagerInterface::fetchTarget(app_target, fetcher, keys, progress_cb, token)) {
       return false;
     }

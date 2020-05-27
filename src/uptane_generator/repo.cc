@@ -1,12 +1,14 @@
+#include "repo.h"
+
+#include <array>
 #include <ctime>
 #include <regex>
-#include "crypto/crypto.h"
-#include "logging/logging.h"
 
 #include "campaign/campaign.h"
+#include "crypto/crypto.h"
 #include "director_repo.h"
 #include "image_repo.h"
-#include "repo.h"
+#include "logging/logging.h"
 
 Repo::Repo(Uptane::RepositoryType repo_type, boost::filesystem::path path, const std::string &expires,
            std::string correlation_id)
@@ -114,16 +116,17 @@ std::string Repo::getExpirationTime(const std::string &expires) {
     time(&raw_time);
     gmtime_r(&raw_time, &time_struct);
     time_struct.tm_year += 3;
-    char formatted[22];
-    strftime(formatted, 22, "%Y-%m-%dT%H:%M:%SZ", &time_struct);
-    return formatted;
+    std::array<char, 22> formatted{};
+    strftime(formatted.data(), formatted.size(), "%Y-%m-%dT%H:%M:%SZ", &time_struct);
+    return formatted.data();
   }
 }
 void Repo::generateKeyPair(KeyType key_type, const Uptane::Role &key_name) {
   boost::filesystem::path keys_dir = path_ / ("keys/" + repo_type_.toString() + "/" + key_name.ToString());
   boost::filesystem::create_directories(keys_dir);
 
-  std::string public_key_string, private_key;
+  std::string public_key_string;
+  std::string private_key;
   if (!Crypto::generateKeyPair(key_type, &public_key_string, &private_key)) {
     throw std::runtime_error("Key generation failure");
   }

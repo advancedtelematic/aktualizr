@@ -48,17 +48,17 @@ static constexpr size_t fault_injection_info_bs = 256;
 
 static inline const char *fault_injection_info_fn() {
   static std::mutex mutex;
-  static char info_fn[128];
+  static std::array<char, 128> info_fn{};
 
   std::lock_guard<std::mutex> lock(mutex);
 
   if (info_fn[0] != '\0') {
-    return info_fn;
+    return info_fn.data();
   }
 
-  snprintf(info_fn, sizeof(info_fn), "/tmp/fiu-ctrl-info-%lu", static_cast<uint64_t>(getpid()));
+  snprintf(info_fn.data(), info_fn.size(), "/tmp/fiu-ctrl-info-%lu", static_cast<uint64_t>(getpid()));
 
-  return info_fn;
+  return info_fn.data();
 }
 
 static inline std::string fault_injection_last_info() {
@@ -73,7 +73,7 @@ static inline std::string fault_injection_last_info() {
     // check high bit of info_id to see if it should look into FIU_INFO_FILE or
     // pid-dependent file name
     const char *fn = nullptr;
-    if ((info_id & (1lu << 31)) != 0) {
+    if ((info_id & (1LU << 31)) != 0) {
       fn = getenv("FIU_INFO_FILE");
     } else {
       fn = fault_injection_info_fn();

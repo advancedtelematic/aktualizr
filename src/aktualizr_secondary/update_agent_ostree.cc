@@ -42,7 +42,10 @@ bool OstreeUpdateAgent::download(const Uptane::Target& target, const std::string
   bool download_result = false;
 
   try {
-    std::string ca, cert, pkey, server_url;
+    std::string ca;
+    std::string cert;
+    std::string pkey;
+    std::string server_url;
     extractCredentialsArchive(data, &ca, &cert, &pkey, &server_url);
     keyMngr_->loadKeys(&pkey, &cert, &ca);
     boost::trim(server_url);

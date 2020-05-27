@@ -26,7 +26,7 @@ class DockerAppStandalone : public OstreeManager {
     fake_fetcher_ = std::make_shared<Uptane::Fetcher>("", "", http_);
   }
   bool fetchTarget(const Uptane::Target &target, Uptane::Fetcher &fetcher, const KeyManager &keys,
-                   FetcherProgressCb progress_cb, const api::FlowControlToken *token) override;
+                   const FetcherProgressCb &progress_cb, const api::FlowControlToken *token) override;
   data::InstallationResult install(const Uptane::Target &target) const override;
   std::string name() const override { return "ostree+docker-app-standalone"; }
 
@@ -49,7 +49,7 @@ class DockerAppBundles : public OstreeManager {
     fake_fetcher_ = std::make_shared<Uptane::Fetcher>("", "", http_);
   }
   bool fetchTarget(const Uptane::Target &target, Uptane::Fetcher &fetcher, const KeyManager &keys,
-                   FetcherProgressCb progress_cb, const api::FlowControlToken *token) override;
+                   const FetcherProgressCb &progress_cb, const api::FlowControlToken *token) override;
   data::InstallationResult install(const Uptane::Target &target) const override;
   std::string name() const override { return "ostree+docker-app-bundles"; }
 
@@ -79,7 +79,7 @@ class DockerAppManager : public OstreeManager {
     }
   }
   bool fetchTarget(const Uptane::Target &target, Uptane::Fetcher &fetcher, const KeyManager &keys,
-                   FetcherProgressCb progress_cb, const api::FlowControlToken *token) override {
+                   const FetcherProgressCb &progress_cb, const api::FlowControlToken *token) override {
     return impl_->fetchTarget(target, fetcher, keys, progress_cb, token);
   }
   data::InstallationResult install(const Uptane::Target &target) const override { return impl_->install(target); }

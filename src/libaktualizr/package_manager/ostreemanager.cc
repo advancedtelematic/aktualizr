@@ -69,7 +69,7 @@ data::InstallationResult OstreeManager::pull(const boost::filesystem::path &sysr
                                              const Uptane::Target &target, const api::FlowControlToken *token,
                                              OstreeProgressCb progress_cb) {
   const std::string refhash = target.sha256Hash();
-  const char *const commit_ids[] = {refhash.c_str()};
+  const char *const commit_ids[] = {refhash.c_str()};  // NOLINT(modernize-avoid-c-arrays)
   GError *error = nullptr;
   GVariantBuilder builder;
   GVariant *options;
@@ -250,7 +250,7 @@ OstreeManager::OstreeManager(const PackageConfig &pconfig, const BootloaderConfi
 }
 
 bool OstreeManager::fetchTarget(const Uptane::Target &target, Uptane::Fetcher &fetcher, const KeyManager &keys,
-                                FetcherProgressCb progress_cb, const api::FlowControlToken *token) {
+                                const FetcherProgressCb &progress_cb, const api::FlowControlToken *token) {
   if (!target.IsOstree()) {
     // The case when the OSTree package manager is set as a package manager for aktualizr
     // while the target is aimed for a Secondary ECU that is configured with another/non-OSTree package manager

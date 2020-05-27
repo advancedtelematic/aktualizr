@@ -79,7 +79,7 @@ static void restoreHasherState(MultiPartHasher& hasher, StorageTargetRHandle* da
 }
 
 bool PackageManagerInterface::fetchTarget(const Uptane::Target& target, Uptane::Fetcher& fetcher,
-                                          const KeyManager& keys, FetcherProgressCb progress_cb,
+                                          const KeyManager& keys, const FetcherProgressCb& progress_cb,
                                           const api::FlowControlToken* token) {
   (void)keys;
   bool result = false;

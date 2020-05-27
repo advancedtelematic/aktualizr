@@ -398,7 +398,9 @@ bool SQLStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* p
     return false;
   }
 
-  std::string ca_v, cert_v, pkey_v;
+  std::string ca_v;
+  std::string cert_v;
+  std::string pkey_v;
   try {
     ca_v = statement.get_result_col_str(0).value();
     cert_v = statement.get_result_col_str(1).value();

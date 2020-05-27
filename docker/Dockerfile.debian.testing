@@ -3,6 +3,8 @@ LABEL Description="Aktualizr testing dockerfile for Debian Unstable + static che
 
 ENV DEBIAN_FRONTEND noninteractive
 
+RUN echo "deb http://deb.debian.org/debian  buster-backports main" > /etc/apt/sources.list.d/buster-backports.list
+
 # It is important to run these in the same RUN command, because otherwise
 # Docker layer caching breaks us
 RUN apt-get update && apt-get -y install --no-install-suggests --no-install-recommends \

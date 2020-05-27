@@ -6,7 +6,7 @@ namespace log = boost::log;
 
 class android_log_sink : public log::sinks::basic_sink_backend<log::sinks::synchronized_feeding> {
  public:
-  explicit android_log_sink() {}
+  explicit android_log_sink() = default;
 
   void consume(log::record_view const& rec) {
     const auto& rec_message_attr = rec[log::aux::default_attribute_names::message()];

@@ -6,7 +6,6 @@
 
 #include "config/config.h"
 #include "helpers.h"
-
 #include "utilities/aktualizr_version.h"
 
 namespace bpo = boost::program_options;
@@ -157,11 +156,7 @@ struct SubCommand {
   const char *name;
   int (*main)(LiteClient &, const bpo::variables_map &);
 };
-static SubCommand commands[] = {
-    {"status", status_main},
-    {"list", list_main},
-    {"update", update_main},
-};
+static std::array<SubCommand, 3> commands{{{"status", status_main}, {"list", list_main}, {"update", update_main}}};
 
 void check_info_options(const bpo::options_description &description, const bpo::variables_map &vm) {
   if (vm.count("help") != 0 || (vm.count("command") == 0 && vm.count("version") == 0)) {
@@ -174,9 +169,9 @@ void check_info_options(const bpo::options_description &description, const bpo::
   }
 }
 
-bpo::variables_map parse_options(int argc, char *argv[]) {
+bpo::variables_map parse_options(int argc, char **argv) {
   std::string subs("Command to execute: ");
-  for (size_t i = 0; i < sizeof(commands) / sizeof(SubCommand); i++) {
+  for (size_t i = 0; i < commands.size(); i++) {
     if (i != 0) {
       subs += ", ";
     }
@@ -253,7 +248,7 @@ int main(int argc, char *argv[]) {
     LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
 
     std::string cmd = commandline_map["command"].as<std::string>();
-    for (size_t i = 0; i < sizeof(commands) / sizeof(SubCommand); i++) {
+    for (size_t i = 0; i < commands.size(); i++) {
       if (cmd == commands[i].name) {
         LiteClient client(config);
         return commands[i].main(client, commandline_map);

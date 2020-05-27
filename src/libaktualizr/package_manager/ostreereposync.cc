@@ -4,6 +4,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/scope_exit.hpp>
+
 #include "logging/logging.h"
 
 namespace {
@@ -52,8 +53,10 @@ bool LocalPullRepo(const fs::path& src_repo_dir, const fs::path& dst_repo_dir, c
   GVariant* options = nullptr;
   GHashTable* refs = nullptr;
   GPtrArray* refs_to_fetch = g_ptr_array_new_with_free_func(g_free);
-  OstreeRepo *src_repo = nullptr, *dst_repo = nullptr;
-  GFile *src_repo_path = nullptr, *dst_repo_path = nullptr;
+  OstreeRepo* src_repo = nullptr;
+  OstreeRepo* dst_repo = nullptr;
+  GFile* src_repo_path = nullptr;
+  GFile* dst_repo_path = nullptr;
 
   BOOST_SCOPE_EXIT(&error, &options, &refs, &refs_to_fetch, &src_repo_path, &src_repo, &dst_repo_path,  // NOLINT
                    &dst_repo) {
@@ -109,7 +112,8 @@ bool LocalPullRepo(const fs::path& src_repo_dir, const fs::path& dst_repo_dir, c
   }
   {
     GHashTableIter hashiter;
-    gpointer hkey, hvalue;
+    gpointer hkey;
+    gpointer hvalue;
 
     g_hash_table_iter_init(&hashiter, refs);
     while (g_hash_table_iter_next(&hashiter, &hkey, &hvalue) != 0) {
@@ -119,7 +123,7 @@ bool LocalPullRepo(const fs::path& src_repo_dir, const fs::path& dst_repo_dir, c
   g_ptr_array_add(refs_to_fetch, nullptr);
 
   // pull from source repo
-  const char* const refs_to_fetch_list[] = {ref_hash.c_str()};
+  const char* const refs_to_fetch_list[] = {ref_hash.c_str()};  // NOLINT(modernize-avoid-c-arrays)
   GVariantBuilder builder;
   g_variant_builder_init(&builder, G_VARIANT_TYPE("a{sv}"));
   g_variant_builder_add(&builder, "{s@v}", "flags", g_variant_new_variant(g_variant_new_int32(0)));
