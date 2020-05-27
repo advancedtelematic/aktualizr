@@ -502,7 +502,9 @@ Hash Hash::generate(Type type, const std::string &data) {
       hash = boost::algorithm::hex(Crypto::sha512digest(data));
       break;
     }
-    default: { throw std::invalid_argument("Unsupported hash type"); }
+    default: {
+      throw std::invalid_argument("Unsupported hash type");
+    }
   }
 
   return Hash(type, hash);

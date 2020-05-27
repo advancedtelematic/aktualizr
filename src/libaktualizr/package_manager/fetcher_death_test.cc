@@ -70,8 +70,7 @@ void try_and_die(const Uptane::Target& target, bool graceful) {
   std::thread([&target, &fetcher, &download_promise, &token, pacman, &keys]() {
     bool res = pacman->fetchTarget(target, fetcher, keys, progress_cb, &token);
     download_promise.set_value(res);
-  })
-      .detach();
+  }).detach();
 
   std::unique_lock<std::mutex> lk(pause_m);
   cv.wait(lk, [] { return die; });
