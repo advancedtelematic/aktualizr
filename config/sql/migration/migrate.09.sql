@@ -1,4 +1,4 @@
--- Don't modify this! Create a new migration instead--see docs/schema-migrations.adoc
+-- Don't modify this! Create a new migration instead--see docs/ota-client-guide/modules/ROOT/pages/schema-migrations.adoc
 SAVEPOINT MIGRATION;
 
 CREATE TABLE installed_versions_migrate(hash TEXT, name TEXT NOT NULL, is_current INTEGER NOT NULL CHECK (is_current IN (0,1)) DEFAULT 0, length INTEGER NOT NULL DEFAULT 0, UNIQUE(hash, name));

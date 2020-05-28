@@ -145,7 +145,7 @@ You can then build the project from the `build` directory using Make:
 make
 ----
 
-You can also create a link:docs/deb-package-install.adoc[debian package]:
+You can also create a link:docs/ota-client-guide/modules/ROOT/pages/deb-package-install.adoc[debian package]:
 
 ----
 make package
@@ -174,7 +174,7 @@ Note that, by default, the compilation and tests run in sequence and the output 
 CTEST_OUTPUT_ON_FAILURE=1 CTEST_PARALLEL_LEVEL=8 make -j8 qa
 ----
 
-Some tests require additional setups, such as code coverage, HSM emulation or provisioning credentials (link:docs/provisioning-methods-and-credentialszip.adoc[]). The exact reference about these steps is the link:scripts/test.sh[main test script] used for CI. It is parametrized by a list of environment variables and is used by our CI environments. To use it, run it in the project's root directory:
+Some tests require additional setups, such as code coverage, HSM emulation or link:docs/ota-client-guide/modules/ROOT/pages/provisioning-methods-and-credentialszip.adoc[provisioning credentials]. The exact reference about these steps is the link:scripts/test.sh[main test script] used for CI. It is parametrized by a list of environment variables and is used by our CI environments. To use it, run it in the project's root directory:
 
 ----
 ./scripts/test.sh
@@ -237,7 +237,7 @@ To run the aktualizr client, you will need to provide a toml-formatted configura
 aktualizr -c <path/configfile>
 ----
 
-Additional command line options can be found in the code (see link:../src/aktualizr_primary/main.cc[]) or by running `aktualizr --help`. More details on configuring aktualizr can be found in link:docs/configuration.adoc[]. If you are using https://github.com/advancedtelematic/meta-updater[meta-updater], more information about configuring aktualizr in that environment can be found there.
+Additional command line options can be found link:./src/aktualizr_primary/main.cc[in the code] or by running `aktualizr --help`. More details on configuring aktualizr can be found in link:docs/ota-client-guide/modules/ROOT/pages/aktualizr-config-options.adoc[]. If you are using https://github.com/advancedtelematic/meta-updater[meta-updater], more information about configuring aktualizr in that environment can be found there.
 
 [#fake-device]
 === Running a "fake" device
@@ -252,7 +252,7 @@ Some more detailed instructions on how to configure a fake device can be found o
 
 === Provisioning
 
-If you intend to use aktualizr to authenticate with a server, you will need some form of provisioning. Aktualizr currently supports provisioning with shared credentials or with device credentials. Device credential provisioning supports using an HSM to store private keys. The differences and details are explained in link:docs/client-provisioning-methods.adoc[] and link:docs/provision-with-device-credentials.adoc[]. You can learn more about the credentials files used to support provisioning in link:docs/provisioning-methods-and-credentialszip.adoc[].
+If you intend to use aktualizr to authenticate with a server, you will need some form of provisioning. Aktualizr currently supports provisioning with shared credentials or with device credentials. Device credential provisioning supports using an HSM to store private keys. The differences and details are explained in link:docs/ota-client-guide/modules/ROOT/pages/client-provisioning-methods.adoc[] and link:docs/ota-client-guide/modules/ROOT/pages/enable-device-cred-provisioning.adoc[]. You can learn more about the credentials files used to support provisioning in link:docs/ota-client-guide/modules/ROOT/pages/provisioning-methods-and-credentialszip.adoc[].
 
 == Changelog
 

@@ -274,7 +274,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ### Changed
 
-- [Provisioning methods have been renamed](https://github.com/advancedtelematic/aktualizr/blob/master/docs/client-provisioning-methods.adoc). "Autoprovisioning" or "automatic provisioning" is now known as "shared credential provisioning". "Implicit provisioning" is now known as "device credential provisioning". "HSM provisioning" was always a misnomer, so it is now refered to as "device credential provisioning with an HSM". [PR# 1208](https://github.com/advancedtelematic/aktualizr/pull/1208) and [PR #1220](https://github.com/advancedtelematic/aktualizr/pull/1220)
+- [Provisioning methods have been renamed](https://github.com/advancedtelematic/aktualizr/blob/master/docs/ota-client-guide/modules/ROOT/pages/client-provisioning-methods.adoc). "Autoprovisioning" or "automatic provisioning" is now known as "shared credential provisioning". "Implicit provisioning" is now known as "device credential provisioning". "HSM provisioning" was always a misnomer, so it is now refered to as "device credential provisioning with an HSM". [PR# 1208](https://github.com/advancedtelematic/aktualizr/pull/1208) and [PR #1220](https://github.com/advancedtelematic/aktualizr/pull/1220)
 - aktualizr-cert-provider is now included in the garage_deploy.deb releases: [PR](https://github.com/advancedtelematic/aktualizr/pull/1218)
 - aktualizr-info metadata and key output is now printed without additional text for easier machine parsing (and piping to jq): [PR](https://github.com/advancedtelematic/aktualizr/pull/1215)
 - The IP Secondary implementation has been substantially refactored and improved with support for POSIX sockets and easier configuration: [PR #1183](https://github.com/advancedtelematic/aktualizr/pull/1183) and [PR #1198](https://github.com/advancedtelematic/aktualizr/pull/1198)
@@ -364,7 +364,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ### Changed
 
-- Secondaries configuration files must now lie in a common directory and specified in command line arguments or in static configuration: [documentation](docs/configuration.adoc#uptane)
+- Secondaries configuration files must now lie in a common directory and specified in command line arguments or in static configuration: [documentation](docs/ota-client-guide/modules/ROOT/pages/aktualizr-config-options.adoc#uptane)
 - API has been upgraded: FetchMeta has been merged with CheckUpdates and most functions now have meaningful return values.
 
 ### Removed

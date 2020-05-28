@@ -1,4 +1,4 @@
--- Don't modify this! Create a new migration instead--see docs/schema-migrations.adoc
+-- Don't modify this! Create a new migration instead--see docs/ota-client-guide/modules/ROOT/pages/schema-migrations.adoc
 SAVEPOINT MIGRATION;
 
 CREATE TABLE report_events(id INTEGER PRIMARY KEY, json_string TEXT NOT NULL);

@@ -198,7 +198,7 @@ Options for configuring boot-specific behavior
 [options="header"]
 |==========================================================================================
 | Name                   | Default                         | Description
-| `rollback_mode`        | `"none"`                        | Controls rollback on supported platforms, see link:{aktualizr-github-url}/docs/rollback.adoc[]. Options: `"none"`, `"uboot_generic"`, `"uboot_masked"`
+| `rollback_mode`        | `"none"`                        | Controls rollback on supported platforms, see xref:rollback.adoc[]. Options: `"none"`, `"uboot_generic"`, `"uboot_masked"`
 | `reboot_sentinel_dir`  | `"/var/run/aktualizr-session"`  | Base directory for reboot detection sentinel. Must reside in a temporary file system.
 | `reboot_sentinel_name` | `"need_reboot"`                 | Name of the reboot detection sentinel.
 |==========================================================================================
