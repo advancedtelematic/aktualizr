@@ -13,10 +13,12 @@ void Run_fake_http_server(const char *serverPath, const char *metaPath) {
   std::string port = TestUtils::getFreePort();
   serverAddress = "http://127.0.0.1:" + port;
 
+  // NOLINTNEXTLINE(clang-analyzer-core.NonNullParamChecker)
   server = std_::make_unique<boost::process::child>(serverPath, port, "-f", "-m", metaPath);
   TestUtils::waitForServer(serverAddress + "/");
 }
 
+// NOLINTNEXTLINE(clang-analyzer-core.CallAndMessage)
 void Stop_fake_http_server() { server.reset(); }
 
 Config *Get_test_config() {

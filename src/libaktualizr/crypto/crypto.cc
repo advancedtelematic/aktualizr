@@ -1,10 +1,11 @@
 #include "crypto.h"
 
-#include <boost/algorithm/hex.hpp>
-#include <boost/scoped_array.hpp>
+#include <array>
 #include <iostream>
 
 #include <sodium.h>
+#include <boost/algorithm/hex.hpp>
+#include <boost/scoped_array.hpp>
 
 #include "logging/logging.h"
 #include "openssl_compat.h"
@@ -94,6 +95,7 @@ Json::Value PublicKey::ToUptane() const {
 
 std::string PublicKey::KeyId() const {
   std::string key_content = value_;
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks)
   boost::algorithm::trim_right_if(key_content, boost::algorithm::is_any_of("\n"));
   std::string keyid = boost::algorithm::hex(Crypto::sha256digest(Utils::jsonToCanonicalStr(Json::Value(key_content))));
   std::transform(keyid.begin(), keyid.end(), keyid.begin(), ::tolower);
@@ -101,15 +103,15 @@ std::string PublicKey::KeyId() const {
 }
 
 std::string Crypto::sha256digest(const std::string &text) {
-  unsigned char sha256_hash[crypto_hash_sha256_BYTES];
-  crypto_hash_sha256(sha256_hash, reinterpret_cast<const unsigned char *>(text.c_str()), text.size());
-  return std::string(reinterpret_cast<char *>(sha256_hash), crypto_hash_sha256_BYTES);
+  std::array<unsigned char, crypto_hash_sha256_BYTES> sha256_hash{};
+  crypto_hash_sha256(sha256_hash.data(), reinterpret_cast<const unsigned char *>(text.c_str()), text.size());
+  return std::string(reinterpret_cast<char *>(sha256_hash.data()), crypto_hash_sha256_BYTES);
 }
 
 std::string Crypto::sha512digest(const std::string &text) {
-  unsigned char sha512_hash[crypto_hash_sha512_BYTES];
-  crypto_hash_sha512(sha512_hash, reinterpret_cast<const unsigned char *>(text.c_str()), text.size());
-  return std::string(reinterpret_cast<char *>(sha512_hash), crypto_hash_sha512_BYTES);
+  std::array<unsigned char, crypto_hash_sha512_BYTES> sha512_hash{};
+  crypto_hash_sha512(sha512_hash.data(), reinterpret_cast<const unsigned char *>(text.c_str()), text.size());
+  return std::string(reinterpret_cast<char *>(sha512_hash.data()), crypto_hash_sha512_BYTES);
 }
 
 std::string Crypto::RSAPSSSign(ENGINE *engine, const std::string &private_key, const std::string &message) {
@@ -179,10 +181,10 @@ std::string Crypto::Sign(KeyType key_type, ENGINE *engine, const std::string &pr
 }
 
 std::string Crypto::ED25519Sign(const std::string &private_key, const std::string &message) {
-  unsigned char sig[crypto_sign_BYTES];
-  crypto_sign_detached(sig, nullptr, reinterpret_cast<const unsigned char *>(message.c_str()), message.size(),
+  std::array<unsigned char, crypto_sign_BYTES> sig{};
+  crypto_sign_detached(sig.data(), nullptr, reinterpret_cast<const unsigned char *>(message.c_str()), message.size(),
                        reinterpret_cast<const unsigned char *>(private_key.c_str()));
-  return std::string(reinterpret_cast<char *>(sig), crypto_sign_BYTES);
+  return std::string(reinterpret_cast<char *>(sig.data()), crypto_sign_BYTES);
 }
 
 bool Crypto::RSAPSSVerify(const std::string &public_key, const std::string &signature, const std::string &message) {
@@ -417,12 +419,12 @@ bool Crypto::generateRSAKeyPair(KeyType key_type, std::string *public_key, std::
 }
 
 bool Crypto::generateEDKeyPair(std::string *public_key, std::string *private_key) {
-  unsigned char pk[crypto_sign_PUBLICKEYBYTES];
-  unsigned char sk[crypto_sign_SECRETKEYBYTES];
-  crypto_sign_keypair(pk, sk);
-  *public_key = boost::algorithm::hex(std::string(reinterpret_cast<char *>(pk), crypto_sign_PUBLICKEYBYTES));
+  std::array<unsigned char, crypto_sign_PUBLICKEYBYTES> pk{};
+  std::array<unsigned char, crypto_sign_SECRETKEYBYTES> sk{};
+  crypto_sign_keypair(pk.data(), sk.data());
+  *public_key = boost::algorithm::hex(std::string(reinterpret_cast<char *>(pk.data()), crypto_sign_PUBLICKEYBYTES));
   // std::transform(public_key->begin(), public_key->end(), public_key->begin(), ::tolower);
-  *private_key = boost::algorithm::hex(std::string(reinterpret_cast<char *>(sk), crypto_sign_SECRETKEYBYTES));
+  *private_key = boost::algorithm::hex(std::string(reinterpret_cast<char *>(sk.data()), crypto_sign_SECRETKEYBYTES));
   // std::transform(private_key->begin(), private_key->end(), private_key->begin(), ::tolower);
   return true;
 }
@@ -502,7 +504,9 @@ Hash Hash::generate(Type type, const std::string &data) {
       hash = boost::algorithm::hex(Crypto::sha512digest(data));
       break;
     }
-    default: { throw std::invalid_argument("Unsupported hash type"); }
+    default: {
+      throw std::invalid_argument("Unsupported hash type");
+    }
   }
 
   return Hash(type, hash);

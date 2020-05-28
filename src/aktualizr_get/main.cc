@@ -6,12 +6,11 @@
 
 #include "config/config.h"
 #include "get.h"
-
 #include "utilities/aktualizr_version.h"
 
 namespace bpo = boost::program_options;
 
-bpo::variables_map parse_options(int argc, char *argv[]) {
+bpo::variables_map parse_options(int argc, char **argv) {
   bpo::options_description description(
       "A tool similar to wget that will do an HTTP get on the given URL using the device's configured credentials.");
   // clang-format off

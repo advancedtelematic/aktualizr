@@ -69,7 +69,7 @@ data::InstallationResult OstreeManager::pull(const boost::filesystem::path &sysr
                                              const Uptane::Target &target, const api::FlowControlToken *token,
                                              OstreeProgressCb progress_cb) {
   const std::string refhash = target.sha256Hash();
-  const char *const commit_ids[] = {refhash.c_str()};
+  const char *const commit_ids[] = {refhash.c_str()};  // NOLINT(modernize-avoid-c-arrays)
   GError *error = nullptr;
   GVariantBuilder builder;
   GVariant *options;
@@ -167,6 +167,7 @@ data::InstallationResult OstreeManager::install(const Uptane::Target &target) co
   std::string args_content =
       std::string(ostree_bootconfig_parser_get(ostree_deployment_get_bootconfig(merge_deployment.get()), "options"));
   std::vector<std::string> args_vector;
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks)
   boost::split(args_vector, args_content, boost::is_any_of(" "));
 
   std::vector<const char *> kargs_strv_vector;
@@ -250,7 +251,7 @@ OstreeManager::OstreeManager(const PackageConfig &pconfig, const BootloaderConfi
 }
 
 bool OstreeManager::fetchTarget(const Uptane::Target &target, Uptane::Fetcher &fetcher, const KeyManager &keys,
-                                FetcherProgressCb progress_cb, const api::FlowControlToken *token) {
+                                const FetcherProgressCb &progress_cb, const api::FlowControlToken *token) {
   if (!target.IsOstree()) {
     // The case when the OSTree package manager is set as a package manager for aktualizr
     // while the target is aimed for a Secondary ECU that is configured with another/non-OSTree package manager
@@ -301,6 +302,7 @@ TargetStatus OstreeManager::verifyTargetInternal(const Uptane::Target &target) c
 Json::Value OstreeManager::getInstalledPackages() const {
   std::string packages_str = Utils::readFile(config.packages_file);
   std::vector<std::string> package_lines;
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks)
   boost::split(package_lines, packages_str, boost::is_any_of("\n"));
   Json::Value packages(Json::arrayValue);
   for (auto it = package_lines.begin(); it != package_lines.end(); ++it) {

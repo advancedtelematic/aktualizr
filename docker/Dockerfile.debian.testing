@@ -3,6 +3,8 @@ LABEL Description="Aktualizr testing dockerfile for Debian Unstable + static che
 
 ENV DEBIAN_FRONTEND noninteractive
 
+RUN echo "deb http://deb.debian.org/debian  buster-backports main" > /etc/apt/sources.list.d/buster-backports.list
+
 # It is important to run these in the same RUN command, because otherwise
 # Docker layer caching breaks us
 RUN apt-get update && apt-get -y install --no-install-suggests --no-install-recommends \
@@ -12,10 +14,10 @@ RUN apt-get update && apt-get -y install --no-install-suggests --no-install-reco
   automake \
   bison \
   ccache \
-  clang-6.0 \
-  clang-tidy-6.0 \
-  clang-tools-6.0 \
-  clang-format-6.0 \
+  clang-8 \
+  clang-tidy-8 \
+  clang-tools-8 \
+  clang-format-8 \
   cmake \
   curl \
   doxygen \
@@ -65,8 +67,8 @@ RUN apt-get update && apt-get -y install --no-install-suggests --no-install-reco
   xsltproc \
   zip
 
-RUN ln -s clang-6.0 /usr/bin/clang && \
-    ln -s clang++-6.0 /usr/bin/clang++
+RUN ln -s clang-8 /usr/bin/clang && \
+    ln -s clang++-8 /usr/bin/clang++
 
 WORKDIR /ostree
 RUN git init && git remote add origin https://github.com/ostreedev/ostree

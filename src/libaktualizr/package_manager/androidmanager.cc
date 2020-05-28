@@ -34,7 +34,8 @@ Json::Value AndroidManager::getInstalledPackages() const {
 
   std::istringstream pv_lines(pm_output);
   for (std::string line; std::getline(pv_lines, line);) {
-    std::string p, v;
+    std::string p;
+    std::string v;
     if (qi::parse(line.begin(), line.end(),
                   ("package:" >> char_seq[copy(_1, std::back_inserter(p))] >> ' ' >> "versionCode:" >>
                    char_seq[copy(_1, std::back_inserter(v))]))) {
@@ -85,9 +86,11 @@ data::InstallationResult AndroidManager::install(const Uptane::Target& target) c
   return data::InstallationResult(data::ResultCode::Numeric::kNeedCompletion, "need reboot");
 }
 
-data::InstallationResult AndroidManager::finalizeInstall(const Uptane::Target& target) const {
+data::InstallationResult AndroidManager::finalizeInstall(const Uptane::Target& target) {
   std::string ota_package_file_path = GetOTAPackageFilePath(target.sha256Hash());
-  if (!ota_package_file_path.empty()) fs::remove(ota_package_file_path);
+  if (!ota_package_file_path.empty()) {
+    fs::remove(ota_package_file_path);
+  }
   std::string errorMessage{"n/a"};
   if (installationAborted(&errorMessage)) {
     return data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, errorMessage);
@@ -96,7 +99,8 @@ data::InstallationResult AndroidManager::finalizeInstall(const Uptane::Target& t
 }
 
 std::string AndroidManager::GetOTAPackageFilePath(const std::string& hash) {
-  fs::directory_iterator entryItEnd, entryIt{fs::path(data_ota_package_dir_)};
+  fs::directory_iterator entryItEnd;
+  fs::directory_iterator entryIt{fs::path(data_ota_package_dir_)};
   for (; entryIt != entryItEnd; ++entryIt) {
     auto& entry_path = entryIt->path();
     if (boost::filesystem::is_directory(*entryIt)) {
@@ -118,7 +122,7 @@ bool AndroidManager::installationAborted(std::string* errorMessage) const {
     throw std::runtime_error(std::string("Error opening file ") + installation_log_file);
   }
   for (std::string line; std::getline(log, line);) {
-    if (boost::algorithm::find_first(line, "error:")) {
+    if (!boost::algorithm::find_first(line, "error:").empty()) {
       int error_code = std::stoi(line.substr(6));
       if (error_code != 0) {
         *errorMessage = std::string("Error code: ") + std::to_string(error_code);

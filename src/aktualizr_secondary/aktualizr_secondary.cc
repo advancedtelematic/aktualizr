@@ -118,7 +118,9 @@ data::ResultCode::Numeric AktualizrSecondary::install(const std::string& target_
       LOG_INFO << "The target has been successfully installed, but a reboot is required to be applied: " << target_name;
       break;
     }
-    default: { LOG_INFO << "Failed to install the target: " << target_name; }
+    default: {
+      LOG_INFO << "Failed to install the target: " << target_name;
+    }
   }
 
   return install_result;

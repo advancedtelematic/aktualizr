@@ -232,8 +232,8 @@ endif()
 add_custom_target(build_tests)
 
 # clang-check and clang-format
-find_program(CLANG_FORMAT NAMES clang-format-6.0)
-find_program(CLANG_TIDY NAMES clang-tidy-6.0)
+find_program(CLANG_FORMAT NAMES clang-format-8)
+find_program(CLANG_TIDY NAMES clang-tidy-8)
 
 if(CLANG_FORMAT)
     function(aktualizr_clang_format)
@@ -256,7 +256,7 @@ if(CLANG_FORMAT)
         endforeach()
     endfunction()
 else()
-    message(WARNING "clang-format-6.0 not found, skipping")
+    message(WARNING "clang-format-8 not found, skipping")
     function(aktualizr_clang_format)
     endfunction()
 endif()
@@ -267,22 +267,21 @@ if(CLANG_TIDY)
     function(aktualizr_clang_tidy)
         file(RELATIVE_PATH SUBDIR ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
         foreach(FILE ${ARGN})
+            # Skip header files, since they are ignored. Headers are checked if
+            # they are included by a checked source file.
             if(${FILE} MATCHES "\\.h")
-                # do not run clang-tidy directly on header files, since it
-                # ignores them. headers will be checked if they are included by
-                # a checked source file
                 continue()
             endif()
             string(REPLACE "/" "_" TARGETNAME "aktualizr_clang_tidy-${SUBDIR}-${FILE}")
             add_custom_target(${TARGETNAME}
-                COMMAND ${CLANG_TIDY} -quiet -header-filter=\(${CMAKE_SOURCE_DIR}|\\.\\.\)/src/.* --extra-arg-before=-Wno-unknown-warning-option -format-style=file -p ${CMAKE_BINARY_DIR} ${FILE}
+                COMMAND ${PROJECT_SOURCE_DIR}/scripts/clang-tidy-wrapper.sh ${CLANG_TIDY} ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR} ${FILE}
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                 VERBATIM)
             add_dependencies(clang-tidy ${TARGETNAME})
         endforeach()
     endfunction()
 else()
-    message(WARNING "clang-tidy-6.0 not found, skipping")
+    message(WARNING "clang-tidy-8 not found, skipping")
     function(aktualizr_clang_tidy)
     endfunction()
 endif()

@@ -27,7 +27,7 @@ void checkInfoOptions(const bpo::options_description &description, const bpo::va
   }
 }
 
-bpo::variables_map parseOptions(int argc, char *argv[]) {
+bpo::variables_map parseOptions(int argc, char **argv) {
   bpo::options_description description("aktualizr command line options");
   // clang-format off
   // Try to keep these options in the same order as Config::updateFromCommandLine().

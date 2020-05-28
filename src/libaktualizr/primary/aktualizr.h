@@ -221,7 +221,7 @@ class Aktualizr {
   Config config_;
 
  protected:
-  Aktualizr(Config config, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<HttpInterface> http_in);
+  Aktualizr(Config config, std::shared_ptr<INvStorage> storage_in, const std::shared_ptr<HttpInterface>& http_in);
 
   std::shared_ptr<SotaUptaneClient> uptane_client_;
 

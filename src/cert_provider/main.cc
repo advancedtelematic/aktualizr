@@ -31,7 +31,7 @@ void checkInfoOptions(const bpo::options_description& description, const bpo::va
   }
 }
 
-bpo::variables_map parseOptions(int argc, char* argv[]) {
+bpo::variables_map parseOptions(int argc, char** argv) {
   bpo::options_description description("aktualizr-cert-provider command line options");
   // clang-format off
   description.add_options()

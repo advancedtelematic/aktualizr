@@ -63,17 +63,22 @@ int main(int argc, char **argv) {
   }
 
   // Configure logging. Try loglevel first, then verbose, then quiet.
-  if (vm.count("loglevel") != 0) {
-    const int loglevel = vm["loglevel"].as<int>();
-    logger_set_threshold(static_cast<boost::log::trivial::severity_level>(loglevel));
-    LOG_INFO << "Loglevel set to " << loglevel;
-  } else if (static_cast<int>(vm.count("verbose")) != 0) {
-    logger_set_threshold(boost::log::trivial::debug);
-    LOG_DEBUG << "Debug level debugging enabled";
-  } else if (static_cast<int>(vm.count("quiet")) != 0) {
-    logger_set_threshold(boost::log::trivial::warning);
-  } else {
-    logger_set_threshold(boost::log::trivial::info);
+  try {
+    if (vm.count("loglevel") != 0) {
+      const int loglevel = vm["loglevel"].as<int>();
+      logger_set_threshold(static_cast<boost::log::trivial::severity_level>(loglevel));
+      LOG_INFO << "Loglevel set to " << loglevel;
+    } else if (static_cast<int>(vm.count("verbose")) != 0) {
+      logger_set_threshold(boost::log::trivial::debug);
+      LOG_DEBUG << "Debug level debugging enabled";
+    } else if (static_cast<int>(vm.count("quiet")) != 0) {
+      logger_set_threshold(boost::log::trivial::warning);
+    } else {
+      logger_set_threshold(boost::log::trivial::info);
+    }
+  } catch (std::exception &e) {
+    LOG_FATAL << e.what();
+    return EXIT_FAILURE;
   }
 
   Utils::setUserAgent(std::string("garage-push/") + garage_tools_version());

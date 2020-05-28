@@ -1,7 +1,7 @@
 #ifndef ANDROIDMANAGER_H
 #define ANDROIDMANAGER_H
 
-#include "package_manager/packagemanagerinterface.h"
+#include "packagemanagerinterface.h"
 
 class AndroidInstallationDispatcher;
 
@@ -18,7 +18,7 @@ class AndroidManager : public PackageManagerInterface {
   Uptane::Target getCurrent() const override;
 
   data::InstallationResult install(const Uptane::Target& target) const override;
-  data::InstallationResult finalizeInstall(const Uptane::Target& target) const override;
+  data::InstallationResult finalizeInstall(const Uptane::Target& target) override;
 
   static std::string GetOTAPackageFilePath(const std::string& hash);
 

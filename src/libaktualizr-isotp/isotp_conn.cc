@@ -92,7 +92,7 @@ bool IsoTpSendRecv::Send(const std::string& out) {
   } else {
     while (true) {
       fd_set read_set;
-      FD_ZERO(&read_set);
+      FD_ZERO(&read_set);  // NOLINT(readability-isolate-declaration)
       FD_SET(can_socket, &read_set);
 
       // struct timeval timeout = {0, 20000};  // 20 ms
@@ -165,7 +165,7 @@ bool IsoTpSendRecv::Recv(std::string* in) {
 
   while (true) {
     fd_set read_set;
-    FD_ZERO(&read_set);
+    FD_ZERO(&read_set);  // NOLINT(readability-isolate-declaration)
     FD_SET(can_socket, &read_set);
 
     // struct timeval timeout = {0, 2000000};  // 20 ms

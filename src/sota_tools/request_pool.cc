@@ -80,11 +80,13 @@ void RequestPool::LoopListen() {
   // https://curl.haxx.se/libcurl/c/curl_multi_fdset.html
   CURLMcode mc;
   // Poll for IO
-  fd_set fdread, fdwrite, fdexcept;
+  fd_set fdread;
+  fd_set fdwrite;
+  fd_set fdexcept;
   int maxfd = 0;
-  FD_ZERO(&fdread);
-  FD_ZERO(&fdwrite);
-  FD_ZERO(&fdexcept);
+  FD_ZERO(&fdread);    // NOLINT(readability-isolate-declaration)
+  FD_ZERO(&fdwrite);   // NOLINT(readability-isolate-declaration)
+  FD_ZERO(&fdexcept);  // NOLINT(readability-isolate-declaration)
   long timeoutms = 0;  // NOLINT(google-runtime-int)
   mc = curl_multi_timeout(multi_, &timeoutms);
   if (mc != CURLM_OK) {
