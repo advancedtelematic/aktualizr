@@ -7,6 +7,18 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 ## [??? (unreleased)]
 
 
+## [2020.7] - 2020-05-29
+
+### Changed
+
+- Cache device data (network, hardware info...) as much as we can to save bandwidth: [PR](https://github.com/advancedtelematic/aktualizr/pull/1673)
+- Stricter matching of Uptane metadata with installed images: [PR](https://github.com/advancedtelematic/aktualizr/pull/1666)
+
+### Fixed
+
+- Various docker-app fixes: [PR](https://github.com/advancedtelematic/aktualizr/pull/1664) [PR](https://github.com/advancedtelematic/aktualizr/pull/1665)
+- Use ED25519 to sign manifests when set as key type: [PR](https://github.com/advancedtelematic/aktualizr/pull/1608)
+
 ## [2020.6] - 2020-04-30
 
 ### Added
