@@ -1,4 +1,4 @@
--- Don't modify this! Create a new migration instead--see docs/schema-migrations.adoc
+-- Don't modify this! Create a new migration instead--see docs/ota-client-guide/modules/ROOT/pages/schema-migrations.adoc
 SAVEPOINT ROLLBACK_MIGRATION;
 
 CREATE TABLE target_images_data(filename TEXT PRIMARY KEY, image_data BLOB NOT NULL);

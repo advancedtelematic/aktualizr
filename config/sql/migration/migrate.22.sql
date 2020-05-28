@@ -1,4 +1,4 @@
--- Don't modify this! Create a new migration instead--see docs/schema-migrations.adoc
+-- Don't modify this! Create a new migration instead--see docs/ota-client-guide/modules/ROOT/pages/schema-migrations.adoc
 SAVEPOINT MIGRATION;
 
 CREATE TABLE ecu_report_counter(ecu_serial TEXT NOT NULL PRIMARY KEY, counter INTEGER NOT NULL DEFAULT 0);

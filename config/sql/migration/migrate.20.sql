@@ -1,4 +1,4 @@
--- Don't modify this! Create a new migration instead--see docs/schema-migrations.adoc
+-- Don't modify this! Create a new migration instead--see docs/ota-client-guide/modules/ROOT/pages/schema-migrations.adoc
 SAVEPOINT MIGRATION;
 
 ALTER TABLE installed_versions RENAME TO installed_versions_old;

@@ -1,4 +1,4 @@
--- Don't modify this! Create a new migration instead--see docs/schema-migrations.adoc
+-- Don't modify this! Create a new migration instead--see docs/ota-client-guide/modules/ROOT/pages/schema-migrations.adoc
 SAVEPOINT MIGRATION;
 
 CREATE TABLE ecu_serials_migrate(id INTEGER PRIMARY KEY, serial TEXT UNIQUE, hardware_id TEXT NOT NULL, is_primary INTEGER NOT NULL DEFAULT 0 CHECK (is_primary IN (0,1)));

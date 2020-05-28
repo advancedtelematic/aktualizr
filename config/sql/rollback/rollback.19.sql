@@ -1,4 +1,4 @@
--- Don't modify this! Create a new migration instead--see docs/schema-migrations.adoc
+-- Don't modify this! Create a new migration instead--see docs/ota-client-guide/modules/ROOT/pages/schema-migrations.adoc
 SAVEPOINT ROLLBACK_MIGRATION;
 
 CREATE TABLE ecu_serials_migrate(serial TEXT UNIQUE, hardware_id TEXT NOT NULL, is_primary INTEGER NOT NULL CHECK (is_primary IN (0,1)));
