@@ -1,5 +1,4 @@
 <map id="AppBundle" name="AppBundle">
-<area shape="rect" id="node1" title="This package manager compliments the OSTreePackageManager by also including optional Docker Apps." alt="" coords="29,200,121,227"/>
-<area shape="rect" id="node2" title="STL class." alt="" coords="31,96,118,123"/>
-<area shape="rect" id="node3" title="STL class." alt="" coords="5,5,144,47"/>
+<area shape="rect" id="node2" title="STL class. " alt="" coords="31,96,118,123"/>
+<area shape="rect" id="node3" title="STL class. " alt="" coords="5,5,144,47"/>
 </map>

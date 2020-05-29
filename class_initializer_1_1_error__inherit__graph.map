@@ -1,9 +1,8 @@
 <map id="Initializer::Error" name="Initializer::Error">
-<area shape="rect" id="node1" title=" " alt="" coords="355,97,477,123"/>
-<area shape="rect" id="node4" href="$class_initializer_1_1_key_generation_error.html" title=" " alt="" coords="529,5,715,47"/>
-<area shape="rect" id="node5" href="$class_initializer_1_1_server_error.html" title=" " alt="" coords="540,71,704,98"/>
-<area shape="rect" id="node6" href="$class_initializer_1_1_server_occupied.html" title=" " alt="" coords="525,122,719,149"/>
-<area shape="rect" id="node7" href="$class_initializer_1_1_storage_error.html" title=" " alt="" coords="536,173,708,199"/>
-<area shape="rect" id="node2" title="STL class." alt="" coords="168,97,307,123"/>
-<area shape="rect" id="node3" title="STL class." alt="" coords="5,97,120,123"/>
+<area shape="rect" id="node4" href="$class_initializer_1_1_key_generation_error.html" title="Initializer::KeyGeneration\lError" alt="" coords="529,5,715,47"/>
+<area shape="rect" id="node5" href="$class_initializer_1_1_server_error.html" title="Initializer::ServerError" alt="" coords="540,71,704,98"/>
+<area shape="rect" id="node6" href="$class_initializer_1_1_server_occupied.html" title="Initializer::ServerOccupied" alt="" coords="525,122,719,149"/>
+<area shape="rect" id="node7" href="$class_initializer_1_1_storage_error.html" title="Initializer::StorageError" alt="" coords="536,173,708,199"/>
+<area shape="rect" id="node2" title="STL class. " alt="" coords="168,97,307,123"/>
+<area shape="rect" id="node3" title="STL class. " alt="" coords="5,97,120,123"/>
 </map>

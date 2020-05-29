@@ -1,5 +1,4 @@
 <map id="campaign::Campaign" name="campaign::Campaign">
-<area shape="rect" id="node1" title=" " alt="" coords="5,215,165,241"/>
-<area shape="rect" id="node2" title="STL class." alt="" coords="42,96,129,123"/>
-<area shape="rect" id="node3" title="STL class." alt="" coords="16,5,155,47"/>
+<area shape="rect" id="node2" title="STL class. " alt="" coords="42,96,129,123"/>
+<area shape="rect" id="node3" title="STL class. " alt="" coords="16,5,155,47"/>
 </map>

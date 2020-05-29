@@ -1,3 +1,6 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$class_uptane_1_1_hardware_identifier.html" title=" " alt="" coords="5,5,204,32"/>
+<area shape="rect" id="node1" href="$class_uptane_1_1_i_metadata_fetcher.html" title="Uptane::IMetadataFetcher" alt="" coords="5,38,195,65"/>
+<area shape="rect" id="node2" href="$class_metadata.html" title="Metadata" alt="" coords="263,13,346,39"/>
+<area shape="rect" id="node4" href="$class_uptane_1_1_fetcher.html" title="Uptane::Fetcher" alt="" coords="243,63,367,90"/>
+<area shape="rect" id="node3" href="$class_secondary_test_negative_1_1_metadata_invalidator.html" title="SecondaryTestNegative\l::MetadataInvalidator" alt="" coords="415,5,589,47"/>
 </map>

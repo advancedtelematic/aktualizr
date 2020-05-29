@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['unpacksignedobject_842',['UnpackSignedObject',['../class_uptane_1_1_meta_with_keys.html#ac594176881a14f71e36a4c251a89ccce',1,'Uptane::MetaWithKeys::UnpackSignedObject()'],['../class_uptane_1_1_root.html#ad66acafeed18ea2fb4496fb6049a997f',1,'Uptane::Root::UnpackSignedObject()']]],
-  ['uptanecycle_843',['UptaneCycle',['../class_aktualizr.html#a77aa070899448a7589c5e66befc41d6a',1,'Aktualizr']]]
+  ['verifysignature',['VerifySignature',['../class_public_key.html#a242a1eb0704b45a8d17ae4b4edf3dc47',1,'PublicKey']]]
 ];

@@ -1,7 +1,11 @@
 var searchData=
 [
-  ['resume_825',['Resume',['../class_aktualizr.html#a36fe7a08970e37f855698735a36ef33d',1,'Aktualizr']]],
-  ['root_826',['Root',['../class_uptane_1_1_root.html#ad04f498695b78bc5d503e0b179f90c85',1,'Uptane::Root::Root(Policy policy=Policy::kRejectAll)'],['../class_uptane_1_1_root.html#ad957ad533c90643dd15a33ca7c5be9ba',1,'Uptane::Root::Root(RepositoryType repo, const Json::Value &amp;json)']]],
-  ['run_827',['run',['../class_secondary_tcp_server.html#a5cd3f9fba56bd6bcd7fc2afa9605f083',1,'SecondaryTcpServer']]],
-  ['runforever_828',['RunForever',['../class_aktualizr.html#abbc8798c27aa03b6c474c711d398fe33',1,'Aktualizr']]]
+  ['senddevicedata',['SendDeviceData',['../class_aktualizr.html#ab65d988c6d69e4c28e24c36ab07f2ad6',1,'Aktualizr']]],
+  ['sendmanifest',['SendManifest',['../class_aktualizr.html#ac8dc8bd2e77fc70241f137e000a52625',1,'Aktualizr']]],
+  ['setabort',['setAbort',['../classapi_1_1_flow_control_token.html#a6841a6ba403e755e410586c96d02ce4a',1,'api::FlowControlToken']]],
+  ['setpause',['setPause',['../classapi_1_1_flow_control_token.html#a891ee41998077ccaf37b52e92623235d',1,'api::FlowControlToken']]],
+  ['setsecondarydata',['SetSecondaryData',['../class_aktualizr.html#a22e051b83a4d0dc2ac9b8e0cf730aca6',1,'Aktualizr']]],
+  ['setsignalhandler',['SetSignalHandler',['../class_aktualizr.html#ae710e3876c6144a4efe1a5500958987e',1,'Aktualizr']]],
+  ['shutdown',['Shutdown',['../class_aktualizr.html#ab244f4c923e07387022f21e97aa3c080',1,'Aktualizr']]],
+  ['size',['Size',['../class_dequeue_buffer.html#acea28ca7ed49c7bb3c3f98404ef12999',1,'DequeueBuffer']]]
 ];

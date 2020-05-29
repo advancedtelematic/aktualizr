@@ -1,7 +1,5 @@
 <map id="SecondaryRpcTestNegative" name="SecondaryRpcTestNegative">
-<area shape="rect" id="node1" title=" " alt="" coords="134,95,333,121"/>
-<area shape="rect" id="node2" title=" " alt="" coords="5,5,53,32"/>
-<area shape="rect" id="node3" href="$class_secondary_tcp_server.html" title="Listens on a socket, decodes calls (ASN.1) and forwards them to an Uptane Secondary implementation." alt="" coords="78,5,231,32"/>
-<area shape="rect" id="node4" href="$class_msg_dispatcher.html" title=" " alt="" coords="255,5,374,32"/>
-<area shape="rect" id="node5" title="STL class." alt="" coords="413,5,505,32"/>
+<area shape="rect" id="node3" href="$class_secondary_tcp_server.html" title="Listens on a socket, decodes calls (ASN.1) and forwards them to an Uptane Secondary implementation..." alt="" coords="78,5,231,32"/>
+<area shape="rect" id="node4" href="$class_msg_dispatcher.html" title="MsgDispatcher" alt="" coords="255,5,374,32"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="413,5,505,32"/>
 </map>

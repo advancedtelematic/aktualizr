@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['notifier_818',['notifier',['../classaccumulator__type.html#afe9eb44f93af32bbb6503a4ba0a38cb2',1,'accumulator_type']]],
-  ['notify_819',['notify',['../classaccumulator__type.html#af3d7cdc1918ca77ed680693481082eff',1,'accumulator_type']]]
+  ['oauth2',['OAuth2',['../class_o_auth2.html#af9001073b4d514ba47e22805504fd439',1,'OAuth2']]],
+  ['openstoredtarget',['OpenStoredTarget',['../class_aktualizr.html#a1fe519afc409b471990d85736f04bf2d',1,'Aktualizr']]]
 ];
