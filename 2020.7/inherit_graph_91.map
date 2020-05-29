@@ -1,0 +1,7 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$class_primary_1_1_secondary_config.html" title="Primary::SecondaryConfig" alt="" coords="5,35,195,61"/>
+<area shape="rect" id="node2" href="$class_primary_1_1_i_p_secondaries_config.html" title="Primary::IPSecondariesConfig" alt="" coords="243,5,455,32"/>
+<area shape="rect" id="node3" href="$class_primary_1_1_managed_secondary_config.html" title="Primary::ManagedSecondary\lConfig" alt="" coords="245,57,452,98"/>
+<area shape="rect" id="node4" href="$class_primary_1_1_partial_verification_secondary_config.html" title="Primary::PartialVerification\lSecondaryConfig" alt="" coords="503,23,697,65"/>
+<area shape="rect" id="node5" href="$class_primary_1_1_virtual_secondary_config.html" title="Primary::VirtualSecondary\lConfig" alt="" coords="505,89,695,130"/>
+</map>

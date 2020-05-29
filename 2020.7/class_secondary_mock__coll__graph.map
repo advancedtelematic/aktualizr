@@ -1,0 +1,10 @@
+<map id="SecondaryMock" name="SecondaryMock">
+<area shape="rect" id="node2" href="$class_i_aktualizr_secondary.html" title="IAktualizrSecondary" alt="" coords="478,5,630,32"/>
+<area shape="rect" id="node3" href="$struct_uptane_1_1_raw_meta_pack.html" title="Uptane::RawMetaPack" alt="" coords="471,119,637,145"/>
+<area shape="rect" id="node4" title="STL class. " alt="" coords="197,112,283,139"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="5,105,144,146"/>
+<area shape="rect" id="node6" href="$class_uptane_1_1_hardware_identifier.html" title="Uptane::HardwareIdentifier" alt="" coords="455,169,653,196"/>
+<area shape="rect" id="node7" href="$class_uptane_1_1_ecu_serial.html" title="Uptane::EcuSerial" alt="" coords="485,220,623,247"/>
+<area shape="rect" id="node8" href="$class_public_key.html" title="PublicKey" alt="" coords="511,271,597,297"/>
+<area shape="rect" id="node9" href="$class_uptane_1_1_manifest.html" title="Uptane::Manifest" alt="" coords="487,321,621,348"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="HttpCheckUrl" name="HttpCheckUrl">
+<area shape="rect" id="node2" href="$class_http_fake.html" title="HttpFake" alt="" coords="20,80,100,107"/>
+<area shape="rect" id="node3" href="$class_http_interface.html" title="HttpInterface" alt="" coords="6,5,114,32"/>
+</map>

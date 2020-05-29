@@ -1,0 +1,22 @@
+<map id="AktualizrInfoTest" name="AktualizrInfoTest">
+<area shape="rect" id="node3" href="$class_config.html" title="Configuration object for an aktualizr instance running on a Primary ECU. " alt="" coords="1175,382,1237,408"/>
+<area shape="rect" id="node4" href="$class_base_config.html" title="BaseConfig" alt="" coords="873,204,967,231"/>
+<area shape="rect" id="node6" href="$struct_storage_config.html" title="StorageConfig" alt="" coords="863,306,977,332"/>
+<area shape="rect" id="node7" href="$class_based_path.html" title="BasedPath" alt="" coords="513,247,604,274"/>
+<area shape="rect" id="node18" href="$struct_import_config.html" title="ImportConfig" alt="" coords="867,255,973,282"/>
+<area shape="rect" id="node8" href="$struct_tls_config.html" title="TlsConfig" alt="" coords="704,404,787,431"/>
+<area shape="rect" id="node9" title="STL class. " alt="" coords="193,514,280,540"/>
+<area shape="rect" id="node12" href="$struct_package_config.html" title="PackageConfig" alt="" coords="861,470,979,496"/>
+<area shape="rect" id="node14" href="$struct_provision_config.html" title="ProvisionConfig" alt="" coords="684,582,807,608"/>
+<area shape="rect" id="node15" href="$struct_p11_config.html" title="P11Config" alt="" coords="702,616,789,643"/>
+<area shape="rect" id="node16" href="$struct_uptane_config.html" title="UptaneConfig" alt="" coords="690,651,801,678"/>
+<area shape="rect" id="node19" href="$struct_bootloader_config.html" title="BootloaderConfig" alt="" coords="491,804,626,831"/>
+<area shape="rect" id="node10" title="STL class. " alt="" coords="5,506,144,548"/>
+<area shape="rect" id="node11" href="$struct_logger_config.html" title="LoggerConfig" alt="" coords="867,154,973,180"/>
+<area shape="rect" id="node17" href="$struct_telemetry_config.html" title="TelemetryConfig" alt="" coords="856,356,984,383"/>
+<area shape="rect" id="node20" href="$class_aktualizr_info_test_1_1_aktualizr_info_process.html" title="AktualizrInfoTest::\lAktualizrInfoProcess" alt="" coords="1129,433,1283,474"/>
+<area shape="rect" id="node21" href="$class_process.html" title="Process" alt="" coords="884,771,956,798"/>
+<area shape="rect" id="node22" href="$class_uptane_1_1_hardware_identifier.html" title="Uptane::HardwareIdentifier" alt="" coords="1107,499,1305,526"/>
+<area shape="rect" id="node23" href="$class_uptane_1_1_ecu_serial.html" title="Uptane::EcuSerial" alt="" coords="1137,550,1275,576"/>
+<area shape="rect" id="node24" href="$class_temporary_directory.html" title="TemporaryDirectory" alt="" coords="1131,600,1281,627"/>
+</map>

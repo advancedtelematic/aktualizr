@@ -1,0 +1,8 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$class_uptane_1_1_base_meta.html" title="Uptane::BaseMeta" alt="" coords="5,81,147,108"/>
+<area shape="rect" id="node2" href="$class_uptane_1_1_meta_with_keys.html" title="Uptane::MetaWithKeys" alt="" coords="201,31,371,57"/>
+<area shape="rect" id="node5" href="$class_uptane_1_1_snapshot.html" title="Uptane::Snapshot" alt="" coords="217,81,355,108"/>
+<area shape="rect" id="node6" href="$class_uptane_1_1_timestamp_meta.html" title="Uptane::TimestampMeta" alt="" coords="195,132,377,159"/>
+<area shape="rect" id="node3" href="$class_uptane_1_1_root.html" title="Uptane::Root" alt="" coords="434,5,541,32"/>
+<area shape="rect" id="node4" href="$class_uptane_1_1_targets.html" title="Uptane::Targets" alt="" coords="425,56,549,83"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="Primary::VirtualSecondary" name="Primary::VirtualSecondary">
+<area shape="rect" id="node2" href="$class_primary_1_1_managed_secondary.html" title="Primary::ManagedSecondary" alt="" coords="5,80,212,107"/>
+<area shape="rect" id="node3" href="$class_uptane_1_1_secondary_interface.html" title="Uptane::SecondaryInterface" alt="" coords="7,5,210,32"/>
+</map>
