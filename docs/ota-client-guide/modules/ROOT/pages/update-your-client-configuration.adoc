@@ -1,6 +1,6 @@
-= Recommended client configurations
+= Recommended client configuration
 
-Before you start developing or deploying to production, you should check that your configuration file has appropriate settings for your use case. 
+Before you start developing or deploying to production, you should check that your configuration file has appropriate settings for your use case.
 
 For more details about the full client configuration settings, see the xref:aktualizr-config-options.adoc[client configuration reference].
 
@@ -9,11 +9,11 @@ For more details about the full client configuration settings, see the xref:aktu
 [cols="1,1,1a",options="header,footer"]
 |====================
 |Name  | Default | Description
-|`polling_sec`  | `10` | 
+|`polling_sec`  | `10` |
 Interval between polls (in seconds).
 
 The default polling internal designed to make it convenient for you test and develop OTA update functions.
-|`force_install_completion`  | `true` | 
+|`force_install_completion`  | `true` |
 Forces installation completion. Causes a system reboot in case of an ostree package manager. Emulates a reboot in case of a fake package manager.
 
 You'll want to set this to `true` when developing because it's more convenient.
@@ -25,7 +25,7 @@ You'll want to set this to `true` when developing because it's more convenient.
 [cols="1,1,1a",options="header,footer"]
 |====================
 |Name  | Default | Description
-|`polling_sec`  | `86400` | When moving to production you'll want to have a much longer interval. 
+|`polling_sec`  | `86400` | When moving to production you'll want to have a much longer interval.
 In fact, for production, we don't support intervals less the 1 hour (3,600 seconds). Longer internals help you to reduce the internet bandwidth and power consumption for your devices.
 
 We recommend an internal between 1 and 7 days (86,400 to 604,800 seconds).

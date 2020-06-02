@@ -1,4 +1,4 @@
-== Yocto
+= Yocto
 
 The link:https://www.yoctoproject.org/[Yocto Project] is an open source collaborative project that provides standardized high-quality infrastructure, tools, and methodology to help decrease the complexity and increase the portability of Linux implementations in the embedded industry. It enables its users to build custom operating systems using specific recipes for embedded devices. Most commercial embedded Linux distros already use and/or support Yocto, including link:https://www.windriver.com/products/linux/[Wind River] and link:http://www.enea.com/solutions/Enea-Linux/[Enea]. It's backed by major hardware vendors like Intel, AMD, Freescale, Mentor, Texas Instruments, and many others. If you need a highly performant customized Linux for your embedded device, whether it's IoT, automotive, or other kinds of mobility devices, the Yocto project is probably what you're using.
 

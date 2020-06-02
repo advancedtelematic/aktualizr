@@ -1,4 +1,4 @@
-= Enable device-credential provisioning and install device certificates
+= Enable device-credential provisioning and install device certificate
 
 //MC: This is a copy of the topic "enable-device-cred-provisioning.adoc" but intended for the "test" use case. Need to use more includes to reduce redundancy.
 
