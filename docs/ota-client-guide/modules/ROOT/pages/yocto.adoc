@@ -1,4 +1,4 @@
-== Yocto
+= Yocto
 ifdef::env-github[]
 
 [NOTE]
