@@ -9,20 +9,24 @@
 boost::filesystem::path uptane_repos_dir;
 boost::filesystem::path fake_meta_dir;
 
+/* This tests that a device that had an IP Secondary will still find it after
+ * recent changes, even if it does not connect when the device starts. */
 TEST(PrimarySecondaryReg, SecondariesMigration) {
-  // This tests that a device that had an ip secondary will still find it after
-  // recent changes, even if it does not connect when the device starts
+  const Uptane::EcuSerial primary_serial{"p_serial"};
+  const Uptane::EcuSerial secondary_serial{"s_serial"};
+  const Uptane::HardwareIdentifier primary_hwid{"p_hwid"};
+  const Uptane::HardwareIdentifier secondary_hwid{"s_hwid"};
 
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates", fake_meta_dir);
-
   const auto& url = http->tls_server;
+
   Config conf("tests/config/basic.toml");
   conf.uptane.director_server = url + "/director";
   conf.uptane.repo_server = url + "/repo";
   conf.provision.server = url;
-  conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
-  conf.provision.primary_ecu_hardware_id = "primary_hw";
+  conf.provision.primary_ecu_serial = primary_serial.ToString();
+  conf.provision.primary_ecu_hardware_id = primary_hwid.ToString();
   conf.storage.path = temp_dir.Path();
   conf.import.base_path = temp_dir.Path() / "import";
   conf.tls.server = url;
@@ -30,14 +34,8 @@ TEST(PrimarySecondaryReg, SecondariesMigration) {
   const boost::filesystem::path sec_conf_path = temp_dir / "s_config.json";
   conf.uptane.secondary_config_file = sec_conf_path;
 
-  Json::Value sec_conf;
-
   auto storage = INvStorage::newStorage(conf.storage);
-
-  const Uptane::EcuSerial primary_serial{"p_serial"};
-  const Uptane::EcuSerial secondary_serial{"s_serial"};
-  const Uptane::HardwareIdentifier primary_hwid{"p_hwid"};
-  const Uptane::HardwareIdentifier secondary_hwid{"s_hwid"};
+  Json::Value sec_conf;
 
   {
     // prepare storage the "old" way:

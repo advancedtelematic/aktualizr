@@ -166,9 +166,8 @@ TEST_F(AktualizrInfoTest, PrintSecondaryNotRegisteredOrRemoved) {
   db_storage_->storeEcuSerials({{primary_ecu_serial, primary_hw_id}, {secondary_ecu_serial, secondary_hw_id}});
   db_storage_->storeEcuRegistered();
 
-  db_storage_->storeMisconfiguredEcus(
-      {{secondary_ecu_serial_not_reg, secondary_hw_id_not_reg, EcuState::kNotRegistered},
-       {secondary_ecu_serial_old, secondary_hw_id_old, EcuState::kOld}});
+  db_storage_->saveMisconfiguredEcu({secondary_ecu_serial_not_reg, secondary_hw_id_not_reg, EcuState::kUnused});
+  db_storage_->saveMisconfiguredEcu({secondary_ecu_serial_old, secondary_hw_id_old, EcuState::kOld});
 
   aktualizr_info_process_.run();
   ASSERT_FALSE(aktualizr_info_output.empty());

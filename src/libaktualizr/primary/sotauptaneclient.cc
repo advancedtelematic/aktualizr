@@ -27,15 +27,6 @@ static void report_progress_cb(event::Channel *channel, const Uptane::Target &ta
 void SotaUptaneClient::addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec) {
   Uptane::EcuSerial serial = sec->getSerial();
 
-  if (storage->loadEcuRegistered()) {
-    EcuSerials serials;
-    storage->loadEcuSerials(&serials);
-    SerialCompare secondary_comp(serial);
-    if (std::find_if(serials.cbegin(), serials.cend(), secondary_comp) == serials.cend()) {
-      throw std::logic_error("Adding new Secondaries to a provisioned device is not implemented yet");
-    }
-  }
-
   const auto map_it = secondaries.find(serial);
   if (map_it != secondaries.end()) {
     throw std::runtime_error(std::string("Multiple Secondaries found with the same serial: ") + serial.ToString());
@@ -348,8 +339,6 @@ void SotaUptaneClient::initialize() {
   primary_ecu_hw_id_ = serials[0].second;
   LOG_INFO << "Primary ECU serial: " << primary_ecu_serial_ << " with hardware ID: " << primary_ecu_hw_id_;
 
-  verifySecondaries();
-
   std::string device_id;
   if (!storage->loadDeviceId(&device_id)) {
     throw std::runtime_error("Unable to load device ID after device registration.");
@@ -429,7 +418,7 @@ void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult 
       auto ecu_serial = r.first;
       auto installation_res = r.second;
 
-      auto hw_id = ecuHwId(ecu_serial);
+      auto hw_id = getEcuHwId(ecu_serial);
 
       if (!hw_id) {
         // couldn't find any ECU with the given serial/ID
@@ -496,7 +485,7 @@ void SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
       // and the ECU performing the verification is the Primary ECU, check that
       // all listed ECU identifiers correspond to ECUs that are actually present
       // in the vehicle.
-      const auto hw_id_known = ecuHwId(ecu_serial);
+      const auto hw_id_known = getEcuHwId(ecu_serial);
       if (!hw_id_known) {
         LOG_ERROR << "Unknown ECU ID in Director Targets metadata: " << ecu_serial.ToString();
         throw Uptane::BadEcuId(target.filename());
@@ -1137,54 +1126,6 @@ bool SotaUptaneClient::putManifest(const Json::Value &custom) {
   return success;
 }
 
-// Check stored Secondaries list against Secondaries known to aktualizr.
-void SotaUptaneClient::verifySecondaries() {
-  storage->clearMisconfiguredEcus();
-  EcuSerials serials;
-  if (!storage->loadEcuSerials(&serials) || serials.empty()) {
-    LOG_ERROR << "No ECU serials found in storage!";
-    return;
-  }
-
-  std::vector<MisconfiguredEcu> misconfigured_ecus;
-  std::vector<bool> found(serials.size(), false);
-  SerialCompare primary_comp(primaryEcuSerial());
-  EcuSerials::const_iterator store_it;
-  store_it = std::find_if(serials.cbegin(), serials.cend(), primary_comp);
-  if (store_it == serials.cend()) {
-    LOG_ERROR << "Primary ECU serial " << primaryEcuSerial() << " not found in storage!";
-    misconfigured_ecus.emplace_back(primaryEcuSerial(), Uptane::HardwareIdentifier(""), EcuState::kOld);
-  } else {
-    found[static_cast<size_t>(std::distance(serials.cbegin(), store_it))] = true;
-  }
-
-  for (auto it = secondaries.cbegin(); it != secondaries.cend(); ++it) {
-    SerialCompare secondary_comp(it->second->getSerial());
-    store_it = std::find_if(serials.cbegin(), serials.cend(), secondary_comp);
-    if (store_it == serials.cend()) {
-      LOG_ERROR << "Secondary ECU serial " << it->second->getSerial() << " (hardware ID " << it->second->getHwId()
-                << ") not found in storage!";
-      misconfigured_ecus.emplace_back(it->second->getSerial(), it->second->getHwId(), EcuState::kNotRegistered);
-    } else if (found[static_cast<size_t>(std::distance(serials.cbegin(), store_it))]) {
-      LOG_ERROR << "Secondary ECU serial " << it->second->getSerial() << " (hardware ID " << it->second->getHwId()
-                << ") has a duplicate entry in storage!";
-    } else {
-      found[static_cast<size_t>(std::distance(serials.cbegin(), store_it))] = true;
-    }
-  }
-
-  std::vector<bool>::iterator found_it;
-  for (found_it = found.begin(); found_it != found.end(); ++found_it) {
-    if (!*found_it) {
-      auto not_registered = serials[static_cast<size_t>(std::distance(found.begin(), found_it))];
-      LOG_WARNING << "ECU serial " << not_registered.first << " in storage was not reported to aktualizr!";
-      misconfigured_ecus.emplace_back(not_registered.first, not_registered.second, EcuState::kOld);
-    }
-  }
-
-  storage->storeMisconfiguredEcus(misconfigured_ecus);
-}
-
 bool SotaUptaneClient::waitSecondariesReachable(const std::vector<Uptane::Target> &updates) {
   std::map<Uptane::EcuSerial, Uptane::SecondaryInterface *> targeted_secondaries;
   const Uptane::EcuSerial &primary_ecu_serial = primaryEcuSerial();
@@ -1505,7 +1446,7 @@ void SotaUptaneClient::checkAndUpdatePendingSecondaries() {
   }
 }
 
-boost::optional<Uptane::HardwareIdentifier> SotaUptaneClient::ecuHwId(const Uptane::EcuSerial &serial) const {
+boost::optional<Uptane::HardwareIdentifier> SotaUptaneClient::getEcuHwId(const Uptane::EcuSerial &serial) const {
   if (serial == primary_ecu_serial_ || serial.ToString().empty()) {
     if (primary_ecu_hw_id_ == Uptane::HardwareIdentifier::Unknown()) {
       return boost::none;

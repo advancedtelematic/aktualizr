@@ -740,13 +740,13 @@ TEST(Uptane, UptaneSecondaryMisconfigured) {
     storage->loadMisconfiguredEcus(&ecus);
     EXPECT_EQ(ecus.size(), 2);
     if (ecus[0].serial.ToString() == "new_secondary_ecu_serial") {
-      EXPECT_EQ(ecus[0].state, EcuState::kNotRegistered);
+      EXPECT_EQ(ecus[0].state, EcuState::kUnused);
       EXPECT_EQ(ecus[1].serial.ToString(), "secondary_ecu_serial");
       EXPECT_EQ(ecus[1].state, EcuState::kOld);
     } else if (ecus[0].serial.ToString() == "secondary_ecu_serial") {
       EXPECT_EQ(ecus[0].state, EcuState::kOld);
       EXPECT_EQ(ecus[1].serial.ToString(), "new_secondary_ecu_serial");
-      EXPECT_EQ(ecus[1].state, EcuState::kNotRegistered);
+      EXPECT_EQ(ecus[1].state, EcuState::kUnused);
     } else {
       FAIL() << "Unexpected Secondary serial in storage: " << ecus[0].serial.ToString();
     }

@@ -158,9 +158,11 @@ TEST(Aktualizr, AddSecondary) {
   }
   EXPECT_EQ(expected_ecus.size(), 0);
 
+  // Historically, adding Secondaries after provisioning was not supported. Now
+  // it is.
   ecu_config.ecu_serial = "ecuserial4";
   auto sec4 = std::make_shared<Primary::VirtualSecondary>(ecu_config);
-  EXPECT_THROW(aktualizr.AddSecondary(sec4), std::logic_error);
+  EXPECT_NO_THROW(aktualizr.AddSecondary(sec4));
 }
 
 /*

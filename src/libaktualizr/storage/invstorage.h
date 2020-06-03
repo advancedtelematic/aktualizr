@@ -24,7 +24,9 @@ using load_data_t = bool (INvStorage::*)(std::string*) const;
 
 typedef std::vector<std::pair<Uptane::EcuSerial, Uptane::HardwareIdentifier>> EcuSerials;
 
-enum class EcuState { kOld = 0, kNotRegistered };
+// kUnused was previously kNotRegistered, but re-registration is now possible so
+// that is no longer a misconfiguration.
+enum class EcuState { kOld = 0, kUnused };
 
 struct MisconfiguredEcu {
   MisconfiguredEcu(Uptane::EcuSerial serial_in, Uptane::HardwareIdentifier hardware_id_in, EcuState state_in)
@@ -109,7 +111,7 @@ class INvStorage {
   virtual void storeCachedEcuManifest(const Uptane::EcuSerial& ecu_serial, const std::string& manifest) = 0;
   virtual bool loadCachedEcuManifest(const Uptane::EcuSerial& ecu_serial, std::string* manifest) const = 0;
 
-  virtual void storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecus) = 0;
+  virtual void saveMisconfiguredEcu(const MisconfiguredEcu& ecu) = 0;
   virtual bool loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) const = 0;
   virtual void clearMisconfiguredEcus() = 0;
 

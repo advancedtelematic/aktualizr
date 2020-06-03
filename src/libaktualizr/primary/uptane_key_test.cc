@@ -151,7 +151,8 @@ TEST(UptaneKey, RecoverWithoutKeys) {
   {
     auto storage = INvStorage::newStorage(config.storage);
     auto sota_client = std_::make_unique<UptaneTestCommon::TestUptaneClient>(config, storage, http);
-
+    sota_client->addSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config1));
+    sota_client->addSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config2));
     EXPECT_NO_THROW(sota_client->initialize());
     UptaneKey_Check_Test::checkKeyTests(storage, *sota_client);
 
@@ -167,7 +168,8 @@ TEST(UptaneKey, RecoverWithoutKeys) {
   {
     auto storage = INvStorage::newStorage(config.storage);
     auto sota_client = std_::make_unique<UptaneTestCommon::TestUptaneClient>(config, storage, http);
-
+    sota_client->addSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config1));
+    sota_client->addSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config2));
     EXPECT_NO_THROW(sota_client->initialize());
     UptaneKey_Check_Test::checkKeyTests(storage, *sota_client);
   }

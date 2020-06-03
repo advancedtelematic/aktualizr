@@ -63,7 +63,7 @@ class SQLStorage : public SQLStorageBase, public INvStorage {
   void clearEcuSerials() override;
   void storeCachedEcuManifest(const Uptane::EcuSerial& ecu_serial, const std::string& manifest) override;
   bool loadCachedEcuManifest(const Uptane::EcuSerial& ecu_serial, std::string* manifest) const override;
-  void storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecus) override;
+  void saveMisconfiguredEcu(const MisconfiguredEcu& ecu) override;
   bool loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) const override;
   void clearMisconfiguredEcus() override;
   void storeEcuRegistered() override;

@@ -172,7 +172,9 @@ void INvStorage::FSSToSQLS(FSStorageRead& fs_storage, SQLStorage& sql_storage) {
 
   std::vector<MisconfiguredEcu> ecus;
   if (fs_storage.loadMisconfiguredEcus(&ecus)) {
-    sql_storage.storeMisconfiguredEcus(ecus);
+    for (auto& ecu : ecus) {
+      sql_storage.saveMisconfiguredEcu(ecu);
+    }
   }
 
   std::vector<Uptane::Target> installed_versions;
