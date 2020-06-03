@@ -6,11 +6,11 @@
 #include "uptane_test_common.h"
 #include "utilities/utils.h"
 
-boost::filesystem::path uptane_repos_dir;
 boost::filesystem::path fake_meta_dir;
 
 /* This tests that a device that had an IP Secondary will still find it after
- * recent changes, even if it does not connect when the device starts. */
+ * recent changes, even if it does not connect when the device starts. Note that
+ * this is only supported for a single IP Secondary. */
 TEST(PrimarySecondaryReg, SecondariesMigration) {
   const Uptane::EcuSerial primary_serial{"p_serial"};
   const Uptane::EcuSerial secondary_serial{"s_serial"};
@@ -38,7 +38,7 @@ TEST(PrimarySecondaryReg, SecondariesMigration) {
   Json::Value sec_conf;
 
   {
-    // prepare storage the "old" way:
+    // Prepare storage the "old" way (without the secondary_ecus table):
     storage->storeDeviceId("device");
     storage->storeEcuSerials({{primary_serial, primary_hwid}, {secondary_serial, secondary_hwid}});
     storage->storeEcuRegistered();
@@ -51,9 +51,8 @@ TEST(PrimarySecondaryReg, SecondariesMigration) {
   }
 
   {
-    // verifies that aktualizr can still start if it can't connect to its
-    // secondary
-
+    // Verify that aktualizr can still start if it can't connect to its
+    // Secondary:
     UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
     Primary::initSecondaries(aktualizr, sec_conf_path);
     aktualizr.Initialize();
@@ -65,53 +64,11 @@ TEST(PrimarySecondaryReg, SecondariesMigration) {
     EXPECT_EQ(secs_info[0].type, "IP");
     EXPECT_EQ(secs_info[0].extra, R"({"ip":"127.0.0.1","port":9061})");
   }
-
-  const Uptane::EcuSerial secondary_serial2{"s_serial2"};
-  const Uptane::HardwareIdentifier secondary_hwid2{"s_hwid2"};
-  {
-    // prepare the storage the "old" way with two secondaries
-    storage->clearEcuSerials();
-    storage->storeEcuSerials({
-        {primary_serial, primary_hwid},
-        {secondary_serial, secondary_hwid},
-        {secondary_serial2, secondary_hwid2},
-    });
-
-    sec_conf["IP"]["secondaries"][1]["addr"] = "127.0.0.1:9062";
-    Utils::writeFile(sec_conf_path, sec_conf);
-  }
-
-  {
-    UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
-
-    // this will fail to actually register the secondaries as there is no way to
-    // tell them apart (since they haven't connected)
-    // however, we still allow aktualizr to go through in case we would like to
-    // update the primary, to maybe fix this situation
-    Primary::initSecondaries(aktualizr, sec_conf_path);
-    aktualizr.Initialize();
-    aktualizr.CheckUpdates().get();
-
-    // there was no way to correlate info here
-    std::vector<SecondaryInfo> secs_info;
-    storage->loadSecondariesInfo(&secs_info);
-    EXPECT_EQ(secs_info[0].serial.ToString(), secondary_serial.ToString());
-    EXPECT_EQ(secs_info[0].type, "");
-    EXPECT_EQ(secs_info[0].extra, "");
-    EXPECT_EQ(secs_info[1].serial.ToString(), secondary_serial2.ToString());
-    EXPECT_EQ(secs_info[1].type, "");
-    EXPECT_EQ(secs_info[1].extra, "");
-  }
 }
 
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  if (argc != 2) {
-    std::cerr << "Error: " << argv[0] << " requires the path to the base directory of Uptane repos.\n";
-    return EXIT_FAILURE;
-  }
-  uptane_repos_dir = argv[1];
 
   logger_init();
   logger_set_threshold(boost::log::trivial::trace);

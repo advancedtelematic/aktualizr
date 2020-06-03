@@ -174,25 +174,21 @@ TEST(Aktualizr, DeviceInstallationResult) {
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
-
   EcuSerials serials{
-      {Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")},
+      {Uptane::EcuSerial("CA:FE:A6:D2:84:9D"), Uptane::HardwareIdentifier("primary_hw")},
       {Uptane::EcuSerial("secondary_ecu_serial"), Uptane::HardwareIdentifier("secondary_hw")},
       {Uptane::EcuSerial("ecuserial3"), Uptane::HardwareIdentifier("hw_id3")},
   };
   storage->storeEcuSerials(serials);
 
   UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
-
   Primary::VirtualSecondaryConfig ecu_config = virtual_configuration(temp_dir.Path());
-
   aktualizr.AddSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config));
-
   aktualizr.Initialize();
 
   storage->saveEcuInstallationResult(Uptane::EcuSerial("ecuserial3"), data::InstallationResult());
-  storage->saveEcuInstallationResult(Uptane::EcuSerial("primary"), data::InstallationResult());
-  storage->saveEcuInstallationResult(Uptane::EcuSerial("primary"),
+  storage->saveEcuInstallationResult(Uptane::EcuSerial("CA:FE:A6:D2:84:9D"), data::InstallationResult());
+  storage->saveEcuInstallationResult(Uptane::EcuSerial("CA:FE:A6:D2:84:9D"),
                                      data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, ""));
 
   data::InstallationResult result;

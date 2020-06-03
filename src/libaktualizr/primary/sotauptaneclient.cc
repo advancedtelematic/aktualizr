@@ -406,8 +406,8 @@ void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult 
     if (!storage->loadEcuInstallationResults(&ecu_results)) {
       // failed to load ECUs' installation result
       device_installation_result = data::InstallationResult(data::ResultCode::Numeric::kInternalError,
-                                                            "Unable to get installation results from ecus");
-      raw_ir = "Failed to load ECUs' installation result";
+                                                            "Unable to get installation results from ECUs");
+      raw_ir = "Failed to load ECU installation results";
 
       break;
     }
@@ -425,7 +425,7 @@ void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult 
         device_installation_result = data::InstallationResult(data::ResultCode::Numeric::kInternalError,
                                                               "Unable to get installation results from ECUs");
 
-        raw_ir = "Couldn't find any ECU with the given serial: " + ecu_serial.ToString();
+        raw_ir = "Failed to find an ECU with the given serial: " + ecu_serial.ToString();
 
         break;
       }
