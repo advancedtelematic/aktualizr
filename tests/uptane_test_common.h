@@ -87,6 +87,22 @@ struct UptaneTestCommon {
     return ecu_config;
   }
 
+  static Primary::VirtualSecondaryConfig altVirtualConfiguration(const boost::filesystem::path& client_dir) {
+    Primary::VirtualSecondaryConfig ecu_config;
+
+    ecu_config.partial_verifying = false;
+    ecu_config.full_client_dir = client_dir;
+    ecu_config.ecu_serial = "ecuserial3";
+    ecu_config.ecu_hardware_id = "hw_id3";
+    ecu_config.ecu_private_key = "sec.priv";
+    ecu_config.ecu_public_key = "sec.pub";
+    ecu_config.firmware_path = client_dir / "firmware.txt";
+    ecu_config.target_name_path = client_dir / "firmware_name.txt";
+    ecu_config.metadata_path = client_dir / "secondary_metadata";
+
+    return ecu_config;
+  }
+
   static Config makeTestConfig(const TemporaryDirectory& temp_dir, const std::string& url) {
     Config conf("tests/config/basic.toml");
     conf.uptane.director_server = url + "/director";

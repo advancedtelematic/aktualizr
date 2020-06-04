@@ -20,6 +20,9 @@ add_aktualizr_test(NAME aktualizr SOURCES aktualizr_test.cc PROJECT_WORKING_DIRE
 add_dependencies(t_aktualizr uptane_repo_full_no_correlation_id)
 target_link_libraries(t_aktualizr virtual_secondary)
 
+add_aktualizr_test(NAME reregistration SOURCES reregistration_test.cc PROJECT_WORKING_DIRECTORY LIBRARIES uptane_generator_lib)
+target_link_libraries(t_reregistration virtual_secondary)
+
 if (BUILD_OSTREE)
     add_aktualizr_test(NAME aktualizr_fullostree SOURCES aktualizr_fullostree_test.cc PROJECT_WORKING_DIRECTORY ARGS $<TARGET_FILE:uptane-generator> ${PROJECT_BINARY_DIR}/ostree_repo)
     set_target_properties(t_aktualizr_fullostree PROPERTIES LINK_FLAGS -Wl,--export-dynamic)
