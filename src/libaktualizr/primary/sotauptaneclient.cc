@@ -487,6 +487,9 @@ void SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
       // in the vehicle.
       const auto hw_id_known = getEcuHwId(ecu_serial);
       if (!hw_id_known) {
+        // This is triggered if a Secondary is removed after an update was
+        // installed on it because of the empty targets optimization.
+        // Thankfully if the Director issues new Targets, it fixes itself.
         LOG_ERROR << "Unknown ECU ID in Director Targets metadata: " << ecu_serial.ToString();
         throw Uptane::BadEcuId(target.filename());
       }
