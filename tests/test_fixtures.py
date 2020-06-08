@@ -183,7 +183,7 @@ class Aktualizr:
         device_status = self.get_info()
         if not ((device_status.find(ecu_id[0]) != -1) and (device_status.find(ecu_id[1]) != -1)):
             return False
-        not_registered_field = "Removed or not registered ECUs:"
+        not_registered_field = "Removed or unregistered ECUs (deprecated):"
         not_reg_start = device_status.find(not_registered_field)
         return not_reg_start == -1 or (device_status.find(ecu_id[1], not_reg_start) == -1)
 
