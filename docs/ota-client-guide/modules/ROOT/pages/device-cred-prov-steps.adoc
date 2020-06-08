@@ -27,6 +27,6 @@ We'll need to register this certificate for your account so that OTA Connect can
 * *xref:enable-device-cred-provisioning.adoc[Install your device certificates on devices]*
 +
 The installation process happens outside of OTA Connect but we can give you some pointers on how to set up this process.
-* *xref:enable-device-cred-provisioning.adoc[Configure the OTA Connect client to use your device certificates for provisioning]*
+* *Configure the OTA Connect client to use your device certificates for provisioning*
 +
-We show you how to do this with or without an HSM.
+If you followed the example in the previous step, the client will already be configured. For custom setups, you may need to do some xref:aktualizr-config-options.adoc[manual configuration].
