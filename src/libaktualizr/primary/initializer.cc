@@ -11,21 +11,28 @@
 
 // Postcondition: device_id is in the storage
 void Initializer::initDeviceId() {
-  // if device_id is already stored, just return
+  // If device_id is already stored, just return.
   std::string device_id;
   if (storage_->loadDeviceId(&device_id)) {
     return;
   }
 
-  // if device_id is specified in config, just use it, otherwise generate a  random one
+  // If device_id is specified in the config, use that.
   device_id = config_.device_id;
   if (device_id.empty()) {
-    if (config_.mode == ProvisionMode::kSharedCred) {
-      device_id = Utils::genPrettyName();
-    } else if (config_.mode == ProvisionMode::kDeviceCred) {
+    // Otherwise, try to read the device certificate if it is available.
+    try {
       device_id = keys_.getCN();
-    } else {
-      throw Error("Unknown provisioning method");
+    } catch (const std::exception& e) {
+      // No certificate: for device credential provisioning, abort. For shared
+      // credential provisioning, generate a random name.
+      if (config_.mode == ProvisionMode::kSharedCred) {
+        device_id = Utils::genPrettyName();
+      } else if (config_.mode == ProvisionMode::kDeviceCred) {
+        throw e;
+      } else {
+        throw Error("Unknown provisioning method");
+      }
     }
   }
 
