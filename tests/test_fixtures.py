@@ -97,6 +97,7 @@ class Aktualizr:
 
     [pacman]
     type = "{pacman_type}"
+    images_path = "{storage_dir}/images"
     sysroot = "{ostree_sysroot}"
     ostree_server = "{treehub_server}"
     os = "dummy-os"

@@ -101,6 +101,7 @@ TEST_P(UptaneVector, Test) {
   config.uptane.repo_server = address + test_name + "/image_repo";
   config.storage.path = temp_dir.Path();
   config.storage.uptane_metadata_path = BasedPath(temp_dir.Path() / "metadata");
+  config.pacman.images_path = temp_dir.Path() / "images";
   config.pacman.type = PACKAGE_MANAGER_NONE;
   logger_set_threshold(boost::log::trivial::trace);
 
