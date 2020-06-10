@@ -82,7 +82,7 @@ Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, int con_fd) {
   Asn1Message::Ptr msg = Asn1Message::FromRaw(&m);
 
   if (res.code != RC_OK) {
-    LOG_ERROR << "Asn1Rpc decoding failed";
+    LOG_DEBUG << "Asn1Rpc decoding failed";
     msg->present(AKIpUptaneMes_PR_NOTHING);
   }
 

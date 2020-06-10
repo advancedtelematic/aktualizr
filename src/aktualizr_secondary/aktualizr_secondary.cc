@@ -194,6 +194,9 @@ void AktualizrSecondary::registerHandlers() {
   registerHandler(AKIpUptaneMes_PR_getInfoReq,
                   std::bind(&AktualizrSecondary::getInfoHdlr, this, std::placeholders::_1, std::placeholders::_2));
 
+  registerHandler(AKIpUptaneMes_PR_versionReq,
+                  std::bind(&AktualizrSecondary::versionHdlr, this, std::placeholders::_1, std::placeholders::_2));
+
   registerHandler(AKIpUptaneMes_PR_manifestReq,
                   std::bind(&AktualizrSecondary::getManifestHdlr, this, std::placeholders::_1, std::placeholders::_2));
 
@@ -208,13 +211,31 @@ MsgHandler::ReturnCode AktualizrSecondary::getInfoHdlr(Asn1Message& in_msg, Asn1
   (void)in_msg;
 
   out_msg.present(AKIpUptaneMes_PR_getInfoResp);
-
   auto info_resp = out_msg.getInfoResp();
 
   SetString(&info_resp->ecuSerial, serial().ToString());
   SetString(&info_resp->hwId, hwID().ToString());
   info_resp->keyType = static_cast<AKIpUptaneKeyType_t>(publicKey().Type());
   SetString(&info_resp->key, publicKey().Value());
+
+  return ReturnCode::kOk;
+}
+
+MsgHandler::ReturnCode AktualizrSecondary::versionHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+  const uint32_t version = 2;
+  auto version_req = in_msg.versionReq();
+  const auto primary_version = static_cast<uint32_t>(version_req->version);
+  if (primary_version < version) {
+    LOG_ERROR << "Primary protocol version is " << primary_version << " but Secondary version is " << version
+              << "! Communication will most likely fail!";
+  } else if (primary_version > version) {
+    LOG_INFO << "Primary protocol version is " << primary_version << " but Secondary version is " << version
+             << ". Please consider upgrading the Secondary.";
+  }
+
+  out_msg.present(AKIpUptaneMes_PR_versionResp);
+  auto version_resp = out_msg.versionResp();
+  version_resp->version = version;
 
   return ReturnCode::kOk;
 }
