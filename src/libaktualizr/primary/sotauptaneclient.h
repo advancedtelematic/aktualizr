@@ -75,6 +75,16 @@ class SotaUptaneClient {
   void completeInstall() const;
   Uptane::LazyTargetsList allTargets() const;
   Uptane::Target getCurrent() const { return package_manager_->getCurrent(); }
+  std::vector<Uptane::Target> getStoredTargets() const { return package_manager_->getTargetFiles(); }
+  void deleteStoredTarget(const Uptane::Target &target) { package_manager_->removeTargetFile(target); }
+  std::ifstream openStoredTarget(const Uptane::Target &target) {
+    auto status = package_manager_->verifyTarget(target);
+    if (status == TargetStatus::kGood) {
+      return package_manager_->openTargetFile(target);
+    } else {
+      throw std::runtime_error("Failed to open Target");
+    }
+  }
 
   void updateImageMeta();  // TODO: make private once aktualizr has a proper TUF API
   void checkImageMetaOffline();

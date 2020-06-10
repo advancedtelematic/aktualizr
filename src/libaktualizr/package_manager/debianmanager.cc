@@ -17,11 +17,13 @@ data::InstallationResult DebianManager::install(const Uptane::Target &target) co
   std::string cmd = "dpkg -i ";
   std::string output;
   TemporaryDirectory package_dir("deb_dir");
-  auto target_file = storage_->openTargetFile(target);
+  auto target_file = openTargetFile(target);
 
   boost::filesystem::path deb_path = package_dir / target.filename();
-  target_file->writeToFile(deb_path);
-  target_file->rclose();
+  std::ofstream deb_file(deb_path.string(), std::ios::binary);
+  deb_file << target_file.rdbuf();
+  target_file.close();
+  deb_file.close();
 
   int status = Utils::shell(cmd + deb_path.string(), &output, true);
   if (status == 0) {

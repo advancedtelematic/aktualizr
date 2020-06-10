@@ -466,110 +466,24 @@ TEST(storage, load_store_installation_results) {
   EXPECT_FALSE(storage->loadDeviceInstallationResult(&dev_res, &report, &correlation_id));
 }
 
-/* Load and store targets. */
-TEST(storage, store_target) {
+TEST(storage, downloaded_files_info) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
-  Json::Value target_json;
-  target_json["hashes"]["sha256"] = "hash";
-  target_json["length"] = 2;
-  Uptane::Target target("some.deb", target_json);
+  storage->storeTargetFilename("target1", "file1");
+  storage->storeTargetFilename("target2", "file2");
+  ASSERT_EQ(storage->getTargetFilename("target1"), "file1");
+  ASSERT_EQ(storage->getTargetFilename("target2"), "file2");
 
-  // write
-  {
-    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(target);
-    const uint8_t wb[] = "ab";
-    fhandle->wfeed(wb, 1);
-    fhandle->wfeed(wb + 1, 1);
-    fhandle->wcommit();
-  }
+  auto names = storage->getAllTargetNames();
+  ASSERT_EQ(names.size(), 2);
+  ASSERT_EQ(names.at(0), "target1");
+  ASSERT_EQ(names.at(1), "target2");
 
-  // read
-  {
-    std::unique_ptr<StorageTargetRHandle> rhandle = storage->openTargetFile(target);
-    uint8_t rb[3] = {0};
-    EXPECT_EQ(rhandle->rsize(), 2);
-    rhandle->rread(rb, 1);
-    rhandle->rread(rb + 1, 1);
-    rhandle->rclose();
-    EXPECT_STREQ(reinterpret_cast<char *>(rb), "ab");
-  }
-
-  // write again
-  {
-    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(target);
-    const uint8_t wb[] = "ab";
-    fhandle->wfeed(wb, 1);
-    fhandle->wfeed(wb + 1, 1);
-    fhandle->wcommit();
-  }
-
-  // delete
-  {
-    storage->removeTargetFile(target.filename());
-    EXPECT_THROW(storage->openTargetFile(target), StorageTargetRHandle::ReadError);
-    EXPECT_THROW(storage->removeTargetFile(target.filename()), std::runtime_error);
-  }
-
-  // write stream
-  {
-    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(target);
-    std::stringstream("ab") >> *fhandle;
-  }
-
-  // read stream
-  {
-    std::stringstream sstr;
-    std::unique_ptr<StorageTargetRHandle> rhandle = storage->openTargetFile(target);
-    sstr << *rhandle;
-    EXPECT_STREQ(sstr.str().c_str(), "ab");
-  }
-}
-
-/*
- * List targets currently in storage.
- * Remove a target binary from storage.
- */
-TEST(storage, list_remove_targets) {
-  TemporaryDirectory temp_dir;
-  std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
-
-  Json::Value target_json;
-  target_json["hashes"]["sha256"] = "HASH";
-  target_json["length"] = 2;
-  Uptane::Target target("some.deb", target_json);
-
-  auto tfs = storage->getTargetFiles();
-  EXPECT_EQ(tfs.size(), 0);
-
-  // write
-  {
-    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(target);
-    const uint8_t wb[] = "ab";
-    fhandle->wfeed(wb, 1);
-    fhandle->wfeed(wb + 1, 1);
-    fhandle->wcommit();
-  }
-
-  tfs = storage->getTargetFiles();
-  ASSERT_EQ(tfs.size(), 1);
-
-  auto tf = tfs.at(0);
-
-  EXPECT_EQ(tf.filename(), "some.deb");
-  EXPECT_EQ(tf.length(), 2);
-  EXPECT_EQ(tf.hashes().size(), 1);
-  EXPECT_EQ(tf.hashes().at(0), Hash(Hash::Type::kSha256, "HASH"));
-
-  // note: implementation specific
-  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "images" / "HASH"));
-
-  storage->removeTargetFile(tf.filename());
-
-  tfs = storage->getTargetFiles();
-  EXPECT_EQ(tfs.size(), 0);
-  EXPECT_FALSE(boost::filesystem::exists(temp_dir.Path() / "images" / "HASH"));
+  storage->deleteTargetInfo("target1");
+  names = storage->getAllTargetNames();
+  ASSERT_EQ(names.size(), 1);
+  ASSERT_EQ(names.at(0), "target2");
 }
 
 TEST(storage, load_store_secondary_info) {
@@ -610,103 +524,6 @@ TEST(storage, load_store_secondary_info) {
   ASSERT_EQ(sec_infos.size(), 2);
   EXPECT_EQ(sec_infos[0].pub_key.Value(), "key2");
   EXPECT_EQ(sec_infos[0].extra, "data1");
-}
-
-TEST(storage, checksum) {
-  TemporaryDirectory temp_dir;
-  std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
-
-  Json::Value target_json1;
-  target_json1["hashes"]["sha256"] = "hash1";
-  target_json1["length"] = 2;
-  Uptane::Target target1("some.deb", target_json1);
-  Json::Value target_json2;
-  target_json2["length"] = 2;
-  target_json2["hashes"]["sha256"] = "hash2";
-  Uptane::Target target2("some.deb", target_json2);
-
-  // write target1
-  {
-    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(target1);
-    const uint8_t wb[] = "ab";
-    fhandle->wfeed(wb, 2);
-    fhandle->wcommit();
-  }
-
-  // read target 1
-  {
-    std::unique_ptr<StorageTargetRHandle> rhandle = storage->openTargetFile(target1);
-    uint8_t rb[3] = {0};
-    EXPECT_EQ(rhandle->rsize(), 2);
-    rhandle->rread(rb, 2);
-    rhandle->rclose();
-    EXPECT_STREQ(reinterpret_cast<char *>(rb), "ab");
-  }
-
-  // read target 2
-  { EXPECT_THROW(storage->openTargetFile(target2), StorageTargetRHandle::ReadError); }
-}
-
-TEST(storage, partial) {
-  TemporaryDirectory temp_dir;
-  std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
-
-  Json::Value target_json;
-  target_json["hashes"]["sha256"] = "hash1";
-  target_json["length"] = 3;
-  Uptane::Target target("some.deb", target_json);
-
-  // write partial target
-  {
-    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(target);
-    const uint8_t wb[] = "a";
-    fhandle->wfeed(wb, 1);
-    fhandle->wcommit();
-  }
-
-  // read and check partial target
-  {
-    std::unique_ptr<StorageTargetRHandle> rhandle = storage->openTargetFile(target);
-    uint8_t rb[2] = {0};
-    EXPECT_EQ(rhandle->rsize(), 1);
-    EXPECT_TRUE(rhandle->isPartial());
-    rhandle->rread(rb, 1);
-    rhandle->rclose();
-    EXPECT_STREQ(reinterpret_cast<char *>(rb), "a");
-  }
-
-  // Append without committing, should commit in whandle destructor
-  {
-    std::unique_ptr<StorageTargetWHandle> whandle = storage->openTargetFile(target)->toWriteHandle();
-    const uint8_t wb[] = "b";
-    whandle->wfeed(wb, 1);
-  }
-
-  // read and check partial target
-  {
-    std::unique_ptr<StorageTargetRHandle> rhandle = storage->openTargetFile(target);
-    uint8_t rb[3] = {0};
-    EXPECT_EQ(rhandle->rsize(), 2);
-    EXPECT_TRUE(rhandle->isPartial());
-    rhandle->rread(rb, 2);
-    rhandle->rclose();
-    EXPECT_STREQ(reinterpret_cast<char *>(rb), "ab");
-  }
-
-  // Append partial
-  {
-    std::unique_ptr<StorageTargetWHandle> whandle = storage->openTargetFile(target)->toWriteHandle();
-    const uint8_t wb[] = "c";
-    whandle->wfeed(wb, 1);
-    whandle->wcommit();
-  }
-
-  // Check full target
-  {
-    std::unique_ptr<StorageTargetRHandle> rhandle = storage->openTargetFile(target);
-    EXPECT_EQ(rhandle->rsize(), 3);
-    EXPECT_FALSE(rhandle->isPartial());
-  }
 }
 
 /* Import keys and credentials from file into storage. */

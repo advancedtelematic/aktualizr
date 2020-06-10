@@ -10,3 +10,4 @@ path = "storage"
 
 [pacman]
 type = "none"
+images_path = "storage/images"

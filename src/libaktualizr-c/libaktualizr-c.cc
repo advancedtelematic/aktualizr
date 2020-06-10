@@ -200,8 +200,8 @@ StorageTargetHandle *Aktualizr_open_stored_target(Aktualizr *a, const Target *t)
   }
 
   try {
-    auto handle = a->OpenStoredTarget(*t);
-    return handle.release();
+    auto stream = new auto(a->OpenStoredTarget(*t));
+    return stream;
   } catch (const std::exception &e) {
     std::cerr << "Aktualizr_open_stored_target exception: " << e.what() << std::endl;
     return nullptr;
@@ -210,7 +210,8 @@ StorageTargetHandle *Aktualizr_open_stored_target(Aktualizr *a, const Target *t)
 
 size_t Aktualizr_read_stored_target(StorageTargetHandle *handle, uint8_t *buf, size_t size) {
   if (handle != nullptr && buf != nullptr) {
-    return handle->rread(buf, size);
+    handle->read(reinterpret_cast<char *>(buf), static_cast<std::streamsize>(size));
+    return static_cast<size_t>(handle->gcount());
   } else {
     std::cerr << "Aktualizr_read_stored_target failed: invalid input " << (handle == nullptr ? "handle" : "buffer")
               << std::endl;
@@ -220,7 +221,7 @@ size_t Aktualizr_read_stored_target(StorageTargetHandle *handle, uint8_t *buf, s
 
 int Aktualizr_close_stored_target(StorageTargetHandle *handle) {
   if (handle != nullptr) {
-    handle->rclose();
+    handle->close();
     delete handle;
     return 0;
   } else {

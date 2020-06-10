@@ -157,7 +157,7 @@ bool DockerAppStandalone::fetchTarget(const Uptane::Target &target, Uptane::Fetc
       return false;
     }
     std::stringstream ss;
-    ss << *storage_->openTargetFile(app_target);
+    ss << openTargetFile(app_target).rdbuf();
     DockerApp dapp(app, config);
     return dapp.render(ss.str(), true) && dapp.fetch();
   };

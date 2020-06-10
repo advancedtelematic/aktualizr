@@ -1194,6 +1194,7 @@ TEST(Aktualizr, FullMultipleSecondaries) {
   conf.provision.primary_ecu_serial = "testecuserial";
   conf.provision.primary_ecu_hardware_id = "testecuhwid";
   conf.storage.path = temp_dir.Path();
+  conf.pacman.images_path = temp_dir.Path() / "images";
   conf.tls.server = http->tls_server;
   conf.uptane.director_server = http->tls_server + "/director";
   conf.uptane.repo_server = http->tls_server + "/repo";
@@ -1821,7 +1822,7 @@ TEST(Aktualizr, InstallWithUpdates) {
   primary_json["hashes"]["sha512"] =
       "91814ad1c13ebe2af8d65044893633c4c3ce964edb8cb58b0f357406c255f7be94f42547e108b300346a42cd57662e4757b9d843b7acbc09"
       "0df0bc05fe55297f";
-  primary_json["length"] = 2;
+  primary_json["length"] = 59;
   Uptane::Target primary_target("primary_firmware.txt", primary_json);
 
   Json::Value secondary_json;
@@ -1829,7 +1830,7 @@ TEST(Aktualizr, InstallWithUpdates) {
   secondary_json["hashes"]["sha512"] =
       "7dbae4c36a2494b731a9239911d3085d53d3e400886edb4ae2b9b78f40bda446649e83ba2d81653f614cc66f5dd5d4dbd95afba854f148af"
       "bfae48d0ff4cc38a";
-  secondary_json["length"] = 2;
+  secondary_json["length"] = 15;
   Uptane::Target secondary_target("secondary_firmware.txt", secondary_json);
 
   // First try installing nothing. Nothing should happen.
@@ -1843,9 +1844,9 @@ TEST(Aktualizr, InstallWithUpdates) {
 
   result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
   aktualizr.Download(update_result.updates).get();
-  EXPECT_NE(aktualizr.OpenStoredTarget(primary_target).get(), nullptr)
+  EXPECT_NO_THROW(aktualizr.OpenStoredTarget(primary_target))
       << "Primary firmware is not present in storage after the download";
-  EXPECT_NE(aktualizr.OpenStoredTarget(secondary_target).get(), nullptr)
+  EXPECT_NO_THROW(aktualizr.OpenStoredTarget(secondary_target))
       << "Secondary firmware is not present in storage after the download";
 
   // After updates have been downloaded, try to install them.
