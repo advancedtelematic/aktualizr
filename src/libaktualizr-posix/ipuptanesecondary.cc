@@ -246,7 +246,8 @@ data::ResultCode::Numeric IpUptaneSecondary::sendFirmware_v1(const Uptane::Targe
     data_to_send = secondary_provider_->getTreehubCredentials();
   } else {
     std::stringstream sstr;
-    sstr << *secondary_provider_->getTargetFileHandle(target);
+    auto str = secondary_provider_->getTargetFileHandle(target);
+    sstr << str.rdbuf();
     data_to_send = sstr.str();
   }
 
@@ -352,18 +353,18 @@ data::ResultCode::Numeric IpUptaneSecondary::uploadFirmware(const Uptane::Target
 
   data::ResultCode::Numeric upload_result = data::ResultCode::Numeric::kDownloadFailed;
 
-  std::unique_ptr<StorageTargetRHandle> image_reader = secondary_provider_->getTargetFileHandle(target);
+  auto image_reader = secondary_provider_->getTargetFileHandle(target);
 
-  auto image_size = image_reader->rsize();
+  uint64_t image_size = target.length();
   const size_t size = 1024;
   size_t total_send_data = 0;
   std::array<uint8_t, size> buf{};
   data::ResultCode::Numeric upload_data_result = data::ResultCode::Numeric::kOk;
 
   while (total_send_data < image_size && upload_data_result == data::ResultCode::Numeric::kOk) {
-    auto read_data = image_reader->rread(buf.data(), buf.size());
-    upload_data_result = uploadFirmwareData(buf.data(), read_data);
-    total_send_data += read_data;
+    image_reader.read(reinterpret_cast<char*>(buf.data()), buf.size());
+    upload_data_result = uploadFirmwareData(buf.data(), static_cast<size_t>(image_reader.gcount()));
+    total_send_data += static_cast<size_t>(image_reader.gcount());
   }
   if (upload_data_result == data::ResultCode::Numeric::kOk && total_send_data == image_size) {
     upload_result = data::ResultCode::Numeric::kOk;
@@ -371,7 +372,7 @@ data::ResultCode::Numeric IpUptaneSecondary::uploadFirmware(const Uptane::Target
     upload_result = (upload_data_result != data::ResultCode::Numeric::kOk) ? upload_data_result
                                                                            : data::ResultCode::Numeric::kDownloadFailed;
   }
-  image_reader->rclose();
+  image_reader.close();
   return upload_result;
 }
 
