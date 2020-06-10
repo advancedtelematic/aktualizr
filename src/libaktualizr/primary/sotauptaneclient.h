@@ -43,7 +43,7 @@ class SotaUptaneClient {
         primary_ecu_serial_(primary_serial),
         primary_ecu_hw_id_(hwid) {
     report_queue = std_::make_unique<ReportQueue>(config, http, storage);
-    secondary_provider_ = std::make_shared<SecondaryProvider>(config, storage);
+    secondary_provider_ = std::make_shared<SecondaryProvider>(config, storage, package_manager_);
   }
 
   SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in,

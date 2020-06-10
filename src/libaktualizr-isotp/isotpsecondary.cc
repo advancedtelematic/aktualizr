@@ -158,9 +158,9 @@ data::ResultCode::Numeric IsoTpSecondary::install(const Target& target) {
   auto result = data::ResultCode::Numeric::kOk;
 
   try {
-    std::unique_ptr<StorageTargetRHandle> image_reader = secondary_provider_->getTargetFileHandle(target);
+    auto image_reader = secondary_provider_->getTargetFileHandle(target);
+    uint64_t image_size = target.length();
 
-    auto image_size = image_reader->rsize();
     size_t num_chunks = (image_size / kChunkSize) + (static_cast<bool>(image_size % kChunkSize) ? 1 : 0);
 
     if (num_chunks > 127) {
@@ -175,7 +175,7 @@ data::ResultCode::Numeric IsoTpSecondary::install(const Target& target) {
       out += static_cast<char>(i + 1);
 
       std::array<char, kChunkSize> buf{};
-      image_reader->rread(reinterpret_cast<uint8_t*>(buf.data()), kChunkSize);
+      image_reader.read(buf.data(), kChunkSize);
       out += std::string(buf.data());
 
       if (!conn.SendRecv(out, &in)) {

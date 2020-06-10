@@ -7,6 +7,8 @@
 #include "ipuptanesecondary.h"
 #include "logging/logging.h"
 #include "msg_handler.h"
+#include "package_manager/packagemanagerfactory.h"
+#include "package_manager/packagemanagerinterface.h"
 #include "secondary_tcp_server.h"
 #include "storage/invstorage.h"
 #include "test_utils.h"
@@ -334,6 +336,8 @@ class SecondaryRpcTest : public ::testing::Test, public ::testing::WithParamInte
     ip_secondary_ = Uptane::IpUptaneSecondary::connectAndCreate("localhost", secondary_server_.port());
 
     config_.pacman.ostree_server = server_;
+    config_.pacman.type = PACKAGE_MANAGER_NONE;
+    config_.pacman.images_path = temp_dir_.Path() / "images";
     config_.storage.path = temp_dir_.Path();
 
     storage_ = INvStorage::newStorage(config_.storage);
@@ -345,7 +349,8 @@ class SecondaryRpcTest : public ::testing::Test, public ::testing::WithParamInte
     storage_->storeNonRoot(image_snapshot_, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot());
     storage_->storeNonRoot(image_targets_, Uptane::RepositoryType::Image(), Uptane::Role::Targets());
 
-    secondary_provider_ = std::make_shared<SecondaryProvider>(config_, storage_);
+    package_manager_ = PackageManagerFactory::makePackageManager(config_.pacman, config_.bootloader, storage_, nullptr);
+    secondary_provider_ = std::make_shared<SecondaryProvider>(config_, storage_, package_manager_);
     ip_secondary_->init(secondary_provider_);
   }
 
@@ -377,11 +382,11 @@ class SecondaryRpcTest : public ::testing::Test, public ::testing::WithParamInte
     target_json["hashes"]["sha256"] = image_file_.hash().HashString();
     target_json["length"] = image_file_.size();
     Uptane::Target target = Uptane::Target(image_file_.path(), target_json);
-    std::unique_ptr<StorageTargetWHandle> fhandle = storage_->allocateTargetFile(target);
+
+    auto fhandle = package_manager_->createTargetFile(target);
     const std::string content = Utils::readFile(image_file_.path());
-    EXPECT_EQ(fhandle->wfeed(reinterpret_cast<uint8_t*>(const_cast<char*>(content.c_str())), image_file_.size()),
-              image_file_.size());
-    fhandle->wcommit();
+    fhandle.write(const_cast<char*>(content.c_str()), static_cast<std::streamsize>(image_file_.size()));
+    fhandle.close();
 
     EXPECT_TRUE(ip_secondary_->putMetadata(target));
     verifyMetadata(secondary_.metadata());
@@ -417,6 +422,7 @@ class SecondaryRpcTest : public ::testing::Test, public ::testing::WithParamInte
   TemporaryDirectory temp_dir_;
   std::shared_ptr<INvStorage> storage_;
   Config config_;
+  std::shared_ptr<PackageManagerInterface> package_manager_;
 };
 
 // Test the serialization/deserialization and the TCP/IP communication implementation
@@ -484,8 +490,13 @@ TEST(SecondaryTcpServer, TestIpSecondaryIfSecondaryIsNotRunning) {
   TemporaryDirectory temp_dir;
   Config config;
   config.storage.path = temp_dir.Path();
+  config.pacman.type = PACKAGE_MANAGER_NONE;
+  config.pacman.images_path = temp_dir.Path() / "images";
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
-  std::shared_ptr<SecondaryProvider> secondary_provider = std::make_shared<SecondaryProvider>(config, storage);
+  std::shared_ptr<PackageManagerInterface> package_manager =
+      PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr);
+  std::shared_ptr<SecondaryProvider> secondary_provider =
+      std::make_shared<SecondaryProvider>(config, storage, package_manager);
   ip_secondary->init(secondary_provider);
 
   TargetFile target_file("mytarget_image.img");
@@ -498,11 +509,11 @@ TEST(SecondaryTcpServer, TestIpSecondaryIfSecondaryIsNotRunning) {
   target_json["hashes"]["sha256"] = target_file.hash().HashString();
   target_json["length"] = target_file.size();
   Uptane::Target target = Uptane::Target(target_file.path(), target_json);
-  std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(target);
+
+  auto fhandle = package_manager->createTargetFile(target);
   const std::string content = Utils::readFile(target_file.path());
-  EXPECT_EQ(fhandle->wfeed(reinterpret_cast<uint8_t*>(const_cast<char*>(content.c_str())), target_file.size()),
-            target_file.size());
-  fhandle->wcommit();
+  fhandle.write(const_cast<char*>(content.c_str()), static_cast<std::streamsize>(target_file.size()));
+  fhandle.close();
 
   EXPECT_FALSE(ip_secondary->putMetadata(target));
   EXPECT_NE(ip_secondary->sendFirmware(target), data::ResultCode::Numeric::kOk);

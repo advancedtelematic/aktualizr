@@ -89,6 +89,6 @@ std::string SecondaryProvider::getTreehubCredentials() const {
   }
 }
 
-std::unique_ptr<StorageTargetRHandle> SecondaryProvider::getTargetFileHandle(const Uptane::Target& target) const {
-  return storage_->openTargetFile(target);
+std::ifstream SecondaryProvider::getTargetFileHandle(const Uptane::Target& target) const {
+  return package_manager_->openTargetFile(target);
 }

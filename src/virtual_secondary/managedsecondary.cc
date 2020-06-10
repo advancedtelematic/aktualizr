@@ -142,8 +142,12 @@ data::ResultCode::Numeric ManagedSecondary::install(const Uptane::Target &target
     return data::ResultCode::Numeric::kInstallFailed;
   }
 
-  auto handle = secondary_provider_->getTargetFileHandle(target);
-  handle->writeToFile(sconfig.firmware_path);
+  auto str = secondary_provider_->getTargetFileHandle(target);
+  std::ofstream out_file(sconfig.firmware_path.string(), std::ios::binary);
+  out_file << str.rdbuf();
+  str.close();
+  out_file.close();
+
   Utils::writeFile(sconfig.target_name_path, target.filename());
   return data::ResultCode::Numeric::kOk;
 }
