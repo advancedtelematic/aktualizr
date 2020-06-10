@@ -161,6 +161,7 @@ TEST(PackageManagerFake, FinalizeAfterReboot) {
   TemporaryDirectory temp_dir;
   Config config;
   config.pacman.type = PACKAGE_MANAGER_NONE;
+  config.pacman.images_path = temp_dir.Path() / "images";
   config.pacman.fake_need_reboot = true;
   config.bootloader.reboot_sentinel_dir = temp_dir.Path();
   config.storage.path = temp_dir.Path();
@@ -189,6 +190,7 @@ TEST(PackageManagerFake, DownloadFailureInjection) {
   TemporaryDirectory temp_dir;
   Config config;
   config.pacman.type = PACKAGE_MANAGER_NONE;
+  config.pacman.images_path = temp_dir.Path() / "images";
   config.storage.path = temp_dir.Path();
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -220,6 +222,7 @@ TEST(PackageManagerFake, InstallFailureInjection) {
   TemporaryDirectory temp_dir;
   Config config;
   config.pacman.type = PACKAGE_MANAGER_NONE;
+  config.pacman.images_path = temp_dir.Path() / "images";
   config.storage.path = temp_dir.Path();
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
 
