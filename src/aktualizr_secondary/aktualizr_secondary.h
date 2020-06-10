@@ -58,6 +58,7 @@ class AktualizrSecondary : public MsgDispatcher {
 
   // Message handlers
   ReturnCode getInfoHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
+  ReturnCode versionHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
   ReturnCode getManifestHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
   ReturnCode putMetaHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
   ReturnCode installHdlr(Asn1Message& in_msg, Asn1Message& out_msg);

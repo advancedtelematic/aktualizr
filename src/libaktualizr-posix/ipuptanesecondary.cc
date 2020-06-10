@@ -93,6 +93,46 @@ IpUptaneSecondary::IpUptaneSecondary(const std::string& address, unsigned short 
                                      HardwareIdentifier hw_id, PublicKey pub_key)
     : addr_{address, port}, serial_{std::move(serial)}, hw_id_{std::move(hw_id)}, pub_key_{std::move(pub_key)} {}
 
+/* Determine the best protocol version to use for this Secondary. This did not
+ * exist for v1 and thus only works for v2 and beyond. It would be great if we
+ * could just do this once, but we do not have a simple way to do that,
+ * especially because of Secondaries that need to reboot to complete
+ * installation. */
+void IpUptaneSecondary::getSecondaryVersion() const {
+  LOG_DEBUG << "Negotiating the protocol version with Secondary " << getSerial();
+  const uint32_t latest_version = 2;
+  Asn1Message::Ptr req(Asn1Message::Empty());
+  req->present(AKIpUptaneMes_PR_versionReq);
+  auto m = req->versionReq();
+  m->version = latest_version;
+  auto resp = Asn1Rpc(req, getAddr());
+
+  if (resp->present() != AKIpUptaneMes_PR_versionResp) {
+    // Bad response probably means v1, but make sure the Secondary is actually
+    // responsive before assuming that.
+    if (ping()) {
+      LOG_DEBUG << "Failed to get a response to a version request from Secondary " << getSerial()
+                << "; assuming version 1.";
+      protocol_version = 1;
+    } else {
+      LOG_INFO << "Failed to get a response to a version request from Secondary " << getSerial()
+               << "; unable to determine protocol version.";
+    }
+    return;
+  }
+
+  auto r = resp->versionResp();
+  const auto secondary_version = static_cast<uint32_t>(r->version);
+  if (secondary_version <= latest_version) {
+    LOG_DEBUG << "Using protocol version " << secondary_version << " for Secondary " << getSerial();
+    protocol_version = secondary_version;
+  } else {
+    LOG_ERROR << "Secondary protocol version is " << secondary_version << " but Primary only supports up to "
+              << latest_version << "! Communication will most likely fail!";
+    protocol_version = latest_version;
+  }
+}
+
 data::InstallationResult IpUptaneSecondary::putMetadata(const Target& target) {
   Uptane::MetaBundle meta_bundle;
   if (!secondary_provider_->getMetadata(&meta_bundle, target)) {
@@ -100,21 +140,18 @@ data::InstallationResult IpUptaneSecondary::putMetadata(const Target& target) {
                                     "Unable to load stored metadata from Primary");
   }
 
-  LOG_INFO << "Sending Uptane metadata to the Secondary";
-  // TODO(OTA-4793): refactor to negotiate versioning once during
-  // initialization (and presumably check again after installation).
-  data::InstallationResult put_result = putMetadata_v2(meta_bundle);
-  if (put_result.isSuccess()) {
-    protocol_version = 2;
-  } else if (put_result.result_code == data::ResultCode::Numeric::kInternalError) {
-    // Fall back to the previous metadata sending version.
-    LOG_ERROR << "Failed to send metadata for target " << target.filename() << " to Secondary " << getSerial()
-              << "\nFalling back to protocol version 1.";
+  getSecondaryVersion();
 
+  LOG_INFO << "Sending Uptane metadata to the Secondary";
+  data::InstallationResult put_result;
+  if (protocol_version == 2) {
+    put_result = putMetadata_v2(meta_bundle);
+  } else if (protocol_version == 1) {
     put_result = putMetadata_v1(meta_bundle);
-    if (put_result.isSuccess()) {
-      protocol_version = 1;
-    }
+  } else {
+    LOG_ERROR << "Unexpected protocol version: " << protocol_version;
+    put_result = data::InstallationResult(data::ResultCode::Numeric::kInternalError,
+                                          "Unexpected protocol version: " + std::to_string(protocol_version));
   }
   return put_result;
 }
@@ -205,15 +242,16 @@ data::InstallationResult IpUptaneSecondary::putMetadata_v2(const Uptane::MetaBun
 }
 
 Manifest IpUptaneSecondary::getManifest() const {
+  getSecondaryVersion();
+
   LOG_DEBUG << "Getting the manifest from Secondary with serial " << getSerial();
   Asn1Message::Ptr req(Asn1Message::Empty());
 
   req->present(AKIpUptaneMes_PR_manifestReq);
-
   auto resp = Asn1Rpc(req, getAddr());
 
   if (resp->present() != AKIpUptaneMes_PR_manifestResp) {
-    LOG_ERROR << "Failed to get a response to a get manifest request to Secondary";
+    LOG_ERROR << "Failed to get a response to a manifest request to Secondary with serial " << getSerial();
     return Json::Value();
   }
   auto r = resp->manifestResp();
@@ -305,6 +343,7 @@ data::InstallationResult IpUptaneSecondary::install(const Uptane::Target& target
     install_result = data::InstallationResult(data::ResultCode::Numeric::kInternalError,
                                               "Unexpected protocol version: " + std::to_string(protocol_version));
   }
+
   return install_result;
 }
 

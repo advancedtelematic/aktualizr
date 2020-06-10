@@ -39,6 +39,7 @@ class IpUptaneSecondary : public SecondaryInterface {
 
  private:
   const std::pair<std::string, uint16_t>& getAddr() const { return addr_; }
+  void getSecondaryVersion() const;
   data::InstallationResult putMetadata_v1(const Uptane::MetaBundle& meta_bundle);
   data::InstallationResult putMetadata_v2(const Uptane::MetaBundle& meta_bundle);
   data::InstallationResult sendFirmware_v1(const Uptane::Target& target);
@@ -57,7 +58,7 @@ class IpUptaneSecondary : public SecondaryInterface {
   const EcuSerial serial_;
   const HardwareIdentifier hw_id_;
   const PublicKey pub_key_;
-  uint32_t protocol_version{2};
+  mutable uint32_t protocol_version{0};
 };
 
 }  // namespace Uptane

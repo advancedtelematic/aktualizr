@@ -165,6 +165,17 @@ IpUptane DEFINITIONS ::= BEGIN
     ...
   }
 
+  AKVersionReqMes ::= SEQUENCE {
+    version INTEGER,
+    ...
+  }
+
+  AKVersionRespMes ::= SEQUENCE {
+    version INTEGER,
+    ...
+  }
+
+
   AKIpUptaneMes ::= CHOICE {
     getInfoReq [0] AKGetInfoReqMes,
     getInfoResp [1] AKGetInfoRespMes,
@@ -184,6 +195,8 @@ IpUptane DEFINITIONS ::= BEGIN
     putMetaReq2 [14] AKPutMetaReq2Mes,
     putMetaResp2 [15] AKPutMetaResp2Mes,
     installResp2 [16] AKInstallResp2Mes,
+    versionReq [17] AKVersionReqMes,
+    versionResp [18] AKVersionRespMes,
     ...
   }
 

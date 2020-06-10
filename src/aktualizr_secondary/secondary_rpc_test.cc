@@ -67,6 +67,9 @@ class SecondaryMock : public MsgDispatcher {
     registerHandler(AKIpUptaneMes_PR_getInfoReq,
                     std::bind(&SecondaryMock::getInfoHdlr, this, std::placeholders::_1, std::placeholders::_2));
 
+    registerHandler(AKIpUptaneMes_PR_versionReq,
+                    std::bind(&SecondaryMock::versionHdlr, this, std::placeholders::_1, std::placeholders::_2));
+
     registerHandler(AKIpUptaneMes_PR_manifestReq,
                     std::bind(&SecondaryMock::getManifestHdlr, this, std::placeholders::_1, std::placeholders::_2));
   }
@@ -118,13 +121,27 @@ class SecondaryMock : public MsgDispatcher {
     (void)in_msg;
 
     out_msg.present(AKIpUptaneMes_PR_getInfoResp);
-
     auto info_resp = out_msg.getInfoResp();
 
     SetString(&info_resp->ecuSerial, serial_.ToString());
     SetString(&info_resp->hwId, hdw_id_.ToString());
     info_resp->keyType = static_cast<AKIpUptaneKeyType_t>(pub_key_.Type());
     SetString(&info_resp->key, pub_key_.Value());
+
+    return ReturnCode::kOk;
+  }
+
+  MsgHandler::ReturnCode versionHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+    (void)in_msg;
+
+    out_msg.present(AKIpUptaneMes_PR_versionResp);
+    auto version_resp = out_msg.versionResp();
+
+    if (handler_version_ == HandlerVersion::kV1) {
+      version_resp->version = 1;
+    } else {
+      version_resp->version = 2;
+    }
 
     return ReturnCode::kOk;
   }
