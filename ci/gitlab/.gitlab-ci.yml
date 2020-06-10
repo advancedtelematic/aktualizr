@@ -21,7 +21,7 @@ variables:
 
   CCACHE_DIR: $CI_PROJECT_DIR/ccache
 
-  GIT_SUBMODULE_STRATEGY: recursive
+  GIT_SUBMODULE_STRATEGY: none
 
   # bitbake variables
   BITBAKE_IMAGE: ${METAUPDATER_REGISTRY_IMAGE}:ci-master-bitbake
@@ -73,6 +73,9 @@ Docker Setup:
 
 coverage:
   variables:
+    GIT_CLONE_PATH: $CI_BUILDS_DIR/aktualizr-coverage-$CI_JOB_ID
+    GIT_SUBMODULE_STRATEGY: 'recursive'
+
     TEST_BUILD_DIR: 'build-coverage'
     TEST_CMAKE_BUILD_TYPE: 'Valgrind'
     TEST_WITH_COVERAGE: '1'
@@ -101,6 +104,9 @@ coverage:
 
 nop11:
   variables:
+    GIT_CLONE_PATH: $CI_BUILDS_DIR/aktualizr-nop11-$CI_JOB_ID
+    GIT_SUBMODULE_STRATEGY: 'recursive'
+
     TEST_BUILD_DIR: 'build-nop11'
     TEST_CMAKE_BUILD_TYPE: 'Debug'
     TEST_WITH_TESTSUITE: '0'
@@ -118,6 +124,9 @@ nop11:
 
 debian-build+static:
   variables:
+    GIT_CLONE_PATH: $CI_BUILDS_DIR/aktualizr-debian-$CI_JOB_ID
+    GIT_SUBMODULE_STRATEGY: 'recursive'
+
     TEST_BUILD_DIR: 'build-debian-testing'
     TEST_CC: 'clang'
     # should run with valgrind but some leaks are still unfixed
@@ -147,6 +156,9 @@ debian-build+static:
 
 bionic-pkg:
   variables:
+    GIT_CLONE_PATH: $CI_BUILDS_DIR/aktualizr-bionic-pkg-$CI_JOB_ID
+    GIT_SUBMODULE_STRATEGY: 'recursive'
+
     TEST_BUILD_DIR: 'build-bionic'
     TEST_INSTALL_RELEASE_NAME: '-ubuntu_18.04'
     TEST_INSTALL_DESTDIR: "$CI_PROJECT_DIR/build-bionic/pkg"
@@ -169,6 +181,9 @@ bionic-pkg:
 
 xenial-pkg:
   variables:
+    GIT_CLONE_PATH: $CI_BUILDS_DIR/aktualizr-xenial-pkg-$CI_JOB_ID
+    GIT_SUBMODULE_STRATEGY: 'recursive'
+
     TEST_BUILD_DIR: 'build-xenial'
     TEST_INSTALL_RELEASE_NAME: '-ubuntu_16.04'
     TEST_INSTALL_DESTDIR: "$CI_PROJECT_DIR/build-xenial/pkg"
@@ -224,6 +239,8 @@ xenial-pkg-test:
 OE Docker setup:
   extends: .bb_docker_remote
   stage: docker
+  variables:
+      GIT_CHECKOUT: 'false'
   only:
     variables:
       - $OE_PTEST
@@ -238,6 +255,8 @@ OE Checkout:
   extends: .bb_checkout
   stage: oe-checkout
   dependencies: []
+  variables:
+      GIT_CHECKOUT: 'false'
   only:
     variables:
       - $OE_PTEST
@@ -252,6 +271,8 @@ OE Checkout:
 Ptest qemux86_64:
   extends: .oe-selftest
   stage: oe-test
+  variables:
+      GIT_CHECKOUT: false
   dependencies:
     - OE Checkout
   allow_failure: true
