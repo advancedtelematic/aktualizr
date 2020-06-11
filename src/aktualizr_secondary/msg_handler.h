@@ -30,6 +30,9 @@ class MsgDispatcher : public MsgHandler {
   void registerHandler(AKIpUptaneMes_PR msg_id, Handler handler);
   ReturnCode handleMsg(const Asn1Message::Ptr& in_msg, Asn1Message::Ptr& out_msg) override;
 
+ protected:
+  void clearHandlers();
+
  private:
   std::unordered_map<unsigned int, Handler> handler_map_;
 };
