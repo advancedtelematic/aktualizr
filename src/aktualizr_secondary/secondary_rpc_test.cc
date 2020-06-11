@@ -33,14 +33,7 @@ class SecondaryMock : public MsgDispatcher {
         image_filepath_{image_dir_ / "image.bin"},
         hasher_{MultiPartHasher::create(Hash::Type::kSha256)},
         handler_version_(handler_version) {
-    registerBaseHandlers();
-    if (handler_version_ == HandlerVersion::kV1) {
-      registerV1Handlers();
-    } else if (handler_version_ == HandlerVersion::kV2) {
-      registerV2Handlers();
-    } else {
-      registerV2FailureHandlers();
-    }
+    registerHandlers();
   }
 
  public:
@@ -54,10 +47,21 @@ class SecondaryMock : public MsgDispatcher {
   const PublicKey& publicKey() const { return pub_key_; }
   const Uptane::Manifest& manifest() const { return manifest_; }
   const Uptane::MetaBundle& metadata() const { return meta_bundle_; }
-  HandlerVersion handler_version() const { return handler_version_; }
+  HandlerVersion handlerVersion() const { return handler_version_; }
+  void setHandlerVersion(HandlerVersion handler_version_in) { handler_version_ = handler_version_in; }
+  void registerHandlers() {
+    registerBaseHandlers();
+    if (handler_version_ == HandlerVersion::kV1) {
+      registerV1Handlers();
+    } else if (handler_version_ == HandlerVersion::kV2) {
+      registerV2Handlers();
+    } else {
+      registerV2FailureHandlers();
+    }
+  }
 
+  void resetImageHash() const { hasher_->reset(); }
   Hash getReceivedImageHash() const { return hasher_->getHash(); }
-
   size_t getReceivedImageSize() const { return boost::filesystem::file_size(image_filepath_); }
 
   const std::string& getReceivedTlsCreds() const { return tls_creds_; }
@@ -351,7 +355,8 @@ class SecondaryMock : public MsgDispatcher {
       // data was received via the old request (sendFirmware)
       if (target_name == "OSTREE") {
         tls_creds_ = received_firmware_data_;
-      } else {
+      } else if (handler_version_ == HandlerVersion::kV1) {
+        // v2 calls this directly in uploadDataHdlr.
         receiveImageData(reinterpret_cast<const uint8_t*>(received_firmware_data_.c_str()),
                          received_firmware_data_.size());
       }
@@ -430,8 +435,7 @@ class TargetFile {
   Hash image_hash_;
 };
 
-class SecondaryRpcTest : public ::testing::Test,
-                         public ::testing::WithParamInterface<std::pair<size_t, HandlerVersion>> {
+class SecondaryRpcCommon : public ::testing::Test {
  public:
   const std::string ca_ = "ca";
   const std::string cert_ = "cert";
@@ -445,12 +449,12 @@ class SecondaryRpcTest : public ::testing::Test,
   const std::string image_targets_ = "image-targets";
 
  protected:
-  SecondaryRpcTest()
+  SecondaryRpcCommon(size_t image_size, HandlerVersion handler_version)
       : secondary_{Uptane::EcuSerial("serial"), Uptane::HardwareIdentifier("hardware-id"),
-                   PublicKey("pub-key", KeyType::kED25519), Uptane::Manifest(), GetParam().second},
+                   PublicKey("pub-key", KeyType::kED25519), Uptane::Manifest(), handler_version},
         secondary_server_{secondary_, "", 0},
-        secondary_server_thread_{std::bind(&SecondaryRpcTest::run_secondary_server, this)},
-        image_file_{"mytarget_image.img", GetParam().first} {
+        secondary_server_thread_{std::bind(&SecondaryRpcCommon::runSecondaryServer, this)},
+        image_file_{"mytarget_image.img", image_size} {
     secondary_server_.wait_until_running();
     ip_secondary_ = Uptane::IpUptaneSecondary::connectAndCreate("localhost", secondary_server_.port());
 
@@ -473,12 +477,17 @@ class SecondaryRpcTest : public ::testing::Test,
     ip_secondary_->init(secondary_provider_);
   }
 
-  ~SecondaryRpcTest() {
+  ~SecondaryRpcCommon() {
     secondary_server_.stop();
     secondary_server_thread_.join();
   }
 
-  void run_secondary_server() { secondary_server_.run(); }
+  void runSecondaryServer() { secondary_server_.run(); }
+
+  void resetHandlers(HandlerVersion handler_version) {
+    secondary_.setHandlerVersion(handler_version);
+    secondary_.registerHandlers();
+  }
 
   void verifyMetadata(const Uptane::MetaBundle& meta_bundle) {
     EXPECT_EQ(Uptane::getMetaFromBundle(meta_bundle, Uptane::RepositoryType::Director(), Uptane::Role::Root()),
@@ -497,7 +506,7 @@ class SecondaryRpcTest : public ::testing::Test,
 
   void sendAndInstallBinaryImage() {
     Uptane::Target target = image_file_.createTarget(package_manager_);
-    const HandlerVersion handler_version = secondary_.handler_version();
+    const HandlerVersion handler_version = secondary_.handlerVersion();
 
     data::InstallationResult result = ip_secondary_->putMetadata(target);
     if (handler_version == HandlerVersion::kV2Failure) {
@@ -531,7 +540,7 @@ class SecondaryRpcTest : public ::testing::Test,
     target_json["custom"]["targetFormat"] = "OSTREE";
     Uptane::Target target = Uptane::Target("OSTREE", target_json);
 
-    const HandlerVersion handler_version = secondary_.handler_version();
+    const HandlerVersion handler_version = secondary_.handlerVersion();
 
     data::InstallationResult result = ip_secondary_->putMetadata(target);
     if (handler_version == HandlerVersion::kV2Failure) {
@@ -588,6 +597,12 @@ class SecondaryRpcTest : public ::testing::Test,
   std::shared_ptr<PackageManagerInterface> package_manager_;
 };
 
+class SecondaryRpcTest : public SecondaryRpcCommon,
+                         public ::testing::WithParamInterface<std::pair<size_t, HandlerVersion>> {
+ protected:
+  SecondaryRpcTest() : SecondaryRpcCommon(GetParam().first, GetParam().second) {}
+};
+
 // Test the serialization/deserialization and the TCP/IP communication implementation
 // that occurs during communication between Primary and IP Secondary
 TEST_P(SecondaryRpcTest, AllRpcCallsTest) {
@@ -613,6 +628,32 @@ INSTANTIATE_TEST_SUITE_P(
                       std::make_pair(1024, HandlerVersion::kV1), std::make_pair(1024 - 1, HandlerVersion::kV1),
                       std::make_pair(1024 + 1, HandlerVersion::kV1), std::make_pair(1024 * 10 + 1, HandlerVersion::kV1),
                       std::make_pair(1024, HandlerVersion::kV2Failure)));
+
+class SecondaryRpcUpgrade : public SecondaryRpcCommon {
+ protected:
+  SecondaryRpcUpgrade() : SecondaryRpcCommon(1024, HandlerVersion::kV1) {}
+};
+
+/* Test upgrade and downgrade of protocol versions after installation, both for
+ * binary and OSTree updates. */
+TEST_F(SecondaryRpcUpgrade, VersionUpgrade) {
+  ASSERT_TRUE(ip_secondary_ != nullptr) << "Failed to create IP Secondary";
+
+  sendAndInstallBinaryImage();
+  resetHandlers(HandlerVersion::kV2);
+  secondary_.resetImageHash();
+  sendAndInstallBinaryImage();
+  resetHandlers(HandlerVersion::kV1);
+  secondary_.resetImageHash();
+  sendAndInstallBinaryImage();
+
+  resetHandlers(HandlerVersion::kV1);
+  installOstreeRev();
+  resetHandlers(HandlerVersion::kV2);
+  installOstreeRev();
+  resetHandlers(HandlerVersion::kV1);
+  installOstreeRev();
+}
 
 TEST(SecondaryTcpServer, TestIpSecondaryIfSecondaryIsNotRunning) {
   in_port_t secondary_port = TestUtils::getFreePortAsInt();

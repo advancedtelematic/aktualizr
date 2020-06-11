@@ -2,6 +2,8 @@
 
 #include "logging/logging.h"
 
+void MsgDispatcher::clearHandlers() { handler_map_.clear(); }
+
 void MsgDispatcher::registerHandler(AKIpUptaneMes_PR msg_id, Handler handler) {
   handler_map_[msg_id] = std::move(handler);
 }
