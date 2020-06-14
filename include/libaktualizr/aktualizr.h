@@ -6,12 +6,15 @@
 
 #include <boost/signals2.hpp>
 
-#include "config/config.h"
-#include "primary/events.h"
+#include <libaktualizr/config.h>
+#include <libaktualizr/events.h>
+
 #include "primary/secondaryinterface.h"
-#include "sotauptaneclient.h"
+#include "primary/sotauptaneclient.h"
 #include "storage/invstorage.h"
 #include "utilities/apiqueue.h"
+
+class SotaUptaneClient;
 
 /**
  * This class provides the main APIs necessary for launching and controlling

@@ -1,10 +1,11 @@
 #include <gtest/gtest.h>
+#include <libaktualizr/utils.h>
+#include <libaktualizr/aktualizr.h>
 
 #include "httpfake.h"
-#include "primary/aktualizr.h"
 #include "secondary.h"
 #include "uptane_test_common.h"
-#include "utilities/utils.h"
+
 
 boost::filesystem::path fake_meta_dir;
 

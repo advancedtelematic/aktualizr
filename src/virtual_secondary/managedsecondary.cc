@@ -7,13 +7,15 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
 
+#include "libaktualizr/utils.h"
+
 #include "crypto/crypto.h"
 #include "logging/logging.h"
 #include "uptane/manifest.h"
 #include "uptane/uptanerepository.h"
 #include "utilities/exceptions.h"
 #include "utilities/fault_injection.h"
-#include "utilities/utils.h"
+
 
 namespace Primary {
 

@@ -1,12 +1,13 @@
 #ifndef PACKAGE_MANAGER_PACKAGEMANAGERCONFIG_H_
 #define PACKAGE_MANAGER_PACKAGEMANAGERCONFIG_H_
 
-#include <boost/filesystem.hpp>
-#include <boost/property_tree/ptree_fwd.hpp>
 #include <map>
 #include <string>
 
-#include "utilities/config_utils.h"
+#include <boost/filesystem.hpp>
+#include <boost/property_tree/ptree_fwd.hpp>
+
+#include <libaktualizr/config_utils.h>
 
 // TODO: move these to their corresponding headers
 #define PACKAGE_MANAGER_NONE "none"

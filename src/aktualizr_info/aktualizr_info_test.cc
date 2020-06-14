@@ -2,11 +2,11 @@
 
 #include <boost/asio/io_service.hpp>
 #include <boost/process.hpp>
+#include <libaktualizr/config.h>
+#include <libaktualizr/utils.h>
 
-#include "config/config.h"
 #include "storage/sqlstorage.h"
 #include "test_utils.h"
-#include "utilities/utils.h"
 
 constexpr char warning_no_meta_data[] = "Metadata is not available\n";
 

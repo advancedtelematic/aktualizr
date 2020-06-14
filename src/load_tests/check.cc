@@ -1,13 +1,13 @@
 #include "check.h"
 
-#include <primary/aktualizr.h>
+#include <libaktualizr/aktualizr.h>
 #include <random>
 #include <string>
-#include "utilities/utils.h"
+#include <libaktualizr/utils.h>
 
 #include "context.h"
 #include "executor.h"
-#include "primary/events.h"
+#include <libaktualizr/events.h>
 #include "primary/reportqueue.h"
 #include "primary/sotauptaneclient.h"
 #include "storage/invstorage.h"

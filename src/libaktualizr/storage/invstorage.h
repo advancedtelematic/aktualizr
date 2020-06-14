@@ -9,11 +9,12 @@
 #include <boost/filesystem.hpp>
 #include <boost/optional.hpp>
 
-#include "storage_config.h"
+#include <libaktualizr/storage_config.h>
+#include <libaktualizr/utils.h>
+
 #include "storage_exception.h"
 
 #include "uptane/tuf.h"
-#include "utilities/types.h"
 
 class INvStorage;
 class FSStorageRead;

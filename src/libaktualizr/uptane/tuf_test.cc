@@ -4,11 +4,11 @@
 #include <vector>
 
 #include <json/json.h>
+#include <libaktualizr/utils.h>
 
 #include "logging/logging.h"
 #include "uptane/exceptions.h"
 #include "uptane/tuf.h"
-#include "utilities/utils.h"
 
 /* Validate Root metadata. */
 TEST(Root, RootValidates) {

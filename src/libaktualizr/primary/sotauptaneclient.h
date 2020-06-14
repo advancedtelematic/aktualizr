@@ -11,14 +11,15 @@
 #include "gtest/gtest_prod.h"
 #include "json/json.h"
 
+#include <libaktualizr/events.h>
+#include <libaktualizr/config.h>
+#include <libaktualizr/results.h>
+
 #include "bootloader/bootloader.h"
 #include "campaign/campaign.h"
-#include "config/config.h"
 #include "http/httpclient.h"
 #include "package_manager/packagemanagerfactory.h"
 #include "package_manager/packagemanagerinterface.h"
-#include "primary/events.h"
-#include "primary/results.h"
 #include "primary/secondaryinterface.h"
 #include "reportqueue.h"
 #include "storage/invstorage.h"

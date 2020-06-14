@@ -13,7 +13,7 @@
 #include <boost/property_tree/ptree.hpp>
 
 #include "bootstrap/bootstrap.h"
-#include "utilities/utils.h"
+#include <libaktualizr/utils.h>
 
 using boost::optional;
 using boost::property_tree::ptree;

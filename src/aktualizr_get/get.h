@@ -1,7 +1,7 @@
 #ifndef AKTUALIZR_GET_HELPERS
 #define AKTUALIZR_GET_HELPERS
 
-#include "config/config.h"
+#include <libaktualizr/config.h>
 
 std::string aktualizrGet(Config &config, const std::string &url);
 

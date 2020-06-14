@@ -4,10 +4,11 @@
 #include <memory>
 #include <thread>
 
+#include <libaktualizr/utils.h>
+
 #include "aktualizr_secondary.h"
 #include "aktualizr_secondary_config.h"
 #include "utilities/aktualizr_version.h"
-#include "utilities/utils.h"
 
 #include "aktualizr_secondary_file.h"
 #include "logging/logging.h"

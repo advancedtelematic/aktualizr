@@ -2,9 +2,10 @@
 #include <boost/filesystem.hpp>
 #include <fstream>
 
+#include <libaktualizr/utils.h>
+
 #include "crypto/crypto.h"
 #include "utilities/fault_injection.h"
-#include "utilities/utils.h"
 #include "virtualsecondary.h"
 
 namespace Primary {

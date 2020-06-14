@@ -7,7 +7,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/property_tree/ptree_fwd.hpp>
 
-#include "utilities/config_utils.h"
+#include <libaktualizr/config_utils.h>
 
 enum class StorageType { kFileSystem = 0, kSqlite };
 std::ostream& operator<<(std::ostream& os, StorageType stype);

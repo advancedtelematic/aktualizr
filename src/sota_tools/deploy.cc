@@ -9,7 +9,7 @@
 #include "rate_controller.h"
 #include "request_pool.h"
 #include "treehub_server.h"
-#include "utilities/utils.h"
+#include <libaktualizr/utils.h>
 
 bool CheckPoolState(const OSTreeObject::ptr &root_object, const RequestPool &request_pool) {
   switch (request_pool.run_mode()) {

@@ -3,8 +3,10 @@
 
 #include <string>
 #include <vector>
+
+#include <libaktualizr/utils.h>
+
 #include "http/httpclient.h"
-#include "utilities/utils.h"
 
 namespace campaign {
 

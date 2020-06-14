@@ -5,10 +5,11 @@
 #include <boost/filesystem.hpp>
 #include "json/json.h"
 
-#include "config/config.h"
+#include <libaktualizr/config.h>
+
 #include "httpfake.h"
-#include "primary/aktualizr.h"
-#include "primary/events.h"
+#include "libaktualizr/aktualizr.h"
+#include <libaktualizr/events.h>
 #include "uptane_test_common.h"
 
 boost::filesystem::path uptane_generator_path;

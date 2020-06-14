@@ -1,7 +1,7 @@
 #ifndef BOOTLOADER_H_
 #define BOOTLOADER_H_
 
-#include "bootloader_config.h"
+#include <libaktualizr/bootloader_config.h>
 
 class INvStorage;
 

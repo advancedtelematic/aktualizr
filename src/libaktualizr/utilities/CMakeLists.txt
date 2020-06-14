@@ -8,14 +8,11 @@ set(SOURCES aktualizr_version.cc
 
 set(HEADERS apiqueue.h
             aktualizr_version.h
-            config_utils.h
             dequeue_buffer.h
             exceptions.h
             fault_injection.h
             sig_handler.h
             timer.h
-            types.h
-            utils.h
             xml2json.h)
 
 set_property(SOURCE aktualizr_version.cc PROPERTY COMPILE_DEFINITIONS AKTUALIZR_VERSION="${AKTUALIZR_VERSION}")

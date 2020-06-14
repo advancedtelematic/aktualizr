@@ -3,8 +3,8 @@
 #include <boost/format.hpp>
 
 #include "cert_provider_test.h"
-#include "config/config.h"
-#include "utilities/utils.h"
+#include <libaktualizr/config.h>
+#include <libaktualizr/utils.h>
 
 static boost::filesystem::path CERT_PROVIDER_PATH;
 static boost::filesystem::path CREDENTIALS_PATH;

@@ -10,8 +10,8 @@
 #include "rate_controller.h"
 #include "request_pool.h"
 #include "treehub_server.h"
-#include "utilities/types.h"
-#include "utilities/utils.h"
+#include <libaktualizr/types.h>
+#include <libaktualizr/utils.h>
 
 // helper function to download data to a string
 static size_t writeString(void *contents, size_t size, size_t nmemb, void *userp) {

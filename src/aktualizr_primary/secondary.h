@@ -3,7 +3,7 @@
 
 #include <boost/filesystem.hpp>
 
-#include "primary/aktualizr.h"
+#include "libaktualizr/aktualizr.h"
 
 namespace Primary {
 

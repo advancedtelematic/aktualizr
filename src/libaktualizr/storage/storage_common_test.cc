@@ -5,10 +5,11 @@
 
 #include <boost/filesystem.hpp>
 
+#include <libaktualizr/types.h>
+#include <libaktualizr/utils.h>
+
 #include "logging/logging.h"
 #include "storage/sqlstorage.h"
-#include "utilities/types.h"
-#include "utilities/utils.h"
 
 StorageType current_storage_type{StorageType::kSqlite};
 

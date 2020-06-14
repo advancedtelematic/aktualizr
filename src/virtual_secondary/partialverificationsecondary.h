@@ -4,12 +4,16 @@
 #include <string>
 #include <vector>
 
+#include <string>
+#include <vector>
+
 #include <boost/filesystem.hpp>
 #include "json/json.h"
 
-#include "managedsecondary.h"
+#include <libaktualizr/types.h>
+
 #include "primary/secondaryinterface.h"
-#include "utilities/types.h"
+#include "managedsecondary.h"
 
 namespace Primary {
 

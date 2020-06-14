@@ -3,7 +3,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/process.hpp>
 
-#include "config/config.h"
+#include <libaktualizr/config.h>
 #include "http/httpclient.h"
 #include "package_manager/dockerappmanager.h"
 #include "package_manager/packagemanagerfactory.h"

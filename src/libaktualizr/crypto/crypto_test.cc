@@ -8,10 +8,10 @@
 #include <json/json.h>
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
+#include <libaktualizr/utils.h>
 
 #include "crypto/crypto.h"
 #include "crypto/p11engine.h"
-#include "utilities/utils.h"
 
 #ifdef BUILD_P11
 #ifndef TEST_PKCS11_MODULE_PATH

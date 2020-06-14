@@ -1,6 +1,5 @@
-#include "telemetry/telemetryconfig.h"
-
-#include "utilities/config_utils.h"
+#include <libaktualizr/telemetryconfig.h>
+#include <libaktualizr/config_utils.h>
 
 void TelemetryConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(report_network, "report_network", pt);

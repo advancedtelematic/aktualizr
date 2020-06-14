@@ -11,9 +11,11 @@
 #include <boost/filesystem.hpp>
 #include <boost/scoped_array.hpp>
 
+#include <libaktualizr/config_utils.h>
+#include <libaktualizr/utils.h>
+
 #include "crypto/crypto.h"
-#include "utilities/config_utils.h"
-#include "utilities/utils.h"
+
 
 P11Engine* P11EngineGuard::instance = nullptr;
 int P11EngineGuard::ref_counter = 0;

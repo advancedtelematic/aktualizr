@@ -5,7 +5,7 @@
 
 #include <boost/filesystem.hpp>
 
-#include "config/config.h"
+#include <libaktualizr/config.h>
 #include "logging/logging.h"
 #include "test_utils.h"
 #include "uptane_repo.h"

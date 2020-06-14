@@ -2,10 +2,11 @@
 
 #include <unistd.h>
 
+#include <libaktualizr/utils.h>
+
 #include "fsstorage_read.h"
 #include "logging/logging.h"
 #include "sqlstorage.h"
-#include "utilities/utils.h"
 
 void INvStorage::importSimple(const boost::filesystem::path& base_path, store_data_t store_func, load_data_t load_func,
                               const BasedPath& imported_data_path) {

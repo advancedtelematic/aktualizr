@@ -1,14 +1,13 @@
-#include "config.h"
-
 #include <fcntl.h>
 #include <unistd.h>
 #include <iomanip>
 #include <sstream>
 
+#include <libaktualizr/config.h>
+#include <libaktualizr/utils.h>
+
 #include "bootstrap/bootstrap.h"
-#include "config.h"
 #include "utilities/exceptions.h"
-#include "utilities/utils.h"
 
 void TlsConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(server, "server", pt);

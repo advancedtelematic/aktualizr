@@ -5,7 +5,7 @@
 #include "androidmanager.h"
 #include "packagemanagerfactory.h"
 
-#include "utilities/utils.h"
+#include <libaktualizr/utils.h>
 
 #include <boost/phoenix/stl/algorithm/transformation.hpp>
 #include <boost/spirit/include/phoenix_container.hpp>

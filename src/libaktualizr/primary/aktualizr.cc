@@ -1,10 +1,11 @@
-#include "aktualizr.h"
+#include "libaktualizr/aktualizr.h"
 
 #include <chrono>
 
 #include <sodium.h>
 
-#include "primary/events.h"
+#include "sotauptaneclient.h"
+#include <libaktualizr/events.h>
 #include "utilities/timer.h"
 
 using std::make_shared;

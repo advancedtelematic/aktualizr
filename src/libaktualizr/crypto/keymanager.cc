@@ -4,10 +4,10 @@
 #include <utility>
 
 #include <boost/scoped_array.hpp>
+#include <libaktualizr/types.h>
 
 #include "crypto/openssl_compat.h"
 #include "storage/invstorage.h"
-#include "utilities/types.h"
 
 #if defined(ANDROID)
 #include "androidkeystore.h"

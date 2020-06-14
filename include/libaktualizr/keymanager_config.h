@@ -1,8 +1,8 @@
 #ifndef CRYPTO_KEYMANAGER_CONFIG_H_
 #define CRYPTO_KEYMANAGER_CONFIG_H_
 
-#include "crypto/p11_config.h"
-#include "utilities/types.h"
+#include <libaktualizr/p11_config.h>
+#include <libaktualizr/types.h>
 
 // bundle some parts of the main config together
 // Should be derived by calling Config::keymanagerConfig()

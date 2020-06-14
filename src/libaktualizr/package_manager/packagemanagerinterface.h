@@ -4,14 +4,15 @@
 #include <mutex>
 #include <string>
 
+#include <libaktualizr/packagemanagerconfig.h>
+#include <libaktualizr/types.h>
+
 #include "bootloader/bootloader.h"
 #include "crypto/keymanager.h"
 #include "http/httpinterface.h"
-#include "packagemanagerconfig.h"
 #include "storage/invstorage.h"
 #include "uptane/fetcher.h"
 #include "utilities/apiqueue.h"
-#include "utilities/types.h"
 
 using FetcherProgressCb = std::function<void(const Uptane::Target&, const std::string&, unsigned int)>;
 

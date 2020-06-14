@@ -8,7 +8,7 @@
 #include <utility>
 
 #include "logging/logging.h"
-#include "utilities/utils.h"
+#include <libaktualizr/utils.h>
 
 using std::string;
 

@@ -3,8 +3,9 @@
 #include <assert.h>
 #include <sstream>
 
+#include <libaktualizr/utils.h>
+
 #include "utilities/aktualizr_version.h"
-#include "utilities/utils.h"
 
 struct WriteStringArg {
   std::string out;

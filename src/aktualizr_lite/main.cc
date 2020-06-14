@@ -4,7 +4,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
-#include "config/config.h"
+#include <libaktualizr/config.h>
 #include "helpers.h"
 #include "utilities/aktualizr_version.h"
 

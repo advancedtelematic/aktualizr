@@ -5,12 +5,13 @@
 #include <memory>
 
 #include <curl/curl.h>
+#include <libaktualizr/utils.h>
+
 #include "gtest/gtest_prod.h"
 #include "json/json.h"
 
 #include "httpinterface.h"
 #include "logging/logging.h"
-#include "utilities/utils.h"
 
 /**
  * Helper class to manage curl_global_init/curl_global_cleanup calls

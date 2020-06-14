@@ -2,9 +2,9 @@
 #define PRIMARY_VIRTUALSECONDARY_H_
 
 #include <string>
-
+#include <libaktualizr/types.h>
 #include "managedsecondary.h"
-#include "utilities/types.h"
+
 
 namespace Primary {
 

@@ -12,9 +12,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include "crypto/crypto.h"
+#include <libaktualizr/types.h>
+
 #include "uptane/exceptions.h"
-#include "utilities/types.h"
+#include "crypto/crypto.h"
 
 namespace Uptane {
 

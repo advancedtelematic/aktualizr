@@ -6,12 +6,9 @@ set(SOURCES aktualizr.cc
             sotauptaneclient.cc)
 
 set(HEADERS secondary_config.h
-            aktualizr.h
             aktualizr_helpers.h
-            events.h
             initializer.h
             reportqueue.h
-            results.h
             secondaryinterface.h
             secondary_provider.h
             sotauptaneclient.h)

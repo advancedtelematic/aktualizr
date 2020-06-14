@@ -8,7 +8,7 @@
 #include <string>
 #include <thread>
 
-#include "config/config.h"
+#include <libaktualizr/config.h>
 #include "http/httpclient.h"
 #include "logging/logging.h"
 #include "package_manager/packagemanagerfake.h"

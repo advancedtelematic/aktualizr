@@ -6,10 +6,10 @@
 
 #include <iostream>
 #include <string>
+#include <libaktualizr/config.h>
 
 #include "asn1-cerstream.h"
 #include "asn1_message.h"
-#include "config/config.h"
 #include "der_encoder.h"
 
 asn1::Serializer& operator<<(asn1::Serializer& ser, CryptoSource cs) {

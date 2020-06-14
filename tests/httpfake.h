@@ -1,21 +1,21 @@
 #ifndef HTTPFAKE_H_
 #define HTTPFAKE_H_
-
-#include <boost/algorithm/hex.hpp>
-#include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>
 #include <chrono>
 #include <fstream>
 #include <string>
 #include <thread>
 
+#include <boost/algorithm/hex.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/filesystem.hpp>
+
 #include "json/json.h"
+#include <libaktualizr/utils.h>
 
 #include "crypto/crypto.h"
 #include "http/httpinterface.h"
 #include "logging/logging.h"
 #include "metafake.h"
-#include "utilities/utils.h"
 
 class HttpFake : public HttpInterface {
  public:

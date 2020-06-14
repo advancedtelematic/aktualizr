@@ -5,9 +5,9 @@
 #include <string>
 #include <thread>
 
-#include "config/config.h"
+#include "libaktualizr/config.h"
+#include "libaktualizr/aktualizr.h"
 #include "logging/logging.h"
-#include "primary/aktualizr.h"
 #include "storage/sqlstorage.h"
 
 int updateOneCycle(const boost::filesystem::path &storage_dir, const std::string &server) {

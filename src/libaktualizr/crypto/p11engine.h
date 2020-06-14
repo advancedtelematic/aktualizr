@@ -5,10 +5,12 @@
 
 #include <openssl/engine.h>
 #include <openssl/err.h>
-#include "gtest/gtest_prod.h"
 
+#include <libaktualizr/p11_config.h>
+
+#include "gtest/gtest_prod.h"
 #include "logging/logging.h"
-#include "p11_config.h"
+
 
 class P11ContextWrapper {
  public:

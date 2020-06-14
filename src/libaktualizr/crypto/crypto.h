@@ -15,8 +15,8 @@
 #include <string>
 #include <utility>
 
-#include "utilities/types.h"
-#include "utilities/utils.h"
+#include <libaktualizr/types.h>
+#include <libaktualizr/utils.h>
 
 // some older versions of openssl have BIO_new_mem_buf defined with fisrt parameter of type (void*)
 //   which is not true and breaks our build

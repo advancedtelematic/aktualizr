@@ -7,11 +7,12 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
+#include <libaktualizr/config.h>
+#include <libaktualizr/utils.h>
+
 #include "bootstrap/bootstrap.h"
-#include "config/config.h"
 #include "crypto/crypto.h"
 #include "test_utils.h"
-#include "utilities/utils.h"
 
 namespace bpo = boost::program_options;
 boost::filesystem::path build_dir;

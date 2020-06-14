@@ -2,7 +2,7 @@
 #define AKTUALIZR_HELPERS_H_
 
 #include <memory>
-#include "aktualizr.h"
+#include "libaktualizr/aktualizr.h"
 
 /*
  * Signal handler to remove old targets just after an installation completes

@@ -5,11 +5,11 @@
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 
-#include "bootloader/bootloader_config.h"
-#include "logging/logging_config.h"
-#include "package_manager/packagemanagerconfig.h"
-#include "storage/storage_config.h"
-#include "utilities/config_utils.h"
+#include <libaktualizr/bootloader_config.h>
+#include <libaktualizr/logging_config.h>
+#include <libaktualizr/packagemanagerconfig.h>
+#include <libaktualizr/storage_config.h>
+#include <libaktualizr/config_utils.h>
 
 // Try to keep the order of config options the same as in
 // AktualizrInfoConfig::writeToStream() and

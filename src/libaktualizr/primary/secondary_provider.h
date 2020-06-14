@@ -3,7 +3,8 @@
 
 #include <string>
 
-#include "config/config.h"
+#include <libaktualizr/config.h>
+
 #include "package_manager/packagemanagerinterface.h"
 #include "storage/invstorage.h"
 #include "uptane/tuf.h"

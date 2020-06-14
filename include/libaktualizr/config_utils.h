@@ -4,10 +4,10 @@
 #include <string>
 
 #include <boost/property_tree/ini_parser.hpp>
+#include <libaktualizr/types.h>
+#include <libaktualizr/utils.h>
 
 #include "logging/logging.h"
-#include "types.h"
-#include "utils.h"
 
 /*
  The following uses a small amount of template hackery to provide a nice

@@ -1,7 +1,7 @@
 #ifndef UPTANE_FETCHER_H_
 #define UPTANE_FETCHER_H_
 
-#include "config/config.h"
+#include <libaktualizr/config.h>
 #include "http/httpinterface.h"
 #include "storage/invstorage.h"
 

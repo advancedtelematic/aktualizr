@@ -8,7 +8,7 @@
 #include "primary/initializer.h"
 #include "primary/sotauptaneclient.h"
 #include "storage/invstorage.h"
-#include "utilities/utils.h"
+#include <libaktualizr/utils.h>
 
 /*
  * Check that aktualizr creates provisioning data if they don't exist already.

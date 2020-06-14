@@ -9,15 +9,16 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ini_parser.hpp>
-#include "bootloader/bootloader.h"
-#include "crypto/keymanager_config.h"
-#include "crypto/p11_config.h"
-#include "logging/logging_config.h"
-#include "package_manager/packagemanagerconfig.h"
-#include "storage/storage_config.h"
-#include "telemetry/telemetryconfig.h"
-#include "utilities/config_utils.h"
-#include "utilities/types.h"
+
+#include <libaktualizr/bootloader_config.h>
+#include <libaktualizr/keymanager_config.h>
+#include <libaktualizr/p11_config.h>
+#include <libaktualizr/logging_config.h>
+#include <libaktualizr/packagemanagerconfig.h>
+#include <libaktualizr/storage_config.h>
+#include <libaktualizr/telemetryconfig.h>
+#include <libaktualizr/config_utils.h>
+#include <libaktualizr/types.h>
 
 enum class ProvisionMode { kSharedCred = 0, kDeviceCred };
 

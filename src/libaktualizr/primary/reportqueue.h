@@ -9,7 +9,7 @@
 
 #include <json/json.h>
 
-#include "config/config.h"
+#include <libaktualizr/config.h>
 #include "http/httpclient.h"
 #include "logging/logging.h"
 #include "storage/invstorage.h"

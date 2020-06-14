@@ -1,12 +1,12 @@
 #ifndef KEYMANAGER_H_
 #define KEYMANAGER_H_
 
-#include "keymanager_config.h"
+#include <libaktualizr/keymanager_config.h>
+#include <libaktualizr/utils.h>
 
 #include "crypto.h"
 #include "http/httpinterface.h"
 #include "p11engine.h"
-#include "utilities/utils.h"
 
 class INvStorage;
 

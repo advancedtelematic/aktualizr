@@ -6,12 +6,13 @@
 
 #include <boost/process.hpp>
 
+#include <libaktualizr/types.h>
+#include <libaktualizr/utils.h>
+
 #include "json/json.h"
 
 #include "http/httpclient.h"
 #include "test_utils.h"
-#include "utilities/types.h"
-#include "utilities/utils.h"
 
 static std::string server = "http://127.0.0.1:";
 

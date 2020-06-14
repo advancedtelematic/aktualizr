@@ -9,7 +9,7 @@
 
 #include <boost/process.hpp>
 
-#include "config/config.h"
+#include <libaktualizr/config.h>
 #include "http/httpclient.h"
 #include "httpfake.h"
 #include "logging/logging.h"

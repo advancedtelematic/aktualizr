@@ -13,8 +13,8 @@
 #include "ostree_object.h"
 #include "request_pool.h"
 #include "treehub_server.h"
-#include "utilities/types.h"
-#include "utilities/utils.h"
+#include <libaktualizr/types.h>
+#include <libaktualizr/utils.h>
 
 namespace po = boost::program_options;
 

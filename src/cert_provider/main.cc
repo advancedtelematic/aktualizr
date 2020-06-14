@@ -7,16 +7,16 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
+#include <libaktualizr/utils.h>
+#include <libaktualizr/config.h>
 
 #include "json/json.h"
 
 #include "bootstrap/bootstrap.h"
-#include "config/config.h"
 #include "crypto/crypto.h"
 #include "http/httpclient.h"
 #include "logging/logging.h"
 #include "utilities/aktualizr_version.h"
-#include "utilities/utils.h"
 
 namespace bpo = boost::program_options;
 

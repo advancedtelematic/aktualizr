@@ -310,7 +310,6 @@ function(aktualizr_source_file_checks)
     endif()
 endfunction()
 
-
 # Use C++11, but without GNU or other extensions
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -319,6 +318,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 ############### BUILD RULES
+include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_SOURCE_DIR}/src/libaktualizr)
 include_directories(${PROJECT_SOURCE_DIR}/third_party/googletest/googletest/include)
 include_directories(${JSONCPP_INCLUDE_DIRS})

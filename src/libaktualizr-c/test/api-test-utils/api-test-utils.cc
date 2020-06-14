@@ -1,9 +1,10 @@
 #include "api-test-utils.h"
 
 #include <boost/process.hpp>
-#include "config/config.h"
+#include <libaktualizr/config.h>
+#include <libaktualizr/utils.h>
+
 #include "test_utils.h"
-#include "utilities/utils.h"
 
 std::string serverAddress;
 std::unique_ptr<boost::process::child> server;

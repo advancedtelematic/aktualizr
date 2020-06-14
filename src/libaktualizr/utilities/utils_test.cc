@@ -13,7 +13,7 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/archive/iterators/dataflow_exception.hpp>
 
-#include "utilities/utils.h"
+#include <libaktualizr/utils.h>
 
 bool CharOk(char c) {
   if (('a' <= c) && (c <= 'z')) {

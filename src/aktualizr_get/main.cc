@@ -3,8 +3,8 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
+#include <libaktualizr/config.h>
 
-#include "config/config.h"
 #include "get.h"
 #include "utilities/aktualizr_version.h"
 

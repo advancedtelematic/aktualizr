@@ -6,10 +6,10 @@
 #include <vector>
 
 #include <boost/filesystem.hpp>
+#include <libaktualizr/utils.h>
 
 #include "logging/logging.h"
 #include "uptane_repo.h"
-#include "utilities/utils.h"
 
 class MetaFake {
  public:
