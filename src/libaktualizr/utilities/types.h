@@ -183,7 +183,8 @@ std::ostream& operator<<(std::ostream& os, const ResultCode& result_code);
 struct InstallationResult {
   InstallationResult() = default;
   InstallationResult(ResultCode result_code_in, std::string description_in)
-      : success(result_code_in.num_code == ResultCode::Numeric::kOk),
+      : success(result_code_in.num_code == ResultCode::Numeric::kOk ||
+                result_code_in.num_code == ResultCode::Numeric::kAlreadyProcessed),
         result_code(std::move(result_code_in)),
         description(std::move(description_in)) {}
   InstallationResult(bool success_in, ResultCode result_code_in, std::string description_in)
