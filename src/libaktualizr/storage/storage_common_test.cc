@@ -253,20 +253,17 @@ TEST(storage, load_store_misconfigured_ecus) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
-  std::vector<MisconfiguredEcu> ecus;
-  ecus.push_back(MisconfiguredEcu(Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw"),
-                                  EcuState::kNotRegistered));
-
-  storage->storeMisconfiguredEcus(ecus);
+  storage->saveMisconfiguredEcu(
+      {Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw"), EcuState::kOld});
 
   std::vector<MisconfiguredEcu> ecus_out;
 
   EXPECT_TRUE(storage->loadMisconfiguredEcus(&ecus_out));
 
-  EXPECT_EQ(ecus_out.size(), ecus.size());
+  EXPECT_EQ(ecus_out.size(), 1);
   EXPECT_EQ(ecus_out[0].serial, Uptane::EcuSerial("primary"));
   EXPECT_EQ(ecus_out[0].hardware_id, Uptane::HardwareIdentifier("primary_hw"));
-  EXPECT_EQ(ecus_out[0].state, EcuState::kNotRegistered);
+  EXPECT_EQ(ecus_out[0].state, EcuState::kOld);
 
   storage->clearMisconfiguredEcus();
   ecus_out.clear();

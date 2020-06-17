@@ -33,11 +33,6 @@ class Aktualizr {
   void Initialize();
 
   /**
-   * Returns true if the device has been registered to the backend succesffully.
-   */
-  bool IsRegistered() const;
-
-  /**
    * Asynchronously run aktualizr indefinitely until Shutdown is called.
    * @param custom_hwinfo if not empty will be sent to the backend instead of `lshw` output
    * @return Empty std::future object

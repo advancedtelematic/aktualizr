@@ -45,22 +45,6 @@ void verifyNothingInstalled(const Json::Value& manifest) {
       "noimage");
 }
 
-static Primary::VirtualSecondaryConfig virtual_configuration(const boost::filesystem::path& client_dir) {
-  Primary::VirtualSecondaryConfig ecu_config;
-
-  ecu_config.partial_verifying = false;
-  ecu_config.full_client_dir = client_dir;
-  ecu_config.ecu_serial = "ecuserial3";
-  ecu_config.ecu_hardware_id = "hw_id3";
-  ecu_config.ecu_private_key = "sec.priv";
-  ecu_config.ecu_public_key = "sec.pub";
-  ecu_config.firmware_path = client_dir / "firmware.txt";
-  ecu_config.target_name_path = client_dir / "firmware_name.txt";
-  ecu_config.metadata_path = client_dir / "secondary_metadata";
-
-  return ecu_config;
-}
-
 /*
  * Initialize -> UptaneCycle -> no updates -> no further action or events.
  */
@@ -127,43 +111,6 @@ TEST(Aktualizr, FullNoUpdates) {
 }
 
 /*
- * Add Secondaries via API
- */
-TEST(Aktualizr, AddSecondary) {
-  TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates", fake_meta_dir);
-  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
-
-  auto storage = INvStorage::newStorage(conf.storage);
-  UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
-
-  Primary::VirtualSecondaryConfig ecu_config = virtual_configuration(temp_dir.Path());
-
-  aktualizr.AddSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config));
-
-  aktualizr.Initialize();
-
-  EcuSerials serials;
-  storage->loadEcuSerials(&serials);
-
-  std::vector<std::string> expected_ecus = {"CA:FE:A6:D2:84:9D", "ecuserial3", "secondary_ecu_serial"};
-  EXPECT_EQ(serials.size(), 3);
-  for (const auto& ecu : serials) {
-    auto found = std::find(expected_ecus.begin(), expected_ecus.end(), ecu.first.ToString());
-    if (found != expected_ecus.end()) {
-      expected_ecus.erase(found);
-    } else {
-      FAIL() << "Unknown ecu: " << ecu.first.ToString();
-    }
-  }
-  EXPECT_EQ(expected_ecus.size(), 0);
-
-  ecu_config.ecu_serial = "ecuserial4";
-  auto sec4 = std::make_shared<Primary::VirtualSecondary>(ecu_config);
-  EXPECT_THROW(aktualizr.AddSecondary(sec4), std::logic_error);
-}
-
-/*
  * Compute device installation failure code as concatenation of ECU failure codes.
  */
 TEST(Aktualizr, DeviceInstallationResult) {
@@ -172,25 +119,21 @@ TEST(Aktualizr, DeviceInstallationResult) {
   Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
-
   EcuSerials serials{
-      {Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")},
+      {Uptane::EcuSerial("CA:FE:A6:D2:84:9D"), Uptane::HardwareIdentifier("primary_hw")},
       {Uptane::EcuSerial("secondary_ecu_serial"), Uptane::HardwareIdentifier("secondary_hw")},
       {Uptane::EcuSerial("ecuserial3"), Uptane::HardwareIdentifier("hw_id3")},
   };
   storage->storeEcuSerials(serials);
 
   UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
-
-  Primary::VirtualSecondaryConfig ecu_config = virtual_configuration(temp_dir.Path());
-
+  Primary::VirtualSecondaryConfig ecu_config = UptaneTestCommon::altVirtualConfiguration(temp_dir.Path());
   aktualizr.AddSecondary(std::make_shared<Primary::VirtualSecondary>(ecu_config));
-
   aktualizr.Initialize();
 
   storage->saveEcuInstallationResult(Uptane::EcuSerial("ecuserial3"), data::InstallationResult());
-  storage->saveEcuInstallationResult(Uptane::EcuSerial("primary"), data::InstallationResult());
-  storage->saveEcuInstallationResult(Uptane::EcuSerial("primary"),
+  storage->saveEcuInstallationResult(Uptane::EcuSerial("CA:FE:A6:D2:84:9D"), data::InstallationResult());
+  storage->saveEcuInstallationResult(Uptane::EcuSerial("CA:FE:A6:D2:84:9D"),
                                      data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, ""));
 
   data::InstallationResult result;

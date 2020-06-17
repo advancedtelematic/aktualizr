@@ -31,12 +31,12 @@ Uptane::SecondaryInterface::Ptr IpUptaneSecondary::create(const std::string& add
   req->present(AKIpUptaneMes_PR_getInfoReq);
 
   auto m = req->getInfoReq();
-
   auto resp = Asn1Rpc(req, con_fd);
 
   if (resp->present() != AKIpUptaneMes_PR_getInfoResp) {
-    LOG_ERROR << "Failed to get info response message from Secondary";
-    throw std::runtime_error("Failed to obtain information about a Secondary: " + address + std::to_string(port));
+    LOG_ERROR << "IP Secondary failed to respond to information request at " << address << ":" << port;
+    return std::make_shared<IpUptaneSecondary>(address, port, EcuSerial::Unknown(), HardwareIdentifier::Unknown(),
+                                               PublicKey("", KeyType::kUnknown));
   }
   auto r = resp->getInfoResp();
 
@@ -46,7 +46,7 @@ Uptane::SecondaryInterface::Ptr IpUptaneSecondary::create(const std::string& add
   auto type = static_cast<KeyType>(r->keyType);
   PublicKey pub_key = PublicKey(key, type);
 
-  LOG_INFO << "Got info from IP Secondary: "
+  LOG_INFO << "Got ECU information from IP Secondary: "
            << "hardware ID: " << hw_id << " serial: " << serial;
 
   return std::make_shared<IpUptaneSecondary>(address, port, serial, hw_id, pub_key);
@@ -62,28 +62,28 @@ SecondaryInterface::Ptr IpUptaneSecondary::connectAndCheck(const std::string& ad
     auto sec = IpUptaneSecondary::connectAndCreate(address, port);
     if (sec != nullptr) {
       auto s = sec->getSerial();
-      if (s != serial) {
-        LOG_ERROR << "Mismatch between Secondary serials " << s << " and " << serial;
-        return nullptr;
+      if (s != serial && serial != EcuSerial::Unknown()) {
+        LOG_WARNING << "Expected IP Secondary at " << address << ":" << port << " with serial " << serial
+                    << " but found " << s;
       }
       auto h = sec->getHwId();
-      if (h != hw_id) {
-        LOG_ERROR << "Mismatch between hardware IDs " << h << " and " << hw_id;
-        return nullptr;
+      if (h != hw_id && hw_id != HardwareIdentifier::Unknown()) {
+        LOG_WARNING << "Expected IP Secondary at " << address << ":" << port << " with hardware ID " << hw_id
+                    << " but found " << h;
       }
       auto p = sec->getPublicKey();
-      if (pub_key.Type() == KeyType::kUnknown) {
-        LOG_INFO << "Secondary " << s << " do not have a known public key";
-      } else if (p != pub_key) {
-        LOG_ERROR << "Mismatch between public keys " << p.Value() << " and " << pub_key.Value() << " for Secondary "
-                  << serial;
+      if (p.Type() == KeyType::kUnknown) {
+        LOG_ERROR << "IP Secondary at " << address << ":" << port << " has an unknown key type!";
         return nullptr;
+      } else if (p != pub_key && pub_key.Type() != KeyType::kUnknown) {
+        LOG_WARNING << "Expected IP Secondary at " << address << ":" << port << " with public key:\n"
+                    << pub_key.Value() << "... but found:\n"
+                    << p.Value();
       }
       return sec;
     }
   } catch (std::exception& e) {
-    LOG_WARNING << "Could not connect to Secondary " << serial << " at " << address << ":" << port
-                << " using previously known registration data";
+    LOG_WARNING << "Could not connect to IP Secondary at " << address << ":" << port << " with serial " << serial;
   }
 
   return std::make_shared<IpUptaneSecondary>(address, port, std::move(serial), std::move(hw_id), std::move(pub_key));

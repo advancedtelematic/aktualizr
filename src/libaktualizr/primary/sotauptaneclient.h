@@ -27,6 +27,7 @@
 #include "uptane/imagerepository.h"
 #include "uptane/iterator.h"
 #include "uptane/secondaryinterface.h"
+#include "uptane/tuf.h"
 
 class SotaUptaneClient {
  public:
@@ -137,7 +138,6 @@ class SotaUptaneClient {
   void reportInstalledPackages();
   void reportNetworkInfo();
   void reportAktualizrConfiguration();
-  void verifySecondaries();
   bool waitSecondariesReachable(const std::vector<Uptane::Target> &updates);
   bool sendMetadataToEcus(const std::vector<Uptane::Target> &targets);
   std::future<data::ResultCode::Numeric> sendFirmwareAsync(Uptane::SecondaryInterface &secondary,
@@ -157,7 +157,7 @@ class SotaUptaneClient {
                                                    bool offline);
   void checkAndUpdatePendingSecondaries();
   const Uptane::EcuSerial &primaryEcuSerial() const { return primary_ecu_serial_; }
-  boost::optional<Uptane::HardwareIdentifier> ecuHwId(const Uptane::EcuSerial &serial) const;
+  boost::optional<Uptane::HardwareIdentifier> getEcuHwId(const Uptane::EcuSerial &serial) const;
 
   template <class T, class... Args>
   void sendEvent(Args &&... args) {
@@ -195,17 +195,6 @@ class TargetCompare {
 
  private:
   const Uptane::Target &target;
-};
-
-class SerialCompare {
- public:
-  explicit SerialCompare(Uptane::EcuSerial serial_in) : serial(std::move(serial_in)) {}
-  bool operator()(const std::pair<Uptane::EcuSerial, Uptane::HardwareIdentifier> &in) const {
-    return (in.first == serial);
-  }
-
- private:
-  const Uptane::EcuSerial serial;
 };
 
 #endif  // SOTA_UPTANE_CLIENT_H_

@@ -116,7 +116,7 @@ TEST(Initializer, InitializeTwice) {
  * Check that aktualizr does not generate a pet name when device ID is
  * specified.
  */
-TEST(Initializer, PetNameProvided) {
+TEST(Initializer, PetNameConfiguration) {
   RecordProperty("zephyr_key", "OTA-985,TST-146");
   TemporaryDirectory temp_dir;
   const std::string test_name = "test-name-123";
@@ -149,6 +149,45 @@ TEST(Initializer, PetNameProvided) {
 }
 
 /**
+ * Check that aktualizr does not generate a pet name when device ID is
+ * already present in the device certificate's common name. This is the expected
+ * behavior required to support replacing a Primary ECU.
+ */
+TEST(Initializer, PetNameDeviceCert) {
+  std::string test_name;
+  Config conf("tests/config/basic.toml");
+
+  {
+    TemporaryDirectory temp_dir;
+    auto http = std::make_shared<HttpFake>(temp_dir.Path());
+    conf.storage.path = temp_dir.Path();
+    auto storage = INvStorage::newStorage(conf.storage);
+    KeyManager keys(storage, conf.keymanagerConfig());
+    storage->storeTlsCert(Utils::readFile("tests/test_data/prov/client.pem"));
+    test_name = keys.getCN();
+    EXPECT_NO_THROW(Initializer(conf.provision, storage, http, keys, {}));
+    std::string devid;
+    EXPECT_TRUE(storage->loadDeviceId(&devid));
+    EXPECT_EQ(devid, test_name);
+  }
+
+  {
+    /* Make sure name is unchanged after re-initializing with the same device
+     * certificate but otherwise a completely fresh storage. */
+    TemporaryDirectory temp_dir;
+    auto http = std::make_shared<HttpFake>(temp_dir.Path());
+    conf.storage.path = temp_dir.Path();
+    auto storage = INvStorage::newStorage(conf.storage);
+    KeyManager keys(storage, conf.keymanagerConfig());
+    storage->storeTlsCert(Utils::readFile("tests/test_data/prov/client.pem"));
+    EXPECT_NO_THROW(Initializer(conf.provision, storage, http, keys, {}));
+    std::string devid;
+    EXPECT_TRUE(storage->loadDeviceId(&devid));
+    EXPECT_EQ(devid, test_name);
+  }
+}
+
+/**
  * Check that aktualizr generates a pet name if no device ID is specified.
  */
 TEST(Initializer, PetNameCreation) {
@@ -173,8 +212,8 @@ TEST(Initializer, PetNameCreation) {
     EXPECT_NE(test_name1, "");
   }
 
-  // Make sure a new name is generated if the config does not specify a name and
-  // there is no device_id file.
+  // Make sure a new name is generated if using a new database and the config
+  // does not specify a device ID.
   TemporaryDirectory temp_dir2;
   {
     conf.storage.path = temp_dir2.Path();

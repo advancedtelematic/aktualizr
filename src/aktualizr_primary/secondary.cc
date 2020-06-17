@@ -49,7 +49,7 @@ void initSecondaries(Aktualizr& aktualizr, const boost::filesystem::path& config
 
   for (auto& config : secondary_configs) {
     try {
-      LOG_INFO << "Registering " << config->type() << " Secondaries...";
+      LOG_INFO << "Initializing " << config->type() << " Secondaries...";
       Secondaries secondaries = createSecondaries(*config, aktualizr);
 
       for (const auto& secondary : secondaries) {
@@ -66,8 +66,9 @@ void initSecondaries(Aktualizr& aktualizr, const boost::filesystem::path& config
 
 class SecondaryWaiter {
  public:
-  SecondaryWaiter(uint16_t wait_port, int timeout_s, Secondaries& secondaries)
-      : endpoint_{boost::asio::ip::tcp::v4(), wait_port},
+  SecondaryWaiter(Aktualizr& aktualizr, uint16_t wait_port, int timeout_s, Secondaries& secondaries)
+      : aktualizr_(aktualizr),
+        endpoint_{boost::asio::ip::tcp::v4(), wait_port},
         timeout_{static_cast<boost::posix_time::seconds>(timeout_s)},
         timer_{io_context_},
         connected_secondaries_(secondaries) {}
@@ -83,10 +84,10 @@ class SecondaryWaiter {
     timer_.async_wait([&](const boost::system::error_code& error_code) {
       if (!!error_code) {
         LOG_ERROR << "Wait for Secondaries has failed: " << error_code;
-        throw std::runtime_error("Error while waiting for Secondaries");
+        throw std::runtime_error("Error while waiting for IP Secondaries");
       } else {
         LOG_ERROR << "Timeout while waiting for Secondaries: " << error_code;
-        throw std::runtime_error("Timeout while waiting for Secondaries");
+        throw std::runtime_error("Timeout while waiting for IP Secondaries");
       }
       io_context_.stop();
     });
@@ -111,6 +112,11 @@ class SecondaryWaiter {
         auto secondary = Uptane::IpUptaneSecondary::create(sec_ip, sec_port, con_socket_.native_handle());
         if (secondary) {
           connected_secondaries_.push_back(secondary);
+          // set ip/port in the db so that we can match everything later
+          Json::Value d;
+          d["ip"] = sec_ip;
+          d["port"] = sec_port;
+          aktualizr_.SetSecondaryData(secondary->getSerial(), Utils::jsonToCanonicalStr(d));
         }
       } catch (const std::exception& exc) {
         LOG_ERROR << "Failed to initialize a Secondary: " << exc.what();
@@ -132,6 +138,8 @@ class SecondaryWaiter {
   static std::string key(const std::string& ip, uint16_t port) { return (ip + std::to_string(port)); }
 
  private:
+  Aktualizr& aktualizr_;
+
   boost::asio::io_service io_context_;
   boost::asio::ip::tcp::endpoint endpoint_;
   boost::asio::ip::tcp::acceptor acceptor_{io_context_, endpoint_};
@@ -143,85 +151,73 @@ class SecondaryWaiter {
   std::unordered_set<std::string> secondaries_to_wait_for_;
 };
 
+// Four options for each Secondary:
+// 1. Secondary is configured and stored: nothing to do.
+// 2. Secondary is configured but not stored: it must be new. Try to connect to get information and store it. This will
+// cause re-registration.
+// 3. Same as 2 but cannot connect: abort.
+// 4. Secondary is stored but not configured: it must have been removed. Skip it. This will cause re-registration.
 static Secondaries createIPSecondaries(const IPSecondariesConfig& config, Aktualizr& aktualizr) {
   Secondaries result;
-  const bool provision = !aktualizr.IsRegistered();
+  Secondaries new_secondaries;
+  SecondaryWaiter sec_waiter{aktualizr, config.secondaries_wait_port, config.secondaries_timeout_s, result};
+  auto secondaries_info = aktualizr.GetSecondaries();
 
-  if (provision) {
-    SecondaryWaiter sec_waiter{config.secondaries_wait_port, config.secondaries_timeout_s, result};
+  for (const auto& cfg : config.secondaries_cfg) {
+    Uptane::SecondaryInterface::Ptr secondary;
+    const SecondaryInfo* info = nullptr;
 
-    for (const auto& ip_sec_cfg : config.secondaries_cfg) {
-      auto secondary = Uptane::IpUptaneSecondary::connectAndCreate(ip_sec_cfg.ip, ip_sec_cfg.port);
-      if (secondary) {
-        result.push_back(secondary);
-      } else {
-        sec_waiter.addSecondary(ip_sec_cfg.ip, ip_sec_cfg.port);
-      }
-    }
+    // Try to match the configured Secondaries to stored Secondaries.
+    auto f = std::find_if(secondaries_info.cbegin(), secondaries_info.cend(), [&cfg](const SecondaryInfo& i) {
+      Json::Value d = Utils::parseJSON(i.extra);
+      return d["ip"] == cfg.ip && d["port"] == cfg.port;
+    });
 
-    sec_waiter.wait();
-
-    // set ip/port in the db so that we can match everything later
-    for (size_t k = 0; k < config.secondaries_cfg.size(); k++) {
-      const auto cfg = config.secondaries_cfg[k];
-      const auto sec = result[k];
+    if (f == secondaries_info.cend() && config.secondaries_cfg.size() == 1 && secondaries_info.size() == 1 &&
+        secondaries_info[0].extra.empty()) {
+      // /!\ backward compatibility: if we have just one Secondary in the old
+      // storage format (before we had the secondary_ecus table) and the
+      // configuration, migrate it to the new format.
+      info = &secondaries_info[0];
       Json::Value d;
       d["ip"] = cfg.ip;
       d["port"] = cfg.port;
-      aktualizr.SetSecondaryData(sec->getSerial(), Utils::jsonToCanonicalStr(d));
-    }
-  } else {
-    auto secondaries_info = aktualizr.GetSecondaries();
-
-    for (const auto& cfg : config.secondaries_cfg) {
-      Uptane::SecondaryInterface::Ptr secondary;
-      const SecondaryInfo* info = nullptr;
-
-      auto f = std::find_if(secondaries_info.cbegin(), secondaries_info.cend(), [&cfg](const SecondaryInfo& i) {
-        Json::Value d = Utils::parseJSON(i.extra);
-        return d["ip"] == cfg.ip && d["port"] == cfg.port;
-      });
-
-      if (f == secondaries_info.cend() && config.secondaries_cfg.size() == 1 && secondaries_info.size() == 1) {
-        // /!\ backward compatibility: handle the case with one secondary, but
-        // store the info for later anyway
-        info = &secondaries_info[0];
+      aktualizr.SetSecondaryData(info->serial, Utils::jsonToCanonicalStr(d));
+      LOG_INFO << "Migrated a single IP Secondary to new storage format.";
+    } else if (f == secondaries_info.cend()) {
+      // Secondary was not found in storage; it must be new.
+      secondary = Uptane::IpUptaneSecondary::connectAndCreate(cfg.ip, cfg.port);
+      if (secondary == nullptr) {
+        LOG_DEBUG << "Could not connect to IP Secondary at " << cfg.ip << ":" << cfg.port
+                  << "; now trying to wait for it.";
+        sec_waiter.addSecondary(cfg.ip, cfg.port);
+      } else {
+        result.push_back(secondary);
+        // set ip/port in the db so that we can match everything later
         Json::Value d;
         d["ip"] = cfg.ip;
         d["port"] = cfg.port;
-        aktualizr.SetSecondaryData(info->serial, Utils::jsonToCanonicalStr(d));
-        LOG_INFO << "Migrated single IP Secondary to new storage format";
-      } else if (f == secondaries_info.cend()) {
-        // Match the other way if we can
-        secondary = Uptane::IpUptaneSecondary::connectAndCreate(cfg.ip, cfg.port);
-        if (secondary == nullptr) {
-          LOG_ERROR << "Could not instantiate Secondary " << cfg.ip << ":" << cfg.port;
-          continue;
-        }
-        auto f_serial =
-            std::find_if(secondaries_info.cbegin(), secondaries_info.cend(),
-                         [&secondary](const SecondaryInfo& i) { return i.serial == secondary->getSerial(); });
-        if (f_serial == secondaries_info.cend()) {
-          LOG_ERROR << "Could not instantiate Secondary " << cfg.ip << ":" << cfg.port;
-          continue;
-        }
-        info = &(*f_serial);
-      } else {
-        info = &(*f);
+        aktualizr.SetSecondaryData(secondary->getSerial(), Utils::jsonToCanonicalStr(d));
       }
+      continue;
+    } else {
+      // The configured Secondary was found in storage.
+      info = &(*f);
+    }
 
+    if (secondary == nullptr) {
+      secondary =
+          Uptane::IpUptaneSecondary::connectAndCheck(cfg.ip, cfg.port, info->serial, info->hw_id, info->pub_key);
       if (secondary == nullptr) {
-        secondary =
-            Uptane::IpUptaneSecondary::connectAndCheck(cfg.ip, cfg.port, info->serial, info->hw_id, info->pub_key);
-      }
-
-      if (secondary != nullptr) {
-        result.push_back(secondary);
-      } else {
-        LOG_ERROR << "Could not instantiate Secondary " << info->serial;
+        throw std::runtime_error("Unable to connect to or verify IP Secondary at " + cfg.ip + ":" +
+                                 std::to_string(cfg.port));
       }
     }
+
+    result.push_back(secondary);
   }
+
+  sec_waiter.wait();
 
   return result;
 }

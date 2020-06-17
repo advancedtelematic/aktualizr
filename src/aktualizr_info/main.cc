@@ -357,7 +357,7 @@ int main(int argc, char **argv) {
     std::vector<MisconfiguredEcu> misconfigured_ecus;
     storage->loadMisconfiguredEcus(&misconfigured_ecus);
     if (misconfigured_ecus.size() != 0U) {
-      std::cout << "Removed or not registered ECUs:" << std::endl;
+      std::cout << "Removed or unregistered ECUs (deprecated):" << std::endl;
       std::vector<MisconfiguredEcu>::const_iterator it;
       for (it = misconfigured_ecus.begin(); it != misconfigured_ecus.end(); ++it) {
         std::cout << "   '" << it->serial << "' with hardware_id '" << it->hardware_id << "' "

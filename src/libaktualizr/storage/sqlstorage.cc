@@ -975,7 +975,7 @@ void SQLStorage::storeCachedEcuManifest(const Uptane::EcuSerial& ecu_serial, con
   auto statement = db.prepareStatement<std::string, std::string>(
       "UPDATE secondary_ecus SET manifest = ? WHERE (serial = ?);", manifest, ecu_serial.ToString());
   if (statement.step() != SQLITE_DONE || sqlite3_changes(db.get()) != 1) {
-    LOG_ERROR << "Can't save Secondary manifest " << db.errmsg();
+    LOG_ERROR << "Can't save Secondary manifest: " << db.errmsg();
     return;
   }
 }
@@ -1006,30 +1006,14 @@ bool SQLStorage::loadCachedEcuManifest(const Uptane::EcuSerial& ecu_serial, std:
   return !empty;
 }
 
-void SQLStorage::storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecus) {
-  if (ecus.size() >= 1) {
-    SQLite3Guard db = dbConnection();
+void SQLStorage::saveMisconfiguredEcu(const MisconfiguredEcu& ecu) {
+  SQLite3Guard db = dbConnection();
 
-    db.beginTransaction();
-
-    if (db.exec("DELETE FROM misconfigured_ecus;", nullptr, nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Can't clear misconfigured_ecus: " << db.errmsg();
-      return;
-    }
-
-    std::vector<MisconfiguredEcu>::const_iterator it;
-    for (it = ecus.begin(); it != ecus.end(); it++) {
-      auto statement = db.prepareStatement<std::string, std::string, int>(
-          "INSERT INTO misconfigured_ecus VALUES (?,?,?);", it->serial.ToString(), it->hardware_id.ToString(),
-          static_cast<int>(it->state));
-
-      if (statement.step() != SQLITE_DONE) {
-        LOG_ERROR << "Can't set misconfigured_ecus: " << db.errmsg();
-        return;
-      }
-    }
-
-    db.commitTransaction();
+  auto statement = db.prepareStatement<std::string, std::string, int>(
+      "INSERT OR REPLACE INTO misconfigured_ecus VALUES (?,?,?);", ecu.serial.ToString(), ecu.hardware_id.ToString(),
+      static_cast<int>(ecu.state));
+  if (statement.step() != SQLITE_DONE) {
+    throw std::runtime_error(db.errmsg().insert(0, "Can't save misconfigured_ecus: "));
   }
 }
 

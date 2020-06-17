@@ -30,6 +30,8 @@ AktualizrSecondary::Ptr AktualizrSecondaryFactory::create(const AktualizrSeconda
 
     if (installed_version_res && !!current_version) {
       current_target_name = current_version->filename();
+    } else {
+      current_target_name = "unknown";
     }
 
     update_agent =

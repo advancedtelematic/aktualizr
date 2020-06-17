@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
       try {
         Primary::initSecondaries(aktualizr, config.uptane.secondary_config_file);
       } catch (const std::exception &e) {
-        LOG_ERROR << "Failed to initialize Secondaries :" << e.what();
+        LOG_ERROR << "Failed to initialize Secondaries: " << e.what();
         LOG_ERROR << "Exiting...";
         return EXIT_FAILURE;
       }

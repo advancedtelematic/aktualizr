@@ -199,7 +199,7 @@ bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
 
 void AktualizrSecondary::uptaneInitialize() {
   if (keys_->generateUptaneKeyPair().size() == 0) {
-    throw std::runtime_error("Failed to generate uptane key pair");
+    throw std::runtime_error("Failed to generate Uptane key pair");
   }
 
   // from uptane/initialize.cc but we only take care of our own serial/hwid

@@ -51,7 +51,7 @@ add_aktualizr_test(NAME uptane_network SOURCES uptane_network_test.cc PROJECT_WO
 set_tests_properties(test_uptane_network PROPERTIES LABELS "crypto")
 target_link_libraries(t_uptane_network virtual_secondary)
 
-add_aktualizr_test(NAME uptane_serial SOURCES uptane_serial_test.cc ARGS ${PROJECT_BINARY_DIR}
+add_aktualizr_test(NAME uptane_serial SOURCES uptane_serial_test.cc
                    PROJECT_WORKING_DIRECTORY LIBRARIES uptane_generator_lib)
 target_link_libraries(t_uptane_serial virtual_secondary)
 

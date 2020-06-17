@@ -139,6 +139,14 @@ class Aktualizr:
             config_file.seek(0)
             json.dump(sec_cfg, config_file)
 
+    def remove_secondary(self, secondary):
+        with open(self._secondary_config_file, "r+") as config_file:
+            sec_cfg = json.load(config_file)
+            sec_cfg["IP"]["secondaries"].remove({"addr": "127.0.0.1:{}".format(secondary.port)})
+            config_file.seek(0)
+            json.dump(sec_cfg, config_file)
+            config_file.truncate()
+
     def update_wait_timeout(self, timeout):
         with open(self._secondary_config_file, "r+") as config_file:
             sec_cfg = json.load(config_file)
@@ -175,7 +183,7 @@ class Aktualizr:
         device_status = self.get_info()
         if not ((device_status.find(ecu_id[0]) != -1) and (device_status.find(ecu_id[1]) != -1)):
             return False
-        not_registered_field = "Removed or not registered ECUs:"
+        not_registered_field = "Removed or unregistered ECUs (deprecated):"
         not_reg_start = device_status.find(not_registered_field)
         return not_reg_start == -1 or (device_status.find(ecu_id[1], not_reg_start) == -1)
 
@@ -293,7 +301,7 @@ class KeyStore:
 
 class IPSecondary:
 
-    def __init__(self, aktualizr_secondary_exe, id, port=None, primary_port=None,
+    def __init__(self, id, aktualizr_secondary_exe='src/aktualizr_secondary/aktualizr-secondary', port=None, primary_port=None,
                  sysroot=None, treehub=None, output_logs=True, force_reboot=False,
                  ostree_mock_path=None, **kwargs):
         self.id = id
