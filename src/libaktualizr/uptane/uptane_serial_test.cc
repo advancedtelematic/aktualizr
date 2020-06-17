@@ -21,8 +21,6 @@
 
 namespace bpo = boost::program_options;
 
-boost::filesystem::path build_dir;
-
 /**
  * Check that aktualizr generates random ecu_serial for Primary and all
  * Secondaries.
@@ -133,11 +131,6 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   logger_set_threshold(boost::log::trivial::trace);
 
-  if (argc != 2) {
-    std::cerr << "Error: " << argv[0] << " requires the path to the build directory as an input argument.\n";
-    return EXIT_FAILURE;
-  }
-  build_dir = argv[1];
   return RUN_ALL_TESTS();
 }
 #endif
