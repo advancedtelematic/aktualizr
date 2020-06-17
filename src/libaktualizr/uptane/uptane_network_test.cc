@@ -60,15 +60,6 @@ bool doTestInit(StorageType storage_type, const std::string &device_register_sta
     conf.provision.expiry_days = "noerrors";
     conf.provision.primary_ecu_serial = "noerrors";
 
-    if (device_register_state == "noerrors" && ecu_register_state != "noerrors") {
-      // restore a "good" ECU serial in the ECU register fault injection case
-      // (the bad value has been cached in storage)
-      EcuSerials serials;
-      store->loadEcuSerials(&serials);
-      serials[0].first = Uptane::EcuSerial(conf.provision.primary_ecu_serial);
-      store->storeEcuSerials(serials);
-    }
-
     KeyManager keys(store, conf.keymanagerConfig());
     try {
       Initializer initializer(conf.provision, store, http, keys, {});

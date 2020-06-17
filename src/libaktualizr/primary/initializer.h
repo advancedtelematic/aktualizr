@@ -55,7 +55,8 @@ class Initializer {
   KeyManager& keys_;
   const std::map<Uptane::EcuSerial, Uptane::SecondaryInterface::Ptr>& secondaries_;
   std::vector<SecondaryInfo> sec_info_;
-  bool register_ecus{false};
+  EcuSerials new_ecu_serials_;
+  bool register_ecus_{false};
 };
 
 class EcuCompare {

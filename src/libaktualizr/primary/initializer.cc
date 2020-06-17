@@ -59,26 +59,25 @@ void Initializer::initEcuSerials() {
     }
   }
 
-  EcuSerials new_ecu_serials;
-  new_ecu_serials.emplace_back(Uptane::EcuSerial(primary_ecu_serial_local),
-                               Uptane::HardwareIdentifier(primary_ecu_hardware_id));
+  new_ecu_serials_.emplace_back(Uptane::EcuSerial(primary_ecu_serial_local),
+                                Uptane::HardwareIdentifier(primary_ecu_hardware_id));
   for (const auto& s : secondaries_) {
-    new_ecu_serials.emplace_back(s.first, s.second->getHwId());
+    new_ecu_serials_.emplace_back(s.first, s.second->getHwId());
   }
 
-  register_ecus = stored_ecu_serials.empty();
+  register_ecus_ = stored_ecu_serials.empty();
   if (!stored_ecu_serials.empty()) {
     // We should probably clear the misconfigured_ecus table once we have
     // consent working.
     std::vector<bool> found(stored_ecu_serials.size(), false);
 
-    EcuCompare primary_comp(new_ecu_serials[0]);
+    EcuCompare primary_comp(new_ecu_serials_[0]);
     EcuSerials::const_iterator store_it;
     store_it = std::find_if(stored_ecu_serials.cbegin(), stored_ecu_serials.cend(), primary_comp);
     if (store_it == stored_ecu_serials.cend()) {
-      LOG_INFO << "Configured Primary ECU serial " << new_ecu_serials[0].first << " with hardware ID "
-               << new_ecu_serials[0].second << " not found in storage.";
-      register_ecus = true;
+      LOG_INFO << "Configured Primary ECU serial " << new_ecu_serials_[0].first << " with hardware ID "
+               << new_ecu_serials_[0].second << " not found in storage.";
+      register_ecus_ = true;
     } else {
       found[static_cast<size_t>(store_it - stored_ecu_serials.cbegin())] = true;
     }
@@ -90,7 +89,7 @@ void Initializer::initEcuSerials() {
       if (store_it == stored_ecu_serials.cend()) {
         LOG_INFO << "Configured Secondary ECU serial " << it->second->getSerial() << " with hardware ID "
                  << it->second->getHwId() << " not found in storage.";
-        register_ecus = true;
+        register_ecus_ = true;
       } else {
         found[static_cast<size_t>(store_it - stored_ecu_serials.cbegin())] = true;
       }
@@ -104,14 +103,10 @@ void Initializer::initEcuSerials() {
         auto not_registered = stored_ecu_serials[static_cast<size_t>(found_it - found.begin())];
         LOG_INFO << "ECU serial " << not_registered.first << " with hardware ID " << not_registered.second
                  << " in storage was not found in Secondary configuration.";
-        register_ecus = true;
+        register_ecus_ = true;
         storage_->saveMisconfiguredEcu({not_registered.first, not_registered.second, EcuState::kOld});
       }
     }
-  }
-
-  if (register_ecus) {
-    storage_->storeEcuSerials(new_ecu_serials);
   }
 }
 
@@ -198,7 +193,7 @@ void Initializer::resetTlsCreds() {
 // Postcondition: "ECUs registered" flag set in the storage
 void Initializer::initEcuRegister() {
   // Allow re-registration if the ECUs have changed.
-  if (storage_->loadEcuRegistered() && !register_ecus) {
+  if (!register_ecus_) {
     LOG_DEBUG << "All ECUs are already registered with the server.";
     return;
   }
@@ -209,19 +204,13 @@ void Initializer::initEcuRegister() {
     throw StorageError("Invalid key in storage");
   }
 
-  EcuSerials ecu_serials;
-  // initEcuSerials should have been called by this point
-  if (!storage_->loadEcuSerials(&ecu_serials) || ecu_serials.size() < 1) {
-    throw StorageError("Could not load ECUs from storage");
-  }
-
   Json::Value all_ecus;
-  all_ecus["primary_ecu_serial"] = ecu_serials[0].first.ToString();
+  all_ecus["primary_ecu_serial"] = new_ecu_serials_[0].first.ToString();
   all_ecus["ecus"] = Json::arrayValue;
   {
     Json::Value primary_ecu;
-    primary_ecu["hardware_identifier"] = ecu_serials[0].second.ToString();
-    primary_ecu["ecu_serial"] = ecu_serials[0].first.ToString();
+    primary_ecu["hardware_identifier"] = new_ecu_serials_[0].second.ToString();
+    primary_ecu["ecu_serial"] = new_ecu_serials_[0].first.ToString();
     primary_ecu["clientKey"] = keys_.UptanePublicKey().ToUptane();
     all_ecus["ecus"].append(primary_ecu);
   }
@@ -246,6 +235,11 @@ void Initializer::initEcuRegister() {
     throw ServerError(err);
   }
 
+  // Only store the changes if we successfully registered the ECUs.
+  storage_->storeEcuSerials(new_ecu_serials_);
+  for (const auto& info : sec_info_) {
+    storage_->saveSecondaryInfo(info.serial, info.type, info.pub_key);
+  }
   storage_->storeEcuRegistered();
 
   LOG_INFO << "ECUs have been successfully registered with the server.";
@@ -257,12 +251,11 @@ void Initializer::initSecondaryInfo() {
     Uptane::SecondaryInterface& sec = *s.second;
 
     SecondaryInfo info;
-    // We must check this on every initialization, as this info
-    // won't be there in case of an upgrade from an older version.
-    // On the first initialization ECU serials should be already
-    // initialized by this point.
-    if (register_ecus || !storage_->loadSecondaryInfo(serial, &info) || info.type == "" ||
-        info.pub_key.Type() == KeyType::kUnknown) {
+    // If upgrading from the older version of the storage without the
+    // secondary_ecus table, we need to migrate the data. This should be done
+    // regardless of whether we need to (re-)register the ECUs.
+    // The ECU serials should be already initialized by this point.
+    if (!storage_->loadSecondaryInfo(serial, &info) || info.type == "" || info.pub_key.Type() == KeyType::kUnknown) {
       info.serial = serial;
       info.hw_id = sec.getHwId();
       info.type = sec.Type();
@@ -270,7 +263,11 @@ void Initializer::initSecondaryInfo() {
       if (p.Type() != KeyType::kUnknown) {
         info.pub_key = p;
       }
-      storage_->saveSecondaryInfo(info.serial, info.type, info.pub_key);
+      // If we don't need to register the ECUs, we still need to store this info
+      // to complete the migration.
+      if (!register_ecus_) {
+        storage_->saveSecondaryInfo(info.serial, info.type, info.pub_key);
+      }
     }
     // We will need this info later if the device is not yet provisioned
     sec_info_.push_back(std::move(info));
@@ -319,11 +316,11 @@ Initializer::Initializer(const ProvisionConfig& config_in, std::shared_ptr<INvSt
 
     initEcuSerials();
 
-    initEcuReportCounter();
-
     initSecondaryInfo();
 
     initEcuRegister();
+
+    initEcuReportCounter();
 
     return;
   }
