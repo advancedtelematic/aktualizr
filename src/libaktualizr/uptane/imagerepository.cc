@@ -269,7 +269,7 @@ void ImageRepository::updateMeta(INvStorage& storage, const IMetadataFetcher& fe
         fetch_targets = false;
         LOG_DEBUG << "Skipping Image repo Targets download; stored version is still current.";
       } catch (const std::exception& e) {
-        LOG_ERROR << "Image repo Root verification failed: " << e.what();
+        LOG_ERROR << "Image repo Target verification failed: " << e.what();
       }
       if (targets) {
         local_version = targets->version();
