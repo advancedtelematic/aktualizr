@@ -12,8 +12,6 @@
 #include "logging/logging.h"
 #include "utilities/exceptions.h"
 
-using Uptane::MetaPack;
-using Uptane::Root;
 using Uptane::Target;
 using Uptane::Version;
 
@@ -457,24 +455,6 @@ int Uptane::Snapshot::role_version(const Uptane::Role &role) const {
   }
 };
 
-bool MetaPack::isConsistent() const {
-  TimeStamp now(TimeStamp::Now());
-  try {
-    if (director_root.original() != Json::nullValue) {
-      Uptane::Root original_root(director_root);
-      Uptane::Root new_root(RepositoryType::Director(), director_root.original(), new_root);
-      if (director_targets.original() != Json::nullValue) {
-        Uptane::Targets(RepositoryType::Director(), Role::Targets(), director_targets.original(),
-                        std::make_shared<MetaWithKeys>(original_root));
-      }
-    }
-  } catch (const std::logic_error &exc) {
-    LOG_WARNING << "Inconsistent metadata: " << exc.what();
-    return false;
-  }
-  return true;
-}
-
 int Uptane::extractVersionUntrusted(const std::string &meta) {
   auto version_json = Utils::parseJSON(meta)["signed"]["version"];
   if (!version_json.isIntegral()) {
@@ -482,4 +462,13 @@ int Uptane::extractVersionUntrusted(const std::string &meta) {
   } else {
     return version_json.asInt();
   }
+}
+
+std::string Uptane::getMetaFromBundle(const MetaBundle &bundle, const RepositoryType repo, const Role &role) {
+  auto it = bundle.find(std::make_pair(repo, role));
+  if (it == bundle.end()) {
+    throw std::runtime_error("Metadata not found for " + role.ToString() + " role from the " + repo.toString() +
+                             " repository.");
+  }
+  return it->second;
 }

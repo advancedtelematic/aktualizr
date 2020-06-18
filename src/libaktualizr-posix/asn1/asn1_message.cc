@@ -67,7 +67,12 @@ Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, int con_fd) {
   DequeueBuffer buffer;
   ssize_t received;
   do {
+    res.code = RC_FAIL;
     received = recv(con_fd, buffer.Tail(), buffer.TailSpace(), 0);
+    if (received < 0) {
+      LOG_ERROR << "Failed to read data from a coonnection socket: " << strerror(errno);
+      break;
+    }
     LOG_TRACE << "Asn1Rpc read " << Utils::toBase64(std::string(buffer.Tail(), static_cast<size_t>(received)));
     buffer.HaveEnqueued(static_cast<size_t>(received));
     res = ber_decode(&context, &asn_DEF_AKIpUptaneMes, reinterpret_cast<void**>(&m), buffer.Head(), buffer.Size());
@@ -77,7 +82,7 @@ Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, int con_fd) {
   Asn1Message::Ptr msg = Asn1Message::FromRaw(&m);
 
   if (res.code != RC_OK) {
-    LOG_ERROR << "Asn1Rpc decoding failed";
+    LOG_DEBUG << "Asn1Rpc decoding failed";
     msg->present(AKIpUptaneMes_PR_NOTHING);
   }
 

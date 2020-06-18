@@ -14,7 +14,7 @@
 
 namespace Primary {
 
-using Secondaries = std::vector<std::shared_ptr<Uptane::SecondaryInterface>>;
+using Secondaries = std::vector<std::shared_ptr<SecondaryInterface>>;
 using SecondaryFactoryRegistry =
     std::unordered_map<std::string, std::function<Secondaries(const SecondaryConfig&, Aktualizr& aktualizr)>>;
 
@@ -27,7 +27,8 @@ static SecondaryFactoryRegistry sec_factory_registry = {
        return createIPSecondaries(ip_sec_cgf, aktualizr);
      }},
     {VirtualSecondaryConfig::Type,
-     [](const SecondaryConfig& config, Aktualizr& /* unused */) {
+     [](const SecondaryConfig& config, Aktualizr& aktualizr) {
+       (void)aktualizr;
        auto virtual_sec_cgf = dynamic_cast<const VirtualSecondaryConfig&>(config);
        return Secondaries({std::make_shared<VirtualSecondary>(virtual_sec_cgf)});
      }},
@@ -71,7 +72,7 @@ class SecondaryWaiter {
         endpoint_{boost::asio::ip::tcp::v4(), wait_port},
         timeout_{static_cast<boost::posix_time::seconds>(timeout_s)},
         timer_{io_context_},
-        connected_secondaries_(secondaries) {}
+        connected_secondaries_{secondaries} {}
 
   void addSecondary(const std::string& ip, uint16_t port) { secondaries_to_wait_for_.insert(key(ip, port)); }
 
@@ -164,7 +165,7 @@ static Secondaries createIPSecondaries(const IPSecondariesConfig& config, Aktual
   auto secondaries_info = aktualizr.GetSecondaries();
 
   for (const auto& cfg : config.secondaries_cfg) {
-    Uptane::SecondaryInterface::Ptr secondary;
+    SecondaryInterface::Ptr secondary;
     const SecondaryInfo* info = nullptr;
 
     // Try to match the configured Secondaries to stored Secondaries.

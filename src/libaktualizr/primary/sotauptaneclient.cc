@@ -24,7 +24,7 @@ static void report_progress_cb(event::Channel *channel, const Uptane::Target &ta
   (*channel)(event);
 }
 
-void SotaUptaneClient::addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec) {
+void SotaUptaneClient::addSecondary(const std::shared_ptr<SecondaryInterface> &sec) {
   Uptane::EcuSerial serial = sec->getSerial();
 
   const auto map_it = secondaries.find(serial);
@@ -338,6 +338,10 @@ void SotaUptaneClient::initialize() {
   primary_ecu_serial_ = serials[0].first;
   primary_ecu_hw_id_ = serials[0].second;
   LOG_INFO << "Primary ECU serial: " << primary_ecu_serial_ << " with hardware ID: " << primary_ecu_hw_id_;
+
+  for (auto it = secondaries.begin(); it != secondaries.end(); ++it) {
+    it->second->init(secondary_provider_);
+  }
 
   std::string device_id;
   if (!storage->loadDeviceId(&device_id)) {
@@ -989,8 +993,11 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
     std::vector<Uptane::Target> primary_updates = findForEcu(updates, primary_ecu_serial);
 
     //   6 - send metadata to all the ECUs
-    if (!sendMetadataToEcus(updates)) {
-      result.dev_report = {false, data::ResultCode::Numeric::kInternalError, "Metadata verification failed"};
+    // TODO: Handle individual ECU metadata failures and combine output into
+    // the device report as is done for installation.
+    data::InstallationResult metadata_res = sendMetadataToEcus(updates);
+    if (!metadata_res.isSuccess()) {
+      result.dev_report = std::move(metadata_res);
       return std::make_tuple(result, "Secondary metadata verification failed");
     }
 
@@ -1130,7 +1137,7 @@ bool SotaUptaneClient::putManifest(const Json::Value &custom) {
 }
 
 bool SotaUptaneClient::waitSecondariesReachable(const std::vector<Uptane::Target> &updates) {
-  std::map<Uptane::EcuSerial, Uptane::SecondaryInterface *> targeted_secondaries;
+  std::map<Uptane::EcuSerial, SecondaryInterface *> targeted_secondaries;
   const Uptane::EcuSerial &primary_ecu_serial = primaryEcuSerial();
   for (const auto &t : updates) {
     for (const auto &ecu : t.ecus()) {
@@ -1187,18 +1194,20 @@ void SotaUptaneClient::storeInstallationFailure(const data::InstallationResult &
   director_repo.dropTargets(*storage);
 }
 
-void SotaUptaneClient::rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::SecondaryInterface &secondary) {
+/* If the Root has been rotated more than once, we need to provide the Secondary
+ * with the incremental steps from what it has now. */
+data::InstallationResult SotaUptaneClient::rotateSecondaryRoot(Uptane::RepositoryType repo,
+                                                               SecondaryInterface &secondary) {
   std::string latest_root;
-
   if (!storage->loadLatestRoot(&latest_root, repo)) {
-    LOG_ERROR << "No Root metadata to send";
-    return;
+    LOG_ERROR << "Error reading Root metadata";
+    return data::InstallationResult(data::ResultCode::Numeric::kInternalError, "Error reading Root metadata");
   }
 
-  int last_root_version = Uptane::extractVersionUntrusted(latest_root);
-
-  int sec_root_version = secondary.getRootVersion((repo == Uptane::RepositoryType::Director()));
-  if (sec_root_version >= 0) {
+  data::InstallationResult result{data::ResultCode::Numeric::kOk, ""};
+  const int last_root_version = Uptane::extractVersionUntrusted(latest_root);
+  const int sec_root_version = secondary.getRootVersion((repo == Uptane::RepositoryType::Director()));
+  if (sec_root_version > 0 && last_root_version - sec_root_version > 1) {
     for (int v = sec_root_version + 1; v <= last_root_version; v++) {
       std::string root;
       if (!storage->loadRoot(&root, repo, Uptane::Version(v))) {
@@ -1208,45 +1217,25 @@ void SotaUptaneClient::rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::
         } catch (const std::exception &e) {
           // TODO(OTA-4552): looks problematic, robust procedure needs to be defined
           LOG_ERROR << "Root metadata could not be fetched, skipping to the next Secondary";
-          return;
+          result = data::InstallationResult(data::ResultCode::Numeric::kInternalError,
+                                            "Root metadata could not be fetched, skipping to the next Secondary");
+          break;
         }
       }
-      if (!secondary.putRoot(root, repo == Uptane::RepositoryType::Director())) {
-        LOG_ERROR << "Sending metadata to " << secondary.getSerial() << " failed";
+      result = secondary.putRoot(root, repo == Uptane::RepositoryType::Director());
+      if (!result.isSuccess()) {
+        LOG_ERROR << "Sending metadata to " << secondary.getSerial() << " failed: " << result.result_code << " "
+                  << result.description;
+        break;
       }
     }
   }
+  return result;
 }
 
 // TODO: the function blocks until it updates all the Secondaries. Consider non-blocking operation.
-bool SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &targets) {
-  Uptane::RawMetaPack meta;
-  if (!storage->loadLatestRoot(&meta.director_root, Uptane::RepositoryType::Director())) {
-    LOG_ERROR << "No Director Root metadata to send";
-    return false;
-  }
-  if (!storage->loadNonRoot(&meta.director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets())) {
-    LOG_ERROR << "No Director Targets metadata to send";
-    return false;
-  }
-  if (!storage->loadLatestRoot(&meta.image_root, Uptane::RepositoryType::Image())) {
-    LOG_ERROR << "No Image repo Root metadata to send";
-    return false;
-  }
-  if (!storage->loadNonRoot(&meta.image_timestamp, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp())) {
-    LOG_ERROR << "No Image repo Timestamp metadata to send";
-    return false;
-  }
-  if (!storage->loadNonRoot(&meta.image_snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot())) {
-    LOG_ERROR << "No Image repo Snapshot metadata to send";
-    return false;
-  }
-  if (!storage->loadNonRoot(&meta.image_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets())) {
-    LOG_ERROR << "No Image repo Targets metadata to send";
-    return false;
-  }
-
-  bool put_meta_succeed = true;
+data::InstallationResult SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &targets) {
+  data::InstallationResult final_result{data::ResultCode::Numeric::kOk, ""};
   for (const auto &target : targets) {
     for (const auto &ecu : target.ecus()) {
       const Uptane::EcuSerial ecu_serial = ecu.first;
@@ -1256,58 +1245,50 @@ bool SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &tar
       }
 
       /* Root rotation if necessary */
-      rotateSecondaryRoot(Uptane::RepositoryType::Director(), *(sec->second));
-      rotateSecondaryRoot(Uptane::RepositoryType::Image(), *(sec->second));
-      if (!sec->second->putMetadata(meta)) {
-        LOG_ERROR << "Sending metadata to " << sec->first << " failed";
-        put_meta_succeed = false;
+      auto result = rotateSecondaryRoot(Uptane::RepositoryType::Director(), *(sec->second));
+      if (!result.isSuccess()) {
+        final_result = result;
+        continue;
+      }
+      result = rotateSecondaryRoot(Uptane::RepositoryType::Image(), *(sec->second));
+      if (!result.isSuccess()) {
+        final_result = result;
+        continue;
+      }
+      result = sec->second->putMetadata(target);
+      if (!result.isSuccess()) {
+        LOG_ERROR << "Sending metadata to " << sec->first << " failed: " << result.result_code << " "
+                  << result.description;
+        final_result = result;
       }
     }
   }
 
-  return put_meta_succeed;
+  return final_result;
 }
 
-std::future<data::ResultCode::Numeric> SotaUptaneClient::sendFirmwareAsync(Uptane::SecondaryInterface &secondary,
-                                                                           const Uptane::Target &target) {
+std::future<data::InstallationResult> SotaUptaneClient::sendFirmwareAsync(SecondaryInterface &secondary,
+                                                                          const Uptane::Target &target) {
   auto f = [this, &secondary, target]() {
     const std::string &correlation_id = director_repo.getCorrelationId();
 
     sendEvent<event::InstallStarted>(secondary.getSerial());
     report_queue->enqueue(std_::make_unique<EcuInstallationStartedReport>(secondary.getSerial(), correlation_id));
 
-    std::string data_to_send;
-    bool send_firmware_result = false;
+    data::InstallationResult result = secondary.sendFirmware(target);
 
-    if (target.IsOstree()) {
-      // empty firmware means OSTree Secondaries: pack credentials instead
-      data_to_send = secondaryTreehubCredentials();
-    } else {
-      std::stringstream sstr;
-      auto str = package_manager_->openTargetFile(target);
-      sstr << str.rdbuf();
-      data_to_send = sstr.str();
+    if (result.isSuccess()) {
+      result = secondary.install(target);
     }
 
-    if (!data_to_send.empty()) {
-      send_firmware_result = secondary.sendFirmware(data_to_send);
-    }
-
-    data::ResultCode::Numeric result =
-        send_firmware_result ? data::ResultCode::Numeric::kOk : data::ResultCode::Numeric::kInstallFailed;
-
-    if (send_firmware_result) {
-      result = secondary.install(target.filename());
-    }
-
-    if (result == data::ResultCode::Numeric::kNeedCompletion) {
+    if (result.result_code == data::ResultCode::Numeric::kNeedCompletion) {
       report_queue->enqueue(std_::make_unique<EcuInstallationAppliedReport>(secondary.getSerial(), correlation_id));
     } else {
-      report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(
-          secondary.getSerial(), correlation_id, result == data::ResultCode::Numeric::kOk));
+      report_queue->enqueue(
+          std_::make_unique<EcuInstallationCompletedReport>(secondary.getSerial(), correlation_id, result.isSuccess()));
     }
 
-    sendEvent<event::InstallTargetComplete>(secondary.getSerial(), result == data::ResultCode::Numeric::kOk);
+    sendEvent<event::InstallTargetComplete>(secondary.getSerial(), result.isSuccess());
     return result;
   };
 
@@ -1316,7 +1297,7 @@ std::future<data::ResultCode::Numeric> SotaUptaneClient::sendFirmwareAsync(Uptan
 
 std::vector<result::Install::EcuReport> SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targets) {
   std::vector<result::Install::EcuReport> reports;
-  std::vector<std::pair<result::Install::EcuReport, std::future<data::ResultCode::Numeric>>> firmwareFutures;
+  std::vector<std::pair<result::Install::EcuReport, std::future<data::InstallationResult>>> firmwareFutures;
 
   const Uptane::EcuSerial &primary_ecu_serial = primaryEcuSerial();
   // target images should already have been downloaded to metadata_path/targets/
@@ -1334,71 +1315,27 @@ std::vector<result::Install::EcuReport> SotaUptaneClient::sendImagesToEcus(const
         throw Uptane::BadEcuId(targets_it->filename());
       }
 
-      Uptane::SecondaryInterface &sec = *f->second;
+      SecondaryInterface &sec = *f->second;
       firmwareFutures.emplace_back(result::Install::EcuReport(*targets_it, ecu_serial, data::InstallationResult()),
                                    sendFirmwareAsync(sec, *targets_it));
     }
   }
 
   for (auto &f : firmwareFutures) {
-    data::ResultCode::Numeric fut_result = data::ResultCode::Numeric::kUnknown;
+    data::InstallationResult fut_result = f.second.get();
 
-    fut_result = f.second.get();
-    f.first.install_res = data::InstallationResult(fut_result, "");
-
-    if (fiu_fail((std::string("secondary_install_") + f.first.serial.ToString()).c_str()) != 0) {
-      // consider changing this approach of the fault injection, since the current approach impacts the non-test code
-      // flow here as well as it doesn't test the installation failure on Secondary from an end-to-end perspective as it
-      // injects an error on the middle of the control flow that would have happened if an installation error had
-      // happened in case of the virtual or the IP Secondary or any other Secondary, e.g. add a mock Secondary that
-      // returns an error to sendFirmware/install request we might consider passing the installation description message
-      // from Secondary, not just bool and/or data::ResultCode::Numeric
-
-      // fault injection
-      fut_result = data::ResultCode::Numeric::kInstallFailed;
-      f.first.install_res = data::InstallationResult(data::ResultCode(fut_result, fault_injection_last_info()), "");
-    }
-
-    if (fut_result == data::ResultCode::Numeric::kOk || fut_result == data::ResultCode::Numeric::kNeedCompletion) {
+    if (fut_result.isSuccess() || fut_result.result_code == data::ResultCode::Numeric::kNeedCompletion) {
       f.first.update.setCorrelationId(director_repo.getCorrelationId());
-      auto update_mode = fut_result == data::ResultCode::Numeric::kOk ? InstalledVersionUpdateMode::kCurrent
-                                                                      : InstalledVersionUpdateMode::kPending;
+      auto update_mode =
+          fut_result.isSuccess() ? InstalledVersionUpdateMode::kCurrent : InstalledVersionUpdateMode::kPending;
       storage->saveInstalledVersion(f.first.serial.ToString(), f.first.update, update_mode);
     }
 
+    f.first.install_res = fut_result;
     storage->saveEcuInstallationResult(f.first.serial, f.first.install_res);
     reports.push_back(f.first);
   }
   return reports;
-}
-
-std::string SotaUptaneClient::secondaryTreehubCredentials() const {
-  if (config.tls.pkey_source != CryptoSource::kFile || config.tls.cert_source != CryptoSource::kFile ||
-      config.tls.ca_source != CryptoSource::kFile) {
-    LOG_ERROR << "Cannot send OSTree update to a Secondary when not using file as credential sources";
-    return "";
-  }
-  std::string ca;
-  std::string cert;
-  std::string pkey;
-  if (!storage->loadTlsCreds(&ca, &cert, &pkey)) {
-    LOG_ERROR << "Could not load TLS credentials from storage";
-    return "";
-  }
-
-  std::string treehub_url = config.pacman.ostree_server;
-  std::map<std::string, std::string> archive_map = {
-      {"ca.pem", ca}, {"client.pem", cert}, {"pkey.pem", pkey}, {"server.url", treehub_url}};
-
-  try {
-    std::stringstream as;
-    Utils::writeArchive(archive_map, as);
-
-    return as.str();
-  } catch (std::runtime_error &exc) {
-    LOG_ERROR << "Could not create credentials archive: " << exc.what();
-    return "";
-  }
 }
 
 Uptane::LazyTargetsList SotaUptaneClient::allTargets() const {

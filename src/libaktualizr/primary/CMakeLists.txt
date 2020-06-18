@@ -2,6 +2,7 @@ set(SOURCES aktualizr.cc
             aktualizr_helpers.cc
             initializer.cc
             reportqueue.cc
+            secondary_provider.cc
             sotauptaneclient.cc)
 
 set(HEADERS secondary_config.h
@@ -11,6 +12,8 @@ set(HEADERS secondary_config.h
             initializer.h
             reportqueue.h
             results.h
+            secondaryinterface.h
+            secondary_provider.h
             sotauptaneclient.h)
 
 

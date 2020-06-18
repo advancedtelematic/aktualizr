@@ -9,104 +9,43 @@
 #include <sys/types.h>
 #include <memory>
 
-AktualizrSecondary::AktualizrSecondary(AktualizrSecondaryConfig config, std::shared_ptr<INvStorage> storage,
-                                       std::shared_ptr<KeyManager> key_mngr, std::shared_ptr<UpdateAgent> update_agent)
-    : config_(std::move(config)),
+AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig& config, std::shared_ptr<INvStorage> storage)
+    : config_(config),
       storage_(std::move(storage)),
-      keys_(std::move(key_mngr)),
-      update_agent_(std::move(update_agent)),
-      dispatcher_(*this) {
+      keys_(std::make_shared<KeyManager>(storage_, config_.keymanagerConfig())) {
   uptaneInitialize();
   manifest_issuer_ = std::make_shared<Uptane::ManifestIssuer>(keys_, ecu_serial_);
-  initPendingTargetIfAny();
-
-  if (hasPendingUpdate()) {
-    LOG_INFO << "Found a pending target to be applied.";
-    // TODO(OTA-4545): refactor this to make it simpler as we don't need to persist/store
-    // an installation status of each ECU but store it just for a given secondary ECU
-    std::vector<Uptane::Target> installed_versions;
-    boost::optional<Uptane::Target> pending_target;
-    storage_->loadInstalledVersions(ecu_serial_.ToString(), nullptr, &pending_target);
-
-    if (!!pending_target) {
-      data::InstallationResult install_res =
-          data::InstallationResult(data::ResultCode::Numeric::kUnknown, "Unknown installation error");
-      LOG_INFO << "Pending update found; attempting to apply it. Target hash: " << pending_target->sha256Hash();
-
-      install_res = update_agent_->applyPendingInstall(*pending_target);
-
-      if (install_res.result_code != data::ResultCode::Numeric::kNeedCompletion) {
-        storage_->saveEcuInstallationResult(ecu_serial_, install_res);
-
-        if (install_res.success) {
-          LOG_INFO << "Pending update has been successfully applied: " << pending_target->sha256Hash();
-          storage_->saveInstalledVersion(ecu_serial_.ToString(), *pending_target, InstalledVersionUpdateMode::kCurrent);
-        } else {
-          LOG_ERROR << "Application of the pending update has failed: (" << install_res.result_code.toString() << ")"
-                    << install_res.description;
-          storage_->saveInstalledVersion(ecu_serial_.ToString(), *pending_target, InstalledVersionUpdateMode::kNone);
-        }
-
-        director_repo_.dropTargets(*storage_);
-      } else {
-        LOG_INFO << "Pending update hasn't been applied because a reboot hasn't been detected";
-      }
-    }
-  }
+  registerHandlers();
 }
 
-Uptane::EcuSerial AktualizrSecondary::getSerial() const { return ecu_serial_; }
-
-Uptane::HardwareIdentifier AktualizrSecondary::getHwId() const { return hardware_id_; }
-
-PublicKey AktualizrSecondary::getPublicKey() const { return keys_->UptanePublicKey(); }
-
-std::tuple<Uptane::EcuSerial, Uptane::HardwareIdentifier, PublicKey> AktualizrSecondary::getInfo() const {
-  return std::tuple<Uptane::EcuSerial, Uptane::HardwareIdentifier, PublicKey>{getSerial(), getHwId(), getPublicKey()};
-}
+PublicKey AktualizrSecondary::publicKey() const { return keys_->UptanePublicKey(); }
 
 Uptane::Manifest AktualizrSecondary::getManifest() const {
   Uptane::InstalledImageInfo installed_image_info;
   Uptane::Manifest manifest;
-  if (update_agent_->getInstalledImageInfo(installed_image_info)) {
+
+  if (getInstalledImageInfo(installed_image_info)) {
     manifest = manifest_issuer_->assembleAndSignManifest(installed_image_info);
   }
 
   return manifest;
 }
 
-bool AktualizrSecondary::putMetadata(const Metadata& metadata) { return doFullVerification(metadata); }
-
-bool AktualizrSecondary::sendFirmware(const std::string& firmware) {
-  if (!pending_target_.IsValid()) {
-    LOG_ERROR << "Aborting image download/receiving; no valid target found.";
-    return false;
-  }
-
-  if (!update_agent_->download(pending_target_, firmware)) {
-    LOG_ERROR << "Failed to pull/store an update data";
-    pending_target_ = Uptane::Target::Unknown();
-    return false;
-  }
-
-  LOG_INFO << "Download firmware " << pending_target_.filename() << " successful.";
-  return true;
+data::InstallationResult AktualizrSecondary::putMetadata(const Metadata& metadata) {
+  return doFullVerification(metadata);
 }
 
-data::ResultCode::Numeric AktualizrSecondary::install(const std::string& target_name) {
+data::InstallationResult AktualizrSecondary::install() {
   if (!pending_target_.IsValid()) {
     LOG_ERROR << "Aborting target image installation; no valid target found.";
-    return data::ResultCode::Numeric::kInternalError;
+    return data::InstallationResult(data::ResultCode::Numeric::kInternalError,
+                                    "Aborting target image installation; no valid target found.");
   }
 
-  if (pending_target_.filename() != target_name) {
-    LOG_ERROR << "name of the target to install and a name of the pending target do not match";
-    return data::ResultCode::Numeric::kInternalError;
-  }
+  auto target_name = pending_target_.filename();
+  auto result = installPendingTarget(pending_target_);
 
-  auto install_result = update_agent_->install(pending_target_);
-
-  switch (install_result) {
+  switch (result.result_code.num_code) {
     case data::ResultCode::Numeric::kOk: {
       storage_->saveInstalledVersion(ecu_serial_.ToString(), pending_target_, InstalledVersionUpdateMode::kCurrent);
       pending_target_ = Uptane::Target::Unknown();
@@ -123,78 +62,66 @@ data::ResultCode::Numeric AktualizrSecondary::install(const std::string& target_
     }
   }
 
-  return install_result;
+  return result;
 }
 
-void AktualizrSecondary::completeInstall() { update_agent_->completeInstall(); }
-
-bool AktualizrSecondary::doFullVerification(const Metadata& metadata) {
+data::InstallationResult AktualizrSecondary::doFullVerification(const Metadata& metadata) {
   // 5.4.4.2. Full verification  https://uptane.github.io/uptane-standard/uptane-standard.html#metadata_verification
 
   // 1. Load and verify the current time or the most recent securely attested time.
-  //
-  //    We trust the time that the given system/OS/ECU provides, In ECU We Trust :)
+  //    We trust the time that the given system/ECU provides.
   TimeStamp now(TimeStamp::Now());
 
-  // 2. Download and check the Root metadata file from the Director repository, following the procedure in
-  // Section 5.4.4.3. DirectorRepository::updateMeta() method implements this verification step, certain steps are
-  // missing though. see the method source code for details
-
-  // 3. NOT SUPPORTED: Download and check the Timestamp metadata file from the Director repository, following the
-  // procedure in Section 5.4.4.4.
-  // 4. NOT SUPPORTED: Download and check the Snapshot metadata file from the Director repository, following the
-  // procedure in Section 5.4.4.5.
-  //
-  // 5. Download and check the Targets metadata file from the Director repository, following the procedure in
-  // Section 5.4.4.6. DirectorRepository::updateMeta() method implements this verification step
-  //
-  // The following steps of the Director's Targets metadata verification are missing in DirectorRepository::updateMeta()
-  //  6. If checking Targets metadata from the Director repository, verify that there are no delegations.
-  //  7. If checking Targets metadata from the Director repository, check that no ECU identifier is represented more
-  //  than once.
+  // 2. Download and check the Root metadata file from the Director repository.
+  // 3. NOT SUPPORTED: Download and check the Timestamp metadata file from the Director repository.
+  // 4. NOT SUPPORTED: Download and check the Snapshot metadata file from the Director repository.
+  // 5. Download and check the Targets metadata file from the Director repository.
   try {
     director_repo_.updateMeta(*storage_, metadata);
   } catch (const std::exception& e) {
     LOG_ERROR << "Failed to update Director metadata: " << e.what();
-    return false;
+    return data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed,
+                                    std::string("Failed to update Director metadata: ") + e.what());
   }
 
-  // 6. Download and check the Root metadata file from the Image repository, following the procedure in Section 5.4.4.3.
-  // 7. Download and check the Timestamp metadata file from the Image repository, following the procedure in
-  // Section 5.4.4.4.
-  // 8. Download and check the Snapshot metadata file from the Image repository, following the procedure in
-  // Section 5.4.4.5.
-  // 9. Download and check the top-level Targets metadata file from the Image repository, following the procedure in
-  // Section 5.4.4.6.
+  // 6. Download and check the Root metadata file from the Image repository.
+  // 7. Download and check the Timestamp metadata file from the Image repository.
+  // 8. Download and check the Snapshot metadata file from the Image repository.
+  // 9. Download and check the top-level Targets metadata file from the Image repository.
   try {
     image_repo_.updateMeta(*storage_, metadata);
   } catch (const std::exception& e) {
     LOG_ERROR << "Failed to update Image repo metadata: " << e.what();
-    return false;
+    return data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed,
+                                    std::string("Failed to update Image repo metadata: ") + e.what());
   }
 
   // 10. Verify that Targets metadata from the Director and Image repositories match.
   if (!director_repo_.matchTargetsWithImageTargets(*(image_repo_.getTargets()))) {
-    LOG_ERROR << "Targets metadata from the Director and Image repositories DOES NOT match ";
-    return false;
+    LOG_ERROR << "Targets metadata from the Director and Image repositories do not match";
+    return data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed,
+                                    "Targets metadata from the Director and Image repositories do not match");
   }
 
-  auto targetsForThisEcu = director_repo_.getTargets(getSerial(), getHwId());
+  auto targetsForThisEcu = director_repo_.getTargets(serial(), hwID());
 
   if (targetsForThisEcu.size() != 1) {
     LOG_ERROR << "Invalid number of targets (should be 1): " << targetsForThisEcu.size();
-    return false;
+    return data::InstallationResult(
+        data::ResultCode::Numeric::kVerificationFailed,
+        "Invalid number of targets (should be 1): " + std::to_string(targetsForThisEcu.size()));
   }
 
-  if (!update_agent_->isTargetSupported(targetsForThisEcu[0])) {
+  if (!isTargetSupported(targetsForThisEcu[0])) {
     LOG_ERROR << "The given target type is not supported: " << targetsForThisEcu[0].type();
-    return false;
+    return data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed,
+                                    "The given target type is not supported: " + targetsForThisEcu[0].type());
   }
 
   pending_target_ = targetsForThisEcu[0];
 
   LOG_DEBUG << "Metadata verified, new update found.";
-  return true;
+  return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
 }
 
 void AktualizrSecondary::uptaneInitialize() {
@@ -255,10 +182,156 @@ void AktualizrSecondary::initPendingTargetIfAny() {
     return;
   }
 
-  if (!update_agent_->isTargetSupported(targetsForThisEcu[0])) {
+  if (!isTargetSupported(targetsForThisEcu[0])) {
     LOG_ERROR << "The given target type is not supported: " << targetsForThisEcu[0].type();
     return;
   }
 
   pending_target_ = targetsForThisEcu[0];
+}
+
+void AktualizrSecondary::registerHandlers() {
+  registerHandler(AKIpUptaneMes_PR_getInfoReq,
+                  std::bind(&AktualizrSecondary::getInfoHdlr, this, std::placeholders::_1, std::placeholders::_2));
+
+  registerHandler(AKIpUptaneMes_PR_versionReq,
+                  std::bind(&AktualizrSecondary::versionHdlr, this, std::placeholders::_1, std::placeholders::_2));
+
+  registerHandler(AKIpUptaneMes_PR_manifestReq,
+                  std::bind(&AktualizrSecondary::getManifestHdlr, this, std::placeholders::_1, std::placeholders::_2));
+
+  registerHandler(AKIpUptaneMes_PR_putMetaReq2,
+                  std::bind(&AktualizrSecondary::putMetaHdlr, this, std::placeholders::_1, std::placeholders::_2));
+
+  registerHandler(AKIpUptaneMes_PR_installReq,
+                  std::bind(&AktualizrSecondary::installHdlr, this, std::placeholders::_1, std::placeholders::_2));
+}
+
+MsgHandler::ReturnCode AktualizrSecondary::getInfoHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+  (void)in_msg;
+
+  out_msg.present(AKIpUptaneMes_PR_getInfoResp);
+  auto info_resp = out_msg.getInfoResp();
+
+  SetString(&info_resp->ecuSerial, serial().ToString());
+  SetString(&info_resp->hwId, hwID().ToString());
+  info_resp->keyType = static_cast<AKIpUptaneKeyType_t>(publicKey().Type());
+  SetString(&info_resp->key, publicKey().Value());
+
+  return ReturnCode::kOk;
+}
+
+MsgHandler::ReturnCode AktualizrSecondary::versionHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+  const uint32_t version = 2;
+  auto version_req = in_msg.versionReq();
+  const auto primary_version = static_cast<uint32_t>(version_req->version);
+  if (primary_version < version) {
+    LOG_ERROR << "Primary protocol version is " << primary_version << " but Secondary version is " << version
+              << "! Communication will most likely fail!";
+  } else if (primary_version > version) {
+    LOG_INFO << "Primary protocol version is " << primary_version << " but Secondary version is " << version
+             << ". Please consider upgrading the Secondary.";
+  }
+
+  out_msg.present(AKIpUptaneMes_PR_versionResp);
+  auto version_resp = out_msg.versionResp();
+  version_resp->version = version;
+
+  return ReturnCode::kOk;
+}
+
+AktualizrSecondary::ReturnCode AktualizrSecondary::getManifestHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+  (void)in_msg;
+
+  out_msg.present(AKIpUptaneMes_PR_manifestResp);
+  auto manifest_resp = out_msg.manifestResp();
+  manifest_resp->manifest.present = manifest_PR_json;
+  SetString(&manifest_resp->manifest.choice.json, Utils::jsonToStr(getManifest()));  // NOLINT
+
+  LOG_TRACE << "Manifest: \n" << getManifest();
+  return ReturnCode::kOk;
+}
+
+void AktualizrSecondary::copyMetadata(Uptane::MetaBundle& meta_bundle, const Uptane::RepositoryType repo,
+                                      const Uptane::Role& role, std::string& json) {
+  auto key = std::make_pair(repo, role);
+  if (meta_bundle.count(key) > 0) {
+    LOG_WARNING << repo.toString() << " metadata in contains multiple " << role.ToString() << " objects.";
+    return;
+  }
+  meta_bundle.emplace(key, std::move(json));
+}
+
+AktualizrSecondary::ReturnCode AktualizrSecondary::putMetaHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+  auto md = in_msg.putMetaReq2();
+  Uptane::MetaBundle meta_bundle;
+
+  if (md->directorRepo.present == directorRepo_PR_collection) {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+    const int director_meta_count = md->directorRepo.choice.collection.list.count;
+    for (int i = 0; i < director_meta_count; i++) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic, cppcoreguidelines-pro-type-union-access)
+      const AKMetaJson_t object = *md->directorRepo.choice.collection.list.array[i];
+      const std::string role = ToString(object.role);
+      std::string json = ToString(object.json);
+      LOG_DEBUG << "Received Director repo " << role << " metadata:\n" << json;
+      if (role == Uptane::Role::ROOT) {
+        copyMetadata(meta_bundle, Uptane::RepositoryType::Director(), Uptane::Role::Root(), json);
+      } else if (role == Uptane::Role::TARGETS) {
+        copyMetadata(meta_bundle, Uptane::RepositoryType::Director(), Uptane::Role::Targets(), json);
+      } else {
+        LOG_WARNING << "Director metadata in unknown format:" << md->directorRepo.present;
+      }
+    }
+  }
+
+  if (md->imageRepo.present == imageRepo_PR_collection) {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+    const int image_meta_count = md->imageRepo.choice.collection.list.count;
+    for (int i = 0; i < image_meta_count; i++) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic, cppcoreguidelines-pro-type-union-access)
+      const AKMetaJson_t object = *md->imageRepo.choice.collection.list.array[i];
+      const std::string role = ToString(object.role);
+      std::string json = ToString(object.json);
+      LOG_DEBUG << "Received Image repo " << role << " metadata:\n" << json;
+      if (role == Uptane::Role::ROOT) {
+        copyMetadata(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Root(), json);
+      } else if (role == Uptane::Role::TIMESTAMP) {
+        copyMetadata(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp(), json);
+      } else if (role == Uptane::Role::SNAPSHOT) {
+        copyMetadata(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot(), json);
+      } else if (role == Uptane::Role::TARGETS) {
+        copyMetadata(meta_bundle, Uptane::RepositoryType::Image(), Uptane::Role::Targets(), json);
+      } else {
+        LOG_WARNING << "Image metadata in unknown format:" << md->imageRepo.present;
+      }
+    }
+  }
+
+  if (meta_bundle.size() != 6) {
+    LOG_WARNING << "Metadata received from Primary is incomplete: " << md->imageRepo.present;
+  }
+
+  data::InstallationResult result = putMetadata(meta_bundle);
+
+  auto m = out_msg.present(AKIpUptaneMes_PR_putMetaResp2).putMetaResp2();
+  m->result = static_cast<AKInstallationResultCode_t>(result.result_code.num_code);
+  SetString(&m->description, result.description);
+
+  return ReturnCode::kOk;
+}
+
+AktualizrSecondary::ReturnCode AktualizrSecondary::installHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+  (void)in_msg;
+  auto result = install();
+
+  auto m = out_msg.present(AKIpUptaneMes_PR_installResp2).installResp2();
+  m->result = static_cast<AKInstallationResultCode_t>(result.result_code.num_code);
+  SetString(&m->description, result.description);
+
+  if (data::ResultCode::Numeric::kNeedCompletion == result.result_code.num_code) {
+    return ReturnCode::kRebootRequired;
+  }
+
+  return ReturnCode::kOk;
 }

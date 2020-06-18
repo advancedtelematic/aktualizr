@@ -12,12 +12,13 @@
 #include "uptane/manifest.h"
 #include "uptane/uptanerepository.h"
 #include "utilities/exceptions.h"
+#include "utilities/fault_injection.h"
+#include "utilities/utils.h"
 
 namespace Primary {
 
 ManagedSecondary::ManagedSecondary(Primary::ManagedSecondaryConfig sconfig_in) : sconfig(std::move(sconfig_in)) {
-  // TODO: FIX
-  // loadMetadata(meta_pack);
+  loadMetadata();
   std::string public_key_string;
 
   if (!loadKeys(&public_key_string, &private_key)) {
@@ -61,53 +62,41 @@ void ManagedSecondary::Initialize() {
 
 void ManagedSecondary::rawToMeta() {
   // raw meta is trusted
-  current_meta.director_root =
-      Uptane::Root(Uptane::RepositoryType::Director(), Utils::parseJSON(current_raw_meta.director_root));
-  current_meta.director_targets = Uptane::Targets(Utils::parseJSON(current_raw_meta.director_targets));
-  current_meta.image_root =
-      Uptane::Root(Uptane::RepositoryType::Image(), Utils::parseJSON(current_raw_meta.image_root));
-  current_meta.image_targets = Uptane::Targets(Utils::parseJSON(current_raw_meta.image_targets));
-  current_meta.image_timestamp = Uptane::TimestampMeta(Utils::parseJSON(current_raw_meta.image_timestamp));
-  current_meta.image_snapshot = Uptane::Snapshot(Utils::parseJSON(current_raw_meta.image_snapshot));
+  current_meta.director_root = Uptane::Root(
+      Uptane::RepositoryType::Director(),
+      Utils::parseJSON(getMetaFromBundle(meta_bundle_, Uptane::RepositoryType::Director(), Uptane::Role::Root())));
+  current_meta.director_targets = Uptane::Targets(
+      Utils::parseJSON(getMetaFromBundle(meta_bundle_, Uptane::RepositoryType::Director(), Uptane::Role::Targets())));
+  current_meta.image_root = Uptane::Root(
+      Uptane::RepositoryType::Image(),
+      Utils::parseJSON(getMetaFromBundle(meta_bundle_, Uptane::RepositoryType::Image(), Uptane::Role::Root())));
+  current_meta.image_timestamp = Uptane::TimestampMeta(
+      Utils::parseJSON(getMetaFromBundle(meta_bundle_, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp())));
+  current_meta.image_snapshot = Uptane::Snapshot(
+      Utils::parseJSON(getMetaFromBundle(meta_bundle_, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot())));
+  current_meta.image_targets = Uptane::Targets(
+      Utils::parseJSON(getMetaFromBundle(meta_bundle_, Uptane::RepositoryType::Image(), Uptane::Role::Targets())));
 }
 
-bool ManagedSecondary::putMetadata(const Uptane::RawMetaPack &meta_pack) {
+data::InstallationResult ManagedSecondary::putMetadata(const Uptane::Target &target) {
+  Uptane::MetaBundle temp_bundle;
+  if (!secondary_provider_->getMetadata(&temp_bundle, target)) {
+    return data::InstallationResult(data::ResultCode::Numeric::kInternalError,
+                                    "Unable to load stored metadata from Primary");
+  }
+
   // No verification is currently performed, we can add verification in future for testing purposes
   detected_attack = "";
 
-  current_raw_meta = meta_pack;
-  rawToMeta();  // current_raw_meta -> current_meta
+  meta_bundle_ = std::move(temp_bundle);
+  rawToMeta();  // meta_bundle_ -> current_meta
   if (!current_meta.isConsistent()) {
-    return false;
+    return data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed,
+                                    "Error verifying metadata received from Primary");
   }
-  storeMetadata(current_raw_meta);
+  storeMetadata();
 
-  expected_target_name = "";
-  expected_target_hashes.clear();
-  expected_target_length = 0;
-
-  bool target_found = false;
-
-  std::vector<Uptane::Target>::const_iterator it;
-  for (it = current_meta.director_targets.targets.begin(); it != current_meta.director_targets.targets.end(); ++it) {
-    // TODO: what about hardware ID? Also missing in Uptane::Target
-    if (it->ecus().find(getSerial()) != it->ecus().end()) {
-      if (target_found) {
-        detected_attack = "Duplicate entry for this ECU";
-        break;
-      }
-      expected_target_name = it->filename();
-      expected_target_hashes = it->hashes();
-      expected_target_length = it->length();
-      target_found = true;
-    }
-  }
-
-  if (!target_found) {
-    detected_attack = "No update for this ECU";
-  }
-
-  return true;
+  return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
 }
 
 int ManagedSecondary::getRootVersion(const bool director) const {
@@ -117,67 +106,42 @@ int ManagedSecondary::getRootVersion(const bool director) const {
   return current_meta.image_root.version();
 }
 
-bool ManagedSecondary::putRoot(const std::string &root, const bool director) {
+data::InstallationResult ManagedSecondary::putRoot(const std::string &root, const bool director) {
+  const Uptane::RepositoryType repo = (director) ? Uptane::RepositoryType::Director() : Uptane::RepositoryType::Image();
   Uptane::Root &prev_root = (director) ? current_meta.director_root : current_meta.image_root;
-  std::string &prev_raw_root = (director) ? current_raw_meta.director_root : current_raw_meta.image_root;
-  Uptane::Root new_root = Uptane::Root(
-      (director) ? Uptane::RepositoryType::Director() : Uptane::RepositoryType::Image(), Utils::parseJSON(root));
+  const std::string prev_raw_root = getMetaFromBundle(meta_bundle_, repo, Uptane::Role::Root());
+  Uptane::Root new_root = Uptane::Root(repo, Utils::parseJSON(root));
 
   // No verification is currently performed, we can add verification in future for testing purposes
   if (new_root.version() == prev_root.version() + 1) {
     prev_root = new_root;
-    prev_raw_root = root;
+    meta_bundle_.insert({std::make_pair(repo, Uptane::Role::Root()), root});
   } else {
     detected_attack = "Tried to update Root version " + std::to_string(prev_root.version()) + " with version " +
                       std::to_string(new_root.version());
   }
 
   if (!current_meta.isConsistent()) {
-    return false;
+    return data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed, "Error verifying metadata");
   }
-  storeMetadata(current_raw_meta);
-  return true;
+  storeMetadata();
+  return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
 }
 
-bool ManagedSecondary::sendFirmware(const std::string &data) {
-  std::lock_guard<std::mutex> l(install_mutex);
-
-  if (expected_target_name.empty()) {
-    return false;
-  }
-  if (!detected_attack.empty()) {
-    return false;
-  }
-
-  if (data.size() > static_cast<size_t>(expected_target_length)) {
-    detected_attack = "overflow";
-    return false;
-  }
-
-  std::vector<Hash>::const_iterator it;
-  for (it = expected_target_hashes.begin(); it != expected_target_hashes.end(); it++) {
-    if (it->TypeString() == "sha256") {
-      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(data))) !=
-          boost::algorithm::to_lower_copy(it->HashString())) {
-        detected_attack = "wrong_hash";
-        return false;
-      }
-    } else if (it->TypeString() == "sha512") {
-      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(data))) !=
-          boost::algorithm::to_lower_copy(it->HashString())) {
-        detected_attack = "wrong_hash";
-        return false;
-      }
-    }
-  }
-  detected_attack = "";
-  const bool result = storeFirmware(expected_target_name, data);
-  return result;
+data::InstallationResult ManagedSecondary::sendFirmware(const Uptane::Target &target) {
+  (void)target;
+  return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
 }
 
-data::ResultCode::Numeric ManagedSecondary::install(const std::string &target_name) {
-  (void)target_name;
-  return data::ResultCode::Numeric::kOk;
+data::InstallationResult ManagedSecondary::install(const Uptane::Target &target) {
+  auto str = secondary_provider_->getTargetFileHandle(target);
+  std::ofstream out_file(sconfig.firmware_path.string(), std::ios::binary);
+  out_file << str.rdbuf();
+  str.close();
+  out_file.close();
+
+  Utils::writeFile(sconfig.target_name_path, target.filename());
+  return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
 }
 
 Uptane::Manifest ManagedSecondary::getManifest() const {
@@ -207,6 +171,22 @@ Uptane::Manifest ManagedSecondary::getManifest() const {
   return signed_ecu_version;
 }
 
+bool ManagedSecondary::getFirmwareInfo(Uptane::InstalledImageInfo &firmware_info) const {
+  std::string content;
+
+  if (!boost::filesystem::exists(sconfig.target_name_path) || !boost::filesystem::exists(sconfig.firmware_path)) {
+    firmware_info.name = std::string("noimage");
+    content = "";
+  } else {
+    firmware_info.name = Utils::readFile(sconfig.target_name_path.string());
+    content = Utils::readFile(sconfig.firmware_path.string());
+  }
+  firmware_info.hash = Uptane::ManifestIssuer::generateVersionHashStr(content);
+  firmware_info.len = content.size();
+
+  return true;
+}
+
 void ManagedSecondary::storeKeys(const std::string &pub_key, const std::string &priv_key) {
   Utils::writeFile((sconfig.full_client_dir / sconfig.ecu_private_key), priv_key);
   Utils::writeFile((sconfig.full_client_dir / sconfig.ecu_public_key), pub_key);
@@ -222,6 +202,24 @@ bool ManagedSecondary::loadKeys(std::string *pub_key, std::string *priv_key) {
 
   *priv_key = Utils::readFile(private_key_path.string());
   *pub_key = Utils::readFile(public_key_path.string());
+  return true;
+}
+
+bool MetaPack::isConsistent() const {
+  TimeStamp now(TimeStamp::Now());
+  try {
+    if (director_root.original() != Json::nullValue) {
+      Uptane::Root original_root(director_root);
+      Uptane::Root new_root(Uptane::RepositoryType::Director(), director_root.original(), new_root);
+      if (director_targets.original() != Json::nullValue) {
+        Uptane::Targets(Uptane::RepositoryType::Director(), Uptane::Role::Targets(), director_targets.original(),
+                        std::make_shared<Uptane::MetaWithKeys>(original_root));
+      }
+    }
+  } catch (const std::logic_error &exc) {
+    LOG_WARNING << "Inconsistent metadata: " << exc.what();
+    return false;
+  }
   return true;
 }
 

@@ -248,7 +248,7 @@ void Initializer::initEcuRegister() {
 void Initializer::initSecondaryInfo() {
   for (const auto& s : secondaries_) {
     const Uptane::EcuSerial serial = s.first;
-    Uptane::SecondaryInterface& sec = *s.second;
+    SecondaryInterface& sec = *s.second;
 
     SecondaryInfo info;
     // If upgrading from the older version of the storage without the
@@ -293,7 +293,7 @@ void Initializer::initEcuReportCounter() {
 // Postcondition: "ECUs registered" flag set in the storage
 Initializer::Initializer(const ProvisionConfig& config_in, std::shared_ptr<INvStorage> storage_in,
                          std::shared_ptr<HttpInterface> http_client_in, KeyManager& keys_in,
-                         const std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>>& secondaries_in)
+                         const std::map<Uptane::EcuSerial, std::shared_ptr<SecondaryInterface>>& secondaries_in)
     : config_(config_in),
       storage_(std::move(storage_in)),
       http_client_(std::move(http_client_in)),

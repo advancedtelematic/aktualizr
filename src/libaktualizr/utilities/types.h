@@ -8,7 +8,7 @@
 #include <json/json.h>
 #include <boost/filesystem.hpp>
 
-// Keep these int sync with AKIpUptaneKeyType ASN.1 definitions
+// Keep these in sync with AKIpUptaneKeyType ASN.1 definitions.
 enum class KeyType {
   kED25519 = 0,
   kFirstKnown = kED25519,
@@ -123,8 +123,7 @@ struct Package {
 };
 
 struct ResultCode {
-  // These match the old enum representation
-  // A lot of them were unused and have been dropped
+  // Keep these in sync with AKInstallationResultCode ASN.1 definitions.
   enum class Numeric {
     kOk = 0,
     /// Operation has already been processed
@@ -160,7 +159,9 @@ struct ResultCode {
   std::string text_code;
 
   // Allows to have a numeric code with a default representation, but also with
-  // any string representation
+  // any string representation. This is specifically useful for campaign success
+  // analysis, because the device installation report concatenates the
+  // individual ECU ResultCodes.
   std::string toString() const {
     if (text_code != "") {
       return text_code;
@@ -182,7 +183,8 @@ std::ostream& operator<<(std::ostream& os, const ResultCode& result_code);
 struct InstallationResult {
   InstallationResult() = default;
   InstallationResult(ResultCode result_code_in, std::string description_in)
-      : success(result_code_in.num_code == ResultCode::Numeric::kOk),
+      : success(result_code_in.num_code == ResultCode::Numeric::kOk ||
+                result_code_in.num_code == ResultCode::Numeric::kAlreadyProcessed),
         result_code(std::move(result_code_in)),
         description(std::move(description_in)) {}
   InstallationResult(bool success_in, ResultCode result_code_in, std::string description_in)

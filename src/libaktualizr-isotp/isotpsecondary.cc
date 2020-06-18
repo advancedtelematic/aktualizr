@@ -5,9 +5,13 @@
 #include <net/if.h>
 #include <sys/ioctl.h>
 
+#include <array>
+#include <future>
+
 #include <boost/algorithm/hex.hpp>
 #include <boost/lexical_cast.hpp>
-#include <future>
+
+#include "storage/invstorage.h"
 
 #define LIBUPTINY_ISOTP_PRIMARY_CANID 0x7D8
 
@@ -118,54 +122,94 @@ int IsoTpSecondary::getRootVersion(bool director) const {
   }
 }
 
-bool IsoTpSecondary::putRoot(const std::string& root, bool director) {
+data::InstallationResult IsoTpSecondary::putRoot(const std::string& root, bool director) {
   if (!director) {
-    return true;
+    return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
   }
   std::string out;
   out += static_cast<char>(IsoTpUptaneMesType::kPutRoot);
   out += root;
 
-  return conn.Send(out);
+  if (conn.Send(out)) {
+    return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
+  } else {
+    return data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed,
+                                    "Error sending metadata to Secondary");
+  }
 }
 
-bool IsoTpSecondary::putMetadata(const RawMetaPack& meta_pack) {
+data::InstallationResult IsoTpSecondary::putMetadata(const Target& target) {
+  (void)target;
+  // Partial verification only.
+  std::string director_targets;
+  if (!secondary_provider_->getDirectorMetadata(nullptr, &director_targets)) {
+    LOG_ERROR << "Unable to read Director metadata.";
+    return data::InstallationResult(data::ResultCode::Numeric::kInternalError, "Unable to read Director metadata");
+  }
+
   std::string out;
   out += static_cast<char>(IsoTpUptaneMesType::kPutTargets);
-  out += meta_pack.director_targets;
+  out += director_targets;
 
-  return conn.Send(out);
+  if (conn.Send(out)) {
+    return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
+  } else {
+    return data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed,
+                                    "Error sending metadata to Secondary");
+  }
 }
 
-bool IsoTpSecondary::sendFirmware(const std::string& data) {
-  size_t num_chunks = 1 + (data.length() - 1) / kChunkSize;
-
-  if (num_chunks > 127) {
-    return false;
-  }
-
-  for (size_t i = 0; i < num_chunks; ++i) {
-    std::string out;
-    std::string in;
-    out += static_cast<char>(IsoTpUptaneMesType::kPutImageChunk);
-    out += static_cast<char>(num_chunks);
-    out += static_cast<char>(i + 1);
-    if (i == num_chunks - 1) {
-      out += data.substr(static_cast<size_t>(i * kChunkSize));
-    } else {
-      out += data.substr(static_cast<size_t>(i * kChunkSize), static_cast<size_t>(kChunkSize));
-    }
-    if (!conn.SendRecv(out, &in)) {
-      return false;
-    }
-    if (in[0] != static_cast<char>(IsoTpUptaneMesType::kPutImageChunkAckErr)) {
-      return false;
-    }
-
-    if (in[1] != 0x00) {
-      return false;
-    }
-  }
-  return true;
+data::InstallationResult IsoTpSecondary::sendFirmware(const Target& target) {
+  (void)target;
+  return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
 }
+
+data::InstallationResult IsoTpSecondary::install(const Target& target) {
+  auto result = data::InstallationResult(data::ResultCode::Numeric::kOk, "");
+
+  try {
+    auto image_reader = secondary_provider_->getTargetFileHandle(target);
+    uint64_t image_size = target.length();
+
+    size_t num_chunks = (image_size / kChunkSize) + (static_cast<bool>(image_size % kChunkSize) ? 1 : 0);
+
+    if (num_chunks > 127) {
+      return data::InstallationResult(data::ResultCode::Numeric::kInternalError, "Too many chunks");
+    }
+
+    for (size_t i = 0; i < num_chunks; ++i) {
+      std::string out;
+      std::string in;
+      out += static_cast<char>(IsoTpUptaneMesType::kPutImageChunk);
+      out += static_cast<char>(num_chunks);
+      out += static_cast<char>(i + 1);
+
+      std::array<char, kChunkSize> buf{};
+      image_reader.read(buf.data(), kChunkSize);
+      out += std::string(buf.data());
+
+      if (!conn.SendRecv(out, &in)) {
+        return data::InstallationResult(data::ResultCode::Numeric::kDownloadFailed,
+                                        "Error sending metadata to Secondary");
+        break;
+      }
+      if (in[0] != static_cast<char>(IsoTpUptaneMesType::kPutImageChunkAckErr)) {
+        return data::InstallationResult(data::ResultCode::Numeric::kDownloadFailed,
+                                        "Error sending metadata to Secondary");
+        break;
+      }
+      if (in[1] != 0x00) {
+        return data::InstallationResult(data::ResultCode::Numeric::kDownloadFailed,
+                                        "Error sending metadata to Secondary");
+        break;
+      }
+    }
+
+  } catch (const std::exception& exc) {
+    LOG_ERROR << "Failed to upload a target image: " << target.filename() << ", error " << exc.what();
+    return data::InstallationResult(data::ResultCode::Numeric::kDownloadFailed, "Error sending metadata to Secondary");
+  }
+  return result;
+}
+
 }  // namespace Uptane

@@ -3,62 +3,78 @@
 
 #include "aktualizr_secondary_config.h"
 #include "aktualizr_secondary_metadata.h"
-
-#include "aktualizr_secondary_interface.h"
-#include "msg_dispatcher.h"
+#include "msg_handler.h"
 
 #include "uptane/directorrepository.h"
 #include "uptane/imagerepository.h"
+#include "uptane/manifest.h"
 
 class UpdateAgent;
 class INvStorage;
 class KeyManager;
 
-class AktualizrSecondary : public IAktualizrSecondary {
+class AktualizrSecondary : public MsgDispatcher {
  public:
   using Ptr = std::shared_ptr<AktualizrSecondary>;
 
- public:
-  AktualizrSecondary(AktualizrSecondaryConfig config, std::shared_ptr<INvStorage> storage,
-                     std::shared_ptr<KeyManager> key_mngr, std::shared_ptr<UpdateAgent> update_agent);
+  virtual void initialize() = 0;
+  const Uptane::EcuSerial& serial() const { return ecu_serial_; }
+  const Uptane::HardwareIdentifier& hwID() const { return hardware_id_; }
+  PublicKey publicKey() const;
+  Uptane::Manifest getManifest() const;
 
-  std::tuple<Uptane::EcuSerial, Uptane::HardwareIdentifier, PublicKey> getInfo() const override;
-  Uptane::Manifest getManifest() const override;
-  bool putMetadata(const Uptane::RawMetaPack& meta_pack) override { return putMetadata(Metadata(meta_pack)); }
-  bool sendFirmware(const std::string& firmware) override;
-  data::ResultCode::Numeric install(const std::string& target_name) override;
+  virtual data::InstallationResult putMetadata(const Metadata& metadata);
+  virtual data::InstallationResult putMetadata(const Uptane::MetaBundle& meta_bundle) {
+    return putMetadata(Metadata(meta_bundle));
+  }
 
-  MsgDispatcher& getDispatcher() { return dispatcher_; }
+  virtual data::InstallationResult install();
+  virtual void completeInstall() = 0;
 
-  Uptane::EcuSerial getSerial() const;
-  Uptane::HardwareIdentifier getHwId() const;
-  PublicKey getPublicKey() const;
-  bool putMetadata(const Metadata& metadata);
-  void completeInstall();
+ protected:
+  AktualizrSecondary(const AktualizrSecondaryConfig& config, std::shared_ptr<INvStorage> storage);
 
- private:
-  bool hasPendingUpdate() { return storage_->hasPendingInstall(); }
-  bool doFullVerification(const Metadata& metadata);
-  void uptaneInitialize();
+  // protected interface to be defined by child classes, i.e. a specific IP secondary type (e.g. OSTree, File, etc)
+  virtual bool getInstalledImageInfo(Uptane::InstalledImageInfo& installed_image_info) const = 0;
+  virtual bool isTargetSupported(const Uptane::Target& target) const = 0;
+  virtual data::InstallationResult installPendingTarget(const Uptane::Target& target) = 0;
+  virtual data::InstallationResult applyPendingInstall(const Uptane::Target& target) = 0;
+
+  // protected interface to be used by child classes
+  Uptane::Target& pendingTarget() { return pending_target_; }
+  INvStorage& storage() { return *storage_; }
+  std::shared_ptr<INvStorage>& storagePtr() { return storage_; }
+  Uptane::DirectorRepository& directorRepo() { return director_repo_; }
+  std::shared_ptr<KeyManager>& keyMngr() { return keys_; }
+
   void initPendingTargetIfAny();
 
  private:
-  Uptane::DirectorRepository director_repo_;
-  Uptane::ImageRepository image_repo_;
+  void copyMetadata(Uptane::MetaBundle& meta_bundle, Uptane::RepositoryType repo, const Uptane::Role& role,
+                    std::string& json);
+  data::InstallationResult doFullVerification(const Metadata& metadata);
+  void uptaneInitialize();
+  void registerHandlers();
 
-  Uptane::Target pending_target_{Uptane::Target::Unknown()};
+  // Message handlers
+  ReturnCode getInfoHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
+  ReturnCode versionHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
+  ReturnCode getManifestHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
+  ReturnCode putMetaHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
+  ReturnCode installHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
+
+  Uptane::HardwareIdentifier hardware_id_{Uptane::HardwareIdentifier::Unknown()};
+  Uptane::EcuSerial ecu_serial_{Uptane::EcuSerial::Unknown()};
 
   AktualizrSecondaryConfig config_;
   std::shared_ptr<INvStorage> storage_;
   std::shared_ptr<KeyManager> keys_;
+
   Uptane::ManifestIssuer::Ptr manifest_issuer_;
 
-  Uptane::EcuSerial ecu_serial_{Uptane::EcuSerial::Unknown()};
-  Uptane::HardwareIdentifier hardware_id_{Uptane::HardwareIdentifier::Unknown()};
-
-  std::shared_ptr<UpdateAgent> update_agent_;
-
-  AktualizrSecondaryMsgDispatcher dispatcher_;
+  Uptane::DirectorRepository director_repo_;
+  Uptane::ImageRepository image_repo_;
+  Uptane::Target pending_target_{Uptane::Target::Unknown()};
 };
 
 #endif  // AKTUALIZR_SECONDARY_H

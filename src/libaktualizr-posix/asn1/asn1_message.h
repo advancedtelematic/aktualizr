@@ -82,6 +82,16 @@ class Asn1Message {
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKInstallReqMes_t, installReq);
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKInstallRespMes_t, installResp);
 
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKUploadDataReqMes_t, uploadDataReq);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKUploadDataRespMes_t, uploadDataResp);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKDownloadOstreeRevReqMes_t, downloadOstreeRevReq);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKDownloadOstreeRevRespMes_t, downloadOstreeRevResp);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKPutMetaReq2Mes_t, putMetaReq2);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKPutMetaResp2Mes_t, putMetaResp2);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKInstallResp2Mes_t, installResp2);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKVersionReqMes_t, versionReq);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKVersionRespMes_t, versionResp);
+
 #define ASN1_MESSAGE_DEFINE_STR_NAME(MessageID) \
   case MessageID:                               \
     return #MessageID;
@@ -100,6 +110,16 @@ class Asn1Message {
         ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_sendFirmwareResp);
         ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_installReq);
         ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_installResp);
+
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_uploadDataReq);
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_uploadDataResp);
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_downloadOstreeRevReq);
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_downloadOstreeRevResp);
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_putMetaReq2);
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_putMetaResp2);
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_installResp2);
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_versionReq);
+        ASN1_MESSAGE_DEFINE_STR_NAME(AKIpUptaneMes_PR_versionResp);
     }
     return "Unknown";
   };
@@ -149,4 +169,18 @@ void SetString(OCTET_STRING_t* dest, const std::string& str);
  */
 Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, int con_fd);
 Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, const std::pair<std::string, uint16_t>& addr);
+
+/*
+ * Helper function for creating pointers to ASN.1 types. Note that the encoder
+ * will free these objects for you.
+ */
+template <typename T>
+T* Asn1Allocation() {
+  auto ptr = static_cast<T*>(calloc(1, sizeof(T)));
+  if (!ptr) {
+    throw std::bad_alloc();
+  }
+  return ptr;
+}
+
 #endif  // ASN1_MESSAGE_H_

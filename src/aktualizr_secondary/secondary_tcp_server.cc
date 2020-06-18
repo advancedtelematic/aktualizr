@@ -6,12 +6,12 @@
 #include "AKIpUptaneMes.h"
 #include "asn1/asn1_message.h"
 #include "logging/logging.h"
-#include "msg_dispatcher.h"
+#include "msg_handler.h"
 #include "utilities/dequeue_buffer.h"
 
-SecondaryTcpServer::SecondaryTcpServer(MsgDispatcher &msg_dispatcher, const std::string &primary_ip,
-                                       in_port_t primary_port, in_port_t port, bool reboot_after_install)
-    : msg_dispatcher_(msg_dispatcher),
+SecondaryTcpServer::SecondaryTcpServer(MsgHandler &msg_handler, const std::string &primary_ip, in_port_t primary_port,
+                                       in_port_t port, bool reboot_after_install)
+    : msg_handler_(msg_handler),
       listen_socket_(port),
       keep_running_(true),
       reboot_after_install_(reboot_after_install),
@@ -113,22 +113,27 @@ bool SecondaryTcpServer::HandleOneConnection(int socket) {
     // Note that ber_decode allocates *m even on failure, so this must always be done
     Asn1Message::Ptr request_msg = Asn1Message::FromRaw(&m);
 
-    if (received <= 0) {
+    if (received == 0) {
       LOG_DEBUG << "Primary has closed a connection socket";
       break;
     }
 
-    if (res.code != RC_OK) {
-      LOG_ERROR << "Failed to receive and/or decode a message from Primary";
+    if (received < 0) {
+      LOG_ERROR << "Error while reading message data from a socket: " << strerror(errno);
       break;
     }
 
-    LOG_DEBUG << "Received message from Primary, try to decode it...";
+    if (res.code != RC_OK) {
+      LOG_ERROR << "Failed to decode a message received from Primary";
+      break;
+    }
+
+    LOG_DEBUG << "Received message from Primary, trying to handle it...";
     Asn1Message::Ptr response_msg = Asn1Message::Empty();
-    MsgDispatcher::HandleStatusCode handle_status_code = msg_dispatcher_.handleMsg(request_msg, response_msg);
+    MsgHandler::ReturnCode handle_status_code = msg_handler_.handleMsg(request_msg, response_msg);
 
     switch (handle_status_code) {
-      case MsgDispatcher::HandleStatusCode::kRebootRequired: {
+      case MsgHandler::ReturnCode::kRebootRequired: {
         exit_reason_ = ExitReason::kRebootNeeded;
         keep_running_current_session = sendResponseMessage(socket, response_msg);
         if (reboot_after_install_) {
@@ -136,11 +141,11 @@ bool SecondaryTcpServer::HandleOneConnection(int socket) {
         }
         break;
       }
-      case MsgDispatcher::HandleStatusCode::kOk: {
+      case MsgHandler::ReturnCode::kOk: {
         keep_running_current_session = sendResponseMessage(socket, response_msg);
         break;
       }
-      case MsgDispatcher::HandleStatusCode::kUnkownMsg:
+      case MsgHandler::ReturnCode::kUnkownMsg:
       default: {
         // TODO: consider sending NOT_SUPPORTED/Unknown message and closing connection socket
         keep_running_current_session = false;

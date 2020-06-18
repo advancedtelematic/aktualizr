@@ -26,13 +26,12 @@ class VirtualSecondary : public ManagedSecondary {
   ~VirtualSecondary() override = default;
 
   std::string Type() const override { return VirtualSecondaryConfig::Type; }
-  bool putMetadata(const Uptane::RawMetaPack& meta_pack) override;
+  data::InstallationResult putMetadata(const Uptane::Target& target) override;
+  data::InstallationResult putRoot(const std::string& root, bool director) override;
+  data::InstallationResult sendFirmware(const Uptane::Target& target) override;
+  data::InstallationResult install(const Uptane::Target& target) override;
 
   bool ping() const override { return true; }
-
- private:
-  bool storeFirmware(const std::string& target_name, const std::string& content) override;
-  bool getFirmwareInfo(Uptane::InstalledImageInfo& firmware_info) const override;
 };
 
 }  // namespace Primary

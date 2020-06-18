@@ -9,7 +9,7 @@
 #include "json/json.h"
 
 #include "primary/secondary_config.h"
-#include "uptane/secondaryinterface.h"
+#include "primary/secondaryinterface.h"
 #include "utilities/types.h"
 
 namespace Primary {
@@ -34,15 +34,27 @@ class ManagedSecondaryConfig : public SecondaryConfig {
   KeyType key_type{KeyType::kRSA2048};
 };
 
-// Managed secondary is an abstraction over virtual and other types of legacy
-// (non-Uptane) secondaries. They require all the Uptane-related functionality
-// to be implemented in aktualizr itself, so there's some shared code.
+struct MetaPack {
+  Uptane::Root director_root;
+  Uptane::Targets director_targets;
+  Uptane::Root image_root;
+  Uptane::Targets image_targets;
+  Uptane::TimestampMeta image_timestamp;
+  Uptane::Snapshot image_snapshot;
+  bool isConsistent() const;
+};
 
-class ManagedSecondary : public Uptane::SecondaryInterface {
+// ManagedSecondary is an abstraction over virtual and other types of legacy
+// (non-Uptane) Secondaries. They require any the Uptane-related functionality
+// to be implemented in aktualizr itself.
+class ManagedSecondary : public SecondaryInterface {
  public:
   explicit ManagedSecondary(Primary::ManagedSecondaryConfig sconfig_in);
   ~ManagedSecondary() override = default;
 
+  void init(std::shared_ptr<SecondaryProvider> secondary_provider_in) override {
+    secondary_provider_ = std::move(secondary_provider_in);
+  }
   void Initialize();
 
   Uptane::EcuSerial getSerial() const override {
@@ -53,40 +65,36 @@ class ManagedSecondary : public Uptane::SecondaryInterface {
   }
   Uptane::HardwareIdentifier getHwId() const override { return Uptane::HardwareIdentifier(sconfig.ecu_hardware_id); }
   PublicKey getPublicKey() const override { return public_key_; }
-  bool putMetadata(const Uptane::RawMetaPack& meta_pack) override;
+  data::InstallationResult putMetadata(const Uptane::Target& target) override;
   int getRootVersion(bool director) const override;
-  bool putRoot(const std::string& root, bool director) override;
+  data::InstallationResult putRoot(const std::string& root, bool director) override;
 
-  bool sendFirmware(const std::string& data) override;
-  data::ResultCode::Numeric install(const std::string& target_name) override;
+  data::InstallationResult sendFirmware(const Uptane::Target& target) override;
+  data::InstallationResult install(const Uptane::Target& target) override;
 
   Uptane::Manifest getManifest() const override;
 
   bool loadKeys(std::string* pub_key, std::string* priv_key);
 
  protected:
+  virtual bool getFirmwareInfo(Uptane::InstalledImageInfo& firmware_info) const;
+
   Primary::ManagedSecondaryConfig sconfig;
   std::string detected_attack;
-  std::string expected_target_name;
-  std::vector<Hash> expected_target_hashes;
-  uint64_t expected_target_length{};
-  std::mutex install_mutex;
-
-  virtual bool storeFirmware(const std::string& target_name, const std::string& content) = 0;
-  virtual bool getFirmwareInfo(Uptane::InstalledImageInfo& firmware_info) const = 0;
 
  private:
-  PublicKey public_key_;
-  std::string private_key;
-  Uptane::MetaPack current_meta;
-  Uptane::RawMetaPack current_raw_meta;
-
   void storeKeys(const std::string& pub_key, const std::string& priv_key);
   void rawToMeta();
 
-  // TODO: implement
-  void storeMetadata(const Uptane::RawMetaPack& meta_pack) { (void)meta_pack; }
-  bool loadMetadata(Uptane::RawMetaPack* meta_pack);
+  // TODO: implement persistent storage.
+  bool storeMetadata() { return true; }
+  bool loadMetadata() { return true; }
+
+  std::shared_ptr<SecondaryProvider> secondary_provider_;
+  PublicKey public_key_;
+  std::string private_key;
+  MetaPack current_meta;
+  Uptane::MetaBundle meta_bundle_;
 };
 
 }  // namespace Primary

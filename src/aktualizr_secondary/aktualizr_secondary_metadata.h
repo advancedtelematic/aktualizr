@@ -1,13 +1,12 @@
 #ifndef AKTUALIZR_SECONDARY_METADATA_H_
 #define AKTUALIZR_SECONDARY_METADATA_H_
 
-#include <unordered_map>
-
 #include "uptane/fetcher.h"
+#include "uptane/tuf.h"
 
 class Metadata : public Uptane::IMetadataFetcher {
  public:
-  Metadata(const Uptane::RawMetaPack& meta_pack);
+  Metadata(const Uptane::MetaBundle& meta_bundle_in);
   Metadata(Metadata&&) = default;
 
   void fetchRole(std::string* result, int64_t maxsize, Uptane::RepositoryType repo, const Uptane::Role& role,
@@ -20,8 +19,7 @@ class Metadata : public Uptane::IMetadataFetcher {
                                Uptane::Version version) const;
 
  private:
-  const std::unordered_map<std::string, std::string> director_metadata_;
-  const std::unordered_map<std::string, std::string> image_metadata_;
+  const Uptane::MetaBundle meta_bundle_;
   Uptane::Version director_root_version_;
   Uptane::Version image_root_version_;
 };

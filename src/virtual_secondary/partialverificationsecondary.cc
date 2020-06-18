@@ -7,7 +7,7 @@
 #include "json/json.h"
 
 #include "logging/logging.h"
-#include "uptane/secondaryinterface.h"
+#include "primary/secondaryinterface.h"
 #include "utilities/exceptions.h"
 #include "utilities/types.h"
 
@@ -30,31 +30,28 @@ PartialVerificationSecondary::PartialVerificationSecondary(Primary::PartialVerif
   public_key_ = PublicKey(public_key_string, sconfig.key_type);
 }
 
-bool PartialVerificationSecondary::putMetadata(const RawMetaPack &meta) {
+data::InstallationResult PartialVerificationSecondary::putMetadata(const Target &target) {
+  (void)target;
   TimeStamp now(TimeStamp::Now());
   detected_attack_.clear();
 
+  std::string director_root;
+  std::string director_targets;
+  if (!secondary_provider_->getDirectorMetadata(&director_root, &director_targets)) {
+    LOG_ERROR << "Unable to read Director metadata.";
+    return data::InstallationResult(data::ResultCode::Numeric::kInternalError, "Unable to read Director metadata");
+  }
+
   // TODO(OTA-2484): check for expiration and version downgrade
-  root_ = Uptane::Root(RepositoryType::Director(), Utils::parseJSON(meta.director_root), root_);
-  Uptane::Targets targets(RepositoryType::Director(), Role::Targets(), Utils::parseJSON(meta.director_targets),
+  root_ = Uptane::Root(RepositoryType::Director(), Utils::parseJSON(director_root), root_);
+  Uptane::Targets targets(RepositoryType::Director(), Role::Targets(), Utils::parseJSON(director_targets),
                           std::make_shared<Uptane::Root>(root_));
   if (meta_targets_.version() > targets.version()) {
     detected_attack_ = "Rollback attack detected";
-    return true;
+    return data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed, "Rollback attack detected");
   }
   meta_targets_ = targets;
-  std::vector<Uptane::Target>::const_iterator it;
-  bool target_found = false;
-  for (it = meta_targets_.targets.begin(); it != meta_targets_.targets.end(); ++it) {
-    if (it->IsForEcu(getSerial())) {
-      if (target_found) {
-        detected_attack_ = "Duplicate entry for this ECU";
-        break;
-      }
-      target_found = true;
-    }
-  }
-  return true;
+  return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
 }
 
 Uptane::Manifest PartialVerificationSecondary::getManifest() const {
@@ -68,22 +65,24 @@ int PartialVerificationSecondary::getRootVersion(bool director) const {
   return 0;
 }
 
-bool PartialVerificationSecondary::putRoot(const std::string &root, bool director) {
+data::InstallationResult PartialVerificationSecondary::putRoot(const std::string &root, bool director) {
   (void)root;
   (void)director;
 
   throw NotImplementedException();
-  return false;
+  return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
 }
 
-bool PartialVerificationSecondary::sendFirmware(const std::string &data) {
-  (void)data;
+data::InstallationResult PartialVerificationSecondary::sendFirmware(const Uptane::Target &target) {
+  (void)target;
   throw NotImplementedException();
+  return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
 }
 
-data::ResultCode::Numeric PartialVerificationSecondary::install(const std::string &target_name) {
-  (void)target_name;
+data::InstallationResult PartialVerificationSecondary::install(const Uptane::Target &target) {
+  (void)target;
   throw NotImplementedException();
+  return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
 }
 
 void PartialVerificationSecondary::storeKeys(const std::string &public_key, const std::string &private_key) {
