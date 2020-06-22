@@ -2028,6 +2028,29 @@ TEST(Aktualizr, ManifestCustom) {
   }
 }
 
+TEST(Aktualizr, CustomInstallationRawReport) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdate", fake_meta_dir);
+
+  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+  auto storage = INvStorage::newStorage(conf.storage);
+  UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
+
+  aktualizr.Initialize();
+  result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
+  result::Download download_result = aktualizr.Download(update_result.updates).get();
+  result::Install install_result = aktualizr.Install(download_result.updates).get();
+
+  auto custom_raw_report = "Installation's custom raw report!";
+  EXPECT_TRUE(aktualizr.SetInstallationRawReport(custom_raw_report));
+  aktualizr.SendManifest().get();
+  EXPECT_EQ(http->last_manifest["signed"]["installation_report"]["report"]["raw_report"], custom_raw_report);
+
+  // After sending manifest, an installation report will be removed from the DB,
+  // so Aktualzr::SetInstallationRawReport must return a negative value.
+  EXPECT_FALSE(aktualizr.SetInstallationRawReport(custom_raw_report));
+}
+
 class CountUpdateCheckEvents {
  public:
   CountUpdateCheckEvents() = default;

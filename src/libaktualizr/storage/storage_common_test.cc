@@ -455,12 +455,15 @@ TEST(storage, load_store_installation_results) {
   EXPECT_EQ(dev_res.result_code.num_code, data::ResultCode::Numeric::kGeneralError);
   EXPECT_EQ(report, "raw");
   EXPECT_EQ(correlation_id, "corrid");
+  EXPECT_TRUE(storage->storeDeviceInstallationRawReport("user's raw report"));
 
   storage->clearInstallationResults();
   res.clear();
   EXPECT_FALSE(storage->loadEcuInstallationResults(&res));
   EXPECT_EQ(res.size(), 0);
   EXPECT_FALSE(storage->loadDeviceInstallationResult(&dev_res, &report, &correlation_id));
+  EXPECT_FALSE(storage->storeDeviceInstallationRawReport(
+      "This call will return a negative value since the installation report was cleaned!"));
 }
 
 TEST(storage, downloaded_files_info) {
