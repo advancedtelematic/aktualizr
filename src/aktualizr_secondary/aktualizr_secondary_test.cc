@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include <boost/process.hpp>
+#include <libaktualizr/utils.h>
 
 #include "aktualizr_secondary_file.h"
 #include "crypto/keymanager.h"
@@ -9,7 +10,6 @@
 #include "update_agent.h"
 #include "update_agent_file.h"
 #include "uptane_repo.h"
-#include "utilities/utils.h"
 
 using ::testing::NiceMock;
 

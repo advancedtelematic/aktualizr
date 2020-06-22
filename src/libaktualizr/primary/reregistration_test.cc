@@ -3,9 +3,9 @@
 #include <string>
 #include <vector>
 
-#include "config/config.h"
+#include <libaktualizr/aktualizr.h>
+#include <libaktualizr/config.h>
 #include "httpfake.h"
-#include "primary/aktualizr.h"
 #include "uptane_test_common.h"
 #include "virtualsecondary.h"
 
