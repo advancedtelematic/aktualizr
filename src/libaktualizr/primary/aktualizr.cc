@@ -1,12 +1,13 @@
-#include "libaktualizr/aktualizr.h"
-
 #include <chrono>
 
 #include <sodium.h>
 
-#include "sotauptaneclient.h"
+#include <libaktualizr/aktualizr.h>
 #include <libaktualizr/events.h>
+
+#include "sotauptaneclient.h"
 #include "utilities/timer.h"
+#include "utilities/apiqueue.h"
 
 using std::make_shared;
 using std::shared_ptr;
@@ -29,7 +30,8 @@ Aktualizr::Aktualizr(Config config, std::shared_ptr<INvStorage> storage_in,
 
 void Aktualizr::Initialize() {
   uptane_client_->initialize();
-  api_queue_.run();
+  api_queue_ = std::make_shared<api::CommandQueue>();
+  api_queue_->run();
 }
 
 bool Aktualizr::UptaneCycle() {
@@ -114,7 +116,7 @@ std::vector<SecondaryInfo> Aktualizr::GetSecondaries() const {
 
 std::future<result::CampaignCheck> Aktualizr::CampaignCheck() {
   std::function<result::CampaignCheck()> task([this] { return uptane_client_->campaignCheck(); });
-  return api_queue_.enqueue(task);
+  return api_queue_->enqueue(task);
 }
 
 std::future<void> Aktualizr::CampaignControl(const std::string &campaign_id, campaign::Cmd cmd) {
@@ -133,28 +135,28 @@ std::future<void> Aktualizr::CampaignControl(const std::string &campaign_id, cam
         break;
     }
   });
-  return api_queue_.enqueue(task);
+  return api_queue_->enqueue(task);
 }
 
 std::future<void> Aktualizr::SendDeviceData(const Json::Value &custom_hwinfo) {
   std::function<void()> task([this, custom_hwinfo] { uptane_client_->sendDeviceData(custom_hwinfo); });
-  return api_queue_.enqueue(task);
+  return api_queue_->enqueue(task);
 }
 
 std::future<result::UpdateCheck> Aktualizr::CheckUpdates() {
   std::function<result::UpdateCheck()> task([this] { return uptane_client_->fetchMeta(); });
-  return api_queue_.enqueue(task);
+  return api_queue_->enqueue(task);
 }
 
 std::future<result::Download> Aktualizr::Download(const std::vector<Uptane::Target> &updates) {
   std::function<result::Download(const api::FlowControlToken *)> task(
       [this, updates](const api::FlowControlToken *token) { return uptane_client_->downloadImages(updates, token); });
-  return api_queue_.enqueue(task);
+  return api_queue_->enqueue(task);
 }
 
 std::future<result::Install> Aktualizr::Install(const std::vector<Uptane::Target> &updates) {
   std::function<result::Install()> task([this, updates] { return uptane_client_->uptaneInstall(updates); });
-  return api_queue_.enqueue(task);
+  return api_queue_->enqueue(task);
 }
 
 bool Aktualizr::SetInstallationRawReport(const std::string &custom_raw_report) {
@@ -163,11 +165,11 @@ bool Aktualizr::SetInstallationRawReport(const std::string &custom_raw_report) {
 
 std::future<bool> Aktualizr::SendManifest(const Json::Value &custom) {
   std::function<bool()> task([this, custom]() { return uptane_client_->putManifest(custom); });
-  return api_queue_.enqueue(task);
+  return api_queue_->enqueue(task);
 }
 
 result::Pause Aktualizr::Pause() {
-  if (api_queue_.pause(true)) {
+  if (api_queue_->pause(true)) {
     uptane_client_->reportPause();
     return result::PauseStatus::kSuccess;
   } else {
@@ -176,7 +178,7 @@ result::Pause Aktualizr::Pause() {
 }
 
 result::Pause Aktualizr::Resume() {
-  if (api_queue_.pause(false)) {
+  if (api_queue_->pause(false)) {
     uptane_client_->reportResume();
     return result::PauseStatus::kSuccess;
   } else {
@@ -184,7 +186,7 @@ result::Pause Aktualizr::Resume() {
   }
 }
 
-void Aktualizr::Abort() { api_queue_.abort(); }
+void Aktualizr::Abort() { api_queue_->abort(); }
 
 boost::signals2::connection Aktualizr::SetSignalHandler(
     const std::function<void(shared_ptr<event::BaseEvent>)> &handler) {

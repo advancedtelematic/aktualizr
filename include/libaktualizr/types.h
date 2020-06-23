@@ -82,6 +82,41 @@ inline std::ostream& operator<<(std::ostream& os, CryptoSource cs) {
   return os;
 }
 
+class PublicKey {
+ public:
+  PublicKey() = default;
+  explicit PublicKey(const boost::filesystem::path &path);
+
+  explicit PublicKey(Json::Value uptane_json);
+
+  PublicKey(const std::string &value, KeyType type);
+
+  std::string Value() const { return value_; }
+
+  KeyType Type() const { return type_; }
+  /**
+   * Verify a signature using this public key
+   */
+  bool VerifySignature(const std::string &signature, const std::string &message) const;
+  /**
+   * Uptane Json representation of this public key.  Used in root.json
+   * and during provisioning.
+   */
+  Json::Value ToUptane() const;
+
+  std::string KeyId() const;
+  bool operator==(const PublicKey &rhs) const;
+
+  bool operator!=(const PublicKey &rhs) const { return !(*this == rhs); }
+
+ private:
+  // std::string can be implicitly converted to a Json::Value. Make sure that
+  // the Json::Value constructor is not called accidentally.
+  PublicKey(std::string);
+  std::string value_;
+  KeyType type_{KeyType::kUnknown};
+};
+
 // timestamp, compatible with tuf
 class TimeStamp {
  public:
@@ -200,5 +235,89 @@ struct InstallationResult {
 };
 
 }  // namespace data
+
+namespace Uptane {
+
+class HardwareIdentifier {
+ public:
+  // https://github.com/advancedtelematic/ota-tuf/blob/master/libtuf/src/main/scala/com/advancedtelematic/libtuf/data/TufDataType.scala
+  static const int kMinLength = 0;
+  static const int kMaxLength = 200;
+
+  static HardwareIdentifier Unknown() { return HardwareIdentifier("Unknown"); }
+  explicit HardwareIdentifier(const std::string &hwid) : hwid_(hwid) {
+    /* if (hwid.length() < kMinLength) {
+      throw std::out_of_range("Hardware Identifier too short");
+    } */
+    if (kMaxLength < hwid.length()) {
+      throw std::out_of_range("Hardware Identifier too long");
+    }
+  }
+
+  std::string ToString() const { return hwid_; }
+
+  bool operator==(const HardwareIdentifier &rhs) const { return hwid_ == rhs.hwid_; }
+  bool operator!=(const HardwareIdentifier &rhs) const { return !(*this == rhs); }
+
+  bool operator<(const HardwareIdentifier &rhs) const { return hwid_ < rhs.hwid_; }
+  friend std::ostream &operator<<(std::ostream &os, const HardwareIdentifier &hwid);
+  friend struct std::hash<Uptane::HardwareIdentifier>;
+
+ private:
+  std::string hwid_;
+};
+
+std::ostream &operator<<(std::ostream &os, const HardwareIdentifier &hwid);
+
+class EcuSerial {
+ public:
+  // https://github.com/advancedtelematic/ota-tuf/blob/master/libtuf/src/main/scala/com/advancedtelematic/libtuf/data/TufDataType.scala
+  static const int kMinLength = 1;
+  static const int kMaxLength = 64;
+
+  static EcuSerial Unknown() { return EcuSerial("Unknown"); }
+  explicit EcuSerial(const std::string &ecu_serial) : ecu_serial_(ecu_serial) {
+    if (ecu_serial.length() < kMinLength) {
+      throw std::out_of_range("Ecu serial identifier is too short");
+    }
+    if (kMaxLength < ecu_serial.length()) {
+      throw std::out_of_range("Ecu serial identifier is too long");
+    }
+  }
+
+  std::string ToString() const { return ecu_serial_; }
+
+  bool operator==(const EcuSerial &rhs) const { return ecu_serial_ == rhs.ecu_serial_; }
+  bool operator!=(const EcuSerial &rhs) const { return !(*this == rhs); }
+
+  bool operator<(const EcuSerial &rhs) const { return ecu_serial_ < rhs.ecu_serial_; }
+  friend std::ostream &operator<<(std::ostream &os, const EcuSerial &ecu_serial);
+  friend struct std::hash<Uptane::EcuSerial>;
+
+ private:
+  std::string ecu_serial_;
+};
+
+std::ostream &operator<<(std::ostream &os, const EcuSerial &ecu_serial);
+
+} // namespace Uptane
+
+struct SecondaryInfo {
+  SecondaryInfo() : serial(Uptane::EcuSerial::Unknown()), hw_id(Uptane::HardwareIdentifier::Unknown()) {}
+  SecondaryInfo(Uptane::EcuSerial serial_in, Uptane::HardwareIdentifier hw_id_in, std::string type_in,
+                PublicKey pub_key_in, std::string extra_in)
+      : serial(std::move(serial_in)),
+        hw_id(std::move(hw_id_in)),
+        type(std::move(type_in)),
+        pub_key(std::move(pub_key_in)),
+        extra(std::move(extra_in)) {}
+
+  Uptane::EcuSerial serial;
+  Uptane::HardwareIdentifier hw_id;
+  std::string type;
+  PublicKey pub_key;
+
+  std::string extra;
+};
 
 #endif

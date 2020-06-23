@@ -23,41 +23,6 @@
 #undef BIO_new_mem_buf
 BIO *BIO_new_mem_buf(const void *, int);
 
-class PublicKey {
- public:
-  PublicKey() = default;
-  explicit PublicKey(const boost::filesystem::path &path);
-
-  explicit PublicKey(Json::Value uptane_json);
-
-  PublicKey(const std::string &value, KeyType type);
-
-  std::string Value() const { return value_; }
-
-  KeyType Type() const { return type_; }
-  /**
-   * Verify a signature using this public key
-   */
-  bool VerifySignature(const std::string &signature, const std::string &message) const;
-  /**
-   * Uptane Json representation of this public key.  Used in root.json
-   * and during provisioning.
-   */
-  Json::Value ToUptane() const;
-
-  std::string KeyId() const;
-  bool operator==(const PublicKey &rhs) const;
-
-  bool operator!=(const PublicKey &rhs) const { return !(*this == rhs); }
-
- private:
-  // std::string can be implicitly converted to a Json::Value. Make sure that
-  // the Json::Value constructor is not called accidentally.
-  PublicKey(std::string);
-  std::string value_;
-  KeyType type_{KeyType::kUnknown};
-};
-
 /**
  * The hash of a file or Uptane metadata.  File hashes/checksums in Uptane include the length of the object, in order to
  * defeat infinite download attacks.

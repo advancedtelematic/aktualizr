@@ -39,24 +39,6 @@ struct MisconfiguredEcu {
 
 enum class InstalledVersionUpdateMode { kNone, kCurrent, kPending };
 
-struct SecondaryInfo {
-  SecondaryInfo() : serial(Uptane::EcuSerial::Unknown()), hw_id(Uptane::HardwareIdentifier::Unknown()) {}
-  SecondaryInfo(Uptane::EcuSerial serial_in, Uptane::HardwareIdentifier hw_id_in, std::string type_in,
-                PublicKey pub_key_in, std::string extra_in)
-      : serial(std::move(serial_in)),
-        hw_id(std::move(hw_id_in)),
-        type(std::move(type_in)),
-        pub_key(std::move(pub_key_in)),
-        extra(std::move(extra_in)) {}
-
-  Uptane::EcuSerial serial;
-  Uptane::HardwareIdentifier hw_id;
-  std::string type;
-  PublicKey pub_key;
-
-  std::string extra;
-};
-
 // Functions loading/storing multiple pieces of data are supposed to do so atomically as far as implementation makes it
 // possible
 class INvStorage {

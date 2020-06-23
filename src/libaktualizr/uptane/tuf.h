@@ -145,68 +145,6 @@ struct InstalledImageInfo {
 
 std::ostream &operator<<(std::ostream &os, const Version &v);
 
-class HardwareIdentifier {
- public:
-  // https://github.com/advancedtelematic/ota-tuf/blob/master/libtuf/src/main/scala/com/advancedtelematic/libtuf/data/TufDataType.scala
-  static const int kMinLength = 0;
-  static const int kMaxLength = 200;
-
-  static HardwareIdentifier Unknown() { return HardwareIdentifier("Unknown"); }
-  explicit HardwareIdentifier(const std::string &hwid) : hwid_(hwid) {
-    /* if (hwid.length() < kMinLength) {
-      throw std::out_of_range("Hardware Identifier too short");
-    } */
-    if (kMaxLength < hwid.length()) {
-      throw std::out_of_range("Hardware Identifier too long");
-    }
-  }
-
-  std::string ToString() const { return hwid_; }
-
-  bool operator==(const HardwareIdentifier &rhs) const { return hwid_ == rhs.hwid_; }
-  bool operator!=(const HardwareIdentifier &rhs) const { return !(*this == rhs); }
-
-  bool operator<(const HardwareIdentifier &rhs) const { return hwid_ < rhs.hwid_; }
-  friend std::ostream &operator<<(std::ostream &os, const HardwareIdentifier &hwid);
-  friend struct std::hash<Uptane::HardwareIdentifier>;
-
- private:
-  std::string hwid_;
-};
-
-std::ostream &operator<<(std::ostream &os, const HardwareIdentifier &hwid);
-
-class EcuSerial {
- public:
-  // https://github.com/advancedtelematic/ota-tuf/blob/master/libtuf/src/main/scala/com/advancedtelematic/libtuf/data/TufDataType.scala
-  static const int kMinLength = 1;
-  static const int kMaxLength = 64;
-
-  static EcuSerial Unknown() { return EcuSerial("Unknown"); }
-  explicit EcuSerial(const std::string &ecu_serial) : ecu_serial_(ecu_serial) {
-    if (ecu_serial.length() < kMinLength) {
-      throw std::out_of_range("Ecu serial identifier is too short");
-    }
-    if (kMaxLength < ecu_serial.length()) {
-      throw std::out_of_range("Ecu serial identifier is too long");
-    }
-  }
-
-  std::string ToString() const { return ecu_serial_; }
-
-  bool operator==(const EcuSerial &rhs) const { return ecu_serial_ == rhs.ecu_serial_; }
-  bool operator!=(const EcuSerial &rhs) const { return !(*this == rhs); }
-
-  bool operator<(const EcuSerial &rhs) const { return ecu_serial_ < rhs.ecu_serial_; }
-  friend std::ostream &operator<<(std::ostream &os, const EcuSerial &ecu_serial);
-  friend struct std::hash<Uptane::EcuSerial>;
-
- private:
-  std::string ecu_serial_;
-};
-
-std::ostream &operator<<(std::ostream &os, const EcuSerial &ecu_serial);
-
 using EcuMap = std::map<EcuSerial, HardwareIdentifier>;
 
 class Target {
