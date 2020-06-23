@@ -21,7 +21,8 @@ Here, we provide reference documentation on how to configure link:https://github
 | `OSTREE_COMMIT_BODY`|Message attached to OSTree commit. Empty by default.
 | `OSTREE_COMMIT_SUBJECT`|Commit subject used by OSTree. Defaults to `Commit-id: $\{IMAGE_NAME}`
 | `OSTREE_UPDATE_SUMMARY`|Set this to '1' to update summary of OSTree repository on each commit. '0' by default.
-| `OSTREE_DEPLOY_DEVICETREE`|Set this to '1' to include devicetree(s) to boot
+| `OSTREE_DEPLOY_DEVICETREE`|Set this to '1' to include devicetree(s) to boot.
+| `OSTREE_DEVICETREE`| A list of device tree blob(s) to include in the OSTree image. Defaults to `$\{KERNEL_DEVICETREE}`.
 | `GARAGE_SIGN_AUTOVERSION`|Set this to '1' to automatically fetch the last version of the garage tools installed by the aktualizr-native. Otherwise use the fixed version specified in the recipe.
 | `GARAGE_TARGET_NAME`|Target name used in the Uptane metadata. Defaults to `$\{OSTREE_BRANCHNAME}`.
 | `GARAGE_TARGET_URL` | Sets the `--url` parameter of `garage-sign targets add`, which sets a custom URL for the Image repository targets.
