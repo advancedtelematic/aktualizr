@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "campaign/campaign.h"
-#include "uptane/fetcher.h"
 #include "uptane/tuf.h"
 
 /** Results of libaktualizr API calls. */

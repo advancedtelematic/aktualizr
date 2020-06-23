@@ -6,7 +6,7 @@
 
 #include <libaktualizr/utils.h>
 
-#include "http/httpclient.h"
+class HttpInterface;
 
 namespace campaign {
 

@@ -1,5 +1,8 @@
 #include "campaign/campaign.h"
 
+#include "logging/logging.h"
+#include "http/httpclient.h"
+
 namespace campaign {
 
 Campaign::Campaign(const Json::Value &json) {

@@ -10,9 +10,6 @@
 #include <libaktualizr/utils.h>
 #include <libaktualizr/results.h>
 
-//#include "uptane/fetcher.h"
-#include "uptane/tuf.h"
-
 /**
  * Aktualizr status events.
  */
