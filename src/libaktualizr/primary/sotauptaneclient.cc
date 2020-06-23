@@ -7,7 +7,6 @@
 
 #include <libaktualizr/utils.h>
 
-#include "campaign/campaign.h"
 #include "crypto/crypto.h"
 #include "crypto/keymanager.h"
 #include "initializer.h"

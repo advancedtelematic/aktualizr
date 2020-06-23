@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "campaign/campaign.h"
+#include <libaktualizr/campaign.h>
 #include "uptane/tuf.h"
 
 /** Results of libaktualizr API calls. */

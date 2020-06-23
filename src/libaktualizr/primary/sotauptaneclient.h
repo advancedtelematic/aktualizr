@@ -14,9 +14,9 @@
 #include <libaktualizr/events.h>
 #include <libaktualizr/config.h>
 #include <libaktualizr/results.h>
+#include <libaktualizr/campaign.h>
 
 #include "bootloader/bootloader.h"
-#include "campaign/campaign.h"
 #include "http/httpclient.h"
 #include "package_manager/packagemanagerfactory.h"
 #include "package_manager/packagemanagerinterface.h"

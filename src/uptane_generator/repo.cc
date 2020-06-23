@@ -4,7 +4,7 @@
 #include <ctime>
 #include <regex>
 
-#include "campaign/campaign.h"
+#include <libaktualizr/campaign.h>
 #include "crypto/crypto.h"
 #include "director_repo.h"
 #include "image_repo.h"
