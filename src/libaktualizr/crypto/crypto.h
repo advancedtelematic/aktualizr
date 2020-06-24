@@ -23,36 +23,6 @@
 #undef BIO_new_mem_buf
 BIO *BIO_new_mem_buf(const void *, int);
 
-/**
- * The hash of a file or Uptane metadata.  File hashes/checksums in Uptane include the length of the object, in order to
- * defeat infinite download attacks.
- */
-class Hash {
- public:
-  // order corresponds algorithm priority
-  enum class Type { kSha256, kSha512, kUnknownAlgorithm };
-
-  static Hash generate(Type type, const std::string &data);
-  Hash(const std::string &type, const std::string &hash);
-  Hash(Type type, const std::string &hash);
-
-  bool HaveAlgorithm() const { return type_ != Type::kUnknownAlgorithm; }
-  bool operator==(const Hash &other) const;
-  bool operator!=(const Hash &other) const { return !operator==(other); }
-  static std::string TypeString(Type type);
-  std::string TypeString() const;
-  Type type() const;
-  std::string HashString() const { return hash_; }
-  friend std::ostream &operator<<(std::ostream &os, const Hash &h);
-
-  static std::string encodeVector(const std::vector<Hash> &hashes);
-  static std::vector<Hash> decodeVector(std::string hashes_str);
-
- private:
-  Type type_;
-  std::string hash_;
-};
-
 std::ostream &operator<<(std::ostream &os, const Hash &h);
 
 class MultiPartHasher {

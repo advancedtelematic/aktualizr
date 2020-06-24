@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 
+#include <libaktualizr/types.h>
 #include <libaktualizr/campaign.h>
-#include "uptane/tuf.h"
 
 /** Results of libaktualizr API calls. */
 namespace result {

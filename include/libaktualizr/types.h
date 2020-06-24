@@ -8,6 +8,8 @@
 #include <json/json.h>
 #include <boost/filesystem.hpp>
 
+
+
 // Keep these in sync with AKIpUptaneKeyType ASN.1 definitions.
 enum class KeyType {
   kED25519 = 0,
@@ -115,6 +117,36 @@ class PublicKey {
   PublicKey(std::string);
   std::string value_;
   KeyType type_{KeyType::kUnknown};
+};
+
+/**
+ * The hash of a file or Uptane metadata.  File hashes/checksums in Uptane include the length of the object, in order to
+ * defeat infinite download attacks.
+ */
+class Hash {
+ public:
+  // order corresponds algorithm priority
+  enum class Type { kSha256, kSha512, kUnknownAlgorithm };
+
+  static Hash generate(Type type, const std::string &data);
+  Hash(const std::string &type, const std::string &hash);
+  Hash(Type type, const std::string &hash);
+
+  bool HaveAlgorithm() const { return type_ != Type::kUnknownAlgorithm; }
+  bool operator==(const Hash &other) const;
+  bool operator!=(const Hash &other) const { return !operator==(other); }
+  static std::string TypeString(Type type);
+  std::string TypeString() const;
+  Type type() const;
+  std::string HashString() const { return hash_; }
+  friend std::ostream &operator<<(std::ostream &os, const Hash &h);
+
+  static std::string encodeVector(const std::vector<Hash> &hashes);
+  static std::vector<Hash> decodeVector(std::string hashes_str);
+
+ private:
+  Type type_;
+  std::string hash_;
 };
 
 // timestamp, compatible with tuf
@@ -238,6 +270,15 @@ struct InstallationResult {
 
 namespace Uptane {
 
+struct InstalledImageInfo {
+  InstalledImageInfo() : name{""} {}
+  InstalledImageInfo(std::string name_in, uint64_t len_in, std::string hash_in)
+      : name(std::move(name_in)), len(len_in), hash(std::move(hash_in)) {}
+  std::string name;
+  uint64_t len{0};
+  std::string hash;
+};
+
 class HardwareIdentifier {
  public:
   // https://github.com/advancedtelematic/ota-tuf/blob/master/libtuf/src/main/scala/com/advancedtelematic/libtuf/data/TufDataType.scala
@@ -299,6 +340,77 @@ class EcuSerial {
 };
 
 std::ostream &operator<<(std::ostream &os, const EcuSerial &ecu_serial);
+
+using EcuMap = std::map<EcuSerial, HardwareIdentifier>;
+
+class Target {
+ public:
+  // From Uptane metadata
+  Target(std::string filename, const Json::Value &content);
+  // Internal use only. Only used for reading installed_versions list and by
+  // various tests.
+  Target(std::string filename, EcuMap ecus, std::vector<Hash> hashes, uint64_t length, std::string correlation_id = "");
+
+  static Target Unknown();
+
+  const EcuMap &ecus() const { return ecus_; }
+  std::string filename() const { return filename_; }
+  std::string sha256Hash() const;
+  std::string sha512Hash() const;
+  const std::vector<Hash> &hashes() const { return hashes_; };
+  const std::vector<HardwareIdentifier> &hardwareIds() const { return hwids_; };
+  std::string custom_version() const { return custom_["version"].asString(); }
+  Json::Value custom_data() const { return custom_; }
+  void updateCustom(Json::Value &custom) { custom_ = custom; };
+  std::string correlation_id() const { return correlation_id_; };
+  void setCorrelationId(std::string correlation_id) { correlation_id_ = std::move(correlation_id); };
+  uint64_t length() const { return length_; }
+  bool IsValid() const { return valid; }
+  std::string uri() const { return uri_; };
+  void setUri(std::string uri) { uri_ = std::move(uri); };
+  bool MatchHash(const Hash &hash) const;
+
+  void InsertEcu(const std::pair<EcuSerial, HardwareIdentifier> &pair) { ecus_.insert(pair); }
+
+  bool IsForEcu(const EcuSerial &ecuIdentifier) const {
+    return (std::find_if(ecus_.cbegin(), ecus_.cend(),
+                         [&ecuIdentifier](const std::pair<EcuSerial, HardwareIdentifier> &pair) {
+                           return pair.first == ecuIdentifier;
+                         }) != ecus_.cend());
+  };
+
+  /**
+   * Is this an OSTree target?
+   * OSTree targets need special treatment because the hash doesn't represent
+   * the contents of the update itself, instead it is the hash (name) of the
+   * root commit object.
+   */
+  bool IsOstree() const;
+  std::string type() const { return type_; }
+
+  // Comparison is usually not meaningful. Use MatchTarget instead.
+  bool operator==(const Target &t2) = delete;
+  bool MatchTarget(const Target &t2) const;
+  Json::Value toDebugJson() const;
+  friend std::ostream &operator<<(std::ostream &os, const Target &t);
+  InstalledImageInfo getTargetImageInfo() const { return {filename(), length(), sha256Hash()}; }
+
+ private:
+  bool valid{true};
+  std::string filename_;
+  std::string type_;
+  EcuMap ecus_;  // Director only
+  std::vector<Hash> hashes_;
+  std::vector<HardwareIdentifier> hwids_;  // Image repo only
+  Json::Value custom_;
+  uint64_t length_{0};
+  std::string correlation_id_;
+  std::string uri_;
+
+  std::string hashString(Hash::Type type) const;
+};
+
+std::ostream &operator<<(std::ostream &os, const Target &t);
 
 } // namespace Uptane
 
