@@ -1,5 +1,6 @@
 [provision]
 provision_path = "tests/test_data/cred.zip"
+mode = "SharedCredReuse"
 
 [tls]
 server = "https://7d0a4914-c392-4ccd-a8f9-3d4ed969da07.tcpgw.prod01.advancedtelematic.com:8000"

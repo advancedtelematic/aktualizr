@@ -28,7 +28,7 @@ TEST(UptaneCI, ProvisionAndPutManifest) {
   TemporaryDirectory temp_dir;
   Config config("tests/config/minimal.toml");
   config.provision.provision_path = credentials;
-  config.provision.mode = ProvisionMode::kSharedCred;
+  config.provision.mode = ProvisionMode::kSharedCredReuse;
   config.storage.path = temp_dir.Path();
   config.pacman.type = PACKAGE_MANAGER_NONE;
   config.postUpdateValues();  // re-run copy of urls
@@ -43,7 +43,7 @@ TEST(UptaneCI, CheckKeys) {
   TemporaryDirectory temp_dir;
   Config config("tests/config/minimal.toml");
   config.provision.provision_path = credentials;
-  config.provision.mode = ProvisionMode::kSharedCred;
+  config.provision.mode = ProvisionMode::kSharedCredReuse;
   config.storage.path = temp_dir.Path();
   config.pacman.type = PACKAGE_MANAGER_OSTREE;
   config.pacman.sysroot = sysroot;

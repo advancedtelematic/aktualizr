@@ -30,6 +30,7 @@ Config *Get_test_config() {
   config->provision.primary_ecu_hardware_id = "primary_hw";
   config->provision.server = serverAddress;
   config->provision.provision_path = "tests/test_data/cred.zip";
+  config->provision.mode = ProvisionMode::kSharedCredReuse;
 
   temp_dir = std_::make_unique<TemporaryDirectory>();
   config->storage.path = temp_dir->Path();

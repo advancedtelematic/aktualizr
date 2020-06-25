@@ -10,6 +10,43 @@
 #include "utilities/exceptions.h"
 #include "utilities/utils.h"
 
+std::ostream& operator<<(std::ostream& os, ProvisionMode mode) {
+  std::string mode_s;
+  switch (mode) {
+    case ProvisionMode::kSharedCred:
+      mode_s = "SharedCred";
+      break;
+    case ProvisionMode::kDeviceCred:
+      mode_s = "DeviceCred";
+      break;
+    case ProvisionMode::kSharedCredReuse:
+      mode_s = "SharedCredReuse";
+      break;
+    default:
+      mode_s = "Default";
+      break;
+  }
+  os << '"' << mode_s << '"';
+  return os;
+}
+
+template <>
+inline void CopyFromConfig(ProvisionMode& dest, const std::string& option_name, const boost::property_tree::ptree& pt) {
+  boost::optional<std::string> value = pt.get_optional<std::string>(option_name);
+  if (value.is_initialized()) {
+    std::string provision_mode{StripQuotesFromStrings(value.get())};
+    if (provision_mode == "SharedCred") {
+      dest = ProvisionMode::kSharedCred;
+    } else if (provision_mode == "DeviceCred") {
+      dest = ProvisionMode::kDeviceCred;
+    } else if (provision_mode == "SharedCredReuse") {
+      dest = ProvisionMode::kSharedCredReuse;
+    } else {
+      dest = ProvisionMode::kDefault;
+    }
+  }
+}
+
 void TlsConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(server, "server", pt);
   CopyFromConfig(server_url_path, "server_url_path", pt);
@@ -35,7 +72,7 @@ void ProvisionConfig::updateFromPropertyTree(const boost::property_tree::ptree& 
   CopyFromConfig(primary_ecu_serial, "primary_ecu_serial", pt);
   CopyFromConfig(primary_ecu_hardware_id, "primary_ecu_hardware_id", pt);
   CopyFromConfig(ecu_registration_endpoint, "ecu_registration_endpoint", pt);
-  // provision.mode is set in postUpdateValues.
+  CopyFromConfig(mode, "mode", pt);
 }
 
 void ProvisionConfig::writeToStream(std::ostream& out_stream) const {
@@ -47,7 +84,7 @@ void ProvisionConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, primary_ecu_serial, "primary_ecu_serial");
   writeOption(out_stream, primary_ecu_hardware_id, "primary_ecu_hardware_id");
   writeOption(out_stream, ecu_registration_endpoint, "ecu_registration_endpoint");
-  // Skip provision.mode since it is dependent on other options.
+  writeOption(out_stream, mode, "mode");
 }
 
 void UptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
@@ -122,7 +159,11 @@ KeyManagerConfig Config::keymanagerConfig() const {
 void Config::postUpdateValues() {
   logger_set_threshold(logger);
 
-  provision.mode = provision.provision_path.empty() ? ProvisionMode::kDeviceCred : ProvisionMode::kSharedCred;
+  if (provision.mode == ProvisionMode::kDefault) {
+    provision.mode = provision.provision_path.empty() ? ProvisionMode::kDeviceCred : ProvisionMode::kSharedCred;
+  } else if (provision.mode == ProvisionMode::kSharedCredReuse) {
+    LOG_INFO << "Provisioning mode is set to reuse shared credentials. This should only be used for testing!";
+  }
 
   if (tls.server.empty()) {
     if (!tls.server_url_path.empty()) {

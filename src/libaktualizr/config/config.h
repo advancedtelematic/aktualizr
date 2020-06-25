@@ -19,7 +19,10 @@
 #include "utilities/config_utils.h"
 #include "utilities/types.h"
 
-enum class ProvisionMode { kSharedCred = 0, kDeviceCred };
+// kSharedCredReuse is intended solely for testing. It should not be used in
+// production.
+enum class ProvisionMode { kSharedCred = 0, kDeviceCred, kSharedCredReuse, kDefault };
+std::ostream& operator<<(std::ostream& os, ProvisionMode mode);
 
 // Try to keep the order of config options the same as in Config::writeToStream()
 // and Config::updateFromPropertyTree() in config.cc.
@@ -40,7 +43,7 @@ struct ProvisionConfig {
   std::string p12_password;
   std::string expiry_days{"36000"};
   boost::filesystem::path provision_path;
-  ProvisionMode mode{ProvisionMode::kSharedCred};
+  ProvisionMode mode{ProvisionMode::kDefault};
   std::string device_id;
   std::string primary_ecu_serial;
   std::string primary_ecu_hardware_id;

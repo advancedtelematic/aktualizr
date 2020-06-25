@@ -26,7 +26,7 @@ void Initializer::initDeviceId() {
     } catch (const std::exception& e) {
       // No certificate: for device credential provisioning, abort. For shared
       // credential provisioning, generate a random name.
-      if (config_.mode == ProvisionMode::kSharedCred) {
+      if (config_.mode == ProvisionMode::kSharedCred || config_.mode == ProvisionMode::kSharedCredReuse) {
         device_id = Utils::genPrettyName();
       } else if (config_.mode == ProvisionMode::kDeviceCred) {
         throw e;
@@ -135,7 +135,7 @@ void Initializer::initTlsCreds() {
     return;
   }
 
-  if (config_.mode != ProvisionMode::kSharedCred) {
+  if (config_.mode == ProvisionMode::kDeviceCred) {
     throw StorageError("Device credentials expected but not found");
   }
 
@@ -181,14 +181,16 @@ void Initializer::initTlsCreds() {
     throw Error("Failed to configure HTTP client with device credentials.");
   }
 
-  // Remove shared provisioning credentials from the archive; we have no more
-  // use for them.
-  Utils::removeFileFromArchive(config_.provision_path, "autoprov_credentials.p12");
-  // Remove the treehub.json if it's still there. It shouldn't have been put on
-  // the device, but it has happened before.
-  try {
-    Utils::removeFileFromArchive(config_.provision_path, "treehub.json");
-  } catch (...) {
+  if (config_.mode != ProvisionMode::kSharedCredReuse) {
+    // Remove shared provisioning credentials from the archive; we have no more
+    // use for them.
+    Utils::removeFileFromArchive(config_.provision_path, "autoprov_credentials.p12");
+    // Remove the treehub.json if it's still there. It shouldn't have been put on
+    // the device, but it has happened before.
+    try {
+      Utils::removeFileFromArchive(config_.provision_path, "treehub.json");
+    } catch (...) {
+    }
   }
 
   LOG_INFO << "Provisioned successfully on Device Gateway.";
