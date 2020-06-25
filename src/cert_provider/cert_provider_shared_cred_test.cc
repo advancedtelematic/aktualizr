@@ -12,16 +12,17 @@ static boost::filesystem::path CREDENTIALS_PATH;
 class AktualizrCertProviderTest : public ::testing::Test {
  protected:
   struct TestArgs {
-    TestArgs(const TemporaryDirectory& tmp_dir, const std::string& cred_path)
-        : test_dir{tmp_dir.PathString()}, credentials_path(cred_path) {}
+    TestArgs(const TemporaryDirectory& tmp_dir, const std::string& cred_path_in)
+        : test_dir{tmp_dir.PathString()}, credentials_path(tmp_dir.Path() / "credentials.zip") {
+      boost::filesystem::copy_file(cred_path_in, credentials_path);
+    }
 
     const std::string test_dir;
     const std::string fleet_ca_cert = "tests/test_data/CAcert.pem";
     const std::string fleet_ca_private_key = "tests/test_data/CApkey.pem";
-    const std::string credentials_path;
+    const boost::filesystem::path credentials_path;
   };
 
- protected:
   TemporaryDirectory tmp_dir_;
   TestArgs test_args_{tmp_dir_, CREDENTIALS_PATH.string()};
   DeviceCredGenerator device_cred_gen_{CERT_PROVIDER_PATH.string()};
@@ -38,15 +39,9 @@ class AktualizrCertProviderTest : public ::testing::Test {
  *  - [x] Provide server URL if requested
  */
 TEST_F(AktualizrCertProviderTest, SharedCredProvisioning) {
-  if (test_args_.credentials_path.empty()) {
-    // GTEST_SKIP() was introduced in recent gtest version;
-    SUCCEED() << "A path to the credentials file hasn't been proided, so skip the test";
-    return;
-  }
-
   DeviceCredGenerator::ArgSet args;
 
-  args.credentialFile = test_args_.credentials_path;
+  args.credentialFile = test_args_.credentials_path.string();
   args.localDir = test_args_.test_dir;
   args.provideRootCA.set();
   args.provideServerURL.set();
