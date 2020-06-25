@@ -181,6 +181,16 @@ void Initializer::initTlsCreds() {
     throw Error("Failed to configure HTTP client with device credentials.");
   }
 
+  // Remove shared provisioning credentials from the archive; we have no more
+  // use for them.
+  Utils::removeFileFromArchive(config_.provision_path, "autoprov_credentials.p12");
+  // Remove the treehub.json if it's still there. It shouldn't have been put on
+  // the device, but it has happened before.
+  try {
+    Utils::removeFileFromArchive(config_.provision_path, "treehub.json");
+  } catch (...) {
+  }
+
   LOG_INFO << "Provisioned successfully on Device Gateway.";
 }
 
