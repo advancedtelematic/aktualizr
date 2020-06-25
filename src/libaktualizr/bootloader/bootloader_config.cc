@@ -1,5 +1,5 @@
-#include <libaktualizr/bootloader_config.h>
-#include <libaktualizr/config_utils.h>
+#include <libaktualizr/config.h>
+#include "utilities/config_utils.h"
 
 std::ostream& operator<<(std::ostream& os, RollbackMode mode) {
   std::string mode_s;

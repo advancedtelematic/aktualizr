@@ -11,7 +11,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/scoped_array.hpp>
 
-#include <libaktualizr/config_utils.h>
+#include <libaktualizr/config.h>
 #include <libaktualizr/utils.h>
 
 #include "crypto/crypto.h"

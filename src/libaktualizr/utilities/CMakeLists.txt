@@ -8,6 +8,7 @@ set(SOURCES aktualizr_version.cc
 
 set(HEADERS apiqueue.h
             aktualizr_version.h
+	    config_utils.h
             dequeue_buffer.h
             exceptions.h
             fault_injection.h

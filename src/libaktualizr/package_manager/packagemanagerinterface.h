@@ -4,7 +4,7 @@
 #include <mutex>
 #include <string>
 
-#include <libaktualizr/packagemanagerconfig.h>
+#include <libaktualizr/config.h>
 #include <libaktualizr/types.h>
 
 #include "bootloader/bootloader.h"

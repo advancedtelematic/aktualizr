@@ -2,9 +2,10 @@
 
 #include <boost/asio/io_service.hpp>
 #include <boost/process.hpp>
-#include <libaktualizr/config.h>
 #include <libaktualizr/utils.h>
+#include <libaktualizr/types.h>
 
+#include "utilities/config_utils.h"
 #include "storage/sqlstorage.h"
 #include "test_utils.h"
 

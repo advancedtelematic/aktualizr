@@ -1,4 +1,5 @@
-#include <libaktualizr/storage_config.h>
+#include <libaktualizr/config.h>
+#include "utilities/config_utils.h"
 
 std::ostream& operator<<(std::ostream& os, const StorageType stype) {
   std::string stype_str;

@@ -9,7 +9,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/optional.hpp>
 
-#include <libaktualizr/storage_config.h>
+#include <libaktualizr/config.h>
 #include <libaktualizr/utils.h>
 
 #include "storage_exception.h"

@@ -10,21 +10,18 @@
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 
-#include <libaktualizr/bootloader_config.h>
-#include <libaktualizr/keymanager_config.h>
-#include <libaktualizr/p11_config.h>
-#include <libaktualizr/logging_config.h>
-#include <libaktualizr/packagemanagerconfig.h>
-#include <libaktualizr/storage_config.h>
-#include <libaktualizr/telemetryconfig.h>
-#include <libaktualizr/config_utils.h>
 #include <libaktualizr/types.h>
+#include <libaktualizr/utils.h>
 
-enum class ProvisionMode { kSharedCred = 0, kDeviceCred };
+struct LoggerConfig {
+  int loglevel{2};
+
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
+};
 
 // Try to keep the order of config options the same as in Config::writeToStream()
 // and Config::updateFromPropertyTree() in config.cc.
-
 struct TlsConfig {
   std::string server;
   boost::filesystem::path server_url_path;
@@ -63,6 +60,145 @@ struct UptaneConfig {
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;
+};
+
+// declare p11 types as incomplete so that the header can be used without libp11
+struct PKCS11_ctx_st;
+struct PKCS11_slot_st;
+
+struct P11Config {
+  boost::filesystem::path module;
+  std::string pass;
+  std::string uptane_key_id;
+  std::string tls_cacert_id;
+  std::string tls_pkey_id;
+  std::string tls_clientcert_id;
+
+  void updateFromPropertyTree(const boost::property_tree::ptree &pt);
+  void writeToStream(std::ostream &out_stream) const;
+
+};
+
+// bundle some parts of the main config together
+// Should be derived by calling Config::keymanagerConfig()
+struct KeyManagerConfig {
+  KeyManagerConfig() = delete;  // only allow construction by initializer list
+  P11Config p11;
+  CryptoSource tls_ca_source;
+  CryptoSource tls_pkey_source;
+  CryptoSource tls_cert_source;
+  KeyType uptane_key_type;
+  CryptoSource uptane_key_source;
+};
+
+enum class RollbackMode { kBootloaderNone = 0, kUbootGeneric, kUbootMasked };
+std::ostream& operator<<(std::ostream& os, RollbackMode mode);
+
+struct BootloaderConfig {
+  RollbackMode rollback_mode{RollbackMode::kBootloaderNone};
+  boost::filesystem::path reboot_sentinel_dir{"/var/run/aktualizr-session"};
+  boost::filesystem::path reboot_sentinel_name{"need_reboot"};
+  std::string reboot_command{"/sbin/reboot"};
+
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
+};
+
+// TODO: move these to their corresponding headers
+#define PACKAGE_MANAGER_NONE "none"
+#define PACKAGE_MANAGER_OSTREE "ostree"
+#define PACKAGE_MANAGER_DEBIAN "debian"
+#define PACKAGE_MANAGER_ANDROID "android"
+#define PACKAGE_MANAGER_OSTREEDOCKERAPP "ostree+docker-app"
+
+#ifdef BUILD_OSTREE
+#define PACKAGE_MANAGER_DEFAULT PACKAGE_MANAGER_OSTREE
+#else
+#define PACKAGE_MANAGER_DEFAULT PACKAGE_MANAGER_NONE
+#endif
+
+struct PackageConfig {
+  std::string type{PACKAGE_MANAGER_DEFAULT};
+
+  // OSTree options
+  std::string os;
+  boost::filesystem::path sysroot;
+  std::string ostree_server;
+  boost::filesystem::path images_path{"/var/sota/images"};
+  boost::filesystem::path packages_file{"/usr/package.manifest"};
+
+  // Options for simulation (to be used with "none")
+  bool fake_need_reboot{false};
+
+  // for specialized configuration
+  std::map<std::string, std::string> extra;
+
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
+};
+
+struct TelemetryConfig {
+  /**
+   * Report device network information: IP address, hostname, MAC address
+   */
+  bool report_network{true};
+  bool report_config{true};
+
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
+};
+
+std::ostream& operator<<(std::ostream& os, StorageType stype);
+
+struct StorageConfig {
+  StorageType type{StorageType::kSqlite};
+  boost::filesystem::path path{"/var/sota"};
+
+  // FS storage
+  BasedPath uptane_metadata_path{"metadata"};
+  BasedPath uptane_private_key_path{"ecukey.der"};
+  BasedPath uptane_public_key_path{"ecukey.pub"};
+  BasedPath tls_cacert_path{"root.crt"};
+  BasedPath tls_pkey_path{"pkey.pem"};
+  BasedPath tls_clientcert_path{"client.pem"};
+
+  // SQLite storage
+  BasedPath sqldb_path{"sql.db"};  // based on `/var/sota`
+
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
+};
+
+struct ImportConfig {
+  boost::filesystem::path base_path{"/var/sota/import"};
+  BasedPath uptane_private_key_path{""};
+  BasedPath uptane_public_key_path{""};
+  BasedPath tls_cacert_path{""};
+  BasedPath tls_pkey_path{""};
+  BasedPath tls_clientcert_path{""};
+
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
+};
+
+class BaseConfig {
+public:
+ virtual ~BaseConfig() = default;
+ void updateFromToml(const boost::filesystem::path& filename);
+ virtual void updateFromPropertyTree(const boost::property_tree::ptree& pt) = 0;
+
+protected:
+ void updateFromDirs(const std::vector<boost::filesystem::path>& configs);
+
+ static void checkDirs(const std::vector<boost::filesystem::path>& configs) {
+   for (const auto& config : configs) {
+     if (!boost::filesystem::exists(config)) {
+       throw std::runtime_error("Config directory " + config.string() + " does not exist.");
+     }
+   }
+ }
+
+ std::vector<boost::filesystem::path> config_dirs_ = {"/usr/lib/sota/conf.d", "/etc/sota/conf.d/"};
 };
 
 /**

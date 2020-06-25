@@ -5,7 +5,7 @@
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
 
-#include <libaktualizr/storage_config.h>
+#include <libaktualizr/config.h>
 
 #include "sql_utils.h"
 

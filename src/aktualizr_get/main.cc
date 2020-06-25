@@ -3,10 +3,12 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
+
 #include <libaktualizr/config.h>
 
 #include "get.h"
 #include "utilities/aktualizr_version.h"
+#include "logging/logging.h"
 
 namespace bpo = boost::program_options;
 

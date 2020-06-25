@@ -1,7 +1,7 @@
 #include <boost/property_tree/ini_parser.hpp>
 
-#include <libaktualizr/logging_config.h>
-#include <libaktualizr/config_utils.h>
+#include <libaktualizr/config.h>
+#include "utilities/config_utils.h"
 
 void LoggerConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(loglevel, "loglevel", pt);

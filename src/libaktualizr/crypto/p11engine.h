@@ -6,7 +6,7 @@
 #include <openssl/engine.h>
 #include <openssl/err.h>
 
-#include <libaktualizr/p11_config.h>
+#include <libaktualizr/config.h>
 
 #include "gtest/gtest_prod.h"
 #include "logging/logging.h"

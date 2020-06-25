@@ -8,7 +8,8 @@
 #include <json/json.h>
 #include <boost/filesystem.hpp>
 
-
+enum class ProvisionMode { kSharedCred = 0, kDeviceCred };
+enum class StorageType { kFileSystem = 0, kSqlite };
 
 // Keep these in sync with AKIpUptaneKeyType ASN.1 definitions.
 enum class KeyType {

@@ -2,6 +2,8 @@
 
 #include <sstream>
 
+#include "utilities/config_utils.h"
+
 void AktualizrSecondaryNetConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(port, "port", pt);
   CopyFromConfig(primary_ip, "primary_ip", pt);
