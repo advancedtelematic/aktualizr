@@ -79,6 +79,7 @@ class ManagedSecondary : public SecondaryInterface {
  protected:
   virtual bool getFirmwareInfo(Uptane::InstalledImageInfo& firmware_info) const;
 
+  std::shared_ptr<SecondaryProvider> secondary_provider_;
   Primary::ManagedSecondaryConfig sconfig;
   std::string detected_attack;
 
@@ -90,7 +91,6 @@ class ManagedSecondary : public SecondaryInterface {
   bool storeMetadata() { return true; }
   bool loadMetadata() { return true; }
 
-  std::shared_ptr<SecondaryProvider> secondary_provider_;
   PublicKey public_key_;
   std::string private_key;
   MetaPack current_meta;
