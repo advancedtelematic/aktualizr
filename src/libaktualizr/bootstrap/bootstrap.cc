@@ -12,18 +12,18 @@ Bootstrap::Bootstrap(const boost::filesystem::path& provision_path, const std::s
     : ca_(""), cert_(""), pkey_("") {
   if (provision_path.empty()) {
     LOG_ERROR << "Provision path is empty!";
-    throw std::runtime_error("Unable to parse bootstrap credentials");
+    throw std::runtime_error("Unable to parse bootstrap (shared) credentials");
   }
 
   std::ifstream as(provision_path.c_str(), std::ios::in | std::ios::binary);
   if (as.fail()) {
-    LOG_ERROR << "Unable to open provided provision archive " << provision_path << ": " << std::strerror(errno);
-    throw std::runtime_error("Unable to parse bootstrap credentials");
+    LOG_ERROR << "Unable to open provided provisioning archive " << provision_path << ": " << std::strerror(errno);
+    throw std::runtime_error("Unable to parse bootstrap (shared) credentials");
   }
 
   std::string p12_str = Utils::readFileFromArchive(as, "autoprov_credentials.p12");
   if (p12_str.empty()) {
-    throw std::runtime_error("Unable to parse bootstrap credentials");
+    throw std::runtime_error("Unable to parse bootstrap (shared) credentials");
   }
 
   readTlsP12(p12_str, provision_password, pkey_, cert_, ca_);
@@ -48,12 +48,12 @@ std::string Bootstrap::readServerUrl(const boost::filesystem::path& provision_pa
   try {
     std::ifstream as(provision_path.c_str(), std::ios::in | std::ios::binary);
     if (as.fail()) {
-      LOG_ERROR << "Unable to open provided provision archive " << provision_path << ": " << std::strerror(errno);
+      LOG_ERROR << "Unable to open provided provisioning archive " << provision_path << ": " << std::strerror(errno);
       throw std::runtime_error("Unable to parse bootstrap credentials");
     }
     url = Utils::readFileFromArchive(as, "autoprov.url", true);
   } catch (std::runtime_error& exc) {
-    LOG_ERROR << "Unable to read server url from archive: " << exc.what();
+    LOG_ERROR << "Unable to read server URL from archive: " << exc.what();
     url = "";
   }
 
@@ -65,12 +65,12 @@ std::string Bootstrap::readServerCa(const boost::filesystem::path& provision_pat
   try {
     std::ifstream as(provision_path.c_str(), std::ios::in | std::ios::binary);
     if (as.fail()) {
-      LOG_ERROR << "Unable to open provided provision archive " << provision_path << ": " << std::strerror(errno);
+      LOG_ERROR << "Unable to open provided provisioning archive " << provision_path << ": " << std::strerror(errno);
       throw std::runtime_error("Unable to parse bootstrap credentials");
     }
     server_ca = Utils::readFileFromArchive(as, "server_ca.pem");
   } catch (std::runtime_error& exc) {
-    LOG_ERROR << "Unable to read server ca from archive: " << exc.what();
+    LOG_ERROR << "Unable to read server CA certificate from archive: " << exc.what();
     return "";
   }
 

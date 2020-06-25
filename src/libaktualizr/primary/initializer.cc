@@ -136,13 +136,13 @@ void Initializer::initTlsCreds() {
   }
 
   if (config_.mode != ProvisionMode::kSharedCred) {
-    throw StorageError("Shared credentials expected but not found");
+    throw StorageError("Device credentials expected but not found");
   }
 
-  // Shared credential provision is required and possible => (automatically)
+  // Shared credential provisioning is required and possible => (automatically)
   // provision with shared credentials.
 
-  // set bootstrap credentials
+  // Set bootstrap (shared) credentials.
   Bootstrap boot(config_.provision_path, config_.p12_password);
   http_client_->setCerts(boot.getCa(), CryptoSource::kFile, boot.getCert(), CryptoSource::kFile, boot.getPkey(),
                          CryptoSource::kFile);
@@ -176,7 +176,7 @@ void Initializer::initTlsCreds() {
   }
   storage_->storeTlsCreds(ca, cert, pkey);
 
-  // set provisioned credentials
+  // Set provisioned (device) credentials.
   if (!loadSetTlsCreds()) {
     throw Error("Failed to configure HTTP client with device credentials.");
   }
