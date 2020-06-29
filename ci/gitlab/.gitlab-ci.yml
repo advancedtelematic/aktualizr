@@ -389,6 +389,8 @@ app-docker-image:
   stage: deploy
   only:
     - master
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
   dependencies: []
   allow_failure: true
   before_script:
