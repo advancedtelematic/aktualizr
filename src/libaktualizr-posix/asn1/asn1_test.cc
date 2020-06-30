@@ -6,11 +6,12 @@
 
 #include <iostream>
 #include <string>
-#include <libaktualizr/config.h>
+#include "libaktualizr/config.h"
 
 #include "asn1-cerstream.h"
 #include "asn1_message.h"
 #include "der_encoder.h"
+#include "utilities/utils.h"
 
 asn1::Serializer& operator<<(asn1::Serializer& ser, CryptoSource cs) {
   ser << asn1::implicit<kAsn1Enum>(static_cast<const int32_t&>(static_cast<int>(cs)));

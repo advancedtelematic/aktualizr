@@ -1,5 +1,7 @@
+#include "libaktualizr/events.h"
+
 #include "libaktualizr-c.h"
-#include <libaktualizr/events.h>
+#include "utilities/utils.h"
 
 Aktualizr *Aktualizr_create_from_cfg(Config *cfg) {
   Aktualizr *a;

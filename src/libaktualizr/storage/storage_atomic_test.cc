@@ -8,10 +8,10 @@
 #include <thread>
 
 #include <boost/filesystem.hpp>
-#include <libaktualizr/utils.h>
 
-#include "storage/sqlstorage.h"
 #include "logging/logging.h"
+#include "storage/sqlstorage.h"
+#include "utilities/utils.h"
 
 StorageType storage_test_type;
 

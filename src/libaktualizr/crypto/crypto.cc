@@ -7,10 +7,9 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/scoped_array.hpp>
 
-#include <libaktualizr/utils.h>
-
 #include "logging/logging.h"
 #include "openssl_compat.h"
+#include "utilities/utils.h"
 
 PublicKey::PublicKey(const boost::filesystem::path &path) : value_(Utils::readFile(path)) {
   type_ = Crypto::IdentifyRSAKeyType(value_);

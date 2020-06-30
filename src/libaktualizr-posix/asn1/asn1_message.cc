@@ -1,11 +1,9 @@
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
-#include <libaktualizr/utils.h>
 
 #include "asn1_message.h"
 #include "logging/logging.h"
 #include "utilities/dequeue_buffer.h"
-
 
 #ifndef MSG_NOSIGNAL
 #define MSG_NOSIGNAL 0
@@ -13,6 +11,8 @@
 
 #include <sys/socket.h>
 #include <sys/types.h>
+
+#include "utilities/utils.h"
 
 int Asn1StringAppendCallback(const void* buffer, size_t size, void* priv) {
   auto out_str = static_cast<std::string*>(priv);

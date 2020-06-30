@@ -1,4 +1,4 @@
-#ifndef TYPES_H_
+﻿#ifndef TYPES_H_
 #define TYPES_H_
 /** \file */
 
@@ -11,7 +11,31 @@
 enum class ProvisionMode { kSharedCred = 0, kDeviceCred };
 enum class StorageType { kFileSystem = 0, kSqlite };
 
-// Keep these in sync with AKIpUptaneKeyType ASN.1 definitions.
+/**
+ * @brief The BasedPath class
+ * Can represent an absolute or relative path, only readable through the BasePath::get() method.
+ *
+ * The intent is to avoid unintentional use of the "naked" relative path by
+ * mandating a base directory for each instantiation.
+ *
+ * @todo has to be moved into Utils namespace
+ */
+class BasedPath {
+ public:
+  BasedPath(boost::filesystem::path p) : p_(std::move(p)) {}
+  boost::filesystem::path get(const boost::filesystem::path &base) const;
+  bool empty() const { return p_.empty(); }
+  bool operator==(const BasedPath &b) const { return p_ == b.p_; }
+  bool operator!=(const BasedPath &b) const { return !(*this == b); }
+
+ private:
+  boost::filesystem::path p_;
+};
+
+/**
+ * @brief The KeyType enum
+ * @note Keep these in sync with AKIpUptaneKeyType ASN.1 definitions.
+ */
 enum class KeyType {
   kED25519 = 0,
   kFirstKnown = kED25519,
@@ -121,8 +145,9 @@ class PublicKey {
 };
 
 /**
- * The hash of a file or Uptane metadata.  File hashes/checksums in Uptane include the length of the object, in order to
- * defeat infinite download attacks.
+ * @brief The Hash class The hash of a file or Uptane metadata.
+ * File hashes/checksums in Uptane include the length of the object,
+ * in order to defeat infinite download attacks.
  */
 class Hash {
  public:
@@ -156,7 +181,7 @@ class TimeStamp {
   static TimeStamp Now();
   static struct tm CurrentTime();
   /** An invalid TimeStamp */
-  TimeStamp() { ; }
+  TimeStamp() {}
   explicit TimeStamp(std::string rfc3339);
   explicit TimeStamp(struct tm time);
   bool IsExpiredAt(const TimeStamp& now) const;
@@ -358,17 +383,17 @@ class Target {
   std::string filename() const { return filename_; }
   std::string sha256Hash() const;
   std::string sha512Hash() const;
-  const std::vector<Hash> &hashes() const { return hashes_; };
-  const std::vector<HardwareIdentifier> &hardwareIds() const { return hwids_; };
+  const std::vector<Hash> &hashes() const { return hashes_; }
+  const std::vector<HardwareIdentifier> &hardwareIds() const { return hwids_; }
   std::string custom_version() const { return custom_["version"].asString(); }
   Json::Value custom_data() const { return custom_; }
-  void updateCustom(Json::Value &custom) { custom_ = custom; };
-  std::string correlation_id() const { return correlation_id_; };
-  void setCorrelationId(std::string correlation_id) { correlation_id_ = std::move(correlation_id); };
+  void updateCustom(Json::Value &custom) { custom_ = custom; }
+  std::string correlation_id() const { return correlation_id_; }
+  void setCorrelationId(std::string correlation_id) { correlation_id_ = std::move(correlation_id); }
   uint64_t length() const { return length_; }
   bool IsValid() const { return valid; }
-  std::string uri() const { return uri_; };
-  void setUri(std::string uri) { uri_ = std::move(uri); };
+  std::string uri() const { return uri_; }
+  void setUri(std::string uri) { uri_ = std::move(uri); }
   bool MatchHash(const Hash &hash) const;
 
   void InsertEcu(const std::pair<EcuSerial, HardwareIdentifier> &pair) { ecus_.insert(pair); }
@@ -378,7 +403,7 @@ class Target {
                          [&ecuIdentifier](const std::pair<EcuSerial, HardwareIdentifier> &pair) {
                            return pair.first == ecuIdentifier;
                          }) != ecus_.cend());
-  };
+  }
 
   /**
    * Is this an OSTree target?

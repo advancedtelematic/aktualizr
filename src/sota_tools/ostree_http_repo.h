@@ -2,12 +2,12 @@
 #define SOTA_CLIENT_TOOLS_OSTREE_HTTP_REPO_H_
 
 #include <boost/filesystem.hpp>
-#include <libaktualizr/utils.h>
 
 #include "logging/logging.h"
 #include "ostree_ref.h"
 #include "ostree_repo.h"
 #include "treehub_server.h"
+#include "utilities/utils.h"
 
 class OSTreeHttpRepo : public OSTreeRepo {
  public:

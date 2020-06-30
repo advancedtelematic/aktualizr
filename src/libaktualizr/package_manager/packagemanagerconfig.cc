@@ -3,7 +3,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/log/trivial.hpp>
 
-#include <libaktualizr/config.h>
+#include "libaktualizr/config.h"
 
 #include "utilities/config_utils.h"
 

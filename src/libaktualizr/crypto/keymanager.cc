@@ -4,7 +4,7 @@
 #include <utility>
 
 #include <boost/scoped_array.hpp>
-#include <libaktualizr/types.h>
+#include "libaktualizr/types.h"
 
 #include "crypto/openssl_compat.h"
 #include "storage/invstorage.h"

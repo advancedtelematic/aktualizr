@@ -7,8 +7,7 @@
 
 #include <boost/signals2.hpp>
 
-#include <libaktualizr/utils.h>
-#include <libaktualizr/results.h>
+#include "libaktualizr/results.h"
 
 /**
  * Aktualizr status events.

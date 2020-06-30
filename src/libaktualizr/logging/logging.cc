@@ -1,4 +1,4 @@
-#include <libaktualizr/config.h>
+#include "libaktualizr/config.h"
 
 #include "logging.h"
 

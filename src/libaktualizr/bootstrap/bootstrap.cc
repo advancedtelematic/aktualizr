@@ -6,7 +6,7 @@
 
 #include "crypto/crypto.h"
 #include "logging/logging.h"
-#include <libaktualizr/utils.h>
+#include "utilities/utils.h"
 
 Bootstrap::Bootstrap(const boost::filesystem::path& provision_path, const std::string& provision_password)
     : ca_(""), cert_(""), pkey_("") {

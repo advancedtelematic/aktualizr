@@ -10,13 +10,12 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <utility>
 
-#include <libaktualizr/utils.h>
-
 #include "bootstrap/bootstrap.h"
 #include "crypto/crypto.h"
 #include "crypto/openssl_compat.h"
 #include "logging/logging.h"
 #include "storage/invstorage.h"
+#include "utilities/utils.h"
 
 namespace Uptane {
 

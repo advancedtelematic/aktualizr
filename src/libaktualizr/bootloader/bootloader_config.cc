@@ -1,4 +1,4 @@
-#include <libaktualizr/config.h>
+#include "libaktualizr/config.h"
 #include "utilities/config_utils.h"
 
 std::ostream& operator<<(std::ostream& os, RollbackMode mode) {

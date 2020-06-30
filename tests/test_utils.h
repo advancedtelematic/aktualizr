@@ -6,7 +6,7 @@
 #include <sys/types.h>
 #include <sys/un.h>
 
-#include <libaktualizr/utils.h>
+#include "utilities/utils.h"
 
 struct TestUtils {
   static std::string getFreePort();

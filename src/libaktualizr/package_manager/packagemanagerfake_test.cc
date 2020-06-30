@@ -7,14 +7,14 @@
 
 #include <boost/filesystem.hpp>
 
-#include <libaktualizr/config.h>
-#include <libaktualizr/types.h>
-#include <libaktualizr/utils.h>
+#include "libaktualizr/config.h"
+#include "libaktualizr/types.h"
 
 #include "httpfake.h"
 #include "package_manager/packagemanagerfake.h"
 #include "storage/invstorage.h"
 #include "uptane/tuf.h"
+#include "utilities/utils.h"
 
 // Test creating, appending and reading binary targets.
 TEST(PackageManagerFake, Binary) {

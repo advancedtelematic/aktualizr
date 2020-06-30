@@ -1,5 +1,3 @@
-#include <libaktualizr/utils.h>
-
 #include <stdio.h>
 #include <algorithm>
 #include <array>
@@ -31,8 +29,11 @@
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
+#include "libaktualizr/types.h"
+
 #include "aktualizr_version.h"
 #include "logging/logging.h"
+#include "utilities/utils.h"
 
 static const std::array<const char *, 132> adverbs = {
     "adorable", "acidic",     "ample",        "aromatic",   "artistic", "attractive", "basic",    "beautiful",
@@ -927,4 +928,9 @@ CurlEasyWrapper::~CurlEasyWrapper() {
   if (handle != nullptr) {
     curl_easy_cleanup(handle);
   }
+}
+
+boost::filesystem::path BasedPath::get(const boost::filesystem::path &base) const {
+  // note: BasedPath(bp.get()) == bp
+  return Utils::absolutePath(base, p_);
 }

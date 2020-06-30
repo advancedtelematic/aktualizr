@@ -4,9 +4,9 @@
 #include <string>
 
 #include <curl/curl.h>
-#include <libaktualizr/utils.h>
 
 #include "server_credentials.h"
+#include "utilities/utils.h"
 
 class TreehubServer {
  public:

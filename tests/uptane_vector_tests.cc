@@ -8,13 +8,13 @@
 #include <string>
 #include <utility>
 
-#include <libaktualizr/utils.h>
-#include <libaktualizr/config.h>
+#include "libaktualizr/config.h"
 
 #include "http/httpclient.h"
 #include "logging/logging.h"
 #include "primary/sotauptaneclient.h"
 #include "storage/invstorage.h"
+#include "utilities/utils.h"
 
 std::string address;
 

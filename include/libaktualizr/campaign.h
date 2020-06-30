@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include <libaktualizr/utils.h>
+#include "json/json.h"
 
 class HttpInterface;
 

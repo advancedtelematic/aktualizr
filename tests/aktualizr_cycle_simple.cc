@@ -5,8 +5,8 @@
 #include <string>
 #include <thread>
 
-#include "libaktualizr/config.h"
 #include "libaktualizr/aktualizr.h"
+#include "libaktualizr/config.h"
 #include "logging/logging.h"
 #include "storage/sqlstorage.h"
 

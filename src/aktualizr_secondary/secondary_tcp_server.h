@@ -5,7 +5,7 @@
 #include <condition_variable>
 #include <mutex>
 
-#include <libaktualizr/utils.h>
+#include "utilities/utils.h"
 
 class MsgHandler;
 

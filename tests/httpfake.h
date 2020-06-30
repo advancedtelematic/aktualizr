@@ -10,12 +10,12 @@
 #include <boost/filesystem.hpp>
 
 #include "json/json.h"
-#include <libaktualizr/utils.h>
 
 #include "crypto/crypto.h"
 #include "http/httpinterface.h"
 #include "logging/logging.h"
 #include "metafake.h"
+#include "utilities/utils.h"
 
 class HttpFake : public HttpInterface {
  public:

@@ -10,8 +10,7 @@
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 
-#include <libaktualizr/types.h>
-#include <libaktualizr/utils.h>
+#include "libaktualizr/types.h"
 
 struct LoggerConfig {
   int loglevel{2};

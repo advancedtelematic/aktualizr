@@ -5,8 +5,6 @@
 #include <memory>
 #include <utility>
 
-#include <libaktualizr/utils.h>
-
 #include "crypto/crypto.h"
 #include "crypto/keymanager.h"
 #include "initializer.h"

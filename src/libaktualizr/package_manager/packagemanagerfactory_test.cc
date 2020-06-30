@@ -3,12 +3,12 @@
 #include <boost/filesystem.hpp>
 #include <memory>
 
-#include <libaktualizr/config.h>
-#include <libaktualizr/utils.h>
+#include "libaktualizr/config.h"
 
 #include "package_manager/packagemanagerfactory.h"
 #include "package_manager/packagemanagerinterface.h"
 #include "storage/invstorage.h"
+#include "utilities/utils.h"
 
 boost::filesystem::path sysroot;
 

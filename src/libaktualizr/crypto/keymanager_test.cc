@@ -3,11 +3,11 @@
 
 #include "json/json.h"
 
-#include <libaktualizr/config.h>
-#include <libaktualizr/utils.h>
+#include "libaktualizr/config.h"
 
 #include "crypto/keymanager.h"
 #include "storage/sqlstorage.h"
+#include "utilities/utils.h"
 
 #ifdef BUILD_P11
 #ifndef TEST_PKCS11_MODULE_PATH

@@ -9,11 +9,9 @@
 #include <boost/filesystem.hpp>
 #include <boost/optional.hpp>
 
-#include <libaktualizr/config.h>
-#include <libaktualizr/utils.h>
+#include "libaktualizr/config.h"
 
 #include "storage_exception.h"
-
 #include "uptane/tuf.h"
 
 class INvStorage;

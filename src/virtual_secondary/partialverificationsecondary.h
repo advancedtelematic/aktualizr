@@ -10,10 +10,10 @@
 #include <boost/filesystem.hpp>
 #include "json/json.h"
 
-#include <libaktualizr/types.h>
+#include "libaktualizr/types.h"
 
-#include "primary/secondaryinterface.h"
 #include "managedsecondary.h"
+#include "primary/secondaryinterface.h"
 
 namespace Primary {
 

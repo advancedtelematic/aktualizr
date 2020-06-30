@@ -1,18 +1,18 @@
 #include "check.h"
 
-#include <libaktualizr/aktualizr.h>
 #include <random>
 #include <string>
-#include <libaktualizr/utils.h>
+#include "libaktualizr/aktualizr.h"
 
 #include "context.h"
 #include "executor.h"
-#include <libaktualizr/events.h>
+#include "libaktualizr/events.h"
 #include "primary/reportqueue.h"
 #include "primary/sotauptaneclient.h"
 #include "storage/invstorage.h"
 #include "storage/sqlstorage.h"
 #include "uptane/uptanerepository.h"
+#include "utilities/utils.h"
 
 namespace fs = boost::filesystem;
 

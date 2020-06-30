@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
-#include <libaktualizr/utils.h>
-
 #include "aktualizr_info_config.h"
+#include "utilities/utils.h"
 
 TEST(aktualizr_info_config, config_initialized_values) {
   AktualizrInfoConfig conf;

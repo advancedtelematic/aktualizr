@@ -93,27 +93,22 @@ class TemporaryDirectory {
   boost::filesystem::path tmp_name_;
 };
 
-// Can represent an absolute or relative path, only readable through the
-// `.get()` method
-//
-// The intent is to avoid unintentional use of the "naked" relative path by
-// mandating a base directory for each instantiation
-class BasedPath {
- public:
-  BasedPath(boost::filesystem::path p) : p_(std::move(p)) {}
+//// Can represent an absolute or relative path, only readable through the
+//// `.get()` method
+////
+//// The intent is to avoid unintentional use of the "naked" relative path by
+//// mandating a base directory for each instantiation
+// class BasedPath {
+// public:
+//  BasedPath(boost::filesystem::path p) : p_(std::move(p)) {}
+//  boost::filesystem::path get(const boost::filesystem::path &base) const;
+//  bool empty() const { return p_.empty(); }
+//  bool operator==(const BasedPath &b) const { return p_ == b.p_; }
+//  bool operator!=(const BasedPath &b) const { return !(*this == b); }
 
-  boost::filesystem::path get(const boost::filesystem::path &base) const {
-    // note: BasedPath(bp.get()) == bp
-    return Utils::absolutePath(base, p_);
-  }
-
-  bool empty() const { return p_.empty(); }
-  bool operator==(const BasedPath &b) const { return p_ == b.p_; }
-  bool operator!=(const BasedPath &b) const { return !(*this == b); }
-
- private:
-  boost::filesystem::path p_;
-};
+// private:
+//  boost::filesystem::path p_;
+//};
 
 // helper template for C (mostly openssl) data structured
 //   user should still take care about the order of destruction

@@ -11,10 +11,10 @@
 #include "gtest/gtest_prod.h"
 #include "json/json.h"
 
-#include <libaktualizr/events.h>
-#include <libaktualizr/config.h>
-#include <libaktualizr/results.h>
-#include <libaktualizr/campaign.h>
+#include "libaktualizr/campaign.h"
+#include "libaktualizr/config.h"
+#include "libaktualizr/events.h"
+#include "libaktualizr/results.h"
 
 #include "bootloader/bootloader.h"
 #include "http/httpclient.h"

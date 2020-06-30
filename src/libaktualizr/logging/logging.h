@@ -5,8 +5,6 @@
 #include <boost/log/expressions.hpp>
 #include <boost/log/trivial.hpp>
 
-//#include <libaktualizr/config.h>
-
 class LoggerConfig;
 
 /** Log an unrecoverable error */

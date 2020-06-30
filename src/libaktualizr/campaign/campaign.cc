@@ -1,7 +1,7 @@
-#include <libaktualizr/campaign.h>
+#include "libaktualizr/campaign.h"
 
-#include "logging/logging.h"
 #include "http/httpclient.h"
+#include "logging/logging.h"
 
 namespace campaign {
 

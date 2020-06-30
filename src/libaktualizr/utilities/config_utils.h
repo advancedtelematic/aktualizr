@@ -4,10 +4,10 @@
 #include <string>
 
 #include <boost/property_tree/ini_parser.hpp>
-#include <libaktualizr/types.h>
-#include <libaktualizr/utils.h>
+#include "libaktualizr/types.h"
 
 #include "logging/logging.h"
+#include "utilities/utils.h"
 
 /*
  The following uses a small amount of template hackery to provide a nice
@@ -81,7 +81,7 @@ inline void CopyFromConfig(KeyType& dest, const std::string& option_name, const 
   }
 }
 
-template<>
+template <>
 inline void CopyFromConfig(StorageType& dest, const std::string& option_name, const boost::property_tree::ptree& pt) {
   boost::optional<std::string> value = pt.get_optional<std::string>(option_name);
   if (value.is_initialized()) {

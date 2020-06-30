@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include <libaktualizr/config.h>
+#include "libaktualizr/config.h"
 
 #include "package_manager/packagemanagerinterface.h"
 #include "storage/invstorage.h"

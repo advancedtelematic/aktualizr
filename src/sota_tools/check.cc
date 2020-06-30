@@ -4,14 +4,15 @@
 #include "check.h"
 #include "garage_common.h"
 #include "json/json.h"
+
+#include "libaktualizr/types.h"
 #include "logging/logging.h"
 #include "ostree_http_repo.h"
 #include "ostree_object.h"
 #include "rate_controller.h"
 #include "request_pool.h"
 #include "treehub_server.h"
-#include <libaktualizr/types.h>
-#include <libaktualizr/utils.h>
+#include "utilities/utils.h"
 
 // helper function to download data to a string
 static size_t writeString(void *contents, size_t size, size_t nmemb, void *userp) {

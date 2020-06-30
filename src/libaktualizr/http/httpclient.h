@@ -5,7 +5,6 @@
 #include <memory>
 
 #include <curl/curl.h>
-#include <libaktualizr/utils.h>
 
 #include "gtest/gtest_prod.h"
 #include "json/json.h"

@@ -1,9 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <libaktualizr/utils.h>
-
 #include "directorrepository.h"
 #include "test_utils.h"
+#include "utilities/utils.h"
 
 boost::filesystem::path uptane_generator_path;
 

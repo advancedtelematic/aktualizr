@@ -1,7 +1,8 @@
+#include <sys/stat.h>
+
 #include "sqlstorage_base.h"
 #include "storage_exception.h"
-
-#include <sys/stat.h>
+#include "utilities/utils.h"
 
 boost::filesystem::path SQLStorageBase::dbPath() const { return sqldb_path_; }
 

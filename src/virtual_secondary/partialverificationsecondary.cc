@@ -5,7 +5,7 @@
 
 #include <boost/filesystem.hpp>
 #include "json/json.h"
-#include <libaktualizr/types.h>
+#include "libaktualizr/types.h"
 
 #include "logging/logging.h"
 #include "primary/secondaryinterface.h"

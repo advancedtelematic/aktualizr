@@ -11,8 +11,8 @@
 #include <boost/scoped_array.hpp>
 #include "json/json.h"
 
-#include <libaktualizr/utils.h>
 #include "logging/logging.h"
+#include "utilities/utils.h"
 
 FSStorageRead::FSStorageRead(const StorageConfig& config) : config_(config) {
   boost::filesystem::path image_path = config_.uptane_metadata_path.get(config_.path) / "repo";

@@ -9,7 +9,7 @@
 #include "server_credentials.h"
 #include "test_utils.h"
 #include "treehub_server.h"
-#include <libaktualizr/utils.h>
+#include "utilities/utils.h"
 
 boost::filesystem::path certs_dir;
 

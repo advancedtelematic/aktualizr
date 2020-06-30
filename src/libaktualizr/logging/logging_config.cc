@@ -1,6 +1,6 @@
 #include <boost/property_tree/ini_parser.hpp>
 
-#include <libaktualizr/config.h>
+#include "libaktualizr/config.h"
 #include "utilities/config_utils.h"
 
 void LoggerConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {

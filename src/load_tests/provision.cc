@@ -1,20 +1,21 @@
 #include "provision.h"
 
-#include <libaktualizr/aktualizr.h>
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include "libaktualizr/aktualizr.h"
 
-#include <libaktualizr/config.h>
+#include "libaktualizr/config.h"
+#include "libaktualizr/events.h"
+
 #include "context.h"
 #include "executor.h"
 #include "http/httpclient.h"
 #include "logging/logging.h"
-#include <libaktualizr/events.h>
 #include "primary/reportqueue.h"
 #include "primary/sotauptaneclient.h"
 #include "uptane/uptanerepository.h"
-#include <libaktualizr/utils.h>
+#include "utilities/utils.h"
 
 using namespace boost::filesystem;
 using ptree = boost::property_tree::ptree;

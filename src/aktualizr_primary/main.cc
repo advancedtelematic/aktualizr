@@ -5,15 +5,15 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/signals2.hpp>
 
-#include <libaktualizr/config.h>
-#include <libaktualizr/utils.h>
-#include <libaktualizr/aktualizr.h>
+#include "libaktualizr/aktualizr.h"
+#include "libaktualizr/config.h"
 
 #include "logging/logging.h"
 #include "primary/aktualizr_helpers.h"
 #include "secondary.h"
 #include "utilities/aktualizr_version.h"
 #include "utilities/sig_handler.h"
+#include "utilities/utils.h"
 
 namespace bpo = boost::program_options;
 

@@ -15,7 +15,7 @@
 #include <utility>
 
 #include "logging/logging.h"
-#include <libaktualizr/utils.h>
+#include "utilities/utils.h"
 
 AUTO_REGISTER_PACKAGE_MANAGER(PACKAGE_MANAGER_OSTREE, OstreeManager);
 

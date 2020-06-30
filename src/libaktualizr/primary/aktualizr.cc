@@ -2,12 +2,12 @@
 
 #include <sodium.h>
 
-#include <libaktualizr/aktualizr.h>
-#include <libaktualizr/events.h>
+#include "libaktualizr/aktualizr.h"
+#include "libaktualizr/events.h"
 
 #include "sotauptaneclient.h"
-#include "utilities/timer.h"
 #include "utilities/apiqueue.h"
+#include "utilities/timer.h"
 
 using std::make_shared;
 using std::shared_ptr;
@@ -22,7 +22,6 @@ Aktualizr::~Aktualizr() {}
 Aktualizr::Aktualizr(Config config, std::shared_ptr<INvStorage> storage_in,
                      const std::shared_ptr<HttpInterface> &http_in)
     : config_{std::move(config)}, sig_{new event::Channel()}, api_queue_(new api::CommandQueue()) {
-
   if (sodium_init() == -1) {  // Note that sodium_init doesn't require a matching 'sodium_deinit'
     throw std::runtime_error("Unable to initialize libsodium");
   }

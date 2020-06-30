@@ -1,7 +1,6 @@
 #include "aktualizr_info_config.h"
-#include "utilities/config_utils.h"
 #include "logging/logging.h"
-
+#include "utilities/config_utils.h"
 
 AktualizrInfoConfig::AktualizrInfoConfig(const boost::program_options::variables_map& cmd) {
   // Redundantly check and set the loglevel from the commandline prematurely so

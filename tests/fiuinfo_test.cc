@@ -2,7 +2,7 @@
 #include <unistd.h>
 
 #include "utilities/fault_injection.h"
-#include <libaktualizr/utils.h>
+#include "utilities/utils.h"
 
 std::string fiu_script;
 

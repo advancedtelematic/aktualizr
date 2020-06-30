@@ -5,12 +5,11 @@
 #include <vector>
 
 #include "json/json.h"
-#include <libaktualizr/utils.h>
-#include <libaktualizr/config.h>
-#include <libaktualizr/aktualizr.h>
+#include "libaktualizr/config.h"
+#include "libaktualizr/aktualizr.h"
 
+#include "utilities/utils.h"
 #include "uptane/tuf.h"
-
 #include "virtualsecondary.h"
 #include "primary/sotauptaneclient.h"
 

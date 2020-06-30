@@ -7,14 +7,14 @@
 
 #include <json/json.h>
 
-#include <libaktualizr/config.h>
-#include <libaktualizr/types.h>  // TimeStamp
-#include <libaktualizr/utils.h>
+#include "libaktualizr/config.h"
+#include "libaktualizr/types.h"  // TimeStamp
 
 #include "httpfake.h"
 #include "reportqueue.h"
 #include "storage/invstorage.h"
 #include "storage/sqlstorage.h"
+#include "utilities/utils.h"
 
 class HttpFakeRq : public HttpFake {
  public:

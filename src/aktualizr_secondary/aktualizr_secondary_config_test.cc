@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
-#include <libaktualizr/utils.h>
 
 #include "aktualizr_secondary_config.h"
+#include "utilities/utils.h"
 
 TEST(aktualizr_secondary_config, config_initialized_values) {
   AktualizrSecondaryConfig conf;

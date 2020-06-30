@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 
-#include <libaktualizr/types.h>
-#include <libaktualizr/campaign.h>
+#include "libaktualizr/types.h"
+#include "libaktualizr/campaign.h"
 
 /** Results of libaktualizr API calls. */
 namespace result {

@@ -4,8 +4,8 @@
 #include <mutex>
 #include <string>
 
-#include <libaktualizr/config.h>
-#include <libaktualizr/types.h>
+#include "libaktualizr/config.h"
+#include "libaktualizr/types.h"
 
 #include "bootloader/bootloader.h"
 #include "crypto/keymanager.h"

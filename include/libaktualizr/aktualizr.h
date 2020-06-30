@@ -6,8 +6,8 @@
 
 #include <boost/signals2.hpp>
 
-#include <libaktualizr/config.h>
-#include <libaktualizr/events.h>
+#include "libaktualizr/config.h"
+#include "libaktualizr/events.h"
 
 class SecondaryInterface;
 class SotaUptaneClient;

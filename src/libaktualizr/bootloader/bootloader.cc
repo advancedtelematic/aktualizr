@@ -7,10 +7,9 @@
 
 #include <boost/filesystem.hpp>
 
-#include <libaktualizr/utils.h>
-
 #include "storage/invstorage.h"
 #include "utilities/exceptions.h"
+#include "utilities/utils.h"
 
 Bootloader::Bootloader(BootloaderConfig config, INvStorage& storage) : config_(std::move(config)), storage_(storage) {
   reboot_sentinel_ = config_.reboot_sentinel_dir / config_.reboot_sentinel_name;

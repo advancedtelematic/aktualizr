@@ -1,12 +1,12 @@
-#include <memory>
 #include <sys/types.h>
-#include <libaktualizr/utils.h>
+#include <memory>
 
 #include "aktualizr_secondary.h"
 #include "crypto/keymanager.h"
 #include "logging/logging.h"
 #include "update_agent.h"
 #include "uptane/manifest.h"
+#include "utilities/utils.h"
 
 AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig& config, std::shared_ptr<INvStorage> storage)
     : config_(config),

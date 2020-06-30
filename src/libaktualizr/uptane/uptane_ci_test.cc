@@ -17,7 +17,7 @@
 #include "storage/invstorage.h"
 #include "uptane/uptanerepository.h"
 #include "uptane_test_common.h"
-#include <libaktualizr/utils.h>
+#include "utilities/utils.h"
 
 boost::filesystem::path credentials;
 boost::filesystem::path sysroot;

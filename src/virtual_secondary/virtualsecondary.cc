@@ -2,8 +2,6 @@
 #include <boost/filesystem.hpp>
 #include <fstream>
 
-#include <libaktualizr/utils.h>
-
 #include "crypto/crypto.h"
 #include "utilities/fault_injection.h"
 #include "virtualsecondary.h"

@@ -8,11 +8,11 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
 
-#include <libaktualizr/config.h>
+#include "libaktualizr/config.h"
+#include "libaktualizr/types.h"
 #include "package_manager/ostreemanager.h"
 #include "storage/invstorage.h"
-#include <libaktualizr/types.h>
-#include <libaktualizr/utils.h>
+#include "utilities/utils.h"
 
 boost::filesystem::path test_sysroot;
 

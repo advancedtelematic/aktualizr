@@ -4,8 +4,6 @@
 #include <memory>
 #include <thread>
 
-#include <libaktualizr/utils.h>
-
 #include "aktualizr_secondary.h"
 #include "aktualizr_secondary_config.h"
 #include "utilities/aktualizr_version.h"

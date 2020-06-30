@@ -2,7 +2,7 @@
 #define LT_CONTEXT_H_
 
 #include <vector>
-#include <libaktualizr/config.h>
+#include "libaktualizr/config.h"
 
 Config configure(const boost::filesystem::path& cfgFile, const int logLevel);
 

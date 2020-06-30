@@ -14,8 +14,6 @@
 #include <utility>
 #include <vector>
 
-#include <libaktualizr/utils.h>
-
 #include "http/httpclient.h"
 #include "httpfake.h"
 #include "logging/logging.h"
@@ -25,6 +23,7 @@
 #include "test_utils.h"
 #include "uptane/uptanerepository.h"
 #include "uptane_test_common.h"
+#include "utilities/utils.h"
 
 Config conf("tests/config/basic.toml");
 std::string port;

@@ -3,13 +3,13 @@
 #include <iomanip>
 #include <sstream>
 
-#include <libaktualizr/config.h>
-#include <libaktualizr/utils.h>
+#include "libaktualizr/config.h"
 
 #include "bootstrap/bootstrap.h"
-#include "utilities/exceptions.h"
-#include "utilities/config_utils.h"
 #include "logging/logging.h"
+#include "utilities/config_utils.h"
+#include "utilities/exceptions.h"
+#include "utilities/utils.h"
 
 void BaseConfig::updateFromToml(const boost::filesystem::path& filename) {
   LOG_INFO << "Reading config: " << filename;
@@ -40,7 +40,7 @@ void BaseConfig::updateFromDirs(const std::vector<boost::filesystem::path>& conf
   }
 }
 
-void P11Config::updateFromPropertyTree(const boost::property_tree::ptree &pt) {
+void P11Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(module, "module", pt);
   CopyFromConfig(pass, "pass", pt);
   CopyFromConfig(uptane_key_id, "uptane_key_id", pt);
@@ -49,7 +49,7 @@ void P11Config::updateFromPropertyTree(const boost::property_tree::ptree &pt) {
   CopyFromConfig(tls_clientcert_id, "tls_clientcert_id", pt);
 }
 
-void P11Config::writeToStream(std::ostream &out_stream) const {
+void P11Config::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, module, "module");
   writeOption(out_stream, pass, "pass");
   writeOption(out_stream, uptane_key_id, "uptane_key_id");

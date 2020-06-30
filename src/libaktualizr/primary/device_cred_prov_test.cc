@@ -7,15 +7,13 @@
 #include <boost/filesystem.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 
-#include <libaktualizr/utils.h>
-
 #include "httpfake.h"
 #include "logging/logging.h"
 #include "primary/initializer.h"
 #include "primary/sotauptaneclient.h"
 #include "storage/invstorage.h"
 #include "uptane/uptanerepository.h"
-
+#include "utilities/utils.h"
 
 /**
  * Verify that when provisioning with device credentials, aktualizr halts if

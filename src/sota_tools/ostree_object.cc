@@ -11,7 +11,7 @@
 #include "logging/logging.h"
 #include "ostree_repo.h"
 #include "request_pool.h"
-#include <libaktualizr/utils.h>
+#include "utilities/utils.h"
 
 using std::string;
 

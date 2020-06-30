@@ -3,7 +3,7 @@
 
 #ifdef __cplusplus
 #include <boost/process.hpp>
-#include <libaktualizr/config.h>
+#include "libaktualizr/config.h"
 
 using Config = Config;
 using FakeHttpServer = boost::process::child;

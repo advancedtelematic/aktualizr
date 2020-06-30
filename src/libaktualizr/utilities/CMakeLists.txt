@@ -14,6 +14,7 @@ set(HEADERS apiqueue.h
             fault_injection.h
             sig_handler.h
             timer.h
+	    utils.h
             xml2json.h)
 
 set_property(SOURCE aktualizr_version.cc PROPERTY COMPILE_DEFINITIONS AKTUALIZR_VERSION="${AKTUALIZR_VERSION}")

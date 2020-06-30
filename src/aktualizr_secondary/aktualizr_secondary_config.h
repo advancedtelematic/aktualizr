@@ -1,11 +1,13 @@
 #ifndef AKTUALIZR_SECONDARY_CONFIG_H_
 #define AKTUALIZR_SECONDARY_CONFIG_H_
 
+#include <netinet/in.h>
+
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 
-#include <libaktualizr/config.h>
+#include "libaktualizr/config.h"
 
 // Try to keep the order of config options the same as in
 // AktualizrSecondaryConfig::writeToStream() and
