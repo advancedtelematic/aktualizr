@@ -15,9 +15,14 @@ using std::shared_ptr;
 Aktualizr::Aktualizr(const Config &config)
     : Aktualizr(config, INvStorage::newStorage(config.storage), std::make_shared<HttpClient>()) {}
 
+// This empty destructor is needed in order to be able to use unique_ptr with forwarding declaration.
+// Check the answer on StackOverflow for more details https://stackoverflow.com/a/995455
+Aktualizr::~Aktualizr() {}
+
 Aktualizr::Aktualizr(Config config, std::shared_ptr<INvStorage> storage_in,
                      const std::shared_ptr<HttpInterface> &http_in)
-    : config_{std::move(config)}, sig_{new event::Channel()} {
+    : config_{std::move(config)}, sig_{new event::Channel()}, api_queue_(new api::CommandQueue()) {
+
   if (sodium_init() == -1) {  // Note that sodium_init doesn't require a matching 'sodium_deinit'
     throw std::runtime_error("Unable to initialize libsodium");
   }
@@ -30,7 +35,6 @@ Aktualizr::Aktualizr(Config config, std::shared_ptr<INvStorage> storage_in,
 
 void Aktualizr::Initialize() {
   uptane_client_->initialize();
-  api_queue_ = std::make_shared<api::CommandQueue>();
   api_queue_->run();
 }
 

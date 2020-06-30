@@ -29,6 +29,7 @@ class Aktualizr {
   explicit Aktualizr(const Config& config);
   Aktualizr(const Aktualizr&) = delete;
   Aktualizr& operator=(const Aktualizr&) = delete;
+  ~Aktualizr();
 
   /**
    * Initialize aktualizr. Any Secondaries should be added before making this
@@ -247,7 +248,7 @@ class Aktualizr {
 
   std::shared_ptr<INvStorage> storage_;
   std::shared_ptr<event::Channel> sig_;
-  std::shared_ptr<api::CommandQueue> api_queue_;
+  std::unique_ptr<api::CommandQueue> api_queue_;
 };
 
 #endif  // AKTUALIZR_H_
