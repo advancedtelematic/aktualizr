@@ -236,8 +236,6 @@ class Config : public BaseConfig {
  private:
   void updateFromPropertyTree(const boost::property_tree::ptree& pt) override;
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);
-
-  std::vector<boost::filesystem::path> config_dirs_ = {"/usr/lib/sota/conf.d", "/etc/sota/conf.d/"};
   bool loglevel_from_cmdline{false};
 };
 

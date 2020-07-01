@@ -284,7 +284,7 @@ struct InstallationResult {
       : success(success_in), result_code(std::move(result_code_in)), description(std::move(description_in)) {}
 
   Json::Value toJson() const;
-  bool isSuccess() const { return success; };
+  bool isSuccess() const { return success; }
   bool needCompletion() const { return result_code == ResultCode::Numeric::kNeedCompletion; }
 
   bool success{true};
