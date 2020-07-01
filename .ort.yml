@@ -1,8 +1,5 @@
 excludes:
   paths:
-  - pattern: "src/load_tests/**"
-    reason: "TEST_TOOL_OF"
-    comment: "This directory contains tests which are not distributed."
   - pattern: "tests/**"
     reason: "TEST_TOOL_OF"
     comment: "This directory contains tests which are not distributed."
