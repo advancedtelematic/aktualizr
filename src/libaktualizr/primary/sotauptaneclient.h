@@ -97,6 +97,7 @@ class SotaUptaneClient {
  private:
   FRIEND_TEST(Aktualizr, FullNoUpdates);
   FRIEND_TEST(Aktualizr, DeviceInstallationResult);
+  FRIEND_TEST(Aktualizr, DeviceInstallationResultMetadata);
   FRIEND_TEST(Aktualizr, FullMultipleSecondaries);
   FRIEND_TEST(Aktualizr, CheckNoUpdates);
   FRIEND_TEST(Aktualizr, DownloadWithUpdates);
@@ -142,7 +143,8 @@ class SotaUptaneClient {
   bool waitSecondariesReachable(const std::vector<Uptane::Target> &updates);
   void storeInstallationFailure(const data::InstallationResult &result);
   data::InstallationResult rotateSecondaryRoot(Uptane::RepositoryType repo, SecondaryInterface &secondary);
-  data::InstallationResult sendMetadataToEcus(const std::vector<Uptane::Target> &targets);
+  void sendMetadataToEcus(const std::vector<Uptane::Target> &targets, data::InstallationResult *result,
+                          std::string *raw_installation_report);
   std::future<data::InstallationResult> sendFirmwareAsync(SecondaryInterface &secondary, const Uptane::Target &target);
   std::vector<result::Install::EcuReport> sendImagesToEcus(const std::vector<Uptane::Target> &targets);
 
