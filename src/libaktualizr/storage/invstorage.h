@@ -56,8 +56,10 @@ struct SecondaryInfo {
   std::string extra;
 };
 
-// Functions loading/storing multiple pieces of data are supposed to do so atomically as far as implementation makes it
-// possible
+// Functions loading/storing multiple pieces of data are supposed to do so
+// atomically as far as implementation makes it possible.
+//
+// store* functions normally write the complete content. save* functions just add an entry.
 class INvStorage {
  public:
   explicit INvStorage(StorageConfig config) : config_(std::move(config)) {}
