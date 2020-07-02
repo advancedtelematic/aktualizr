@@ -80,16 +80,15 @@ TEST(Uptane, ReloadSerial) {
   EcuSerials ecu_serials_1;
   EcuSerials ecu_serials_2;
 
+  Config conf("tests/config/basic.toml");
+  conf.storage.path = temp_dir.Path();
+  conf.provision.primary_ecu_serial = "";
+  UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "", "secondary_hardware", false);
+
   // Initialize. Should store new serials.
   {
-    Config conf("tests/config/basic.toml");
-    conf.storage.path = temp_dir.Path();
-    conf.provision.primary_ecu_serial = "";
-
     auto storage = INvStorage::newStorage(conf.storage);
     auto http = std::make_shared<HttpFake>(temp_dir.Path());
-
-    UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "", "secondary_hardware", false);
     auto uptane_client = std_::make_unique<UptaneTestCommon::TestUptaneClient>(conf, storage, http);
 
     ASSERT_NO_THROW(uptane_client->initialize());
@@ -102,13 +101,8 @@ TEST(Uptane, ReloadSerial) {
   // Keep storage directory, but initialize new objects. Should load existing
   // serials.
   {
-    Config conf("tests/config/basic.toml");
-    conf.storage.path = temp_dir.Path();
-    conf.provision.primary_ecu_serial = "";
-
     auto storage = INvStorage::newStorage(conf.storage);
     auto http = std::make_shared<HttpFake>(temp_dir.Path());
-    UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "", "secondary_hardware", false);
     auto uptane_client = std_::make_unique<UptaneTestCommon::TestUptaneClient>(conf, storage, http);
 
     ASSERT_NO_THROW(uptane_client->initialize());

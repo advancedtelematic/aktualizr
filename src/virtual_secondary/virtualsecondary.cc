@@ -53,6 +53,10 @@ void VirtualSecondaryConfig::dump(const boost::filesystem::path& file_full_path)
   json_config["metadata_path"] = metadata_path.string();
 
   Json::Value root;
+  // Append to the config file if it already exists.
+  if (boost::filesystem::exists(file_full_path)) {
+    root = Utils::parseJSONFile(file_full_path);
+  }
   root[Type].append(json_config);
 
   Json::StreamWriterBuilder json_bwriter;

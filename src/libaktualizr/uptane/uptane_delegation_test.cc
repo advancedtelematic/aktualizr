@@ -90,12 +90,13 @@ TEST(Delegation, Basic) {
 TEST(Delegation, RevokeAfterCheckUpdates) {
   for (auto generate_fun : {delegation_basic, delegation_nested}) {
     TemporaryDirectory temp_dir;
+    auto http = std::make_shared<HttpFakeDelegation>(temp_dir.Path());
+    Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+    auto storage = INvStorage::newStorage(conf.storage);
+
     auto delegation_path = temp_dir.Path() / "delegation_test";
-    generate_fun(delegation_path, false);
     {
-      auto http = std::make_shared<HttpFakeDelegation>(temp_dir.Path());
-      Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
-      auto storage = INvStorage::newStorage(conf.storage);
+      generate_fun(delegation_path, false);
       UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
       aktualizr.Initialize();
 
@@ -106,9 +107,6 @@ TEST(Delegation, RevokeAfterCheckUpdates) {
     // Revoke delegation after CheckUpdates() and test if we can properly handle it.
     {
       generate_fun(delegation_path, true);
-      auto http = std::make_shared<HttpFakeDelegation>(temp_dir.Path());
-      Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
-      auto storage = INvStorage::newStorage(conf.storage);
       UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
       aktualizr.Initialize();
 
@@ -130,12 +128,13 @@ TEST(Delegation, RevokeAfterCheckUpdates) {
 TEST(Delegation, RevokeAfterDownload) {
   for (auto generate_fun : {delegation_basic, delegation_nested}) {
     TemporaryDirectory temp_dir;
+    auto http = std::make_shared<HttpFakeDelegation>(temp_dir.Path());
+    Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+    auto storage = INvStorage::newStorage(conf.storage);
+
     auto delegation_path = temp_dir.Path() / "delegation_test";
-    generate_fun(delegation_path, false);
     {
-      auto http = std::make_shared<HttpFakeDelegation>(temp_dir.Path());
-      Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
-      auto storage = INvStorage::newStorage(conf.storage);
+      generate_fun(delegation_path, false);
       UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
       aktualizr.Initialize();
 
@@ -148,10 +147,6 @@ TEST(Delegation, RevokeAfterDownload) {
     // Revoke delegation after Download() and test if we can properly handle it
     {
       generate_fun(delegation_path, true);
-
-      auto http = std::make_shared<HttpFakeDelegation>(temp_dir.Path());
-      Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
-      auto storage = INvStorage::newStorage(conf.storage);
       UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
       aktualizr.Initialize();
 
@@ -173,12 +168,13 @@ TEST(Delegation, RevokeAfterDownload) {
 TEST(Delegation, RevokeAfterInstall) {
   for (auto generate_fun : {delegation_basic, delegation_nested}) {
     TemporaryDirectory temp_dir;
+    auto http = std::make_shared<HttpFakeDelegation>(temp_dir.Path());
+    Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+    auto storage = INvStorage::newStorage(conf.storage);
+
     auto delegation_path = temp_dir.Path() / "delegation_test";
-    generate_fun(delegation_path, false);
     {
-      auto http = std::make_shared<HttpFakeDelegation>(temp_dir.Path());
-      Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
-      auto storage = INvStorage::newStorage(conf.storage);
+      generate_fun(delegation_path, false);
       UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
       aktualizr.Initialize();
 
@@ -196,10 +192,6 @@ TEST(Delegation, RevokeAfterInstall) {
     // Revoke delegation after Install() and test if can properly CheckUpdates again
     {
       generate_fun(delegation_path, true);
-
-      auto http = std::make_shared<HttpFakeDelegation>(temp_dir.Path());
-      Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
-      auto storage = INvStorage::newStorage(conf.storage);
       UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
       aktualizr.Initialize();
 

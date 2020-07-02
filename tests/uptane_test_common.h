@@ -64,19 +64,21 @@ struct UptaneTestCommon {
   static Primary::VirtualSecondaryConfig addDefaultSecondary(Config& config, const TemporaryDirectory& temp_dir,
                                                              const std::string& serial, const std::string& hw_id,
                                                              bool hardcoded_keys = true) {
-    Primary::VirtualSecondaryConfig ecu_config;
+    boost::filesystem::path sec_dir = temp_dir / boost::filesystem::unique_path();
 
+    Primary::VirtualSecondaryConfig ecu_config;
     ecu_config.partial_verifying = false;
-    ecu_config.full_client_dir = temp_dir.Path();
+    ecu_config.full_client_dir = sec_dir;
     ecu_config.ecu_serial = serial;
     ecu_config.ecu_hardware_id = hw_id;
     ecu_config.ecu_private_key = "sec.priv";
     ecu_config.ecu_public_key = "sec.pub";
-    ecu_config.firmware_path = temp_dir / "firmware.txt";
-    ecu_config.target_name_path = temp_dir / "firmware_name.txt";
-    ecu_config.metadata_path = temp_dir / "secondary_metadata";
+    ecu_config.firmware_path = sec_dir / "firmware.txt";
+    ecu_config.target_name_path = sec_dir / "firmware_name.txt";
+    ecu_config.metadata_path = sec_dir / "secondary_metadata";
 
-    config.uptane.secondary_config_file = temp_dir / boost::filesystem::unique_path() / "virtual_secondary_conf.json";
+    // Create or append to the Secondary config file.
+    config.uptane.secondary_config_file = temp_dir / "virtual_secondary_conf.json";
     ecu_config.dump(config.uptane.secondary_config_file);
 
     if (hardcoded_keys) {
