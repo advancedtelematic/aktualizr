@@ -108,8 +108,16 @@ TEST(config, DeviceCredMode) {
  * Start in shared credential provisioning mode.
  */
 TEST(config, SharedCredMode) {
-  Config config("tests/config/basic.toml");
+  Config config("config/sota-local.toml");
   EXPECT_EQ(config.provision.mode, ProvisionMode::kSharedCred);
+}
+
+/**
+ * Start in shared credential provisioning mode with reuse.
+ */
+TEST(config, SharedCredReuseMode) {
+  Config config("tests/config/basic.toml");
+  EXPECT_EQ(config.provision.mode, ProvisionMode::kSharedCredReuse);
 }
 
 /* Write config to file or to the log.

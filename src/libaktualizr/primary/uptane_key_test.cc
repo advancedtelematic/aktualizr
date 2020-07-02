@@ -23,7 +23,7 @@ void initKeyTests(Config& config, Primary::VirtualSecondaryConfig& ecu_config1,
   boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir / "cred.zip");
   config.provision.primary_ecu_serial = "testecuserial";
   config.provision.provision_path = temp_dir / "cred.zip";
-  config.provision.mode = ProvisionMode::kSharedCred;
+  config.provision.mode = ProvisionMode::kSharedCredReuse;
   config.tls.server = tls_server;
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";

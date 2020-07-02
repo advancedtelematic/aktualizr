@@ -154,9 +154,7 @@ TEST(Utils, Base64RoundTrip) {
   }
 }
 
-/*
- * Extract credentials from a provided archive.
- */
+/* Extract credentials from a provided archive. */
 TEST(Utils, ArchiveRead) {
   const std::string archive_path = "tests/test_data/credentials.zip";
 
@@ -169,7 +167,6 @@ TEST(Utils, ArchiveRead) {
   {
     std::ifstream as(archive_path, std::ios::binary | std::ios::in);
     EXPECT_FALSE(as.fail());
-
     std::string url = Utils::readFileFromArchive(as, "autoprov.url");
     EXPECT_EQ(url.rfind("https://", 0), 0);
   }
@@ -187,6 +184,33 @@ TEST(Utils, ArchiveWrite) {
   {
     std::stringstream as(archive_bytes);
     EXPECT_EQ(Utils::readFileFromArchive(as, "test"), "A");
+  }
+}
+
+/* Remove credentials from a provided archive. */
+TEST(Utils, ArchiveRemoveFile) {
+  const boost::filesystem::path old_path = "tests/test_data/credentials.zip";
+  TemporaryDirectory temp_dir;
+  const boost::filesystem::path new_path = temp_dir.Path() / "credentials.zip";
+  boost::filesystem::copy_file(old_path, new_path);
+
+  Utils::removeFileFromArchive(new_path, "autoprov_credentials.p12");
+  EXPECT_THROW(Utils::removeFileFromArchive(new_path, "bogus_filename"), std::runtime_error);
+
+  {
+    std::ifstream as(new_path.c_str(), std::ios::binary | std::ios::in);
+    EXPECT_FALSE(as.fail());
+    EXPECT_THROW(Utils::readFileFromArchive(as, "autoprov_credentials.p12"), std::runtime_error);
+  }
+
+  // Make sure the URL is still there. That's the only file that should be left
+  // under normal circumstances.
+  {
+    std::ifstream as_old(old_path.c_str(), std::ios::binary | std::ios::in);
+    EXPECT_FALSE(as_old.fail());
+    std::ifstream as_new(new_path.c_str(), std::ios::binary | std::ios::in);
+    EXPECT_FALSE(as_new.fail());
+    EXPECT_EQ(Utils::readFileFromArchive(as_old, "autoprov.url"), Utils::readFileFromArchive(as_new, "autoprov.url"));
   }
 }
 

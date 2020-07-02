@@ -31,6 +31,7 @@ struct Utils {
   static void copyDir(const boost::filesystem::path &from, const boost::filesystem::path &to);
   static std::string readFileFromArchive(std::istream &as, const std::string &filename, bool trim = false);
   static void writeArchive(const std::map<std::string, std::string> &entries, std::ostream &as);
+  static void removeFileFromArchive(const boost::filesystem::path &archive_path, const std::string &filename);
   static Json::Value getHardwareInfo();
   static Json::Value getNetworkInfo();
   static std::string getHostname();

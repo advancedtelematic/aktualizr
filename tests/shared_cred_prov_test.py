@@ -28,6 +28,7 @@ type = "none"
 
 [provision]
 provision_path = "{creds}"
+mode = "SharedCredReuse"
 
 [storage]
 path = "{tmp_dir}"

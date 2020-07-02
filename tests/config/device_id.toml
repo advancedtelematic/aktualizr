@@ -3,4 +3,5 @@ key_type = "ED25519"
 
 [provision]
 provision_path = "tests/test_data/cred.zip"
+mode = "SharedCredReuse"
 device_id = "test-name-123"
