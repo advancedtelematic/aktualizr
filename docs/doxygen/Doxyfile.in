@@ -830,7 +830,6 @@ INPUT                  = @CMAKE_SOURCE_DIR@/docs \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/uptane \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr/utilities \
                          @CMAKE_SOURCE_DIR@/src/libaktualizr-isotp \
-                         @CMAKE_SOURCE_DIR@/src/load_tests \
                          @CMAKE_SOURCE_DIR@/src/sota_tools \
                          @CMAKE_SOURCE_DIR@/src/uptane_generator \
                          @CMAKE_SOURCE_DIR@/src/virtual_secondary \
