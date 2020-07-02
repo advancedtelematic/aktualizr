@@ -384,8 +384,6 @@ void SQLStorage::storeTlsPkey(const std::string& pkey) {
 bool SQLStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* pkey) const {
   SQLite3Guard db = dbConnection();
 
-  db.beginTransaction();
-
   auto statement = db.prepareStatement("SELECT ca_cert, client_cert, client_pkey FROM tls_creds LIMIT 1;");
 
   int result = statement.step();
@@ -417,8 +415,6 @@ bool SQLStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* p
   if (pkey != nullptr) {
     *pkey = std::move(pkey_v);
   }
-
-  db.commitTransaction();
 
   return true;
 }
@@ -655,17 +651,12 @@ void SQLStorage::clearMetadata() {
 void SQLStorage::storeDelegation(const std::string& data, const Uptane::Role role) {
   SQLite3Guard db = dbConnection();
 
-  db.beginTransaction();
-
   auto statement = db.prepareStatement<SQLBlob, std::string>("INSERT OR REPLACE INTO delegations VALUES (?, ?);",
                                                              SQLBlob(data), role.ToString());
-
   if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't add delegation metadata: " << db.errmsg();
     return;
   }
-
-  db.commitTransaction();
 }
 
 bool SQLStorage::loadDelegation(std::string* data, const Uptane::Role role) const {
@@ -1611,14 +1602,10 @@ bool SQLStorage::loadReportEvents(Json::Value* report_array, int64_t* id_max) co
 void SQLStorage::deleteReportEvents(int64_t id_max) {
   SQLite3Guard db = dbConnection();
 
-  db.beginTransaction();
-
   auto statement = db.prepareStatement<int64_t>("DELETE FROM report_events WHERE id <= ?;", id_max);
   if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't delete report_events";
   }
-
-  db.commitTransaction();
 }
 
 void SQLStorage::clearInstallationResults() {
