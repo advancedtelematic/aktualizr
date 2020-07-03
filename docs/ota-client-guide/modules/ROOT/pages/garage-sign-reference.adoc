@@ -87,7 +87,7 @@ Global options
 |====================
 | -k, --key-name | The base name of the key to use for signing.
 | -p, --keys-path | {keys-path}
-| -i, --input | The path to the delegated targets metadata file that you want to sign.
+| -i, --input | The path to the delegated Targets metadata file that you want to sign.
 | -e, --inplace | {inplace}
 |====================
 
@@ -108,7 +108,7 @@ Global options
 +++</div></details>+++
 
 +++<details><summary>+++
-`delegations pull`: Pulls a delegated targets metadata file from the server. Requires an initialized `tuf` repository.
+`delegations pull`: Pulls a delegated Targets metadata file from the server. Requires an initialized `tuf` repository.
 +++</summary><div>+++
 
 [.release_notes]
@@ -122,7 +122,7 @@ Global options
 +++</div></details>+++
 
 +++<details><summary>+++
-`delegations add-target`: Adds a new target to a delegated targets metadata file.
+`delegations add-target`: Adds a new target to a delegated Targets metadata file.
 +++</summary><div>+++
 
 [.release_notes]
@@ -135,7 +135,7 @@ Global options
 | --sha256 | {sha-256}
 | --hardwareids | {hardware-ids}
 | --url | {url}
-| -i, --input | The path to the delegated targets metadata file that you want to modify.
+| -i, --input | The path to the delegated Targets metadata file that you want to modify.
 | -e, --inplace | {inplace}
 |====================
 
@@ -185,9 +185,9 @@ Global options
 [cols="15m,75a"]
 |====================
 | -r, --repo | The name of the local repository where you want to rotate keys. This repository should be a directory in your `tuf` repository. You can create the repository with the `init` command.
-| --new-root | The new root key that you want to add to the `root.json` file (should already exist).
-| --new-targets | (Only for the repo server) The new targets key that you want to add to the `root.json` file (should already exist).
-| --old-root-alias | The alias of the old root key. The old root key will be saved under this name.
+| --new-root | The new Root key that you want to add to the `root.json` file (should already exist).
+| --new-targets | (Only for the repo server) The new Targets key that you want to add to the `root.json` file (should already exist).
+| --old-root-alias | The alias of the old Root key. The old Root key will be saved under this name.
 | --old-keyid | (Optional) The ID of the key that you want to remove from the `root.json` file. This app will try to use the last key defined in the current `root.json` file.
 |====================
 
@@ -256,8 +256,10 @@ Global options
 +++</div></details>+++
 
 +++<details><summary>+++
-`targets [init|add|add-uploaded|delete|sign|pull|push|upload|delegations]`: (Only for repositories of type `reposerver`) Manages targets metadata.
-*Target* is a term from Uptane. Each target corresponds to a software version available in your OTA Connect software repository.
+`targets [init|add|add-uploaded|delete|sign|pull|push|upload|delegations]`: (Only for repositories of type `reposerver`) Manages Targets metadata.
+// tag::target-term[]
+*Target* is a term from Uptane. Each Target corresponds to a software version available in your OTA Connect software repository.
+// end::target-term[]
 +++</summary><div>+++
 
 +++<details><summary>+++
@@ -318,11 +320,13 @@ Global options
 `targets pull`: Pulls the current `targets.json` file from OTA Connect.
 
 `targets push`: Pushes the latest `targets.json` file to the server.
-If the targets file is invalid, for example because of a bad signature or a non-increasing version number, this `push` will fail with exit code 2.
+If the Targets file is invalid, for example because of a bad signature or a non-increasing version number, this `push` will fail with exit code 2.
 
 +++<details><summary>+++
 `targets upload`: Uploads a binary to the repository.
+// tag::targets-upload-note[]
 Note that this *will not* make the binary available on its own. After the upload completes successfully, add it to your `targets.json` file using the `targets add-uploaded` command.
+// end::targets-upload-note[]
 +++</summary><div>+++
 
 [.release_notes]
@@ -349,7 +353,7 @@ Note that this *will not* make the binary available on its own. After the upload
 |====================
 +++</div></details>+++
 
-`targets delegations`: Manages the delegated targets of the repository `targets.json` file.
+`targets delegations`: Manages the delegated Targets of the repository `targets.json` file.
 
 +++<details><summary>+++
 `targets delegations add`: Adds a new delegation to the existing `targets.json` file.
@@ -384,3 +388,10 @@ Note that this *will not* make the binary available on its own. After the upload
 | -o, --output | The name of the file to which you want to export our credentials.
 |====================
 +++</div></details>+++
+
+To learn how to use the garage-sign tool, see the following documentation:
+
+* xref:rotating-signing-keys.adoc[Rotate keys for Root and Targets metadata]
+* xref:metadata-expiry.adoc[Manage metadata expiry dates]
+* xref:upload-large-binary.adoc[Upload a binary file]
+* xref:customise-targets-metadata.adoc[Add custom metadata fields to Targets metadata]
