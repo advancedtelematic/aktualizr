@@ -7,7 +7,7 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
-If you want to upload large binary files (up to 3 GB) or your software signing keys are xref:ota-client::rotating-signing-keys.adoc[offline], use the `garage-sign` tool on the command line.
+If you want to upload large binary files (up to 3 GB) or your xref:ota-client::rotating-signing-keys.adoc[software signing keys are offline], use the `garage-sign` tool on the command line.
 
 NOTE: You can upload software packages of up to 1 GB on the OTA Connect Portal. For instructions, see xref:ota-web::upload-software-ui.adoc[Upload software versions] in the OTA Connect User Guide.
 
@@ -18,7 +18,7 @@ NOTE: You can upload software packages of up to 1 GB on the OTA Connect Portal. 
 +
 For instructions, see the xref:ota-client::generating-provisioning-credentials.adoc[related] section in this guide.
 
-. To initialize a local repository, specify a name and the path to the .zip file with your provisioning credentials.
+. Initialize a local repository.
 +
 [source, bash]
 ----
@@ -28,7 +28,7 @@ garage-sign init \
 ----
 +
 
-. Pull the latest version of the `targets.json` file to your local repository.
+. Pull the latest version of the `targets.json` file.
 +
 [source,bash]
 ----
@@ -36,9 +36,7 @@ garage-sign targets pull \
   --repo <localreponame>
 ----
 
-. Upload your binary file to your local repository and specify the name and version of your `targets.json` file.
-+
-TIP: You can find the `name` and `version` fields in the `targets.json` file under the `custom` field, as shown in the xref:customise-targets-metadata.adoc#_anatomy_of_targets_json_metadata[example].
+. To upload your binary to OTA Connect, specify its name and version.
 +
 [source,bash]
 ----
@@ -48,8 +46,12 @@ garage-sign targets upload \
   --name <name-of-target> \
   --version <target-version>
 ----
++
+include::garage-sign-reference.adoc[tags=targets-upload-note]
 
-. If the upload is successful, in the `targets.json` file, specify the following metadata about the binary file: name, version, and types of hardware for which your binary file is intended, as shown in the xref:customise-targets-metadata.adoc#_anatomy_of_targets_json_metadata[example].
+. If the upload is successful, add it to your local Targets metadata. 
++
+The binary name and version must be the same as in step 5.
 +
 [source,bash]
 ----
@@ -61,7 +63,7 @@ garage-sign targets add-uploaded \
   --hardwareids <hardware-id1>,<hardware-id2>
 ----
 
-. Sign the new `targets.json` file with your `targets` key.
+. Sign the new `targets.json` file with your Targets key.
 +
 [source,bash]
 ----
@@ -77,3 +79,5 @@ garage-sign targets sign \
 garage-sign targets push \
   --repo <localreponame>
 ----
+
+To learn more about the `garage-sign` commands and options, see its xref:garage-sign-reference.adoc[reference] documentation.
