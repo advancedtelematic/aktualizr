@@ -88,7 +88,7 @@ class DeviceCredGenerator : public Process {
           privateKeyFileFullPath{(rootDir / directory / privateKeyFile)},
           certFileFullPath{rootDir / directory / certFile},
           serverRootCAFullPath{rootDir / directory / serverRootCA},
-          gtwURLFileFullPath{rootDir / gtwURLFile} {}
+          gtwURLFileFullPath{rootDir / directory / gtwURLFile} {}
 
     const std::string directory;
     const std::string privateKeyFile;
