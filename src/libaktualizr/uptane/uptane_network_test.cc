@@ -187,7 +187,6 @@ TEST(UptaneNetwork, LogConnectivityRestored) {
   config.provision.primary_ecu_hardware_id = "primary_hw";
   config.storage.path = temp_dir.Path();
   config.tls.server = http->tls_server;
-  UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hw");
 
   auto storage = INvStorage::newStorage(config.storage);
   auto up = std_::make_unique<UptaneTestCommon::TestUptaneClient>(config, storage, http);

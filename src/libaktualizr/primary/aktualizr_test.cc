@@ -111,7 +111,8 @@ TEST(Aktualizr, FullNoUpdates) {
 }
 
 /*
- * Compute device installation failure code as concatenation of ECU failure codes.
+ * Compute device installation failure code as concatenation of ECU failure
+ * codes during installation.
  */
 TEST(Aktualizr, DeviceInstallationResult) {
   TemporaryDirectory temp_dir;
@@ -150,6 +151,56 @@ TEST(Aktualizr, DeviceInstallationResult) {
   EXPECT_EQ(res_json["code"].asString(), "primary_hw:INSTALL_FAILED|hw_id3:SECOND_FAIL");
   EXPECT_EQ(res_json["success"], false);
 }
+
+#ifdef FIU_ENABLE
+
+/*
+ * Compute device installation failure code as concatenation of ECU failure
+ * codes from sending metadata to Secondaries.
+ */
+TEST(Aktualizr, DeviceInstallationResultMetadata) {
+  TemporaryDirectory temp_dir;
+  // Use "hasupdates" to make sure Image repo Root gets fetched, despite that we
+  // won't use the default update.
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates", fake_meta_dir);
+  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+  UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "sec_serial1", "sec_hw1");
+  UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "sec_serial2", "sec_hw2");
+  UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "sec_serial3", "sec_hw3");
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
+  aktualizr.Initialize();
+  auto update_result = aktualizr.CheckUpdates().get();
+  EXPECT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
+
+  fault_injection_init();
+  fiu_enable("secondary_putmetadata", 1, nullptr, 0);
+
+  // Try updating two Secondaries; leave the third one alone.
+  std::vector<Uptane::Target> targets;
+  Json::Value target_json;
+  target_json["custom"]["targetFormat"] = "BINARY";
+  target_json["custom"]["ecuIdentifiers"]["sec_serial1"]["hardwareId"] = "sec_hw1";
+  target_json["custom"]["ecuIdentifiers"]["sec_serial3"]["hardwareId"] = "sec_hw3";
+  targets.emplace_back(Uptane::Target("test", target_json));
+
+  data::InstallationResult result;
+  aktualizr.uptane_client()->sendMetadataToEcus(targets, &result, nullptr);
+  auto res_json = result.toJson();
+  EXPECT_EQ(res_json["code"].asString(), "sec_hw1:VERIFICATION_FAILED|sec_hw3:VERIFICATION_FAILED");
+  EXPECT_EQ(res_json["success"], false);
+
+  fiu_disable("secondary_putmetadata");
+
+  // Retry after disabling fault injection to verify the test.
+  aktualizr.uptane_client()->sendMetadataToEcus(targets, &result, nullptr);
+  res_json = result.toJson();
+  EXPECT_EQ(res_json["code"].asString(), "OK");
+  EXPECT_EQ(res_json["success"], true);
+}
+
+#endif  // FIU_ENABLE
 
 class HttpFakeEventCounter : public HttpFake {
  public:

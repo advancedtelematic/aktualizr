@@ -210,15 +210,16 @@ TEST(Uptane, PutManifest) {
   Config config = config_common();
   config.storage.path = temp_dir.Path();
   boost::filesystem::copy_file("tests/test_data/cred.zip", (temp_dir / "cred.zip").string());
-  boost::filesystem::copy_file("tests/test_data/firmware.txt", (temp_dir / "firmware.txt").string());
-  boost::filesystem::copy_file("tests/test_data/firmware_name.txt", (temp_dir / "firmware_name.txt").string());
   config.provision.provision_path = temp_dir / "cred.zip";
   config.provision.mode = ProvisionMode::kSharedCred;
   config.uptane.director_server = http->tls_server + "/director";
   config.uptane.repo_server = http->tls_server + "/repo";
   config.provision.primary_ecu_serial = "testecuserial";
   config.pacman.type = PACKAGE_MANAGER_NONE;
-  UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
+  Primary::VirtualSecondaryConfig sec_config =
+      UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
+  boost::filesystem::copy_file("tests/test_data/firmware.txt", sec_config.firmware_path);
+  boost::filesystem::copy_file("tests/test_data/firmware_name.txt", sec_config.target_name_path);
 
   auto storage = INvStorage::newStorage(config.storage);
 

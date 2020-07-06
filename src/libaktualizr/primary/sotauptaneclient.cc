@@ -412,7 +412,6 @@ void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult 
       device_installation_result = data::InstallationResult(data::ResultCode::Numeric::kInternalError,
                                                             "Unable to get installation results from ECUs");
       raw_ir = "Failed to load ECU installation results";
-
       break;
     }
 
@@ -430,7 +429,6 @@ void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult 
                                                               "Unable to get installation results from ECUs");
 
         raw_ir = "Failed to find an ECU with the given serial: " + ecu_serial.ToString();
-
         break;
       }
 
@@ -440,14 +438,13 @@ void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult 
             data::InstallationResult(data::ResultCode::Numeric::kNeedCompletion,
                                      "ECU needs completion/finalization to be installed: " + ecu_serial.ToString());
         raw_ir = "ECU needs completion/finalization to be installed: " + ecu_serial.ToString();
-
         break;
       }
 
       // format:
       // ecu1_hwid:failure1|ecu2_hwid:failure2
       if (!installation_res.isSuccess()) {
-        std::string ecu_code_str = (*hw_id).ToString() + ":" + installation_res.result_code.toString();
+        const std::string ecu_code_str = (*hw_id).ToString() + ":" + installation_res.result_code.toString();
         result_code_err_str += (result_code_err_str != "" ? "|" : "") + ecu_code_str;
       }
     }
@@ -456,8 +453,8 @@ void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult 
       // installation on at least one of the ECUs has failed
       device_installation_result =
           data::InstallationResult(data::ResultCode(data::ResultCode::Numeric::kInstallFailed, result_code_err_str),
-                                   "Installation failed on at least one of ECUs");
-      raw_ir = "Installation failed on at least one of ECUs";
+                                   "Installation failed on one or more ECUs");
+      raw_ir = "Installation failed on one or more ECUs";
 
       break;
     }
@@ -993,12 +990,12 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
     std::vector<Uptane::Target> primary_updates = findForEcu(updates, primary_ecu_serial);
 
     //   6 - send metadata to all the ECUs
-    // TODO: Handle individual ECU metadata failures and combine output into
-    // the device report as is done for installation.
-    data::InstallationResult metadata_res = sendMetadataToEcus(updates);
+    data::InstallationResult metadata_res;
+    std::string rr;
+    sendMetadataToEcus(updates, &metadata_res, &rr);
     if (!metadata_res.isSuccess()) {
       result.dev_report = std::move(metadata_res);
-      return std::make_tuple(result, "Secondary metadata verification failed");
+      return std::make_tuple(result, rr);
     }
 
     //   7 - send images to ECUs (deploy for OSTree)
@@ -1038,7 +1035,6 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
 
     auto sec_reports = sendImagesToEcus(updates);
     result.ecu_reports.insert(result.ecu_reports.end(), sec_reports.begin(), sec_reports.end());
-    std::string rr;
     computeDeviceInstallationResult(&result.dev_report, &rr);
 
     return std::make_tuple(result, rr);
@@ -1234,37 +1230,56 @@ data::InstallationResult SotaUptaneClient::rotateSecondaryRoot(Uptane::Repositor
 }
 
 // TODO: the function blocks until it updates all the Secondaries. Consider non-blocking operation.
-data::InstallationResult SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &targets) {
+void SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &targets, data::InstallationResult *result,
+                                          std::string *raw_installation_report) {
   data::InstallationResult final_result{data::ResultCode::Numeric::kOk, ""};
+  std::string result_code_err_str;
   for (const auto &target : targets) {
     for (const auto &ecu : target.ecus()) {
       const Uptane::EcuSerial ecu_serial = ecu.first;
+      const Uptane::HardwareIdentifier hw_id = ecu.second;
       auto sec = secondaries.find(ecu_serial);
       if (sec == secondaries.end()) {
         continue;
       }
 
-      /* Root rotation if necessary */
-      auto result = rotateSecondaryRoot(Uptane::RepositoryType::Director(), *(sec->second));
-      if (!result.isSuccess()) {
-        final_result = result;
-        continue;
-      }
-      result = rotateSecondaryRoot(Uptane::RepositoryType::Image(), *(sec->second));
-      if (!result.isSuccess()) {
-        final_result = result;
-        continue;
-      }
-      result = sec->second->putMetadata(target);
-      if (!result.isSuccess()) {
-        LOG_ERROR << "Sending metadata to " << sec->first << " failed: " << result.result_code << " "
-                  << result.description;
-        final_result = result;
+      data::InstallationResult local_result{data::ResultCode::Numeric::kOk, ""};
+      do {
+        /* Root rotation if necessary */
+        local_result = rotateSecondaryRoot(Uptane::RepositoryType::Director(), *(sec->second));
+        if (!local_result.isSuccess()) {
+          final_result = local_result;
+          break;
+        }
+        local_result = rotateSecondaryRoot(Uptane::RepositoryType::Image(), *(sec->second));
+        if (!local_result.isSuccess()) {
+          final_result = local_result;
+          break;
+        }
+        local_result = sec->second->putMetadata(target);
+      } while (false);
+      if (!local_result.isSuccess()) {
+        LOG_ERROR << "Sending metadata to " << sec->first << " failed: " << local_result.result_code << " "
+                  << local_result.description;
+        const std::string ecu_code_str = hw_id.ToString() + ":" + local_result.result_code.toString();
+        result_code_err_str += (result_code_err_str != "" ? "|" : "") + ecu_code_str;
       }
     }
   }
 
-  return final_result;
+  if (!result_code_err_str.empty()) {
+    // Sending the metadata to at least one of the ECUs has failed.
+    final_result =
+        data::InstallationResult(data::ResultCode(data::ResultCode::Numeric::kVerificationFailed, result_code_err_str),
+                                 "Sending metadata to one or more ECUs failed");
+    if (raw_installation_report != nullptr) {
+      *raw_installation_report = "Sending metadata to one or more ECUs failed";
+    }
+  }
+
+  if (result != nullptr) {
+    *result = final_result;
+  }
 }
 
 std::future<data::InstallationResult> SotaUptaneClient::sendFirmwareAsync(SecondaryInterface &secondary,
