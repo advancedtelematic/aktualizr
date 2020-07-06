@@ -1,9 +1,10 @@
-#include "package_manager/packagemanagerconfig.h"
-
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/log/trivial.hpp>
+
+#include "libaktualizr/config.h"
+#include "utilities/config_utils.h"
 
 void PackageConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   for (const auto& cp : pt) {

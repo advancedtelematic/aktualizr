@@ -8,8 +8,8 @@
 #include <string>
 #include <thread>
 
-#include "config/config.h"
 #include "http/httpclient.h"
+#include "libaktualizr/config.h"
 #include "logging/logging.h"
 #include "package_manager/packagemanagerfake.h"
 #include "storage/sqlstorage.h"

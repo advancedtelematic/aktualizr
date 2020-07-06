@@ -3,7 +3,7 @@
 #include <boost/format.hpp>
 
 #include "cert_provider_test.h"
-#include "config/config.h"
+#include "libaktualizr/config.h"
 #include "utilities/utils.h"
 
 static boost::filesystem::path CERT_PROVIDER_PATH;

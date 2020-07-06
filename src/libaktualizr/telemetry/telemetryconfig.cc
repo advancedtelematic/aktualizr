@@ -1,4 +1,4 @@
-#include "telemetry/telemetryconfig.h"
+#include "libaktualizr/config.h"
 
 #include "utilities/config_utils.h"
 

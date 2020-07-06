@@ -5,6 +5,23 @@
 #include <stdexcept>
 #include <utility>
 
+std::ostream &operator<<(std::ostream &os, const StorageType stype) {
+  std::string stype_str;
+  switch (stype) {
+    case StorageType::kFileSystem:
+      stype_str = "filesystem";
+      break;
+    case StorageType::kSqlite:
+      stype_str = "sqlite";
+      break;
+    default:
+      stype_str = "unknown";
+      break;
+  }
+  os << '"' << stype_str << '"';
+  return os;
+}
+
 std::string TimeToString(struct tm time) {
   std::array<char, 22> formatted{};
   strftime(formatted.data(), 22, "%Y-%m-%dT%H:%M:%SZ", &time);

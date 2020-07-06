@@ -2,7 +2,7 @@
 
 #include <boost/process.hpp>
 
-#include "config/config.h"
+#include "libaktualizr/config.h"
 #include "logging/logging.h"
 #include "package_manager/ostreemanager.h"
 #include "primary/aktualizr.h"

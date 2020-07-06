@@ -9,8 +9,8 @@
 #include <boost/filesystem.hpp>
 #include "json/json.h"
 
-#include "config/config.h"
 #include "httpfake.h"
+#include "libaktualizr/config.h"
 #include "primary/aktualizr.h"
 #include "primary/aktualizr_helpers.h"
 #include "primary/events.h"

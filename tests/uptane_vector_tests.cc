@@ -8,8 +8,8 @@
 #include <string>
 #include <utility>
 
-#include "config/config.h"
 #include "http/httpclient.h"
+#include "libaktualizr/config.h"
 #include "logging/logging.h"
 #include "primary/sotauptaneclient.h"
 #include "storage/invstorage.h"

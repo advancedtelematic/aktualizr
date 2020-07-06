@@ -1,21 +1,6 @@
-#include "storage_config.h"
-
-std::ostream& operator<<(std::ostream& os, const StorageType stype) {
-  std::string stype_str;
-  switch (stype) {
-    case StorageType::kFileSystem:
-      stype_str = "filesystem";
-      break;
-    case StorageType::kSqlite:
-      stype_str = "sqlite";
-      break;
-    default:
-      stype_str = "unknown";
-      break;
-  }
-  os << '"' << stype_str << '"';
-  return os;
-}
+#include "libaktualizr/config.h"
+#include "utilities/config_utils.h"
+#include "utilities/types.h"
 
 void StorageConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(type, "type", pt);

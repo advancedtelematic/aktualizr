@@ -1,3 +1,6 @@
+set(LIBAKTUALIZR_PUBLIC_HEADERS ../../include/libaktualizr/config.h)
+aktualizr_source_file_checks(${LIBAKTUALIZR_PUBLIC_HEADERS})
+
 # config has to go first, as other libraries append sources to it
 add_subdirectory("config")
 

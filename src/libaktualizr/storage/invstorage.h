@@ -9,9 +9,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/optional.hpp>
 
-#include "storage_config.h"
+#include "libaktualizr/config.h"
 #include "storage_exception.h"
-
 #include "uptane/tuf.h"
 #include "utilities/types.h"
 

@@ -7,8 +7,8 @@
 
 #include <json/json.h>
 
-#include "config/config.h"
 #include "httpfake.h"
+#include "libaktualizr/config.h"
 #include "reportqueue.h"
 #include "storage/invstorage.h"
 #include "storage/sqlstorage.h"
