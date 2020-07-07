@@ -440,7 +440,7 @@ int main(int argc, char* argv[]) {
           ca_file = config.storage.tls_cacert_path;
         }
       }
-      if (provide_url) {
+      if (provide_url && !config.tls.server_url_path.empty()) {
         url_file = config.tls.server_url_path;
       }
     }
@@ -534,7 +534,7 @@ int main(int argc, char* argv[]) {
         copyLocal(tmp_ca_file.PathString(), root_ca_file);
       }
       if (provide_url) {
-        auto gtw_url_file = local_dir / url_file.get("");
+        auto gtw_url_file = local_dir / url_file.get(directory);
         std::cout << "Writing the gateway URL to " << gtw_url_file << " ...\n";
         copyLocal(tmp_url_file.PathString(), gtw_url_file);
       }
