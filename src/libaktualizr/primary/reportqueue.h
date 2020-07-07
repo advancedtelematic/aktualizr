@@ -9,8 +9,8 @@
 
 #include <json/json.h>
 
-#include "config/config.h"
 #include "http/httpclient.h"
+#include "libaktualizr/config.h"
 #include "logging/logging.h"
 #include "storage/invstorage.h"
 #include "uptane/tuf.h"

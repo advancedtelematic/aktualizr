@@ -6,7 +6,7 @@
 
 #include "json/json.h"
 
-#include "config/config.h"
+#include "libaktualizr/config.h"
 #include "uptane/tuf.h"
 #include "utilities/utils.h"
 #include "virtualsecondary.h"

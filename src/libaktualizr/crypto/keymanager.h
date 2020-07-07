@@ -1,7 +1,7 @@
 #ifndef KEYMANAGER_H_
 #define KEYMANAGER_H_
 
-#include "keymanager_config.h"
+#include "libaktualizr/config.h"
 
 #include "crypto.h"
 #include "http/httpinterface.h"

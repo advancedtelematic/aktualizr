@@ -2,8 +2,7 @@ set(SOURCES packagemanagerfactory.cc
             packagemanagerfake.cc
             packagemanagerinterface.cc)
 
-set(HEADERS packagemanagerconfig.h
-            packagemanagerfactory.h
+set(HEADERS packagemanagerfactory.h
             packagemanagerfake.h
             packagemanagerinterface.h)
 

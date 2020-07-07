@@ -8,6 +8,14 @@
 #include <json/json.h>
 #include <boost/filesystem.hpp>
 
+// kSharedCredReuse is intended solely for testing. It should not be used in
+// production.
+enum class ProvisionMode { kSharedCred = 0, kDeviceCred, kSharedCredReuse, kDefault };
+std::ostream& operator<<(std::ostream& os, ProvisionMode mode);
+
+enum class StorageType { kFileSystem = 0, kSqlite };
+std::ostream& operator<<(std::ostream& os, StorageType stype);
+
 // Keep these in sync with AKIpUptaneKeyType ASN.1 definitions.
 enum class KeyType {
   kED25519 = 0,

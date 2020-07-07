@@ -16,7 +16,7 @@ else()
   message(FATAL_ERROR "Unknown storage type: ${storage_type}")
 endif()
 
-set(HEADERS ${HEADERS} storage_config.h fsstorage_read.h invstorage.h)
+set(HEADERS ${HEADERS} fsstorage_read.h invstorage.h)
 set(SOURCES ${SOURCES} fsstorage_read.cc invstorage.cc)
 
 target_sources(config PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/storage_config.cc)

@@ -2,7 +2,6 @@ set(SOURCES crypto.cc
             keymanager.cc)
 
 set(HEADERS crypto.h
-            keymanager_config.h
             keymanager.h
             openssl_compat.h)
 
@@ -25,4 +24,4 @@ add_aktualizr_test(NAME hash SOURCES hash_test.cc PROJECT_WORKING_DIRECTORY)
 add_aktualizr_test(NAME keymanager SOURCES keymanager_test.cc PROJECT_WORKING_DIRECTORY)
 set_property(SOURCE crypto_test.cc keymanager_test.cc PROPERTY COMPILE_DEFINITIONS TEST_PKCS11_MODULE_PATH="${TEST_PKCS11_MODULE_PATH}")
 
-aktualizr_source_file_checks(p11engine.cc p11engine_dummy.cc p11_config.h p11engine.h ${TEST_SOURCES})
+aktualizr_source_file_checks(p11engine.cc p11engine_dummy.cc p11engine.h ${TEST_SOURCES})

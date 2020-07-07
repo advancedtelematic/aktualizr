@@ -5,7 +5,7 @@
 #include <string>
 #include <thread>
 
-#include "config/config.h"
+#include "libaktualizr/config.h"
 #include "logging/logging.h"
 #include "primary/aktualizr.h"
 #include "storage/sqlstorage.h"

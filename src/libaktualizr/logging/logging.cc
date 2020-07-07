@@ -1,4 +1,5 @@
 #include "logging.h"
+#include "libaktualizr/config.h"
 
 using boost::log::trivial::severity_level;
 

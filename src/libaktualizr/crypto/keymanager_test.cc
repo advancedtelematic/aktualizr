@@ -3,8 +3,8 @@
 
 #include "json/json.h"
 
-#include "config/config.h"
 #include "crypto/keymanager.h"
+#include "libaktualizr/config.h"
 #include "storage/sqlstorage.h"
 #include "utilities/utils.h"
 

@@ -9,7 +9,7 @@
 
 #include "uptane_test_common.h"
 
-#include "config/config.h"
+#include "libaktualizr/config.h"
 #include "logging/logging.h"
 #include "package_manager/ostreemanager.h"
 #include "primary/aktualizr.h"

@@ -13,8 +13,8 @@
 
 #include "bootloader/bootloader.h"
 #include "campaign/campaign.h"
-#include "config/config.h"
 #include "http/httpclient.h"
+#include "libaktualizr/config.h"
 #include "package_manager/packagemanagerfactory.h"
 #include "package_manager/packagemanagerinterface.h"
 #include "primary/events.h"

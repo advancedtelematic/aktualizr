@@ -5,8 +5,8 @@
 #include <boost/filesystem.hpp>
 #include "json/json.h"
 
-#include "config/config.h"
 #include "httpfake.h"
+#include "libaktualizr/config.h"
 #include "primary/aktualizr.h"
 #include "primary/events.h"
 #include "uptane_test_common.h"

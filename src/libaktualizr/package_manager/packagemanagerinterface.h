@@ -4,10 +4,11 @@
 #include <mutex>
 #include <string>
 
+#include "libaktualizr/config.h"
+
 #include "bootloader/bootloader.h"
 #include "crypto/keymanager.h"
 #include "http/httpinterface.h"
-#include "packagemanagerconfig.h"
 #include "storage/invstorage.h"
 #include "uptane/fetcher.h"
 #include "utilities/apiqueue.h"

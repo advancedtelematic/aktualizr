@@ -1,7 +1,7 @@
 #include "api-test-utils.h"
 
 #include <boost/process.hpp>
-#include "config/config.h"
+#include "libaktualizr/config.h"
 #include "test_utils.h"
 #include "utilities/utils.h"
 

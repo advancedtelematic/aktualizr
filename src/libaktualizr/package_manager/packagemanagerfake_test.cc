@@ -7,8 +7,8 @@
 
 #include <boost/filesystem.hpp>
 
-#include "config/config.h"
 #include "httpfake.h"
+#include "libaktualizr/config.h"
 #include "package_manager/packagemanagerfake.h"
 #include "storage/invstorage.h"
 #include "uptane/tuf.h"

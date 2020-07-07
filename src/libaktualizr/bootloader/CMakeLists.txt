@@ -1,4 +1,4 @@
-set(HEADERS bootloader.h bootloader_config.h)
+set(HEADERS bootloader.h)
 set(SOURCES bootloader.cc)
 
 add_library(bootloader OBJECT ${SOURCES})

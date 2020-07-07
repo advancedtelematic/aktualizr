@@ -4,8 +4,9 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
-#include "config/config.h"
 #include "get.h"
+#include "libaktualizr/config.h"
+#include "logging/logging.h"
 #include "utilities/aktualizr_version.h"
 
 namespace bpo = boost::program_options;

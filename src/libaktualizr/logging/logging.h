@@ -5,7 +5,7 @@
 #include <boost/log/expressions.hpp>
 #include <boost/log/trivial.hpp>
 
-#include "logging_config.h"
+struct LoggerConfig;
 
 /** Log an unrecoverable error */
 #define LOG_FATAL BOOST_LOG_TRIVIAL(fatal)

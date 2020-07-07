@@ -5,7 +5,7 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/signals2.hpp>
 
-#include "config/config.h"
+#include "libaktualizr/config.h"
 #include "logging/logging.h"
 #include "primary/aktualizr.h"
 #include "primary/aktualizr_helpers.h"

@@ -8,8 +8,8 @@
 #include <boost/program_options.hpp>
 
 #include "bootstrap/bootstrap.h"
-#include "config/config.h"
 #include "crypto/crypto.h"
+#include "libaktualizr/config.h"
 #include "test_utils.h"
 #include "utilities/utils.h"
 

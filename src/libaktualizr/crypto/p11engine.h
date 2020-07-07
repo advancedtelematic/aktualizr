@@ -3,12 +3,13 @@
 
 #include <memory>
 
+#include "libaktualizr/config.h"
+
 #include <openssl/engine.h>
 #include <openssl/err.h>
 #include "gtest/gtest_prod.h"
 
 #include "logging/logging.h"
-#include "p11_config.h"
 
 class P11ContextWrapper {
  public:

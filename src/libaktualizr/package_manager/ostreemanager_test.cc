@@ -8,7 +8,7 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
 
-#include "config/config.h"
+#include "libaktualizr/config.h"
 #include "package_manager/ostreemanager.h"
 #include "storage/invstorage.h"
 #include "utilities/types.h"
