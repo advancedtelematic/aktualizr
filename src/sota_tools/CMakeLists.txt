@@ -133,9 +133,15 @@ endif(NOT BUILD_SOTA_TOOLS)
 ##### tests
 if (BUILD_SOTA_TOOLS)
 
+    set(TEST_CERT_DIR ${PROJECT_BINARY_DIR}/sota_tools/certs)
+    set(TEST_CERTS "${TEST_CERT_DIR}/server.crt" "${TEST_CERT_DIR}/ca.crt" "${TEST_CERT_DIR}/good.zip" "${TEST_CERT_DIR}/bad.zip")
+
+    add_custom_command(OUTPUT ${TEST_CERTS}
+      COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/authentication/generate-certs.sh
+      ${TEST_CERT_DIR})
+
     add_custom_target(sota_tools_cert_generation
-        COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/cert_generation/generate-zips.sh
-        ${PROJECT_BINARY_DIR}/sota_tools/certs)
+      DEPENDS ${TEST_CERTS})
 
     # do not link tests with libaktualizr, but sota_tools_lib
     list(REMOVE_ITEM TEST_LIBS aktualizr_lib)

@@ -30,10 +30,11 @@ TEST(authenticate, good_zip) {
 TEST(authenticate, good_cert_zip) {
   // Authenticates with tls_server on port 1443.
   boost::filesystem::path filepath = certs_dir / "good.zip";
+  boost::filesystem::path capath = certs_dir / "server.crt";
   ServerCredentials creds(filepath);
   EXPECT_EQ(creds.GetMethod(), AuthMethod::kTls);
   TreehubServer treehub;
-  int r = authenticate("tests/fake_http_server/server.crt", creds, treehub);
+  int r = authenticate(capath.string(), creds, treehub);
   EXPECT_EQ(0, r);
   CurlEasyWrapper curl_handle;
   curlEasySetoptWrapper(curl_handle.get(), CURLOPT_VERBOSE, 1);
@@ -48,10 +49,11 @@ TEST(authenticate, good_cert_zip) {
 TEST(authenticate, good_cert_noauth_zip) {
   // Authenticates with tls_noauth_server on port 2443.
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_noauth_good.zip";
+  boost::filesystem::path capath = certs_dir / "server.crt";
   ServerCredentials creds(filepath);
   EXPECT_EQ(creds.GetMethod(), AuthMethod::kNone);
   TreehubServer treehub;
-  int r = authenticate("tests/fake_http_server/server.crt", creds, treehub);
+  int r = authenticate(capath.string(), creds, treehub);
   EXPECT_EQ(0, r);
   CurlEasyWrapper curl_handle;
   curlEasySetoptWrapper(curl_handle.get(), CURLOPT_VERBOSE, 1);
@@ -142,8 +144,9 @@ int main(int argc, char **argv) {
   }
   certs_dir = argv[1];
 
-  boost::process::child server_process("tests/fake_http_server/tls_server.py");
-  boost::process::child server_noauth_process("tests/fake_http_server/tls_noauth_server.py");
+  boost::process::child server_process("tests/sota_tools/authentication/tls_server.py", "1443", certs_dir);
+  boost::process::child server_noauth_process("tests/sota_tools/authentication/tls_server.py", "--noauth", "2443",
+                                              certs_dir);
   // TODO: this do not work because the server expects auth! Let's sleep for now.
   // (could be replaced by a check with raw tcp)
   // TestUtils::waitForServer("https://localhost:1443/");
