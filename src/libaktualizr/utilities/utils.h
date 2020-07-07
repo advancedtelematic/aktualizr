@@ -41,7 +41,6 @@ struct Utils {
   static int ipPort(const sockaddr_storage &saddr);
   static int shell(const std::string &command, std::string *output, bool include_stderr = false);
   static boost::filesystem::path absolutePath(const boost::filesystem::path &root, const boost::filesystem::path &file);
-  static void setSocketPort(sockaddr_storage *addr, in_port_t port);
   static void createDirectories(const boost::filesystem::path &path, mode_t mode);
   static bool createSecureDirectory(const boost::filesystem::path &path);
   static std::string urlEncode(const std::string &input);
@@ -122,8 +121,6 @@ class BasedPath {
 //   BTW local variables are destructed in reverse order of instantiation
 template <typename T>
 using StructGuard = std::unique_ptr<T, void (*)(T *)>;
-
-bool operator<(const sockaddr_storage &left, const sockaddr_storage &right);  // required by std::map
 
 class Socket {
  public:
