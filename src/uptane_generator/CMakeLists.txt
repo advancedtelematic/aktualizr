@@ -19,6 +19,15 @@ add_aktualizr_test(NAME uptane_generator
                    ARGS $<TARGET_FILE:uptane-generator>
                    PROJECT_WORKING_DIRECTORY)
 
+# Check the --help option works.
+add_test(NAME uptane-generator-option-help
+         COMMAND uptane-generator --help)
+
+# Report version.
+add_test(NAME uptane-generator-option-version
+         COMMAND uptane-generator --version)
+set_tests_properties(uptane-generator-option-version PROPERTIES PASS_REGULAR_EXPRESSION "Current uptane-generator version is: ${AKTUALIZR_VERSION}")
+
 aktualizr_source_file_checks(${TEST_SOURCES} main.cc)
 
 # vim: set tabstop=4 shiftwidth=4 expandtab:

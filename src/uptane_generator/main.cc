@@ -8,6 +8,7 @@
 
 #include "logging/logging.h"
 #include "uptane_repo.h"
+#include "utilities/aktualizr_version.h"
 
 namespace po = boost::program_options;
 
@@ -19,11 +20,23 @@ KeyType parseKeyType(const po::variables_map &vm) {
   return key_type;
 }
 
+void check_info_options(const po::options_description &description, const po::variables_map &vm) {
+  if (vm.count("help") != 0 || (vm.count("command") == 0 && vm.count("version") == 0)) {
+    std::cout << description << '\n';
+    exit(EXIT_SUCCESS);
+  }
+  if (vm.count("version") != 0) {
+    std::cout << "Current uptane-generator version is: " << aktualizr_version() << "\n";
+    exit(EXIT_SUCCESS);
+  }
+}
+
 int main(int argc, char **argv) {
   po::options_description desc("uptane-generator command line options");
   // clang-format off
   desc.add_options()
     ("help,h", "print usage")
+    ("version,v", "Current uptane-generator version")
     ("command", po::value<std::string>(), "generate: \tgenerate a new repository\n"
                                           "adddelegation: \tadd a delegated role to the Image repo metadata\n"
                                           "revokedelegation: \tremove delegated role from the Image repo metadata and all signed targets of this role\n"
@@ -70,11 +83,8 @@ int main(int argc, char **argv) {
     po::basic_parsed_options<char> parsed_options =
         po::command_line_parser(argc, argv).options(desc).positional(positionalOptions).run();
     po::store(parsed_options, vm);
+    check_info_options(desc, vm);
     po::notify(vm);
-    if (vm.count("help") != 0) {
-      std::cout << desc << std::endl;
-      exit(EXIT_SUCCESS);
-    }
 
     if (vm.count("command") != 0 && vm.count("path") != 0) {
       std::string expiration_time;

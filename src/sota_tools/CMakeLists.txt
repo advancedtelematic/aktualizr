@@ -181,6 +181,15 @@ if (BUILD_SOTA_TOOLS)
                        PROJECT_WORKING_DIRECTORY)
 
     ### garage-check tests
+    # Check the --help option works.
+    add_test(NAME garage-check-option-help
+        COMMAND garage-check --help)
+
+    # Report version.
+    add_test(NAME garage-check-option-version
+        COMMAND garage-check --version)
+    set_tests_properties(garage-check-option-version PROPERTIES PASS_REGULAR_EXPRESSION "Current garage-check version is: ${AKTUALIZR_VERSION}")
+
     # Verify that a commit exists in a remote repo.
     # Get targets.json from Image repository.
     # Find specified OSTree ref in targets.json.
@@ -201,6 +210,11 @@ if (BUILD_SOTA_TOOLS)
     # Check the --help option works.
     add_test(NAME garage-push-option-help
         COMMAND garage-push --help)
+
+    # Report version.
+    add_test(NAME garage-push-option-version
+        COMMAND garage-push --version)
+    set_tests_properties(garage-push-option-version PROPERTIES PASS_REGULAR_EXPRESSION "Current garage-push version is: ${AKTUALIZR_VERSION}")
 
     # Abort when given bogus command line options.
     add_test(NAME garage-push-bad-option
@@ -291,7 +305,7 @@ if (BUILD_SOTA_TOOLS)
     # Report version.
     add_test(NAME garage-deploy-option-version
         COMMAND garage-deploy --version)
-    set_tests_properties(garage-deploy-option-version PROPERTIES PASS_REGULAR_EXPRESSION "Current garage-deploy version is:")
+    set_tests_properties(garage-deploy-option-version PROPERTIES PASS_REGULAR_EXPRESSION "Current garage-deploy version is: ${AKTUALIZR_VERSION}")
 
     # Abort when given bogus command line options.
     add_test(NAME garage-deploy-bad-option
