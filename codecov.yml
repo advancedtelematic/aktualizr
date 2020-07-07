@@ -7,3 +7,4 @@ ignore:
   - "third_party"
   - "tests"
   - "**/*_test.cc"
+  - "src/libaktualizr-c/test"

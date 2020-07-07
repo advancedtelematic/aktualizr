@@ -927,25 +927,6 @@ boost::filesystem::path TemporaryDirectory::operator/(const boost::filesystem::p
 
 std::string TemporaryDirectory::PathString() const { return Path().string(); }
 
-void Utils::setSocketPort(sockaddr_storage *addr, in_port_t port) {
-  if (addr->ss_family == AF_INET) {
-    reinterpret_cast<sockaddr_in *>(addr)->sin_port = port;
-  } else if (addr->ss_family == AF_INET6) {
-    reinterpret_cast<sockaddr_in6 *>(addr)->sin6_port = port;
-  }
-}
-
-bool operator<(const sockaddr_storage &left, const sockaddr_storage &right) {
-  if (left.ss_family == AF_INET) {
-    throw std::runtime_error("IPv4 addresses are not supported");
-  }
-  const unsigned char *left_addr = reinterpret_cast<const sockaddr_in6 *>(&left)->sin6_addr.s6_addr;    // NOLINT
-  const unsigned char *right_addr = reinterpret_cast<const sockaddr_in6 *>(&right)->sin6_addr.s6_addr;  // NOLINT
-  int res = memcmp(left_addr, right_addr, 16);
-
-  return (res < 0);
-}
-
 Socket::Socket() {
   socket_fd_ = socket(AF_INET, SOCK_STREAM, 0);
   if (-1 == socket_fd_) {

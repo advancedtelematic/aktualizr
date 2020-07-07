@@ -26,7 +26,7 @@ aktualizr_source_file_checks(debianmanager.cc debianmanager.h debianmanager_test
 
 # OSTree backend
 if(BUILD_OSTREE)
-    target_sources(package_manager PRIVATE ostreemanager.cc ostreereposync.cc)
+    target_sources(package_manager PRIVATE ostreemanager.cc)
     target_include_directories(package_manager PUBLIC ${LIBOSTREE_INCLUDE_DIRS})
 
     add_custom_target(make_ostree_sysroot
@@ -53,8 +53,7 @@ aktualizr_source_file_checks(fetcher_death_test.cc fetcher_test.cc)
 
 aktualizr_source_file_checks(packagemanagerfake_test.cc packagemanagerfactory_test.cc ostreemanager_test.cc)
 
-aktualizr_source_file_checks(ostreemanager.cc ostreereposync.cc
-                             ostreemanager.h ostreereposync.h)
+aktualizr_source_file_checks(ostreemanager.cc ostreemanager.h)
 
 aktualizr_source_file_checks(androidmanager.cc androidmanager.h)
 aktualizr_source_file_checks(dockerappmanager.cc dockerappmanager.h dockerapp_standalone.cc dockerapp_bundles.cc dockerappmanager_test.cc)
