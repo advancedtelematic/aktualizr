@@ -9,35 +9,45 @@ endif::[]
 
 include::partial$aktualizr-version.adoc[]
 
-In some cases, you might find it useful to include extra metadata about your software inside the signed Uptane metadata that OTA Connect delivers to your device. Some reasons you might want to do this include:
+You may want to include extra metadata about your software inside the signed Uptane metadata that OTA Connect delivers to your device. Some reasons you might want to do this include:
 
-* to provide installation instructions or scripts for an image that can't or shouldn't be included in the image itself
-* to add extra tracking fields for internal compliance or auditing
+* To provide installation instructions or scripts for an image that cannot or should not be included in the image itself.
+* To add extra tracking fields for internal compliance or auditing.
 
 To accommodate this use case, you can manually manage your Uptane metadata and add custom fields to your `targets.json` file.
 
-[NOTE]
-====
-For more information on additional use cases which will require customization of the Targets metadata, please refer to the section https://uptane.github.io/papers/ieee-isto-6100.1.0.0.uptane-standard.html#rfc.section.5.2.3.1.1['Custom metadata about images' in the Uptane standard].
-====
+NOTE: For more information on additional use cases that require customization of the Targets metadata, see the https://uptane.github.io/papers/uptane-standard.1.0.1.html#rfc.section.5.2.3.1.1[related section] of the Uptane standard.
 
 == Prerequisites
 
-For this to be useful, you will need to write a custom handler for the metadata you add, so xref:libaktualizr-why-use.adoc[building your own update client using libaktualizr] is required. (Consult the https://advancedtelematic.github.io/aktualizr/index.html[Doxygen API reference] for how to access custom metadata in-client.)
+Before you write a custom metadata handler, do the following:
 
-You will also need to have xref:rotating-signing-keys.adoc[rotated your signing keys offline]. The following instructions assume you have already done this, and know where to find your `targets.json`.
+*  xref:libaktualizr-why-use.adoc[Build your own update client] using libaktualizr.
++
+To learn how to access custom metadata in the embedded client, see the https://advancedtelematic.github.io/aktualizr/index.html[Doxygen API reference].
 
-== Anatomy of `targets.json` metadata
+* xref:rotating-signing-keys.adoc[Rotate your signing keys offline].
++
+The following instructions assume that you have already done this, and know where to find your `targets.json`.
+
+== Anatomy of the `targets.json` metadata
 
 Your `targets.json` file includes:
 
-* A `signatures` block, containing key IDs and signatures generated over the `signed` block
-* A `signed` block, containing some necessary Uptane fields
-* Inside the `signed` block, a `targets` block, listing all of your software images. Each software image block (identified by its name and version) contains three objects:
-** `hashes`, which contains the sha256 hash of the software image
-** `length`, which is the size of the software image in bytes
-** `custom`, which contains other metadata that aktualizr uses. An example of the `custom` field is shown below:
+* The `signatures` block that contains key IDs and signatures generated over the `signed` block.
+* The `signed` block that contains the Uptane fields.
+* In the `signed` block, the `targets` block that lists all of your software versions. 
 +
+include::garage-sign-reference.adoc[tags=target-term]
++
+Each target is identified by its name and version and contains three objects:
+
+** `hashes` – the SHA256 hash of the software version.
+** `length` – the length of the target, in bytes.
+** `custom` – other metadata that aktualizr uses.
++
+.The `custom` object
+====
 [source,json]
 ----
 "custom": {
@@ -52,9 +62,21 @@ Your `targets.json` file includes:
   "updatedAt": "2018-08-20T09:28:27Z"
 }
 ----
+====
+You can add your custom metadata to the `custom` object. 
 
-The `custom` object is where you can add metadata of your choice. Do not modify any of the existing values. Our recommended best practice is to add a new field namespaced to your organization or some other unique identifier, and put any custom sub-keys under that field, as in the example below:
+== Add custom metadata
 
+You can always modify your `targets.json` file to include more metadata.
+
+*To add custom metadata:*
+
+. In the `targets.json` file, navigate to the `custom` object, and specify any metadata fields that you want to add.
++
+Do not modify any of the existing values. We recommend to add a new field namespaced to your organization or some other unique identifier, and then put any custom sub-keys under that field, as in the example below.
++
+.Custom metadata
+=====
 [source,json]
 ----
 "custom": {
@@ -73,17 +95,20 @@ The `custom` object is where you can add metadata of your choice. Do not modify 
   }
 }
 ----
+=====
 
-Once you add your custom metadata, of course, the signatures will no longer be valid. You will need to sign the modified metadata using `garage-sign`:
-
+. Sign the modified metadata.
++
 ----
 garage-sign targets sign --repo myimagerepo --key-name mytargets
 ----
 
-You can then upload your customized `targets.json` to OTA Connect as normal:
-
+. Upload your customized `targets.json` to OTA Connect.
++
 ----
 garage-sign targets push --repo myimagerepo
 ----
 
-NOTE: You also might want to add custom metadata while bitbaking. You can do this, for example, by modifying the `IMAGE_CMD_garagesign` function in link:https://github.com/advancedtelematic/meta-updater/blob/master/classes/image_types_ostree.bbclass#L217[image_types_ostree.bbclass]. A detailed guide on how to accomplish this is out of our scope, however. Refer to http://www.yoctoproject.org/docs/{yocto-version}/dev-manual/dev-manual.html[the Yocto Reference Manual] for further details.
+NOTE: If you want to add custom metadata while bitbaking, modify the `IMAGE_CMD_garagesign` function in link:https://github.com/advancedtelematic/meta-updater/blob/master/classes/image_types_ostree.bbclass#L217[image_types_ostree.bbclass]. For more information, see the http://www.yoctoproject.org/docs/{yocto-version}/dev-manual/dev-manual.html[Yocto Reference Manual].
+
+To learn more about the `garage-sign` commands and options, see its xref:garage-sign-reference.adoc[reference] documentation.

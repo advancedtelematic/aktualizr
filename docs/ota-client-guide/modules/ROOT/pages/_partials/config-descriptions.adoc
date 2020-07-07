@@ -1,9 +1,9 @@
 //  tag::buildconfig-hint[]
-If you are building a disk image that contains aktualizr, your configuration will be the **local.conf** file.
+If you build a software image that contains aktualizr, your configuration is the **local.conf** file.
 
-* You'll find this file in the `conf` subdirectory of the of your build project.
+You can find this file in the `conf` subdirectory of your build project.
 
-For more information, see the xref:build-configuration.adoc[build configuration reference] and the xref:build-images.adoc[sample build procedures]
+For more information, see the xref:build-configuration.adoc[build configuration reference] and the xref:build-images.adoc[sample build procedures].
 
 //  end::buildconfig-hint[]
 
@@ -50,13 +50,13 @@ If you followed our recommendation to enable automatic rebooting for development
 //  tag::metadata-expires[]
 Use this option to have the metadata expire after a fixed date and time.
 
-Specify the time as a UTC instant like in the following example:
+Specify the time as a UTC instant. For example:
 
 //  end::metadata-expires[]
 
 //  tag::metadata-expireafter[]
 Use this option to have the metadata expire after an elapsed period of time.
 
-Specify the number of years, months and days like in the following example:
+Specify the number of years, months, and days. For example:
 
 //  end::metadata-expireafter[]
