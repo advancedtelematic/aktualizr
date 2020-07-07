@@ -399,15 +399,13 @@ These tools all link with libaktualizr, although they do not necessary use the A
   - [x] Sign device certificate with fleet private key (cert_provider_test.cc)
   - [x] Serialize device private key to a string (cert_provider_test.cc)
   - [x] Serialize device certificate to a string (cert_provider_test.cc)
-- [ ] Read server root CA from credentials archive
-  - [ ] Read server root CA from server_ca.pem if present (to support community edition use case)
-  - [x] Read server root CA from p12 (cert_provider_shared_cred_test.cc)
+- [x] Read server root CA from p12 in the credentials archive (cert_provider_shared_cred_test.cc)
 - [x] Write credentials to a local directory if requested (cert_provider_test.cc)
   - [x] Provide device private key (cert_provider_test.cc)
   - [x] Provide device certificate (cert_provider_test.cc)
   - [x] Provide root CA if requested (cert_provider_shared_cred_test.cc)
   - [x] Provide server URL if requested (cert_provider_shared_cred_test.cc)
-- [ ] Copy credentials to a device with ssh
+- [ ] Copy credentials to a device with ssh (covered by oe-selftest)
   - [ ] Create parent directories
   - [ ] Provide device private key
   - [ ] Provide device certificate
@@ -485,7 +483,7 @@ These tools also use libaktualizr, but only for common utility functions. They a
 - [x] Authenticate with treehub server
   - [x] Authenticate with username and password (basic auth) (treehub_server_test.cc)
   - [x] Authenticate with OAuth2 (treehub_server_test.cc, authenticate_test.cc)
-  - [ ] Authenticate with TLS credentials (authenticate_test.cc [BROKEN])
+  - [x] Authenticate with TLS credentials (authenticate_test.cc)
   - [x] Authenticate with nothing (no auth) (authenticate_test.cc)
   - [x] Use a provided CA certificate (sota_tools/CMakeLists.txt, test-cacert-used)
     - [x] Abort when given a bogus CA certificate (sota_tools/CMakeLists.txt, test-cacert-not-found)
