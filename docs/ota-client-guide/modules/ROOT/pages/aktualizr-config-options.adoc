@@ -98,15 +98,16 @@ Options for how the device is provisioned with the backend.
 
 [options="header"]
 |==========================================================================================
-| Name                        | Default   | Description
-| `server`                    |           | Server provisioning URL. If empty, set to `tls.server`.
-| `p12_password`              |           | Password for PKCS#12 encryption.
-| `expiry_days`               | `"36000"` | Provided in the `ttl` field of the device provisioning request sent to the server.
-| `provision_path`            |           | Path to an archive containing provisioning data. See the xref:provisioning-methods-and-credentialszip.adoc[reference documentation] for the specification of the contents of this file.
-| `device_id`                 |           | Device ID of the Primary ECU. If left empty, a random name will be generated.
-| `primary_ecu_serial`        |           | Serial number of the Primary ECU. If left empty, a random serial will be generated.
-| `primary_ecu_hardware_id`   |           | The hardware ID of the Primary ECU (e.g., `"raspberry-pi"`). If left empty, the hostname of the device will be used.
-| `ecu_registration_endpoint` |           | Ecu provisioning URL. If empty, set to `uptane.director_server` with `/ecus` appended.
+| Name                        | Default        | Description
+| `server`                    |                | Server provisioning URL. If empty, set to `tls.server`.
+| `p12_password`              |                | Password for PKCS#12 encryption.
+| `expiry_days`               | `"36000"`      | Provided in the `ttl` field of the device provisioning request sent to the server.
+| `provision_path`            |                | Path to an archive containing provisioning data. See the xref:provisioning-methods-and-credentialszip.adoc[reference documentation] for the specification of the contents of this file.
+| `device_id`                 |                | Device ID of the Primary ECU. If left empty, a random name will be generated.
+| `primary_ecu_serial`        |                | Serial number of the Primary ECU. If left empty, a random serial will be generated.
+| `primary_ecu_hardware_id`   |                | The hardware ID of the Primary ECU (e.g., `"raspberry-pi"`). If left empty, the hostname of the device will be used.
+| `ecu_registration_endpoint` |                | ECU registration URL. If empty, set to `uptane.director_server` with `/ecus` appended.
+| `mode`                      | `"SharedCred"` | See the xref:client-provisioning-methods.html[provisioning documentation] for more details. Options: `"DeviceCred"`, `"SharedCred"`, `"SharedCredReuse"`. The last is intended solely for testing purposes.
 |==========================================================================================
 
 If you intend to provision with a server by using https://github.com/advancedtelematic/meta-updater[meta-updater], you will probably want to set `provision.provision_path = "/var/sota/sota_provisioning_credentials.zip"`.
