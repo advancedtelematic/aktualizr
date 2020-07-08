@@ -64,7 +64,8 @@ struct UptaneTestCommon {
   static Primary::VirtualSecondaryConfig addDefaultSecondary(Config& config, const TemporaryDirectory& temp_dir,
                                                              const std::string& serial, const std::string& hw_id,
                                                              bool hardcoded_keys = true) {
-    boost::filesystem::path sec_dir = temp_dir / boost::filesystem::unique_path();
+    const boost::filesystem::path sec_dir = temp_dir / boost::filesystem::unique_path();
+    Utils::createDirectories(sec_dir, S_IRWXU);
 
     Primary::VirtualSecondaryConfig ecu_config;
     ecu_config.partial_verifying = false;
@@ -90,17 +91,23 @@ struct UptaneTestCommon {
   }
 
   static Primary::VirtualSecondaryConfig altVirtualConfiguration(const boost::filesystem::path& client_dir) {
-    Primary::VirtualSecondaryConfig ecu_config;
+    const boost::filesystem::path sec_dir = client_dir / boost::filesystem::unique_path();
+    Utils::createDirectories(sec_dir, S_IRWXU);
 
+    Primary::VirtualSecondaryConfig ecu_config;
     ecu_config.partial_verifying = false;
-    ecu_config.full_client_dir = client_dir;
+    ecu_config.full_client_dir = sec_dir;
     ecu_config.ecu_serial = "ecuserial3";
     ecu_config.ecu_hardware_id = "hw_id3";
     ecu_config.ecu_private_key = "sec.priv";
     ecu_config.ecu_public_key = "sec.pub";
-    ecu_config.firmware_path = client_dir / "firmware.txt";
-    ecu_config.target_name_path = client_dir / "firmware_name.txt";
-    ecu_config.metadata_path = client_dir / "secondary_metadata";
+    ecu_config.firmware_path = sec_dir / "firmware.txt";
+    ecu_config.target_name_path = sec_dir / "firmware_name.txt";
+    ecu_config.metadata_path = sec_dir / "secondary_metadata";
+
+    // store hard-coded keys to make the tests run WAY faster
+    Utils::writeFile((ecu_config.full_client_dir / ecu_config.ecu_private_key), std::string(sec_private_key));
+    Utils::writeFile((ecu_config.full_client_dir / ecu_config.ecu_public_key), std::string(sec_public_key));
 
     return ecu_config;
   }
