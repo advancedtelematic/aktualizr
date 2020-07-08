@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "utilities/types.h"
+#include "libaktualizr/types.h"
 
 TimeStamp now("2017-01-01T01:00:00Z");
 

@@ -8,9 +8,9 @@
 #include <boost/filesystem.hpp>
 #include "json/json.h"
 
+#include "libaktualizr/types.h"
 #include "primary/secondary_config.h"
 #include "primary/secondaryinterface.h"
-#include "utilities/types.h"
 
 namespace Primary {
 

@@ -5,8 +5,8 @@
 
 #include <boost/property_tree/ini_parser.hpp>
 
+#include "libaktualizr/types.h"
 #include "logging/logging.h"
-#include "types.h"
 #include "utils.h"
 
 /*

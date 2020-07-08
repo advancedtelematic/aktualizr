@@ -9,10 +9,10 @@
 
 #include "httpfake.h"
 #include "libaktualizr/config.h"
+#include "libaktualizr/types.h"
 #include "package_manager/packagemanagerfake.h"
 #include "storage/invstorage.h"
 #include "uptane/tuf.h"
-#include "utilities/types.h"
 #include "utilities/utils.h"
 
 // Test creating, appending and reading binary targets.

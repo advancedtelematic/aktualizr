@@ -7,6 +7,7 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/scoped_array.hpp>
 
+#include "libaktualizr/types.h"
 #include "logging/logging.h"
 #include "openssl_compat.h"
 #include "utilities/utils.h"

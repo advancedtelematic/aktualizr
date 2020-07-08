@@ -14,7 +14,6 @@ set(HEADERS apiqueue.h
             fault_injection.h
             sig_handler.h
             timer.h
-            types.h
             utils.h
             xml2json.h)
 

@@ -12,7 +12,6 @@
 #include "reportqueue.h"
 #include "storage/invstorage.h"
 #include "storage/sqlstorage.h"
-#include "utilities/types.h"  // TimeStamp
 #include "utilities/utils.h"
 
 class HttpFakeRq : public HttpFake {
