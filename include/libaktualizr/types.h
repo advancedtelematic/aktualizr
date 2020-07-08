@@ -11,10 +11,10 @@
 // kSharedCredReuse is intended solely for testing. It should not be used in
 // production.
 enum class ProvisionMode { kSharedCred = 0, kDeviceCred, kSharedCredReuse, kDefault };
-std::ostream& operator<<(std::ostream& os, ProvisionMode mode);
+std::ostream &operator<<(std::ostream &os, ProvisionMode mode);
 
 enum class StorageType { kFileSystem = 0, kSqlite };
-std::ostream& operator<<(std::ostream& os, StorageType stype);
+std::ostream &operator<<(std::ostream &os, StorageType stype);
 
 /**
  * @brief The BasedPath class
@@ -48,7 +48,7 @@ enum class KeyType {
   kUnknown = 0xff
 };
 
-inline std::ostream& operator<<(std::ostream& os, const KeyType kt) {
+inline std::ostream &operator<<(std::ostream &os, const KeyType kt) {
   std::string kt_str;
   switch (kt) {
     case KeyType::kRSA2048:
@@ -71,7 +71,7 @@ inline std::ostream& operator<<(std::ostream& os, const KeyType kt) {
   return os;
 }
 
-inline std::istream& operator>>(std::istream& is, KeyType& kt) {
+inline std::istream &operator>>(std::istream &is, KeyType &kt) {
   std::string kt_str;
 
   is >> kt_str;
@@ -94,7 +94,7 @@ inline std::istream& operator>>(std::istream& is, KeyType& kt) {
 
 enum class CryptoSource { kFile = 0, kPkcs11, kAndroid };
 
-inline std::ostream& operator<<(std::ostream& os, CryptoSource cs) {
+inline std::ostream &operator<<(std::ostream &os, CryptoSource cs) {
   std::string cs_str;
   switch (cs) {
     case CryptoSource::kFile:
@@ -179,7 +179,6 @@ class Hash {
 
 std::ostream &operator<<(std::ostream &os, const Hash &h);
 
-
 // timestamp, compatible with tuf
 class TimeStamp {
  public:
@@ -189,13 +188,13 @@ class TimeStamp {
   TimeStamp() {}
   explicit TimeStamp(std::string rfc3339);
   explicit TimeStamp(struct tm time);
-  bool IsExpiredAt(const TimeStamp& now) const;
+  bool IsExpiredAt(const TimeStamp &now) const;
   bool IsValid() const;
   std::string ToString() const { return time_; }
-  bool operator<(const TimeStamp& other) const;
-  bool operator>(const TimeStamp& other) const;
-  friend std::ostream& operator<<(std::ostream& os, const TimeStamp& t);
-  bool operator==(const TimeStamp& rhs) const { return time_ == rhs.time_; }
+  bool operator<(const TimeStamp &other) const;
+  bool operator>(const TimeStamp &other) const;
+  friend std::ostream &operator<<(std::ostream &os, const TimeStamp &t);
+  bool operator==(const TimeStamp &rhs) const { return time_ == rhs.time_; }
 
   class InvalidTimeStamp : public std::domain_error {
    public:
@@ -207,7 +206,7 @@ class TimeStamp {
   std::string time_;
 };
 
-std::ostream& operator<<(std::ostream& os, const TimeStamp& t);
+std::ostream &operator<<(std::ostream &os, const TimeStamp &t);
 
 /// General data structures.
 namespace data {
@@ -217,7 +216,7 @@ struct Package {
   std::string name;
   std::string version;
   Json::Value toJson() const;
-  static Package fromJson(const std::string& /*json_str*/);
+  static Package fromJson(const std::string & /*json_str*/);
 };
 
 struct ResultCode {
@@ -249,9 +248,9 @@ struct ResultCode {
   ResultCode(ResultCode::Numeric in_num_code, std::string text_code_in)
       : num_code(in_num_code), text_code(std::move(text_code_in)) {}
 
-  bool operator==(const ResultCode& rhs) const { return num_code == rhs.num_code && toString() == rhs.toString(); }
-  bool operator!=(const ResultCode& rhs) const { return !(*this == rhs); }
-  friend std::ostream& operator<<(std::ostream& os, const ResultCode& result_code);
+  bool operator==(const ResultCode &rhs) const { return num_code == rhs.num_code && toString() == rhs.toString(); }
+  bool operator!=(const ResultCode &rhs) const { return !(*this == rhs); }
+  friend std::ostream &operator<<(std::ostream &os, const ResultCode &result_code);
 
   Numeric num_code;
   std::string text_code;
@@ -270,13 +269,13 @@ struct ResultCode {
 
   // non-lossy reprensation for serialization
   std::string toRepr() const;
-  static ResultCode fromRepr(const std::string& repr);
+  static ResultCode fromRepr(const std::string &repr);
 
  private:
-  static const std::map<Numeric, const char*> string_repr;
+  static const std::map<Numeric, const char *> string_repr;
 };
 
-std::ostream& operator<<(std::ostream& os, const ResultCode& result_code);
+std::ostream &operator<<(std::ostream &os, const ResultCode &result_code);
 
 struct InstallationResult {
   InstallationResult() = default;
@@ -443,7 +442,7 @@ class Target {
 
 std::ostream &operator<<(std::ostream &os, const Target &t);
 
-} // namespace Uptane
+}  // namespace Uptane
 
 struct SecondaryInfo {
   SecondaryInfo() : serial(Uptane::EcuSerial::Unknown()), hw_id(Uptane::HardwareIdentifier::Unknown()) {}
