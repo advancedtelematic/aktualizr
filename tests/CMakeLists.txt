@@ -121,10 +121,6 @@ endif(BUILD_DEB)
 # The test feature of cmake checks the return value when the program
 # exits. If the return value is zero, the testcase passes.
 
-# test running the executable with command line option --help
-add_test(NAME test_cmdline--help COMMAND aktualizr --help)
-# test running the executable with command line option -h
-add_test(NAME test_cmdline-h COMMAND aktualizr -h)
 # test running the executable with command line option --something
 add_test(NAME test_cmdline--something
          COMMAND aktualizr --something -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml)

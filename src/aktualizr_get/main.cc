@@ -11,6 +11,17 @@
 
 namespace bpo = boost::program_options;
 
+void check_info_options(const bpo::options_description &description, const bpo::variables_map &vm) {
+  if (vm.count("help") != 0 || (vm.count("command") == 0 && vm.count("version") == 0)) {
+    std::cout << description << '\n';
+    exit(EXIT_SUCCESS);
+  }
+  if (vm.count("version") != 0) {
+    std::cout << "Current aktualizr-get version is: " << aktualizr_version() << "\n";
+    exit(EXIT_SUCCESS);
+  }
+}
+
 bpo::variables_map parse_options(int argc, char **argv) {
   bpo::options_description description(
       "A tool similar to wget that will do an HTTP get on the given URL using the device's configured credentials.");
@@ -19,7 +30,7 @@ bpo::variables_map parse_options(int argc, char **argv) {
   // The first three are commandline only.
   description.add_options()
       ("help,h", "print usage")
-      ("version,v", "Current aktualizr version")
+      ("version,v", "Current aktualizr-get version")
       ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
       ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
       ("url,u", bpo::value<std::string>(), "url to get");
@@ -30,12 +41,8 @@ bpo::variables_map parse_options(int argc, char **argv) {
   try {
     bpo::basic_parsed_options<char> parsed_options = bpo::command_line_parser(argc, argv).options(description).run();
     bpo::store(parsed_options, vm);
+    check_info_options(description, vm);
     bpo::notify(vm);
-    if (vm.count("help") != 0) {
-      std::cout << description << '\n';
-      exit(EXIT_SUCCESS);
-    }
-
   } catch (const bpo::required_option &ex) {
     // print the error and append the default commandline option description
     std::cout << ex.what() << std::endl << description;

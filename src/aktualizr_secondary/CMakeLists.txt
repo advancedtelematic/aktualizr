@@ -81,8 +81,15 @@ add_aktualizr_test(NAME aktualizr_secondary
                    SOURCES aktualizr_secondary_test.cc
                    LIBRARIES aktualizr_secondary_lib uptane_generator_lib)
 
-# test running the executable with command line option --help
-add_test(NAME aktualizr_secondary_cmdline--help COMMAND aktualizr-secondary --help)
+# Check the --help option works.
+add_test(NAME aktualizr-secondary-option-help
+         COMMAND aktualizr-secondary --help)
+
+# Report version.
+add_test(NAME aktualizr-secondary-option-version
+         COMMAND aktualizr-secondary --version)
+set_tests_properties(aktualizr-secondary-option-version PROPERTIES PASS_REGULAR_EXPRESSION "Current aktualizr-secondary version is: ${AKTUALIZR_VERSION}")
+
 # test running the executable with command line option --something
 add_test(NAME aktualizr_secondary_cmdline--something
          COMMAND aktualizr-secondary --something -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml)

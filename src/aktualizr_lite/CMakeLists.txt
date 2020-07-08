@@ -27,5 +27,14 @@ set_tests_properties(test_lite-helpers PROPERTIES
 
 endif(BUILD_OSTREE)
 
+# Check the --help option works.
+add_test(NAME aktualizr-lite-option-help
+         COMMAND aktualizr-lite --help)
+
+# Report version.
+add_test(NAME aktualizr-lite-option-version
+         COMMAND aktualizr-lite --version)
+set_tests_properties(aktualizr-lite-option-version PROPERTIES PASS_REGULAR_EXPRESSION "Current aktualizr-lite version is: ${AKTUALIZR_VERSION}")
+
 aktualizr_source_file_checks(main.cc ${AKTUALIZR_LITE_SRC} ${AKTUALIZR_LITE_HEADERS} helpers_test.cc ostree_mock.cc)
 # vim: set tabstop=4 shiftwidth=4 expandtab:

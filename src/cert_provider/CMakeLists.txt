@@ -36,6 +36,15 @@ if (SOTA_PACKED_CREDENTIALS)
     set_tests_properties(test_aktualizr_cert_provider_shared_cred PROPERTIES LABELS "credentials")
 endif(SOTA_PACKED_CREDENTIALS)
 
+# Check the --help option works.
+add_test(NAME aktualizr-cert-provider-option-help
+         COMMAND aktualizr-cert-provider --help)
+
+# Report version.
+add_test(NAME aktualizr-cert-provider-option-version
+         COMMAND aktualizr-cert-provider --version)
+set_tests_properties(aktualizr-cert-provider-option-version PROPERTIES PASS_REGULAR_EXPRESSION "Current aktualizr-cert-provider version is: ${AKTUALIZR_VERSION}")
+
 aktualizr_source_file_checks(${AKTUALIZR_CERT_PROVIDER_SRC}
                              ${AKTUALIZR_CERT_HEADERS}
                              cert_provider_shared_cred_test.cc

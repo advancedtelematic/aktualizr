@@ -164,7 +164,7 @@ void check_info_options(const bpo::options_description &description, const bpo::
     exit(EXIT_SUCCESS);
   }
   if (vm.count("version") != 0) {
-    std::cout << "Current aktualizr version is: " << aktualizr_version() << "\n";
+    std::cout << "Current aktualizr-lite version is: " << aktualizr_version() << "\n";
     exit(EXIT_SUCCESS);
   }
 }
@@ -183,7 +183,7 @@ bpo::variables_map parse_options(int argc, char **argv) {
   // The first three are commandline only.
   description.add_options()
       ("help,h", "print usage")
-      ("version,v", "Current aktualizr version")
+      ("version,v", "Current aktualizr-lite version")
       ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
       ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
       ("repo-server", bpo::value<std::string>(), "URL of the Uptane Image repository")
