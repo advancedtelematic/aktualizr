@@ -6,6 +6,9 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ## [upcoming release]
 
+
+## [2020.8] - 2020-07-09
+
 ### Special considerations
 
 As a result of changes to the IP/POSIX Secondary protocol (see below), users of these Secondaries will need to take special care when upgrading their devices. The new version of aktualizr is backwards compatible and will work with both old and new versions of the protocol. However, aktualizr-secondary is *not*. This means that if you are upgrading a device with IP/POSIX Secondaries, you should update the Primary ECU running aktualizr **first**, and if that is successful, then update your Secondaries.
@@ -14,12 +17,16 @@ As a result of changes to the IP/POSIX Secondary protocol (see below), users of 
 
 - You can now use the `SetInstallationRawReport` API function to set a custom raw report field in the device installation result: [PR](https://github.com/advancedtelematic/aktualizr/pull/1628)
 - You can now re-register ECUs, which supports replacing the Primary and adding, removing, and replacing Secondaries: [PR](https://github.com/advancedtelematic/aktualizr/pull/1686)
+- gcc version 9 is now supported: [PR](https://github.com/advancedtelematic/aktualizr/pull/1714)
 
 ### Changed
 
 - Improved the Secondary interface and error reporting: [PR](https://github.com/advancedtelematic/aktualizr/pull/1642)
 - Improved the Secondary IP/POSIX communication protocol, including streaming binary updates from the Primary to the Secondary: [PR](https://github.com/advancedtelematic/aktualizr/pull/1642)
 - Moved the binary update logic to the package manager (and added `images_path` to the configuration): [PR](https://github.com/advancedtelematic/aktualizr/pull/1679)
+- The shared provisioning p12 file is now removed from the credentials archive after use. [This can be disabled for testing.](https://github.com/advancedtelematic/aktualizr/blob/master/docs/ota-client-guide/modules/ROOT/pages/aktualizr-config-options.adoc) [PR](https://github.com/advancedtelematic/aktualizr/pull/1697)
+- Errors encountered while sending metadata to Secondaries are now reported to the server with greater detail: [PR](https://github.com/advancedtelematic/aktualizr/pull/1703)
+- The headers required to include for API users have been simplified: [PR #1707](https://github.com/advancedtelematic/aktualizr/pull/1707), [PR #1713](https://github.com/advancedtelematic/aktualizr/pull/1713), and [PR #1716](https://github.com/advancedtelematic/aktualizr/pull/1716)
 
 
 ## [2020.7] - 2020-05-29
