@@ -9,6 +9,7 @@
 #include <utility>
 
 #include "crypto/crypto.h"
+#include "libaktualizr/types.h"
 #include "logging/logging.h"
 #include "utilities/exceptions.h"
 

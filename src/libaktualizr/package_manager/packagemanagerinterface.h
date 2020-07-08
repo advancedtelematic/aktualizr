@@ -12,7 +12,6 @@
 #include "storage/invstorage.h"
 #include "uptane/fetcher.h"
 #include "utilities/apiqueue.h"
-#include "utilities/types.h"
 
 using FetcherProgressCb = std::function<void(const Uptane::Target&, const std::string&, unsigned int)>;
 

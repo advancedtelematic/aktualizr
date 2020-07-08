@@ -8,12 +8,12 @@
 #include "check.h"
 #include "garage_common.h"
 #include "garage_tools_version.h"
+#include "libaktualizr/types.h"
 #include "logging/logging.h"
 #include "ostree_http_repo.h"
 #include "ostree_object.h"
 #include "request_pool.h"
 #include "treehub_server.h"
-#include "utilities/types.h"
 #include "utilities/utils.h"
 
 namespace po = boost::program_options;

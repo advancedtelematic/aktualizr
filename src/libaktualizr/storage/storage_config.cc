@@ -1,6 +1,5 @@
 #include "libaktualizr/config.h"
 #include "utilities/config_utils.h"
-#include "utilities/types.h"
 
 void StorageConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(type, "type", pt);

@@ -13,8 +13,8 @@
 #include <vector>
 
 #include "crypto/crypto.h"
+#include "libaktualizr/types.h"
 #include "uptane/exceptions.h"
-#include "utilities/types.h"
 
 namespace Uptane {
 
@@ -133,149 +133,7 @@ class Version {
   friend std::ostream &operator<<(std::ostream &os, const Version &v);
 };
 
-struct InstalledImageInfo {
-  InstalledImageInfo() : name{""} {}
-  InstalledImageInfo(std::string name_in, uint64_t len_in, std::string hash_in)
-      : name(std::move(name_in)), len(len_in), hash(std::move(hash_in)) {}
-  std::string name;
-  uint64_t len{0};
-  std::string hash;
-};
-
 std::ostream &operator<<(std::ostream &os, const Version &v);
-
-class HardwareIdentifier {
- public:
-  // https://github.com/advancedtelematic/ota-tuf/blob/master/libtuf/src/main/scala/com/advancedtelematic/libtuf/data/TufDataType.scala
-  static const int kMinLength = 0;
-  static const int kMaxLength = 200;
-
-  static HardwareIdentifier Unknown() { return HardwareIdentifier("Unknown"); }
-  explicit HardwareIdentifier(const std::string &hwid) : hwid_(hwid) {
-    /* if (hwid.length() < kMinLength) {
-      throw std::out_of_range("Hardware Identifier too short");
-    } */
-    if (kMaxLength < hwid.length()) {
-      throw std::out_of_range("Hardware Identifier too long");
-    }
-  }
-
-  std::string ToString() const { return hwid_; }
-
-  bool operator==(const HardwareIdentifier &rhs) const { return hwid_ == rhs.hwid_; }
-  bool operator!=(const HardwareIdentifier &rhs) const { return !(*this == rhs); }
-
-  bool operator<(const HardwareIdentifier &rhs) const { return hwid_ < rhs.hwid_; }
-  friend std::ostream &operator<<(std::ostream &os, const HardwareIdentifier &hwid);
-  friend struct std::hash<Uptane::HardwareIdentifier>;
-
- private:
-  std::string hwid_;
-};
-
-std::ostream &operator<<(std::ostream &os, const HardwareIdentifier &hwid);
-
-class EcuSerial {
- public:
-  // https://github.com/advancedtelematic/ota-tuf/blob/master/libtuf/src/main/scala/com/advancedtelematic/libtuf/data/TufDataType.scala
-  static const int kMinLength = 1;
-  static const int kMaxLength = 64;
-
-  static EcuSerial Unknown() { return EcuSerial("Unknown"); }
-  explicit EcuSerial(const std::string &ecu_serial) : ecu_serial_(ecu_serial) {
-    if (ecu_serial.length() < kMinLength) {
-      throw std::out_of_range("Ecu serial identifier is too short");
-    }
-    if (kMaxLength < ecu_serial.length()) {
-      throw std::out_of_range("Ecu serial identifier is too long");
-    }
-  }
-
-  std::string ToString() const { return ecu_serial_; }
-
-  bool operator==(const EcuSerial &rhs) const { return ecu_serial_ == rhs.ecu_serial_; }
-  bool operator!=(const EcuSerial &rhs) const { return !(*this == rhs); }
-
-  bool operator<(const EcuSerial &rhs) const { return ecu_serial_ < rhs.ecu_serial_; }
-  friend std::ostream &operator<<(std::ostream &os, const EcuSerial &ecu_serial);
-  friend struct std::hash<Uptane::EcuSerial>;
-
- private:
-  std::string ecu_serial_;
-};
-
-std::ostream &operator<<(std::ostream &os, const EcuSerial &ecu_serial);
-
-using EcuMap = std::map<EcuSerial, HardwareIdentifier>;
-
-class Target {
- public:
-  // From Uptane metadata
-  Target(std::string filename, const Json::Value &content);
-  // Internal use only. Only used for reading installed_versions list and by
-  // various tests.
-  Target(std::string filename, EcuMap ecus, std::vector<Hash> hashes, uint64_t length, std::string correlation_id = "");
-
-  static Target Unknown();
-
-  const EcuMap &ecus() const { return ecus_; }
-  std::string filename() const { return filename_; }
-  std::string sha256Hash() const;
-  std::string sha512Hash() const;
-  const std::vector<Hash> &hashes() const { return hashes_; };
-  const std::vector<HardwareIdentifier> &hardwareIds() const { return hwids_; };
-  std::string custom_version() const { return custom_["version"].asString(); }
-  Json::Value custom_data() const { return custom_; }
-  void updateCustom(Json::Value &custom) { custom_ = custom; };
-  std::string correlation_id() const { return correlation_id_; };
-  void setCorrelationId(std::string correlation_id) { correlation_id_ = std::move(correlation_id); };
-  uint64_t length() const { return length_; }
-  bool IsValid() const { return valid; }
-  std::string uri() const { return uri_; };
-  void setUri(std::string uri) { uri_ = std::move(uri); };
-  bool MatchHash(const Hash &hash) const;
-
-  void InsertEcu(const std::pair<EcuSerial, HardwareIdentifier> &pair) { ecus_.insert(pair); }
-
-  bool IsForEcu(const EcuSerial &ecuIdentifier) const {
-    return (std::find_if(ecus_.cbegin(), ecus_.cend(),
-                         [&ecuIdentifier](const std::pair<EcuSerial, HardwareIdentifier> &pair) {
-                           return pair.first == ecuIdentifier;
-                         }) != ecus_.cend());
-  };
-
-  /**
-   * Is this an OSTree target?
-   * OSTree targets need special treatment because the hash doesn't represent
-   * the contents of the update itself, instead it is the hash (name) of the
-   * root commit object.
-   */
-  bool IsOstree() const;
-  std::string type() const { return type_; }
-
-  // Comparison is usually not meaningful. Use MatchTarget instead.
-  bool operator==(const Target &t2) = delete;
-  bool MatchTarget(const Target &t2) const;
-  Json::Value toDebugJson() const;
-  friend std::ostream &operator<<(std::ostream &os, const Target &t);
-  InstalledImageInfo getTargetImageInfo() const { return {filename(), length(), sha256Hash()}; }
-
- private:
-  bool valid{true};
-  std::string filename_;
-  std::string type_;
-  EcuMap ecus_;  // Director only
-  std::vector<Hash> hashes_;
-  std::vector<HardwareIdentifier> hwids_;  // Image repo only
-  Json::Value custom_;
-  uint64_t length_{0};
-  std::string correlation_id_;
-  std::string uri_;
-
-  std::string hashString(Hash::Type type) const;
-};
-
-std::ostream &operator<<(std::ostream &os, const Target &t);
 
 /* Metadata objects */
 class MetaWithKeys;

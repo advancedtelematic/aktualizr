@@ -13,6 +13,7 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/archive/iterators/dataflow_exception.hpp>
 
+#include "libaktualizr/types.h"
 #include "utilities/utils.h"
 
 bool CharOk(char c) {

@@ -8,8 +8,8 @@
 #include <curl/curl.h>
 #include "json/json.h"
 
+#include "libaktualizr/types.h"
 #include "logging/logging.h"
-#include "utilities/types.h"
 #include "utilities/utils.h"
 
 using CurlHandler = std::shared_ptr<CURL>;

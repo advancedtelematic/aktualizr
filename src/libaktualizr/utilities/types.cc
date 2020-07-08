@@ -1,9 +1,10 @@
-#include "utilities/types.h"
-
 #include <array>
 #include <sstream>
 #include <stdexcept>
 #include <utility>
+
+#include "libaktualizr/types.h"
+#include "utilities/utils.h"
 
 std::ostream &operator<<(std::ostream &os, const StorageType stype) {
   std::string stype_str;
@@ -150,3 +151,8 @@ std::ostream &operator<<(std::ostream &os, const ResultCode &result_code) {
 }  // namespace data
 
 // vim: set tabstop=2 shiftwidth=2 expandtab:
+
+boost::filesystem::path BasedPath::get(const boost::filesystem::path &base) const {
+  // note: BasedPath(bp.get() == bp)
+  return Utils::absolutePath(base, p_);
+}

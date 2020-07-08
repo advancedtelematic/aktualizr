@@ -15,80 +15,13 @@
 #include <string>
 #include <utility>
 
-#include "utilities/types.h"
+#include "libaktualizr/types.h"
 #include "utilities/utils.h"
 
 // some older versions of openssl have BIO_new_mem_buf defined with fisrt parameter of type (void*)
 //   which is not true and breaks our build
 #undef BIO_new_mem_buf
 BIO *BIO_new_mem_buf(const void *, int);
-
-class PublicKey {
- public:
-  PublicKey() = default;
-  explicit PublicKey(const boost::filesystem::path &path);
-
-  explicit PublicKey(Json::Value uptane_json);
-
-  PublicKey(const std::string &value, KeyType type);
-
-  std::string Value() const { return value_; }
-
-  KeyType Type() const { return type_; }
-  /**
-   * Verify a signature using this public key
-   */
-  bool VerifySignature(const std::string &signature, const std::string &message) const;
-  /**
-   * Uptane Json representation of this public key.  Used in root.json
-   * and during provisioning.
-   */
-  Json::Value ToUptane() const;
-
-  std::string KeyId() const;
-  bool operator==(const PublicKey &rhs) const;
-
-  bool operator!=(const PublicKey &rhs) const { return !(*this == rhs); }
-
- private:
-  // std::string can be implicitly converted to a Json::Value. Make sure that
-  // the Json::Value constructor is not called accidentally.
-  PublicKey(std::string);
-  std::string value_;
-  KeyType type_{KeyType::kUnknown};
-};
-
-/**
- * The hash of a file or Uptane metadata.  File hashes/checksums in Uptane include the length of the object, in order to
- * defeat infinite download attacks.
- */
-class Hash {
- public:
-  // order corresponds algorithm priority
-  enum class Type { kSha256, kSha512, kUnknownAlgorithm };
-
-  static Hash generate(Type type, const std::string &data);
-  Hash(const std::string &type, const std::string &hash);
-  Hash(Type type, const std::string &hash);
-
-  bool HaveAlgorithm() const { return type_ != Type::kUnknownAlgorithm; }
-  bool operator==(const Hash &other) const;
-  bool operator!=(const Hash &other) const { return !operator==(other); }
-  static std::string TypeString(Type type);
-  std::string TypeString() const;
-  Type type() const;
-  std::string HashString() const { return hash_; }
-  friend std::ostream &operator<<(std::ostream &os, const Hash &h);
-
-  static std::string encodeVector(const std::vector<Hash> &hashes);
-  static std::vector<Hash> decodeVector(std::string hashes_str);
-
- private:
-  Type type_;
-  std::string hash_;
-};
-
-std::ostream &operator<<(std::ostream &os, const Hash &h);
 
 class MultiPartHasher {
  public:

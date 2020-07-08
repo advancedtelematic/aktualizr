@@ -6,8 +6,8 @@
 #include <boost/scoped_array.hpp>
 
 #include "crypto/openssl_compat.h"
+#include "libaktualizr/types.h"
 #include "storage/invstorage.h"
-#include "utilities/types.h"
 
 #if defined(ANDROID)
 #include "androidkeystore.h"

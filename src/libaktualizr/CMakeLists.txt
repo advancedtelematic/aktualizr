@@ -1,4 +1,5 @@
-set(LIBAKTUALIZR_PUBLIC_HEADERS ../../include/libaktualizr/config.h)
+set(LIBAKTUALIZR_PUBLIC_HEADERS ../../include/libaktualizr/config.h
+                                ../../include/libaktualizr/types.h)
 aktualizr_source_file_checks(${LIBAKTUALIZR_PUBLIC_HEADERS})
 
 # config has to go first, as other libraries append sources to it

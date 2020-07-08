@@ -7,10 +7,10 @@
 
 #include <boost/signals2.hpp>
 
+#include "libaktualizr/types.h"
 #include "primary/results.h"
 #include "uptane/fetcher.h"
 #include "uptane/tuf.h"
-#include "utilities/types.h"
 
 /**
  * Aktualizr status events.
