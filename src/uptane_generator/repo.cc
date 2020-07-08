@@ -4,10 +4,10 @@
 #include <ctime>
 #include <regex>
 
-#include "campaign/campaign.h"
 #include "crypto/crypto.h"
 #include "director_repo.h"
 #include "image_repo.h"
+#include "libaktualizr/campaign.h"
 #include "logging/logging.h"
 
 Repo::Repo(Uptane::RepositoryType repo_type, boost::filesystem::path path, const std::string &expires,

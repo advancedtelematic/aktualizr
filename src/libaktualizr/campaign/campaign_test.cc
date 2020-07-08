@@ -1,6 +1,6 @@
 #include <boost/filesystem.hpp>
 
-#include "campaign/campaign.h"
+#include "libaktualizr/campaign.h"
 
 #include <gtest/gtest.h>
 

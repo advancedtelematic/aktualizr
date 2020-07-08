@@ -11,9 +11,9 @@
 
 #include "httpfake.h"
 #include "libaktualizr/config.h"
+#include "libaktualizr/events.h"
 #include "primary/aktualizr.h"
 #include "primary/aktualizr_helpers.h"
-#include "primary/events.h"
 #include "primary/sotauptaneclient.h"
 #include "uptane_test_common.h"
 #include "utilities/utils.h"

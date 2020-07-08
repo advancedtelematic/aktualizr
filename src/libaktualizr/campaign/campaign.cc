@@ -1,4 +1,4 @@
-#include "campaign/campaign.h"
+#include "libaktualizr/campaign.h"
 
 namespace campaign {
 

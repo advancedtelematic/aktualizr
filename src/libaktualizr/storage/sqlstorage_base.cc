@@ -3,6 +3,8 @@
 
 #include <sys/stat.h>
 
+#include "utilities/utils.h"
+
 boost::filesystem::path SQLStorageBase::dbPath() const { return sqldb_path_; }
 
 StorageLock::StorageLock(boost::filesystem::path path) : lock_path(std::move(path)) {
