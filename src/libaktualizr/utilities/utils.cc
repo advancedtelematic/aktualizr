@@ -475,7 +475,7 @@ void Utils::copyDir(const boost::filesystem::path &from, const boost::filesystem
 }
 
 std::string Utils::readFileFromArchive(std::istream &as, const std::string &filename, const bool trim) {
-  StructGuard<struct archive> a(archive_read_new(), reinterpret_cast<void (*)(struct archive *)>(archive_read_free));
+  StructGuardInt<struct archive> a(archive_read_new(), archive_read_free);
   if (a == nullptr) {
     LOG_ERROR << "archive error: could not initialize archive object";
     throw std::runtime_error("archive error");
@@ -545,7 +545,7 @@ static ssize_t write_cb(struct archive *a, void *client_data, const void *buffer
 }
 
 void Utils::writeArchive(const std::map<std::string, std::string> &entries, std::ostream &as) {
-  StructGuard<struct archive> a(archive_write_new(), reinterpret_cast<void (*)(struct archive *)>(archive_write_free));
+  StructGuardInt<struct archive> a(archive_write_new(), archive_write_free);
   if (a == nullptr) {
     LOG_ERROR << "archive error: could not initialize archive object";
     throw std::runtime_error("archive error");
@@ -598,7 +598,7 @@ void Utils::removeFileFromArchive(const boost::filesystem::path &archive_path, c
     throw std::runtime_error("Unable to parse provisioning credentials");
   }
 
-  StructGuard<struct archive> a_in(archive_read_new(), reinterpret_cast<void (*)(struct archive *)>(archive_read_free));
+  StructGuardInt<struct archive> a_in(archive_read_new(), archive_read_free);
   if (a_in == nullptr) {
     LOG_ERROR << "archive error: could not initialize archive object";
     throw std::runtime_error("archive error");
@@ -612,8 +612,7 @@ void Utils::removeFileFromArchive(const boost::filesystem::path &archive_path, c
     throw std::runtime_error("archive error");
   }
 
-  StructGuard<struct archive> a_out(archive_write_new(),
-                                    reinterpret_cast<void (*)(struct archive *)>(archive_write_free));
+  StructGuardInt<struct archive> a_out(archive_write_new(), archive_write_free);
   if (a_out == nullptr) {
     LOG_ERROR << "archive error: could not initialize archive object";
     throw std::runtime_error("archive error");
