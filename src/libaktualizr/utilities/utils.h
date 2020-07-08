@@ -121,6 +121,8 @@ class BasedPath {
 //   BTW local variables are destructed in reverse order of instantiation
 template <typename T>
 using StructGuard = std::unique_ptr<T, void (*)(T *)>;
+template <typename T>
+using StructGuardInt = std::unique_ptr<T, int (*)(T *)>;
 
 class Socket {
  public:
