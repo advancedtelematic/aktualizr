@@ -111,7 +111,7 @@ template <>
 inline void CopyFromConfig(BasedPath& dest, const std::string& option_name, const boost::property_tree::ptree& pt) {
   boost::optional<std::string> value = pt.get_optional<std::string>(option_name);
   if (value.is_initialized()) {
-    BasedPath bp{StripQuotesFromStrings(value.get())};
+    utils::BasedPath bp{StripQuotesFromStrings(value.get())};
     dest = bp;
   }
 }

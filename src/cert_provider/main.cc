@@ -407,10 +407,10 @@ int main(int argc, char* argv[]) {
     }
 
     boost::filesystem::path directory = "/var/sota/import";
-    BasedPath pkey_file = BasedPath("pkey.pem");
-    BasedPath cert_file = BasedPath("client.pem");
-    BasedPath ca_file = BasedPath("root.crt");
-    BasedPath url_file = BasedPath("gateway.url");
+    utils::BasedPath pkey_file = utils::BasedPath("pkey.pem");
+    utils::BasedPath cert_file = utils::BasedPath("client.pem");
+    utils::BasedPath ca_file = utils::BasedPath("root.crt");
+    utils::BasedPath url_file = utils::BasedPath("gateway.url");
     if (!config_path.empty()) {
       Config config(config_path);
       // TODO: provide path to root directory in `--local` parameter

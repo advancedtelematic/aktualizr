@@ -86,7 +86,7 @@ bool FSStorageRead::loadTlsCreds(std::string* ca, std::string* cert, std::string
   return true;
 }
 
-bool FSStorageRead::loadTlsCommon(std::string* data, const BasedPath& path_in) const {
+bool FSStorageRead::loadTlsCommon(std::string* data, const utils::BasedPath& path_in) const {
   boost::filesystem::path path(path_in.get(config_.path));
   if (!boost::filesystem::exists(path)) {
     return false;

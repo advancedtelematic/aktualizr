@@ -115,15 +115,15 @@ struct StorageConfig {
   boost::filesystem::path path{"/var/sota"};
 
   // FS storage
-  BasedPath uptane_metadata_path{"metadata"};
-  BasedPath uptane_private_key_path{"ecukey.der"};
-  BasedPath uptane_public_key_path{"ecukey.pub"};
-  BasedPath tls_cacert_path{"root.crt"};
-  BasedPath tls_pkey_path{"pkey.pem"};
-  BasedPath tls_clientcert_path{"client.pem"};
+  utils::BasedPath uptane_metadata_path{"metadata"};
+  utils::BasedPath uptane_private_key_path{"ecukey.der"};
+  utils::BasedPath uptane_public_key_path{"ecukey.pub"};
+  utils::BasedPath tls_cacert_path{"root.crt"};
+  utils::BasedPath tls_pkey_path{"pkey.pem"};
+  utils::BasedPath tls_clientcert_path{"client.pem"};
 
   // SQLite storage
-  BasedPath sqldb_path{"sql.db"};  // based on `/var/sota`
+  utils::BasedPath sqldb_path{"sql.db"};  // based on `/var/sota`
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;
@@ -131,11 +131,11 @@ struct StorageConfig {
 
 struct ImportConfig {
   boost::filesystem::path base_path{"/var/sota/import"};
-  BasedPath uptane_private_key_path{""};
-  BasedPath uptane_public_key_path{""};
-  BasedPath tls_cacert_path{""};
-  BasedPath tls_pkey_path{""};
-  BasedPath tls_clientcert_path{""};
+  utils::BasedPath uptane_private_key_path{""};
+  utils::BasedPath uptane_public_key_path{""};
+  utils::BasedPath tls_cacert_path{""};
+  utils::BasedPath tls_pkey_path{""};
+  utils::BasedPath tls_clientcert_path{""};
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;

@@ -8,7 +8,7 @@
 #include "utilities/utils.h"
 
 void INvStorage::importSimple(const boost::filesystem::path& base_path, store_data_t store_func, load_data_t load_func,
-                              const BasedPath& imported_data_path) {
+                              const utils::BasedPath& imported_data_path) {
   if (!(this->*load_func)(nullptr) && !imported_data_path.empty()) {
     boost::filesystem::path abs_path = imported_data_path.get(base_path);
     if (!boost::filesystem::exists(abs_path)) {
@@ -21,7 +21,7 @@ void INvStorage::importSimple(const boost::filesystem::path& base_path, store_da
 }
 
 void INvStorage::importUpdateSimple(const boost::filesystem::path& base_path, store_data_t store_func,
-                                    load_data_t load_func, const BasedPath& imported_data_path) {
+                                    load_data_t load_func, const utils::BasedPath& imported_data_path) {
   std::string prev_content;
   std::string content;
   bool update = false;
@@ -47,8 +47,8 @@ void INvStorage::importUpdateSimple(const boost::filesystem::path& base_path, st
   }
 }
 
-void INvStorage::importPrimaryKeys(const boost::filesystem::path& base_path, const BasedPath& import_pubkey_path,
-                                   const BasedPath& import_privkey_path) {
+void INvStorage::importPrimaryKeys(const boost::filesystem::path& base_path, const utils::BasedPath& import_pubkey_path,
+                                   const utils::BasedPath& import_privkey_path) {
   if (loadPrimaryKeys(nullptr, nullptr) || import_pubkey_path.empty() || import_privkey_path.empty()) {
     return;
   }
@@ -69,7 +69,7 @@ void INvStorage::importPrimaryKeys(const boost::filesystem::path& base_path, con
 
 void INvStorage::importInstalledVersions(const boost::filesystem::path& base_path) {
   std::vector<Uptane::Target> installed_versions;
-  const boost::filesystem::path file_path = BasedPath("installed_versions").get(base_path);
+  const boost::filesystem::path file_path = utils::BasedPath("installed_versions").get(base_path);
   loadPrimaryInstallationLog(&installed_versions, false);
   if (!installed_versions.empty()) {
     return;

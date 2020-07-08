@@ -39,7 +39,7 @@ class FSStorageRead {
   Uptane::Version latest_director_root;
   Uptane::Version latest_image_root;
 
-  bool loadTlsCommon(std::string* data, const BasedPath& path_in) const;
+  bool loadTlsCommon(std::string* data, const utils::BasedPath& path_in) const;
 
   static bool splitNameRoleVersion(const std::string& full_name, std::string* role_name, int* version);
   Uptane::Version findMaxVersion(const boost::filesystem::path& meta_directory, const Uptane::Role& role);

@@ -1467,7 +1467,7 @@ TEST(Uptane, Pkcs11Provision) {
   config.p11.tls_clientcert_id = "01";
   config.p11.tls_pkey_id = "02";
   config.import.base_path = (temp_dir / "import").string();
-  config.import.tls_cacert_path = BasedPath("root.crt");
+  config.import.tls_cacert_path = utils::BasedPath("root.crt");
 
   config.storage.path = temp_dir.Path();
   config.postUpdateValues();

@@ -244,7 +244,7 @@ int main(int argc, char *argv[]) {
     }
 
     Config config(commandline_map);
-    config.storage.uptane_metadata_path = BasedPath(config.storage.path / "metadata");
+    config.storage.uptane_metadata_path = utils::BasedPath(config.storage.path / "metadata");
     LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
 
     std::string cmd = commandline_map["command"].as<std::string>();

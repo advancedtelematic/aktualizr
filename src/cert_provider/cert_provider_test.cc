@@ -200,8 +200,8 @@ TEST_F(AktualizrCertProviderTest, ConfigFilePathUsage) {
 
   Config config;
   config.import.base_path = base_path;
-  config.import.tls_pkey_path = BasedPath(private_key_file);
-  config.import.tls_clientcert_path = BasedPath(cert_file);
+  config.import.tls_pkey_path = utils::BasedPath(private_key_file);
+  config.import.tls_clientcert_path = utils::BasedPath(cert_file);
 
   auto test_conf_file = tmp_dir_ / "conf.toml";
   boost::filesystem::ofstream conf_file(test_conf_file);

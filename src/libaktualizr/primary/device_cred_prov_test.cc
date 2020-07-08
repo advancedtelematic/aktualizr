@@ -52,9 +52,9 @@ TEST(DeviceCredProv, Incomplete) {
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
 
   {
-    config.import.tls_cacert_path = BasedPath("ca.pem");
-    config.import.tls_clientcert_path = BasedPath("");
-    config.import.tls_pkey_path = BasedPath("");
+    config.import.tls_cacert_path = utils::BasedPath("ca.pem");
+    config.import.tls_clientcert_path = utils::BasedPath("");
+    config.import.tls_pkey_path = utils::BasedPath("");
     Utils::createDirectories(temp_dir / "import", S_IRWXU);
     boost::filesystem::copy_file("tests/test_data/device_cred_prov/ca.pem", temp_dir / "import/ca.pem");
     auto storage = INvStorage::newStorage(config.storage);
@@ -65,9 +65,9 @@ TEST(DeviceCredProv, Incomplete) {
   }
 
   {
-    config.import.tls_cacert_path = BasedPath("");
-    config.import.tls_clientcert_path = BasedPath("client.pem");
-    config.import.tls_pkey_path = BasedPath("");
+    config.import.tls_cacert_path = utils::BasedPath("");
+    config.import.tls_clientcert_path = utils::BasedPath("client.pem");
+    config.import.tls_pkey_path = utils::BasedPath("");
     boost::filesystem::remove_all(temp_dir.Path());
     Utils::createDirectories(temp_dir / "import", S_IRWXU);
     boost::filesystem::copy_file("tests/test_data/device_cred_prov/client.pem", temp_dir / "import/client.pem");
@@ -79,9 +79,9 @@ TEST(DeviceCredProv, Incomplete) {
   }
 
   {
-    config.import.tls_cacert_path = BasedPath("");
-    config.import.tls_clientcert_path = BasedPath("");
-    config.import.tls_pkey_path = BasedPath("pkey.pem");
+    config.import.tls_cacert_path = utils::BasedPath("");
+    config.import.tls_clientcert_path = utils::BasedPath("");
+    config.import.tls_pkey_path = utils::BasedPath("pkey.pem");
     boost::filesystem::remove_all(temp_dir.Path());
     Utils::createDirectories(temp_dir / "import", S_IRWXU);
     boost::filesystem::copy_file("tests/test_data/device_cred_prov/pkey.pem", temp_dir / "import/pkey.pem");
@@ -93,9 +93,9 @@ TEST(DeviceCredProv, Incomplete) {
   }
 
   {
-    config.import.tls_cacert_path = BasedPath("ca.pem");
-    config.import.tls_clientcert_path = BasedPath("client.pem");
-    config.import.tls_pkey_path = BasedPath("");
+    config.import.tls_cacert_path = utils::BasedPath("ca.pem");
+    config.import.tls_clientcert_path = utils::BasedPath("client.pem");
+    config.import.tls_pkey_path = utils::BasedPath("");
     boost::filesystem::remove_all(temp_dir.Path());
     Utils::createDirectories(temp_dir / "import", S_IRWXU);
     boost::filesystem::copy_file("tests/test_data/device_cred_prov/ca.pem", temp_dir / "import/ca.pem");
@@ -108,9 +108,9 @@ TEST(DeviceCredProv, Incomplete) {
   }
 
   {
-    config.import.tls_cacert_path = BasedPath("ca.pem");
-    config.import.tls_clientcert_path = BasedPath("");
-    config.import.tls_pkey_path = BasedPath("pkey.pem");
+    config.import.tls_cacert_path = utils::BasedPath("ca.pem");
+    config.import.tls_clientcert_path = utils::BasedPath("");
+    config.import.tls_pkey_path = utils::BasedPath("pkey.pem");
     boost::filesystem::remove_all(temp_dir.Path());
     Utils::createDirectories(temp_dir / "import", S_IRWXU);
     boost::filesystem::copy_file("tests/test_data/device_cred_prov/ca.pem", temp_dir / "import/ca.pem");
@@ -123,9 +123,9 @@ TEST(DeviceCredProv, Incomplete) {
   }
 
   {
-    config.import.tls_cacert_path = BasedPath("");
-    config.import.tls_clientcert_path = BasedPath("client.pem");
-    config.import.tls_pkey_path = BasedPath("pkey.pem");
+    config.import.tls_cacert_path = utils::BasedPath("");
+    config.import.tls_clientcert_path = utils::BasedPath("client.pem");
+    config.import.tls_pkey_path = utils::BasedPath("pkey.pem");
     boost::filesystem::remove_all(temp_dir.Path());
     Utils::createDirectories(temp_dir / "import", S_IRWXU);
     boost::filesystem::copy_file("tests/test_data/device_cred_prov/client.pem", temp_dir / "import/client.pem");
@@ -139,9 +139,9 @@ TEST(DeviceCredProv, Incomplete) {
 
   // Do one last round with all three files to make sure it actually works as
   // expected.
-  config.import.tls_cacert_path = BasedPath("ca.pem");
-  config.import.tls_clientcert_path = BasedPath("client.pem");
-  config.import.tls_pkey_path = BasedPath("pkey.pem");
+  config.import.tls_cacert_path = utils::BasedPath("ca.pem");
+  config.import.tls_clientcert_path = utils::BasedPath("client.pem");
+  config.import.tls_pkey_path = utils::BasedPath("pkey.pem");
   boost::filesystem::remove_all(temp_dir.Path());
   Utils::createDirectories(temp_dir / "import", S_IRWXU);
   boost::filesystem::copy_file("tests/test_data/device_cred_prov/ca.pem", temp_dir / "import/ca.pem");
@@ -167,9 +167,9 @@ TEST(DeviceCredProv, Success) {
   boost::filesystem::copy_file("tests/test_data/device_cred_prov/pkey.pem", temp_dir / "import/pkey.pem");
   config.storage.path = temp_dir.Path();
   config.import.base_path = temp_dir / "import";
-  config.import.tls_cacert_path = BasedPath("ca.pem");
-  config.import.tls_clientcert_path = BasedPath("client.pem");
-  config.import.tls_pkey_path = BasedPath("pkey.pem");
+  config.import.tls_cacert_path = utils::BasedPath("ca.pem");
+  config.import.tls_clientcert_path = utils::BasedPath("client.pem");
+  config.import.tls_pkey_path = utils::BasedPath("pkey.pem");
   EXPECT_EQ(config.provision.mode, ProvisionMode::kDeviceCred);
 
   auto storage = INvStorage::newStorage(config.storage);
