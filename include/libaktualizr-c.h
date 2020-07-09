@@ -4,7 +4,7 @@
 #include <stdint.h> // for uint8_t
 
 #ifdef __cplusplus
-#include "primary/aktualizr.h"
+#include "libaktualizr/aktualizr.h"
 
 using Campaign = campaign::Campaign;
 using Updates = std::vector<Uptane::Target>;

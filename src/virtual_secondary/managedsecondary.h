@@ -9,8 +9,8 @@
 #include "json/json.h"
 
 #include "libaktualizr/types.h"
+#include "libaktualizr/secondary/secondaryinterface.h"
 #include "primary/secondary_config.h"
-#include "primary/secondaryinterface.h"
 
 namespace Primary {
 

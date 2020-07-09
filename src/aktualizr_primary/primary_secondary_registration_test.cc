@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "httpfake.h"
-#include "primary/aktualizr.h"
+#include "libaktualizr/aktualizr.h"
 #include "secondary.h"
 #include "uptane_test_common.h"
 #include "utilities/utils.h"

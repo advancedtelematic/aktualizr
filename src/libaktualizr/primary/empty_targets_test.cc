@@ -3,7 +3,7 @@
 #include <string>
 
 #include "httpfake.h"
-#include "primary/aktualizr.h"
+#include "libaktualizr/aktualizr.h"
 #include "test_utils.h"
 #include "uptane_test_common.h"
 #include "utilities/fault_injection.h"

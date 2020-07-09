@@ -8,8 +8,8 @@
 #include "json/json.h"
 
 #include "libaktualizr/types.h"
+#include "libaktualizr/secondary/secondaryinterface.h"
 #include "managedsecondary.h"
-#include "primary/secondaryinterface.h"
 
 namespace Primary {
 

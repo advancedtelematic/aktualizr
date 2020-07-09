@@ -8,10 +8,15 @@
 
 #include "libaktualizr/config.h"
 #include "libaktualizr/events.h"
-#include "primary/secondaryinterface.h"
-#include "sotauptaneclient.h"
-#include "storage/invstorage.h"
-#include "utilities/apiqueue.h"
+#include "libaktualizr/secondary/secondaryinterface.h"
+
+class SotaUptaneClient;
+class INvStorage;
+class SecondaryInfo;
+
+namespace api {
+class CommandQueue;
+}
 
 /**
  * This class provides the main APIs necessary for launching and controlling
@@ -24,6 +29,7 @@ class Aktualizr {
   explicit Aktualizr(const Config& config);
   Aktualizr(const Aktualizr&) = delete;
   Aktualizr& operator=(const Aktualizr&) = delete;
+  ~Aktualizr();
 
   /**
    * Initialize aktualizr. Any Secondaries should be added before making this
@@ -242,7 +248,7 @@ class Aktualizr {
 
   std::shared_ptr<INvStorage> storage_;
   std::shared_ptr<event::Channel> sig_;
-  api::CommandQueue api_queue_;
+  std::unique_ptr<api::CommandQueue> api_queue_;
 };
 
 #endif  // AKTUALIZR_H_

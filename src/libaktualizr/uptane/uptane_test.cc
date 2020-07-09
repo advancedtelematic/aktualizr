@@ -13,10 +13,11 @@
 #include <boost/filesystem.hpp>
 #include "json/json.h"
 
+#include "libaktualizr/secondary/secondaryinterface.h"
+
 #include "crypto/p11engine.h"
 #include "httpfake.h"
 #include "primary/initializer.h"
-#include "primary/secondaryinterface.h"
 #include "primary/sotauptaneclient.h"
 #include "storage/fsstorage_read.h"
 #include "storage/invstorage.h"

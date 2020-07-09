@@ -1,8 +1,9 @@
 #include <gtest/gtest.h>
 
+#include "libaktualizr/secondary/secondaryinterface.h"
+
 #include "metafake.h"
 #include "partialverificationsecondary.h"
-#include "primary/secondaryinterface.h"
 #include "virtualsecondary.h"
 
 class VirtualSecondaryTest : public ::testing::Test {
