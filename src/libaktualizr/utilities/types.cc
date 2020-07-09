@@ -152,7 +152,7 @@ std::ostream &operator<<(std::ostream &os, const ResultCode &result_code) {
 
 // vim: set tabstop=2 shiftwidth=2 expandtab:
 
-boost::filesystem::path BasedPath::get(const boost::filesystem::path &base) const {
+boost::filesystem::path utils::BasedPath::get(const boost::filesystem::path &base) const {
   // note: BasedPath(bp.get() == bp)
   return Utils::absolutePath(base, p_);
 }

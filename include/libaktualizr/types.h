@@ -38,7 +38,7 @@ class BasedPath {
   boost::filesystem::path p_;
 };
 
-} // namespace utils
+}  // namespace utils
 
 // Keep these in sync with AKIpUptaneKeyType ASN.1 definitions.
 enum class KeyType {

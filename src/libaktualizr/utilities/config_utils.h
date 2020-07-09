@@ -108,7 +108,8 @@ inline void CopyFromConfig(CryptoSource& dest, const std::string& option_name, c
 }
 
 template <>
-inline void CopyFromConfig(BasedPath& dest, const std::string& option_name, const boost::property_tree::ptree& pt) {
+inline void CopyFromConfig(utils::BasedPath& dest, const std::string& option_name,
+                           const boost::property_tree::ptree& pt) {
   boost::optional<std::string> value = pt.get_optional<std::string>(option_name);
   if (value.is_initialized()) {
     utils::BasedPath bp{StripQuotesFromStrings(value.get())};
