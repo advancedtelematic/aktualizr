@@ -373,13 +373,13 @@ TEST(Utils, getDirEntriesByExt) {
 }
 
 TEST(Utils, BasedPath) {
-  BasedPath bp("a/test.xml");
+  utils::BasedPath bp("a/test.xml");
 
-  EXPECT_EQ(BasedPath(bp.get("")), bp);
+  EXPECT_EQ(utils::BasedPath(bp.get("")), bp);
   EXPECT_EQ(bp.get("/"), "/a/test.xml");
   EXPECT_EQ(bp.get("/x"), "/x/a/test.xml");
 
-  BasedPath abp("/a/test.xml");
+  utils::BasedPath abp("/a/test.xml");
 
   EXPECT_EQ(abp.get(""), "/a/test.xml");
   EXPECT_EQ(abp.get("/root/var"), "/a/test.xml");

@@ -5,10 +5,10 @@
 #include <memory>
 #include <utility>
 
-#include "campaign/campaign.h"
 #include "crypto/crypto.h"
 #include "crypto/keymanager.h"
 #include "initializer.h"
+#include "libaktualizr/campaign.h"
 #include "logging/logging.h"
 #include "uptane/exceptions.h"
 

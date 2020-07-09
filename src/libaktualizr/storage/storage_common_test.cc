@@ -534,11 +534,11 @@ TEST(storage, import_data) {
 
   ImportConfig import_config;
   import_config.base_path = temp_dir.Path() / "import";
-  import_config.uptane_private_key_path = BasedPath("private");
-  import_config.uptane_public_key_path = BasedPath("public");
-  import_config.tls_cacert_path = BasedPath("ca");
-  import_config.tls_clientcert_path = BasedPath("cert");
-  import_config.tls_pkey_path = BasedPath("pkey");
+  import_config.uptane_private_key_path = utils::BasedPath("private");
+  import_config.uptane_public_key_path = utils::BasedPath("public");
+  import_config.tls_cacert_path = utils::BasedPath("ca");
+  import_config.tls_clientcert_path = utils::BasedPath("cert");
+  import_config.tls_pkey_path = utils::BasedPath("pkey");
 
   Utils::writeFile(import_config.uptane_private_key_path.get(import_config.base_path).string(),
                    std::string("uptane_private_1"));

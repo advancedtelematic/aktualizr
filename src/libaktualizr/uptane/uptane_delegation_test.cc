@@ -7,8 +7,8 @@
 
 #include "httpfake.h"
 #include "libaktualizr/config.h"
+#include "libaktualizr/events.h"
 #include "primary/aktualizr.h"
-#include "primary/events.h"
 #include "uptane_test_common.h"
 
 boost::filesystem::path uptane_generator_path;

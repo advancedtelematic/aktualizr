@@ -1,5 +1,10 @@
-set(LIBAKTUALIZR_PUBLIC_HEADERS ../../include/libaktualizr/config.h
-                                ../../include/libaktualizr/types.h)
+set(LIBAKTUALIZR_PUBLIC_HEADERS
+    ../../include/libaktualizr/config.h
+    ../../include/libaktualizr/types.h
+    ../../include/libaktualizr/events.h
+    ../../include/libaktualizr/results.h
+    ../../include/libaktualizr/campaign.h)
+
 aktualizr_source_file_checks(${LIBAKTUALIZR_PUBLIC_HEADERS})
 
 # config has to go first, as other libraries append sources to it

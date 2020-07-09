@@ -7,7 +7,7 @@
 #include <boost/signals2.hpp>
 
 #include "libaktualizr/config.h"
-#include "primary/events.h"
+#include "libaktualizr/events.h"
 #include "primary/secondaryinterface.h"
 #include "sotauptaneclient.h"
 #include "storage/invstorage.h"

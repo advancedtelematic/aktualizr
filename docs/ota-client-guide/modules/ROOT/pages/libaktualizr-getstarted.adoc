@@ -138,7 +138,7 @@ To use the API, add the `src/libaktualizr` directory to your include path and ad
 When using the API, consider the following points:
 
 * Most of the API calls, unless specified otherwise, are asynchronous and return a `std::future` which contains the corresponding result type.
-* Result types are defined in the https://github.com/advancedtelematic/aktualizr/blob/master/src/libaktualizr/primary/results.h[`primary/results.h`] header.
+* Result types are defined in the https://github.com/advancedtelematic/aktualizr/blob/master/include/libaktualizr/results.h[`libaktualizr/results.h`] header.
 * Asynchronous commands are posted to the command queue and executed in sequential order in a separate thread.
 * If the execution is paused, newly issued commands accumulate in the command queue and it's up to the caller to ensure that the queue doesn't get overloaded with unnecessary duplicate commands.
 
@@ -186,7 +186,7 @@ call. This will provision with the server if required. This must be called befor
 ----
 boost::signals2::connection Aktualizr::SetSignalHandler(std::function<void(shared_ptr<event::BaseEvent>)> &handler)
 ----
-Returns a signal connection object, which can be disconnected if desired. The events are defined in the https://github.com/advancedtelematic/aktualizr/blob/master/src/libaktualizr/primary/events.h[`primary/events.h`] header.
+Returns a signal connection object, which can be disconnected if desired. The events are defined in the https://github.com/advancedtelematic/aktualizr/blob/master/include/libaktualizr/events.h[`libaktualizr/events.h`] header.
 
 * *Pause a command*
 +

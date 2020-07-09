@@ -16,6 +16,7 @@ std::ostream &operator<<(std::ostream &os, ProvisionMode mode);
 enum class StorageType { kFileSystem = 0, kSqlite };
 std::ostream &operator<<(std::ostream &os, StorageType stype);
 
+namespace utils {
 /**
  * @brief The BasedPath class
  * Can represent an absolute or relative path, only readable through the BasePath::get() method.
@@ -36,6 +37,8 @@ class BasedPath {
  private:
   boost::filesystem::path p_;
 };
+
+}  // namespace utils
 
 // Keep these in sync with AKIpUptaneKeyType ASN.1 definitions.
 enum class KeyType {
