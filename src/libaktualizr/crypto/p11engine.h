@@ -14,7 +14,7 @@
 class P11ContextWrapper {
  public:
   explicit P11ContextWrapper(const boost::filesystem::path &module);
-  ~P11ContextWrapper();
+  ~P11ContextWrapper();  // NOLINT(performance-trivially-destructible)
   P11ContextWrapper(const P11ContextWrapper &) = delete;
   P11ContextWrapper &operator=(const P11ContextWrapper &) = delete;
   PKCS11_ctx_st *get() const { return ctx; }
@@ -26,7 +26,7 @@ class P11ContextWrapper {
 class P11SlotsWrapper {
  public:
   explicit P11SlotsWrapper(PKCS11_ctx_st *ctx_in);
-  ~P11SlotsWrapper();
+  ~P11SlotsWrapper();  // NOLINT(performance-trivially-destructible)
   P11SlotsWrapper(const P11SlotsWrapper &) = delete;
   P11SlotsWrapper &operator=(const P11SlotsWrapper &) = delete;
   PKCS11_slot_st *get_slots() const { return wslots_; }

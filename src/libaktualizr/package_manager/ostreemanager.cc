@@ -177,7 +177,7 @@ data::InstallationResult OstreeManager::install(const Uptane::Target &target) co
     kargs_strv_vector.push_back((*it).c_str());
   }
   kargs_strv_vector[args_vector.size()] = nullptr;
-  auto kargs_strv = const_cast<char **>(&kargs_strv_vector[0]);
+  auto *kargs_strv = const_cast<char **>(&kargs_strv_vector[0]);
 
   OstreeDeployment *new_deployment_raw = nullptr;
   if (ostree_sysroot_deploy_tree(sysroot.get(), opt_osname, revision, origin.get(), merge_deployment.get(), kargs_strv,

@@ -13,7 +13,7 @@ RUN apt-get update && apt-get -y install --no-install-suggests --no-install-reco
   awscli \
   bison \
   ccache \
-  clang-format-8 \
+  clang-format-10 \
   cmake \
   curl \
   e2fslibs-dev \

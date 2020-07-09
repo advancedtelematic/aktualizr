@@ -138,7 +138,6 @@ class SecondaryWaiter {
 
   static std::string key(const std::string& ip, uint16_t port) { return (ip + std::to_string(port)); }
 
- private:
   Aktualizr& aktualizr_;
 
   boost::asio::io_service io_context_;

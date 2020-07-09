@@ -195,7 +195,7 @@ void AktualizrSecondary::registerHandlers() {
                   std::bind(&AktualizrSecondary::getInfoHdlr, this, std::placeholders::_1, std::placeholders::_2));
 
   registerHandler(AKIpUptaneMes_PR_versionReq,
-                  std::bind(&AktualizrSecondary::versionHdlr, this, std::placeholders::_1, std::placeholders::_2));
+                  std::bind(&AktualizrSecondary::versionHdlr, std::placeholders::_1, std::placeholders::_2));
 
   registerHandler(AKIpUptaneMes_PR_manifestReq,
                   std::bind(&AktualizrSecondary::getManifestHdlr, this, std::placeholders::_1, std::placeholders::_2));
@@ -207,7 +207,7 @@ void AktualizrSecondary::registerHandlers() {
                   std::bind(&AktualizrSecondary::installHdlr, this, std::placeholders::_1, std::placeholders::_2));
 }
 
-MsgHandler::ReturnCode AktualizrSecondary::getInfoHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+MsgHandler::ReturnCode AktualizrSecondary::getInfoHdlr(Asn1Message& in_msg, Asn1Message& out_msg) const {
   (void)in_msg;
 
   out_msg.present(AKIpUptaneMes_PR_getInfoResp);
@@ -240,7 +240,7 @@ MsgHandler::ReturnCode AktualizrSecondary::versionHdlr(Asn1Message& in_msg, Asn1
   return ReturnCode::kOk;
 }
 
-AktualizrSecondary::ReturnCode AktualizrSecondary::getManifestHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+AktualizrSecondary::ReturnCode AktualizrSecondary::getManifestHdlr(Asn1Message& in_msg, Asn1Message& out_msg) const {
   (void)in_msg;
 
   out_msg.present(AKIpUptaneMes_PR_manifestResp);

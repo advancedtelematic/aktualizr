@@ -50,16 +50,16 @@ class AktualizrSecondary : public MsgDispatcher {
   void initPendingTargetIfAny();
 
  private:
-  void copyMetadata(Uptane::MetaBundle& meta_bundle, Uptane::RepositoryType repo, const Uptane::Role& role,
-                    std::string& json);
+  static void copyMetadata(Uptane::MetaBundle& meta_bundle, Uptane::RepositoryType repo, const Uptane::Role& role,
+                           std::string& json);
   data::InstallationResult doFullVerification(const Metadata& metadata);
   void uptaneInitialize();
   void registerHandlers();
 
   // Message handlers
-  ReturnCode getInfoHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
-  ReturnCode versionHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
-  ReturnCode getManifestHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
+  ReturnCode getInfoHdlr(Asn1Message& in_msg, Asn1Message& out_msg) const;
+  static ReturnCode versionHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
+  ReturnCode getManifestHdlr(Asn1Message& in_msg, Asn1Message& out_msg) const;
   ReturnCode putMetaHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
   ReturnCode installHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
 

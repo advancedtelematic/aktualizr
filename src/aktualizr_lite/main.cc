@@ -68,7 +68,7 @@ static int list_main(LiteClient &client, const bpo::variables_map &unused) {
   }
 
   LOG_INFO << "Updates available to " << hwid << ":";
-  for (auto &t : client.primary->allTargets()) {
+  for (const auto &t : client.primary->allTargets()) {
     for (auto const &it : t.hardwareIds()) {
       if (it == hwid) {
         log_info_target("", client.config, t);
@@ -95,7 +95,7 @@ static std::unique_ptr<Uptane::Target> find_target(const std::shared_ptr<SotaUpt
 
   bool find_latest = (version == "latest");
   std::unique_ptr<Uptane::Target> latest = nullptr;
-  for (auto &t : client->allTargets()) {
+  for (const auto &t : client->allTargets()) {
     for (auto const &it : t.hardwareIds()) {
       if (it == hwid) {
         if (find_latest) {

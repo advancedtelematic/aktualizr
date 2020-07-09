@@ -46,8 +46,8 @@ class IpUptaneSecondary : public SecondaryInterface {
   data::InstallationResult sendFirmware_v2(const Uptane::Target& target);
   data::InstallationResult install_v1(const Uptane::Target& target);
   data::InstallationResult install_v2(const Uptane::Target& target);
-  void addMetadata(const Uptane::MetaBundle& meta_bundle, Uptane::RepositoryType repo, const Uptane::Role& role,
-                   AKMetaCollection_t& collection);
+  static void addMetadata(const Uptane::MetaBundle& meta_bundle, Uptane::RepositoryType repo, const Uptane::Role& role,
+                          AKMetaCollection_t& collection);
   data::InstallationResult invokeInstallOnSecondary(const Uptane::Target& target);
   data::InstallationResult downloadOstreeRev(const Uptane::Target& target);
   data::InstallationResult uploadFirmware(const Uptane::Target& target);
