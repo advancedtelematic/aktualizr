@@ -14,10 +14,10 @@ RUN apt-get update && apt-get -y install --no-install-suggests --no-install-reco
   automake \
   bison \
   ccache \
-  clang-8 \
-  clang-tidy-8 \
-  clang-tools-8 \
-  clang-format-8 \
+  clang-10 \
+  clang-tidy-10 \
+  clang-tools-10 \
+  clang-format-10 \
   cmake \
   curl \
   doxygen \
@@ -67,8 +67,8 @@ RUN apt-get update && apt-get -y install --no-install-suggests --no-install-reco
   xsltproc \
   zip
 
-RUN ln -s clang-8 /usr/bin/clang && \
-    ln -s clang++-8 /usr/bin/clang++
+RUN ln -s clang-10 /usr/bin/clang && \
+    ln -s clang++-10 /usr/bin/clang++
 
 WORKDIR /ostree
 RUN git init && git remote add origin https://github.com/ostreedev/ostree

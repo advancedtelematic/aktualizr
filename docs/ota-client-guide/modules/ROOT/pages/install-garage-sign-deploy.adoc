@@ -45,7 +45,7 @@ If you're using another version of Ubuntu, or another Debian-based distribution 
 [subs="attributes"]
 ----
 git clone --branch {aktualizr-version} --recursive https://github.com/advancedtelematic/aktualizr
-sudo apt install asn1c build-essential clang clang-format-8 clang-tidy-8 cmake curl \
+sudo apt install asn1c build-essential clang clang-format-10 clang-tidy-10 cmake curl \
   doxygen graphviz lcov libarchive-dev libboost-dev libboost-filesystem-dev libboost-log-dev \
   libboost-program-options-dev libcurl4-openssl-dev libostree-dev libp11-2 libp11-dev \
   libpthread-stubs0-dev libsodium-dev libsqlite3-dev libssl-dev libsystemd-dev

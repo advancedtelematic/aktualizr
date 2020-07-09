@@ -168,6 +168,7 @@ std::string Target::sha256Hash() const { return hashString(Hash::Type::kSha256);
 std::string Target::sha512Hash() const { return hashString(Hash::Type::kSha512); }
 
 bool Target::IsOstree() const {
+  // NOLINTNEXTLINE(bugprone-branch-clone)
   if (type_ == "OSTREE") {
     // Modern servers explicitly specify the type of the target
     return true;

@@ -200,7 +200,7 @@ StorageTargetHandle *Aktualizr_open_stored_target(Aktualizr *a, const Target *t)
   }
 
   try {
-    auto stream = new auto(a->OpenStoredTarget(*t));
+    auto *stream = new auto(a->OpenStoredTarget(*t));
     return stream;
   } catch (const std::exception &e) {
     std::cerr << "Aktualizr_open_stored_target exception: " << e.what() << std::endl;
