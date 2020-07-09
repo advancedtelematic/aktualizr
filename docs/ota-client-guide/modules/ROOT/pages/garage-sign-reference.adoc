@@ -1,0 +1,397 @@
+= Garage-sign commands and options
+:type: The type of key that you want to create: Ed25519 or RSA.
+:keysize: The length of the key that you want to create, in bits. RSA 2048/4096 and Ed25519 are supported.
+:key-name-text: The base filename for your keys. Generated files will be named `<key-name>.sec` and `<key-name>.pub`.
+:keys-path: The path where this executable will look for keys. By default, it is the `user-keys` directory in the directory that you specified with the `--home-dir` command.
+:inplace: Modifies the input .json file directly. If this option is not specified, it outputs the signed metadata to stdout.
+:length: The length of the target, in bytes.
+:version: The version string of the target.
+:sha-256: The hash of the binary. For OSTree images, it is the root hash of the target commit.
+:hardware-ids: The types of hardware with which this image is compatible.
+:expires: The metadata expiry date. It is a UTC instant, such as `2020-01-01T00:01:00Z`.
+:expire-after: The expiration delay in years, months, and days (each optional, but in that order), such as `1Y3M5D`.
+:force: Skips sanity checking. For example, allows to set a date in the past.
+:format: The format of the target: [`ostree`\|`binary`]
+:url: (Optional) An external URL where the binary can be downloaded.
+
+You can use the `garage-sign` tool if you need to sign metadata about your software, as well as manage your software signing keys and root of trust. When you start using OTA Connect, we generate a root of trust and a signing key for you, and automatically sign software you upload. Later on, you can use `garage-sign` to rotate those keys, taking them completely offline to increase security.
+
+In the reference below, find a list of commands and options that you can use.
+
+.Garage-sign reference
++++<details><summary>+++
+Global options
++++ </summary><div> +++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| --help | Prints all available `garage-sign` commands and options.
+| --version | Prints the current binary version.
+| --verbose | Prints the verbose information for the execution.
+| -h, --home-dir | The directory that you want to work with. By default, it is your current working directory.
+|====================
+
++++</div></details>+++
+
++++<details><summary>+++
+`user-keys [gen|id]`: Manages keys stored outside of a specific repository's directory.
++++ </summary><div> +++
+
++++<details><summary>+++
+`user-keys gen`: Creates a key pair and stores it in a configurable location.
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| -t, --type | {type}
+| --keysize | {keysize}
+| -k, --key-name | {key-name-text}
+|====================
+
++++</div></details>+++
+
++++<details><summary>+++
+`user-keys id`: Calculates the Uptane key ID for a given public key.
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| -i, --input | The path to the file with your public key.
+|====================
+
++++</div></details>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| -p, --keys-path | {keys-path}
+|====================
+
++++</div></details>+++
+
++++<details><summary>+++
+`delegations [init|sign|push|pull|add-target]` image:img::beta-icon.svg[Beta]: Manages delegation metadata.
++++</summary><div>+++
+
+`delegations init`: Creates an empty .json file with delegation metadata that you can edit and sign.
+
++++<details><summary>+++
+`delegations sign`: Signs delegation metadata.
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| -k, --key-name | The base name of the key to use for signing.
+| -p, --keys-path | {keys-path}
+| -i, --input | The path to the delegated Targets metadata file that you want to sign.
+| -e, --inplace | {inplace}
+|====================
+
++++</div></details>+++
+
++++<details><summary>+++
+`delegations push`: Pushes delegation metadata to the server. Requires an initialized `tuf` repository.
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| -r, --repo | The name of your local repository. This repository should be a directory in your `tuf` repository. You can create the repository with the `init` command.
+| -n, --name | The name of the delegation.
+| -i, --input | The path to the signed .json file with delegations.
+|====================
+
++++</div></details>+++
+
++++<details><summary>+++
+`delegations pull`: Pulls a delegated Targets metadata file from the server. Requires an initialized `tuf` repository.
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| -r, --repo | The name of your local repository. This repository should be a directory in your `tuf` repository. You can create the repository with the `init` command.
+| -n, --name | The name of the delegation.
+| -o, --output | The name of the file to which you want to save the delegation.
+|====================
+
++++</div></details>+++
+
++++<details><summary>+++
+`delegations add-target`: Adds a new target to a delegated Targets metadata file.
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| --length | {length}
+| --name | The name of the target.
+| --version | {version}
+| --format | {format}
+| --sha256 | {sha-256}
+| --hardwareids | {hardware-ids}
+| --url | {url}
+| -i, --input | The path to the delegated Targets metadata file that you want to modify.
+| -e, --inplace | {inplace}
+|====================
+
++++</div></details>+++
+
++++</div></details>+++
+
++++<details><summary>+++
+`init`: Creates an empty local repository.
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| -r, --repo | The name of the local repository that you want to create. This repository should be a directory in your `tuf` repository.
+| --reposerver | The repo server URL. By default, reads the URL from the .zip file with your provisioning credentials.
+| -c, --credentials | The path to the .zip file with your provisioning credentials.
+| -t, --servertype | The repo server type: `reposerver` (default) or `director`.
+|====================
+
++++</div></details>+++
+
++++<details><summary>+++
+`key [generate]`: Manages keys stored in a specific local repository's directory.
++++</summary><div>+++
++++<details><summary>+++
+`key generate`: Generates a new key and saves it in a specific repository.
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| -r, --repo | The name of the local repository where you want to save your new key. This repository should be a directory in your `tuf` repository. You can create the repository with the `init` command.
+| -n, --name | {key-name-text}
+| -t, --type | {type}
+| --keysize | {keysize}
+|====================
+
++++</div></details>+++
++++</div></details>+++
+
++++<details><summary>+++
+`move-offline`: Removes online keys from OTA Connect, and updates the environment to use locally stored offline keys.
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| -r, --repo | The name of the local repository where you want to rotate keys. This repository should be a directory in your `tuf` repository. You can create the repository with the `init` command.
+| --new-root | The new Root key that you want to add to the `root.json` file (should already exist).
+| --new-targets | (Only for the repo server) The new Targets key that you want to add to the `root.json` file (should already exist).
+| --old-root-alias | The alias of the old Root key. The old Root key will be saved under this name.
+| --old-keyid | (Optional) The ID of the key that you want to remove from the `root.json` file. This app will try to use the last key defined in the current `root.json` file.
+|====================
+
++++</div></details>+++
+
++++<details><summary>+++
+`root [pull|push|key|sign]`: Manages root-of-trust metadata for a repository.
++++</summary><div>+++
+
+`root pull`: Pulls the current `root.json` file from OTA Connect.
+
+`root push`: Uploads local `root.json` file to OTA Connect. If the file does not have a valid signature, it will be rejected by the server.
+
++++<details><summary>+++
+`root key [add|remove]`: Manages keys that are permitted to sign the root-of-trust metadata.
++++</summary><div>+++
+
++++<details><summary>+++
+`root key add`: Adds a specific key to the list of keys authorized to sign the root-of-trust metadata.
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| -k, --key-name | The path to the public key that you want to add.
+|====================
+
++++</div></details>+++
+
++++<details><summary>+++
+`root key remove`: Removes a specific key from the list of keys authorized to sign the root-of-trust metadata.
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| -k, --key-name | The name of the file with the keys that you want to remove. You can use the `--key-id` command instead.
+| --key-id | The ID of the public key that you want to remove. You can use the `--key-name` command instead.
+|====================
+
++++</div></details>+++
+
++++</div></details>+++
+
++++<details><summary>+++
+`root sign`: Signs your root-of-trust metadata with a specific key and sets the expiry.
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| -k, --key-name | The path to the public key to use for signing.
+| --expires | {expires}
+| --expire-after | {expire-after}
+| --force | {force}
+|====================
+
++++</div></details>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| -r, --repo | The name of the local repository where you want to manage the `root.json` file. This repository should be a directory in your `tuf` repository. You can create the repository with the `init` command.
+|====================
+
++++</div></details>+++
+
++++<details><summary>+++
+`targets [init|add|add-uploaded|delete|sign|pull|push|upload|delegations]`: (Only for repositories of type `reposerver`) Manages Targets metadata.
+// tag::target-term[]
+*Target* is a term from Uptane. Each Target corresponds to a software version available in your OTA Connect software repository.
+// end::target-term[]
++++</summary><div>+++
+
++++<details><summary>+++
+`targets init`: Creates a new top-level (non-delegated) `targets.json` file.
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| --version | The version of the `targets.json` file. Versions are integers, normally starting at 1. They must always increase in each successive `targets.json` version.
+| --expires | {expires}
+|====================
++++</div></details>+++
+
++++<details><summary>+++
+`targets add`: Adds a target.
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| --length | {length}
+| --name | The name of the target.
+| --version | {version}
+| --format | {format}
+| --sha256 | {sha-256}
+| --hardwareids | {hardware-ids}
+| --url | {url}
+|====================
++++</div></details>+++
+
++++<details><summary>+++
+`targets delete`: Deletes a single target. This target can no longer be installed on devices.
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| --filename | The exact name of the target to remove. Should be in one of the following forms: `<name>_<version>` for OSTree images, or `<name>-<version>` for binary images.
+|====================
++++</div></details>+++
+
++++<details><summary>+++
+`targets sign`: Signs your `targets.json` file with a specific key.
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| --key-name | The path to the public key to use for signing.
+|--version | The version number to use for the signed metadata. Overrides the version in the unsigned `targets.json`.
+| --expires | {expires}
+| --expire-after | {expire-after}
+| --force | {force}
+|====================
++++</div></details>+++
+
+`targets pull`: Pulls the current `targets.json` file from OTA Connect.
+
+`targets push`: Pushes the latest `targets.json` file to the server.
+If the Targets file is invalid, for example because of a bad signature or a non-increasing version number, this `push` will fail with exit code 2.
+
++++<details><summary>+++
+`targets upload`: Uploads a binary to the repository.
+// tag::targets-upload-note[]
+Note that this *will not* make the binary available on its own. After the upload completes successfully, add it to your `targets.json` file using the `targets add-uploaded` command.
+// end::targets-upload-note[]
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| -i, --input | The path to the file that you want to upload.
+| --name | The name of the target.
+| --version | {version}
+| --timeout | The timeout for the HTTP request of the upload, in seconds.
+|====================
++++</div></details>+++
+
++++<details><summary>+++
+`targets add-uploaded`: Adds a target that you previously uploaded to OTA Connect using the `targets upload` command.
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| -i, --input | The path to the binary file.
+| --name | The name of the target.
+| --version | {version}
+| --hardwareids | {hardware-ids}
+|====================
++++</div></details>+++
+
+`targets delegations`: Manages the delegated Targets of the repository `targets.json` file.
+
++++<details><summary>+++
+`targets delegations add`: Adds a new delegation to the existing `targets.json` file.
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| -n, --name | The name of the target.
+| -p, --prefix | The path prefix of the image that you want to delegate.
+| -k, --key | The path to the public key that you want to add as a delegation key.
+|====================
++++</div></details>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| -r, --repo | The name of your local repository. This repository should be a directory in your `tuf` repository. You can create the repository with the `init` command.
+|====================
+
++++</div></details>+++
+
++++<details><summary>+++
+`export-credentials`: Exports settings and keys to the .zip file with your provisioning credentials.
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| -r, --repo | The name of your local repository. This repository should be a directory in your `tuf` repository. You can create the repository with the `init` command.
+| -k, --key-name | The name of the file with your private and public keys that you want to export.
+| -o, --output | The name of the file to which you want to export our credentials.
+|====================
++++</div></details>+++
+
+To learn how to use the garage-sign tool, see the following documentation:
+
+* xref:rotating-signing-keys.adoc[Rotate keys for Root and Targets metadata]
+* xref:metadata-expiry.adoc[Manage metadata expiry dates]
+* xref:upload-large-binary.adoc[Upload a binary file]
+* xref:customise-targets-metadata.adoc[Add custom metadata fields to Targets metadata]

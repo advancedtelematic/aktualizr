@@ -1,0 +1,17 @@
+== Upload Yocto images using offline credentials
+
+After you rotate your software signing keys, you can no longer use credentials downloaded from the OTA Connect portal to upload software images.
+
+*To upload software images using offline credentials:*
+
+. Export your new offline Targets key into a new .zip file (for example, offline-credentials.zip).
++
+----
+garage-sign export-credentials --repo myimagerepo --key-name mytargets --output offline-credentials.zip
+----
+
+. Update your `local.conf` to use the new `offline-credentials.zip` file and run `bitbake` as before.
+
+As part of the `bitbake` process, the image metadata inside `targets.json` is signed with your offline TUF keys. The signed `targets.json` file is then uploaded to your OTA Connect account.
+
+To learn more about the BitBake commands and options, see its xref:useful-bitbake-commands.adoc[reference] documentation.

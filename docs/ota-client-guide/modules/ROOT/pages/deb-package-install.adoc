@@ -1,4 +1,4 @@
-== Installing aktualizr via debian package
+= Installing aktualizr via debian package
 ifdef::env-github[]
 
 [NOTE]
@@ -14,7 +14,7 @@ Aktualizr makes .deb packages available via the https://github.com/advancedtelem
 sudo apt install ./aktualizr.deb
 ----
 
-=== Setting up aktualizr
+== Setting up aktualizr
 
 The debian package will install, enable, and start an `aktualizr` systemd service immediately after it's installed. However, there are some configuration steps that should be taken before the service starts. To use aktualizr with a server (i.e. https://github.com/advancedtelematic/ota-community-edition/[OTA Community Edition] or https://docs.ota.here.com[HERE OTA Connect]), you will need to download the provisioning credentials file provided by the server and place it at `/var/sota/sota_provisioning_credentials.zip`.
 
@@ -22,11 +22,11 @@ You can pass any other command-line arguments in this file, as well.
 
 For security reasons, we recommend creating the `/usr/lib/sota/sota.env` file even if you aren't going to use it. The file should be owned by root, with `600` permissions.
 
-=== Secondary ECUs
+== Secondary ECUs
 
 The debian package ships with a default Secondary ECU configured. This acts like a dummy device, dropping whatever file you send it into `/tmp/demo-virtual-secondary/firmware.bin`.
 
-=== Building the debian package
+== Building the debian package
 
 After following the main build setup steps, just `make package` instead of `make` to create a debian package from your current branch, for example:
 
@@ -39,6 +39,6 @@ cmake  -DCMAKE_BUILD_TYPE=Debug -DBUILD_DEB=ON ..
 make package
 ----
 
-=== Making a Release on github
+== Making a Release on github
 
 The process for releasing a new version of aktualizr and updating the documentation is described xref:release-process.adoc[here].

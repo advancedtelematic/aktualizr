@@ -71,7 +71,7 @@ ifndef::env-github[:pageroot:]
 
 * xref:{pageroot}secure-software-updates.adoc[Secure your software repository]
 ** xref:{pageroot}install-garage-sign-deploy.adoc[Install the garage-deploy tool]
-** xref:{pageroot}rotating-signing-keys.adoc[Manage keys for software metadata]
+** xref:{pageroot}rotating-signing-keys.adoc[Rotate keys for Root and Targets metadata]
 ** xref:{pageroot}metadata-expiry.adoc[Manage metadata expiry dates]
 
 .Deploy your OTA-enabled solution
@@ -85,12 +85,15 @@ ifndef::env-github[:pageroot:]
 * xref:{pageroot}build-only-ostree.adoc[Build only the OSTree part]
 * xref:{pageroot}rollback.adoc[Set up rollback behavior]
 * xref:{pageroot}deb-package-install.adoc[Install the client from a deb package]
+* xref:{pageroot}upload-large-binary.adoc[Upload a binary file]
+* xref:{pageroot}push-images-with-bitbake.adoc[Upload Yocto images using offline credentials]
 * xref:{pageroot}virtual-secondaries.adoc[Use Virtual Secondaries]
 
 .Reference
 // MC: Do in second iteration: * xref:{pageroot}otaconnect-identifiers.adoc[Identifiers]
 * xref:{pageroot}aktualizr-config-options.adoc[Client configuration options]
 * xref:{pageroot}build-configuration.adoc[Build configuration options]
+* xref:{pageroot}garage-sign-reference.adoc[Garage-sign commands and options]
 * xref:{pageroot}customise-targets-metadata.adoc[Customize Targets metadata]
 * xref:{pageroot}aktualizr-runningmodes-finegrained-commandline-control.adoc[Client commands]
 * xref:{pageroot}provisioning-methods-and-credentialszip.adoc[Contents of the credentials file]
@@ -117,4 +120,3 @@ ifndef::env-github[:pageroot:]
 * xref:{pageroot}schema-migrations.adoc[Add a schema migration]
 * xref:{pageroot}debugging-tips.adoc[Debugging the client]
 * xref:{pageroot}meta-updater-testing.adoc[Testing meta-updater]
-
