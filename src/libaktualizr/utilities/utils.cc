@@ -591,10 +591,10 @@ void Utils::removeFileFromArchive(const boost::filesystem::path &archive_path, c
     LOG_ERROR << "Unable to open provided provisioning archive " << archive_path << ": " << std::strerror(errno);
     throw std::runtime_error("Unable to parse provisioning credentials");
   }
-  TemporaryFile outfile;
-  std::ofstream as_out(outfile.PathString().c_str(), std::ios::out | std::ios::binary);
+  const boost::filesystem::path outfile = archive_path.string() + "-" + boost::filesystem::unique_path().string();
+  std::ofstream as_out(outfile.c_str(), std::ios::out | std::ios::binary);
   if (as_out.fail()) {
-    LOG_ERROR << "Unable to create file " << outfile.Path() << ": " << std::strerror(errno);
+    LOG_ERROR << "Unable to create file " << outfile << ": " << std::strerror(errno);
     throw std::runtime_error("Unable to parse provisioning credentials");
   }
 
@@ -675,9 +675,9 @@ void Utils::removeFileFromArchive(const boost::filesystem::path &archive_path, c
   }
 
   if (found) {
-    boost::filesystem::rename(outfile.Path(), archive_path);
+    boost::filesystem::rename(outfile, archive_path);
   } else {
-    boost::filesystem::remove(outfile.Path());
+    boost::filesystem::remove(outfile);
     throw std::runtime_error("Requested file not found in archive!");
   }
 }
