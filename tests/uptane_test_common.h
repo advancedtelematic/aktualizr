@@ -138,6 +138,21 @@ struct UptaneTestCommon {
     packages_to_install.emplace_back(serial, ot_json);
     return packages_to_install;
   }
+
+  static void verifyEcus(TemporaryDirectory& temp_dir, std::vector<std::string> expected_ecus) {
+    const Json::Value ecu_data = Utils::parseJSONFile(temp_dir / "post.json");
+    EXPECT_EQ(ecu_data["ecus"].size(), expected_ecus.size());
+    for (const Json::Value& ecu : ecu_data["ecus"]) {
+      auto found = std::find(expected_ecus.begin(), expected_ecus.end(), ecu["ecu_serial"].asString());
+      if (found != expected_ecus.end()) {
+        expected_ecus.erase(found);
+      } else {
+        FAIL() << "Unknown ECU in registration data: " << ecu["ecu_serial"].asString();
+      }
+    }
+    EXPECT_EQ(expected_ecus.size(), 0);
+  }
+
 };
 
 #endif // UPTANE_TEST_COMMON_H_

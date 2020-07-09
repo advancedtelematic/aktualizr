@@ -37,22 +37,30 @@ TEST(PrimarySecondaryReg, SecondariesMigration) {
   auto storage = INvStorage::newStorage(conf.storage);
   Json::Value sec_conf;
 
-  {
-    // Prepare storage the "old" way (without the secondary_ecus table):
-    storage->storeDeviceId("device");
-    storage->storeEcuSerials({{primary_serial, primary_hwid}, {secondary_serial, secondary_hwid}});
-    storage->storeEcuRegistered();
+  // Prepare storage the "old" way (without the secondary_ecus table):
+  storage->storeDeviceId("device");
+  storage->storeEcuSerials({{primary_serial, primary_hwid}, {secondary_serial, secondary_hwid}});
+  storage->storeEcuRegistered();
 
-    sec_conf["IP"]["secondary_wait_port"] = 9030;
-    sec_conf["IP"]["secondary_wait_timeout"] = 1;
-    sec_conf["IP"]["secondaries"] = Json::arrayValue;
-    sec_conf["IP"]["secondaries"][0]["addr"] = "127.0.0.1:9061";
-    Utils::writeFile(sec_conf_path, sec_conf);
+  sec_conf["IP"]["secondary_wait_port"] = 9030;
+  sec_conf["IP"]["secondary_wait_timeout"] = 1;
+  sec_conf["IP"]["secondaries"] = Json::arrayValue;
+  sec_conf["IP"]["secondaries"][0]["addr"] = "127.0.0.1:9061";
+  Utils::writeFile(sec_conf_path, sec_conf);
+
+  {
+    // Confirm that the fields from the secondary_ecus table are empty.
+    std::vector<SecondaryInfo> secs_info;
+    storage->loadSecondariesInfo(&secs_info);
+    EXPECT_EQ(secs_info.size(), 1);
+    EXPECT_EQ(secs_info[0].serial.ToString(), secondary_serial.ToString());
+    EXPECT_EQ(secs_info[0].type, "");
+    EXPECT_EQ(secs_info[0].extra, "");
   }
 
   {
     // Verify that aktualizr can still start if it can't connect to its
-    // Secondary:
+    // Secondary. This will migrate the Secondary.
     UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
     Primary::initSecondaries(aktualizr, sec_conf_path);
     aktualizr.Initialize();
@@ -60,10 +68,52 @@ TEST(PrimarySecondaryReg, SecondariesMigration) {
 
     std::vector<SecondaryInfo> secs_info;
     storage->loadSecondariesInfo(&secs_info);
+    EXPECT_EQ(secs_info.size(), 1);
     EXPECT_EQ(secs_info[0].serial.ToString(), secondary_serial.ToString());
     EXPECT_EQ(secs_info[0].type, "IP");
     EXPECT_EQ(secs_info[0].extra, R"({"ip":"127.0.0.1","port":9061})");
   }
+
+  {
+    // Try again (again without connecting) to verify that the Secondary is
+    // correctly found in the storage.
+    UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
+    Primary::initSecondaries(aktualizr, sec_conf_path);
+    aktualizr.Initialize();
+    aktualizr.CheckUpdates().get();
+
+    std::vector<SecondaryInfo> secs_info;
+    storage->loadSecondariesInfo(&secs_info);
+    EXPECT_EQ(secs_info.size(), 1);
+    EXPECT_EQ(secs_info[0].serial.ToString(), secondary_serial.ToString());
+    EXPECT_EQ(secs_info[0].type, "IP");
+    EXPECT_EQ(secs_info[0].extra, R"({"ip":"127.0.0.1","port":9061})");
+  }
+}
+
+/*
+ * Register Virtual Secondaries via json configuration.
+ * Reject multiple Secondaries with the same serial.
+ */
+TEST(PrimarySecondaryReg, VirtualSecondary) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates", fake_meta_dir);
+  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+  auto storage = INvStorage::newStorage(conf.storage);
+
+  UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
+  // This should fail because TestAktualizr automatically adds the default
+  // Secondary created in makeTestConfig.
+  EXPECT_THROW(Primary::initSecondaries(aktualizr, conf.uptane.secondary_config_file), std::exception);
+
+  boost::filesystem::remove(conf.uptane.secondary_config_file);
+  UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "serial2", "hwid2");
+  UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "serial3", "hwid3");
+  Primary::initSecondaries(aktualizr, conf.uptane.secondary_config_file);
+  aktualizr.Initialize();
+
+  std::vector<std::string> expected_ecus = {"CA:FE:A6:D2:84:9D", "secondary_ecu_serial", "serial2", "serial3"};
+  UptaneTestCommon::verifyEcus(temp_dir, expected_ecus);
 }
 
 #ifndef __NO_MAIN__
