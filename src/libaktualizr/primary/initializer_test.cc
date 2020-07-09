@@ -375,14 +375,7 @@ TEST(Initializer, EcuRegisteration) {
   }
 }
 
-/**
- * Verifies if the system hostname is used as a Primary ECU hardware ID
- * if it's not specified in the configuration
- *
- * Checks actions:
- *
- * - [x] Use the system hostname as hardware ID if one is not provided
- */
+/* Use the system hostname as hardware ID if one is not provided. */
 TEST(Initializer, HostnameAsHardwareID) {
   TemporaryDirectory temp_dir;
   Config conf("tests/config/basic.toml");
@@ -403,11 +396,6 @@ TEST(Initializer, HostnameAsHardwareID) {
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials));
     EXPECT_GE(ecu_serials.size(), 1);
 
-    // A second element of the first tuple in ECU Serials tuple array is a Primary hardware ID.
-    // Each client of the storage class needs to know this information.
-    // If it changes then corresponding changes should be done in each storage client.
-    // perhaps it makes sense to introduce get/setPrimaryHardwareID method and incapsulate
-    // this tech info within storage (or maybe some other entity)
     auto primaryHardwareID = ecu_serials[0].second;
     auto hostname = Utils::getHostname();
     EXPECT_EQ(primaryHardwareID, Uptane::HardwareIdentifier(hostname));
