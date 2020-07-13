@@ -398,7 +398,7 @@ set(GOOGLE_TEST_OUTPUT --gtest_output=xml:${CMAKE_BINARY_DIR}/results/)
 # integrate with.
 execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/amalgamate-jsoncpp.sh ${CMAKE_CURRENT_SOURCE_DIR}/third_party/jsoncpp ${CMAKE_CURRENT_BINARY_DIR}/jsoncpp)
 include_directories(${PROJECT_BINARY_DIR}/jsoncpp)
-set_source_files_properties(${PROJECT_BINARY_DIR}/jsoncpp/jsoncpp.cc PROPERTIES COMPILE_FLAGS "-Wno-float-equal -Wno-switch-default -Wno-implicit-fallthrough")
+set_source_files_properties(${PROJECT_BINARY_DIR}/jsoncpp/jsoncpp.cc PROPERTIES COMPILE_FLAGS "-Wno-error")
 add_library(jsoncpp OBJECT ${PROJECT_BINARY_DIR}/jsoncpp/jsoncpp.cc)
 
 add_subdirectory("fuzz")
