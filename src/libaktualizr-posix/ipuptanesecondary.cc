@@ -111,12 +111,11 @@ void IpUptaneSecondary::getSecondaryVersion() const {
     // Bad response probably means v1, but make sure the Secondary is actually
     // responsive before assuming that.
     if (ping()) {
-      LOG_DEBUG << "Failed to get a response to a version request from Secondary " << getSerial()
-                << "; assuming version 1.";
+      LOG_DEBUG << "Secondary " << getSerial() << " failed to respond to a version request; assuming version 1.";
       protocol_version = 1;
     } else {
-      LOG_INFO << "Failed to get a response to a version request from Secondary " << getSerial()
-               << "; unable to determine protocol version.";
+      LOG_INFO << "Secondary " << getSerial()
+               << " failed to respond to a version request; unable to determine protocol version.";
     }
     return;
   }
@@ -186,9 +185,10 @@ data::InstallationResult IpUptaneSecondary::putMetadata_v1(const Uptane::MetaBun
   auto resp = Asn1Rpc(req, getAddr());
 
   if (resp->present() != AKIpUptaneMes_PR_putMetaResp) {
-    LOG_ERROR << "Failed to get response from sending metadata to Secondary";
-    return data::InstallationResult(data::ResultCode::Numeric::kInternalError,
-                                    "Failed to get response from sending metadata to Secondary");
+    LOG_ERROR << "Secondary " << getSerial() << " failed to respond to a request to receive metadata.";
+    return data::InstallationResult(
+        data::ResultCode::Numeric::kInternalError,
+        "Secondary " + getSerial().ToString() + " failed to respond to a request to receive metadata.");
   }
 
   auto r = resp->putMetaResp();
@@ -232,9 +232,10 @@ data::InstallationResult IpUptaneSecondary::putMetadata_v2(const Uptane::MetaBun
   auto resp = Asn1Rpc(req, getAddr());
 
   if (resp->present() != AKIpUptaneMes_PR_putMetaResp2) {
-    LOG_ERROR << "Failed to get response from sending metadata to Secondary";
-    return data::InstallationResult(data::ResultCode::Numeric::kInternalError,
-                                    "Failed to get response from sending metadata to Secondary");
+    LOG_ERROR << "Secondary " << getSerial() << " failed to respond to a request to receive metadata.";
+    return data::InstallationResult(
+        data::ResultCode::Numeric::kInternalError,
+        "Secondary " + getSerial().ToString() + " failed to respond to a request to receive metadata.");
   }
 
   auto r = resp->putMetaResp2();
@@ -251,7 +252,7 @@ Manifest IpUptaneSecondary::getManifest() const {
   auto resp = Asn1Rpc(req, getAddr());
 
   if (resp->present() != AKIpUptaneMes_PR_manifestResp) {
-    LOG_ERROR << "Failed to get a response to a manifest request to Secondary with serial " << getSerial();
+    LOG_ERROR << "Secondary " << getSerial() << " failed to respond to a manifest request.";
     return Json::Value();
   }
   auto r = resp->manifestResp();
@@ -311,9 +312,10 @@ data::InstallationResult IpUptaneSecondary::sendFirmware_v1(const Uptane::Target
   auto resp = Asn1Rpc(req, getAddr());
 
   if (resp->present() != AKIpUptaneMes_PR_sendFirmwareResp) {
-    LOG_ERROR << "Failed to get response to sending firmware to Secondary";
-    return data::InstallationResult(data::ResultCode::Numeric::kDownloadFailed,
-                                    "Failed to get response to sending firmware to Secondary");
+    LOG_ERROR << "Secondary " << getSerial() << " failed to respond to a request to receive firmware.";
+    return data::InstallationResult(
+        data::ResultCode::Numeric::kDownloadFailed,
+        "Secondary " + getSerial().ToString() + " failed to respond to a request to receive firmware.");
   }
 
   auto r = resp->sendFirmwareResp();
@@ -361,9 +363,10 @@ data::InstallationResult IpUptaneSecondary::install_v1(const Uptane::Target& tar
 
   // invalid type of an response message
   if (resp->present() != AKIpUptaneMes_PR_installResp) {
-    LOG_ERROR << "Failed to get response to an installation request to Secondary";
-    return data::InstallationResult(data::ResultCode::Numeric::kInternalError,
-                                    "Failed to get response to an installation request to Secondary");
+    LOG_ERROR << "Secondary " << getSerial() << " failed to respond to an installation request.";
+    return data::InstallationResult(
+        data::ResultCode::Numeric::kInternalError,
+        "Secondary " + getSerial().ToString() + " failed to respond to an installation request.");
   }
 
   // deserialize the response message
@@ -389,9 +392,10 @@ data::InstallationResult IpUptaneSecondary::downloadOstreeRev(const Uptane::Targ
   auto resp = Asn1Rpc(req, getAddr());
 
   if (resp->present() != AKIpUptaneMes_PR_downloadOstreeRevResp) {
-    LOG_ERROR << "Failed to get response to download ostree revision request";
-    return data::InstallationResult(data::ResultCode::Numeric::kUnknown,
-                                    "Failed to get response to download ostree revision request");
+    LOG_ERROR << "Secondary " << getSerial() << " failed to respond to a request to download an OSTree commit.";
+    return data::InstallationResult(
+        data::ResultCode::Numeric::kUnknown,
+        "Secondary " + getSerial().ToString() + " failed to respond to a request to download an OSTree commit.");
   }
 
   auto r = resp->downloadOstreeRevResp();
@@ -437,14 +441,16 @@ data::InstallationResult IpUptaneSecondary::uploadFirmwareData(const uint8_t* da
   auto resp = Asn1Rpc(req, getAddr());
 
   if (resp->present() == AKIpUptaneMes_PR_NOTHING) {
-    LOG_ERROR << "Failed to get response to an uploading data request to Secondary";
-    return data::InstallationResult(data::ResultCode::Numeric::kUnknown,
-                                    "Failed to get response to an uploading data request to Secondary");
+    LOG_ERROR << "Secondary " << getSerial() << " failed to respond to a request to receive firmware data.";
+    return data::InstallationResult(
+        data::ResultCode::Numeric::kUnknown,
+        "Secondary " + getSerial().ToString() + " failed to respond to a request to receive firmware data.");
   }
   if (resp->present() != AKIpUptaneMes_PR_uploadDataResp) {
-    LOG_ERROR << "Invalid response to an uploading data request to Secondary";
-    return data::InstallationResult(data::ResultCode::Numeric::kInternalError,
-                                    "Invalid response to an uploading data request to Secondary");
+    LOG_ERROR << "Secondary " << getSerial() << " returned an invalid response to a request to receive firmware data.";
+    return data::InstallationResult(
+        data::ResultCode::Numeric::kInternalError,
+        "Secondary " + getSerial().ToString() + " returned an invalid reponse to a request to receive firmware data.");
   }
 
   auto r = resp->uploadDataResp();
@@ -463,9 +469,10 @@ data::InstallationResult IpUptaneSecondary::invokeInstallOnSecondary(const Uptan
 
   // invalid type of an response message
   if (resp->present() != AKIpUptaneMes_PR_installResp2) {
-    LOG_ERROR << "Failed to get response to an installation request to Secondary";
-    return data::InstallationResult(data::ResultCode::Numeric::kUnknown,
-                                    "Failed to get response to an installation request to Secondary");
+    LOG_ERROR << "Secondary " << getSerial() << " failed to respond to an installation request.";
+    return data::InstallationResult(
+        data::ResultCode::Numeric::kUnknown,
+        "Secondary " + getSerial().ToString() + " failed to respond to an installation request.");
   }
 
   // deserialize the response message
