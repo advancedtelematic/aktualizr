@@ -10,12 +10,12 @@ stages:
 variables:
   UBUNTU_BIONIC_MASTER_IMAGE: ${CI_REGISTRY_IMAGE}:ci-master-UBUNTU_BIONIC
   UBUNTU_XENIAL_MASTER_IMAGE: ${CI_REGISTRY_IMAGE}:ci-master-UBUNTU_XENIAL
-  DEBIAN_TESTING_MASTER_IMAGE: ${CI_REGISTRY_IMAGE}:ci-master-DEBIAN_TESTING
+  UBUNTU_FOCAL_MASTER_IMAGE: ${CI_REGISTRY_IMAGE}:ci-master-UBUNTU_FOCAL
   UBUNTU_BIONIC_MASTER_INSTALLIMAGE: ${CI_REGISTRY_IMAGE}:ci-install-master-UBUNTU_BIONIC
   UBUNTU_XENIAL_MASTER_INSTALLIMAGE: ${CI_REGISTRY_IMAGE}:ci-install-master-UBUNTU_XENIAL
   UBUNTU_BIONIC_PR_IMAGE: ${CI_REGISTRY_IMAGE}:ci-${CI_COMMIT_REF_SLUG}-UBUNTU_BIONIC
   UBUNTU_XENIAL_PR_IMAGE: ${CI_REGISTRY_IMAGE}:ci-${CI_COMMIT_REF_SLUG}-UBUNTU_XENIAL
-  DEBIAN_TESTING_PR_IMAGE: ${CI_REGISTRY_IMAGE}:ci-${CI_COMMIT_REF_SLUG}-DEBIAN_TESTING
+  UBUNTU_FOCAL_PR_IMAGE: ${CI_REGISTRY_IMAGE}:ci-${CI_COMMIT_REF_SLUG}-UBUNTU_FOCAL
   UBUNTU_BIONIC_PR_INSTALLIMAGE: ${CI_REGISTRY_IMAGE}:ci-install-${CI_COMMIT_REF_SLUG}-UBUNTU_BIONIC
   UBUNTU_XENIAL_PR_INSTALLIMAGE: ${CI_REGISTRY_IMAGE}:ci-install-${CI_COMMIT_REF_SLUG}-UBUNTU_XENIAL
 
@@ -58,9 +58,9 @@ Docker Setup:
     - docker build --pull --cache-from "$UBUNTU_XENIAL_MASTER_IMAGE" --cache-from "$UBUNTU_XENIAL_PR_IMAGE" -f "$CI_PROJECT_DIR/docker/Dockerfile.ubuntu.xenial" -t "$UBUNTU_XENIAL_PR_IMAGE" .
     - docker push "$UBUNTU_XENIAL_PR_IMAGE"
 
-    - docker pull "$DEBIAN_TESTING_PR_IMAGE" || docker pull "$DEBIAN_TESTING_MASTER_IMAGE" || true
-    - docker build --pull --cache-from "$DEBIAN_TESTING_MASTER_IMAGE" --cache-from "$DEBIAN_TESTING_PR_IMAGE" -f "$CI_PROJECT_DIR/docker/Dockerfile.debian.testing" -t "$DEBIAN_TESTING_PR_IMAGE" .
-    - docker push "$DEBIAN_TESTING_PR_IMAGE"
+    - docker pull "$UBUNTU_FOCAL_PR_IMAGE" || docker pull "$UBUNTU_FOCAL_MASTER_IMAGE" || true
+    - docker build --pull --cache-from "$UBUNTU_FOCAL_MASTER_IMAGE" --cache-from "$UBUNTU_FOCAL_PR_IMAGE" -f "$CI_PROJECT_DIR/docker/Dockerfile.ubuntu.focal" -t "$UBUNTU_FOCAL_PR_IMAGE" .
+    - docker push "$UBUNTU_FOCAL_PR_IMAGE"
 
     # used for install tests
     - docker pull "$UBUNTU_BIONIC_PR_INSTALLIMAGE" || docker pull "$UBUNTU_BIONIC_MASTER_INSTALLIMAGE" || true
@@ -127,7 +127,7 @@ debian-build+static:
     GIT_CLONE_PATH: $CI_BUILDS_DIR/aktualizr-debian-$CI_JOB_ID
     GIT_SUBMODULE_STRATEGY: 'recursive'
 
-    TEST_BUILD_DIR: 'build-debian-testing'
+    TEST_BUILD_DIR: 'build-ubuntu-focal'
     TEST_CC: 'clang'
     # should run with valgrind but some leaks are still unfixed
     # TEST_CMAKE_BUILD_TYPE = 'Valgrind'
@@ -136,7 +136,7 @@ debian-build+static:
     TEST_WITH_STATICTESTS: '1'
     TEST_WITH_LOAD_TESTS: '1'
     TEST_WITH_DOCS: '1'
-  image: "$DEBIAN_TESTING_PR_IMAGE"
+  image: "$UBUNTU_FOCAL_PR_IMAGE"
   stage: test
   except:
     - /^20\d\d\.\d\d?-docs$/
@@ -147,12 +147,12 @@ debian-build+static:
       - ccache/
   artifacts:
     paths:
-      - build-debian-testing/docs/doxygen/
+      - build-ubuntu-focal/docs/doxygen/
     reports:
-      junit: build-debian-testing/report.xml
+      junit: build-ubuntu-focal/report.xml
   script:
     - ./scripts/test.sh
-    - xsltproc -o build-debian-testing/report.xml ./third_party/junit/ctest2junit.xsl build-debian-testing/Testing/**/Test.xml > /dev/null
+    - xsltproc -o build-ubuntu-focal/report.xml ./third_party/junit/ctest2junit.xsl build-ubuntu-focal/Testing/**/Test.xml > /dev/null
 
 bionic-pkg:
   variables:
@@ -320,7 +320,7 @@ github-release:
   except:
     - /^20\d\d\.\d\d?-docs$/
   variables:
-    DOX_DOCS: 'build-debian-testing/docs/doxygen/html'
+    DOX_DOCS: 'build-ubuntu-focal/docs/doxygen/html'
     TEST_BUILD_DIR: 'build-gh-rls'
 
 # -- publish coverage results on gitlab pages

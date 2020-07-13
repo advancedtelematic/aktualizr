@@ -47,11 +47,11 @@ jobs:
         run: docker run -v "$PWD:$PWD" -w "$PWD" $DARGS -t "$DOCKER_TAG" ./scripts/test.sh
 
   static-checks:
-    name: Static checks on Debian Testing
+    name: Static checks on Ubuntu Focal
     runs-on: ubuntu-latest
     env:
-      DOCKER_TAG: docker.pkg.github.com/advancedtelematic/aktualizr/aktualizr-ci:debian-testing-master
-      DOCKERFILE: docker/Dockerfile.debian.testing
+      DOCKER_TAG: docker.pkg.github.com/advancedtelematic/aktualizr/aktualizr-ci:ubuntu-focal-master
+      DOCKERFILE: docker/Dockerfile.ubuntu.focal
       DARGS: >-
         -eCCACHE_DIR
         -eTEST_CC=clang
@@ -74,9 +74,9 @@ jobs:
       - uses: actions/cache@v1.1.0
         with:
           path: ${{ github.workspace }}/.ccache
-          key: debian-testing-${{ github.run_id }}
+          key: ubuntu-focal-${{ github.run_id }}
           restore-keys: |
-            debian-testing-${{ github.run_id }}
-            debian-testing-
+            ubuntu-focal-${{ github.run_id }}
+            ubuntu-focal-
       - name: Test
         run: docker run -v "$PWD:$PWD" -w "$PWD" $DARGS -t "$DOCKER_TAG" ./scripts/test.sh
