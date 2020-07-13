@@ -7,12 +7,14 @@ SCRIPTS_DIR=$(readlink -f "$(dirname "$0")")
 OUTPUT=$(realpath "$1")
 REPO=$(realpath "${2:-.}")
 
+# Just in case this wasn't done before.
+git -C "$REPO" submodule update --init --recursive
+
 python3 -m venv venv
 
 . venv/bin/activate
 
-# pip install 'git_archive_all==1.19.4'
-pip install git+https://github.com/Kentzo/git-archive-all@1f7938cd6db76bfcf7eb1046ccb818df72b141ad
+pip install 'git_archive_all==1.21.0'
 
 TMPDIR=$(mktemp -d)
 trap 'rm -rf $TMPDIR' EXIT
