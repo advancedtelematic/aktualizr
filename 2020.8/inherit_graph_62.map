@@ -1,0 +1,5 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$class_multi_part_hasher.html" title="MultiPartHasher" alt="" coords="5,31,131,57"/>
+<area shape="rect" id="node2" href="$class_multi_part_s_h_a256_hasher.html" title="MultiPartSHA256Hasher" alt="" coords="179,5,355,32"/>
+<area shape="rect" id="node3" href="$class_multi_part_s_h_a512_hasher.html" title="MultiPartSHA512Hasher" alt="" coords="179,56,355,83"/>
+</map>

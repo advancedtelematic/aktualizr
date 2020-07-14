@@ -1,0 +1,5 @@
+<map id="SecondaryRpcTestPositive" name="SecondaryRpcTestPositive">
+<area shape="rect" id="node3" href="$class_msg_handler.html" title="MsgHandler" alt="" coords="77,5,176,32"/>
+<area shape="rect" id="node4" href="$class_secondary_tcp_server.html" title="Listens on a socket, decodes calls (ASN.1) and forwards them to an Uptane Secondary implementation..." alt="" coords="201,5,354,32"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="383,5,475,32"/>
+</map>

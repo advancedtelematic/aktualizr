@@ -1,0 +1,10 @@
+<map id="Uptane::Targets" name="Uptane::Targets">
+<area shape="rect" id="node2" href="$class_uptane_1_1_meta_with_keys.html" title="Uptane::MetaWithKeys" alt="" coords="1167,125,1337,152"/>
+<area shape="rect" id="node3" href="$class_uptane_1_1_base_meta.html" title="Uptane::BaseMeta" alt="" coords="764,7,905,33"/>
+<area shape="rect" id="node4" href="$class_time_stamp.html" title="TimeStamp" alt="" coords="462,7,559,33"/>
+<area shape="rect" id="node7" href="$class_public_key.html" title="PublicKey" alt="" coords="194,123,279,149"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="193,257,280,284"/>
+<area shape="rect" id="node11" href="$class_uptane_1_1_role.html" title="TUF Roles. " alt="" coords="458,255,563,281"/>
+<area shape="rect" id="node9" title="STL class. " alt="" coords="5,250,144,291"/>
+<area shape="rect" id="node13" href="$class_uptane_1_1_target.html" title="Uptane::Target" alt="" coords="776,447,893,473"/>
+</map>

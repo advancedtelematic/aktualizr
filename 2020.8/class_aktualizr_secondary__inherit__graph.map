@@ -1,0 +1,6 @@
+<map id="AktualizrSecondary" name="AktualizrSecondary">
+<area shape="rect" id="node4" href="$class_aktualizr_secondary_file.html" title="AktualizrSecondaryFile" alt="" coords="5,229,176,256"/>
+<area shape="rect" id="node5" href="$class_aktualizr_secondary_ostree.html" title="AktualizrSecondaryOstree" alt="" coords="201,229,391,256"/>
+<area shape="rect" id="node2" href="$class_msg_dispatcher.html" title="MsgDispatcher" alt="" coords="134,80,253,107"/>
+<area shape="rect" id="node3" href="$class_msg_handler.html" title="MsgHandler" alt="" coords="144,5,243,32"/>
+</map>

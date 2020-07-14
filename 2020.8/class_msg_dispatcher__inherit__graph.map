@@ -1,0 +1,7 @@
+<map id="MsgDispatcher" name="MsgDispatcher">
+<area shape="rect" id="node3" href="$class_aktualizr_secondary.html" title="AktualizrSecondary" alt="" coords="119,155,267,181"/>
+<area shape="rect" id="node6" href="$class_secondary_mock.html" title="SecondaryMock" alt="" coords="291,155,415,181"/>
+<area shape="rect" id="node2" href="$class_msg_handler.html" title="MsgHandler" alt="" coords="224,5,323,32"/>
+<area shape="rect" id="node4" href="$class_aktualizr_secondary_file.html" title="AktualizrSecondaryFile" alt="" coords="5,229,176,256"/>
+<area shape="rect" id="node5" href="$class_aktualizr_secondary_ostree.html" title="AktualizrSecondaryOstree" alt="" coords="201,229,391,256"/>
+</map>

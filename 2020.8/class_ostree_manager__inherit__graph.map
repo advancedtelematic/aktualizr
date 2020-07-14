@@ -1,0 +1,6 @@
+<map id="OstreeManager" name="OstreeManager">
+<area shape="rect" id="node3" href="$class_docker_app_bundles.html" title="DockerAppBundles" alt="" coords="5,155,151,181"/>
+<area shape="rect" id="node4" href="$class_docker_app_manager.html" title="DockerAppManager" alt="" coords="175,155,325,181"/>
+<area shape="rect" id="node5" href="$class_docker_app_standalone.html" title="DockerAppStandalone" alt="" coords="349,155,516,181"/>
+<area shape="rect" id="node2" href="$class_package_manager_interface.html" title="PackageManagerInterface" alt="" coords="155,5,345,32"/>
+</map>

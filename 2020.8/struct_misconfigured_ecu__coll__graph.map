@@ -1,0 +1,4 @@
+<map id="MisconfiguredEcu" name="MisconfiguredEcu">
+<area shape="rect" id="node2" href="$class_uptane_1_1_hardware_identifier.html" title="Uptane::HardwareIdentifier" alt="" coords="5,5,204,32"/>
+<area shape="rect" id="node3" href="$class_uptane_1_1_ecu_serial.html" title="Uptane::EcuSerial" alt="" coords="228,5,365,32"/>
+</map>
