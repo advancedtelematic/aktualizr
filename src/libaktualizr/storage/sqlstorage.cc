@@ -11,7 +11,7 @@
 #include "sql_utils.h"
 #include "utilities/utils.h"
 
-// find metadata with version set to -1 (e.g. after migration) and assign proper version to it
+// Find metadata with version set to -1 (e.g. after migration) and assign proper version to it.
 void SQLStorage::cleanMetaVersion(Uptane::RepositoryType repo, const Uptane::Role& role) {
   SQLite3Guard db = dbConnection();
 
@@ -23,26 +23,26 @@ void SQLStorage::cleanMetaVersion(Uptane::RepositoryType repo, const Uptane::Rol
   int result = statement.step();
 
   if (result == SQLITE_DONE) {
-    LOG_TRACE << "meta with role " << role.ToString() << " in repo " << repo.toString() << " not present in db";
+    // Nothing to do here. The log message that used to be here was confusing.
     return;
   } else if (result != SQLITE_ROW) {
-    LOG_ERROR << "Can't get meta: " << db.errmsg();
+    LOG_ERROR << "Can't get " << repo.toString() << " " << role.ToString() << " metadata: " << db.errmsg();
     return;
   }
-  std::string meta = std::string(reinterpret_cast<const char*>(sqlite3_column_blob(statement.get(), 0)));
+  const std::string meta = std::string(reinterpret_cast<const char*>(sqlite3_column_blob(statement.get(), 0)));
 
-  int version = Uptane::extractVersionUntrusted(meta);
+  const int version = Uptane::extractVersionUntrusted(meta);
   if (version < 0) {
-    LOG_ERROR << "Corrupted metadata";
+    LOG_ERROR << "Corrupted " << repo.toString() << " " << role.ToString() << " metadata.";
     return;
   }
 
-  // in there is already metadata with such version delete it
+  // If there is already metadata with the same version, delete it.
   statement = db.prepareStatement<int, int, int>("DELETE FROM meta WHERE (repo=? AND meta_type=? AND version=?);",
                                                  static_cast<int>(repo), role.ToInt(), version);
 
   if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't clear metadata: " << db.errmsg();
+    LOG_ERROR << "Can't clear " << repo.toString() << " " << role.ToString() << " metadata: " << db.errmsg();
     return;
   }
 
@@ -51,7 +51,7 @@ void SQLStorage::cleanMetaVersion(Uptane::RepositoryType repo, const Uptane::Rol
       role.ToInt(), -1);
 
   if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't update metadata: " << db.errmsg();
+    LOG_ERROR << "Can't update " << repo.toString() << " " << role.ToString() << " metadata: " << db.errmsg();
     return;
   }
 
