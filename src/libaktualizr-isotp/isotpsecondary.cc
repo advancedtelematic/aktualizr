@@ -13,7 +13,7 @@
 
 #include "storage/invstorage.h"
 
-#define LIBUPTINY_ISOTP_PRIMARY_CANID 0x7D8
+constexpr uint16_t kPrimaryCanId = 0x7D8;
 
 constexpr size_t kChunkSize = 500;
 
@@ -37,7 +37,7 @@ enum class IsoTpUptaneMesType {
 namespace Uptane {
 
 IsoTpSecondary::IsoTpSecondary(const std::string& can_iface, uint16_t can_id)
-    : conn(can_iface, LIBUPTINY_ISOTP_PRIMARY_CANID, can_id) {}
+    : conn(can_iface, kPrimaryCanId, can_id) {}
 
 EcuSerial IsoTpSecondary::getSerial() const {
   std::string out;

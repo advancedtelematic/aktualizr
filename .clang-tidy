@@ -4,8 +4,10 @@ Checks:          >-
   bugprone-*,
   cert-*,-cert-err58-cpp,-cert-env33-c,-cert-err60-cpp,
   clang-analyzer-*,
+  cppcoreguidelines-*,-cppcoreguidelines-avoid-magic-numbers,-cppcoreguidelines-init-variables,-cppcoreguidelines-owning-memory,
   cppcoreguidelines-pro-*,-cppcoreguidelines-pro-type-reinterpret-cast,-cppcoreguidelines-pro-type-vararg,-cppcoreguidelines-pro-type-const-cast,-cppcoreguidelines-pro-bounds-array-to-pointer-decay,
   google-*,-google-runtime-references,-google-readability-todo,
+  hicpp-*,-hicpp-no-array-decay,-hicpp-no-assembler,-hicpp-signed-bitwise,-hicpp-vararg,
   llvm-namespace-comment,
   misc-*,
   modernize-*,-modernize-avoid-bind,-modernize-loop-convert,-modernize-use-trailing-return-type,
@@ -15,6 +17,8 @@ Checks:          >-
 WarningsAsErrors: '*'
 AnalyzeTemporaryDtors: false
 CheckOptions:
+  - key:             cppcoreguidelines-non-private-member-variables-in-classes.IgnorePublicMemberVariables
+    value:           '1'
   - key:             cert-dcl59-cpp.HeaderFileExtensions
     value:           h,hh,hpp,hxx
   - key:             cert-err09-cpp.CheckThrowTemporaries

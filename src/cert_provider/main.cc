@@ -88,7 +88,7 @@ bpo::variables_map parseOptions(int argc, char** argv) {
   return vm;
 }
 
-// I miss Rust's ? operator
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define SSL_ERROR(description)                                                             \
   {                                                                                        \
     std::cerr << (description) << ERR_error_string(ERR_get_error(), nullptr) << std::endl; \

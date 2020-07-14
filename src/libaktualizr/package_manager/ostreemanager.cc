@@ -69,7 +69,8 @@ data::InstallationResult OstreeManager::pull(const boost::filesystem::path &sysr
                                              const Uptane::Target &target, const api::FlowControlToken *token,
                                              OstreeProgressCb progress_cb) {
   const std::string refhash = target.sha256Hash();
-  const char *const commit_ids[] = {refhash.c_str()};  // NOLINT(modernize-avoid-c-arrays)
+  // NOLINTNEXTLINE(modernize-avoid-c-arrays, cppcoreguidelines-avoid-c-arrays, hicpp-avoid-c-arrays)
+  const char *const commit_ids[] = {refhash.c_str()};
   GError *error = nullptr;
   GVariantBuilder builder;
   GVariant *options;

@@ -31,7 +31,7 @@ OSTreeHash OSTreeHash::Parse(const std::string& hash) {
   return OSTreeHash(sha256);
 }
 
-// NOLINTNEXTLINE(modernize-avoid-c-arrays)
+// NOLINTNEXTLINE(modernize-avoid-c-arrays, cppcoreguidelines-avoid-c-arrays, hicpp-avoid-c-arrays)
 OSTreeHash::OSTreeHash(const uint8_t hash[32]) { std::memcpy(hash_.data(), hash, hash_.size()); }
 
 OSTreeHash::OSTreeHash(const std::array<uint8_t, 32>& hash) { std::memcpy(hash_.data(), hash.data(), hash.size()); }

@@ -260,7 +260,7 @@ bool HttpClient::updateHeader(const std::string& name, const std::string& value)
 
   while (item != nullptr) {
     if (strncmp(lookfor.c_str(), item->data, lookfor.length()) == 0) {
-      free(item->data);
+      free(item->data);  // NOLINT(cppcoreguidelines-no-malloc, hicpp-no-malloc)
       lookfor += value;
       item->data = strdup(lookfor.c_str());
       return true;

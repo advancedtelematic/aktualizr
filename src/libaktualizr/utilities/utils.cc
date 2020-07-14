@@ -831,7 +831,9 @@ CURL *Utils::curlDupHandleWrapper(CURL *const curl_in, const bool using_pkcs11) 
 class SafeTempRoot {
  public:
   SafeTempRoot(const SafeTempRoot &) = delete;
+  SafeTempRoot(const SafeTempRoot &&) = delete;
   SafeTempRoot operator=(const SafeTempRoot &) = delete;
+  SafeTempRoot operator=(const SafeTempRoot &&) = delete;
   // provide this as a static method so that we can use C++ static destructor
   // to remove the temp root
   static boost::filesystem::path &Get() {
