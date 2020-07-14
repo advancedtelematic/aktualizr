@@ -806,6 +806,7 @@ INPUT                  = @CMAKE_SOURCE_DIR@/docs \
                          @CMAKE_SOURCE_DIR@/docs/doxygen \
                          @CMAKE_SOURCE_DIR@/include \
                          @CMAKE_SOURCE_DIR@/include/libaktualizr \
+                         @CMAKE_SOURCE_DIR@/include/libaktualizr/secondary \
                          @CMAKE_SOURCE_DIR@/src/aktualizr_get \
                          @CMAKE_SOURCE_DIR@/src/aktualizr_info \
                          @CMAKE_SOURCE_DIR@/src/aktualizr_lite \
