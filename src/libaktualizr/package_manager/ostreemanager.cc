@@ -129,7 +129,7 @@ data::InstallationResult OstreeManager::install(const Uptane::Target &target) co
   GError *error = nullptr;
   g_autofree char *revision = nullptr;
 
-  if (config.os.size() != 0U) {
+  if (!config.os.empty()) {
     opt_osname = config.os.c_str();
   }
 

@@ -23,7 +23,7 @@ static int loadAndPrintDelegations(const std::shared_ptr<INvStorage> &storage) {
     return EXIT_FAILURE;
   }
 
-  if (delegations.size() > 0) {
+  if (!delegations.empty()) {
     for (const auto &delegation : delegations) {
       std::cout << delegation.first << ": " << delegation.second << std::endl;
     }
@@ -318,7 +318,7 @@ int main(int argc, char **argv) {
     EcuSerials serials;
     if (!storage->loadEcuSerials(&serials)) {
       std::cout << "Couldn't load ECU serials" << std::endl;
-    } else if (serials.size() == 0) {
+    } else if (serials.empty()) {
       std::cout << ecu_name << " serial is not found" << std::endl;
     } else {
       std::cout << ecu_name << " ECU serial ID: " << serials[0].first << std::endl;
@@ -356,7 +356,7 @@ int main(int argc, char **argv) {
 
     std::vector<MisconfiguredEcu> misconfigured_ecus;
     storage->loadMisconfiguredEcus(&misconfigured_ecus);
-    if (misconfigured_ecus.size() != 0U) {
+    if (!misconfigured_ecus.empty()) {
       std::cout << "Removed or unregistered ECUs (deprecated):" << std::endl;
       std::vector<MisconfiguredEcu>::const_iterator it;
       for (it = misconfigured_ecus.begin(); it != misconfigured_ecus.end(); ++it) {

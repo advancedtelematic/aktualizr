@@ -92,14 +92,14 @@ void TreehubServer::InjectIntoCurl(const string& url_suffix, CURL* curl_handle, 
 // The trailing slash is optional, and will be appended if required
 void TreehubServer::root_url(const std::string& _root_url) {
   root_url_ = _root_url;
-  if (root_url_.size() > 0 && root_url_[root_url_.size() - 1] != '/') {
+  if (!root_url_.empty() && root_url_[root_url_.size() - 1] != '/') {
     root_url_.append("/");
   }
 }
 
 void TreehubServer::repo_url(const std::string& _repo_url) {
   repo_url_ = _repo_url;
-  if (repo_url_.size() > 0 && repo_url_[repo_url_.size() - 1] != '/') {
+  if (!repo_url_.empty() && repo_url_[repo_url_.size() - 1] != '/') {
     repo_url_.append("/");
   }
 }

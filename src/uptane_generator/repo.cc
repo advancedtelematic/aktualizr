@@ -103,7 +103,7 @@ Json::Value Repo::signTuf(const Uptane::Role &role, const Json::Value &json) {
 }
 
 std::string Repo::getExpirationTime(const std::string &expires) {
-  if (expires.size() != 0) {
+  if (!expires.empty()) {
     std::smatch match;
     std::regex time_pattern("\\d{4}\\-\\d{2}\\-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z");  // NOLINT(modernize-raw-string-literal)
     if (!std::regex_match(expires, time_pattern)) {
@@ -188,7 +188,7 @@ void Repo::generateRepo(KeyType key_type) {
   targets["expires"] = expiration_time_;
   targets["version"] = 1;
   targets["targets"] = Json::objectValue;
-  if (repo_type_ == Uptane::RepositoryType::Director() && correlation_id_ != "") {
+  if (repo_type_ == Uptane::RepositoryType::Director() && !correlation_id_.empty()) {
     targets["custom"]["correlationId"] = correlation_id_;
   }
   const std::string signed_targets = Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Targets(), targets));

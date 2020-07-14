@@ -125,7 +125,7 @@ data::InstallationResult AktualizrSecondary::doFullVerification(const Metadata& 
 }
 
 void AktualizrSecondary::uptaneInitialize() {
-  if (keys_->generateUptaneKeyPair().size() == 0) {
+  if (keys_->generateUptaneKeyPair().empty()) {
     throw std::runtime_error("Failed to generate Uptane key pair");
   }
 
@@ -146,7 +146,7 @@ void AktualizrSecondary::uptaneInitialize() {
   std::string ecu_hardware_id = config_.uptane.ecu_hardware_id;
   if (ecu_hardware_id.empty()) {
     ecu_hardware_id = Utils::getHostname();
-    if (ecu_hardware_id == "") {
+    if (ecu_hardware_id.empty()) {
       throw std::runtime_error("Failed to define ECU hardware ID");
     }
   }

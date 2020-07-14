@@ -243,7 +243,7 @@ Json::Value SotaUptaneClient::AssembleManifest() {
   Json::Value primary_manifest = uptane_manifest->assembleManifest(package_manager_->getCurrent());
   std::vector<std::pair<Uptane::EcuSerial, int64_t>> ecu_cnt;
   std::string report_counter;
-  if (!storage->loadEcuReportCounter(&ecu_cnt) || (ecu_cnt.size() == 0)) {
+  if (!storage->loadEcuReportCounter(&ecu_cnt) || ecu_cnt.empty()) {
     LOG_ERROR << "No ECU version report counter, please check the database!";
     // TODO: consider not sending manifest at all in this case, or maybe retry
   } else {
@@ -257,7 +257,7 @@ Json::Value SotaUptaneClient::AssembleManifest() {
     Uptane::Manifest secmanifest = it->second->getManifest();
 
     bool from_cache = false;
-    if (secmanifest == Json::Value()) {
+    if (secmanifest.empty()) {
       // could not get the Secondary manifest, a cached value will be provided
       std::string cached;
       if (storage->loadCachedEcuManifest(ecu_serial, &cached)) {
@@ -330,7 +330,7 @@ void SotaUptaneClient::initialize() {
 
   EcuSerials serials;
   /* unlikely, post-condition of Initializer::Initializer() */
-  if (!storage->loadEcuSerials(&serials) || serials.size() == 0) {
+  if (!storage->loadEcuSerials(&serials) || serials.empty()) {
     throw std::runtime_error("Unable to load ECU serials after device registration.");
   }
 
@@ -445,7 +445,7 @@ void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult 
       // ecu1_hwid:failure1|ecu2_hwid:failure2
       if (!installation_res.isSuccess()) {
         const std::string ecu_code_str = (*hw_id).ToString() + ":" + installation_res.result_code.toString();
-        result_code_err_str += (result_code_err_str != "" ? "|" : "") + ecu_code_str;
+        result_code_err_str += (!result_code_err_str.empty() ? "|" : "") + ecu_code_str;
       }
     }
 
@@ -643,7 +643,7 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
   if (targets.size() == downloaded_targets.size()) {
     result = result::Download(downloaded_targets, result::DownloadStatus::kSuccess, "");
   } else {
-    if (downloaded_targets.size() == 0) {
+    if (downloaded_targets.empty()) {
       LOG_ERROR << "0 of " << targets.size() << " targets were successfully downloaded.";
       result = result::Download(downloaded_targets, result::DownloadStatus::kError, "Each target download has failed");
     } else {
@@ -999,7 +999,7 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
     }
 
     //   7 - send images to ECUs (deploy for OSTree)
-    if (primary_updates.size() != 0u) {
+    if (!primary_updates.empty()) {
       // assuming one OSTree OS per Primary => there can be only one OSTree update
       Uptane::Target primary_update = primary_updates[0];
       primary_update.setCorrelationId(correlation_id);
@@ -1105,7 +1105,7 @@ bool SotaUptaneClient::putManifestSimple(const Json::Value &custom) {
 
   static bool connected = true;
   auto manifest = AssembleManifest();
-  if (custom != Json::nullValue) {
+  if (!custom.empty()) {
     manifest["custom"] = custom;
   }
   auto signed_manifest = uptane_manifest->sign(manifest);
@@ -1262,7 +1262,7 @@ void SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &tar
         LOG_ERROR << "Sending metadata to " << sec->first << " failed: " << local_result.result_code << " "
                   << local_result.description;
         const std::string ecu_code_str = hw_id.ToString() + ":" + local_result.result_code.toString();
-        result_code_err_str += (result_code_err_str != "" ? "|" : "") + ecu_code_str;
+        result_code_err_str += (!result_code_err_str.empty() ? "|" : "") + ecu_code_str;
       }
     }
   }
@@ -1368,7 +1368,7 @@ void SotaUptaneClient::checkAndUpdatePendingSecondaries() {
     }
     auto &sec = secondaries[pending_ecu.first];
     const auto &manifest = sec->getManifest();
-    if (manifest == Json::nullValue) {
+    if (manifest.empty()) {
       LOG_DEBUG << "Failed to get a manifest from Secondary: " << sec->getSerial();
       continue;
     }

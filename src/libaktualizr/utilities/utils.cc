@@ -399,7 +399,7 @@ Json::Value Utils::getNetworkInfo() {
     }
   }
 
-  if (itf.name != "") {
+  if (!itf.name.empty()) {
     {
       // get ip address
       StructGuard<struct ifaddrs> ifaddrs(nullptr, freeifaddrs);

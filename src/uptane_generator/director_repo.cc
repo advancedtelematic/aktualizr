@@ -78,7 +78,7 @@ void DirectorRepo::emptyTargets() {
   targets_unsigned["expires"] = expiration_time_;
   targets_unsigned["version"] = (targets_current["signed"]["version"].asUInt()) + 1;
   targets_unsigned["targets"] = Json::objectValue;
-  if (repo_type_ == Uptane::RepositoryType::Director() && correlation_id_ != "") {
+  if (repo_type_ == Uptane::RepositoryType::Director() && !correlation_id_.empty()) {
     targets_unsigned["custom"]["correlationId"] = correlation_id_;
   }
   Utils::writeFile(staging, Utils::jsonToCanonicalStr(targets_unsigned));

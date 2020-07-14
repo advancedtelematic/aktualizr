@@ -3,7 +3,7 @@ Checks:          >-
   clang-analyzer-*,
   performance-*,
   bugprone-*,
-  readability-*,-readability-else-after-return,-readability-identifier-naming,-readability-container-size-empty,-readability-redundant-declaration,-readability-magic-numbers,
+  readability-*,-readability-else-after-return,-readability-identifier-naming,-readability-magic-numbers,
   modernize-*,-modernize-avoid-bind,-modernize-loop-convert,-modernize-use-using,-modernize-deprecated-headers,-modernize-pass-by-value,-modernize-use-trailing-return-type,
   llvm-namespace-comment,
   cppcoreguidelines-pro-*,-cppcoreguidelines-pro-type-reinterpret-cast,-cppcoreguidelines-pro-type-vararg,-cppcoreguidelines-pro-type-const-cast,

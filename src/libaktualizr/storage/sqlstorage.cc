@@ -234,7 +234,7 @@ bool SQLStorage::loadSecondaryInfo(const Uptane::EcuSerial& ecu_serial, Secondar
     std::string sec_type = statement.get_result_col_str(2).value_or("");
     std::string kt_str = statement.get_result_col_str(3).value_or("");
     PublicKey key;
-    if (kt_str != "") {
+    if (!kt_str.empty()) {
       KeyType key_type;
       std::stringstream(kt_str) >> key_type;
       key = PublicKey(statement.get_result_col_str(4).value_or(""), key_type);
@@ -271,7 +271,7 @@ bool SQLStorage::loadSecondariesInfo(std::vector<SecondaryInfo>* secondaries) co
       std::string sec_type = statement.get_result_col_str(2).value_or("");
       std::string kt_str = statement.get_result_col_str(3).value_or("");
       PublicKey key;
-      if (kt_str != "") {
+      if (!kt_str.empty()) {
         KeyType key_type;
         std::stringstream(kt_str) >> key_type;
         key = PublicKey(statement.get_result_col_str(4).value_or(""), key_type);
@@ -870,7 +870,7 @@ void SQLStorage::clearNeedReboot() {
 }
 
 void SQLStorage::storeEcuSerials(const EcuSerials& serials) {
-  if (serials.size() >= 1) {
+  if (!serials.empty()) {
     SQLite3Guard db = dbConnection();
 
     db.beginTransaction();
@@ -992,7 +992,7 @@ bool SQLStorage::loadCachedEcuManifest(const Uptane::EcuSerial& ecu_serial, std:
   } else {
     stmanifest = statement.get_result_col_str(0).value_or("");
 
-    empty = stmanifest == "";
+    empty = stmanifest.empty();
   }
 
   if (manifest != nullptr) {

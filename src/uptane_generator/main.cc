@@ -220,7 +220,7 @@ int main(int argc, char **argv) {
                        correlation_id);
 
         auto json_to_sign = Utils::parseJSON(text_to_sign);
-        if (json_to_sign == Json::nullValue) {
+        if (json_to_sign.empty()) {
           std::cerr << "Text to sign must be valid json\n";
           exit(EXIT_FAILURE);
         }

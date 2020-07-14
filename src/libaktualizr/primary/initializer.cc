@@ -54,7 +54,7 @@ void Initializer::initEcuSerials() {
   std::string primary_ecu_hardware_id = config_.primary_ecu_hardware_id;
   if (primary_ecu_hardware_id.empty()) {
     primary_ecu_hardware_id = Utils::getHostname();
-    if (primary_ecu_hardware_id == "") {
+    if (primary_ecu_hardware_id.empty()) {
       throw Error("Could not get current host name, please configure an hardware ID explicitly");
     }
   }
@@ -119,7 +119,7 @@ void Initializer::initPrimaryEcuKeys() {
     throw KeyGenerationError(e.what());
   }
 
-  if (key_pair.size() == 0U) {
+  if (key_pair.empty()) {
     throw KeyGenerationError("Unknow error");
   }
 }
@@ -267,7 +267,7 @@ void Initializer::initSecondaryInfo() {
     // secondary_ecus table, we need to migrate the data. This should be done
     // regardless of whether we need to (re-)register the ECUs.
     // The ECU serials should be already initialized by this point.
-    if (!storage_->loadSecondaryInfo(serial, &info) || info.type == "" || info.pub_key.Type() == KeyType::kUnknown) {
+    if (!storage_->loadSecondaryInfo(serial, &info) || info.type.empty() || info.pub_key.Type() == KeyType::kUnknown) {
       info.serial = serial;
       info.hw_id = sec.getHwId();
       info.type = sec.Type();
@@ -295,7 +295,7 @@ void Initializer::initEcuReportCounter() {
 
   EcuSerials ecu_serials;
 
-  if (!storage_->loadEcuSerials(&ecu_serials) || (ecu_serials.size() == 0)) {
+  if (!storage_->loadEcuSerials(&ecu_serials) || ecu_serials.empty()) {
     throw Error("Could not load ECU serials");
   }
 
