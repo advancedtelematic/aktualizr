@@ -12,7 +12,6 @@
 
 class SotaUptaneClient;
 class INvStorage;
-class SecondaryInfo;
 
 namespace api {
 class CommandQueue;
