@@ -28,6 +28,7 @@
 #include "uptane/fetcher.h"
 #include "uptane/imagerepository.h"
 #include "uptane/iterator.h"
+#include "uptane/manifest.h"
 #include "uptane/tuf.h"
 
 class SotaUptaneClient {

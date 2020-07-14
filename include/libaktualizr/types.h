@@ -445,6 +445,18 @@ class Target {
 
 std::ostream &operator<<(std::ostream &os, const Target &t);
 
+class Manifest : public Json::Value {
+ public:
+  Manifest(const Json::Value &value = Json::Value()) : Json::Value(value) {}
+
+ public:
+  std::string filepath() const;
+  Hash installedImageHash() const;
+  std::string signature() const;
+  std::string signedBody() const;
+  bool verifySignature(const PublicKey &pub_key) const;
+};
+
 }  // namespace Uptane
 
 struct SecondaryInfo {

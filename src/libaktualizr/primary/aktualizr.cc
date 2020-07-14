@@ -1,5 +1,6 @@
-#include <sodium.h>
 #include <chrono>
+
+#include <sodium.h>
 
 #include "libaktualizr/aktualizr.h"
 #include "libaktualizr/events.h"

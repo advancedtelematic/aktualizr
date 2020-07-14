@@ -7,8 +7,8 @@
 #include <boost/filesystem.hpp>
 #include "json/json.h"
 
-#include "libaktualizr/types.h"
 #include "libaktualizr/secondary/secondaryinterface.h"
+#include "libaktualizr/types.h"
 #include "managedsecondary.h"
 
 namespace Primary {

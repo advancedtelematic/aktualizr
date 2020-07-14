@@ -133,7 +133,7 @@ If you're yet not familiar with OTA Connect concepts such as "campaigns", have a
 
 The main library header is https://github.com/advancedtelematic/aktualizr/blob/master/include/libaktualizr/aktualizr.h[`libaktualizr/aktualizr.h`]. It also includes few other libaktualizr headers.
 
-To use the API, add the `aktualizr/include` directory to your include path and add `# include <libaktualizr/aktualizr.h>` to your source file.
+To use the API, add the `aktualizr/include` directory to your include path and add `#include <libaktualizr/aktualizr.h>` to your source file.
 
 When using the API, consider the following points:
 

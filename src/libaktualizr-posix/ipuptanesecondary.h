@@ -1,9 +1,9 @@
 #ifndef UPTANE_IPUPTANESECONDARY_H_
 #define UPTANE_IPUPTANESECONDARY_H_
 
-#include "libaktualizr/secondary/secondaryinterface.h"
 #include "asn1/asn1_message.h"
 #include "der_encoder.h"
+#include "libaktualizr/secondary/secondaryinterface.h"
 
 namespace Uptane {
 

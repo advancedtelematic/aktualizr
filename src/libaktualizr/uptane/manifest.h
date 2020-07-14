@@ -4,25 +4,11 @@
 #include <memory>
 
 #include "json/json.h"
-
-#include "crypto/crypto.h"
-#include "tuf.h"
+#include "libaktualizr/types.h"
 
 class KeyManager;
 
 namespace Uptane {
-
-class Manifest : public Json::Value {
- public:
-  Manifest(const Json::Value &value = Json::Value()) : Json::Value(value) {}
-
- public:
-  std::string filepath() const;
-  Hash installedImageHash() const;
-  std::string signature() const;
-  std::string signedBody() const;
-  bool verifySignature(const PublicKey &pub_key) const;
-};
 
 class ManifestIssuer {
  public:
