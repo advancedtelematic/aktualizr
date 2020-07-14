@@ -4,7 +4,7 @@ Checks:          >-
   performance-*,
   bugprone-*,
   readability-*,-readability-else-after-return,-readability-identifier-naming,-readability-magic-numbers,
-  modernize-*,-modernize-avoid-bind,-modernize-loop-convert,-modernize-pass-by-value,-modernize-use-trailing-return-type,
+  modernize-*,-modernize-avoid-bind,-modernize-loop-convert,-modernize-use-trailing-return-type,
   llvm-namespace-comment,
   cppcoreguidelines-pro-*,-cppcoreguidelines-pro-type-reinterpret-cast,-cppcoreguidelines-pro-type-vararg,-cppcoreguidelines-pro-type-const-cast,
   -cppcoreguidelines-pro-bounds-array-to-pointer-decay,-cppcoreguidelines-pro-bounds-constant-array-index,cert-*,

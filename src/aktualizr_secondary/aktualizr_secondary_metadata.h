@@ -6,7 +6,7 @@
 
 class Metadata : public Uptane::IMetadataFetcher {
  public:
-  Metadata(const Uptane::MetaBundle& meta_bundle_in);
+  Metadata(Uptane::MetaBundle meta_bundle_in);
   Metadata(Metadata&&) = default;
 
   void fetchRole(std::string* result, int64_t maxsize, Uptane::RepositoryType repo, const Uptane::Role& role,

@@ -9,8 +9,8 @@
 #include <sys/types.h>
 #include <memory>
 
-AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig& config, std::shared_ptr<INvStorage> storage)
-    : config_(config),
+AktualizrSecondary::AktualizrSecondary(AktualizrSecondaryConfig config, std::shared_ptr<INvStorage> storage)
+    : config_(std::move(config)),
       storage_(std::move(storage)),
       keys_(std::make_shared<KeyManager>(storage_, config_.keymanagerConfig())) {
   uptaneInitialize();
