@@ -175,7 +175,7 @@ bpo::variables_map parse_options(int argc, char **argv) {
     if (i != 0) {
       subs += ", ";
     }
-    subs += commands[i].name;
+    subs += commands[i].name;  // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
   }
   bpo::options_description description("aktualizr-lite command line options");
   // clang-format off
@@ -249,9 +249,9 @@ int main(int argc, char *argv[]) {
 
     std::string cmd = commandline_map["command"].as<std::string>();
     for (size_t i = 0; i < commands.size(); i++) {
-      if (cmd == commands[i].name) {
+      if (cmd == commands[i].name) {  // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
         LiteClient client(config);
-        return commands[i].main(client, commandline_map);
+        return commands[i].main(client, commandline_map);  // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
       }
     }
     throw bpo::invalid_option_value(cmd);

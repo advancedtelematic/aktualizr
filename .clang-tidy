@@ -6,9 +6,8 @@ Checks:          >-
   readability-*,-readability-else-after-return,-readability-identifier-naming,-readability-magic-numbers,
   modernize-*,-modernize-avoid-bind,-modernize-loop-convert,-modernize-use-trailing-return-type,
   llvm-namespace-comment,
-  cppcoreguidelines-pro-*,-cppcoreguidelines-pro-type-reinterpret-cast,-cppcoreguidelines-pro-type-vararg,-cppcoreguidelines-pro-type-const-cast,
-  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,-cppcoreguidelines-pro-bounds-constant-array-index,cert-*,
-  -cert-err58-cpp,-cert-env33-c,-cert-err09-cpp,-cert-err60-cpp,-cert-err61-cpp, -cert-err61-cpp,
+  cppcoreguidelines-pro-*,-cppcoreguidelines-pro-type-reinterpret-cast,-cppcoreguidelines-pro-type-vararg,-cppcoreguidelines-pro-type-const-cast,-cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  cert-*,-cert-err58-cpp,-cert-env33-c,-cert-err09-cpp,-cert-err60-cpp,-cert-err61-cpp, -cert-err61-cpp,
   google-*,-google-runtime-references,-google-runtime-member-string-references,-google-explicit-constructor,-google-readability-todo,
   misc-*, -misc-unused-parameters, -misc-macro-parentheses, -misc-throw-by-value-catch-by-reference, -misc-suspicious-enum-usage, -misc-non-private-member-variables-in-classes
 
@@ -23,10 +22,6 @@ CheckOptions:
     value:           '1'
   - key:             cert-oop11-cpp.IncludeStyle
     value:           llvm
-  - key:             cppcoreguidelines-pro-bounds-constant-array-index.GslHeader
-    value:           ''
-  - key:             cppcoreguidelines-pro-bounds-constant-array-index.IncludeStyle
-    value:           '0'
   - key:             cppcoreguidelines-pro-type-member-init.IgnoreArrays
     value:           '0'
   - key:             google-build-namespaces.HeaderFileExtensions

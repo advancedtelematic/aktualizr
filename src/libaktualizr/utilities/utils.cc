@@ -261,9 +261,9 @@ std::string Utils::genPrettyName() {
   std::uniform_int_distribution<size_t> nouns_dist(0, names.size() - 1);
   std::uniform_int_distribution<size_t> digits(0, 999);
   std::stringstream pretty_name;
-  pretty_name << adverbs[adverbs_dist(urandom)];
+  pretty_name << adverbs.at(adverbs_dist(urandom));
   pretty_name << "-";
-  pretty_name << names[nouns_dist(urandom)];
+  pretty_name << names.at(nouns_dist(urandom));
   pretty_name << "-";
   pretty_name << digits(urandom);
   std::string res = pretty_name.str();
