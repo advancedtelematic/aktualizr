@@ -7,9 +7,9 @@ Checks:          >-
   modernize-*,-modernize-avoid-bind,-modernize-loop-convert,-modernize-use-trailing-return-type,
   llvm-namespace-comment,
   cppcoreguidelines-pro-*,-cppcoreguidelines-pro-type-reinterpret-cast,-cppcoreguidelines-pro-type-vararg,-cppcoreguidelines-pro-type-const-cast,-cppcoreguidelines-pro-bounds-array-to-pointer-decay,
-  cert-*,-cert-err58-cpp,-cert-env33-c,-cert-err09-cpp,-cert-err60-cpp,-cert-err61-cpp, -cert-err61-cpp,
+  cert-*,-cert-err58-cpp,-cert-env33-c,-cert-err60-cpp,
   google-*,-google-runtime-references,-google-runtime-member-string-references,-google-explicit-constructor,-google-readability-todo,
-  misc-*, -misc-unused-parameters, -misc-macro-parentheses, -misc-throw-by-value-catch-by-reference, -misc-suspicious-enum-usage, -misc-non-private-member-variables-in-classes
+  misc-*,-misc-unused-parameters,-misc-macro-parentheses,-misc-suspicious-enum-usage,-misc-non-private-member-variables-in-classes
 
 WarningsAsErrors: '*'
 AnalyzeTemporaryDtors: false
