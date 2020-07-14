@@ -6,6 +6,7 @@
 #include "logging/logging.h"
 
 struct DownloadMetaStruct {
+ public:
   DownloadMetaStruct(Uptane::Target target_in, FetcherProgressCb progress_cb_in, const api::FlowControlToken* token_in)
       : hash_type{target_in.hashes()[0].type()},
         target{std::move(target_in)},

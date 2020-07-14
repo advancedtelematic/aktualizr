@@ -86,7 +86,7 @@ void SecondaryTcpServer::stop() {
 in_port_t SecondaryTcpServer::port() const { return listen_socket_.port(); }
 SecondaryTcpServer::ExitReason SecondaryTcpServer::exit_reason() const { return exit_reason_; }
 
-static bool sendResponseMessage(int socket_fd, Asn1Message::Ptr &resp_msg);
+static bool sendResponseMessage(int socket_fd, const Asn1Message::Ptr &resp_msg);
 
 bool SecondaryTcpServer::HandleOneConnection(int socket) {
   // Outside the message loop, because one recv() may have parts of 2 messages
@@ -166,7 +166,7 @@ void SecondaryTcpServer::wait_until_running(int timeout) {
   running_condition_.wait_for(lock, std::chrono::seconds(timeout), [&] { return is_running_; });
 }
 
-bool sendResponseMessage(int socket_fd, Asn1Message::Ptr &resp_msg) {
+bool sendResponseMessage(int socket_fd, const Asn1Message::Ptr &resp_msg) {
   LOG_DEBUG << "Encoding and sending response message";
 
   int optval = 0;

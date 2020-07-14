@@ -294,7 +294,8 @@ std::string Utils::readFile(const boost::filesystem::path &filename, const bool 
 static constexpr size_t BSIZE = 20 * 512;
 
 struct archive_state {
-  archive_state(std::istream &is_in) : is(is_in) {}
+ public:
+  explicit archive_state(std::istream &is_in) : is(is_in) {}
   std::istream &is;
   std::array<char, BSIZE> buf{};
 };
