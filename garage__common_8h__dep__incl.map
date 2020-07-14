@@ -1,6 +1,6 @@
 <map id="src/sota_tools/garage_common.h" name="src/sota_tools/garage_common.h">
-<area shape="rect" id="node2" href="$sota__tools_2check_8h_source.html" title="src/sota_tools/check.h" alt="" coords="387,370,553,397"/>
-<area shape="rect" id="node3" href="$sota__tools_2check_8cc_source.html" title="src/sota_tools/check.cc" alt="" coords="191,459,363,486"/>
+<area shape="rect" id="node2" href="$check_8h_source.html" title="src/sota_tools/check.h" alt="" coords="387,370,553,397"/>
+<area shape="rect" id="node3" href="$check_8cc_source.html" title="src/sota_tools/check.cc" alt="" coords="191,459,363,486"/>
 <area shape="rect" id="node4" href="$garage__check_8cc_source.html" title="src/sota_tools/garage\l_check.cc" alt="" coords="5,452,167,493"/>
 <area shape="rect" id="node5" href="$garage__deploy_8cc_source.html" title="src/sota_tools/garage\l_deploy.cc" alt="" coords="387,452,548,493"/>
 <area shape="rect" id="node6" href="$ostree__repo_8h_source.html" title="src/sota_tools/ostree\l_repo.h" alt="" coords="998,184,1155,225"/>

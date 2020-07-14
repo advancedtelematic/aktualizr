@@ -1,18 +1,8 @@
 <map id="src/libaktualizr&#45;posix/asn1/asn1_test.cc" name="src/libaktualizr&#45;posix/asn1/asn1_test.cc">
-<area shape="rect" id="node5" href="$asn1-cerstream_8h_source.html" title="asn1&#45;cerstream.h" alt="" coords="275,319,411,345"/>
-<area shape="rect" id="node10" href="$asn1__message_8h_source.html" title="asn1_message.h" alt="" coords="452,95,583,121"/>
-<area shape="rect" id="node14" href="$config_8h_source.html" title="config/config.h" alt="" coords="1327,95,1443,121"/>
-<area shape="rect" id="node6" href="$asn1-cer_8h_source.html" title="asn1&#45;cer.h" alt="" coords="1106,401,1195,427"/>
-<area shape="rect" id="node20" href="$bootloader_8h_source.html" title="bootloader/bootloader.h" alt="" coords="2094,244,2271,271"/>
-<area shape="rect" id="node23" href="$keymanager__config_8h_source.html" title="crypto/keymanager_config.h" alt="" coords="1579,169,1786,196"/>
-<area shape="rect" id="node24" href="$p11__config_8h_source.html" title="crypto/p11_config.h" alt="" coords="1465,244,1615,271"/>
-<area shape="rect" id="node25" href="$config__utils_8h_source.html" title="utilities/config_utils.h" alt="" coords="1322,319,1483,345"/>
-<area shape="rect" id="node30" href="$logging__config_8h_source.html" title="logging_config.h" alt="" coords="1928,483,2056,509"/>
-<area shape="rect" id="node32" href="$types_8h.html" title="types.h" alt="" coords="1670,401,1741,427"/>
-<area shape="rect" id="node38" href="$packagemanagerconfig_8h_source.html" title="package_manager/packagemanagerconfig.h" alt="" coords="779,244,1090,271"/>
-<area shape="rect" id="node40" href="$storage__config_8h_source.html" title="storage/storage_config.h" alt="" coords="1197,244,1379,271"/>
-<area shape="rect" id="node41" href="$telemetryconfig_8h_source.html" title="telemetry/telemetryconfig.h" alt="" coords="2365,244,2571,271"/>
-<area shape="rect" id="node21" href="$bootloader__config_8h_source.html" title="bootloader_config.h" alt="" coords="2101,319,2251,345"/>
-<area shape="rect" id="node26" href="$logging_8h_source.html" title="logging/logging.h" alt="" coords="1358,401,1493,427"/>
-<area shape="rect" id="node34" href="$utils_8h_source.html" title="utils.h" alt="" coords="1271,401,1334,427"/>
+<area shape="rect" id="node5" href="$config_8h_source.html" title="libaktualizr/config.h" alt="" coords="415,95,566,121"/>
+<area shape="rect" id="node14" href="$asn1-cerstream_8h_source.html" title="asn1&#45;cerstream.h" alt="" coords="1016,95,1152,121"/>
+<area shape="rect" id="node18" href="$asn1__message_8h_source.html" title="asn1_message.h" alt="" coords="1392,95,1523,121"/>
+<area shape="rect" id="node23" href="$utils_8h_source.html" title="utilities/utils.h" alt="" coords="1249,177,1364,203"/>
+<area shape="rect" id="node11" href="$types_8h.html" title="libaktualizr/types.h" alt="" coords="211,177,357,203"/>
+<area shape="rect" id="node15" href="$asn1-cer_8h_source.html" title="asn1&#45;cer.h" alt="" coords="867,177,957,203"/>
 </map>

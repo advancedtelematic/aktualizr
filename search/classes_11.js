@@ -1,8 +1,6 @@
 var searchData=
 [
   ['ratecontroller',['RateController',['../class_rate_controller.html',1,'']]],
-  ['rawmetapack',['RawMetaPack',['../struct_uptane_1_1_raw_meta_pack.html',1,'Uptane']]],
-  ['readerror',['ReadError',['../class_storage_target_r_handle_1_1_read_error.html',1,'StorageTargetRHandle']]],
   ['redirecthandler',['RedirectHandler',['../classtest__fixtures_1_1_redirect_handler.html',1,'test_fixtures']]],
   ['repo',['Repo',['../class_repo.html',1,'']]],
   ['reportevent',['ReportEvent',['../class_report_event.html',1,'']]],

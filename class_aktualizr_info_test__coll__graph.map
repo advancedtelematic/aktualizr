@@ -1,8 +1,8 @@
 <map id="AktualizrInfoTest" name="AktualizrInfoTest">
 <area shape="rect" id="node3" href="$class_config.html" title="Configuration object for an aktualizr instance running on a Primary ECU. " alt="" coords="1175,382,1237,408"/>
-<area shape="rect" id="node4" href="$class_base_config.html" title="BaseConfig" alt="" coords="873,204,967,231"/>
+<area shape="rect" id="node4" href="$class_base_config.html" title="The BaseConfig class. " alt="" coords="873,204,967,231"/>
 <area shape="rect" id="node6" href="$struct_storage_config.html" title="StorageConfig" alt="" coords="863,306,977,332"/>
-<area shape="rect" id="node7" href="$class_based_path.html" title="BasedPath" alt="" coords="513,247,604,274"/>
+<area shape="rect" id="node7" href="$classutils_1_1_based_path.html" title="The BasedPath class Can represent an absolute or relative path, only readable through the BasePath::g..." alt="" coords="495,247,622,274"/>
 <area shape="rect" id="node18" href="$struct_import_config.html" title="ImportConfig" alt="" coords="867,255,973,282"/>
 <area shape="rect" id="node8" href="$struct_tls_config.html" title="TlsConfig" alt="" coords="704,404,787,431"/>
 <area shape="rect" id="node9" title="STL class. " alt="" coords="193,514,280,540"/>
@@ -13,7 +13,7 @@
 <area shape="rect" id="node19" href="$struct_bootloader_config.html" title="BootloaderConfig" alt="" coords="491,804,626,831"/>
 <area shape="rect" id="node10" title="STL class. " alt="" coords="5,506,144,548"/>
 <area shape="rect" id="node11" href="$struct_logger_config.html" title="LoggerConfig" alt="" coords="867,154,973,180"/>
-<area shape="rect" id="node17" href="$struct_telemetry_config.html" title="TelemetryConfig" alt="" coords="856,356,984,383"/>
+<area shape="rect" id="node17" href="$struct_telemetry_config.html" title="The TelemetryConfig struct Report device network information: IP address, hostname, MAC address. " alt="" coords="856,356,984,383"/>
 <area shape="rect" id="node20" href="$class_aktualizr_info_test_1_1_aktualizr_info_process.html" title="AktualizrInfoTest::\lAktualizrInfoProcess" alt="" coords="1129,433,1283,474"/>
 <area shape="rect" id="node21" href="$class_process.html" title="Process" alt="" coords="884,771,956,798"/>
 <area shape="rect" id="node22" href="$class_uptane_1_1_hardware_identifier.html" title="Uptane::HardwareIdentifier" alt="" coords="1107,499,1305,526"/>

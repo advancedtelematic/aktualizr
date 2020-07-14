@@ -71,13 +71,13 @@ $(function() {
 <div class="dynheader">
 Inheritance diagram for INvStorage:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="class_i_nv_storage__inherit__graph.svg" width="154" height="187"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+<div class="center"><iframe scrolling="no" frameborder="0" src="class_i_nv_storage__inherit__graph.svg" width="108" height="112"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
 </div>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <div class="dynheader">
 Collaboration diagram for INvStorage:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="class_i_nv_storage__coll__graph.svg" width="231" height="319"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+<div class="center"><iframe scrolling="no" frameborder="0" src="class_i_nv_storage__coll__graph.svg" width="238" height="319"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
 </div>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -203,9 +203,9 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>storeCachedEc
 <tr class="memitem:a8da1373d1287dc67be0bb44089c5fc40"><td class="memItemLeft" align="right" valign="top"><a id="a8da1373d1287dc67be0bb44089c5fc40"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>loadCachedEcuManifest</b> (const <a class="el" href="class_uptane_1_1_ecu_serial.html">Uptane::EcuSerial</a> &amp;ecu_serial, std::string *manifest) const =0</td></tr>
 <tr class="separator:a8da1373d1287dc67be0bb44089c5fc40"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6243713136e4abed3668736be20cc76f"><td class="memItemLeft" align="right" valign="top"><a id="a6243713136e4abed3668736be20cc76f"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>storeMisconfiguredEcus</b> (const std::vector&lt; <a class="el" href="struct_misconfigured_ecu.html">MisconfiguredEcu</a> &gt; &amp;ecus)=0</td></tr>
-<tr class="separator:a6243713136e4abed3668736be20cc76f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a052af7311365569f265ed815eea0434a"><td class="memItemLeft" align="right" valign="top"><a id="a052af7311365569f265ed815eea0434a"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>saveMisconfiguredEcu</b> (const <a class="el" href="struct_misconfigured_ecu.html">MisconfiguredEcu</a> &amp;ecu)=0</td></tr>
+<tr class="separator:a052af7311365569f265ed815eea0434a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac4d19abfcb9c44ec7ecbaf1f1230da97"><td class="memItemLeft" align="right" valign="top"><a id="ac4d19abfcb9c44ec7ecbaf1f1230da97"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>loadMisconfiguredEcus</b> (std::vector&lt; <a class="el" href="struct_misconfigured_ecu.html">MisconfiguredEcu</a> &gt; *ecus) const =0</td></tr>
 <tr class="separator:ac4d19abfcb9c44ec7ecbaf1f1230da97"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -257,6 +257,9 @@ virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>loadEcuInstal
 <tr class="memitem:a08f617280a140021ca7d08f3eccf6713"><td class="memItemLeft" align="right" valign="top"><a id="a08f617280a140021ca7d08f3eccf6713"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>storeDeviceInstallationResult</b> (const <a class="el" href="structdata_1_1_installation_result.html">data::InstallationResult</a> &amp;result, const std::string &amp;raw_report, const std::string &amp;correlation_id)=0</td></tr>
 <tr class="separator:a08f617280a140021ca7d08f3eccf6713"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a511d5b89e0ea09ebac5daa3dee03549a"><td class="memItemLeft" align="right" valign="top"><a id="a511d5b89e0ea09ebac5daa3dee03549a"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>storeDeviceInstallationRawReport</b> (const std::string &amp;raw_report)=0</td></tr>
+<tr class="separator:a511d5b89e0ea09ebac5daa3dee03549a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5b7d33ec340760175ffe59f1b46c3438"><td class="memItemLeft" align="right" valign="top"><a id="a5b7d33ec340760175ffe59f1b46c3438"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>loadDeviceInstallationResult</b> (<a class="el" href="structdata_1_1_installation_result.html">data::InstallationResult</a> *result, std::string *raw_report, std::string *correlation_id) const =0</td></tr>
 <tr class="separator:a5b7d33ec340760175ffe59f1b46c3438"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -287,24 +290,18 @@ virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>loadDeviceDat
 <tr class="memitem:abaae0ba3bf096ffe97a2a3b1c890fcee"><td class="memItemLeft" align="right" valign="top"><a id="abaae0ba3bf096ffe97a2a3b1c890fcee"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>clearDeviceData</b> ()=0</td></tr>
 <tr class="separator:abaae0ba3bf096ffe97a2a3b1c890fcee"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a21e240e8c172f952aca2b314f289bd83"><td class="memItemLeft" align="right" valign="top"><a id="a21e240e8c172f952aca2b314f289bd83"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>checkAvailableDiskSpace</b> (uint64_t required_bytes) const =0</td></tr>
-<tr class="separator:a21e240e8c172f952aca2b314f289bd83"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5e88d9b05356fcb46c4bf8c00e0dc9aa"><td class="memItemLeft" align="right" valign="top"><a id="a5e88d9b05356fcb46c4bf8c00e0dc9aa"></a>
-virtual boost::optional&lt; std::pair&lt; uintmax_t, std::string &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>checkTargetFile</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target) const =0</td></tr>
-<tr class="separator:a5e88d9b05356fcb46c4bf8c00e0dc9aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a725ab624bc4f74a3620ccc0b29347a73"><td class="memItemLeft" align="right" valign="top"><a id="a725ab624bc4f74a3620ccc0b29347a73"></a>
-virtual std::unique_ptr&lt; <a class="el" href="class_storage_target_w_handle.html">StorageTargetWHandle</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>allocateTargetFile</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target)=0</td></tr>
-<tr class="separator:a725ab624bc4f74a3620ccc0b29347a73"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adb7b22ac86e194143764b9758cdfb182"><td class="memItemLeft" align="right" valign="top"><a id="adb7b22ac86e194143764b9758cdfb182"></a>
-virtual std::unique_ptr&lt; <a class="el" href="class_storage_target_r_handle.html">StorageTargetRHandle</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>openTargetFile</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target) const =0</td></tr>
-<tr class="separator:adb7b22ac86e194143764b9758cdfb182"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a35cecb80ec3cd1c37fd6f8a994be1d1b"><td class="memItemLeft" align="right" valign="top"><a id="a35cecb80ec3cd1c37fd6f8a994be1d1b"></a>
-virtual std::vector&lt; <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getTargetFiles</b> ()=0</td></tr>
-<tr class="separator:a35cecb80ec3cd1c37fd6f8a994be1d1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a13a172f0ae80684b815563b50eb31fc0"><td class="memItemLeft" align="right" valign="top"><a id="a13a172f0ae80684b815563b50eb31fc0"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>removeTargetFile</b> (const std::string &amp;target_name)=0</td></tr>
-<tr class="separator:a13a172f0ae80684b815563b50eb31fc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a819693be2485b784bbf6bf70b4a895c4"><td class="memItemLeft" align="right" valign="top"><a id="a819693be2485b784bbf6bf70b4a895c4"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>storeTargetFilename</b> (const std::string &amp;targetname, const std::string &amp;filename) const =0</td></tr>
+<tr class="separator:a819693be2485b784bbf6bf70b4a895c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a67f24167b852fc946a3e5bce4905bd68"><td class="memItemLeft" align="right" valign="top"><a id="a67f24167b852fc946a3e5bce4905bd68"></a>
+virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><b>getTargetFilename</b> (const std::string &amp;targetname) const =0</td></tr>
+<tr class="separator:a67f24167b852fc946a3e5bce4905bd68"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a54a8825c09e5512b4d2610f3e3933578"><td class="memItemLeft" align="right" valign="top"><a id="a54a8825c09e5512b4d2610f3e3933578"></a>
+virtual std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getAllTargetNames</b> () const =0</td></tr>
+<tr class="separator:a54a8825c09e5512b4d2610f3e3933578"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a83d51e74b515845279b818b427febb19"><td class="memItemLeft" align="right" valign="top"><a id="a83d51e74b515845279b818b427febb19"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>deleteTargetInfo</b> (const std::string &amp;targetname) const =0</td></tr>
+<tr class="separator:a83d51e74b515845279b818b427febb19"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac897b1e9c7ea2f60926e6c8b06a2c751"><td class="memItemLeft" align="right" valign="top"><a id="ac897b1e9c7ea2f60926e6c8b06a2c751"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>cleanUp</b> ()=0</td></tr>
 <tr class="separator:ac897b1e9c7ea2f60926e6c8b06a2c751"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -344,7 +341,7 @@ const <a class="el" href="struct_storage_config.html">StorageConfig</a>&#160;</t
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p class="definition">Definition at line <a class="el" href="invstorage_8h_source.html#l00126">126</a> of file <a class="el" href="invstorage_8h_source.html">invstorage.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="invstorage_8h_source.html#l00043">43</a> of file <a class="el" href="invstorage_8h_source.html">invstorage.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>src/libaktualizr/storage/<a class="el" href="invstorage_8h_source.html">invstorage.h</a></li>
 <li>src/libaktualizr/storage/<a class="el" href="invstorage_8cc_source.html">invstorage.cc</a></li>

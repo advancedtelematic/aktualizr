@@ -1,15 +1,15 @@
 var searchData=
 [
-  ['aktualizr',['Aktualizr',['../classtest__fixtures_1_1_aktualizr.html',1,'test_fixtures.Aktualizr'],['../class_aktualizr.html',1,'Aktualizr']]],
+  ['aktualizr',['Aktualizr',['../class_aktualizr.html',1,'Aktualizr'],['../classtest__fixtures_1_1_aktualizr.html',1,'test_fixtures.Aktualizr']]],
   ['aktualizrcertprovidertest',['AktualizrCertProviderTest',['../class_aktualizr_cert_provider_test.html',1,'']]],
   ['aktualizrinfoconfig',['AktualizrInfoConfig',['../class_aktualizr_info_config.html',1,'']]],
   ['aktualizrinfoprocess',['AktualizrInfoProcess',['../class_aktualizr_info_test_1_1_aktualizr_info_process.html',1,'AktualizrInfoTest']]],
   ['aktualizrinfotest',['AktualizrInfoTest',['../class_aktualizr_info_test.html',1,'']]],
   ['aktualizrsecondary',['AktualizrSecondary',['../class_aktualizr_secondary.html',1,'']]],
   ['aktualizrsecondaryconfig',['AktualizrSecondaryConfig',['../class_aktualizr_secondary_config.html',1,'']]],
-  ['aktualizrsecondaryfactory',['AktualizrSecondaryFactory',['../class_aktualizr_secondary_factory.html',1,'']]],
-  ['aktualizrsecondarymsgdispatcher',['AktualizrSecondaryMsgDispatcher',['../class_aktualizr_secondary_msg_dispatcher.html',1,'']]],
+  ['aktualizrsecondaryfile',['AktualizrSecondaryFile',['../class_aktualizr_secondary_file.html',1,'']]],
   ['aktualizrsecondarynetconfig',['AktualizrSecondaryNetConfig',['../struct_aktualizr_secondary_net_config.html',1,'']]],
+  ['aktualizrsecondaryostree',['AktualizrSecondaryOstree',['../class_aktualizr_secondary_ostree.html',1,'']]],
   ['aktualizrsecondaryuptaneconfig',['AktualizrSecondaryUptaneConfig',['../struct_aktualizr_secondary_uptane_config.html',1,'']]],
   ['aktualizrsecondarywrapper',['AktualizrSecondaryWrapper',['../class_aktualizr_secondary_wrapper.html',1,'']]],
   ['alldownloadscomplete',['AllDownloadsComplete',['../classevent_1_1_all_downloads_complete.html',1,'event']]],

@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['iaktualizrsecondary',['IAktualizrSecondary',['../class_i_aktualizr_secondary.html',1,'']]],
   ['illegalthreshold',['IllegalThreshold',['../class_uptane_1_1_illegal_threshold.html',1,'Uptane']]],
   ['imagerepo',['ImageRepo',['../class_image_repo.html',1,'ImageRepo'],['../classtest__fixtures_1_1_image_repo.html',1,'test_fixtures.ImageRepo']]],
   ['imagerepository',['ImageRepository',['../class_uptane_1_1_image_repository.html',1,'Uptane']]],
@@ -22,7 +21,6 @@ var searchData=
   ['installmanager',['InstallManager',['../classtest__fixtures_1_1_install_manager.html',1,'test_fixtures']]],
   ['installstarted',['InstallStarted',['../classevent_1_1_install_started.html',1,'event']]],
   ['installtargetcomplete',['InstallTargetComplete',['../classevent_1_1_install_target_complete.html',1,'event']]],
-  ['interruptableexecutioncontroller',['InterruptableExecutionController',['../class_interruptable_execution_controller.html',1,'']]],
   ['invalidmetadata',['InvalidMetadata',['../class_uptane_1_1_invalid_metadata.html',1,'Uptane']]],
   ['invalidtarget',['InvalidTarget',['../class_uptane_1_1_invalid_target.html',1,'Uptane']]],
   ['invalidtimestamp',['InvalidTimeStamp',['../class_time_stamp_1_1_invalid_time_stamp.html',1,'TimeStamp']]],
@@ -33,6 +31,5 @@ var searchData=
   ['ipuptanesecondary',['IpUptaneSecondary',['../class_uptane_1_1_ip_uptane_secondary.html',1,'Uptane']]],
   ['isostree',['IsOstree',['../class_uptane_1_1_target.html#a3cb159cb07df896667288794df362cb8',1,'Uptane::Target']]],
   ['isotpsecondary',['IsoTpSecondary',['../class_uptane_1_1_iso_tp_secondary.html',1,'Uptane']]],
-  ['isotpsendrecv',['IsoTpSendRecv',['../class_iso_tp_send_recv.html',1,'']]],
-  ['isregistered',['IsRegistered',['../class_aktualizr.html#a8fab2e745f62e8940ecf7f4c5e188a47',1,'Aktualizr']]]
+  ['isotpsendrecv',['IsoTpSendRecv',['../class_iso_tp_send_recv.html',1,'']]]
 ];

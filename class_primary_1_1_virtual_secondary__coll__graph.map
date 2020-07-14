@@ -1,9 +1,8 @@
 <map id="Primary::VirtualSecondary" name="Primary::VirtualSecondary">
-<area shape="rect" id="node2" href="$class_primary_1_1_managed_secondary.html" title="Primary::ManagedSecondary" alt="" coords="961,83,1168,109"/>
-<area shape="rect" id="node3" href="$class_uptane_1_1_secondary_interface.html" title="Uptane::SecondaryInterface" alt="" coords="545,5,747,32"/>
-<area shape="rect" id="node5" href="$class_hash.html" title="The hash of a file or Uptane metadata. " alt="" coords="261,36,315,63"/>
-<area shape="rect" id="node6" href="$class_primary_1_1_managed_secondary_config.html" title="Primary::ManagedSecondary\lConfig" alt="" coords="543,107,749,149"/>
-<area shape="rect" id="node7" href="$class_primary_1_1_secondary_config.html" title="Primary::SecondaryConfig" alt="" coords="193,87,383,113"/>
-<area shape="rect" id="node8" title="STL class. " alt="" coords="245,187,331,213"/>
-<area shape="rect" id="node9" title="STL class. " alt="" coords="5,179,144,221"/>
+<area shape="rect" id="node2" href="$class_primary_1_1_managed_secondary.html" title="Primary::ManagedSecondary" alt="" coords="177,333,384,360"/>
+<area shape="rect" id="node3" href="$class_secondary_interface.html" title="SecondaryInterface" alt="" coords="5,237,153,263"/>
+<area shape="rect" id="node4" href="$class_primary_1_1_managed_secondary_config.html" title="Primary::ManagedSecondary\lConfig" alt="" coords="177,229,384,271"/>
+<area shape="rect" id="node5" href="$class_primary_1_1_secondary_config.html" title="Primary::SecondaryConfig" alt="" coords="162,96,351,123"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="383,96,469,123"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="357,5,495,47"/>
 </map>

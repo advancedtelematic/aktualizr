@@ -92,7 +92,7 @@ var sectionId = 'dynsection-1';
 <!-- Node5 -->
 <g id="node4" class="node">
 <title>Node5</title>
-<g id="a_node4"><a xlink:href="class_base_config.html" target="_top" xlink:title="BaseConfig">
+<g id="a_node4"><a xlink:href="class_base_config.html" target="_top" xlink:title="The BaseConfig class. ">
 <polygon fill="#ffffff" stroke="#000000" points="650.5,-460.8277 650.5,-479.8277 721.5,-479.8277 721.5,-460.8277 650.5,-460.8277"/>
 <text text-anchor="middle" x="686" y="-467.8277" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">BaseConfig</text>
 </a>
@@ -137,9 +137,9 @@ var sectionId = 'dynsection-1';
 <!-- Node8 -->
 <g id="node7" class="node">
 <title>Node8</title>
-<g id="a_node7"><a xlink:href="class_based_path.html" target="_top" xlink:title="BasedPath">
-<polygon fill="#ffffff" stroke="#000000" points="381,-428.8277 381,-447.8277 449,-447.8277 449,-428.8277 381,-428.8277"/>
-<text text-anchor="middle" x="415" y="-435.8277" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">BasedPath</text>
+<g id="a_node7"><a xlink:href="classutils_1_1_based_path.html" target="_top" xlink:title="The BasedPath class Can represent an absolute or relative path, only readable through the BasePath::g...">
+<polygon fill="#ffffff" stroke="#000000" points="367.5,-428.8277 367.5,-447.8277 462.5,-447.8277 462.5,-428.8277 367.5,-428.8277"/>
+<text text-anchor="middle" x="415" y="-435.8277" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">utils::BasedPath</text>
 </a>
 </g>
 </g>
@@ -169,8 +169,8 @@ var sectionId = 'dynsection-1';
 <!-- Node8&#45;&gt;Node19 -->
 <g id="edge23" class="edge">
 <title>Node8&#45;&gt;Node19</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M459.3319,-441.5161C500.0988,-443.9007 562.1946,-446.1515 616,-442.3277 625.6738,-441.6402 636.0431,-440.4247 645.7575,-439.0726"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="459.3857,-438.0129 449.1902,-440.8942 458.9572,-444.9998 459.3857,-438.0129"/>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M472.7324,-442.2502C512.9455,-444.3037 567.7993,-445.7532 616,-442.3277 625.6738,-441.6402 636.0431,-440.4247 645.7575,-439.0726"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="472.7516,-438.7462 462.5778,-441.703 472.3749,-445.7361 472.7516,-438.7462"/>
 <text text-anchor="middle" x="555" y="-502.3277" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000"> uptane_public_key_path</text>
 <text text-anchor="middle" x="555" y="-491.3277" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">tls_pkey_path</text>
 <text text-anchor="start" x="494" y="-480.3277" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">uptane_private_key</text>
@@ -398,7 +398,7 @@ var sectionId = 'dynsection-1';
 <!-- Node18 -->
 <g id="node17" class="node">
 <title>Node18</title>
-<g id="a_node17"><a xlink:href="struct_telemetry_config.html" target="_top" xlink:title="TelemetryConfig">
+<g id="a_node17"><a xlink:href="struct_telemetry_config.html" target="_top" xlink:title="The TelemetryConfig struct Report device network information: IP address, hostname, MAC address. ">
 <polygon fill="#ffffff" stroke="#000000" points="638,-346.8277 638,-365.8277 734,-365.8277 734,-346.8277 638,-346.8277"/>
 <text text-anchor="middle" x="686" y="-353.8277" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">TelemetryConfig</text>
 </a>

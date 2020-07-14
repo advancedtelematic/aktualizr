@@ -12,9 +12,9 @@
 <!-- Node0 -->
 <g id="node1" class="node">
 <title>Node0</title>
-<g id="a_node1"><a xlink:href="struct_delegation.html" target="_top" xlink:title="Delegation">
+<g id="a_node1"><a xlink:href="struct_docker_app.html" target="_top" xlink:title="This package manager compliments the OSTreePackageManager by also including optional Docker Apps...">
 <polygon fill="#ffffff" stroke="#000000" points="0,-.5 0,-19.5 70,-19.5 70,-.5 0,-.5"/>
-<text text-anchor="middle" x="35" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">Delegation</text>
+<text text-anchor="middle" x="35" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">DockerApp</text>
 </a>
 </g>
 </g>

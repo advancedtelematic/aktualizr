@@ -64,7 +64,7 @@ var sectionId = 'dynsection-1';
 <!-- Node3 -->
 <g id="node2" class="node">
 <title>Node3</title>
-<g id="a_node2"><a xlink:href="class_base_config.html" target="_top" xlink:title="BaseConfig">
+<g id="a_node2"><a xlink:href="class_base_config.html" target="_top" xlink:title="The BaseConfig class. ">
 <polygon fill="#ffffff" stroke="#000000" points="656.5,-418.4347 656.5,-437.4347 727.5,-437.4347 727.5,-418.4347 656.5,-418.4347"/>
 <text text-anchor="middle" x="692" y="-425.4347" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">BaseConfig</text>
 </a>
@@ -109,17 +109,17 @@ var sectionId = 'dynsection-1';
 <!-- Node6 -->
 <g id="node5" class="node">
 <title>Node6</title>
-<g id="a_node5"><a xlink:href="class_based_path.html" target="_top" xlink:title="BasedPath">
-<polygon fill="#ffffff" stroke="#000000" points="358,-328.4347 358,-347.4347 426,-347.4347 426,-328.4347 358,-328.4347"/>
-<text text-anchor="middle" x="392" y="-335.4347" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">BasedPath</text>
+<g id="a_node5"><a xlink:href="classutils_1_1_based_path.html" target="_top" xlink:title="The BasedPath class Can represent an absolute or relative path, only readable through the BasePath::g...">
+<polygon fill="#ffffff" stroke="#000000" points="344.5,-328.4347 344.5,-347.4347 439.5,-347.4347 439.5,-328.4347 344.5,-328.4347"/>
+<text text-anchor="middle" x="392" y="-335.4347" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">utils::BasedPath</text>
 </a>
 </g>
 </g>
 <!-- Node6&#45;&gt;Node5 -->
 <g id="edge4" class="edge">
 <title>Node6&#45;&gt;Node5</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M436.2789,-342.9283C447.5874,-344.0634 459.7332,-345.1612 471,-345.9347 532.8594,-350.182 604.624,-352.2543 649.1772,-353.2055"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="436.4852,-339.431 426.1781,-341.8834 435.7649,-346.3939 436.4852,-339.431"/>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M449.8988,-344.2322C457.0005,-344.8764 464.1622,-345.4652 471,-345.9347 532.8594,-350.182 604.624,-352.2543 649.1772,-353.2055"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="449.8666,-340.7136 439.5814,-343.2563 449.2074,-347.6825 449.8666,-340.7136"/>
 <text text-anchor="middle" x="550.5" y="-431.9347" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000"> uptane_public_key_path</text>
 <text text-anchor="middle" x="550.5" y="-420.9347" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">tls_pkey_path</text>
 <text text-anchor="middle" x="550.5" y="-409.9347" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">uptane_metadata_path</text>

@@ -65,7 +65,25 @@ $(function() {
 <div class="contents">
 <div class="textblock"><p>This file summarizes notable changes introduced in aktualizr version. It roughly follows the guidelines from <a href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a>.</p>
 <p>Our versioning scheme is <code>YEAR.N</code> where <code>N</code> is incremented whenever a new release is issued. Thus <code>N</code> does not necessarily map to months of the year.</p>
-<h2>[??? (unreleased)]</h2>
+<h2>[upcoming release]</h2>
+<h2>[2020.8] - 2020-07-09</h2>
+<h3>Special considerations</h3>
+<p>As a result of changes to the IP/POSIX Secondary protocol (see below), users of these Secondaries will need to take special care when upgrading their devices. The new version of aktualizr is backwards compatible and will work with both old and new versions of the protocol. However, aktualizr-secondary is <em>not</em>. This means that if you are upgrading a device with IP/POSIX Secondaries, you should update the Primary ECU running aktualizr <b>first</b>, and if that is successful, then update your Secondaries.</p>
+<h3>Added</h3>
+<ul>
+<li>You can now use the <code>SetInstallationRawReport</code> API function to set a custom raw report field in the device installation result: <a href="https://github.com/advancedtelematic/aktualizr/pull/1628">PR</a></li>
+<li>You can now re-register ECUs, which supports replacing the Primary and adding, removing, and replacing Secondaries: <a href="https://github.com/advancedtelematic/aktualizr/pull/1686">PR</a></li>
+<li>gcc version 9 is now supported: <a href="https://github.com/advancedtelematic/aktualizr/pull/1714">PR</a></li>
+</ul>
+<h3>Changed</h3>
+<ul>
+<li>Improved the Secondary interface and error reporting: <a href="https://github.com/advancedtelematic/aktualizr/pull/1642">PR</a></li>
+<li>Improved the Secondary IP/POSIX communication protocol, including streaming binary updates from the Primary to the Secondary: <a href="https://github.com/advancedtelematic/aktualizr/pull/1642">PR</a></li>
+<li>Moved the binary update logic to the package manager (and added <code>images_path</code> to the configuration): <a href="https://github.com/advancedtelematic/aktualizr/pull/1679">PR</a></li>
+<li>The shared provisioning p12 file is now removed from the credentials archive after use. <a href="https://github.com/advancedtelematic/aktualizr/blob/master/docs/ota-client-guide/modules/ROOT/pages/aktualizr-config-options.adoc">This can be disabled for testing.</a> <a href="https://github.com/advancedtelematic/aktualizr/pull/1697">PR</a></li>
+<li>Errors encountered while sending metadata to Secondaries are now reported to the server with greater detail: <a href="https://github.com/advancedtelematic/aktualizr/pull/1703">PR</a></li>
+<li>The headers required to include for API users have been simplified: <a href="https://github.com/advancedtelematic/aktualizr/pull/1707">PR #1707</a>, <a href="https://github.com/advancedtelematic/aktualizr/pull/1713">PR #1713</a>, and <a href="https://github.com/advancedtelematic/aktualizr/pull/1716">PR #1716</a></li>
+</ul>
 <h2>[2020.7] - 2020-05-29</h2>
 <h3>Changed</h3>
 <ul>

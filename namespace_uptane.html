@@ -122,7 +122,7 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uptane_1_1_metadata_fetch_failure.html">MetadataFetchFailure</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_uptane_1_1_meta_pack.html">MetaPack</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_uptane_1_1_meta_pair_hash.html">MetaPairHash</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uptane_1_1_meta_with_keys.html">MetaWithKeys</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -134,8 +134,6 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uptane_1_1_partial_verification_secondary.html">PartialVerificationSecondary</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_uptane_1_1_raw_meta_pack.html">RawMetaPack</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uptane_1_1_repository_common.html">RepositoryCommon</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uptane_1_1_repository_type.html">RepositoryType</a></td></tr>
@@ -146,8 +144,6 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uptane_1_1_root.html">Root</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uptane_1_1_root_rotation_error.html">RootRotationError</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uptane_1_1_secondary_interface.html">SecondaryInterface</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uptane_1_1_security_exception.html">SecurityException</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -175,15 +171,27 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:a774a22506d603b0602b468f8b0a900ad"><td class="memItemLeft" align="right" valign="top"><a id="a774a22506d603b0602b468f8b0a900ad"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>KeyId</b> = std::string</td></tr>
-<tr class="separator:a774a22506d603b0602b468f8b0a900ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a28e88a7bfbe01235c09c2f612c518857"><td class="memItemLeft" align="right" valign="top"><a id="a28e88a7bfbe01235c09c2f612c518857"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>EcuMap</b> = std::map&lt; <a class="el" href="class_uptane_1_1_ecu_serial.html">EcuSerial</a>, <a class="el" href="class_uptane_1_1_hardware_identifier.html">HardwareIdentifier</a> &gt;</td></tr>
 <tr class="separator:a28e88a7bfbe01235c09c2f612c518857"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a774a22506d603b0602b468f8b0a900ad"><td class="memItemLeft" align="right" valign="top"><a id="a774a22506d603b0602b468f8b0a900ad"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>KeyId</b> = std::string</td></tr>
+<tr class="separator:a774a22506d603b0602b468f8b0a900ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a29fc1e26dd3402e3cb2f430c43bd2579"><td class="memItemLeft" align="right" valign="top"><a id="a29fc1e26dd3402e3cb2f430c43bd2579"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>MetaBundle</b> = std::unordered_map&lt; std::pair&lt; <a class="el" href="class_uptane_1_1_repository_type.html">RepositoryType</a>, <a class="el" href="class_uptane_1_1_role.html">Role</a> &gt;, std::string, <a class="el" href="struct_uptane_1_1_meta_pair_hash.html">MetaPairHash</a> &gt;</td></tr>
+<tr class="separator:a29fc1e26dd3402e3cb2f430c43bd2579"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a1ec24448e6fc50086b17ce9eabf473cb"><td class="memItemLeft" align="right" valign="top"><a id="a1ec24448e6fc50086b17ce9eabf473cb"></a>
+std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator&lt;&lt;</b> (std::ostream &amp;os, const <a class="el" href="class_uptane_1_1_hardware_identifier.html">HardwareIdentifier</a> &amp;hwid)</td></tr>
+<tr class="separator:a1ec24448e6fc50086b17ce9eabf473cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a52a22adb1b3f8ac813f2db38bc91c823"><td class="memItemLeft" align="right" valign="top"><a id="a52a22adb1b3f8ac813f2db38bc91c823"></a>
+std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator&lt;&lt;</b> (std::ostream &amp;os, const <a class="el" href="class_uptane_1_1_ecu_serial.html">EcuSerial</a> &amp;ecu_serial)</td></tr>
+<tr class="separator:a52a22adb1b3f8ac813f2db38bc91c823"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad0898373ad5abd953423422f34f0637f"><td class="memItemLeft" align="right" valign="top"><a id="ad0898373ad5abd953423422f34f0637f"></a>
+std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator&lt;&lt;</b> (std::ostream &amp;os, const <a class="el" href="class_uptane_1_1_target.html">Target</a> &amp;t)</td></tr>
+<tr class="separator:ad0898373ad5abd953423422f34f0637f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae2a92537669081f196022d18654a26fb"><td class="memItemLeft" align="right" valign="top"><a id="ae2a92537669081f196022d18654a26fb"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>TEST</b> (Director, EmptyTargets)</td></tr>
 <tr class="separator:ae2a92537669081f196022d18654a26fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -196,15 +204,9 @@ std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operato
 <tr class="memitem:aaac801824b63a2acc622878ef001c59d"><td class="memItemLeft" align="right" valign="top"><a id="aaac801824b63a2acc622878ef001c59d"></a>
 std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator&lt;&lt;</b> (std::ostream &amp;os, const <a class="el" href="class_uptane_1_1_version.html">Version</a> &amp;v)</td></tr>
 <tr class="separator:aaac801824b63a2acc622878ef001c59d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1ec24448e6fc50086b17ce9eabf473cb"><td class="memItemLeft" align="right" valign="top"><a id="a1ec24448e6fc50086b17ce9eabf473cb"></a>
-std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator&lt;&lt;</b> (std::ostream &amp;os, const <a class="el" href="class_uptane_1_1_hardware_identifier.html">HardwareIdentifier</a> &amp;hwid)</td></tr>
-<tr class="separator:a1ec24448e6fc50086b17ce9eabf473cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a52a22adb1b3f8ac813f2db38bc91c823"><td class="memItemLeft" align="right" valign="top"><a id="a52a22adb1b3f8ac813f2db38bc91c823"></a>
-std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator&lt;&lt;</b> (std::ostream &amp;os, const <a class="el" href="class_uptane_1_1_ecu_serial.html">EcuSerial</a> &amp;ecu_serial)</td></tr>
-<tr class="separator:a52a22adb1b3f8ac813f2db38bc91c823"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad0898373ad5abd953423422f34f0637f"><td class="memItemLeft" align="right" valign="top"><a id="ad0898373ad5abd953423422f34f0637f"></a>
-std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator&lt;&lt;</b> (std::ostream &amp;os, const <a class="el" href="class_uptane_1_1_target.html">Target</a> &amp;t)</td></tr>
-<tr class="separator:ad0898373ad5abd953423422f34f0637f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a540ac946537957af770a00ba26fca2a5"><td class="memItemLeft" align="right" valign="top"><a id="a540ac946537957af770a00ba26fca2a5"></a>
+std::string&#160;</td><td class="memItemRight" valign="bottom"><b>getMetaFromBundle</b> (const MetaBundle &amp;bundle, <a class="el" href="class_uptane_1_1_repository_type.html">RepositoryType</a> repo, const <a class="el" href="class_uptane_1_1_role.html">Role</a> &amp;role)</td></tr>
+<tr class="separator:a540ac946537957af770a00ba26fca2a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac6d68b9153f14d311a2035c5a76d18b8"><td class="memItemLeft" align="right" valign="top"><a id="ac6d68b9153f14d311a2035c5a76d18b8"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>extractVersionUntrusted</b> (const std::string &amp;meta)</td></tr>
 <tr class="separator:ac6d68b9153f14d311a2035c5a76d18b8"><td class="memSeparator" colspan="2">&#160;</td></tr>

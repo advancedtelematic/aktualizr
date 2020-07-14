@@ -70,13 +70,13 @@ $(function() {
 <div class="dynheader">
 Inheritance diagram for SQLStorage:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="class_s_q_l_storage__inherit__graph.svg" width="259" height="187"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+<div class="center"><iframe scrolling="no" frameborder="0" src="class_s_q_l_storage__inherit__graph.svg" width="259" height="112"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
 </div>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <div class="dynheader">
 Collaboration diagram for SQLStorage:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="class_s_q_l_storage__coll__graph.svg" width="487" height="410"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+<div class="center"><iframe scrolling="no" frameborder="0" src="class_s_q_l_storage__coll__graph.svg" width="499" height="410"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
 </div>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -196,9 +196,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>storeCachedEcuManifes
 <tr class="memitem:ac7f81c4b74f54956962fa697df0fd6ba"><td class="memItemLeft" align="right" valign="top"><a id="ac7f81c4b74f54956962fa697df0fd6ba"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>loadCachedEcuManifest</b> (const <a class="el" href="class_uptane_1_1_ecu_serial.html">Uptane::EcuSerial</a> &amp;ecu_serial, std::string *manifest) const override</td></tr>
 <tr class="separator:ac7f81c4b74f54956962fa697df0fd6ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ace2069bb4f55e5f17fdeff360ea19bb5"><td class="memItemLeft" align="right" valign="top"><a id="ace2069bb4f55e5f17fdeff360ea19bb5"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>storeMisconfiguredEcus</b> (const std::vector&lt; <a class="el" href="struct_misconfigured_ecu.html">MisconfiguredEcu</a> &gt; &amp;ecus) override</td></tr>
-<tr class="separator:ace2069bb4f55e5f17fdeff360ea19bb5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a10a692da5920b153386916fbf0f7ef4c"><td class="memItemLeft" align="right" valign="top"><a id="a10a692da5920b153386916fbf0f7ef4c"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>saveMisconfiguredEcu</b> (const <a class="el" href="struct_misconfigured_ecu.html">MisconfiguredEcu</a> &amp;ecu) override</td></tr>
+<tr class="separator:a10a692da5920b153386916fbf0f7ef4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1e6ffa2f1738f14357fb26dc6d0b76bb"><td class="memItemLeft" align="right" valign="top"><a id="a1e6ffa2f1738f14357fb26dc6d0b76bb"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>loadMisconfiguredEcus</b> (std::vector&lt; <a class="el" href="struct_misconfigured_ecu.html">MisconfiguredEcu</a> &gt; *ecus) const override</td></tr>
 <tr class="separator:a1e6ffa2f1738f14357fb26dc6d0b76bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -250,6 +250,9 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>loadEcuInstallationRe
 <tr class="memitem:a0f4303aa2a62b0bbd25a156b1d1518ae"><td class="memItemLeft" align="right" valign="top"><a id="a0f4303aa2a62b0bbd25a156b1d1518ae"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>storeDeviceInstallationResult</b> (const <a class="el" href="structdata_1_1_installation_result.html">data::InstallationResult</a> &amp;result, const std::string &amp;raw_report, const std::string &amp;correlation_id) override</td></tr>
 <tr class="separator:a0f4303aa2a62b0bbd25a156b1d1518ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adea71db20d8c9016cf0c6576a8218c52"><td class="memItemLeft" align="right" valign="top"><a id="adea71db20d8c9016cf0c6576a8218c52"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>storeDeviceInstallationRawReport</b> (const std::string &amp;raw_report) override</td></tr>
+<tr class="separator:adea71db20d8c9016cf0c6576a8218c52"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a13dc48e8faebc258aecd88ed56a238f4"><td class="memItemLeft" align="right" valign="top"><a id="a13dc48e8faebc258aecd88ed56a238f4"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>loadDeviceInstallationResult</b> (<a class="el" href="structdata_1_1_installation_result.html">data::InstallationResult</a> *result, std::string *raw_report, std::string *correlation_id) const override</td></tr>
 <tr class="separator:a13dc48e8faebc258aecd88ed56a238f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -280,24 +283,18 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>loadDeviceDataHash</b
 <tr class="memitem:a9e21ee2423d64b2bf9b75310483a0125"><td class="memItemLeft" align="right" valign="top"><a id="a9e21ee2423d64b2bf9b75310483a0125"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>clearDeviceData</b> () override</td></tr>
 <tr class="separator:a9e21ee2423d64b2bf9b75310483a0125"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae57e64777c412896a8fd1c3b2c1568e4"><td class="memItemLeft" align="right" valign="top"><a id="ae57e64777c412896a8fd1c3b2c1568e4"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>checkAvailableDiskSpace</b> (uint64_t required_bytes) const override</td></tr>
-<tr class="separator:ae57e64777c412896a8fd1c3b2c1568e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a67ee8c64c302790a3f451e244fe557b9"><td class="memItemLeft" align="right" valign="top"><a id="a67ee8c64c302790a3f451e244fe557b9"></a>
-std::unique_ptr&lt; <a class="el" href="class_storage_target_w_handle.html">StorageTargetWHandle</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>allocateTargetFile</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target) override</td></tr>
-<tr class="separator:a67ee8c64c302790a3f451e244fe557b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa3660f47908f5f7d13a7ff08419d0fcb"><td class="memItemLeft" align="right" valign="top"><a id="aa3660f47908f5f7d13a7ff08419d0fcb"></a>
-std::unique_ptr&lt; <a class="el" href="class_storage_target_r_handle.html">StorageTargetRHandle</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>openTargetFile</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target) const override</td></tr>
-<tr class="separator:aa3660f47908f5f7d13a7ff08419d0fcb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a68d9b685d03da6855e24a7bd4d6ae845"><td class="memItemLeft" align="right" valign="top"><a id="a68d9b685d03da6855e24a7bd4d6ae845"></a>
-boost::optional&lt; std::pair&lt; uintmax_t, std::string &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>checkTargetFile</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target) const override</td></tr>
-<tr class="separator:a68d9b685d03da6855e24a7bd4d6ae845"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ade85bba1c426073fda14cd395ad4edc9"><td class="memItemLeft" align="right" valign="top"><a id="ade85bba1c426073fda14cd395ad4edc9"></a>
-std::vector&lt; <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getTargetFiles</b> () override</td></tr>
-<tr class="separator:ade85bba1c426073fda14cd395ad4edc9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1d4d4791e86c8fca28b3d52547b6180d"><td class="memItemLeft" align="right" valign="top"><a id="a1d4d4791e86c8fca28b3d52547b6180d"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>removeTargetFile</b> (const std::string &amp;target_name) override</td></tr>
-<tr class="separator:a1d4d4791e86c8fca28b3d52547b6180d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a674ae3f4890cf78f532fbb25679363bc"><td class="memItemLeft" align="right" valign="top"><a id="a674ae3f4890cf78f532fbb25679363bc"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>storeTargetFilename</b> (const std::string &amp;targetname, const std::string &amp;filename) const override</td></tr>
+<tr class="separator:a674ae3f4890cf78f532fbb25679363bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8f18dc3f33aa0cd56ef6819e3232308e"><td class="memItemLeft" align="right" valign="top"><a id="a8f18dc3f33aa0cd56ef6819e3232308e"></a>
+std::string&#160;</td><td class="memItemRight" valign="bottom"><b>getTargetFilename</b> (const std::string &amp;targetname) const override</td></tr>
+<tr class="separator:a8f18dc3f33aa0cd56ef6819e3232308e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6f8cd03bee9284a05f4d5e2e62e82c57"><td class="memItemLeft" align="right" valign="top"><a id="a6f8cd03bee9284a05f4d5e2e62e82c57"></a>
+std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getAllTargetNames</b> () const override</td></tr>
+<tr class="separator:a6f8cd03bee9284a05f4d5e2e62e82c57"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a50c954b6c3cb35dab4add224f36684ae"><td class="memItemLeft" align="right" valign="top"><a id="a50c954b6c3cb35dab4add224f36684ae"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>deleteTargetInfo</b> (const std::string &amp;targetname) const override</td></tr>
+<tr class="separator:a50c954b6c3cb35dab4add224f36684ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8d8864af6ad72b7b8d7bd212952b6855"><td class="memItemLeft" align="right" valign="top"><a id="a8d8864af6ad72b7b8d7bd212952b6855"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>cleanUp</b> () override</td></tr>
 <tr class="separator:a8d8864af6ad72b7b8d7bd212952b6855"><td class="memSeparator" colspan="2">&#160;</td></tr>

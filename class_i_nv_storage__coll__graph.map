@@ -1,4 +1,4 @@
 <map id="INvStorage" name="INvStorage">
-<area shape="rect" id="node2" href="$struct_storage_config.html" title="StorageConfig" alt="" coords="5,197,119,224"/>
-<area shape="rect" id="node3" href="$class_based_path.html" title="BasedPath" alt="" coords="17,5,107,32"/>
+<area shape="rect" id="node2" href="$struct_storage_config.html" title="StorageConfig" alt="" coords="12,197,125,224"/>
+<area shape="rect" id="node3" href="$classutils_1_1_based_path.html" title="The BasedPath class Can represent an absolute or relative path, only readable through the BasePath::g..." alt="" coords="5,5,132,32"/>
 </map>

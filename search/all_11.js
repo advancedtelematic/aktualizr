@@ -1,11 +1,8 @@
 var searchData=
 [
   ['ratecontroller',['RateController',['../class_rate_controller.html',1,'']]],
-  ['rawmetapack',['RawMetaPack',['../struct_uptane_1_1_raw_meta_pack.html',1,'Uptane']]],
-  ['readerror',['ReadError',['../class_storage_target_r_handle_1_1_read_error.html',1,'StorageTargetRHandle']]],
   ['redirecthandler',['RedirectHandler',['../classtest__fixtures_1_1_redirect_handler.html',1,'test_fixtures']]],
   ['repo',['Repo',['../class_repo.html',1,'']]],
-  ['report_5fnetwork',['report_network',['../struct_telemetry_config.html#ab2e0b389a924ff4a4090d695e267db70',1,'TelemetryConfig']]],
   ['reportevent',['ReportEvent',['../class_report_event.html',1,'']]],
   ['reportqueue',['ReportQueue',['../class_report_queue.html',1,'']]],
   ['repositorycommon',['RepositoryCommon',['../class_uptane_1_1_repository_common.html',1,'Uptane']]],

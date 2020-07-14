@@ -62,21 +62,22 @@ $(function() {
   <div class="summary">
 <a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pro-methods">Protected Member Functions</a> &#124;
 <a href="class_aktualizr_secondary-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">AktualizrSecondary Class Reference</div>  </div>
+<div class="title">AktualizrSecondary Class Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
 </div><!--header-->
 <div class="contents">
 <div class="dynheader">
 Inheritance diagram for AktualizrSecondary:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="class_aktualizr_secondary__inherit__graph.svg" width="163" height="112"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+<div class="center"><iframe scrolling="no" frameborder="0" src="class_aktualizr_secondary__inherit__graph.svg" width="398" height="262"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
 </div>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <div class="dynheader">
 Collaboration diagram for AktualizrSecondary:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="class_aktualizr_secondary__coll__graph.svg" width="163" height="112"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+<div class="center"><iframe scrolling="no" frameborder="0" src="class_aktualizr_secondary__coll__graph.svg" width="159" height="187"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
 </div>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -85,66 +86,110 @@ Public Types</h2></td></tr>
 <tr class="memitem:ad533be7969d17768ba07b52515cbd349"><td class="memItemLeft" align="right" valign="top"><a id="ad533be7969d17768ba07b52515cbd349"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>Ptr</b> = std::shared_ptr&lt; <a class="el" href="class_aktualizr_secondary.html">AktualizrSecondary</a> &gt;</td></tr>
 <tr class="separator:ad533be7969d17768ba07b52515cbd349"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_types_class_i_aktualizr_secondary"><td colspan="2" onclick="javascript:toggleInherit('pub_types_class_i_aktualizr_secondary')"><img src="closed.png" alt="-"/>&#160;Public Types inherited from <a class="el" href="class_i_aktualizr_secondary.html">IAktualizrSecondary</a></td></tr>
-<tr class="memitem:a8084be6b7f59843bf5da2129ee41f8bf inherit pub_types_class_i_aktualizr_secondary"><td class="memItemLeft" align="right" valign="top"><a id="a8084be6b7f59843bf5da2129ee41f8bf"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>Ptr</b> = std::shared_ptr&lt; <a class="el" href="class_i_aktualizr_secondary.html">IAktualizrSecondary</a> &gt;</td></tr>
-<tr class="separator:a8084be6b7f59843bf5da2129ee41f8bf inherit pub_types_class_i_aktualizr_secondary"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_types_class_msg_dispatcher"><td colspan="2" onclick="javascript:toggleInherit('pub_types_class_msg_dispatcher')"><img src="closed.png" alt="-"/>&#160;Public Types inherited from <a class="el" href="class_msg_dispatcher.html">MsgDispatcher</a></td></tr>
+<tr class="memitem:a8789e0fb9e528d8318a81d5e4df02a3a inherit pub_types_class_msg_dispatcher"><td class="memItemLeft" align="right" valign="top"><a id="a8789e0fb9e528d8318a81d5e4df02a3a"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>Handler</b> = std::function&lt; ReturnCode(<a class="el" href="class_asn1_message.html">Asn1Message</a> &amp;, <a class="el" href="class_asn1_message.html">Asn1Message</a> &amp;)&gt;</td></tr>
+<tr class="separator:a8789e0fb9e528d8318a81d5e4df02a3a inherit pub_types_class_msg_dispatcher"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_types_class_msg_handler"><td colspan="2" onclick="javascript:toggleInherit('pub_types_class_msg_handler')"><img src="closed.png" alt="-"/>&#160;Public Types inherited from <a class="el" href="class_msg_handler.html">MsgHandler</a></td></tr>
+<tr class="memitem:a2874f8a286e60299f246e40ccbec3ac5 inherit pub_types_class_msg_handler"><td class="memItemLeft" align="right" valign="top"><a id="a2874f8a286e60299f246e40ccbec3ac5"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><b>ReturnCode</b> { <b>kUnkownMsg</b> = -1, 
+<b>kOk</b>, 
+<b>kRebootRequired</b>
+ }</td></tr>
+<tr class="separator:a2874f8a286e60299f246e40ccbec3ac5 inherit pub_types_class_msg_handler"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a7ca68ce9f7fb8e2e96b40b21c60e38f2"><td class="memItemLeft" align="right" valign="top"><a id="a7ca68ce9f7fb8e2e96b40b21c60e38f2"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>AktualizrSecondary</b> (<a class="el" href="class_aktualizr_secondary_config.html">AktualizrSecondaryConfig</a> config, std::shared_ptr&lt; <a class="el" href="class_i_nv_storage.html">INvStorage</a> &gt; storage, std::shared_ptr&lt; <a class="el" href="class_key_manager.html">KeyManager</a> &gt; key_mngr, std::shared_ptr&lt; <a class="el" href="class_update_agent.html">UpdateAgent</a> &gt; update_agent)</td></tr>
-<tr class="separator:a7ca68ce9f7fb8e2e96b40b21c60e38f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9d8d991ec91b170a0190527177143243"><td class="memItemLeft" align="right" valign="top"><a id="a9d8d991ec91b170a0190527177143243"></a>
-std::tuple&lt; <a class="el" href="class_uptane_1_1_ecu_serial.html">Uptane::EcuSerial</a>, <a class="el" href="class_uptane_1_1_hardware_identifier.html">Uptane::HardwareIdentifier</a>, <a class="el" href="class_public_key.html">PublicKey</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getInfo</b> () const override</td></tr>
-<tr class="separator:a9d8d991ec91b170a0190527177143243"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7a0041578e6b92bad1ccf92e53b3ccee"><td class="memItemLeft" align="right" valign="top"><a id="a7a0041578e6b92bad1ccf92e53b3ccee"></a>
-<a class="el" href="class_uptane_1_1_manifest.html">Uptane::Manifest</a>&#160;</td><td class="memItemRight" valign="bottom"><b>getManifest</b> () const override</td></tr>
-<tr class="separator:a7a0041578e6b92bad1ccf92e53b3ccee"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a82e549d04b5f5741ce83b59f0e769c28"><td class="memItemLeft" align="right" valign="top"><a id="a82e549d04b5f5741ce83b59f0e769c28"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>putMetadata</b> (const <a class="el" href="struct_uptane_1_1_raw_meta_pack.html">Uptane::RawMetaPack</a> &amp;meta_pack) override</td></tr>
-<tr class="separator:a82e549d04b5f5741ce83b59f0e769c28"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8de46d8403d4c7a487f7a3bb5c1cdb95"><td class="memItemLeft" align="right" valign="top"><a id="a8de46d8403d4c7a487f7a3bb5c1cdb95"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>sendFirmware</b> (const std::string &amp;firmware) override</td></tr>
-<tr class="separator:a8de46d8403d4c7a487f7a3bb5c1cdb95"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1049d3fdedf9b32018b43e7ea780dc19"><td class="memItemLeft" align="right" valign="top"><a id="a1049d3fdedf9b32018b43e7ea780dc19"></a>
-<a class="el" href="structdata_1_1_result_code.html#a1217cbd9c97e19df1ade7b0384cd5aae">data::ResultCode::Numeric</a>&#160;</td><td class="memItemRight" valign="bottom"><b>install</b> (const std::string &amp;target_name) override</td></tr>
-<tr class="separator:a1049d3fdedf9b32018b43e7ea780dc19"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5db1b29b68d2fa0e4979ce99734ac241"><td class="memItemLeft" align="right" valign="top"><a id="a5db1b29b68d2fa0e4979ce99734ac241"></a>
-<a class="el" href="class_msg_dispatcher.html">MsgDispatcher</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>getDispatcher</b> ()</td></tr>
-<tr class="separator:a5db1b29b68d2fa0e4979ce99734ac241"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6da4200a84f80de1072d8d2ce85c0429"><td class="memItemLeft" align="right" valign="top"><a id="a6da4200a84f80de1072d8d2ce85c0429"></a>
-<a class="el" href="class_uptane_1_1_ecu_serial.html">Uptane::EcuSerial</a>&#160;</td><td class="memItemRight" valign="bottom"><b>getSerial</b> () const</td></tr>
-<tr class="separator:a6da4200a84f80de1072d8d2ce85c0429"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad8bd7c35475ae2d9a55fb5f0e5c221ee"><td class="memItemLeft" align="right" valign="top"><a id="ad8bd7c35475ae2d9a55fb5f0e5c221ee"></a>
-<a class="el" href="class_uptane_1_1_hardware_identifier.html">Uptane::HardwareIdentifier</a>&#160;</td><td class="memItemRight" valign="bottom"><b>getHwId</b> () const</td></tr>
-<tr class="separator:ad8bd7c35475ae2d9a55fb5f0e5c221ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a42a67da1f08ca7997f9df13f14b6265d"><td class="memItemLeft" align="right" valign="top"><a id="a42a67da1f08ca7997f9df13f14b6265d"></a>
-<a class="el" href="class_public_key.html">PublicKey</a>&#160;</td><td class="memItemRight" valign="bottom"><b>getPublicKey</b> () const</td></tr>
-<tr class="separator:a42a67da1f08ca7997f9df13f14b6265d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a42a514a902054b67ae38624994873a57"><td class="memItemLeft" align="right" valign="top"><a id="a42a514a902054b67ae38624994873a57"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>putMetadata</b> (const <a class="el" href="class_metadata.html">Metadata</a> &amp;metadata)</td></tr>
-<tr class="separator:a42a514a902054b67ae38624994873a57"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af7ba41ceda505402e2954895e560a2a4"><td class="memItemLeft" align="right" valign="top"><a id="af7ba41ceda505402e2954895e560a2a4"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>completeInstall</b> ()</td></tr>
-<tr class="separator:af7ba41ceda505402e2954895e560a2a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_methods_class_i_aktualizr_secondary"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_i_aktualizr_secondary')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_i_aktualizr_secondary.html">IAktualizrSecondary</a></td></tr>
-<tr class="memitem:aa52aa3bd39057b7695c233ff4c6b0719 inherit pub_methods_class_i_aktualizr_secondary"><td class="memItemLeft" align="right" valign="top"><a id="aa52aa3bd39057b7695c233ff4c6b0719"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>IAktualizrSecondary</b> (const <a class="el" href="class_i_aktualizr_secondary.html">IAktualizrSecondary</a> &amp;)=delete</td></tr>
-<tr class="separator:aa52aa3bd39057b7695c233ff4c6b0719 inherit pub_methods_class_i_aktualizr_secondary"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a51e378b3100e9e3f7f4fde94f2b37593 inherit pub_methods_class_i_aktualizr_secondary"><td class="memItemLeft" align="right" valign="top"><a id="a51e378b3100e9e3f7f4fde94f2b37593"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>IAktualizrSecondary</b> (const <a class="el" href="class_i_aktualizr_secondary.html">IAktualizrSecondary</a> &amp;&amp;)=delete</td></tr>
-<tr class="separator:a51e378b3100e9e3f7f4fde94f2b37593 inherit pub_methods_class_i_aktualizr_secondary"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab65d22f903d68d1ac09750c81b8ac0c2 inherit pub_methods_class_i_aktualizr_secondary"><td class="memItemLeft" align="right" valign="top"><a id="ab65d22f903d68d1ac09750c81b8ac0c2"></a>
-<a class="el" href="class_i_aktualizr_secondary.html">IAktualizrSecondary</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (const <a class="el" href="class_i_aktualizr_secondary.html">IAktualizrSecondary</a> &amp;)=delete</td></tr>
-<tr class="separator:ab65d22f903d68d1ac09750c81b8ac0c2 inherit pub_methods_class_i_aktualizr_secondary"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aec108066c4ff0da7e8ba14681aa5bfda inherit pub_methods_class_i_aktualizr_secondary"><td class="memItemLeft" align="right" valign="top"><a id="aec108066c4ff0da7e8ba14681aa5bfda"></a>
-<a class="el" href="class_i_aktualizr_secondary.html">IAktualizrSecondary</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (const <a class="el" href="class_i_aktualizr_secondary.html">IAktualizrSecondary</a> &amp;&amp;)=delete</td></tr>
-<tr class="separator:aec108066c4ff0da7e8ba14681aa5bfda inherit pub_methods_class_i_aktualizr_secondary"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a670149f0fb2cccbf6eab82c952ab67"><td class="memItemLeft" align="right" valign="top"><a id="a6a670149f0fb2cccbf6eab82c952ab67"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>initialize</b> ()=0</td></tr>
+<tr class="separator:a6a670149f0fb2cccbf6eab82c952ab67"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a5b3af4aced4fa1106a9ed474027a59"><td class="memItemLeft" align="right" valign="top"><a id="a9a5b3af4aced4fa1106a9ed474027a59"></a>
+const <a class="el" href="class_uptane_1_1_ecu_serial.html">Uptane::EcuSerial</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>serial</b> () const</td></tr>
+<tr class="separator:a9a5b3af4aced4fa1106a9ed474027a59"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adf7a5c61471ffe7d76fe149c23b258ab"><td class="memItemLeft" align="right" valign="top"><a id="adf7a5c61471ffe7d76fe149c23b258ab"></a>
+const <a class="el" href="class_uptane_1_1_hardware_identifier.html">Uptane::HardwareIdentifier</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>hwID</b> () const</td></tr>
+<tr class="separator:adf7a5c61471ffe7d76fe149c23b258ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a80d793bedd5802f1a6d948ba28c4702a"><td class="memItemLeft" align="right" valign="top"><a id="a80d793bedd5802f1a6d948ba28c4702a"></a>
+<a class="el" href="class_public_key.html">PublicKey</a>&#160;</td><td class="memItemRight" valign="bottom"><b>publicKey</b> () const</td></tr>
+<tr class="separator:a80d793bedd5802f1a6d948ba28c4702a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1cd54bdde4d5b059eae6a713b08027fa"><td class="memItemLeft" align="right" valign="top"><a id="a1cd54bdde4d5b059eae6a713b08027fa"></a>
+<a class="el" href="class_uptane_1_1_manifest.html">Uptane::Manifest</a>&#160;</td><td class="memItemRight" valign="bottom"><b>getManifest</b> () const</td></tr>
+<tr class="separator:a1cd54bdde4d5b059eae6a713b08027fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3079ad3af63204f3a43819c26c97399f"><td class="memItemLeft" align="right" valign="top"><a id="a3079ad3af63204f3a43819c26c97399f"></a>
+virtual <a class="el" href="structdata_1_1_installation_result.html">data::InstallationResult</a>&#160;</td><td class="memItemRight" valign="bottom"><b>putMetadata</b> (const <a class="el" href="class_metadata.html">Metadata</a> &amp;metadata)</td></tr>
+<tr class="separator:a3079ad3af63204f3a43819c26c97399f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af01f0491ece87cf7c0ae0b5a84502c25"><td class="memItemLeft" align="right" valign="top"><a id="af01f0491ece87cf7c0ae0b5a84502c25"></a>
+virtual <a class="el" href="structdata_1_1_installation_result.html">data::InstallationResult</a>&#160;</td><td class="memItemRight" valign="bottom"><b>putMetadata</b> (const Uptane::MetaBundle &amp;meta_bundle)</td></tr>
+<tr class="separator:af01f0491ece87cf7c0ae0b5a84502c25"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5bb1a53ff53010dba93b49b00fbd6349"><td class="memItemLeft" align="right" valign="top"><a id="a5bb1a53ff53010dba93b49b00fbd6349"></a>
+virtual <a class="el" href="structdata_1_1_installation_result.html">data::InstallationResult</a>&#160;</td><td class="memItemRight" valign="bottom"><b>install</b> ()</td></tr>
+<tr class="separator:a5bb1a53ff53010dba93b49b00fbd6349"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a795711c0132aaaad4cb50faaec977932"><td class="memItemLeft" align="right" valign="top"><a id="a795711c0132aaaad4cb50faaec977932"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>completeInstall</b> ()=0</td></tr>
+<tr class="separator:a795711c0132aaaad4cb50faaec977932"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_class_msg_dispatcher"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_msg_dispatcher')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_msg_dispatcher.html">MsgDispatcher</a></td></tr>
+<tr class="memitem:ada6e2f6a4fd98b2f868e59922bd2b301 inherit pub_methods_class_msg_dispatcher"><td class="memItemLeft" align="right" valign="top"><a id="ada6e2f6a4fd98b2f868e59922bd2b301"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>registerHandler</b> (AKIpUptaneMes_PR msg_id, Handler handler)</td></tr>
+<tr class="separator:ada6e2f6a4fd98b2f868e59922bd2b301 inherit pub_methods_class_msg_dispatcher"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acbeb79e7de1aa56ef3a5c4a789f57146 inherit pub_methods_class_msg_dispatcher"><td class="memItemLeft" align="right" valign="top"><a id="acbeb79e7de1aa56ef3a5c4a789f57146"></a>
+ReturnCode&#160;</td><td class="memItemRight" valign="bottom"><b>handleMsg</b> (const Asn1Message::Ptr &amp;in_msg, Asn1Message::Ptr &amp;out_msg) override</td></tr>
+<tr class="separator:acbeb79e7de1aa56ef3a5c4a789f57146 inherit pub_methods_class_msg_dispatcher"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_class_msg_handler"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_msg_handler')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_msg_handler.html">MsgHandler</a></td></tr>
+<tr class="memitem:ac5ab76dfc480d0fe44a27b990254fc43 inherit pub_methods_class_msg_handler"><td class="memItemLeft" align="right" valign="top"><a id="ac5ab76dfc480d0fe44a27b990254fc43"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>MsgHandler</b> (const <a class="el" href="class_msg_handler.html">MsgHandler</a> &amp;)=delete</td></tr>
+<tr class="separator:ac5ab76dfc480d0fe44a27b990254fc43 inherit pub_methods_class_msg_handler"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2196d34cfb7a3860e865c6ed5f25e248 inherit pub_methods_class_msg_handler"><td class="memItemLeft" align="right" valign="top"><a id="a2196d34cfb7a3860e865c6ed5f25e248"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>MsgHandler</b> (const <a class="el" href="class_msg_handler.html">MsgHandler</a> &amp;&amp;)=delete</td></tr>
+<tr class="separator:a2196d34cfb7a3860e865c6ed5f25e248 inherit pub_methods_class_msg_handler"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acfbf58ba10c191503894191dcb85622b inherit pub_methods_class_msg_handler"><td class="memItemLeft" align="right" valign="top"><a id="acfbf58ba10c191503894191dcb85622b"></a>
+<a class="el" href="class_msg_handler.html">MsgHandler</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (const <a class="el" href="class_msg_handler.html">MsgHandler</a> &amp;)=delete</td></tr>
+<tr class="separator:acfbf58ba10c191503894191dcb85622b inherit pub_methods_class_msg_handler"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ada2774089fdc87e18a29a400b12c7043 inherit pub_methods_class_msg_handler"><td class="memItemLeft" align="right" valign="top"><a id="ada2774089fdc87e18a29a400b12c7043"></a>
+<a class="el" href="class_msg_handler.html">MsgHandler</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (const <a class="el" href="class_msg_handler.html">MsgHandler</a> &amp;&amp;)=delete</td></tr>
+<tr class="separator:ada2774089fdc87e18a29a400b12c7043 inherit pub_methods_class_msg_handler"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
+Protected Member Functions</h2></td></tr>
+<tr class="memitem:a8902c58754fafe62a5105ca5ae3e5b02"><td class="memItemLeft" align="right" valign="top"><a id="a8902c58754fafe62a5105ca5ae3e5b02"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>AktualizrSecondary</b> (const <a class="el" href="class_aktualizr_secondary_config.html">AktualizrSecondaryConfig</a> &amp;config, std::shared_ptr&lt; <a class="el" href="class_i_nv_storage.html">INvStorage</a> &gt; storage)</td></tr>
+<tr class="separator:a8902c58754fafe62a5105ca5ae3e5b02"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a752882d721f9bcd57771c84e2486d1c5"><td class="memItemLeft" align="right" valign="top"><a id="a752882d721f9bcd57771c84e2486d1c5"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>getInstalledImageInfo</b> (<a class="el" href="struct_uptane_1_1_installed_image_info.html">Uptane::InstalledImageInfo</a> &amp;installed_image_info) const =0</td></tr>
+<tr class="separator:a752882d721f9bcd57771c84e2486d1c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6e1fa55bb02070b2c4562b04b125ff5e"><td class="memItemLeft" align="right" valign="top"><a id="a6e1fa55bb02070b2c4562b04b125ff5e"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>isTargetSupported</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target) const =0</td></tr>
+<tr class="separator:a6e1fa55bb02070b2c4562b04b125ff5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9432b74113f19235fc026664d15bc47c"><td class="memItemLeft" align="right" valign="top"><a id="a9432b74113f19235fc026664d15bc47c"></a>
+virtual <a class="el" href="structdata_1_1_installation_result.html">data::InstallationResult</a>&#160;</td><td class="memItemRight" valign="bottom"><b>installPendingTarget</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target)=0</td></tr>
+<tr class="separator:a9432b74113f19235fc026664d15bc47c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abf6b79a34f5cc6bd9b1ebc9dc0383d96"><td class="memItemLeft" align="right" valign="top"><a id="abf6b79a34f5cc6bd9b1ebc9dc0383d96"></a>
+virtual <a class="el" href="structdata_1_1_installation_result.html">data::InstallationResult</a>&#160;</td><td class="memItemRight" valign="bottom"><b>applyPendingInstall</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target)=0</td></tr>
+<tr class="separator:abf6b79a34f5cc6bd9b1ebc9dc0383d96"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acbb5a292a664481a6ee1662dfa93c854"><td class="memItemLeft" align="right" valign="top"><a id="acbb5a292a664481a6ee1662dfa93c854"></a>
+<a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>pendingTarget</b> ()</td></tr>
+<tr class="separator:acbb5a292a664481a6ee1662dfa93c854"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afdd7f5dccc82bbcdd50c8a3dbac15f2c"><td class="memItemLeft" align="right" valign="top"><a id="afdd7f5dccc82bbcdd50c8a3dbac15f2c"></a>
+<a class="el" href="class_i_nv_storage.html">INvStorage</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>storage</b> ()</td></tr>
+<tr class="separator:afdd7f5dccc82bbcdd50c8a3dbac15f2c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a89f7c033bf0ed550b87f8e95cb38d9"><td class="memItemLeft" align="right" valign="top"><a id="a6a89f7c033bf0ed550b87f8e95cb38d9"></a>
+std::shared_ptr&lt; <a class="el" href="class_i_nv_storage.html">INvStorage</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>storagePtr</b> ()</td></tr>
+<tr class="separator:a6a89f7c033bf0ed550b87f8e95cb38d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a026ab9937aaaf0d7f07eb463be29c797"><td class="memItemLeft" align="right" valign="top"><a id="a026ab9937aaaf0d7f07eb463be29c797"></a>
+<a class="el" href="class_uptane_1_1_director_repository.html">Uptane::DirectorRepository</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>directorRepo</b> ()</td></tr>
+<tr class="separator:a026ab9937aaaf0d7f07eb463be29c797"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab4c3f5605a27ce256c33eb6aaad8631e"><td class="memItemLeft" align="right" valign="top"><a id="ab4c3f5605a27ce256c33eb6aaad8631e"></a>
+std::shared_ptr&lt; <a class="el" href="class_key_manager.html">KeyManager</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>keyMngr</b> ()</td></tr>
+<tr class="separator:ab4c3f5605a27ce256c33eb6aaad8631e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a434c40a6902738dc181c0473408dd890"><td class="memItemLeft" align="right" valign="top"><a id="a434c40a6902738dc181c0473408dd890"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>initPendingTargetIfAny</b> ()</td></tr>
+<tr class="separator:a434c40a6902738dc181c0473408dd890"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pro_methods_class_msg_dispatcher"><td colspan="2" onclick="javascript:toggleInherit('pro_methods_class_msg_dispatcher')"><img src="closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="class_msg_dispatcher.html">MsgDispatcher</a></td></tr>
+<tr class="memitem:abe798a7274cf7e1b49d2ed7f2b977d66 inherit pro_methods_class_msg_dispatcher"><td class="memItemLeft" align="right" valign="top"><a id="abe798a7274cf7e1b49d2ed7f2b977d66"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>clearHandlers</b> ()</td></tr>
+<tr class="separator:abe798a7274cf7e1b49d2ed7f2b977d66 inherit pro_methods_class_msg_dispatcher"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p class="definition">Definition at line <a class="el" href="aktualizr__secondary_8h_source.html#l00017">17</a> of file <a class="el" href="aktualizr__secondary_8h_source.html">aktualizr_secondary.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="aktualizr__secondary_8h_source.html#l00016">16</a> of file <a class="el" href="aktualizr__secondary_8h_source.html">aktualizr_secondary.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>src/aktualizr_secondary/<a class="el" href="aktualizr__secondary_8h_source.html">aktualizr_secondary.h</a></li>
 <li>src/aktualizr_secondary/<a class="el" href="aktualizr__secondary_8cc_source.html">aktualizr_secondary.cc</a></li>

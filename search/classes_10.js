@@ -17,8 +17,6 @@ var searchData=
   ['peekexplicittoken',['PeekExplicitToken',['../classasn1_1_1_peek_explicit_token.html',1,'asn1']]],
   ['process',['Process',['../class_process.html',1,'']]],
   ['provisionconfig',['ProvisionConfig',['../struct_provision_config.html',1,'']]],
-  ['provisiondevicetask',['ProvisionDeviceTask',['../class_provision_device_task.html',1,'']]],
-  ['provisiondevicetaskstream',['ProvisionDeviceTaskStream',['../class_provision_device_task_stream.html',1,'']]],
   ['publickey',['PublicKey',['../class_public_key.html',1,'']]],
   ['pullmetastruct',['PullMetaStruct',['../struct_pull_meta_struct.html',1,'']]],
   ['putmanifestcomplete',['PutManifestComplete',['../classevent_1_1_put_manifest_complete.html',1,'event']]]

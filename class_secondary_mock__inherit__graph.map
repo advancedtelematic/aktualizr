@@ -1,3 +1,4 @@
 <map id="SecondaryMock" name="SecondaryMock">
-<area shape="rect" id="node2" href="$class_i_aktualizr_secondary.html" title="IAktualizrSecondary" alt="" coords="5,5,157,32"/>
+<area shape="rect" id="node2" href="$class_msg_dispatcher.html" title="MsgDispatcher" alt="" coords="8,80,127,107"/>
+<area shape="rect" id="node3" href="$class_msg_handler.html" title="MsgHandler" alt="" coords="18,5,117,32"/>
 </map>

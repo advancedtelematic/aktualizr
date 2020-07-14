@@ -1,7 +1,7 @@
 <map id="Config" name="Config">
-<area shape="rect" id="node2" href="$class_base_config.html" title="BaseConfig" alt="" coords="867,53,962,79"/>
+<area shape="rect" id="node2" href="$class_base_config.html" title="The BaseConfig class. " alt="" coords="867,53,962,79"/>
 <area shape="rect" id="node4" href="$struct_storage_config.html" title="StorageConfig" alt="" coords="858,181,971,207"/>
-<area shape="rect" id="node5" href="$class_based_path.html" title="BasedPath" alt="" coords="513,187,604,214"/>
+<area shape="rect" id="node5" href="$classutils_1_1_based_path.html" title="The BasedPath class Can represent an absolute or relative path, only readable through the BasePath::g..." alt="" coords="495,187,622,214"/>
 <area shape="rect" id="node16" href="$struct_import_config.html" title="ImportConfig" alt="" coords="861,283,968,310"/>
 <area shape="rect" id="node6" href="$struct_tls_config.html" title="TlsConfig" alt="" coords="704,323,787,350"/>
 <area shape="rect" id="node7" title="STL class. " alt="" coords="193,539,280,566"/>
@@ -12,5 +12,5 @@
 <area shape="rect" id="node17" href="$struct_bootloader_config.html" title="BootloaderConfig" alt="" coords="491,754,626,781"/>
 <area shape="rect" id="node8" title="STL class. " alt="" coords="5,532,144,573"/>
 <area shape="rect" id="node9" href="$struct_logger_config.html" title="LoggerConfig" alt="" coords="861,722,968,749"/>
-<area shape="rect" id="node15" href="$struct_telemetry_config.html" title="TelemetryConfig" alt="" coords="851,773,979,799"/>
+<area shape="rect" id="node15" href="$struct_telemetry_config.html" title="The TelemetryConfig struct Report device network information: IP address, hostname, MAC address. " alt="" coords="851,773,979,799"/>
 </map>

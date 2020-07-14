@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['iaktualizrsecondary',['IAktualizrSecondary',['../class_i_aktualizr_secondary.html',1,'']]],
   ['illegalthreshold',['IllegalThreshold',['../class_uptane_1_1_illegal_threshold.html',1,'Uptane']]],
   ['imagerepo',['ImageRepo',['../class_image_repo.html',1,'ImageRepo'],['../classtest__fixtures_1_1_image_repo.html',1,'test_fixtures.ImageRepo']]],
   ['imagerepository',['ImageRepository',['../class_uptane_1_1_image_repository.html',1,'Uptane']]],
@@ -21,7 +20,6 @@ var searchData=
   ['installmanager',['InstallManager',['../classtest__fixtures_1_1_install_manager.html',1,'test_fixtures']]],
   ['installstarted',['InstallStarted',['../classevent_1_1_install_started.html',1,'event']]],
   ['installtargetcomplete',['InstallTargetComplete',['../classevent_1_1_install_target_complete.html',1,'event']]],
-  ['interruptableexecutioncontroller',['InterruptableExecutionController',['../class_interruptable_execution_controller.html',1,'']]],
   ['invalidmetadata',['InvalidMetadata',['../class_uptane_1_1_invalid_metadata.html',1,'Uptane']]],
   ['invalidtarget',['InvalidTarget',['../class_uptane_1_1_invalid_target.html',1,'Uptane']]],
   ['invalidtimestamp',['InvalidTimeStamp',['../class_time_stamp_1_1_invalid_time_stamp.html',1,'TimeStamp']]],

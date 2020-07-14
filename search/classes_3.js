@@ -12,8 +12,6 @@ var searchData=
   ['campaignpostponecomplete',['CampaignPostponeComplete',['../classevent_1_1_campaign_postpone_complete.html',1,'event']]],
   ['campaignpostponedreport',['CampaignPostponedReport',['../class_campaign_postponed_report.html',1,'']]],
   ['cert',['Cert',['../class_aktualizr_cert_provider_test_1_1_cert.html',1,'AktualizrCertProviderTest']]],
-  ['checkforupdate',['CheckForUpdate',['../class_check_for_update.html',1,'']]],
-  ['checkforupdatetasks',['CheckForUpdateTasks',['../class_check_for_update_tasks.html',1,'']]],
   ['commandqueue',['CommandQueue',['../classapi_1_1_command_queue.html',1,'api']]],
   ['config',['Config',['../class_config.html',1,'']]],
   ['connectionsocket',['ConnectionSocket',['../class_connection_socket.html',1,'']]],

@@ -1,24 +1,9 @@
-<map id="src/libaktualizr/primary/events.h" name="src/libaktualizr/primary/events.h">
-<area shape="rect" id="node5" href="$results_8h.html" title="primary/results.h" alt="" coords="1363,95,1496,121"/>
-<area shape="rect" id="node17" href="$types_8h.html" title="utilities/types.h" alt="" coords="2743,550,2865,577"/>
-<area shape="rect" id="node22" href="$fetcher_8h_source.html" title="uptane/fetcher.h" alt="" coords="1636,169,1764,196"/>
-<area shape="rect" id="node38" href="$tuf_8h_source.html" title="uptane/tuf.h" alt="" coords="1917,393,2017,420"/>
-<area shape="rect" id="node7" href="$campaign_8h_source.html" title="campaign/campaign.h" alt="" coords="883,319,1050,345"/>
-<area shape="rect" id="node8" href="$httpclient_8h_source.html" title="http/httpclient.h" alt="" coords="271,393,398,420"/>
-<area shape="rect" id="node21" href="$utils_8h_source.html" title="utilities/utils.h" alt="" coords="432,550,547,577"/>
-<area shape="rect" id="node12" href="$httpinterface_8h_source.html" title="httpinterface.h" alt="" coords="563,468,682,495"/>
-<area shape="rect" id="node14" href="$logging_8h_source.html" title="logging/logging.h" alt="" coords="673,550,807,577"/>
-<area shape="rect" id="node15" href="$logging__config_8h_source.html" title="logging_config.h" alt="" coords="883,632,1011,659"/>
-<area shape="rect" id="node23" href="$config_8h_source.html" title="config/config.h" alt="" coords="2458,244,2574,271"/>
-<area shape="rect" id="node35" href="$invstorage_8h_source.html" title="storage/invstorage.h" alt="" coords="1589,319,1745,345"/>
-<area shape="rect" id="node27" href="$bootloader_8h_source.html" title="bootloader/bootloader.h" alt="" coords="2199,319,2377,345"/>
-<area shape="rect" id="node28" href="$keymanager__config_8h_source.html" title="crypto/keymanager_config.h" alt="" coords="2953,319,3159,345"/>
-<area shape="rect" id="node29" href="$p11__config_8h_source.html" title="crypto/p11_config.h" alt="" coords="3092,393,3241,420"/>
-<area shape="rect" id="node30" href="$config__utils_8h_source.html" title="utilities/config_utils.h" alt="" coords="2501,468,2662,495"/>
-<area shape="rect" id="node31" href="$packagemanagerconfig_8h_source.html" title="package_manager/packagemanagerconfig.h" alt="" coords="2554,393,2865,420"/>
-<area shape="rect" id="node33" href="$storage__config_8h_source.html" title="storage/storage_config.h" alt="" coords="2221,393,2403,420"/>
-<area shape="rect" id="node34" href="$telemetryconfig_8h_source.html" title="telemetry/telemetryconfig.h" alt="" coords="2553,319,2759,345"/>
-<area shape="rect" id="node37" href="$storage__exception_8h_source.html" title="storage_exception.h" alt="" coords="1589,393,1744,420"/>
-<area shape="rect" id="node41" href="$uptane_2exceptions_8h_source.html" title="uptane/exceptions.h" alt="" coords="2095,468,2249,495"/>
-<area shape="rect" id="node42" href="$crypto_8h_source.html" title="crypto/crypto.h" alt="" coords="1671,468,1791,495"/>
+<map id="include/libaktualizr/events.h" name="include/libaktualizr/events.h">
+<area shape="rect" id="node5" href="$results_8h.html" title="libaktualizr/results.h" alt="" coords="964,95,1119,121"/>
+<area shape="rect" id="node7" href="$campaign_8h_source.html" title="libaktualizr/campaign.h" alt="" coords="829,169,1003,196"/>
+<area shape="rect" id="node15" href="$types_8h.html" title="libaktualizr/types.h" alt="" coords="1004,393,1151,420"/>
+<area shape="rect" id="node8" href="$httpclient_8h_source.html" title="http/httpclient.h" alt="" coords="618,244,745,271"/>
+<area shape="rect" id="node23" href="$utils_8h_source.html" title="utilities/utils.h" alt="" coords="865,393,980,420"/>
+<area shape="rect" id="node13" href="$httpinterface_8h_source.html" title="httpinterface.h" alt="" coords="622,319,741,345"/>
+<area shape="rect" id="node19" href="$logging_8h_source.html" title="logging/logging.h" alt="" coords="285,393,419,420"/>
 </map>

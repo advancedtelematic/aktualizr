@@ -12,9 +12,9 @@
 <!-- Node0 -->
 <g id="node1" class="node">
 <title>Node0</title>
-<g id="a_node1"><a xlink:href="class_check_for_update_tasks.html" target="_top" xlink:title="CheckForUpdateTasks">
+<g id="a_node1"><a xlink:href="class_curl_global_init_wrapper.html" target="_top" xlink:title="Helper class to manage curl_global_init/curl_global_cleanup calls. ">
 <polygon fill="#ffffff" stroke="#000000" points="0,-.5 0,-19.5 124,-19.5 124,-.5 0,-.5"/>
-<text text-anchor="middle" x="62" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">CheckForUpdateTasks</text>
+<text text-anchor="middle" x="62" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">CurlGlobalInitWrapper</text>
 </a>
 </g>
 </g>

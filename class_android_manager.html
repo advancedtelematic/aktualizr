@@ -116,6 +116,27 @@ virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>fetchTarget</
 <tr class="memitem:a1be7270da7fa7520d84ff45994f260b9 inherit pub_methods_class_package_manager_interface"><td class="memItemLeft" align="right" valign="top"><a id="a1be7270da7fa7520d84ff45994f260b9"></a>
 virtual TargetStatus&#160;</td><td class="memItemRight" valign="bottom"><b>verifyTarget</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target) const</td></tr>
 <tr class="separator:a1be7270da7fa7520d84ff45994f260b9 inherit pub_methods_class_package_manager_interface"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a38859728b77afd6b94bb60aa4830899f inherit pub_methods_class_package_manager_interface"><td class="memItemLeft" align="right" valign="top"><a id="a38859728b77afd6b94bb60aa4830899f"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>checkAvailableDiskSpace</b> (const uint64_t required_bytes) const</td></tr>
+<tr class="separator:a38859728b77afd6b94bb60aa4830899f inherit pub_methods_class_package_manager_interface"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a021206b9b615f880e9ab67fc9c36d20e inherit pub_methods_class_package_manager_interface"><td class="memItemLeft" align="right" valign="top"><a id="a021206b9b615f880e9ab67fc9c36d20e"></a>
+virtual boost::optional&lt; std::pair&lt; uintmax_t, std::string &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>checkTargetFile</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target) const</td></tr>
+<tr class="separator:a021206b9b615f880e9ab67fc9c36d20e inherit pub_methods_class_package_manager_interface"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac091f891431c58581f945527fe1a8125 inherit pub_methods_class_package_manager_interface"><td class="memItemLeft" align="right" valign="top"><a id="ac091f891431c58581f945527fe1a8125"></a>
+virtual std::ofstream&#160;</td><td class="memItemRight" valign="bottom"><b>createTargetFile</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target)</td></tr>
+<tr class="separator:ac091f891431c58581f945527fe1a8125 inherit pub_methods_class_package_manager_interface"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a75baf1bebed856de41a06a8da5351e9a inherit pub_methods_class_package_manager_interface"><td class="memItemLeft" align="right" valign="top"><a id="a75baf1bebed856de41a06a8da5351e9a"></a>
+virtual std::ofstream&#160;</td><td class="memItemRight" valign="bottom"><b>appendTargetFile</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target)</td></tr>
+<tr class="separator:a75baf1bebed856de41a06a8da5351e9a inherit pub_methods_class_package_manager_interface"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a29acc4ce6a52946f27ae323fb7629307 inherit pub_methods_class_package_manager_interface"><td class="memItemLeft" align="right" valign="top"><a id="a29acc4ce6a52946f27ae323fb7629307"></a>
+virtual std::ifstream&#160;</td><td class="memItemRight" valign="bottom"><b>openTargetFile</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target) const</td></tr>
+<tr class="separator:a29acc4ce6a52946f27ae323fb7629307 inherit pub_methods_class_package_manager_interface"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a418af53d28dab3e016dd5dfa7919506c inherit pub_methods_class_package_manager_interface"><td class="memItemLeft" align="right" valign="top"><a id="a418af53d28dab3e016dd5dfa7919506c"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>removeTargetFile</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target)</td></tr>
+<tr class="separator:a418af53d28dab3e016dd5dfa7919506c inherit pub_methods_class_package_manager_interface"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a33749fb83dfaddfda06320e0ba38fff4 inherit pub_methods_class_package_manager_interface"><td class="memItemLeft" align="right" valign="top"><a id="a33749fb83dfaddfda06320e0ba38fff4"></a>
+virtual std::vector&lt; <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getTargetFiles</b> ()</td></tr>
+<tr class="separator:a33749fb83dfaddfda06320e0ba38fff4 inherit pub_methods_class_package_manager_interface"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>

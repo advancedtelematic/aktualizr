@@ -7,7 +7,7 @@ var searchData=
   ['badhardwareid',['BadHardwareId',['../class_uptane_1_1_bad_hardware_id.html',1,'Uptane']]],
   ['badkeyid',['BadKeyId',['../class_uptane_1_1_bad_key_id.html',1,'Uptane']]],
   ['baseconfig',['BaseConfig',['../class_base_config.html',1,'']]],
-  ['basedpath',['BasedPath',['../class_based_path.html',1,'']]],
+  ['basedpath',['BasedPath',['../classutils_1_1_based_path.html',1,'utils']]],
   ['baseevent',['BaseEvent',['../classevent_1_1_base_event.html',1,'event']]],
   ['basemeta',['BaseMeta',['../class_uptane_1_1_base_meta.html',1,'Uptane']]],
   ['bootloader',['Bootloader',['../class_bootloader.html',1,'']]],

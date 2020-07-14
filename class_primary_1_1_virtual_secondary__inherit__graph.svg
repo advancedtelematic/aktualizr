@@ -33,9 +33,9 @@
 <!-- Node2 -->
 <g id="node3" class="node">
 <title>Node2</title>
-<g id="a_node3"><a xlink:href="class_uptane_1_1_secondary_interface.html" target="_top" xlink:title="Uptane::SecondaryInterface">
-<polygon fill="#ffffff" stroke="#000000" points="1.5,-112.5 1.5,-131.5 153.5,-131.5 153.5,-112.5 1.5,-112.5"/>
-<text text-anchor="middle" x="77.5" y="-119.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">Uptane::SecondaryInterface</text>
+<g id="a_node3"><a xlink:href="class_secondary_interface.html" target="_top" xlink:title="SecondaryInterface">
+<polygon fill="#ffffff" stroke="#000000" points="22,-112.5 22,-131.5 133,-131.5 133,-112.5 22,-112.5"/>
+<text text-anchor="middle" x="77.5" y="-119.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">SecondaryInterface</text>
 </a>
 </g>
 </g>

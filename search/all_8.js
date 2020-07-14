@@ -1,13 +1,12 @@
 var searchData=
 [
-  ['handler',['Handler',['../classtest__fixtures_1_1_uptane_repo_1_1_handler.html',1,'test_fixtures.UptaneRepo.Handler'],['../classtest__fixtures_1_1_director_repo_1_1_handler.html',1,'test_fixtures.DirectorRepo.Handler'],['../classtest__fixtures_1_1_treehub_1_1_handler.html',1,'test_fixtures.Treehub.Handler']]],
+  ['handler',['Handler',['../classtest__fixtures_1_1_treehub_1_1_handler.html',1,'test_fixtures.Treehub.Handler'],['../classtest__fixtures_1_1_uptane_repo_1_1_handler.html',1,'test_fixtures.UptaneRepo.Handler'],['../classtest__fixtures_1_1_director_repo_1_1_handler.html',1,'test_fixtures.DirectorRepo.Handler']]],
   ['hardwareidentifier',['HardwareIdentifier',['../class_uptane_1_1_hardware_identifier.html',1,'Uptane']]],
   ['hash',['Hash',['../class_hash.html',1,'']]],
   ['hash_3c_20uptane_3a_3aecuserial_20_3e',['hash&lt; Uptane::EcuSerial &gt;',['../structstd_1_1hash_3_01_uptane_1_1_ecu_serial_01_4.html',1,'std']]],
   ['hash_3c_20uptane_3a_3ahardwareidentifier_20_3e',['hash&lt; Uptane::HardwareIdentifier &gt;',['../structstd_1_1hash_3_01_uptane_1_1_hardware_identifier_01_4.html',1,'std']]],
   ['haveenqueued',['HaveEnqueued',['../class_dequeue_buffer.html#a92f691d138875540907baf8ebf619633',1,'DequeueBuffer']]],
   ['head',['Head',['../class_dequeue_buffer.html#a7d9007c3e6619e0032eed9f005a64d0c',1,'DequeueBuffer']]],
-  ['histogram',['Histogram',['../class_histogram.html',1,'']]],
   ['httpcheckurl',['HttpCheckUrl',['../class_http_check_url.html',1,'']]],
   ['httpclient',['HttpClient',['../class_http_client.html',1,'']]],
   ['httpcustomuri',['HttpCustomUri',['../class_http_custom_uri.html',1,'']]],
@@ -25,6 +24,7 @@ var searchData=
   ['httpfakepausecounter',['HttpFakePauseCounter',['../class_http_fake_pause_counter.html',1,'']]],
   ['httpfakeprov',['HttpFakeProv',['../class_http_fake_prov.html',1,'']]],
   ['httpfakeputcounter',['HttpFakePutCounter',['../class_http_fake_put_counter.html',1,'']]],
+  ['httpfakeregistration',['HttpFakeRegistration',['../class_http_fake_registration.html',1,'']]],
   ['httpfakerq',['HttpFakeRq',['../class_http_fake_rq.html',1,'']]],
   ['httpfakesplit',['HttpFakeSplit',['../class_http_fake_split.html',1,'']]],
   ['httpfakeunstable',['HttpFakeUnstable',['../class_http_fake_unstable.html',1,'']]],

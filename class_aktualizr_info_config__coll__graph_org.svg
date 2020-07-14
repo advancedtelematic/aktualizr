@@ -18,7 +18,7 @@
 <!-- Node3 -->
 <g id="node2" class="node">
 <title>Node3</title>
-<g id="a_node2"><a xlink:href="class_base_config.html" target="_top" xlink:title="BaseConfig">
+<g id="a_node2"><a xlink:href="class_base_config.html" target="_top" xlink:title="The BaseConfig class. ">
 <polygon fill="#ffffff" stroke="#000000" points="619.5,-215.5 619.5,-234.5 690.5,-234.5 690.5,-215.5 619.5,-215.5"/>
 <text text-anchor="middle" x="655" y="-222.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">BaseConfig</text>
 </a>
@@ -63,17 +63,17 @@
 <!-- Node6 -->
 <g id="node5" class="node">
 <title>Node6</title>
-<g id="a_node5"><a xlink:href="class_based_path.html" target="_top" xlink:title="BasedPath">
-<polygon fill="#ffffff" stroke="#000000" points="358,-141.5 358,-160.5 426,-160.5 426,-141.5 358,-141.5"/>
-<text text-anchor="middle" x="392" y="-148.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">BasedPath</text>
+<g id="a_node5"><a xlink:href="classutils_1_1_based_path.html" target="_top" xlink:title="The BasedPath class Can represent an absolute or relative path, only readable through the BasePath::g...">
+<polygon fill="#ffffff" stroke="#000000" points="344.5,-141.5 344.5,-160.5 439.5,-160.5 439.5,-141.5 344.5,-141.5"/>
+<text text-anchor="middle" x="392" y="-148.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">utils::BasedPath</text>
 </a>
 </g>
 </g>
 <!-- Node6&#45;&gt;Node5 -->
 <g id="edge4" class="edge">
 <title>Node6&#45;&gt;Node5</title>
-<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M436.4108,-151C485.4531,-151 563.8573,-151 612.2319,-151"/>
-<polygon fill="#9a32cd" stroke="#9a32cd" points="436.1131,-147.5001 426.113,-151 436.113,-154.5001 436.1131,-147.5001"/>
+<path fill="none" stroke="#9a32cd" stroke-dasharray="5,2" d="M449.7565,-151C498.7353,-151 567.8839,-151 612.0812,-151"/>
+<polygon fill="#9a32cd" stroke="#9a32cd" points="449.6274,-147.5001 439.6273,-151 449.6273,-154.5001 449.6274,-147.5001"/>
 <text text-anchor="middle" x="532" y="-231" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000"> uptane_public_key_path</text>
 <text text-anchor="middle" x="532" y="-220" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">tls_pkey_path</text>
 <text text-anchor="middle" x="532" y="-209" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">uptane_metadata_path</text>

@@ -12,10 +12,10 @@
 <!-- Node0 -->
 <g id="node1" class="node">
 <title>Node0</title>
-<g id="a_node1"><a xlink:href="classasn1_1_1_implicit_c_3_01_tag_00_01const_01bool_01_6_01_4.html" target="_top" xlink:title="asn1::ImplicitC\&lt; Tag,\l const bool &amp; \&gt;">
+<g id="a_node1"><a xlink:href="classasn1_1_1_implicit_c_3_01_tag_00_01const_01int32__t_01_6_01_4.html" target="_top" xlink:title="asn1::ImplicitC\&lt; Tag,\l const int32_t &amp; \&gt;">
 <polygon fill="#ffffff" stroke="#000000" points="0,-.5 0,-30.5 120,-30.5 120,-.5 0,-.5"/>
 <text text-anchor="start" x="8" y="-18.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">asn1::ImplicitC&lt; Tag,</text>
-<text text-anchor="middle" x="60" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000"> const bool &amp; &gt;</text>
+<text text-anchor="middle" x="60" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000"> const int32_t &amp; &gt;</text>
 </a>
 </g>
 </g>

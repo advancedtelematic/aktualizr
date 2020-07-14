@@ -84,12 +84,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a82b8bb3c97d85b826d344b28096c8893"><td class="memItemLeft" align="right" valign="top"><a id="a82b8bb3c97d85b826d344b28096c8893"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>UpdateAgentMock</b> (boost::filesystem::path target_filepath, std::string target_name)</td></tr>
 <tr class="separator:a82b8bb3c97d85b826d344b28096c8893"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaaa23c11d440d5d812d16ca3aebea594"><td class="memItemLeft" align="right" valign="top"><a id="aaaa23c11d440d5d812d16ca3aebea594"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>MOCK_METHOD</b> (bool, download,(const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target, const std::string &amp;data))</td></tr>
-<tr class="separator:aaaa23c11d440d5d812d16ca3aebea594"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae8b28c8caaf829f9fb424c1ff72eb229"><td class="memItemLeft" align="right" valign="top"><a id="ae8b28c8caaf829f9fb424c1ff72eb229"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>MOCK_METHOD</b> (<a class="el" href="structdata_1_1_result_code.html#a1217cbd9c97e19df1ade7b0384cd5aae">data::ResultCode::Numeric</a>, install,(const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target))</td></tr>
-<tr class="separator:ae8b28c8caaf829f9fb424c1ff72eb229"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8b367693ba964e1219bdcfae71cb7545"><td class="memItemLeft" align="right" valign="top"><a id="a8b367693ba964e1219bdcfae71cb7545"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>MOCK_METHOD</b> (<a class="el" href="structdata_1_1_installation_result.html">data::InstallationResult</a>, receiveData,(const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target, const uint8_t *data, size_t size))</td></tr>
+<tr class="separator:a8b367693ba964e1219bdcfae71cb7545"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d0f0d9276051890358544ef91cb7ddb"><td class="memItemLeft" align="right" valign="top"><a id="a8d0f0d9276051890358544ef91cb7ddb"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>MOCK_METHOD</b> (<a class="el" href="structdata_1_1_installation_result.html">data::InstallationResult</a>, install,(const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target))</td></tr>
+<tr class="separator:a8d0f0d9276051890358544ef91cb7ddb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_file_update_agent"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_file_update_agent')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_file_update_agent.html">FileUpdateAgent</a></td></tr>
 <tr class="memitem:af454ea2ad9384d844ea1c1c632963a0e inherit pub_methods_class_file_update_agent"><td class="memItemLeft" align="right" valign="top"><a id="af454ea2ad9384d844ea1c1c632963a0e"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>FileUpdateAgent</b> (boost::filesystem::path target_filepath, std::string target_name)</td></tr>
@@ -100,12 +100,12 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>isTargetSupported</b>
 <tr class="memitem:a4119d12e7903566ea81b2e04d688dfc2 inherit pub_methods_class_file_update_agent"><td class="memItemLeft" align="right" valign="top"><a id="a4119d12e7903566ea81b2e04d688dfc2"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>getInstalledImageInfo</b> (<a class="el" href="struct_uptane_1_1_installed_image_info.html">Uptane::InstalledImageInfo</a> &amp;installed_image_info) const override</td></tr>
 <tr class="separator:a4119d12e7903566ea81b2e04d688dfc2 inherit pub_methods_class_file_update_agent"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a01a15e8c2d5755d36cf072cfae2e55ca inherit pub_methods_class_file_update_agent"><td class="memItemLeft" align="right" valign="top"><a id="a01a15e8c2d5755d36cf072cfae2e55ca"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>download</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target, const std::string &amp;data) override</td></tr>
-<tr class="separator:a01a15e8c2d5755d36cf072cfae2e55ca inherit pub_methods_class_file_update_agent"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a558febbeb56b61d844c9973d75d1fcfd inherit pub_methods_class_file_update_agent"><td class="memItemLeft" align="right" valign="top"><a id="a558febbeb56b61d844c9973d75d1fcfd"></a>
-<a class="el" href="structdata_1_1_result_code.html#a1217cbd9c97e19df1ade7b0384cd5aae">data::ResultCode::Numeric</a>&#160;</td><td class="memItemRight" valign="bottom"><b>install</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target) override</td></tr>
-<tr class="separator:a558febbeb56b61d844c9973d75d1fcfd inherit pub_methods_class_file_update_agent"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af2924eafede4b8d608820dd427cdba8f inherit pub_methods_class_file_update_agent"><td class="memItemLeft" align="right" valign="top"><a id="af2924eafede4b8d608820dd427cdba8f"></a>
+virtual <a class="el" href="structdata_1_1_installation_result.html">data::InstallationResult</a>&#160;</td><td class="memItemRight" valign="bottom"><b>receiveData</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target, const uint8_t *data, size_t size)</td></tr>
+<tr class="separator:af2924eafede4b8d608820dd427cdba8f inherit pub_methods_class_file_update_agent"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc3602e9651400a815ccec5b323fa9a8 inherit pub_methods_class_file_update_agent"><td class="memItemLeft" align="right" valign="top"><a id="adc3602e9651400a815ccec5b323fa9a8"></a>
+<a class="el" href="structdata_1_1_installation_result.html">data::InstallationResult</a>&#160;</td><td class="memItemRight" valign="bottom"><b>install</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target) override</td></tr>
+<tr class="separator:adc3602e9651400a815ccec5b323fa9a8 inherit pub_methods_class_file_update_agent"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acbcdeba30d8836888f8ec3fd4740bbf5 inherit pub_methods_class_file_update_agent"><td class="memItemLeft" align="right" valign="top"><a id="acbcdeba30d8836888f8ec3fd4740bbf5"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>completeInstall</b> () override</td></tr>
 <tr class="separator:acbcdeba30d8836888f8ec3fd4740bbf5 inherit pub_methods_class_file_update_agent"><td class="memSeparator" colspan="2">&#160;</td></tr>

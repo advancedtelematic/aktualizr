@@ -18,8 +18,8 @@
 <!-- Node1 -->
 <g id="node2" class="node">
 <title>Node1</title>
-<polygon fill="#ffffff" stroke="#bfbfbf" points="48.5,-56.5 48.5,-75.5 124.5,-75.5 124.5,-56.5 48.5,-56.5"/>
-<text text-anchor="middle" x="86.5" y="-63.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">testing::Test</text>
+<polygon fill="#ffffff" stroke="#bfbfbf" points="68.5,-56.5 68.5,-75.5 104.5,-75.5 104.5,-56.5 68.5,-56.5"/>
+<text text-anchor="middle" x="86.5" y="-63.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">Test</text>
 </g>
 <!-- Node1&#45;&gt;Node0 -->
 <g id="edge1" class="edge">

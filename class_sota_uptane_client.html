@@ -88,9 +88,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a6bfba6e151c051a7e8bad947e3c96d0d"><td class="memItemLeft" align="right" valign="top"><a id="a6bfba6e151c051a7e8bad947e3c96d0d"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>initialize</b> ()</td></tr>
 <tr class="separator:a6bfba6e151c051a7e8bad947e3c96d0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2ca74092904232684da74bd8af369782"><td class="memItemLeft" align="right" valign="top"><a id="a2ca74092904232684da74bd8af369782"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>addSecondary</b> (const std::shared_ptr&lt; <a class="el" href="class_uptane_1_1_secondary_interface.html">Uptane::SecondaryInterface</a> &gt; &amp;sec)</td></tr>
-<tr class="separator:a2ca74092904232684da74bd8af369782"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9fb54801258e5b228aa424b8a9ee19ea"><td class="memItemLeft" align="right" valign="top"><a id="a9fb54801258e5b228aa424b8a9ee19ea"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>addSecondary</b> (const std::shared_ptr&lt; <a class="el" href="class_secondary_interface.html">SecondaryInterface</a> &gt; &amp;sec)</td></tr>
+<tr class="separator:a9fb54801258e5b228aa424b8a9ee19ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afd0ca508fa2b7d1f8a8d34f815b82beb"><td class="memItemLeft" align="right" valign="top"><a id="afd0ca508fa2b7d1f8a8d34f815b82beb"></a>
 <a class="el" href="classresult_1_1_download.html">result::Download</a>&#160;</td><td class="memItemRight" valign="bottom"><b>downloadImages</b> (const std::vector&lt; <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &gt; &amp;targets, const <a class="el" href="classapi_1_1_flow_control_token.html">api::FlowControlToken</a> *token=nullptr)</td></tr>
 <tr class="separator:afd0ca508fa2b7d1f8a8d34f815b82beb"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -145,6 +145,15 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>completeInstall</b> (
 <tr class="memitem:a6f786e85d1056c9335ba5fecd79cb165"><td class="memItemLeft" align="right" valign="top"><a id="a6f786e85d1056c9335ba5fecd79cb165"></a>
 <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a>&#160;</td><td class="memItemRight" valign="bottom"><b>getCurrent</b> () const</td></tr>
 <tr class="separator:a6f786e85d1056c9335ba5fecd79cb165"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a438d6b40d81a7d11c69e3aa81e5d9e1b"><td class="memItemLeft" align="right" valign="top"><a id="a438d6b40d81a7d11c69e3aa81e5d9e1b"></a>
+std::vector&lt; <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getStoredTargets</b> () const</td></tr>
+<tr class="separator:a438d6b40d81a7d11c69e3aa81e5d9e1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9382b96e42461a32433c78dfe94dc847"><td class="memItemLeft" align="right" valign="top"><a id="a9382b96e42461a32433c78dfe94dc847"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>deleteStoredTarget</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target)</td></tr>
+<tr class="separator:a9382b96e42461a32433c78dfe94dc847"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a40bd95057eb656ae0e7f5c78fcb71ade"><td class="memItemLeft" align="right" valign="top"><a id="a40bd95057eb656ae0e7f5c78fcb71ade"></a>
+std::ifstream&#160;</td><td class="memItemRight" valign="bottom"><b>openStoredTarget</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target)</td></tr>
+<tr class="separator:a40bd95057eb656ae0e7f5c78fcb71ade"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a125ad7160d774ebcd24afac7025c655c"><td class="memItemLeft" align="right" valign="top"><a id="a125ad7160d774ebcd24afac7025c655c"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>updateImageMeta</b> ()</td></tr>
 <tr class="separator:a125ad7160d774ebcd24afac7025c655c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -157,6 +166,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>checkImageMetaOffline
 <tr class="memitem:a3c32a3497a82611d358e3547e3f6e629"><td class="memItemLeft" align="right" valign="top"><a id="a3c32a3497a82611d358e3547e3f6e629"></a>
 TargetStatus&#160;</td><td class="memItemRight" valign="bottom"><b>VerifyTarget</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target) const</td></tr>
 <tr class="separator:a3c32a3497a82611d358e3547e3f6e629"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2a6bdf7cf1db1b013749a67202867ffa"><td class="memItemLeft" align="right" valign="top"><a id="a2a6bdf7cf1db1b013749a67202867ffa"></a>
+std::string&#160;</td><td class="memItemRight" valign="bottom"><b>treehubCredentials</b> () const</td></tr>
+<tr class="separator:a2a6bdf7cf1db1b013749a67202867ffa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
 Friends</h2></td></tr>
@@ -169,7 +181,7 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>ProvisionDeviceTask<
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p class="definition">Definition at line <a class="el" href="sotauptaneclient_8h_source.html#l00031">31</a> of file <a class="el" href="sotauptaneclient_8h_source.html">sotauptaneclient.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="sotauptaneclient_8h_source.html#l00033">33</a> of file <a class="el" href="sotauptaneclient_8h_source.html">sotauptaneclient.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>src/libaktualizr/primary/<a class="el" href="sotauptaneclient_8h_source.html">sotauptaneclient.h</a></li>
 <li>src/libaktualizr/primary/<a class="el" href="sotauptaneclient_8cc_source.html">sotauptaneclient.cc</a></li>

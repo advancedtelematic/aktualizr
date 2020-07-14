@@ -14,13 +14,14 @@
 <area shape="rect" id="node15" href="$class_http_fake_pause_counter.html" title="HttpFakePauseCounter" alt="" coords="306,613,475,640"/>
 <area shape="rect" id="node16" href="$class_http_fake_prov.html" title="Check that basic device info sent by aktualizr during provisioning matches our expectations. " alt="" coords="336,664,445,691"/>
 <area shape="rect" id="node17" href="$class_http_fake_put_counter.html" title="HttpFakePutCounter" alt="" coords="315,715,467,741"/>
-<area shape="rect" id="node18" href="$class_http_fake_rq.html" title="HttpFakeRq" alt="" coords="342,765,439,792"/>
-<area shape="rect" id="node19" href="$class_http_fake_split.html" title="HttpFakeSplit" alt="" coords="336,816,445,843"/>
-<area shape="rect" id="node20" href="$class_http_fake_unstable.html" title="HttpFakeUnstable" alt="" coords="321,867,460,893"/>
-<area shape="rect" id="node21" href="$class_http_put_manifest_fail.html" title="HttpPutManifestFail" alt="" coords="316,917,465,944"/>
-<area shape="rect" id="node22" href="$class_http_reject_empty_corr_id.html" title="HttpRejectEmptyCorrId" alt="" coords="305,968,476,995"/>
-<area shape="rect" id="node23" href="$class_http_system_info.html" title="HttpSystemInfo" alt="" coords="329,1019,453,1045"/>
-<area shape="rect" id="node24" href="$class_http_unstable.html" title="HttpUnstable" alt="" coords="337,1069,445,1096"/>
-<area shape="rect" id="node25" href="$class_http_zero_length.html" title="HttpZeroLength" alt="" coords="329,1120,453,1147"/>
-<area shape="rect" id="node2" href="$class_http_interface.html" title="HttpInterface" alt="" coords="5,588,113,615"/>
+<area shape="rect" id="node18" href="$class_http_fake_registration.html" title="HttpFakeRegistration" alt="" coords="311,765,470,792"/>
+<area shape="rect" id="node19" href="$class_http_fake_rq.html" title="HttpFakeRq" alt="" coords="342,816,439,843"/>
+<area shape="rect" id="node20" href="$class_http_fake_split.html" title="HttpFakeSplit" alt="" coords="336,867,445,893"/>
+<area shape="rect" id="node21" href="$class_http_fake_unstable.html" title="HttpFakeUnstable" alt="" coords="321,917,460,944"/>
+<area shape="rect" id="node22" href="$class_http_put_manifest_fail.html" title="HttpPutManifestFail" alt="" coords="316,968,465,995"/>
+<area shape="rect" id="node23" href="$class_http_reject_empty_corr_id.html" title="HttpRejectEmptyCorrId" alt="" coords="305,1019,476,1045"/>
+<area shape="rect" id="node24" href="$class_http_system_info.html" title="HttpSystemInfo" alt="" coords="329,1069,453,1096"/>
+<area shape="rect" id="node25" href="$class_http_unstable.html" title="HttpUnstable" alt="" coords="337,1120,445,1147"/>
+<area shape="rect" id="node26" href="$class_http_zero_length.html" title="HttpZeroLength" alt="" coords="329,1171,453,1197"/>
+<area shape="rect" id="node2" href="$class_http_interface.html" title="HttpInterface" alt="" coords="5,613,113,640"/>
 </map>

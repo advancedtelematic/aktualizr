@@ -90,12 +90,12 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>isTargetSupported</b>
 <tr class="memitem:a4119d12e7903566ea81b2e04d688dfc2"><td class="memItemLeft" align="right" valign="top"><a id="a4119d12e7903566ea81b2e04d688dfc2"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>getInstalledImageInfo</b> (<a class="el" href="struct_uptane_1_1_installed_image_info.html">Uptane::InstalledImageInfo</a> &amp;installed_image_info) const override</td></tr>
 <tr class="separator:a4119d12e7903566ea81b2e04d688dfc2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a01a15e8c2d5755d36cf072cfae2e55ca"><td class="memItemLeft" align="right" valign="top"><a id="a01a15e8c2d5755d36cf072cfae2e55ca"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>download</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target, const std::string &amp;data) override</td></tr>
-<tr class="separator:a01a15e8c2d5755d36cf072cfae2e55ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a558febbeb56b61d844c9973d75d1fcfd"><td class="memItemLeft" align="right" valign="top"><a id="a558febbeb56b61d844c9973d75d1fcfd"></a>
-<a class="el" href="structdata_1_1_result_code.html#a1217cbd9c97e19df1ade7b0384cd5aae">data::ResultCode::Numeric</a>&#160;</td><td class="memItemRight" valign="bottom"><b>install</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target) override</td></tr>
-<tr class="separator:a558febbeb56b61d844c9973d75d1fcfd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af2924eafede4b8d608820dd427cdba8f"><td class="memItemLeft" align="right" valign="top"><a id="af2924eafede4b8d608820dd427cdba8f"></a>
+virtual <a class="el" href="structdata_1_1_installation_result.html">data::InstallationResult</a>&#160;</td><td class="memItemRight" valign="bottom"><b>receiveData</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target, const uint8_t *data, size_t size)</td></tr>
+<tr class="separator:af2924eafede4b8d608820dd427cdba8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc3602e9651400a815ccec5b323fa9a8"><td class="memItemLeft" align="right" valign="top"><a id="adc3602e9651400a815ccec5b323fa9a8"></a>
+<a class="el" href="structdata_1_1_installation_result.html">data::InstallationResult</a>&#160;</td><td class="memItemRight" valign="bottom"><b>install</b> (const <a class="el" href="class_uptane_1_1_target.html">Uptane::Target</a> &amp;target) override</td></tr>
+<tr class="separator:adc3602e9651400a815ccec5b323fa9a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acbcdeba30d8836888f8ec3fd4740bbf5"><td class="memItemLeft" align="right" valign="top"><a id="acbcdeba30d8836888f8ec3fd4740bbf5"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>completeInstall</b> () override</td></tr>
 <tr class="separator:acbcdeba30d8836888f8ec3fd4740bbf5"><td class="memSeparator" colspan="2">&#160;</td></tr>

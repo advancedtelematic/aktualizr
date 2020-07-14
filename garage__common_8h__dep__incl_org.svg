@@ -19,7 +19,7 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="sota__tools_2check_8h_source.html" target="_top" xlink:title="src/sota_tools/check.h">
+<g id="a_node2"><a xlink:href="check_8h_source.html" target="_top" xlink:title="src/sota_tools/check.h">
 <polygon fill="#ffffff" stroke="#000000" points="286,-73 286,-92 411,-92 411,-73 286,-73"/>
 <text text-anchor="middle" x="348.5" y="-80" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">src/sota_tools/check.h</text>
 </a>
@@ -34,7 +34,7 @@
 <!-- Node3 -->
 <g id="node3" class="node">
 <title>Node3</title>
-<g id="a_node3"><a xlink:href="sota__tools_2check_8cc_source.html" target="_top" xlink:title="src/sota_tools/check.cc">
+<g id="a_node3"><a xlink:href="check_8cc_source.html" target="_top" xlink:title="src/sota_tools/check.cc">
 <polygon fill="#ffffff" stroke="#000000" points="139,-6 139,-25 268,-25 268,-6 139,-6"/>
 <text text-anchor="middle" x="203.5" y="-13" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">src/sota_tools/check.cc</text>
 </a>

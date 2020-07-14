@@ -14,8 +14,6 @@ var searchData=
   ['campaignpostponedreport',['CampaignPostponedReport',['../class_campaign_postponed_report.html',1,'']]],
   ['cancontinue',['canContinue',['../classapi_1_1_flow_control_token.html#a774ff79c21b23088babed67a5a03dbd8',1,'api::FlowControlToken']]],
   ['cert',['Cert',['../class_aktualizr_cert_provider_test_1_1_cert.html',1,'AktualizrCertProviderTest']]],
-  ['checkforupdate',['CheckForUpdate',['../class_check_for_update.html',1,'']]],
-  ['checkforupdatetasks',['CheckForUpdateTasks',['../class_check_for_update_tasks.html',1,'']]],
   ['checkupdates',['CheckUpdates',['../class_aktualizr.html#adf876d93967a1dc30a362f5482693405',1,'Aktualizr']]],
   ['commandqueue',['CommandQueue',['../classapi_1_1_command_queue.html',1,'api']]],
   ['config',['Config',['../class_config.html',1,'']]],

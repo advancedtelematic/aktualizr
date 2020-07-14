@@ -18,7 +18,7 @@
 <!-- Node1 -->
 <g id="node2" class="node">
 <title>Node1</title>
-<g id="a_node2"><a xlink:href="class_base_config.html" target="_top" xlink:title="BaseConfig">
+<g id="a_node2"><a xlink:href="class_base_config.html" target="_top" xlink:title="The BaseConfig class. ">
 <polygon fill="#ffffff" stroke="#000000" points="35.5,-56.5 35.5,-75.5 106.5,-75.5 106.5,-56.5 35.5,-56.5"/>
 <text text-anchor="middle" x="71" y="-63.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">BaseConfig</text>
 </a>
