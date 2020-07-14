@@ -27,7 +27,7 @@ class MetaFake {
     std::string hwid;
     Delegation delegation;
 
-    // add image for "has update" meta
+    // add image for "has update" metadata
     file_name = "dummy_firmware.txt";
     repo.addImage(work_dir / file_name, file_name, "dummy", "", delegation);
 
@@ -44,7 +44,7 @@ class MetaFake {
     repo.signTargets();
     rename("_hasupdates");
 
-    // add image for "no update" meta
+    // add image for "no update" metadata
     restore();
 
     file_name = "dummy_firmware.txt";
@@ -53,7 +53,7 @@ class MetaFake {
     repo.signTargets();
     rename("_noupdates");
 
-    // add image for "multi secondary ecu" meta
+    // add image for "multi secondary ecu" metadata
     restore();
 
     file_name = "dummy_firmware.txt";
@@ -72,7 +72,7 @@ class MetaFake {
     repo.signTargets();
     rename("_multisec");
 
-    // copy meta to work_dir
+    // copy metadata to work_dir
     Utils::copyDir(work_dir / ImageRepo::dir, meta_dir / "repo");
     Utils::copyDir(work_dir / DirectorRepo::dir, meta_dir / "director");
     if (!boost::filesystem::exists(meta_dir / "campaigner") &&

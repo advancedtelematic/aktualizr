@@ -285,7 +285,7 @@ As a result of changes to the IP/POSIX Secondary protocol (see below), users of 
 ### Removed
 
 - Jenkins pipeline and a few references: [PR](https://github.com/advancedtelematic/aktualizr/pull/1236)
-- Test repo meta: [PR](https://github.com/advancedtelematic/aktualizr/pull/1239)
+- Hardcoded repo metadata used for testing: [PR](https://github.com/advancedtelematic/aktualizr/pull/1239)
 - SecondaryFactory and VirtualSecondary out of libaktualizr: [PR](https://github.com/advancedtelematic/aktualizr/pull/1241)
 - Fallback on clang-{tidy,format}: [PR](https://github.com/advancedtelematic/aktualizr/pull/1240)
 
