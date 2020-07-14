@@ -1,6 +1,6 @@
 #include "httpclient.h"
 
-#include <assert.h>
+#include <cassert>
 #include <sstream>
 
 #include "utilities/aktualizr_version.h"

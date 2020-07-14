@@ -1,8 +1,7 @@
 #include "ostree_object.h"
 
-#include <assert.h>
-
 #include <sys/stat.h>
+#include <cassert>
 #include <cstring>
 #include <iostream>
 

@@ -1,8 +1,8 @@
 #include "ostreemanager.h"
 #include "packagemanagerfactory.h"
 
-#include <stdio.h>
 #include <unistd.h>
+#include <cstdio>
 #include <fstream>
 
 #include <gio/gio.h>

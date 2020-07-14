@@ -1,5 +1,6 @@
-#include <stdint.h>
-#include <stdlib.h>
+#include <cstdint>
+#include <cstdlib>
+
 extern "C" {
 uint8_t* allocate(size_t size) { return static_cast<uint8_t*>(malloc((sizeof(uint8_t)) * size)); }
 

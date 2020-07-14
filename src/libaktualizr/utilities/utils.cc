@@ -1,8 +1,8 @@
 #include "utilities/utils.h"
 
-#include <stdio.h>
 #include <algorithm>
 #include <array>
+#include <cstdio>
 #include <cstdlib>
 #include <fstream>
 #include <iomanip>
@@ -182,15 +182,13 @@ static const std::array<const char *, 128> names = {"Allerlei",
                                                     "Zwetschkenroester",
                                                     "Zwiebelkuchen"};
 
-typedef boost::archive::iterators::base64_from_binary<
-    boost::archive::iterators::transform_width<std::string::const_iterator, 6, 8> >
-    base64_text;
+using base64_text = boost::archive::iterators::base64_from_binary<
+    boost::archive::iterators::transform_width<std::string::const_iterator, 6, 8> >;
 
-typedef boost::archive::iterators::transform_width<
+using base64_to_bin = boost::archive::iterators::transform_width<
     boost::archive::iterators::binary_from_base64<
         boost::archive::iterators::remove_whitespace<std::string::const_iterator> >,
-    8, 6>
-    base64_to_bin;
+    8, 6>;
 
 std::string Utils::fromBase64(std::string base64_string) {
   int64_t paddingChars = std::count(base64_string.begin(), base64_string.end(), '=');

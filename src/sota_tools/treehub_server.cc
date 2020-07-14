@@ -1,7 +1,6 @@
 #include "treehub_server.h"
 
-#include <assert.h>
-
+#include <cassert>
 #include <iostream>
 
 #include <boost/algorithm/string.hpp>
