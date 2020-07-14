@@ -1,16 +1,16 @@
 ---
 Checks:          >-
-  clang-analyzer-*,
-  performance-*,
   boost-*,
   bugprone-*,
-  readability-*,-readability-else-after-return,-readability-identifier-naming,-readability-magic-numbers,
-  modernize-*,-modernize-avoid-bind,-modernize-loop-convert,-modernize-use-trailing-return-type,
-  llvm-namespace-comment,
-  cppcoreguidelines-pro-*,-cppcoreguidelines-pro-type-reinterpret-cast,-cppcoreguidelines-pro-type-vararg,-cppcoreguidelines-pro-type-const-cast,-cppcoreguidelines-pro-bounds-array-to-pointer-decay,
   cert-*,-cert-err58-cpp,-cert-env33-c,-cert-err60-cpp,
+  clang-analyzer-*,
+  cppcoreguidelines-pro-*,-cppcoreguidelines-pro-type-reinterpret-cast,-cppcoreguidelines-pro-type-vararg,-cppcoreguidelines-pro-type-const-cast,-cppcoreguidelines-pro-bounds-array-to-pointer-decay,
   google-*,-google-runtime-references,-google-readability-todo,
+  llvm-namespace-comment,
   misc-*,
+  modernize-*,-modernize-avoid-bind,-modernize-loop-convert,-modernize-use-trailing-return-type,
+  performance-*,
+  readability-*,-readability-else-after-return,-readability-identifier-naming,-readability-magic-numbers,
 
 WarningsAsErrors: '*'
 AnalyzeTemporaryDtors: false
