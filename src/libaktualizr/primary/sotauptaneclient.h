@@ -20,6 +20,7 @@
 #include "http/httpclient.h"
 #include "package_manager/packagemanagerfactory.h"
 #include "package_manager/packagemanagerinterface.h"
+#include "primary/secondary_provider_builder.h"
 #include "primary/secondaryinterface.h"
 #include "reportqueue.h"
 #include "storage/invstorage.h"
@@ -45,7 +46,7 @@ class SotaUptaneClient {
         primary_ecu_serial_(primary_serial),
         primary_ecu_hw_id_(hwid) {
     report_queue = std_::make_unique<ReportQueue>(config, http, storage);
-    secondary_provider_ = std::make_shared<SecondaryProvider>(config, storage, package_manager_);
+    secondary_provider_ = SecondaryProviderBuilder::Build(config, storage, package_manager_);
   }
 
   SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in,
@@ -190,6 +191,8 @@ class SotaUptaneClient {
   std::mutex download_mutex;
   Uptane::EcuSerial primary_ecu_serial_;
   Uptane::HardwareIdentifier primary_ecu_hw_id_;
+
+  SecondaryProvider *sp;
 };
 
 class TargetCompare {

@@ -9,6 +9,7 @@
 #include "msg_handler.h"
 #include "package_manager/packagemanagerfactory.h"
 #include "package_manager/packagemanagerinterface.h"
+#include "primary/secondary_provider_builder.h"
 #include "secondary_tcp_server.h"
 #include "storage/invstorage.h"
 #include "test_utils.h"
@@ -473,7 +474,7 @@ class SecondaryRpcCommon : public ::testing::Test {
     storage_->storeNonRoot(image_targets_, Uptane::RepositoryType::Image(), Uptane::Role::Targets());
 
     package_manager_ = PackageManagerFactory::makePackageManager(config_.pacman, config_.bootloader, storage_, nullptr);
-    secondary_provider_ = std::make_shared<SecondaryProvider>(config_, storage_, package_manager_);
+    secondary_provider_ = SecondaryProviderBuilder::Build(config_, storage_, package_manager_);
     ip_secondary_->init(secondary_provider_);
   }
 
@@ -677,7 +678,7 @@ TEST(SecondaryTcpServer, TestIpSecondaryIfSecondaryIsNotRunning) {
   std::shared_ptr<PackageManagerInterface> package_manager =
       PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr);
   std::shared_ptr<SecondaryProvider> secondary_provider =
-      std::make_shared<SecondaryProvider>(config, storage, package_manager);
+      SecondaryProviderBuilder::Build(config, storage, package_manager);
   ip_secondary->init(secondary_provider);
 
   // Expect nothing since the Secondary is not running.
