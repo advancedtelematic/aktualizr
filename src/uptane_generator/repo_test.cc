@@ -476,7 +476,7 @@ TEST(uptane_generator, oldtargets) {
 }
 
 /*
- * Generate campaigns json to meta dir.
+ * Generate campaigns json in metadata dir.
  */
 TEST(uptane_generator, generateCampaigns) {
   TemporaryDirectory temp_dir;

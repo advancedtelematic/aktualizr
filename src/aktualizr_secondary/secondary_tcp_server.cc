@@ -41,6 +41,8 @@ void SecondaryTcpServer::run() {
     running_condition_.notify_all();
   }
 
+  bool first_connection = true;
+
   while (keep_running_.load()) {
     sockaddr_storage peer_sa{};
     socklen_t peer_sa_size = sizeof(sockaddr_storage);
@@ -59,7 +61,12 @@ void SecondaryTcpServer::run() {
       break;
     }
 
-    LOG_DEBUG << "Primary connected.";
+    if (first_connection) {
+      LOG_INFO << "Primary connected.";
+      first_connection = false;
+    } else {
+      LOG_DEBUG << "Primary reconnected.";
+    }
     auto continue_running = HandleOneConnection(*Socket(con_fd));
     if (!continue_running) {
       keep_running_.store(false);
@@ -114,7 +121,7 @@ bool SecondaryTcpServer::HandleOneConnection(int socket) {
     Asn1Message::Ptr request_msg = Asn1Message::FromRaw(&m);
 
     if (received == 0) {
-      LOG_DEBUG << "Primary has closed a connection socket";
+      LOG_TRACE << "Primary has closed a connection socket";
       break;
     }
 
@@ -128,7 +135,7 @@ bool SecondaryTcpServer::HandleOneConnection(int socket) {
       break;
     }
 
-    LOG_DEBUG << "Received message from Primary, trying to handle it...";
+    LOG_DEBUG << "Received a request from Primary: " << request_msg->toStr();
     Asn1Message::Ptr response_msg = Asn1Message::Empty();
     MsgHandler::ReturnCode handle_status_code = msg_handler_.handleMsg(request_msg, response_msg);
 

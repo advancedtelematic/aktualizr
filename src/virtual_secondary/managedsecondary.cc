@@ -61,7 +61,7 @@ void ManagedSecondary::Initialize() {
 }
 
 void ManagedSecondary::rawToMeta() {
-  // raw meta is trusted
+  // Raw metadata is trusted.
   current_meta.director_root = Uptane::Root(
       Uptane::RepositoryType::Director(),
       Utils::parseJSON(getMetaFromBundle(meta_bundle_, Uptane::RepositoryType::Director(), Uptane::Role::Root())));

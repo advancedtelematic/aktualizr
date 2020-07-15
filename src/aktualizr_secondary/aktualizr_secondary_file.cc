@@ -39,7 +39,6 @@ data::InstallationResult AktualizrSecondaryFile::receiveData(const uint8_t* data
                                     "Aborting image download; no valid target found.");
   }
 
-  LOG_INFO << "Receiving target image data from Primary: " << size;
   return update_agent_->receiveData(pendingTarget(), data, size);
 }
 
@@ -62,7 +61,11 @@ data::InstallationResult AktualizrSecondaryFile::installPendingTarget(const Upta
 void AktualizrSecondaryFile::completeInstall() { return update_agent_->completeInstall(); }
 
 MsgHandler::ReturnCode AktualizrSecondaryFile::uploadDataHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
-  LOG_INFO << "Handling upload data request from Primary";
+  if (last_msg_ != AKIpUptaneMes_PR_uploadDataReq) {
+    LOG_INFO << "Received an initial data upload request message; attempting to receive data...";
+  } else {
+    LOG_DEBUG << "Received another data upload request message; attempting to receive data...";
+  }
 
   auto rec_buf_size = in_msg.uploadDataReq()->data.size;
   if (rec_buf_size < 0) {

@@ -124,10 +124,13 @@ data::InstallationResult FileUpdateAgent::receiveData(const Uptane::Target& targ
 
   target_file.close();
 
-  LOG_INFO << "Received and stored data of a new target image;"
-              " received in this request (bytes): "
-           << size << " total received so far: " << (current_new_image_size + written_data_size)
-           << " expected total: " << target.length();
+  auto total_size = current_new_image_size + written_data_size;
+  LOG_DEBUG << "Received and stored data of a new target image."
+               " Received in this request (bytes): "
+            << size << "; total received so far: " << total_size << "; expected total: " << target.length();
+  if (static_cast<uint64_t>(total_size) == target.length()) {
+    LOG_INFO << "Successfully received and stored new target image of " << total_size << " bytes.";
+  }
 
   new_target_hasher_->update(data, size);
 

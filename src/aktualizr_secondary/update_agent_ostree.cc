@@ -60,15 +60,15 @@ data::InstallationResult OstreeUpdateAgent::downloadTargetRev(const Uptane::Targ
 
   switch (result.result_code.num_code) {
     case data::ResultCode::Numeric::kOk: {
-      LOG_INFO << "The target revision has been successfully downloaded: " << target.sha256Hash();
+      LOG_INFO << "The target commit has been successfully downloaded: " << target.sha256Hash();
       break;
     }
     case data::ResultCode::Numeric::kAlreadyProcessed: {
-      LOG_INFO << "The target revision is already present on the local OSTree repo: " << target.sha256Hash();
+      LOG_INFO << "The target commit is already present on the local OSTree repo: " << target.sha256Hash();
       break;
     }
     default: {
-      LOG_ERROR << "Failed to download the target revision: " << target.sha256Hash() << " ( "
+      LOG_ERROR << "Failed to download the target commit: " << target.sha256Hash() << " ( "
                 << result.result_code.toString() << " ): " << result.description;
     }
   }

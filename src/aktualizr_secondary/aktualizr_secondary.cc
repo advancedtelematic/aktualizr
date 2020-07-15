@@ -120,7 +120,7 @@ data::InstallationResult AktualizrSecondary::doFullVerification(const Metadata& 
 
   pending_target_ = targetsForThisEcu[0];
 
-  LOG_DEBUG << "Metadata verified, new update found.";
+  LOG_INFO << "Metadata verified, new update found.";
   return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
 }
 
@@ -209,6 +209,7 @@ void AktualizrSecondary::registerHandlers() {
 
 MsgHandler::ReturnCode AktualizrSecondary::getInfoHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
   (void)in_msg;
+  LOG_INFO << "Received an information request message; sending requested information.";
 
   out_msg.present(AKIpUptaneMes_PR_getInfoResp);
   auto info_resp = out_msg.getInfoResp();
@@ -242,6 +243,11 @@ MsgHandler::ReturnCode AktualizrSecondary::versionHdlr(Asn1Message& in_msg, Asn1
 
 AktualizrSecondary::ReturnCode AktualizrSecondary::getManifestHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
   (void)in_msg;
+  if (last_msg_ != AKIpUptaneMes_PR_manifestReq) {
+    LOG_INFO << "Received a manifest request message; sending requested manifest.";
+  } else {
+    LOG_DEBUG << "Received another manifest request message; sending the same manifest.";
+  }
 
   out_msg.present(AKIpUptaneMes_PR_manifestResp);
   auto manifest_resp = out_msg.manifestResp();
@@ -263,6 +269,7 @@ void AktualizrSecondary::copyMetadata(Uptane::MetaBundle& meta_bundle, const Upt
 }
 
 AktualizrSecondary::ReturnCode AktualizrSecondary::putMetaHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+  LOG_INFO << "Received a put metadata request message; verifying contents...";
   auto md = in_msg.putMetaReq2();
   Uptane::MetaBundle meta_bundle;
 
@@ -323,6 +330,7 @@ AktualizrSecondary::ReturnCode AktualizrSecondary::putMetaHdlr(Asn1Message& in_m
 
 AktualizrSecondary::ReturnCode AktualizrSecondary::installHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
   (void)in_msg;
+  LOG_INFO << "Received an installation request message; attempting installation...";
   auto result = install();
 
   auto m = out_msg.present(AKIpUptaneMes_PR_installResp2).installResp2();
