@@ -1,6 +1,6 @@
 #include "aktualizr_secondary_metadata.h"
 
-Metadata::Metadata(const Uptane::MetaBundle& meta_bundle_in) : meta_bundle_(meta_bundle_in) {
+Metadata::Metadata(Uptane::MetaBundle meta_bundle_in) : meta_bundle_(std::move(meta_bundle_in)) {
   director_root_version_ = Uptane::Version(Uptane::extractVersionUntrusted(
       Uptane::getMetaFromBundle(meta_bundle_, Uptane::RepositoryType::Director(), Uptane::Role::Root())));
   image_root_version_ = Uptane::Version(Uptane::extractVersionUntrusted(

@@ -202,7 +202,7 @@ data::InstallationResult IpUptaneSecondary::putMetadata_v1(const Uptane::MetaBun
 
 void IpUptaneSecondary::addMetadata(const Uptane::MetaBundle& meta_bundle, const Uptane::RepositoryType repo,
                                     const Uptane::Role& role, AKMetaCollection_t& collection) {
-  auto meta_json = Asn1Allocation<AKMetaJson_t>();
+  auto* meta_json = Asn1Allocation<AKMetaJson_t>();
   SetString(&meta_json->role, role.ToString());
   SetString(&meta_json->json, getMetaFromBundle(meta_bundle, repo, role));
   ASN_SEQUENCE_ADD(&collection, meta_json);

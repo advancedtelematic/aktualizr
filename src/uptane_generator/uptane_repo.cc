@@ -13,7 +13,7 @@ void UptaneRepo::generateRepo(KeyType key_type) {
 void UptaneRepo::addTarget(const std::string &target_name, const std::string &hardware_id,
                            const std::string &ecu_serial, const std::string &url, const std::string &expires) {
   auto target = image_repo_.getTarget(target_name);
-  if (target == Json::nullValue) {
+  if (target.empty()) {
     throw std::runtime_error("No such " + target_name + " target in the image repository");
   }
   director_repo_.addTarget(target_name, target, hardware_id, ecu_serial, url, expires);

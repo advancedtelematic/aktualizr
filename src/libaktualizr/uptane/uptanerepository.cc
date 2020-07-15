@@ -1,6 +1,7 @@
 #include "uptane/uptanerepository.h"
 
-#include <stdio.h>
+#include <cstdio>
+#include <utility>
 
 #include <openssl/bio.h>
 #include <openssl/pem.h>
@@ -8,7 +9,6 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/trim.hpp>
-#include <utility>
 
 #include "bootstrap/bootstrap.h"
 #include "crypto/crypto.h"

@@ -114,7 +114,7 @@ void Aktualizr_campaign_free(Campaign *c) { delete c; }
 Updates *Aktualizr_updates_check(Aktualizr *a) {
   try {
     auto r = a->CheckUpdates().get();
-    return (r.updates.size() > 0) ? new Updates(std::move(r.updates)) : nullptr;
+    return (!r.updates.empty()) ? new Updates(std::move(r.updates)) : nullptr;
   } catch (const std::exception &e) {
     std::cerr << "Campaign decline exception: " << e.what() << std::endl;
     return nullptr;
@@ -200,7 +200,7 @@ StorageTargetHandle *Aktualizr_open_stored_target(Aktualizr *a, const Target *t)
   }
 
   try {
-    auto stream = new auto(a->OpenStoredTarget(*t));
+    auto *stream = new auto(a->OpenStoredTarget(*t));
     return stream;
   } catch (const std::exception &e) {
     std::cerr << "Aktualizr_open_stored_target exception: " << e.what() << std::endl;

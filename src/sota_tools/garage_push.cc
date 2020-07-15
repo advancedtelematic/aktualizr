@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
 
   Utils::setUserAgent(std::string("garage-push/") + garage_tools_version());
 
-  if (cacerts != "") {
+  if (!cacerts.empty()) {
     if (!boost::filesystem::exists(cacerts)) {
       LOG_FATAL << "--cacert path " << cacerts << " does not exist";
       return EXIT_FAILURE;
@@ -151,7 +151,7 @@ int main(int argc, char **argv) {
       }
     }
 
-    if (manifest_path != "") {
+    if (!manifest_path.empty()) {
       try {
         std::string manifest_json_str;
         std::ifstream ifs(manifest_path.string());

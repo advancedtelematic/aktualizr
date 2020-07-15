@@ -88,15 +88,13 @@ bpo::variables_map parseOptions(int argc, char **argv) {
 }
 
 void processEvent(const std::shared_ptr<event::BaseEvent> &event) {
-  if (event->isTypeOf<event::DownloadProgressReport>()) {
-    // Do nothing; libaktualizr already logs it.
-  } else if (event->variant == "UpdateCheckComplete") {
+  if (event->isTypeOf<event::DownloadProgressReport>() || event->variant == "UpdateCheckComplete") {
     // Do nothing; libaktualizr already logs it.
   } else if (event->variant == "AllDownloadsComplete") {
-    const auto downloads_complete = dynamic_cast<event::AllDownloadsComplete *>(event.get());
+    const auto *downloads_complete = dynamic_cast<event::AllDownloadsComplete *>(event.get());
     LOG_INFO << "got " << event->variant << " event with status: " << downloads_complete->result.status;
   } else if (event->variant == "AllInstallsComplete") {
-    const auto installs_complete = dynamic_cast<event::AllInstallsComplete *>(event.get());
+    const auto *installs_complete = dynamic_cast<event::AllInstallsComplete *>(event.get());
     LOG_INFO << "got " << event->variant << " event with status: " << installs_complete->result.dev_report.result_code;
   } else {
     LOG_INFO << "got " << event->variant << " event";

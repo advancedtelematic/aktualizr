@@ -9,8 +9,8 @@
 #include <sys/types.h>
 #include <memory>
 
-AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig& config, std::shared_ptr<INvStorage> storage)
-    : config_(config),
+AktualizrSecondary::AktualizrSecondary(AktualizrSecondaryConfig config, std::shared_ptr<INvStorage> storage)
+    : config_(std::move(config)),
       storage_(std::move(storage)),
       keys_(std::make_shared<KeyManager>(storage_, config_.keymanagerConfig())) {
   uptaneInitialize();
@@ -125,7 +125,7 @@ data::InstallationResult AktualizrSecondary::doFullVerification(const Metadata& 
 }
 
 void AktualizrSecondary::uptaneInitialize() {
-  if (keys_->generateUptaneKeyPair().size() == 0) {
+  if (keys_->generateUptaneKeyPair().empty()) {
     throw std::runtime_error("Failed to generate Uptane key pair");
   }
 
@@ -146,7 +146,7 @@ void AktualizrSecondary::uptaneInitialize() {
   std::string ecu_hardware_id = config_.uptane.ecu_hardware_id;
   if (ecu_hardware_id.empty()) {
     ecu_hardware_id = Utils::getHostname();
-    if (ecu_hardware_id == "") {
+    if (ecu_hardware_id.empty()) {
       throw std::runtime_error("Failed to define ECU hardware ID");
     }
   }
@@ -195,7 +195,7 @@ void AktualizrSecondary::registerHandlers() {
                   std::bind(&AktualizrSecondary::getInfoHdlr, this, std::placeholders::_1, std::placeholders::_2));
 
   registerHandler(AKIpUptaneMes_PR_versionReq,
-                  std::bind(&AktualizrSecondary::versionHdlr, this, std::placeholders::_1, std::placeholders::_2));
+                  std::bind(&AktualizrSecondary::versionHdlr, std::placeholders::_1, std::placeholders::_2));
 
   registerHandler(AKIpUptaneMes_PR_manifestReq,
                   std::bind(&AktualizrSecondary::getManifestHdlr, this, std::placeholders::_1, std::placeholders::_2));
@@ -207,7 +207,7 @@ void AktualizrSecondary::registerHandlers() {
                   std::bind(&AktualizrSecondary::installHdlr, this, std::placeholders::_1, std::placeholders::_2));
 }
 
-MsgHandler::ReturnCode AktualizrSecondary::getInfoHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+MsgHandler::ReturnCode AktualizrSecondary::getInfoHdlr(Asn1Message& in_msg, Asn1Message& out_msg) const {
   (void)in_msg;
   LOG_INFO << "Received an information request message; sending requested information.";
 
@@ -241,7 +241,7 @@ MsgHandler::ReturnCode AktualizrSecondary::versionHdlr(Asn1Message& in_msg, Asn1
   return ReturnCode::kOk;
 }
 
-AktualizrSecondary::ReturnCode AktualizrSecondary::getManifestHdlr(Asn1Message& in_msg, Asn1Message& out_msg) {
+AktualizrSecondary::ReturnCode AktualizrSecondary::getManifestHdlr(Asn1Message& in_msg, Asn1Message& out_msg) const {
   (void)in_msg;
   if (last_msg_ != AKIpUptaneMes_PR_manifestReq) {
     LOG_INFO << "Received a manifest request message; sending requested manifest.";

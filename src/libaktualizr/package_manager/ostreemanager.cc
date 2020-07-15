@@ -1,8 +1,8 @@
 #include "ostreemanager.h"
 #include "packagemanagerfactory.h"
 
-#include <stdio.h>
 #include <unistd.h>
+#include <cstdio>
 #include <fstream>
 
 #include <gio/gio.h>
@@ -69,7 +69,8 @@ data::InstallationResult OstreeManager::pull(const boost::filesystem::path &sysr
                                              const Uptane::Target &target, const api::FlowControlToken *token,
                                              OstreeProgressCb progress_cb) {
   const std::string refhash = target.sha256Hash();
-  const char *const commit_ids[] = {refhash.c_str()};  // NOLINT(modernize-avoid-c-arrays)
+  // NOLINTNEXTLINE(modernize-avoid-c-arrays, cppcoreguidelines-avoid-c-arrays, hicpp-avoid-c-arrays)
+  const char *const commit_ids[] = {refhash.c_str()};
   GError *error = nullptr;
   GVariantBuilder builder;
   GVariant *options;
@@ -129,7 +130,7 @@ data::InstallationResult OstreeManager::install(const Uptane::Target &target) co
   GError *error = nullptr;
   g_autofree char *revision = nullptr;
 
-  if (config.os.size() != 0U) {
+  if (!config.os.empty()) {
     opt_osname = config.os.c_str();
   }
 
@@ -177,7 +178,7 @@ data::InstallationResult OstreeManager::install(const Uptane::Target &target) co
     kargs_strv_vector.push_back((*it).c_str());
   }
   kargs_strv_vector[args_vector.size()] = nullptr;
-  auto kargs_strv = const_cast<char **>(&kargs_strv_vector[0]);
+  auto *kargs_strv = const_cast<char **>(&kargs_strv_vector[0]);
 
   OstreeDeployment *new_deployment_raw = nullptr;
   if (ostree_sysroot_deploy_tree(sysroot.get(), opt_osname, revision, origin.get(), merge_deployment.get(), kargs_strv,

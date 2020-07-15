@@ -2,7 +2,7 @@
 
 #include "logging/logging.h"
 
-// NOLINTNEXTLINE(modernize-avoid-c-arrays)
+// NOLINTNEXTLINE(modernize-avoid-c-arrays, cppcoreguidelines-avoid-c-arrays, hicpp-avoid-c-arrays)
 OSTreeObject::ptr OSTreeRepo::GetObject(const uint8_t sha256[32], const OstreeObjectType type) const {
   return GetObject(OSTreeHash(sha256), type);
 }

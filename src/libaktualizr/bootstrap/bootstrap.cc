@@ -1,6 +1,6 @@
 #include "bootstrap.h"
 
-#include <stdio.h>
+#include <cstdio>
 #include <fstream>
 #include <sstream>
 

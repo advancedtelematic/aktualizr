@@ -1,8 +1,8 @@
 #include "utilities/utils.h"
 
-#include <stdio.h>
 #include <algorithm>
 #include <array>
+#include <cstdio>
 #include <cstdlib>
 #include <fstream>
 #include <iomanip>
@@ -182,15 +182,13 @@ static const std::array<const char *, 128> names = {"Allerlei",
                                                     "Zwetschkenroester",
                                                     "Zwiebelkuchen"};
 
-typedef boost::archive::iterators::base64_from_binary<
-    boost::archive::iterators::transform_width<std::string::const_iterator, 6, 8> >
-    base64_text;
+using base64_text = boost::archive::iterators::base64_from_binary<
+    boost::archive::iterators::transform_width<std::string::const_iterator, 6, 8> >;
 
-typedef boost::archive::iterators::transform_width<
+using base64_to_bin = boost::archive::iterators::transform_width<
     boost::archive::iterators::binary_from_base64<
         boost::archive::iterators::remove_whitespace<std::string::const_iterator> >,
-    8, 6>
-    base64_to_bin;
+    8, 6>;
 
 std::string Utils::fromBase64(std::string base64_string) {
   int64_t paddingChars = std::count(base64_string.begin(), base64_string.end(), '=');
@@ -263,9 +261,9 @@ std::string Utils::genPrettyName() {
   std::uniform_int_distribution<size_t> nouns_dist(0, names.size() - 1);
   std::uniform_int_distribution<size_t> digits(0, 999);
   std::stringstream pretty_name;
-  pretty_name << adverbs[adverbs_dist(urandom)];
+  pretty_name << adverbs.at(adverbs_dist(urandom));
   pretty_name << "-";
-  pretty_name << names[nouns_dist(urandom)];
+  pretty_name << names.at(nouns_dist(urandom));
   pretty_name << "-";
   pretty_name << digits(urandom);
   std::string res = pretty_name.str();
@@ -295,7 +293,8 @@ std::string Utils::readFile(const boost::filesystem::path &filename, const bool 
 static constexpr size_t BSIZE = 20 * 512;
 
 struct archive_state {
-  archive_state(std::istream &is_in) : is(is_in) {}
+ public:
+  explicit archive_state(std::istream &is_in) : is(is_in) {}
   std::istream &is;
   std::array<char, BSIZE> buf{};
 };
@@ -398,7 +397,7 @@ Json::Value Utils::getNetworkInfo() {
     }
   }
 
-  if (itf.name != "") {
+  if (!itf.name.empty()) {
     {
       // get ip address
       StructGuard<struct ifaddrs> ifaddrs(nullptr, freeifaddrs);
@@ -831,7 +830,9 @@ CURL *Utils::curlDupHandleWrapper(CURL *const curl_in, const bool using_pkcs11) 
 class SafeTempRoot {
  public:
   SafeTempRoot(const SafeTempRoot &) = delete;
+  SafeTempRoot(const SafeTempRoot &&) = delete;
   SafeTempRoot operator=(const SafeTempRoot &) = delete;
+  SafeTempRoot operator=(const SafeTempRoot &&) = delete;
   // provide this as a static method so that we can use C++ static destructor
   // to remove the temp root
   static boost::filesystem::path &Get() {

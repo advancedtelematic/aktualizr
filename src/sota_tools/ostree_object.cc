@@ -1,8 +1,7 @@
 #include "ostree_object.h"
 
-#include <assert.h>
-
 #include <sys/stat.h>
+#include <cassert>
 #include <cstring>
 #include <iostream>
 
@@ -299,6 +298,7 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
   if (current_operation_ == CurrentOp::kOstreeObjectPresenceCheck) {
     // Sanity-check the handle's URL to make sure it contains the expected
     // object hash.
+    // NOLINTNEXTLINE(bugprone-branch-clone)
     if (url == nullptr || strstr(url, object_name_.c_str()) == nullptr) {
       PresenceError(pool, rescode);
     } else if (rescode == 200) {
@@ -321,6 +321,7 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
   } else if (current_operation_ == CurrentOp::kOstreeObjectUploading) {
     // Sanity-check the handle's URL to make sure it contains the expected
     // object hash.
+    // NOLINTNEXTLINE(bugprone-branch-clone)
     if (url == nullptr || strstr(url, object_name_.c_str()) == nullptr) {
       UploadError(pool, rescode);
     } else if (rescode == 204) {

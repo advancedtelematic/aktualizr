@@ -26,12 +26,12 @@ OSTreeHash OSTreeHash::Parse(const std::string& hash) {
     if (next_char != &byte_string[2]) {
       throw OSTreeCommitParseError("Invalid character in OSTree commit hash");
     }
-    sha256[i] = byte_holder & 0xFF;
+    sha256[i] = byte_holder & 0xFF;  // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
   }
   return OSTreeHash(sha256);
 }
 
-// NOLINTNEXTLINE(modernize-avoid-c-arrays)
+// NOLINTNEXTLINE(modernize-avoid-c-arrays, cppcoreguidelines-avoid-c-arrays, hicpp-avoid-c-arrays)
 OSTreeHash::OSTreeHash(const uint8_t hash[32]) { std::memcpy(hash_.data(), hash, hash_.size()); }
 
 OSTreeHash::OSTreeHash(const std::array<uint8_t, 32>& hash) { std::memcpy(hash_.data(), hash.data(), hash.size()); }
@@ -42,6 +42,7 @@ std::string OSTreeHash::string() const {
 
   // sha256 hash is always 256 bits = 32 bytes long
   for (size_t i = 0; i < hash_.size(); i++) {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
     str_str << std::setw(2) << std::hex << static_cast<uint64_t>(hash_[i]);
   }
   return str_str.str();

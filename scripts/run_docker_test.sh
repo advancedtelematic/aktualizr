@@ -5,14 +5,14 @@ set -euo pipefail
 # Utility to help running in-docker tests in the same conditions as CI (Gitlab)
 #
 # example:
-# ./scripts/run_docker_test.sh docker/Dockerfile.debian.testing \
+# ./scripts/run_docker_test.sh docker/Dockerfile.ubuntu.focal \
 #                             -eTEST_BUILD_DIR=build-openssl11 \
 #                             -eTEST_CMAKE_BUILD_TYPE=Valgrind \
 #                             -eTEST_TESTSUITE_ONLY=crypto \
 #                             -eTEST_WITH_STATICTESTS=1 \
 #                             -- ./scripts/test.sh
 # alternatively:
-# ./scripts/run_docker_test.sh docker/Dockerfile.debian.testing
+# ./scripts/run_docker_test.sh docker/Dockerfile.ubuntu.focal
 # # (shell starting...)
 # testuser@xxx:yyy$ TEST_BUILD_DIR=build-openssl11 \
 #                   TEST_CMAKE_BUILD_TYPE=Valgrind \

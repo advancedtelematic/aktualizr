@@ -1,114 +1,62 @@
 ---
 Checks:          >-
-  clang-analyzer-*,
-  performance-*,
+  boost-*,
   bugprone-*,
-  readability-*,-readability-else-after-return,-readability-identifier-naming,-readability-container-size-empty,-readability-redundant-declaration,-readability-magic-numbers,
-  modernize-*,-modernize-avoid-bind,-modernize-loop-convert,-modernize-use-using,-modernize-deprecated-headers,-modernize-pass-by-value,
+  cert-*,-cert-err58-cpp,-cert-env33-c,-cert-err60-cpp,
+  clang-analyzer-*,
+  cppcoreguidelines-*,-cppcoreguidelines-avoid-magic-numbers,-cppcoreguidelines-init-variables,-cppcoreguidelines-owning-memory,
+  cppcoreguidelines-pro-*,-cppcoreguidelines-pro-type-reinterpret-cast,-cppcoreguidelines-pro-type-vararg,-cppcoreguidelines-pro-type-const-cast,-cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  google-*,-google-runtime-references,-google-readability-todo,
+  hicpp-*,-hicpp-no-array-decay,-hicpp-no-assembler,-hicpp-signed-bitwise,-hicpp-vararg,
   llvm-namespace-comment,
-  cppcoreguidelines-pro-*,-cppcoreguidelines-pro-type-reinterpret-cast,-cppcoreguidelines-pro-type-vararg,-cppcoreguidelines-pro-type-const-cast,
-  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,-cppcoreguidelines-pro-bounds-constant-array-index,cert-*,
-  -cert-err58-cpp,-cert-env33-c,-cert-err09-cpp,-cert-err60-cpp,-cert-err61-cpp, -cert-err61-cpp,
-  google-*,-google-runtime-references,-google-runtime-member-string-references,-google-explicit-constructor,-google-readability-todo,
-  misc-*, -misc-unused-parameters, -misc-macro-parentheses, -misc-throw-by-value-catch-by-reference, -misc-suspicious-enum-usage, -misc-non-private-member-variables-in-classes
+  misc-*,
+  modernize-*,-modernize-avoid-bind,-modernize-loop-convert,-modernize-use-trailing-return-type,
+  performance-*,
+  readability-*,-readability-else-after-return,-readability-identifier-naming,-readability-magic-numbers,
 
 WarningsAsErrors: '*'
 AnalyzeTemporaryDtors: false
 CheckOptions:
+  - key:             cppcoreguidelines-non-private-member-variables-in-classes.IgnorePublicMemberVariables
+    value:           '1'
   - key:             cert-dcl59-cpp.HeaderFileExtensions
-    value:           h,hh,hpp,hxx
+    value:           h
   - key:             cert-err09-cpp.CheckThrowTemporaries
     value:           '1'
   - key:             cert-err61-cpp.CheckThrowTemporaries
     value:           '1'
-  - key:             cert-oop11-cpp.IncludeStyle
-    value:           llvm
-  - key:             cppcoreguidelines-pro-bounds-constant-array-index.GslHeader
-    value:           ''
-  - key:             cppcoreguidelines-pro-bounds-constant-array-index.IncludeStyle
-    value:           '0'
   - key:             cppcoreguidelines-pro-type-member-init.IgnoreArrays
     value:           '0'
   - key:             google-build-namespaces.HeaderFileExtensions
-    value:           h,hh,hpp,hxx
+    value:           h
   - key:             google-global-names-in-headers.HeaderFileExtensions
     value:           h
   - key:             google-readability-braces-around-statements.ShortStatementLines
     value:           '1'
   - key:             google-readability-function-size.BranchThreshold
-    value:           '4294967295'
+    value:           '100'
   - key:             google-readability-function-size.LineThreshold
-    value:           '4294967295'
+    value:           '1000'
   - key:             google-readability-function-size.StatementThreshold
     value:           '800'
   - key:             google-readability-namespace-comments.ShortNamespaceLines
     value:           '10'
   - key:             google-readability-namespace-comments.SpacesBeforeComments
     value:           '2'
-  - key:             google-runtime-int.SignedTypePrefix
-    value:           int
-  - key:             google-runtime-int.TypeSuffix
-    value:           ''
-  - key:             google-runtime-int.UnsignedTypePrefix
-    value:           uint
-  - key:             google-runtime-references.WhiteListTypes
-    value:           ''
   - key:             llvm-header-guard.HeaderFileExtensions
-    value:           ',h,hh,hpp,hxx'
+    value:           h
   - key:             llvm-namespace-comment.ShortNamespaceLines
-    value:           '1'
+    value:           '10'
   - key:             llvm-namespace-comment.SpacesBeforeComments
-    value:           '1'
-  - key:             misc-argument-comment.StrictMode
-    value:           '0'
-  - key:             misc-assert-side-effect.AssertMacros
-    value:           assert
-  - key:             misc-assert-side-effect.CheckFunctionCalls
-    value:           '0'
-  - key:             misc-dangling-handle.HandleClasses
-    value:           'std::basic_string_view;std::experimental::basic_string_view'
+    value:           '2'
   - key:             misc-definitions-in-headers.HeaderFileExtensions
-    value:           ',h,hh,hpp,hxx'
+    value:           h
   - key:             misc-definitions-in-headers.UseHeaderFileExtension
     value:           '1'
-  - key:             misc-misplaced-widening-cast.CheckImplicitCasts
+  - key:             misc-non-private-member-variables-in-classes.IgnorePublicMemberVariables
     value:           '1'
-  - key:             misc-move-constructor-init.IncludeStyle
-    value:           llvm
-  - key:             misc-sizeof-expression.WarnOnSizeOfCompareToConstant
-    value:           '1'
-  - key:             misc-sizeof-expression.WarnOnSizeOfConstant
-    value:           '1'
-  - key:             misc-sizeof-expression.WarnOnSizeOfThis
-    value:           '1'
-  - key:             misc-string-constructor.LargeLengthThreshold
-    value:           '8388608'
-  - key:             misc-string-constructor.WarnOnLargeLength
-    value:           '1'
-  - key:             misc-suspicious-enum-usage.StrictMode
-    value:           '0'
-  - key:             misc-suspicious-missing-comma.MaxConcatenatedTokens
-    value:           '5'
-  - key:             misc-suspicious-missing-comma.RatioThreshold
-    value:           '0.200000'
-  - key:             misc-suspicious-missing-comma.SizeThreshold
-    value:           '5'
-  - key:             misc-suspicious-string-compare.StringCompareLikeFunctions
-    value:           ''
-  - key:             misc-suspicious-string-compare.WarnOnImplicitComparison
-    value:           '1'
-  - key:             misc-suspicious-string-compare.WarnOnLogicalNotComparison
-    value:           '0'
   - key:             misc-throw-by-value-catch-by-reference.CheckThrowTemporaries
     value:           '1'
-  - key:             modernize-loop-convert.MaxCopySize
-    value:           '16'
-  - key:             modernize-loop-convert.MinConfidence
-    value:           reasonable
-  - key:             modernize-loop-convert.NamingStyle
-    value:           CamelCase
-  - key:             modernize-replace-auto-ptr.IncludeStyle
-    value:           llvm
   - key:             modernize-use-auto.RemoveStars
     value:           '0'
   - key:             modernize-use-default-member-init.UseAssignment
@@ -117,26 +65,14 @@ CheckOptions:
     value:           '::std::vector;::std::list;::std::deque'
   - key:             modernize-use-emplace.SmartPointers
     value:           '::std::shared_ptr;::std::unique_ptr;::std::auto_ptr;::std::weak_ptr'
-  - key:             modernize-use-nullptr.NullMacros
-    value:           'NULL'
-  - key:             modernize-use-transparent-functors.SafeMode
-    value:           '0'
-  - key:             performance-faster-string-find.StringLikeClasses
-    value:           'std::basic_string'
-  - key:             performance-for-range-copy.WarnOnAllAutoCopies
-    value:           '0'
   - key:             performance-inefficient-string-concatenation.StrictMode
     value:           '0'
-  - key:             performance-type-promotion-in-math-fn.IncludeStyle
-    value:           llvm
-  - key:             performance-unnecessary-value-param.IncludeStyle
-    value:           llvm
   - key:             readability-braces-around-statements.ShortStatementLines
-    value:           '0'
+    value:           '1'
   - key:             readability-function-size.BranchThreshold
-    value:           '4294967295'
+    value:           '100'
   - key:             readability-function-size.LineThreshold
-    value:           '4294967295'
+    value:           '1000'
   - key:             readability-function-size.StatementThreshold
     value:           '800'
   - key:             readability-identifier-naming.AbstractClassCase
@@ -405,9 +341,9 @@ CheckOptions:
     value:           ''
   - key:             readability-identifier-naming.VirtualMethodSuffix
     value:           ''
-  - key:             readability-implicit-bool-cast.AllowConditionalIntegerCasts
+  - key:             readability-implicit-bool-conversion.AllowConditionalIntegerCasts
     value:           '0'
-  - key:             readability-implicit-bool-cast.AllowConditionalPointerCasts
+  - key:             readability-implicit-bool-conversion.AllowConditionalPointerCasts
     value:           '0'
   - key:             readability-simplify-boolean-expr.ChainedConditionalAssignment
     value:           '0'

@@ -68,7 +68,7 @@ void ReportQueue::flushQueue() {
 
 void ReportEvent::setEcu(const Uptane::EcuSerial& ecu) { custom["ecu"] = ecu.ToString(); }
 void ReportEvent::setCorrelationId(const std::string& correlation_id) {
-  if (correlation_id != "") {
+  if (!correlation_id.empty()) {
     custom["correlationId"] = correlation_id;
   }
 }

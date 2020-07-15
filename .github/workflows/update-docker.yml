@@ -19,12 +19,12 @@ jobs:
           docker build --cache-from "$DOCKER_TAG" --pull -t "$DOCKER_TAG" -f "$DOCKERFILE" .
           docker push "$DOCKER_TAG"
 
-  update-debian-testing:
-    name: Update Debian Testing Image
+  update-ubuntu-focal:
+    name: Update Ubuntu Focal Image
     runs-on: ubuntu-latest
     env:
-      DOCKER_TAG: docker.pkg.github.com/advancedtelematic/aktualizr/aktualizr-ci:debian-testing-master
-      DOCKERFILE: docker/Dockerfile.debian.testing
+      DOCKER_TAG: docker.pkg.github.com/advancedtelematic/aktualizr/aktualizr-ci:ubuntu-focal-master
+      DOCKERFILE: docker/Dockerfile.ubuntu-focal
     steps:
       - uses: actions/checkout@master
       - name: Docker login

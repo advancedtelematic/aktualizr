@@ -1,5 +1,3 @@
-#include <assert.h>
-
 #include <iostream>
 #include <sstream>
 
@@ -28,7 +26,7 @@ AuthenticationResult OAuth2::Authenticate() {
   CurlEasyWrapper curl_handle;
   curlEasySetoptWrapper(curl_handle.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
   curlEasySetoptWrapper(curl_handle.get(), CURLOPT_URL, (server_ + "/token").c_str());
-  if (ca_certs_ != "") {
+  if (!ca_certs_.empty()) {
     curlEasySetoptWrapper(curl_handle.get(), CURLOPT_CAINFO, ca_certs_.c_str());
     curlEasySetoptWrapper(curl_handle.get(), CURLOPT_CAPATH, NULL);
   }

@@ -91,7 +91,7 @@ Build from source::
 Modify as needed for your distro. See https://github.com/advancedtelematic/aktualizr for further instructions
 [source,sh,subs="attributes"]
 ----
-sudo apt install asn1c build-essential clang clang-format-8 clang-tidy-8 \
+sudo apt install asn1c build-essential clang clang-format-10 clang-tidy-10 \
 cmake curl doxygen graphviz lcov libarchive-dev libboost-dev \
 libboost-filesystem-dev libboost-log-dev libboost-program-options-dev \
 libcurl4-openssl-dev libostree-dev libp11-3 libp11-dev libpthread-stubs0-dev \

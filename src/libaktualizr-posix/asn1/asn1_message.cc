@@ -13,7 +13,7 @@
 #endif
 
 int Asn1StringAppendCallback(const void* buffer, size_t size, void* priv) {
-  auto out_str = static_cast<std::string*>(priv);
+  auto* out_str = static_cast<std::string*>(priv);
   out_str->append(std::string(static_cast<const char*>(buffer), size));
   return 0;
 }
@@ -27,7 +27,7 @@ int Asn1SocketWriteCallback(const void* buffer, size_t size, void* priv) {
   assert(sock != nullptr);
   assert(-1 < *sock);
 
-  auto b = static_cast<const char*>(buffer);
+  const auto* b = static_cast<const char*>(buffer);
   size_t len = size;
   size_t pos = 0;
 

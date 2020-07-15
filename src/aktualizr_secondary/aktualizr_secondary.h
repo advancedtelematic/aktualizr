@@ -32,7 +32,7 @@ class AktualizrSecondary : public MsgDispatcher {
   virtual void completeInstall() = 0;
 
  protected:
-  AktualizrSecondary(const AktualizrSecondaryConfig& config, std::shared_ptr<INvStorage> storage);
+  AktualizrSecondary(AktualizrSecondaryConfig config, std::shared_ptr<INvStorage> storage);
 
   // protected interface to be defined by child classes, i.e. a specific IP secondary type (e.g. OSTree, File, etc)
   virtual bool getInstalledImageInfo(Uptane::InstalledImageInfo& installed_image_info) const = 0;
@@ -50,23 +50,23 @@ class AktualizrSecondary : public MsgDispatcher {
   void initPendingTargetIfAny();
 
  private:
-  void copyMetadata(Uptane::MetaBundle& meta_bundle, Uptane::RepositoryType repo, const Uptane::Role& role,
-                    std::string& json);
+  static void copyMetadata(Uptane::MetaBundle& meta_bundle, Uptane::RepositoryType repo, const Uptane::Role& role,
+                           std::string& json);
   data::InstallationResult doFullVerification(const Metadata& metadata);
   void uptaneInitialize();
   void registerHandlers();
 
   // Message handlers
-  ReturnCode getInfoHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
-  ReturnCode versionHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
-  ReturnCode getManifestHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
+  ReturnCode getInfoHdlr(Asn1Message& in_msg, Asn1Message& out_msg) const;
+  static ReturnCode versionHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
+  ReturnCode getManifestHdlr(Asn1Message& in_msg, Asn1Message& out_msg) const;
   ReturnCode putMetaHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
   ReturnCode installHdlr(Asn1Message& in_msg, Asn1Message& out_msg);
 
   Uptane::HardwareIdentifier hardware_id_{Uptane::HardwareIdentifier::Unknown()};
   Uptane::EcuSerial ecu_serial_{Uptane::EcuSerial::Unknown()};
 
-  AktualizrSecondaryConfig config_;
+  const AktualizrSecondaryConfig config_;
   std::shared_ptr<INvStorage> storage_;
   std::shared_ptr<KeyManager> keys_;
 
