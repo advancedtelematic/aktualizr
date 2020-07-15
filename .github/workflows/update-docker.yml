@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DOCKER_TAG: docker.pkg.github.com/advancedtelematic/aktualizr/aktualizr-ci:ubuntu-focal-master
-      DOCKERFILE: docker/Dockerfile.ubuntu-focal
+      DOCKERFILE: docker/Dockerfile.ubuntu.focal
     steps:
       - uses: actions/checkout@master
       - name: Docker login
