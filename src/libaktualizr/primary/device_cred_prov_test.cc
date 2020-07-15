@@ -16,10 +16,29 @@
 #include "utilities/utils.h"
 
 /**
- * Verify that when provisioning with device credentials, aktualizr halts if
+ * Verify that when provisioning with device credentials, aktualizr fails if
  * credentials are not available.
  */
-TEST(DeviceCredProv, Failure) {
+TEST(DeviceCredProv, DeviceIdFailure) {
+  RecordProperty("zephyr_key", "OTA-1209,TST-185");
+  TemporaryDirectory temp_dir;
+  Config config;
+  config.storage.path = temp_dir.Path();
+  EXPECT_EQ(config.provision.mode, ProvisionMode::kDeviceCred);
+
+  auto storage = INvStorage::newStorage(config.storage);
+  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  KeyManager keys(storage, config.keymanagerConfig());
+
+  // Expect failure when trying to read the certificate to get the device ID.
+  EXPECT_THROW(Initializer(config.provision, storage, http, keys, {}), std::exception);
+}
+
+/**
+ * Verify that when provisioning with device credentials, aktualizr fails if
+ * device ID is provided but credentials are not available.
+ */
+TEST(DeviceCredProv, TlsFailure) {
   RecordProperty("zephyr_key", "OTA-1209,TST-185");
   TemporaryDirectory temp_dir;
   Config config;
@@ -32,6 +51,7 @@ TEST(DeviceCredProv, Failure) {
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   KeyManager keys(storage, config.keymanagerConfig());
 
+  // Expect failure when trying to read the TLS credentials.
   EXPECT_THROW(Initializer(config.provision, storage, http, keys, {}), Initializer::Error);
 }
 

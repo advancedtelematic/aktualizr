@@ -331,10 +331,8 @@ def test_secondary_ostree_reboot(uptane_repo, secondary, aktualizr, treehub, sys
     sysroot.update_revision(pending_rev)
 
     aktualizr.set_mode('full')
-    with secondary:
-        # Why is this necessary? The Primary waiting works outside of this test.
-        time.sleep(5)
-        with aktualizr:
+    with aktualizr:
+        with secondary:
             director.wait_for_install()
 
     if not director.get_install_result():
