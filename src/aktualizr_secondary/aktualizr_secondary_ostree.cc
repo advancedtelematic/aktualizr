@@ -58,7 +58,7 @@ void AktualizrSecondaryOstree::initialize() {
 }
 
 MsgHandler::ReturnCode AktualizrSecondaryOstree::downloadOstreeRev(Asn1Message& in_msg, Asn1Message& out_msg) {
-  LOG_INFO << "Received a request to download a new OSTree revision from Treehub";
+  LOG_INFO << "Received an OSTree download request; attempting download...";
   auto result = downloadOstreeUpdate(ToString(in_msg.downloadOstreeRevReq()->tlsCred));
 
   auto m = out_msg.present(AKIpUptaneMes_PR_downloadOstreeRevResp).downloadOstreeRevResp();

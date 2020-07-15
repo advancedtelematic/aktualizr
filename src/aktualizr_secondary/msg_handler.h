@@ -33,6 +33,8 @@ class MsgDispatcher : public MsgHandler {
  protected:
   void clearHandlers();
 
+  unsigned int last_msg_ = 0;
+
  private:
   std::unordered_map<unsigned int, Handler> handler_map_;
 };
