@@ -5,9 +5,6 @@
 
 #include "primary/secondary_provider.h"
 
-/**
- * @brief The SecondaryProviderBuilder class
- */
 class SecondaryProviderBuilder {
  public:
   static std::shared_ptr<SecondaryProvider> Build(

@@ -191,8 +191,6 @@ class SotaUptaneClient {
   std::mutex download_mutex;
   Uptane::EcuSerial primary_ecu_serial_;
   Uptane::HardwareIdentifier primary_ecu_hw_id_;
-
-  SecondaryProvider *sp;
 };
 
 class TargetCompare {
