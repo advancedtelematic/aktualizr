@@ -1,0 +1,58 @@
+= Change signature thresholds
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
+One way you can keep your software repository more secure is by adding extra signing keys, and then setting up *key thresholds* to require metadata to be signed by multiple different keys. By default, each role on the repository has one signing key and a threshold of one. For more security in the Root role, for example, you might want to create 5 different keys, keep them locked up at different locations around the world, and require that at least three of the keys sign off on any change to Root metadata. You can also use key thresholds for delegations.
+
+*To change the thresholds for signing Root metadata:*
+
+. Generate a new Root key.
++
+[source,bash]
+----
+garage-sign key generate --repo <localreponame> --name root-key-1 --type rsa
+----
+
+. Add the new Root key to the `root.json` file.
++
+[source,bash]
+----
+garage-sign root key add --repo <localreponame> --key-name </path/to/public-root-key-1>
+----
+
+. If you need more Root keys, repeat steps 1 and 2.
+. In the *Roles* folder of your local software repository, open the *Unsigned* folder, and then open the `root.json` file.
+. Depending on the threshold that you want to change, in the `signed` block, in the `root` subsection, for the `keyids` object, specify the list of valid keys that you want to use for signing.
++
+You can find the list of all your Root keys in the `keys` subsection.
++
+NOTE: The new version of Root metadata should be valid according to the rules of the previous and current versions. So you must sign Root metadata with the threshold of keys specified in the previous Root metadata file and the threshold of keys specified in the new Root metadata file. For more information, see the https://uptane.github.io/papers/uptane-standard.1.0.1.html#rfc.section.5.4.4.3[related section] of the Uptane standard.
+
+. For the `version` object, specify the version number of the new Root metadata.
+. Sign the `root.json` file with the same number of valid signatures that you specified in the Root key threshold.
++
+[source,bash]
+----
+garage-sign root sign \
+  --repo <localreponame> \
+  -k </path/to/public-root-key-1> \
+  -k </path/to/public-root-key-2> \
+  --expires <root-metadata-expiry-date>
+----
+
+. Push the modified `root.json` file to OTA Connect.
++
+[source,bash]
+----
+garage-sign root push \
+  --repo <localreponame>
+----
+
+To change the threshold of delegations, modify the .json file with the delegation metadata in the same way as the `root.json` file.
+
+To learn more about the `garage-sign` commands and options, see its xref:garage-sign-reference.adoc[reference] documentation.

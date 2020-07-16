@@ -71,7 +71,9 @@ ifndef::env-github[:pageroot:]
 
 * xref:{pageroot}secure-software-updates.adoc[Secure your software repository]
 ** xref:{pageroot}install-garage-sign-deploy.adoc[Install the garage-deploy tool]
+** xref:{pageroot}keep-local-repo-on-external-storage.adoc[Keep your repository on external storage]
 ** xref:{pageroot}rotating-signing-keys.adoc[Rotate keys for Root and Targets metadata]
+** xref:{pageroot}change-signature-thresholds.adoc[Change signature thresholds]
 ** xref:{pageroot}metadata-expiry.adoc[Manage metadata expiry dates]
 
 .Deploy your OTA-enabled solution
@@ -86,6 +88,7 @@ ifndef::env-github[:pageroot:]
 * xref:{pageroot}rollback.adoc[Set up rollback behavior]
 * xref:{pageroot}deb-package-install.adoc[Install the client from a deb package]
 * xref:{pageroot}upload-large-binary.adoc[Upload a binary file]
+* xref:{pageroot}remove-sw-version.adoc[Remove a software version]
 * xref:{pageroot}push-images-with-bitbake.adoc[Upload Yocto images using offline credentials]
 * xref:{pageroot}virtual-secondaries.adoc[Use Virtual Secondaries]
 

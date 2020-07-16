@@ -391,7 +391,10 @@ Note that this *will not* make the binary available on its own. After the upload
 
 To learn how to use the garage-sign tool, see the following documentation:
 
+* xref:keep-local-repo-on-external-storage.adoc[Keep your repository on external storage]
 * xref:rotating-signing-keys.adoc[Rotate keys for Root and Targets metadata]
+* xref:change-signature-thresholds.adoc[Change signature thresholds]
 * xref:metadata-expiry.adoc[Manage metadata expiry dates]
-* xref:upload-large-binary.adoc[Upload a binary file]
 * xref:customise-targets-metadata.adoc[Add custom metadata fields to Targets metadata]
+* xref:upload-large-binary.adoc[Upload a binary file]
+* xref:remove-sw-version.adoc[Remove a software version]

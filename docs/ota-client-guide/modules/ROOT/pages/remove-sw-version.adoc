@@ -1,0 +1,38 @@
+= Remove a software version
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
+To remove a software version, you need to delete a target in the Targets metadata file.
+include::garage-sign-reference.adoc[tags=target-term]
+
+Once you delete a target, you can no longer install it on devices.
+
+*To delete a target:*
+
+include::upload-large-binary.adoc[tags=gs-initialize]
+
+include::upload-large-binary.adoc[tags=gs-pull-targets]
+
+. To delete the target, depending on the type of image, specify the target name and version in one of the following forms:
+
+** For OSTree images, `<name>_<version>`
+** For binary images, `<name>-<version>`
++
+[source,bash]
+----
+garage-sign targets delete \
+  --filename <name>-<version>
+----
+
+include::upload-large-binary.adoc[tags=gs-sign-targets]
+
+include::upload-large-binary.adoc[tags=gs-push-targets]
+
+You can no longer see the deleted software version in your portal software repository.
+
+To learn more about the `garage-sign` commands and options, see its xref:garage-sign-reference.adoc[reference] documentation.
