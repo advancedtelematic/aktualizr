@@ -1,0 +1,31 @@
+= Keep your repository on external storage
+ifdef::env-github[]
+
+[NOTE]
+====
+We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}.html[view this article in our documentation portal]. Not all of our articles render correctly in GitHub.
+====
+endif::[]
+
+Your software repository contains information on your software images and packages, as well as your Root and Targets keys.
+For safety reasons, we recommend keeping your keys offline on an external storage device, and for convenience, we recommend to simply keep the entire repository structure (with the keys included) on external storage. This external device should be kept offline, in a securely locked location, and only plugged into a computer when you need to make changes to the repository.
+
+*To get a copy of a software repository on external storage:*
+
+. Connect the external storage to your computer.
+. Make sure you have the link:https://tuf-cli-releases.ota.here.com/index.html[latest version,window="_blank"] of the `garage-sign` tool.
+. Get the .zip file with your provisioning credentials and save it to your external storage.
++
+For instructions, see the xref:ota-client::generating-provisioning-credentials.adoc[related] section in this guide.
+. In the folder of your external storage, initialize a local repository.
++
+[source, bash]
+----
+garage-sign init \
+  --repo <localreponame> \
+  --credentials </path/to/credentials.zip>
+----
+
+Work with your local repository only on the external storage.
+
+To learn more about the `garage-sign` commands and options, see its xref:garage-sign-reference.adoc[reference] documentation.

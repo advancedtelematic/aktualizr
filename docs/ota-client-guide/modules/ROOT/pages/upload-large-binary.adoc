@@ -13,6 +13,7 @@ NOTE: You can upload software packages of up to 1 GB on the OTA Connect Portal. 
 
 *To upload a binary file using `garage-sign`:*
 
+// tag::gs-initialize[]
 . Make sure you have the link:https://tuf-cli-releases.ota.here.com/index.html[latest version,window="_blank"] of the `garage-sign` tool.
 . Get the .zip file with your provisioning credentials.
 +
@@ -20,14 +21,17 @@ For instructions, see the xref:ota-client::generating-provisioning-credentials.a
 
 . Initialize a local repository.
 +
+NOTE: For safety reasons, we recommend xref:keep-local-repo-on-external-storage.adoc[keeping your local repository on an external storage device].
++
 [source, bash]
 ----
 garage-sign init \
   --repo <localreponame> \
   --credentials </path/to/credentials.zip>
 ----
-+
+// end::gs-initialize[]
 
+// tag::gs-pull-targets[]
 . Pull the latest version of the `targets.json` file.
 +
 [source,bash]
@@ -35,6 +39,7 @@ garage-sign init \
 garage-sign targets pull \
   --repo <localreponame>
 ----
+// end::gs-pull-targets[]
 
 . To upload your binary to OTA Connect, specify its name and version.
 +
@@ -63,6 +68,7 @@ garage-sign targets add-uploaded \
   --hardwareids <hardware-id1>,<hardware-id2>
 ----
 
+// tag::gs-sign-targets[]
 . Sign the new `targets.json` file with your Targets key.
 +
 [source,bash]
@@ -71,7 +77,9 @@ garage-sign targets sign \
   --repo <localreponame> \
   --key-name mytargets
 ----
+// end::gs-sign-targets[]
 
+// tag::gs-push-targets[]
 . Push the new `targets.json` file to OTA Connect.
 +
 [source,bash]
@@ -79,5 +87,6 @@ garage-sign targets sign \
 garage-sign targets push \
   --repo <localreponame>
 ----
+// end::gs-push-targets[]
 
 To learn more about the `garage-sign` commands and options, see its xref:garage-sign-reference.adoc[reference] documentation.
