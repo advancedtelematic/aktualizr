@@ -1,4 +1,4 @@
-#include "libaktualizr/secondary/secondary_provider.h"
+#include "libaktualizr/secondary_provider.h"
 #include "logging/logging.h"
 #include "storage/invstorage.h"
 

@@ -8,7 +8,7 @@
 
 #include "libaktualizr/config.h"
 #include "libaktualizr/events.h"
-#include "libaktualizr/secondary/secondaryinterface.h"
+#include "libaktualizr/secondaryinterface.h"
 
 class SotaUptaneClient;
 class INvStorage;

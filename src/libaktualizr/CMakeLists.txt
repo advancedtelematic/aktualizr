@@ -4,8 +4,8 @@ set(LIBAKTUALIZR_PUBLIC_HEADERS
     ../../include/libaktualizr/events.h
     ../../include/libaktualizr/results.h
     ../../include/libaktualizr/campaign.h
-    ../../include/libaktualizr/secondary/secondaryinterface.h
-    ../../include/libaktualizr/secondary/secondary_provider.h)
+    ../../include/libaktualizr/secondaryinterface.h
+    ../../include/libaktualizr/secondary_provider.h)
 
 aktualizr_source_file_checks(${LIBAKTUALIZR_PUBLIC_HEADERS})
 

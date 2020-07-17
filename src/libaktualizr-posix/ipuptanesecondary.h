@@ -3,7 +3,7 @@
 
 #include "asn1/asn1_message.h"
 #include "der_encoder.h"
-#include "libaktualizr/secondary/secondaryinterface.h"
+#include "libaktualizr/secondaryinterface.h"
 
 namespace Uptane {
 

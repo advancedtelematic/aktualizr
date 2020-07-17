@@ -1,5 +1,4 @@
 #include "partialverificationsecondary.h"
-#include "libaktualizr/secondary/secondaryinterface.h"
 #include "libaktualizr/types.h"
 #include "logging/logging.h"
 #include "utilities/exceptions.h"

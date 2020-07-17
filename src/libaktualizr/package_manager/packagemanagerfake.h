@@ -5,6 +5,7 @@
 #include <string>
 
 #include "package_manager/packagemanagerinterface.h"
+#include "bootloader/bootloader.h"
 
 class PackageManagerFake : public PackageManagerInterface {
  public:

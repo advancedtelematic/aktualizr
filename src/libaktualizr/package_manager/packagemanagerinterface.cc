@@ -4,6 +4,9 @@
 
 #include "http/httpclient.h"
 #include "logging/logging.h"
+#include "storage/invstorage.h"
+#include "uptane/fetcher.h"
+#include "utilities/apiqueue.h"
 
 struct DownloadMetaStruct {
  public:

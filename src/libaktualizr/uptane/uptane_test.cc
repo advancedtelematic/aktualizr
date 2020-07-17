@@ -13,7 +13,7 @@
 #include <boost/filesystem.hpp>
 #include "json/json.h"
 
-#include "libaktualizr/secondary/secondaryinterface.h"
+#include "libaktualizr/secondaryinterface.h"
 
 #include "crypto/p11engine.h"
 #include "httpfake.h"

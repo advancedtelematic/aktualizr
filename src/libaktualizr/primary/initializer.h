@@ -1,7 +1,7 @@
 #ifndef INITIALIZER_H_
 #define INITIALIZER_H_
 
-#include "libaktualizr/secondary/secondaryinterface.h"
+#include "libaktualizr/secondaryinterface.h"
 
 #include "crypto/keymanager.h"
 #include "http/httpinterface.h"

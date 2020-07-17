@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "libaktualizr/secondary/secondaryinterface.h"
+#include "libaktualizr/secondaryinterface.h"
 
 #include "metafake.h"
 #include "partialverificationsecondary.h"
