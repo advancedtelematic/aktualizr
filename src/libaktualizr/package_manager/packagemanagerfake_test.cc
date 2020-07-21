@@ -7,11 +7,13 @@
 
 #include <boost/filesystem.hpp>
 
+#include "crypto/keymanager.h"
 #include "httpfake.h"
 #include "libaktualizr/config.h"
 #include "libaktualizr/types.h"
 #include "package_manager/packagemanagerfake.h"
 #include "storage/invstorage.h"
+#include "uptane/fetcher.h"
 #include "uptane/tuf.h"
 #include "utilities/utils.h"
 

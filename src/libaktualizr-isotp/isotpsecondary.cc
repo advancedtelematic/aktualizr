@@ -11,6 +11,7 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/lexical_cast.hpp>
 
+#include "logging/logging.h"
 #include "storage/invstorage.h"
 
 constexpr uint16_t kPrimaryCanId = 0x7D8;

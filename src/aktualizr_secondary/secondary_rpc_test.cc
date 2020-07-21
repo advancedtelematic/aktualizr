@@ -4,9 +4,9 @@
 
 #include <netinet/tcp.h>
 
+#include "ipuptanesecondary.h"
 #include "libaktualizr/packagemanagerfactory.h"
 #include "libaktualizr/packagemanagerinterface.h"
-#include "ipuptanesecondary.h"
 #include "logging/logging.h"
 #include "msg_handler.h"
 #include "secondary_tcp_server.h"
