@@ -1,5 +1,4 @@
 #include "ostreemanager.h"
-#include "packagemanagerfactory.h"
 
 #include <unistd.h>
 #include <cstdio>
@@ -14,7 +13,10 @@
 #include <boost/filesystem.hpp>
 #include <utility>
 
+#include "bootloader/bootloader.h"
+#include "libaktualizr/packagemanagerfactory.h"
 #include "logging/logging.h"
+#include "storage/invstorage.h"
 #include "utilities/utils.h"
 
 AUTO_REGISTER_PACKAGE_MANAGER(PACKAGE_MANAGER_OSTREE, OstreeManager);
@@ -63,6 +65,8 @@ static void aktualizr_progress_cb(OstreeAsyncProgress *progress, gpointer data) 
     }
   }
 }
+
+OstreeManager::~OstreeManager() {}
 
 data::InstallationResult OstreeManager::pull(const boost::filesystem::path &sysroot_path,
                                              const std::string &ostree_server, const KeyManager &keys,
@@ -235,6 +239,8 @@ data::InstallationResult OstreeManager::finalizeInstall(const Uptane::Target &ta
   bootloader_->rebootFlagClear();
   return install_result;
 }
+
+void OstreeManager::updateNotify() { bootloader_->updateNotify(); }
 
 OstreeManager::OstreeManager(const PackageConfig &pconfig, const BootloaderConfig &bconfig,
                              const std::shared_ptr<INvStorage> &storage, const std::shared_ptr<HttpInterface> &http)

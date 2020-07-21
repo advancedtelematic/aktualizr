@@ -8,7 +8,7 @@
 #include <ostree.h>
 
 #include "crypto/keymanager.h"
-#include "packagemanagerinterface.h"
+#include "libaktualizr/packagemanagerinterface.h"
 #include "utilities/apiqueue.h"
 
 constexpr const char *remote = "aktualizr-remote";
@@ -41,7 +41,7 @@ class OstreeManager : public PackageManagerInterface {
  public:
   OstreeManager(const PackageConfig &pconfig, const BootloaderConfig &bconfig,
                 const std::shared_ptr<INvStorage> &storage, const std::shared_ptr<HttpInterface> &http);
-  ~OstreeManager() override = default;
+  ~OstreeManager() override;
   std::string name() const override { return "ostree"; }
   Json::Value getInstalledPackages() const override;
   std::string getCurrentHash() const;
@@ -50,7 +50,7 @@ class OstreeManager : public PackageManagerInterface {
   data::InstallationResult install(const Uptane::Target &target) const override;
   void completeInstall() const override;
   data::InstallationResult finalizeInstall(const Uptane::Target &target) override;
-  void updateNotify() override { bootloader_->updateNotify(); };
+  void updateNotify() override;
   bool fetchTarget(const Uptane::Target &target, Uptane::Fetcher &fetcher, const KeyManager &keys,
                    const FetcherProgressCb &progress_cb, const api::FlowControlToken *token) override;
   TargetStatus verifyTarget(const Uptane::Target &target) const override;

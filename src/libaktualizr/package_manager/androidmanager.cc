@@ -3,7 +3,7 @@
 #include <forward_list>
 
 #include "androidmanager.h"
-#include "packagemanagerfactory.h"
+#include "libaktualizr/packagemanagerfactory.h"
 
 #include "utilities/utils.h"
 

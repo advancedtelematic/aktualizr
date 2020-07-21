@@ -4,8 +4,7 @@
 #include <string>
 
 #include "libaktualizr/config.h"
-#include "package_manager/packagemanagerinterface.h"
-#include "uptane/tuf.h"
+#include "libaktualizr/packagemanagerinterface.h"
 
 class INvStorage;
 

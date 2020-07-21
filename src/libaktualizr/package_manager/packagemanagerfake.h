@@ -4,7 +4,8 @@
 #include <memory>
 #include <string>
 
-#include "package_manager/packagemanagerinterface.h"
+#include "libaktualizr/packagemanagerinterface.h"
+
 #include "bootloader/bootloader.h"
 
 class PackageManagerFake : public PackageManagerInterface {

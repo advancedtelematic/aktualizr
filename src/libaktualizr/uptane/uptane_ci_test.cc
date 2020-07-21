@@ -7,11 +7,12 @@
 #include <boost/filesystem.hpp>
 #include <boost/polymorphic_pointer_cast.hpp>
 
+#include "libaktualizr/packagemanagerfactory.h"
+#include "libaktualizr/packagemanagerinterface.h"
+
 #include "http/httpclient.h"
 #include "logging/logging.h"
 #include "package_manager/ostreemanager.h"
-#include "package_manager/packagemanagerfactory.h"
-#include "package_manager/packagemanagerinterface.h"
 #include "primary/reportqueue.h"
 #include "primary/sotauptaneclient.h"
 #include "storage/invstorage.h"

@@ -6,12 +6,18 @@
 
 #include "libaktualizr/config.h"
 
-#include "bootloader/bootloader.h"
-#include "crypto/keymanager.h"
-#include "http/httpinterface.h"
-#include "storage/invstorage.h"
-#include "uptane/fetcher.h"
-#include "utilities/apiqueue.h"
+class Bootloader;
+class HttpInterface;
+class KeyManager;
+class INvStorage;
+
+namespace api {
+class FlowControlToken;
+}
+
+namespace Uptane {
+class Fetcher;
+}
 
 using FetcherProgressCb = std::function<void(const Uptane::Target&, const std::string&, unsigned int)>;
 
@@ -45,9 +51,9 @@ class PackageManagerInterface {
   virtual Json::Value getInstalledPackages() const = 0;
   virtual Uptane::Target getCurrent() const = 0;
   virtual data::InstallationResult install(const Uptane::Target& target) const = 0;
-  virtual void completeInstall() const { throw std::runtime_error("Unimplemented"); };
+  virtual void completeInstall() const { throw std::runtime_error("Unimplemented"); }
   virtual data::InstallationResult finalizeInstall(const Uptane::Target& target) = 0;
-  virtual void updateNotify(){};
+  virtual void updateNotify() {}
   virtual bool fetchTarget(const Uptane::Target& target, Uptane::Fetcher& fetcher, const KeyManager& keys,
                            const FetcherProgressCb& progress_cb, const api::FlowControlToken* token);
   virtual TargetStatus verifyTarget(const Uptane::Target& target) const;

@@ -4,12 +4,11 @@
 
 #include <netinet/tcp.h>
 
+#include "libaktualizr/packagemanagerfactory.h"
+#include "libaktualizr/packagemanagerinterface.h"
 #include "ipuptanesecondary.h"
 #include "logging/logging.h"
 #include "msg_handler.h"
-#include "package_manager/packagemanagerfactory.h"
-#include "package_manager/packagemanagerinterface.h"
-#include "primary/secondary_provider_builder.h"
 #include "secondary_tcp_server.h"
 #include "storage/invstorage.h"
 #include "test_utils.h"

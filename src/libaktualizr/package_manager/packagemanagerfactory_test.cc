@@ -4,8 +4,8 @@
 #include <memory>
 
 #include "libaktualizr/config.h"
-#include "package_manager/packagemanagerfactory.h"
-#include "package_manager/packagemanagerinterface.h"
+#include "libaktualizr/packagemanagerfactory.h"
+#include "libaktualizr/packagemanagerinterface.h"
 #include "storage/invstorage.h"
 #include "utilities/utils.h"
 

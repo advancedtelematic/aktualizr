@@ -2,9 +2,7 @@ set(SOURCES packagemanagerfactory.cc
             packagemanagerfake.cc
             packagemanagerinterface.cc)
 
-set(HEADERS packagemanagerfactory.h
-            packagemanagerfake.h
-            packagemanagerinterface.h)
+set(HEADERS packagemanagerfake.h)
 
 add_library(package_manager OBJECT ${SOURCES})
 aktualizr_source_file_checks(${SOURCES} packagemanagerconfig.cc ${HEADERS})

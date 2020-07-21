@@ -14,15 +14,14 @@
 #include "libaktualizr/campaign.h"
 #include "libaktualizr/config.h"
 #include "libaktualizr/events.h"
+#include "libaktualizr/packagemanagerfactory.h"
+#include "libaktualizr/packagemanagerinterface.h"
 #include "libaktualizr/results.h"
-#include "libaktualizr/secondary/secondaryinterface.h"
+#include "libaktualizr/secondaryinterface.h"
 
 #include "bootloader/bootloader.h"
 #include "http/httpclient.h"
-#include "package_manager/packagemanagerfactory.h"
-#include "package_manager/packagemanagerinterface.h"
 #include "reportqueue.h"
-#include "storage/invstorage.h"
 #include "uptane/directorrepository.h"
 #include "uptane/exceptions.h"
 #include "uptane/fetcher.h"
@@ -30,6 +29,7 @@
 #include "uptane/iterator.h"
 #include "uptane/manifest.h"
 #include "uptane/tuf.h"
+#include "utilities/apiqueue.h"
 
 class SotaUptaneClient {
  public:

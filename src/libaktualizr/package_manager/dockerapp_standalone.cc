@@ -1,7 +1,7 @@
-#include "dockerappmanager.h"
-#include "packagemanagerfactory.h"
-
 #include <sstream>
+
+#include "dockerappmanager.h"
+#include "libaktualizr/packagemanagerfactory.h"
 
 /**
  * @brief This package manager compliments the OSTreePackageManager by also including optional Docker Apps.
