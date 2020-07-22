@@ -5,8 +5,8 @@
 
 #include "debianmanager.h"
 #include "logging/logging.h"
-#include "utilities/utils.h"
 #include "storage/invstorage.h"
+#include "utilities/utils.h"
 
 AUTO_REGISTER_PACKAGE_MANAGER(PACKAGE_MANAGER_DEBIAN, DebianManager);
 
