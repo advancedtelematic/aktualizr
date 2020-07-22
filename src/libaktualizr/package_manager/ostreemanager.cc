@@ -13,8 +13,9 @@
 #include <boost/filesystem.hpp>
 #include <utility>
 
-#include "bootloader/bootloader.h"
 #include "libaktualizr/packagemanagerfactory.h"
+
+#include "bootloader/bootloader.h"
 #include "logging/logging.h"
 #include "storage/invstorage.h"
 #include "utilities/utils.h"

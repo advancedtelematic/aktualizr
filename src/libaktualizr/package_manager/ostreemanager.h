@@ -7,8 +7,9 @@
 #include <glib/gi18n.h>
 #include <ostree.h>
 
-#include "crypto/keymanager.h"
 #include "libaktualizr/packagemanagerinterface.h"
+
+#include "crypto/keymanager.h"
 #include "utilities/apiqueue.h"
 
 constexpr const char *remote = "aktualizr-remote";

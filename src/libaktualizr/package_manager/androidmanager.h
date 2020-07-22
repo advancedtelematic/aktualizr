@@ -1,7 +1,9 @@
 #ifndef ANDROIDMANAGER_H
 #define ANDROIDMANAGER_H
 
-#include "packagemanagerinterface.h"
+#include <memory>
+
+#include "libaktualizr/packagemanagerinterface.h"
 
 class AndroidInstallationDispatcher;
 
