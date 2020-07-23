@@ -46,7 +46,7 @@ ManagedSecondary::ManagedSecondary(Primary::ManagedSecondaryConfig sconfig_in)
   Initialize();
 }
 
-ManagedSecondary::~ManagedSecondary() {}
+ManagedSecondary::~ManagedSecondary() { current_meta.reset(nullptr); }
 
 void ManagedSecondary::Initialize() {
   struct stat st {};

@@ -67,8 +67,6 @@ static void aktualizr_progress_cb(OstreeAsyncProgress *progress, gpointer data) 
   }
 }
 
-OstreeManager::~OstreeManager() {}
-
 data::InstallationResult OstreeManager::pull(const boost::filesystem::path &sysroot_path,
                                              const std::string &ostree_server, const KeyManager &keys,
                                              const Uptane::Target &target, const api::FlowControlToken *token,
@@ -257,6 +255,8 @@ OstreeManager::OstreeManager(const PackageConfig &pconfig, const BootloaderConfi
     bootloader_->setBootOK();
   }
 }
+
+OstreeManager::~OstreeManager() { bootloader_.reset(nullptr); }
 
 bool OstreeManager::fetchTarget(const Uptane::Target &target, Uptane::Fetcher &fetcher, const KeyManager &keys,
                                 const FetcherProgressCb &progress_cb, const api::FlowControlToken *token) {
