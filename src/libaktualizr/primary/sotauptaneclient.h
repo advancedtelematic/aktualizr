@@ -21,6 +21,7 @@
 
 #include "bootloader/bootloader.h"
 #include "http/httpclient.h"
+#include "primary/secondary_provider_builder.h"
 #include "reportqueue.h"
 #include "uptane/directorrepository.h"
 #include "uptane/exceptions.h"

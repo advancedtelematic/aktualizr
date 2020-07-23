@@ -1,14 +1,15 @@
-#include <gtest/gtest.h>
-
 #include <thread>
 
+#include <gtest/gtest.h>
 #include <netinet/tcp.h>
 
-#include "ipuptanesecondary.h"
 #include "libaktualizr/packagemanagerfactory.h"
 #include "libaktualizr/packagemanagerinterface.h"
+
+#include "ipuptanesecondary.h"
 #include "logging/logging.h"
 #include "msg_handler.h"
+#include "primary/secondary_provider_builder.h"
 #include "secondary_tcp_server.h"
 #include "storage/invstorage.h"
 #include "test_utils.h"

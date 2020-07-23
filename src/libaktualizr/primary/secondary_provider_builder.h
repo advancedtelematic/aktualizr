@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#include "primary/secondary_provider.h"
+#include "libaktualizr/secondary_provider.h"
 
 class SecondaryProviderBuilder {
  public:
