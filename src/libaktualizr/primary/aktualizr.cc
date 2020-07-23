@@ -15,8 +15,6 @@ using std::shared_ptr;
 Aktualizr::Aktualizr(const Config &config)
     : Aktualizr(config, INvStorage::newStorage(config.storage), std::make_shared<HttpClient>()) {}
 
-Aktualizr::~Aktualizr() {}
-
 Aktualizr::Aktualizr(Config config, std::shared_ptr<INvStorage> storage_in,
                      const std::shared_ptr<HttpInterface> &http_in)
     : config_{std::move(config)}, sig_{new event::Channel()}, api_queue_(new api::CommandQueue()) {
@@ -29,6 +27,8 @@ Aktualizr::Aktualizr(Config config, std::shared_ptr<INvStorage> storage_in,
 
   uptane_client_ = std::make_shared<SotaUptaneClient>(config_, storage_, http_in, sig_);
 }
+
+Aktualizr::~Aktualizr() { api_queue_.reset(nullptr); }
 
 void Aktualizr::Initialize() {
   uptane_client_->initialize();
