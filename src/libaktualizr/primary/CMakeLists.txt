@@ -12,8 +12,8 @@ set(HEADERS secondary_config.h
             reportqueue.h
             secondaryinterface.h
             secondary_provider.h
+            secondary_provider_builder.h
             sotauptaneclient.h)
-
 
 add_library(primary OBJECT ${SOURCES})
 
