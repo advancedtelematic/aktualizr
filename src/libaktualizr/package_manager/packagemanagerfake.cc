@@ -1,6 +1,8 @@
-#include "packagemanagerfake.h"
-#include "packagemanagerfactory.h"
+#include "libaktualizr/packagemanagerfactory.h"
 
+#include "logging/logging.h"
+#include "packagemanagerfake.h"
+#include "storage/invstorage.h"
 #include "utilities/fault_injection.h"
 
 AUTO_REGISTER_PACKAGE_MANAGER(PACKAGE_MANAGER_NONE, PackageManagerFake);

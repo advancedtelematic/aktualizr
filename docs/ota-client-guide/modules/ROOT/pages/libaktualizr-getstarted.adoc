@@ -131,9 +131,9 @@ Libaktualizr provides a C++ API for fetching information about available updates
 
 If you're yet not familiar with OTA Connect concepts such as "campaigns", have a look at the https://connect.ota.here.com/#/campaigns[OTA web app] first. You might need to register for a free developer account first.
 
-The main library header is https://github.com/advancedtelematic/aktualizr/blob/master/src/libaktualizr/primary/aktualizr.h[`primary/aktualizr.h`]. It also includes few other libaktualizr headers.
+The main library header is https://github.com/advancedtelematic/aktualizr/blob/master/include/libaktualizr/aktualizr.h[`libaktualizr/aktualizr.h`]. It also includes few other libaktualizr headers.
 
-To use the API, add the `src/libaktualizr` directory to your include path and add `# include "primary/aktualizr.h"` to your source file.
+To use the API, add the `aktualizr/include` directory to your include path and add `#include <libaktualizr/aktualizr.h>` to your source file.
 
 When using the API, consider the following points:
 

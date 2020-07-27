@@ -8,13 +8,16 @@
 #include <string>
 #include <thread>
 
+#include "crypto/keymanager.h"
 #include "http/httpclient.h"
 #include "libaktualizr/config.h"
 #include "logging/logging.h"
 #include "package_manager/packagemanagerfake.h"
 #include "storage/sqlstorage.h"
 #include "test_utils.h"
+#include "uptane/fetcher.h"
 #include "uptane/tuf.h"
+#include "utilities/apiqueue.h"
 
 static const int die_after = 50;      // percent
 static const int pause_duration = 2;  // seconds

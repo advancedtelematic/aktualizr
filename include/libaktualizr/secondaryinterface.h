@@ -3,9 +3,8 @@
 
 #include <string>
 
-#include "primary/secondary_provider.h"
-#include "uptane/manifest.h"
-#include "uptane/tuf.h"
+#include "libaktualizr/secondary_provider.h"
+#include "libaktualizr/types.h"
 
 class SecondaryInterface {
  public:

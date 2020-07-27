@@ -5,7 +5,7 @@
 #include <string>
 #include <utility>
 
-#include "packagemanagerinterface.h"
+#include "libaktualizr/packagemanagerinterface.h"
 
 class DebianManager : public PackageManagerInterface {
  public:

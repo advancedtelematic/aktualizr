@@ -1,14 +1,14 @@
-#include "libaktualizr/types.h"
-
-#include "logging/logging.h"
 #include "partialverificationsecondary.h"
-#include "primary/secondaryinterface.h"
+#include "libaktualizr/types.h"
+#include "logging/logging.h"
+#include "uptane/tuf.h"
 #include "utilities/exceptions.h"
+#include "utilities/utils.h"
 
 namespace Uptane {
 
 PartialVerificationSecondary::PartialVerificationSecondary(Primary::PartialVerificationSecondaryConfig sconfig_in)
-    : sconfig(std::move(sconfig_in)), root_(Root::Policy::kAcceptAll) {
+    : sconfig(std::move(sconfig_in)), meta_targets_(new Uptane::Targets()) {
   boost::filesystem::create_directories(sconfig.metadata_path);
 
   // TODO(OTA-2484): Probably we need to generate keys on the secondary
@@ -37,14 +37,15 @@ data::InstallationResult PartialVerificationSecondary::putMetadata(const Target 
   }
 
   // TODO(OTA-2484): check for expiration and version downgrade
-  root_ = Uptane::Root(RepositoryType::Director(), Utils::parseJSON(director_root), root_);
+  Uptane::Root root(Root::Policy::kAcceptAll);
+  root = Uptane::Root(RepositoryType::Director(), Utils::parseJSON(director_root), root);
   Uptane::Targets targets(RepositoryType::Director(), Role::Targets(), Utils::parseJSON(director_targets),
-                          std::make_shared<Uptane::Root>(root_));
-  if (meta_targets_.version() > targets.version()) {
+                          std::make_shared<Uptane::Root>(root));
+  if (meta_targets_->version() > targets.version()) {
     detected_attack_ = "Rollback attack detected";
     return data::InstallationResult(data::ResultCode::Numeric::kVerificationFailed, "Rollback attack detected");
   }
-  meta_targets_ = targets;
+  meta_targets_.reset(new Uptane::Targets(targets));
   return data::InstallationResult(data::ResultCode::Numeric::kOk, "");
 }
 

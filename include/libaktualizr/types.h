@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <stdexcept>
+#include <unordered_map>
 
 #include <json/json.h>
 #include <boost/filesystem.hpp>
@@ -303,6 +304,12 @@ struct InstallationResult {
 
 namespace Uptane {
 
+class RepositoryType;
+class Role;
+struct MetaPairHash;
+
+using MetaBundle = std::unordered_map<std::pair<RepositoryType, Role>, std::string, MetaPairHash>;
+
 struct InstalledImageInfo {
   InstalledImageInfo() : name{""} {}
   InstalledImageInfo(std::string name_in, uint64_t len_in, std::string hash_in)
@@ -444,6 +451,18 @@ class Target {
 };
 
 std::ostream &operator<<(std::ostream &os, const Target &t);
+
+class Manifest : public Json::Value {
+ public:
+  Manifest(const Json::Value &value = Json::Value()) : Json::Value(value) {}
+
+ public:
+  std::string filepath() const;
+  Hash installedImageHash() const;
+  std::string signature() const;
+  std::string signedBody() const;
+  bool verifySignature(const PublicKey &pub_key) const;
+};
 
 }  // namespace Uptane
 

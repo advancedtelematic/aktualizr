@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <map>
 
-#include "package_manager/packagemanagerfactory.h"
+#include "libaktualizr/packagemanagerfactory.h"
 
 #include "logging/logging.h"
 

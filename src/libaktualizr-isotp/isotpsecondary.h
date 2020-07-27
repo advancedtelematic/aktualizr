@@ -2,7 +2,7 @@
 #define UPTANE_ISOTPSECONDARY_H_
 
 #include "isotp_conn.h"
-#include "primary/secondaryinterface.h"
+#include "libaktualizr/secondaryinterface.h"
 
 namespace Uptane {
 

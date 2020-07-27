@@ -7,9 +7,13 @@
 #include <boost/filesystem.hpp>
 #include "json/json.h"
 
+#include "libaktualizr/secondaryinterface.h"
 #include "libaktualizr/types.h"
 #include "managedsecondary.h"
-#include "primary/secondaryinterface.h"
+
+namespace Uptane {
+class Targets;
+}
 
 namespace Primary {
 
@@ -57,12 +61,11 @@ class PartialVerificationSecondary : public SecondaryInterface {
 
   Primary::PartialVerificationSecondaryConfig sconfig;
   std::shared_ptr<SecondaryProvider> secondary_provider_;
-  Uptane::Root root_;
   PublicKey public_key_;
   std::string private_key_;
 
   std::string detected_attack_;
-  Uptane::Targets meta_targets_;
+  std::unique_ptr<Uptane::Targets> meta_targets_;
 };
 }  // namespace Uptane
 

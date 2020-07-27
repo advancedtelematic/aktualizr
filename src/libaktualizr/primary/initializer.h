@@ -1,10 +1,11 @@
 #ifndef INITIALIZER_H_
 #define INITIALIZER_H_
 
+#include "libaktualizr/secondaryinterface.h"
+
 #include "crypto/keymanager.h"
 #include "http/httpinterface.h"
 #include "libaktualizr/config.h"
-#include "primary/secondaryinterface.h"
 #include "storage/invstorage.h"
 #include "uptane/tuf.h"
 

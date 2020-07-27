@@ -1,5 +1,5 @@
 #include "dockerappmanager.h"
-#include "packagemanagerfactory.h"
+#include "libaktualizr/packagemanagerfactory.h"
 
 AUTO_REGISTER_PACKAGE_MANAGER(PACKAGE_MANAGER_OSTREEDOCKERAPP, DockerAppManager);
 

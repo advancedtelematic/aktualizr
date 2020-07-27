@@ -1,16 +1,16 @@
-#include <boost/algorithm/string/find.hpp>
-#include <boost/filesystem.hpp>
 #include <forward_list>
 
-#include "androidmanager.h"
-#include "packagemanagerfactory.h"
-
-#include "utilities/utils.h"
-
+#include <boost/algorithm/string/find.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/phoenix/stl/algorithm/transformation.hpp>
 #include <boost/spirit/include/phoenix_container.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/qi.hpp>
+
+#include "libaktualizr/packagemanagerfactory.h"
+
+#include "androidmanager.h"
+#include "utilities/utils.h"
 
 namespace qi = boost::spirit::qi;
 namespace fs = boost::filesystem;

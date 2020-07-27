@@ -359,8 +359,6 @@ struct MetaPairHash {
   }
 };
 
-using MetaBundle = std::unordered_map<std::pair<RepositoryType, Role>, std::string, MetaPairHash>;
-
 std::string getMetaFromBundle(const MetaBundle &bundle, RepositoryType repo, const Role &role);
 
 int extractVersionUntrusted(const std::string &meta);  // returns negative number if parsing fails

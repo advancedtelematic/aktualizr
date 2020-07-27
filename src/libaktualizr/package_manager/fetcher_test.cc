@@ -9,14 +9,16 @@
 
 #include <boost/process.hpp>
 
+#include "crypto/keymanager.h"
 #include "http/httpclient.h"
 #include "httpfake.h"
 #include "libaktualizr/config.h"
+#include "libaktualizr/packagemanagerfactory.h"
 #include "logging/logging.h"
-#include "package_manager/packagemanagerfactory.h"
 #include "package_manager/packagemanagerfake.h"
 #include "storage/sqlstorage.h"
 #include "test_utils.h"
+#include "uptane/fetcher.h"
 #include "uptane/tuf.h"
 #include "utilities/apiqueue.h"
 

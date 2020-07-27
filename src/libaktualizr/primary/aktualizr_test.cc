@@ -9,10 +9,11 @@
 #include <boost/filesystem.hpp>
 #include "json/json.h"
 
-#include "httpfake.h"
+#include "libaktualizr/aktualizr.h"
 #include "libaktualizr/config.h"
 #include "libaktualizr/events.h"
-#include "primary/aktualizr.h"
+
+#include "httpfake.h"
 #include "primary/aktualizr_helpers.h"
 #include "primary/sotauptaneclient.h"
 #include "uptane_test_common.h"

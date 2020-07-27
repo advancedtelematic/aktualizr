@@ -8,11 +8,13 @@
 #include <boost/filesystem.hpp>
 #include "json/json.h"
 
+#include "libaktualizr/secondaryinterface.h"
 #include "libaktualizr/types.h"
 #include "primary/secondary_config.h"
-#include "primary/secondaryinterface.h"
 
 namespace Primary {
+
+struct MetaPack;
 
 class ManagedSecondaryConfig : public SecondaryConfig {
  public:
@@ -34,23 +36,13 @@ class ManagedSecondaryConfig : public SecondaryConfig {
   KeyType key_type{KeyType::kRSA2048};
 };
 
-struct MetaPack {
-  Uptane::Root director_root;
-  Uptane::Targets director_targets;
-  Uptane::Root image_root;
-  Uptane::Targets image_targets;
-  Uptane::TimestampMeta image_timestamp;
-  Uptane::Snapshot image_snapshot;
-  bool isConsistent() const;
-};
-
 // ManagedSecondary is an abstraction over virtual and other types of legacy
 // (non-Uptane) Secondaries. They require any the Uptane-related functionality
 // to be implemented in aktualizr itself.
 class ManagedSecondary : public SecondaryInterface {
  public:
   explicit ManagedSecondary(Primary::ManagedSecondaryConfig sconfig_in);
-  ~ManagedSecondary() override = default;
+  ~ManagedSecondary() override;
 
   void init(std::shared_ptr<SecondaryProvider> secondary_provider_in) override {
     secondary_provider_ = std::move(secondary_provider_in);
@@ -93,8 +85,8 @@ class ManagedSecondary : public SecondaryInterface {
 
   PublicKey public_key_;
   std::string private_key;
-  MetaPack current_meta;
-  Uptane::MetaBundle meta_bundle_;
+  std::unique_ptr<MetaPack> current_meta;
+  std::unique_ptr<Uptane::MetaBundle> meta_bundle_;
 };
 
 }  // namespace Primary

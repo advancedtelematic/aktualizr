@@ -2,8 +2,9 @@
 #define PACKAGEMANAGERFACTORY_H_
 
 #include "libaktualizr/config.h"
-#include "package_manager/packagemanagerinterface.h"
-#include "storage/invstorage.h"
+#include "libaktualizr/packagemanagerinterface.h"
+
+class INvStorage;
 
 using PackageManagerBuilder =
     std::function<PackageManagerInterface*(const PackageConfig&, const BootloaderConfig&,

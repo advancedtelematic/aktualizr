@@ -1,9 +1,14 @@
-#include "packagemanagerinterface.h"
-
 #include <sys/statvfs.h>
 
+#include "libaktualizr/packagemanagerinterface.h"
+
+#include "bootloader/bootloader.h"
+#include "crypto/keymanager.h"
 #include "http/httpclient.h"
 #include "logging/logging.h"
+#include "storage/invstorage.h"
+#include "uptane/fetcher.h"
+#include "utilities/apiqueue.h"
 
 struct DownloadMetaStruct {
  public:

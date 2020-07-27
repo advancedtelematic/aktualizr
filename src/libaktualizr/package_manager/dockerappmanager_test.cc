@@ -5,9 +5,9 @@
 
 #include "http/httpclient.h"
 #include "libaktualizr/config.h"
+#include "libaktualizr/packagemanagerfactory.h"
+#include "libaktualizr/packagemanagerinterface.h"
 #include "package_manager/dockerappmanager.h"
-#include "package_manager/packagemanagerfactory.h"
-#include "package_manager/packagemanagerinterface.h"
 #include "primary/sotauptaneclient.h"
 #include "storage/invstorage.h"
 #include "test_utils.h"

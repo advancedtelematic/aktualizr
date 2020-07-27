@@ -3,7 +3,11 @@ set(LIBAKTUALIZR_PUBLIC_HEADERS
     ../../include/libaktualizr/types.h
     ../../include/libaktualizr/events.h
     ../../include/libaktualizr/results.h
-    ../../include/libaktualizr/campaign.h)
+    ../../include/libaktualizr/campaign.h
+    ../../include/libaktualizr/secondaryinterface.h
+    ../../include/libaktualizr/secondary_provider.h
+    ../../include/libaktualizr/packagemanagerinterface.h
+    ../../include/libaktualizr/packagemanagerfactory.h)
 
 aktualizr_source_file_checks(${LIBAKTUALIZR_PUBLIC_HEADERS})
 

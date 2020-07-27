@@ -1,9 +1,12 @@
-#include "debianmanager.h"
-
 #include <unistd.h>
 #include <cstdio>
 
-#include "packagemanagerfactory.h"
+#include "libaktualizr/packagemanagerfactory.h"
+
+#include "debianmanager.h"
+#include "logging/logging.h"
+#include "storage/invstorage.h"
+#include "utilities/utils.h"
 
 AUTO_REGISTER_PACKAGE_MANAGER(PACKAGE_MANAGER_DEBIAN, DebianManager);
 

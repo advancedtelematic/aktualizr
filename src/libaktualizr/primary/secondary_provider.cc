@@ -1,4 +1,7 @@
-#include "secondary_provider.h"
+#include "libaktualizr/secondary_provider.h"
+#include "logging/logging.h"
+#include "storage/invstorage.h"
+#include "uptane/tuf.h"
 
 bool SecondaryProvider::getMetadata(Uptane::MetaBundle* meta_bundle, const Uptane::Target& target) const {
   std::string root;
