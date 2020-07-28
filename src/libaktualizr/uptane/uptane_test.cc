@@ -1064,7 +1064,6 @@ TEST(Uptane, ProvisionOnServer) {
   EXPECT_EQ(http->system_info_count, 1);
   EXPECT_EQ(http->network_count, 1);
   EXPECT_EQ(http->config_count, 1);
-  EXPECT_EQ(http->events_seen, 8);
 
   // Try sending device data again to confirm that it isn't resent if it hasn't
   // changed (and hardware info is only sent once).
@@ -1097,6 +1096,11 @@ TEST(Uptane, ProvisionOnServer) {
   EXPECT_EQ(http->system_info_count, 3);
   EXPECT_EQ(http->network_count, 2);
   EXPECT_EQ(http->config_count, 2);
+
+  // Report Queue is asynchronous, so we cannot be sure
+  // that it is flashed until it was destroyed
+  up.reset();
+  EXPECT_EQ(http->events_seen, 8);
 }
 
 /* Migrate from the legacy filesystem storage. */
