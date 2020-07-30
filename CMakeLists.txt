@@ -26,7 +26,6 @@ option(BUILD_DEB "Set to ON to compile with debian packages support" OFF)
 option(BUILD_DOCKERAPP "Set to ON to compile with package manager support of docker-app" OFF)
 option(BUILD_P11 "Support for key storage in a HSM via PKCS#11" OFF)
 option(BUILD_SOTA_TOOLS "Set to ON to build SOTA tools" OFF)
-option(BUILD_ISOTP "Set to ON to compile with ISO/TP protocol support" OFF)
 option(BUILD_LOAD_TESTS "Set to ON to build load tests" OFF)
 option(FAULT_INJECTION "Set to ON to enable fault injection" OFF)
 option(INSTALL_LIB "Set to ON to install library and headers" OFF)
@@ -386,7 +385,6 @@ add_subdirectory("config")
 if (BUILD_LOAD_TESTS)
     # HdrHistogram installs support libraries, which creates junk the aktualizr
     # recipe would have to remove
-    # Temporarily remove flag not supported by isotp-c and bitfield.
     remove_definitions(-Wconversion)
     add_subdirectory("third_party/HdrHistogram_c/src")
     add_definitions(-Wconversion)
@@ -403,11 +401,6 @@ add_subdirectory("docs/doxygen")
 file(GLOB_RECURSE ALL_SOURCE_FILES RELATIVE ${CMAKE_SOURCE_DIR}
     src/*.cc src/*.c src/*.h)
 foreach(FILE ${ALL_SOURCE_FILES})
-    string (FIND ${FILE} "/libaktualizr-isotp/" EXCLUDE_DIR_FOUND)
-    if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
-        continue()
-    endif()
-
     list(FIND AKTUALIZR_CHECKED_SRCS ${FILE} INDEX)
     if (${INDEX} EQUAL "-1")
         message(FATAL_ERROR "${FILE} not checked")

@@ -354,7 +354,6 @@ veracode-pkg:
     TEST_WITH_SOTA_TOOLS: '0'
     TEST_WITH_OSTREE: '0'
     TEST_WITH_DEB: '0'
-    TEST_WITH_ISOTP: '0'
   image: "$UBUNTU_BIONIC_PR_IMAGE"
   script:
     - ./scripts/test.sh

@@ -1,9 +1,6 @@
 [submodule "tests/tuf-test-vectors"]
 	path = tests/tuf-test-vectors
 	url = https://github.com/advancedtelematic/tuf-test-vectors/
-[submodule "third_party/isotp-c"]
-	path = third_party/isotp-c
-	url = https://github.com/advancedtelematic/isotp-c.git
 [submodule "third_party/HdrHistogram_c"]
 	path = third_party/HdrHistogram_c
 	url = https://github.com/HdrHistogram/HdrHistogram_c
