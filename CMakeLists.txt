@@ -67,17 +67,7 @@ set(BOOST_COMPONENTS log_setup log system filesystem program_options)
 set(Boost_USE_STATIC_LIBS OFF)
 add_definitions(-DBOOST_LOG_DYN_LINK)
 
-if(ANDROID)
-    set(BOOST_ROOT ${PREBUILD_BOOST_ROOT})
-    set(Boost_INCLUDE_DIR ${BOOST_ROOT}/include)
-    set(Boost_LIBRARY_DIR ${BOOST_ROOT}/libs/llvm/${ANDROID_ABI})
-    if(Boost_FOUND)
-        include_directories(${Boost_INCLUDE_DIRS})
-    endif()
-endif(ANDROID)
-
 # Mac brew library install paths
-
 if(EXISTS /usr/local/opt/openssl)
   list(APPEND CMAKE_PREFIX_PATH /usr/local/opt/openssl)
 endif()
@@ -187,12 +177,6 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
 
     if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9")
         add_definitions(-Wshadow)
-    endif ()
-
-    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_SYSTEM_NAME MATCHES "Android")
-        # treat boost headers as system to ignore warnings,
-        # this is alternative to in-code diagnostics disabling
-        add_definitions(--system-header-prefix=boost/)
     endif ()
 
     if (WARNING_AS_ERROR)
@@ -370,10 +354,6 @@ set (AKTUALIZR_EXTERNAL_LIBS
     ${LibArchive_LIBRARIES}
     ${LIBP11_LIBRARIES}
     ${GLIB2_LIBRARIES})
-
-if(ANDROID)
-    list(APPEND AKTUALIZR_EXTERNAL_LIBS liblog.so)
-endif()
 
 get_directory_property(hasParent PARENT_DIRECTORY)
 if(hasParent)

@@ -81,7 +81,6 @@ struct UptaneConfig {
 #define PACKAGE_MANAGER_NONE "none"
 #define PACKAGE_MANAGER_OSTREE "ostree"
 #define PACKAGE_MANAGER_DEBIAN "debian"
-#define PACKAGE_MANAGER_ANDROID "android"
 #define PACKAGE_MANAGER_OSTREEDOCKERAPP "ostree+docker-app"
 
 #ifdef BUILD_OSTREE
