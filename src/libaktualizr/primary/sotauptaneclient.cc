@@ -982,7 +982,7 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
     // phase if the targets have not been changed. This is done to avoid being
     // stuck in an unrecoverable state here
     if (!waitSecondariesReachable(updates)) {
-      result.dev_report = {false, data::ResultCode::Numeric::kInternalError, "Unreachable secondary"};
+      result.dev_report = {false, data::ResultCode::Numeric::kInternalError, "Unreachable Secondary"};
       return std::make_tuple(result, "Secondaries were not available");
     }
 
