@@ -3,9 +3,9 @@
 /** \file */
 
 #include <algorithm>
-#include <boost/filesystem.hpp>
 #include <stdexcept>
 #include <unordered_map>
+#include <boost/filesystem.hpp>
 
 #include "json/json.h"
 
