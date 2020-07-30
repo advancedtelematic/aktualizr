@@ -134,7 +134,6 @@ focal-build-static:
     TEST_CMAKE_BUILD_TYPE: 'Debug'
     TEST_TESTSUITE_ONLY: 'crypto'
     TEST_WITH_STATICTESTS: '1'
-    TEST_WITH_LOAD_TESTS: '1'
     TEST_WITH_DOCS: '1'
   image: "$UBUNTU_FOCAL_PR_IMAGE"
   stage: test

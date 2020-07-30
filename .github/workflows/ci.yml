@@ -55,7 +55,6 @@ jobs:
       DARGS: >-
         -eCCACHE_DIR
         -eTEST_CC=clang
-        -eTEST_WITH_LOAD_TESTS=1
         -eTEST_WITH_TESTSUITE=0
         -eTEST_WITH_STATICTESTS=1
         -eTEST_WITH_DOCS=1

@@ -26,7 +26,6 @@ option(BUILD_DEB "Set to ON to compile with debian packages support" OFF)
 option(BUILD_DOCKERAPP "Set to ON to compile with package manager support of docker-app" OFF)
 option(BUILD_P11 "Support for key storage in a HSM via PKCS#11" OFF)
 option(BUILD_SOTA_TOOLS "Set to ON to build SOTA tools" OFF)
-option(BUILD_LOAD_TESTS "Set to ON to build load tests" OFF)
 option(FAULT_INJECTION "Set to ON to enable fault injection" OFF)
 option(INSTALL_LIB "Set to ON to install library and headers" OFF)
 option(TESTSUITE_VALGRIND "Set to ON to make tests to run under valgrind (default when CMAKE_BUILD_TYPE=Valgrind)" ${TESTSUITE_VALGRIND_DEFAULT})
@@ -382,16 +381,8 @@ add_library(jsoncpp OBJECT ${PROJECT_BINARY_DIR}/jsoncpp/jsoncpp.cc)
 
 add_subdirectory("fuzz")
 add_subdirectory("config")
-if (BUILD_LOAD_TESTS)
-    # HdrHistogram installs support libraries, which creates junk the aktualizr
-    # recipe would have to remove
-    remove_definitions(-Wconversion)
-    add_subdirectory("third_party/HdrHistogram_c/src")
-    add_definitions(-Wconversion)
-endif(BUILD_LOAD_TESTS)
 add_subdirectory("src")
 add_subdirectory("tests" EXCLUDE_FROM_ALL)
-
 add_subdirectory("docs/doxygen")
 
 # Check if some source files were not added sent to `aktualizr_source_file_checks`
