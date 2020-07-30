@@ -1,10 +1,13 @@
 #ifndef CAMPAIGN_CAMPAIGN_H_
 #define CAMPAIGN_CAMPAIGN_H_
 
+#include <map>
 #include <string>
 #include <vector>
-#include "http/httpclient.h"
-#include "utilities/utils.h"
+
+#include "json/json.h"
+
+class HttpInterface;
 
 namespace campaign {
 

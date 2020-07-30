@@ -1,8 +1,9 @@
+#include <gtest/gtest.h>
 #include <boost/filesystem.hpp>
 
 #include "libaktualizr/campaign.h"
 
-#include <gtest/gtest.h>
+#include "utilities/utils.h"
 
 boost::filesystem::path test_data_dir;
 
