@@ -24,4 +24,6 @@ add_aktualizr_test(NAME hash SOURCES hash_test.cc PROJECT_WORKING_DIRECTORY)
 add_aktualizr_test(NAME keymanager SOURCES keymanager_test.cc PROJECT_WORKING_DIRECTORY)
 set_property(SOURCE crypto_test.cc keymanager_test.cc PROPERTY COMPILE_DEFINITIONS TEST_PKCS11_MODULE_PATH="${TEST_PKCS11_MODULE_PATH}")
 
+set_tests_properties(test_crypto test_hash test_keymanager PROPERTIES LABELS "crypto")
+
 aktualizr_source_file_checks(p11engine.cc p11engine_dummy.cc p11engine.h ${TEST_SOURCES})

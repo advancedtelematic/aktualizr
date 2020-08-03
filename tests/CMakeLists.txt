@@ -87,7 +87,7 @@ if(TESTSUITE_VALGRIND)
 endif(TESTSUITE_VALGRIND)
 add_test(NAME test_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh
     -s ${PROJECT_SOURCE_DIR}/tests ${VECTOR_TESTS_ARGS} -- ${GOOGLE_TEST_OUTPUT})
-set_tests_properties(test_uptane_vectors PROPERTIES LABELS "noptest uptane_vectors")
+set_tests_properties(test_uptane_vectors PROPERTIES LABELS "noptest")
 
 if(SOTA_PACKED_CREDENTIALS)
     add_test(NAME shared_cred_prov_test COMMAND ${PROJECT_SOURCE_DIR}/tests/shared_cred_prov_test.py
