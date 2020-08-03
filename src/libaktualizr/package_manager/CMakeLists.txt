@@ -53,9 +53,4 @@ aktualizr_source_file_checks(packagemanagerfake_test.cc packagemanagerfactory_te
 
 aktualizr_source_file_checks(ostreemanager.cc ostreemanager.h)
 
-aktualizr_source_file_checks(androidmanager.cc androidmanager.h)
 aktualizr_source_file_checks(dockerappmanager.cc dockerappmanager.h dockerapp_standalone.cc dockerapp_bundles.cc dockerappmanager_test.cc)
-
-if(ANDROID)
-    target_sources(package_manager PRIVATE androidmanager.cc)
-endif(ANDROID)

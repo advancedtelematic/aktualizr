@@ -4,7 +4,6 @@ SPDXID: SPDXRef-DOCUMENT
 Creator: Organization: HERE Technologies
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-googletest
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-jsoncpp
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-HdrHistogram_c
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-filesystem
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-program-options
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-log
@@ -44,22 +43,6 @@ PackageLicenseInfoFromFiles: MIT
 PackageLicenseInfoFromFiles: LicenseRef-jsoncpp-public-domain
 PackageCopyrightText: <text>Copyright (c) 2007-2010 by Baptiste Lepilleur and The JsonCpp Authors</text>
 FilesAnalyzed: false
-
-
-PackageName: HdrHistogram_c
-SPDXID: SPDXRef-HdrHistogram_c
-PackageVersion: 0.9.7
-PackageDownloadLocation: https://github.com/HdrHistogram/HdrHistogram_c/archive/0.9.7.tar.gz
-PackageHomePage: https://github.com/HdrHistogram/HdrHistogram_c
-PackageLicenseConcluded: BSD-2-Clause
-PackageLicenseDeclared: BSD-2-Clause
-PackageLicenseInfoFromFiles: BSD-2-Clause
-PackageCopyrightText: <text>Copyright (c) 2012, 2013, 2014 Gil Tene
-Copyright (c) 2014 Michael Barker
-Copyright (c) 2014 Matt Warren
-All rights reserved.</text>
-FilesAnalyzed: false
-PackageComment: <text>Testing only.</text>
 
 
 PackageName: boost-filesystem

@@ -1,6 +1,6 @@
-set(SOURCES managedsecondary.cc virtualsecondary.cc partialverificationsecondary.cc)
+set(SOURCES managedsecondary.cc virtualsecondary.cc)
 
-set(HEADERS managedsecondary.h virtualsecondary.h partialverificationsecondary.h)
+set(HEADERS managedsecondary.h virtualsecondary.h)
 
 set(TARGET virtual_secondary)
 
