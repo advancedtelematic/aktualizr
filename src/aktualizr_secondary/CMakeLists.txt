@@ -18,7 +18,6 @@ add_library(aktualizr_secondary_lib SHARED
     $<TARGET_OBJECTS:asn1>
     $<TARGET_OBJECTS:asn1_lib>
     $<TARGET_OBJECTS:bootloader>
-    $<TARGET_OBJECTS:bootstrap>
     $<TARGET_OBJECTS:config>
     $<TARGET_OBJECTS:crypto>
     $<TARGET_OBJECTS:jsoncpp>
@@ -61,10 +60,10 @@ add_aktualizr_test(NAME aktualizr_secondary_config
                    LIBRARIES aktualizr_secondary_lib)
 
 add_aktualizr_test(NAME secondary_rpc
-                   SOURCES secondary_rpc_test.cc $<TARGET_OBJECTS:campaign> $<TARGET_OBJECTS:http> $<TARGET_OBJECTS:primary>
+                   SOURCES secondary_rpc_test.cc $<TARGET_OBJECTS:bootstrap> $<TARGET_OBJECTS:campaign> $<TARGET_OBJECTS:http> $<TARGET_OBJECTS:primary> $<TARGET_OBJECTS:primary_config>
                    PROJECT_WORKING_DIRECTORY)
 
-list(REMOVE_ITEM TEST_SOURCES $<TARGET_OBJECTS:campaign> $<TARGET_OBJECTS:http> $<TARGET_OBJECTS:primary>)
+list(REMOVE_ITEM TEST_SOURCES $<TARGET_OBJECTS:bootstrap> $<TARGET_OBJECTS:campaign> $<TARGET_OBJECTS:http> $<TARGET_OBJECTS:primary> $<TARGET_OBJECTS:primary_config>)
 
 if(BUILD_OSTREE)
     target_sources(aktualizr_secondary_lib PRIVATE update_agent_ostree.cc aktualizr_secondary_ostree.cc)

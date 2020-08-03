@@ -12,6 +12,7 @@ add_library(aktualizr-c SHARED ${SOURCES}
     $<TARGET_OBJECTS:jsoncpp>
     $<TARGET_OBJECTS:package_manager>
     $<TARGET_OBJECTS:primary>
+    $<TARGET_OBJECTS:primary_config>
     $<TARGET_OBJECTS:utilities>
     $<TARGET_OBJECTS:logging>
     $<TARGET_OBJECTS:storage>
