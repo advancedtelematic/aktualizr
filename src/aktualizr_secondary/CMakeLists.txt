@@ -1,34 +1,31 @@
 set(AKTUALIZR_SECONDARY_SRC main.cc)
 
 set(AKTUALIZR_SECONDARY_LIB_SRC
-    update_agent_file.cc
     aktualizr_secondary.cc
-    aktualizr_secondary_file.cc
     aktualizr_secondary_config.cc
+    aktualizr_secondary_file.cc
     aktualizr_secondary_metadata.cc
-    secondary_tcp_server.cc
     msg_handler.cc
+    secondary_tcp_server.cc
+    update_agent_file.cc
     )
 
 # do not link tests with libaktualizr
 list(REMOVE_ITEM TEST_LIBS aktualizr_lib)
 
-# TODO(OTA-4544): a lot of these should be removed
 add_library(aktualizr_secondary_lib SHARED
     ${AKTUALIZR_SECONDARY_LIB_SRC}
     $<TARGET_OBJECTS:asn1>
     $<TARGET_OBJECTS:asn1_lib>
-    $<TARGET_OBJECTS:bootstrap>
-    $<TARGET_OBJECTS:config>
     $<TARGET_OBJECTS:bootloader>
+    $<TARGET_OBJECTS:config>
     $<TARGET_OBJECTS:crypto>
     $<TARGET_OBJECTS:jsoncpp>
-    $<TARGET_OBJECTS:package_manager>
-    $<TARGET_OBJECTS:utilities>
-    $<TARGET_OBJECTS:storage>
     $<TARGET_OBJECTS:logging>
+    $<TARGET_OBJECTS:package_manager>
+    $<TARGET_OBJECTS:storage>
     $<TARGET_OBJECTS:uptane>
-    $<TARGET_OBJECTS:campaign>)
+    $<TARGET_OBJECTS:utilities>)
 set_target_properties(aktualizr_secondary_lib PROPERTIES LIBRARY_OUTPUT_NAME aktualizr_secondary)
 target_link_libraries(aktualizr_secondary_lib aktualizr-posix ${AKTUALIZR_EXTERNAL_LIBS})
 
@@ -41,45 +38,48 @@ install(TARGETS aktualizr-secondary
         RUNTIME DESTINATION bin)
 
 set(ALL_AKTUALIZR_SECONDARY_HEADERS
+    aktualizr_secondary.h
+    aktualizr_secondary_config.h
+    aktualizr_secondary_file.h
+    aktualizr_secondary_metadata.h
+    msg_handler.h
+    secondary_tcp_server.h
     update_agent.h
     update_agent_file.h
-    aktualizr_secondary.h
-    aktualizr_secondary_file.h
-    aktualizr_secondary_config.h
-    aktualizr_secondary_metadata.h
-    secondary_tcp_server.h
-    msg_handler.h
     )
 
 # insert in front, so that the order matches the dependencies to the system libraries
 list(INSERT TEST_LIBS 0 aktualizr_secondary_lib)
 
-add_aktualizr_test(NAME aktualizr_secondary_config
-    SOURCES aktualizr_secondary_config_test.cc PROJECT_WORKING_DIRECTORY LIBRARIES aktualizr_secondary_lib)
+add_aktualizr_test(NAME aktualizr_secondary
+                   SOURCES aktualizr_secondary_test.cc $<TARGET_OBJECTS:campaign>
+                   LIBRARIES aktualizr_secondary_lib uptane_generator_lib)
 
-add_aktualizr_test(NAME secondary_rpc SOURCES $<TARGET_OBJECTS:primary> $<TARGET_OBJECTS:http> secondary_rpc_test.cc PROJECT_WORKING_DIRECTORY)
-list(REMOVE_ITEM TEST_SOURCES $<TARGET_OBJECTS:primary> $<TARGET_OBJECTS:http>)
+add_aktualizr_test(NAME aktualizr_secondary_config
+                   SOURCES aktualizr_secondary_config_test.cc PROJECT_WORKING_DIRECTORY
+                   LIBRARIES aktualizr_secondary_lib)
+
+add_aktualizr_test(NAME secondary_rpc
+                   SOURCES secondary_rpc_test.cc $<TARGET_OBJECTS:bootstrap> $<TARGET_OBJECTS:campaign> $<TARGET_OBJECTS:http> $<TARGET_OBJECTS:primary> $<TARGET_OBJECTS:primary_config>
+                   PROJECT_WORKING_DIRECTORY)
+
+list(REMOVE_ITEM TEST_SOURCES $<TARGET_OBJECTS:bootstrap> $<TARGET_OBJECTS:campaign> $<TARGET_OBJECTS:http> $<TARGET_OBJECTS:primary> $<TARGET_OBJECTS:primary_config>)
 
 if(BUILD_OSTREE)
     target_sources(aktualizr_secondary_lib PRIVATE update_agent_ostree.cc aktualizr_secondary_ostree.cc)
-    list(APPEND  AKTUALIZR_SECONDARY_LIB_SRC update_agent_ostree.cc aktualizr_secondary_ostree.cc)
+    list(APPEND AKTUALIZR_SECONDARY_LIB_SRC update_agent_ostree.cc aktualizr_secondary_ostree.cc)
     list(APPEND ALL_AKTUALIZR_SECONDARY_HEADERS update_agent_ostree.h aktualizr_secondary_ostree.h)
 
     add_aktualizr_test(NAME aktualizr_secondary_ostree
-                       SOURCES aktualizr_secondary_ostree_test.cc
+                       SOURCES aktualizr_secondary_ostree_test.cc PROJECT_WORKING_DIRECTORY
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo
-                       LIBRARIES aktualizr_secondary_lib uptane_generator_lib
-                       PROJECT_WORKING_DIRECTORY)
+                       LIBRARIES aktualizr_secondary_lib uptane_generator_lib $<TARGET_OBJECTS:campaign>)
 
     set_target_properties(t_aktualizr_secondary_ostree PROPERTIES LINK_FLAGS -Wl,--export-dynamic)
 else(BUILD_OSTREE)
     list(APPEND TEST_SOURCES aktualizr_secondary_ostree_test.cc update_agent_ostree.cc aktualizr_secondary_ostree.cc)
     list(APPEND ALL_AKTUALIZR_SECONDARY_HEADERS update_agent_ostree.h aktualizr_secondary_ostree.h)
 endif(BUILD_OSTREE)
-
-add_aktualizr_test(NAME aktualizr_secondary
-                   SOURCES aktualizr_secondary_test.cc
-                   LIBRARIES aktualizr_secondary_lib uptane_generator_lib)
 
 # Check the --help option works.
 add_test(NAME aktualizr-secondary-option-help
@@ -143,7 +143,8 @@ add_test(NAME aktualizr_secondary_log_negative
 set_tests_properties(aktualizr_secondary_log_negative
                      PROPERTIES PASS_REGULAR_EXPRESSION "Invalid log level")
 
-# these tests pose problem on ptest and are not really worth running there
+# These tests cause problems with ptest and are not really worth running there
+# anyway:
 set_tests_properties(aktualizr_secondary_help_with_other_options
     aktualizr_secondary_help_with_nonexistent_options
     aktualizr_secondary_log_debug

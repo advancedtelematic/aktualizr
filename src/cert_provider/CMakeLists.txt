@@ -3,9 +3,10 @@ add_executable(aktualizr-cert-provider main.cc
     $<TARGET_OBJECTS:bootstrap>
     $<TARGET_OBJECTS:config>
     $<TARGET_OBJECTS:crypto>
-    $<TARGET_OBJECTS:jsoncpp>
     $<TARGET_OBJECTS:http>
+    $<TARGET_OBJECTS:jsoncpp>
     $<TARGET_OBJECTS:logging>
+    $<TARGET_OBJECTS:primary_config>
     $<TARGET_OBJECTS:utilities>)
 
 set_source_files_properties(main.cc PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
