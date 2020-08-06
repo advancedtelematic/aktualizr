@@ -1,11 +1,13 @@
 #include <gtest/gtest.h>
 
-#include <boost/filesystem.hpp>
 #include <memory>
+
+#include <boost/filesystem.hpp>
 
 #include "libaktualizr/config.h"
 #include "libaktualizr/packagemanagerfactory.h"
 #include "libaktualizr/packagemanagerinterface.h"
+#include "package_manager/packagemanagerfake.h"
 #include "storage/invstorage.h"
 #include "utilities/utils.h"
 
@@ -16,6 +18,7 @@ TEST(PackageManagerFactory, Ostree) {
   Config config;
   config.pacman.type = PACKAGE_MANAGER_OSTREE;
   config.pacman.sysroot = sysroot;
+  config.pacman.os = "dummy-os";
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
@@ -58,8 +61,6 @@ TEST(PackageManagerFactory, Bad) {
   EXPECT_THROW(PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr),
                std::runtime_error);
 }
-
-#include "package_manager/packagemanagerfake.h"
 
 TEST(PackageManagerFactory, Register) {
   // a package manager cannot be registered twice
