@@ -849,7 +849,7 @@ class SafeTempRoot {
     }
     boost::filesystem::path p = prefix / boost::filesystem::unique_path("aktualizr-%%%%-%%%%-%%%%-%%%%");
     if (mkdir(p.c_str(), S_IRWXU) == -1) {
-      throw std::runtime_error(std::string("could not create temporary directory root: ").append(p.native()));
+      throw std::runtime_error(std::string("Could not create temporary directory root: ").append(p.native()));
     }
 
     path = boost::filesystem::path(p);

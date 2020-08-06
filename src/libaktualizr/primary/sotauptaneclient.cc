@@ -670,8 +670,6 @@ void SotaUptaneClient::reportResume() {
 
 std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(const Uptane::Target &target,
                                                                 const api::FlowControlToken *token) {
-  // TODO: support downloading encrypted targets from director
-
   const std::string &correlation_id = director_repo.getCorrelationId();
   // send an event for all ECUs that are touched by this target
   for (const auto &ecu : target.ecus()) {

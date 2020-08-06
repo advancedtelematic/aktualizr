@@ -142,7 +142,7 @@ class Aktualizr {
   /**
    * SetInstallationRawReport allows setting a custom raw report field in the device installation result.
    *
-   * @note An invocation of this method will have effect only after call of  Aktualizr::Install and before calling
+   * @note An invocation of this method will have effect only after call of Aktualizr::Install and before calling
    * Aktualizr::SendManifest member function.
    * @param custom_raw_report is intended to replace a default value in the device installation report.
    * @return true if the custom raw report was successfully applied to the device installation result.
