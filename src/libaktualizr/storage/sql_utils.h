@@ -68,14 +68,14 @@ class SQLiteStatement {
   void bindArgument(int v) {
     if (sqlite3_bind_int(stmt_.get(), bind_cnt_, v) != SQLITE_OK) {
       LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db_);
-      throw std::runtime_error("SQLite bind error");
+      throw SQLException("SQLite bind error");
     }
   }
 
   void bindArgument(int64_t v) {
     if (sqlite3_bind_int64(stmt_.get(), bind_cnt_, v) != SQLITE_OK) {
       LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db_);
-      throw std::runtime_error("SQLite bind error");
+      throw SQLException("SQLite bind error");
     }
   }
 
@@ -85,7 +85,7 @@ class SQLiteStatement {
 
     if (sqlite3_bind_text(stmt_.get(), bind_cnt_, oe.c_str(), -1, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db_);
-      throw std::runtime_error("SQLite bind error");
+      throw SQLException("SQLite bind error");
     }
   }
 
@@ -98,7 +98,7 @@ class SQLiteStatement {
     if (sqlite3_bind_blob(stmt_.get(), bind_cnt_, oe.c_str(), static_cast<int>(oe.size()), SQLITE_STATIC) !=
         SQLITE_OK) {
       LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db_);
-      throw std::runtime_error("SQLite bind error");
+      throw SQLException("SQLite bind error");
     }
   }
 
@@ -133,7 +133,7 @@ class SQLite3Guard {
       m_->lock();
     }
     if (sqlite3_threadsafe() == 0) {
-      throw std::runtime_error("sqlite3 has been compiled without multitheading support");
+      throw SQLException("sqlite3 has been compiled without multitheading support");
     }
     sqlite3* h;
     if (readonly) {
