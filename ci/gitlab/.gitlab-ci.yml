@@ -265,7 +265,7 @@ OE Checkout:
     - /^20\d\d\.\d\d?-docs$/
     - /^docs\//
   variables:
-    MANIFEST: master
+    MANIFEST: dunfell
 
 Ptest qemux86_64:
   extends: .oe-selftest
