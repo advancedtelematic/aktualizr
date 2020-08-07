@@ -90,31 +90,31 @@ P11Engine::P11Engine(P11Config config) : config_(std::move(config)), ctx_(config
     const boost::filesystem::path pkcs11Path = findPkcsLibrary();
     LOG_INFO << "Loading PKCS#11 engine library: " << pkcs11Path.string();
     if (ENGINE_ctrl_cmd_string(engine, "SO_PATH", pkcs11Path.c_str(), 0) == 0) {
-      throw std::runtime_error(std::string("Engine command failed: SO_PATH ") + pkcs11Path.string());
+      throw std::runtime_error(std::string("P11 engine command failed: SO_PATH ") + pkcs11Path.string());
     }
 
     if (ENGINE_ctrl_cmd_string(engine, "ID", "pkcs11", 0) == 0) {
-      throw std::runtime_error("Engine command failed: ID pksc11");
+      throw std::runtime_error("P11 engine command failed: ID pksc11");
     }
 
     if (ENGINE_ctrl_cmd_string(engine, "LIST_ADD", "1", 0) == 0) {
-      throw std::runtime_error("Engine command failed: LIST_ADD 1");
+      throw std::runtime_error("P11 engine command failed: LIST_ADD 1");
     }
 
     if (ENGINE_ctrl_cmd_string(engine, "LOAD", nullptr, 0) == 0) {
-      throw std::runtime_error("Engine command failed: LOAD");
+      throw std::runtime_error("P11 engine command failed: LOAD");
     }
 
     if (ENGINE_ctrl_cmd_string(engine, "MODULE_PATH", config_.module.c_str(), 0) == 0) {
-      throw std::runtime_error(std::string("Engine command failed: MODULE_PATH ") + config_.module.string());
+      throw std::runtime_error(std::string("P11 engine command failed: MODULE_PATH ") + config_.module.string());
     }
 
     if (ENGINE_ctrl_cmd_string(engine, "PIN", config_.pass.c_str(), 0) == 0) {
-      throw std::runtime_error(std::string("Engine command failed: PIN"));
+      throw std::runtime_error(std::string("P11 engine command failed: PIN"));
     }
 
     if (ENGINE_init(engine) == 0) {
-      throw std::runtime_error("Engine initialization failed");
+      throw std::runtime_error("P11 engine initialization failed");
     }
   } catch (const std::runtime_error& exc) {
     // Note: treat these in a special case, as ENGINE_finish cannot be called on

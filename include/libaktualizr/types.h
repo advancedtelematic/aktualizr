@@ -360,10 +360,10 @@ class EcuSerial {
   static EcuSerial Unknown() { return EcuSerial("Unknown"); }
   explicit EcuSerial(const std::string &ecu_serial) : ecu_serial_(ecu_serial) {
     if (ecu_serial.length() < kMinLength) {
-      throw std::out_of_range("Ecu serial identifier is too short");
+      throw std::out_of_range("ECU serial identifier is too short");
     }
     if (kMaxLength < ecu_serial.length()) {
-      throw std::out_of_range("Ecu serial identifier is too long");
+      throw std::out_of_range("ECU serial identifier is too long");
     }
   }
 

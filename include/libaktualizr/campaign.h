@@ -34,7 +34,7 @@ static inline Cmd cmdFromName(const std::string &name) {
       .at(name);
 }
 
-// Out of uptane concept: update campaign for a device
+// Out of Uptane concept: update campaign for a device
 class Campaign {
  public:
   static std::vector<Campaign> campaignsFromJson(const Json::Value &json);

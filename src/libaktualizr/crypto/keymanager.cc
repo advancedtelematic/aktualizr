@@ -320,11 +320,11 @@ std::string KeyManager::generateUptaneKeyPair() {
       }
     }
     if (primary_public.empty() && primary_private.empty()) {
-      throw std::runtime_error("Could not get uptane keys");
+      throw std::runtime_error("Could not get Uptane keys");
     }
   } else {
     if (!built_with_p11) {
-      throw std::runtime_error("Aktualizr was built without pkcs11 support!");
+      throw std::runtime_error("Aktualizr was built without PKCS#11 support!");
     }
     // dummy read to check if the key is present
     if (!(*p11_)->readUptanePublicKey(&primary_public)) {
@@ -332,7 +332,7 @@ std::string KeyManager::generateUptaneKeyPair() {
     }
     // really read the key
     if (primary_public.empty() && !(*p11_)->readUptanePublicKey(&primary_public)) {
-      throw std::runtime_error("Could not get uptane keys");
+      throw std::runtime_error("Could not get Uptane keys");
     }
   }
   return primary_public;
@@ -342,15 +342,15 @@ PublicKey KeyManager::UptanePublicKey() const {
   std::string primary_public;
   if (config_.uptane_key_source == CryptoSource::kFile) {
     if (!backend_->loadPrimaryPublic(&primary_public)) {
-      throw std::runtime_error("Could not get uptane public key!");
+      throw std::runtime_error("Could not get Uptane public key!");
     }
   } else {
     if (!built_with_p11) {
-      throw std::runtime_error("Aktualizr was built without pkcs11 support!");
+      throw std::runtime_error("Aktualizr was built without PKCS#11 support!");
     }
     // dummy read to check if the key is present
     if (!(*p11_)->readUptanePublicKey(&primary_public)) {
-      throw std::runtime_error("Could not get uptane public key!");
+      throw std::runtime_error("Could not get Uptane public key!");
     }
   }
   return PublicKey(primary_public, config_.uptane_key_type);

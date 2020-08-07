@@ -24,8 +24,15 @@ class CommandQueue;
 class Aktualizr {
  public:
   /** Aktualizr requires a configuration object. Examples can be found in the
-   *  config directory. */
+   *  config directory.
+   *
+   * @throw SQLException
+   * @throw boost::filesystem::filesystem_error
+   * @throw std::bad_alloc
+   * @throw std::runtime_error (filesystem and json parsing failures; libsodium initialization failure)
+   */
   explicit Aktualizr(const Config& config);
+
   Aktualizr(const Aktualizr&) = delete;
   Aktualizr& operator=(const Aktualizr&) = delete;
   ~Aktualizr();
@@ -34,6 +41,18 @@ class Aktualizr {
    * Initialize aktualizr. Any Secondaries should be added before making this
    * call. This will provision with the server if required. This must be called
    * before using any other aktualizr functions except AddSecondary.
+   *
+   * @throw Initializer::Error and subclasses
+   * @throw Uptane::Exception and subclasses
+   * @throw SQLException
+   * @throw boost::filesystem::filesystem_error
+   * @throw std::system_error (failure to lock a mutex)
+   * @throw std::bad_alloc (memory allocation failure)
+   * @throw std::runtime_error (curl, P11, SQL, filesystem, credentials archive
+   *                            parsing, certificate parsing, json parsing
+   *                            failures; missing ECU serials or device ID;
+   *                            database inconsistency with pending updates;
+   *                            invalid OSTree deployment)
    */
   void Initialize();
 
@@ -41,11 +60,21 @@ class Aktualizr {
    * Asynchronously run aktualizr indefinitely until Shutdown is called.
    * @param custom_hwinfo if not empty will be sent to the backend instead of `lshw` output
    * @return Empty std::future object
+   *
+   * @throw SQLException
+   * @throw boost::filesystem::filesystem_error
+   * @throw std::system_error (failure to lock a mutex)
+   * @throw std::bad_alloc
+   * @throw std::runtime_error (curl, SQL, filesystem, and json parsing failures;
+   *                            database inconsistency with pending updates;
+   *                            error getting metadata from database or filesystem)
    */
   std::future<void> RunForever(const Json::Value& custom_hwinfo = Json::nullValue);
 
   /**
    * Shuts down currently running `RunForever()` method
+   *
+   * @throw std::system_error (failure to lock a mutex)
    */
   void Shutdown();
 
@@ -54,6 +83,8 @@ class Aktualizr {
    * Campaigns are a concept outside of Uptane, and allow for user approval of
    * updates before the contents of the update are known.
    * @return std::future object with data about available campaigns.
+   *
+   * @throw std::runtime_error (curl and json parsing failures)
    */
   std::future<result::CampaignCheck> CampaignCheck();
 
@@ -66,6 +97,8 @@ class Aktualizr {
    * @param campaign_id Campaign ID as provided by CampaignCheck.
    * @param cmd action to apply on the campaign: accept, decline or postpone
    * @return Empty std::future object
+   *
+   * @throw std::bad_alloc (memory allocation failure)
    */
   std::future<void> CampaignControl(const std::string& campaign_id, campaign::Cmd cmd);
 
@@ -74,6 +107,11 @@ class Aktualizr {
    * This includes network status, installed packages, hardware etc.
    * @param custom_hwinfo if not empty will be sent to the backend instead of `lshw` output
    * @return Empty std::future object
+   *
+   * @throw SQLException
+   * @throw boost::filesystem::filesystem_error
+   * @throw std::bad_alloc
+   * @throw std::runtime_error (curl, filesystem, and json parsing failures)
    */
   std::future<void> SendDeviceData(const Json::Value& custom_hwinfo = Json::nullValue);
 
@@ -83,6 +121,12 @@ class Aktualizr {
    * Uptane metadata (including root and targets), and then checks the metadata
    * for target updates.
    * @return Information about available updates.
+   *
+   * @throw SQLException
+   * @throw boost::filesystem::filesystem_error
+   * @throw std::bad_alloc
+   * @throw std::runtime_error (curl, SQL, filesystem, and json parsing failures;
+   *                            database inconsistency with pending updates)
    */
   std::future<result::UpdateCheck> CheckUpdates();
 
@@ -90,20 +134,28 @@ class Aktualizr {
    * Download targets.
    * @param updates Vector of targets to download as provided by CheckUpdates.
    * @return std::future object with information about download results.
+   *
+   * @throw SQLException
+   * @throw std::system_error (failure to lock a mutex)
    */
   std::future<result::Download> Download(const std::vector<Uptane::Target>& updates);
+
+  struct InstallationLogEntry {
+    Uptane::EcuSerial ecu;
+    std::vector<Uptane::Target> installs;
+  };
+  using InstallationLog = std::vector<InstallationLogEntry>;
 
   /**
    * Get log of installations. The log is indexed for every ECU and contains
    * every change of versions ordered by time. It may contain duplicates in
    * case of rollbacks.
    * @return installation log
+   *
+   * @throw SQLException
+   * @throw std::bad_alloc (memory allocation failure)
+   * @throw std::runtime_error (failure to load ECU serials)
    */
-  struct InstallationLogEntry {
-    Uptane::EcuSerial ecu;
-    std::vector<Uptane::Target> installs;
-  };
-  using InstallationLog = std::vector<InstallationLogEntry>;
   InstallationLog GetInstallationLog();
 
   /**
@@ -111,6 +163,10 @@ class Aktualizr {
    * DeleteStoredTarget and targets are not guaranteed to be verified and
    * up-to-date with current metadata.
    * @return std::vector of target objects
+   *
+   * @throw SQLException
+   * @throw std::bad_alloc (memory allocation failure)
+   * @throw std::runtime_error (error getting targets from database)
    */
   std::vector<Uptane::Target> GetStoredTargets();
 
@@ -120,6 +176,9 @@ class Aktualizr {
    * current metadata.
    * @param target Target object matching the desired target in the storage
    * @return true if successful
+   *
+   * @throw SQLException
+   * @throw std::runtime_error (error getting targets from database or filesystem)
    */
   void DeleteStoredTarget(const Uptane::Target& target);
 
@@ -128,6 +187,9 @@ class Aktualizr {
    * according to the Uptane metadata downloaded in CheckUpdates call.
    * @param target Target object matching the desired target in the storage.
    * @return Handle to the stored binary. nullptr if none is found.
+   *
+   * @throw SQLException
+   * @throw std::runtime_error (error getting targets from database or filesystem)
    */
   std::ifstream OpenStoredTarget(const Uptane::Target& target);
 
@@ -136,17 +198,22 @@ class Aktualizr {
    * @param updates Vector of targets to install as provided by CheckUpdates or
    * Download.
    * @return std::future object with information about installation results.
+   *
+   * @throw SQLException
+   * @throw std::runtime_error (error getting metadata from database or filesystem)
    */
   std::future<result::Install> Install(const std::vector<Uptane::Target>& updates);
 
   /**
    * SetInstallationRawReport allows setting a custom raw report field in the device installation result.
    *
-   * @note An invocation of this method will have effect only after call of  Aktualizr::Install and before calling
+   * @note An invocation of this method will have effect only after call of Aktualizr::Install and before calling
    * Aktualizr::SendManifest member function.
    * @param custom_raw_report is intended to replace a default value in the device installation report.
    * @return true if the custom raw report was successfully applied to the device installation result.
    * If there is no installation report in the storage the function will always return false.
+   *
+   * @throw SQLException
    */
   bool SetInstallationRawReport(const std::string& custom_raw_report);
 
@@ -160,6 +227,9 @@ class Aktualizr {
    *
    * @param custom Project-specific data to put in the custom field of Uptane manifest
    * @return std::future object with manifest update result (true on success).
+   *
+   * @throw SQLException
+   * @throw std::runtime_error (curl failures; database inconsistency with pending updates)
    */
   std::future<bool> SendManifest(const Json::Value& custom = Json::nullValue);
 
@@ -168,6 +238,9 @@ class Aktualizr {
    * In progress target downloads will be paused and API calls will be deferred.
    *
    * @return Information about pause results.
+   *
+   * @throw std::system_error (failure to lock a mutex)
+   * @throw std::bad_alloc
    */
   result::Pause Pause();
 
@@ -177,6 +250,9 @@ class Aktualizr {
    * execute in fifo order.
    *
    * @return Information about resume results.
+   *
+   * @throw std::system_error (failure to lock a mutex)
+   * @throw std::bad_alloc
    */
   result::Pause Resume();
 
@@ -186,6 +262,8 @@ class Aktualizr {
    * This doesn't reset the `Paused` state, i.e. if the queue was previously
    * paused, it will remain paused, but with an emptied queue.
    * The call is blocking.
+   *
+   * @throw std::system_error (failure to lock a mutex)
    */
   void Abort();
 
@@ -194,18 +272,32 @@ class Aktualizr {
    * targets, install them, and send a manifest back to the server.
    *
    * @return `false`, if the restart is required to continue, `true` otherwise
+   *
+   * @throw SQLException
+   * @throw boost::filesystem::filesystem_error
+   * @throw std::system_error (failure to lock a mutex)
+   * @throw std::bad_alloc
+   * @throw std::runtime_error (curl, SQL, filesystem, and json parsing failures;
+   *                            database inconsistency with pending updates;
+   *                            error getting metadata from database or filesystem)
    */
   bool UptaneCycle();
 
   /**
    * Add new Secondary to aktualizr. Must be called before Initialize.
    * @param secondary An object to perform installation on a Secondary ECU.
+   *
+   * @throw std::bad_alloc (memory allocation failure)
+   * @throw std::runtime_error (multiple Secondaries with the same serial)
    */
   void AddSecondary(const std::shared_ptr<SecondaryInterface>& secondary);
 
   /**
    * Store some free-form data to be associated with a particular Secondary, to
    * be retrieved later through `GetSecondaries`
+   *
+   * @throw SQLException
+   * @throw std::runtime_error (SQL failure)
    */
   void SetSecondaryData(const Uptane::EcuSerial& ecu, const std::string& data);
 
@@ -214,6 +306,9 @@ class Aktualizr {
    * metadata
    *
    * @return vector of SecondaryInfo objects
+   *
+   * @throw SQLException
+   * @throw std::bad_alloc (memory allocation failure)
    */
   std::vector<SecondaryInfo> GetSecondaries() const;
 

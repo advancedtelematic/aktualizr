@@ -834,8 +834,8 @@ result::UpdateCheck SotaUptaneClient::checkUpdates() {
 
   std::string director_targets;
   if (!storage->loadNonRoot(&director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets())) {
-    // TODO: this kind of exception should come directly from the storage?
-    throw std::runtime_error("Could not get Director's Targets from storage");
+    result = result::UpdateCheck({}, 0, result::UpdateStatus::kError, Json::nullValue, "Could not update metadata.");
+    return result;
   }
 
   if (updates.empty()) {
