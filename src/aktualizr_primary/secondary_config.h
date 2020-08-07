@@ -54,7 +54,6 @@ class SecondaryConfigParser {
   static Configs parse_config_file(const boost::filesystem::path& config_file);
   virtual ~SecondaryConfigParser() = default;
 
-  // TODO implement iterator instead of parse
   virtual Configs parse() = 0;
 };
 

@@ -274,8 +274,6 @@ std::string Utils::genPrettyName() {
 std::string Utils::readFile(const boost::filesystem::path &filename, const bool trim) {
   boost::filesystem::path tmpFilename = filename;
   tmpFilename += ".new";
-  // TODO: consider refactoring and separating this into a generic readFile + a
-  // specific one with that includes the ".new" file handling
   // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks)
   if (boost::filesystem::exists(tmpFilename)) {
     LOG_WARNING << tmpFilename << " was found on FS, removing";
