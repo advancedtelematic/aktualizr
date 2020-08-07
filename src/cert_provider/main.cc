@@ -413,7 +413,6 @@ int main(int argc, char* argv[]) {
     utils::BasedPath url_file = utils::BasedPath("gateway.url");
     if (!config_path.empty()) {
       Config config(config_path);
-      // TODO: provide path to root directory in `--local` parameter
 
       // try first import base path and then storage path
       if (!config.import.base_path.empty()) {

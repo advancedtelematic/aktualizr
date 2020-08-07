@@ -670,8 +670,6 @@ void SotaUptaneClient::reportResume() {
 
 std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(const Uptane::Target &target,
                                                                 const api::FlowControlToken *token) {
-  // TODO: support downloading encrypted targets from director
-
   const std::string &correlation_id = director_repo.getCorrelationId();
   // send an event for all ECUs that are touched by this target
   for (const auto &ecu : target.ecus()) {
@@ -693,7 +691,6 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(const Uptane::Ta
     const Uptane::EcuSerial &primary_ecu_serial = primaryEcuSerial();
 
     if (target.IsForEcu(primary_ecu_serial) || !target.IsOstree()) {
-      // TODO: download should be the logical ECU and packman specific
       const int max_tries = 3;
       int tries = 0;
       std::chrono::milliseconds wait(500);
@@ -711,7 +708,9 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(const Uptane::Ta
       }
       if (!success) {
         LOG_ERROR << "Download unsuccessful after " << tries << " attempts.";
-        // TODO: show real exception
+        // TODO: Throw more meaningful exceptions. Failure can be caused by more
+        // than just a hash mismatch. However, this is purely internal and
+        // mostly just relevant for testing.
         throw Uptane::TargetHashMismatch(target.filename());
       }
     } else {
@@ -1358,7 +1357,6 @@ Uptane::LazyTargetsList SotaUptaneClient::allTargets() const {
 }
 
 void SotaUptaneClient::checkAndUpdatePendingSecondaries() {
-  // TODO: think of another alternatives to inform Primary about installation result on Secondary ECUs (reboot case)
   std::vector<std::pair<Uptane::EcuSerial, Hash>> pending_ecus;
   storage->getPendingEcus(&pending_ecus);
 
@@ -1375,7 +1373,6 @@ void SotaUptaneClient::checkAndUpdatePendingSecondaries() {
     if (!manifest.verifySignature(sec->getPublicKey())) {
       LOG_ERROR << "Invalid signature of the manifest reported by Secondary: "
                 << " serial: " << pending_ecu.first << " manifest: " << manifest;
-      // what should we do in this case ?
       continue;
     }
     auto current_ecu_hash = manifest.installedImageHash();
