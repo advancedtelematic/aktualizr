@@ -11,17 +11,6 @@ target_sources(config PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/packagemanagerconfig.c
 
 add_aktualizr_test(NAME packagemanagerfake SOURCES packagemanagerfake_test.cc LIBRARIES PUBLIC uptane_generator_lib)
 
-# Debian backend
-if(BUILD_DEB)
-    set_property(SOURCE packagemanagerfactory.cc packagemanagerfactory_test.cc PROPERTY COMPILE_DEFINITIONS BUILD_DEB)
-    target_sources(package_manager PRIVATE debianmanager.cc)
-
-    add_aktualizr_test(NAME debianmanager SOURCES debianmanager_test.cc)
-    set_tests_properties(test_debianmanager PROPERTIES ENVIRONMENT PATH=${PROJECT_SOURCE_DIR}/tests/test_data/fake_dpkg:$ENV{PATH})
-
-endif(BUILD_DEB)
-aktualizr_source_file_checks(debianmanager.cc debianmanager.h debianmanager_test.cc)
-
 # OSTree backend
 if(BUILD_OSTREE)
     target_sources(package_manager PRIVATE ostreemanager.cc)

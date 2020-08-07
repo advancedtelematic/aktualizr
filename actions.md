@@ -276,7 +276,6 @@ These are internal requirements that are relatively opaque to the user and/or co
   - [x] Create a temporary directory (utils_test.cc)
   - [x] Serialize and deserialize asn1 (asn1_test.cc)
   - [x] Support a fake package manager for testing (packagemanagerfactory_test.cc)
-  - [x] ~~Support a Debian package manager~~ (packagemanagerfactory_test.cc, debianmanager_test.cc)
   - [x] Support virtual partial verification Secondaries for testing
     - [x] Partial verification Secondaries generate and store public keys (uptane_secondary_test.cc)
     - [x] Partial verification Secondaries can verify Uptane metadata (uptane_secondary_test.cc)

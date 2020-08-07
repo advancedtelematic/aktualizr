@@ -136,7 +136,7 @@ Options for package management and update installation. Note that this only coin
 [options="header"]
 |==========================================================================================
 | Name               | Default                   | Description
-| `type`             | `"ostree"`                | Which package manager to use. Options: `"ostree"`, `"debian"`, `"none"`.
+| `type`             | `"ostree"`                | Which package manager to use. Options: `"ostree"`, `"none"`.
 | `os`               |                           | OSTree operating system group. Only used with `ostree`.
 | `sysroot`          |                           | Path to an OSTree sysroot. Only used with `ostree`.
 | `ostree_server`    |                           | OSTree server URL. Only used with `ostree`. If empty, set to `tls.server` with `/treehub` appended.
@@ -147,7 +147,7 @@ Options for package management and update installation. Note that this only coin
 
 === `storage`
 
-Options for how Aktualizr stores data locally.
+Options for how aktualizr stores data locally.
 
 [options="header"]
 |==========================================================================================
@@ -166,7 +166,7 @@ Options for how Aktualizr stores data locally.
 The only supported storage option is now `sqlite`.
 
 Old systems configured with `filesystem` can be migrated by changing the `type` field to `sqlite` and keeping all the other fields as-is.
-At the next Aktualizr run, the migration procedure will then run automatically and move existing data inside the database.
+At the next aktualizr run, the migration procedure will then run automatically and move existing data inside the database.
 
 === `import`
 
