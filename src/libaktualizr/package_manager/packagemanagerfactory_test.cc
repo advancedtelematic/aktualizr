@@ -28,19 +28,6 @@ TEST(PackageManagerFactory, Ostree) {
 }
 #endif
 
-#ifdef BUILD_DEB
-TEST(PackageManagerFactory, Debian) {
-  Config config;
-  config.pacman.type = PACKAGE_MANAGER_DEBIAN;
-  TemporaryDirectory dir;
-  config.storage.path = dir.Path();
-  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
-  std::shared_ptr<PackageManagerInterface> pacman =
-      PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, nullptr);
-  EXPECT_TRUE(pacman);
-}
-#endif
-
 TEST(PackageManagerFactory, None) {
   Config config;
   TemporaryDirectory dir;

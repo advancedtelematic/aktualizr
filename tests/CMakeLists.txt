@@ -112,12 +112,6 @@ if(SOTA_PACKED_CREDENTIALS)
     endif(BUILD_P11 AND TEST_PKCS11_MODULE_PATH)
 endif(SOTA_PACKED_CREDENTIALS)
 
-if(BUILD_DEB)
-    add_test(NAME memory_test COMMAND ${PROJECT_SOURCE_DIR}/tests/memory_usage_test.sh
-             $<TARGET_FILE:aktualizr> $<TARGET_FILE:uptane-generator>
-             ${PROJECT_BINARY_DIR} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-endif(BUILD_DEB)
-
 ###############################################################################
 # The test feature of cmake checks the return value when the program
 # exits. If the return value is zero, the testcase passes.
