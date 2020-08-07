@@ -5,6 +5,6 @@
 // latest version.
 :aktualizr-version: 2020.9
 
-:yocto-version: 3.0
+:yocto-version: 3.1
 
-:yocto-branch: zeus
+:yocto-branch: dunfell
