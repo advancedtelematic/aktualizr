@@ -379,7 +379,6 @@ include_directories(${PROJECT_BINARY_DIR}/jsoncpp)
 set_source_files_properties(${PROJECT_BINARY_DIR}/jsoncpp/jsoncpp.cc PROPERTIES COMPILE_FLAGS "-Wno-error")
 add_library(jsoncpp OBJECT ${PROJECT_BINARY_DIR}/jsoncpp/jsoncpp.cc)
 
-add_subdirectory("fuzz")
 add_subdirectory("config")
 add_subdirectory("src")
 add_subdirectory("tests" EXCLUDE_FROM_ALL)
@@ -403,34 +402,5 @@ set_source_files_properties(tags PROPERTIES GENERATED true)
 add_custom_target(tags
     COMMAND ctags -R --c++-kinds=+p --fields=+iaS --extra=+q src
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-
-####### Fuzz tags
-option(ENABLE_SANITIZERS "Enables AddressSanitizer and UndefinedBehaviorSanitizer." OFF)
-
-include(CheckCCompilerFlag)
-if (ENABLE_SANITIZERS)
-    list(APPEND custom_compiler_flags
-        -fno-omit-frame-pointer
-        -fsanitize=address
-        -fsanitize=undefined
-        -fsanitize=float-divide-by-zero
-        -fsanitize=float-cast-overflow
-        -fsanitize-address-use-after-scope
-        -fsanitize=integer
-        -01
-        -fno-sanitize-recover
-        )
-endif()
-
-# apply custom compiler flags
-foreach(compiler_flag ${custom_compiler_flags})
-    #remove problematic characters
-    string(REGEX REPLACE "[^a-zA-Z0-9]" "" current_variable ${compiler_flag})
-
-    CHECK_C_COMPILER_FLAG(${compiler_flag} "FLAG_SUPPORTED_${current_variable}")
-    if (FLAG_SUPPORTED_${current_variable})
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${compiler_flag}")
-    endif()
-endforeach()
 
 # vim: set tabstop=4 shiftwidth=4 expandtab:
