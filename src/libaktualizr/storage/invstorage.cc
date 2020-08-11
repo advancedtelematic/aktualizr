@@ -86,13 +86,12 @@ void INvStorage::importInstalledVersions(const boost::filesystem::path& base_pat
 void INvStorage::importData(const ImportConfig& import_config) {
   importPrimaryKeys(import_config.base_path, import_config.uptane_public_key_path,
                     import_config.uptane_private_key_path);
-  // root CA certificate can be updated
   importUpdateSimple(import_config.base_path, &INvStorage::storeTlsCa, &INvStorage::loadTlsCa,
                      import_config.tls_cacert_path);
-  importSimple(import_config.base_path, &INvStorage::storeTlsCert, &INvStorage::loadTlsCert,
-               import_config.tls_clientcert_path);
-  importSimple(import_config.base_path, &INvStorage::storeTlsPkey, &INvStorage::loadTlsPkey,
-               import_config.tls_pkey_path);
+  importUpdateSimple(import_config.base_path, &INvStorage::storeTlsCert, &INvStorage::loadTlsCert,
+                     import_config.tls_clientcert_path);
+  importUpdateSimple(import_config.base_path, &INvStorage::storeTlsPkey, &INvStorage::loadTlsPkey,
+                     import_config.tls_pkey_path);
 
   importInstalledVersions(import_config.base_path);
 }

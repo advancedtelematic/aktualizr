@@ -526,7 +526,8 @@ TEST(storage, load_store_secondary_info) {
   EXPECT_EQ(sec_infos[0].extra, "data1");
 }
 
-/* Import keys and credentials from file into storage. */
+/* Import keys and credentials from file into storage.
+ * Re-import updated credentials from file into storage. */
 TEST(storage, import_data) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
@@ -592,12 +593,12 @@ TEST(storage, import_data) {
   EXPECT_TRUE(storage->loadTlsCert(&tls_cert));
   EXPECT_TRUE(storage->loadTlsPkey(&tls_pkey));
 
-  // only root cert is being updated
+  // All TLS objects should be updated:
   EXPECT_EQ(primary_private, "uptane_private_1");
   EXPECT_EQ(primary_public, "uptane_public_1");
   EXPECT_EQ(tls_ca, "tls_cacert_2");
-  EXPECT_EQ(tls_cert, "tls_cert_1");
-  EXPECT_EQ(tls_pkey, "tls_pkey_1");
+  EXPECT_EQ(tls_cert, "tls_cert_2");
+  EXPECT_EQ(tls_pkey, "tls_pkey_2");
 }
 
 #ifndef __NO_MAIN__
