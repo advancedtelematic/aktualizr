@@ -8,20 +8,22 @@
 #include "utilities/utils.h"
 
 void INvStorage::importSimple(const boost::filesystem::path& base_path, store_data_t store_func, load_data_t load_func,
-                              const utils::BasedPath& imported_data_path) {
+                              const utils::BasedPath& imported_data_path, const std::string& data_name) {
   if (!(this->*load_func)(nullptr) && !imported_data_path.empty()) {
     boost::filesystem::path abs_path = imported_data_path.get(base_path);
     if (!boost::filesystem::exists(abs_path)) {
-      LOG_ERROR << "Couldn't import data: " << abs_path << " doesn't exist.";
+      LOG_ERROR << "Couldn't import " << data_name << ": " << abs_path << " doesn't exist.";
       return;
     }
     std::string content = Utils::readFile(abs_path.string());
     (this->*store_func)(content);
+    LOG_DEBUG << "Successfully imported " << data_name << " from " << abs_path;
   }
 }
 
 void INvStorage::importUpdateSimple(const boost::filesystem::path& base_path, store_data_t store_func,
-                                    load_data_t load_func, const utils::BasedPath& imported_data_path) {
+                                    load_data_t load_func, const utils::BasedPath& imported_data_path,
+                                    const std::string& data_name) {
   std::string prev_content;
   std::string content;
   bool update = false;
@@ -37,13 +39,14 @@ void INvStorage::importUpdateSimple(const boost::filesystem::path& base_path, st
   if (update && !imported_data_path.empty()) {
     boost::filesystem::path abs_path = imported_data_path.get(base_path);
     if (!boost::filesystem::exists(abs_path)) {
-      LOG_ERROR << "Couldn't import data: " << abs_path << " doesn't exist.";
+      LOG_ERROR << "Couldn't import " << data_name << ": " << abs_path << " doesn't exist.";
       return;
     }
     if (content.empty()) {
       content = Utils::readFile(abs_path.string());
     }
     (this->*store_func)(content);
+    LOG_DEBUG << "Successfully imported " << data_name << " from " << abs_path;
   }
 }
 
@@ -65,6 +68,7 @@ void INvStorage::importPrimaryKeys(const boost::filesystem::path& base_path, con
   const std::string pub_content = Utils::readFile(pubkey_abs_path.string());
   const std::string priv_content = Utils::readFile(privkey_abs_path.string());
   storePrimaryKeys(pub_content, priv_content);
+  LOG_DEBUG << "Successfully imported Uptane keys from " << pubkey_abs_path << " and " << privkey_abs_path;
 }
 
 void INvStorage::importInstalledVersions(const boost::filesystem::path& base_path) {
@@ -80,6 +84,7 @@ void INvStorage::importInstalledVersions(const boost::filesystem::path& base_pat
     // installed versions in legacy fs storage are all for primary
     savePrimaryInstalledVersion(installed_versions[current_index], InstalledVersionUpdateMode::kCurrent);
     boost::filesystem::remove(file_path);
+    LOG_DEBUG << "Successfully imported installed versions from " << file_path;
   }
 }
 
@@ -87,11 +92,11 @@ void INvStorage::importData(const ImportConfig& import_config) {
   importPrimaryKeys(import_config.base_path, import_config.uptane_public_key_path,
                     import_config.uptane_private_key_path);
   importUpdateSimple(import_config.base_path, &INvStorage::storeTlsCa, &INvStorage::loadTlsCa,
-                     import_config.tls_cacert_path);
+                     import_config.tls_cacert_path, "server CA certificate");
   importUpdateSimple(import_config.base_path, &INvStorage::storeTlsCert, &INvStorage::loadTlsCert,
-                     import_config.tls_clientcert_path);
+                     import_config.tls_clientcert_path, "client certificate");
   importUpdateSimple(import_config.base_path, &INvStorage::storeTlsPkey, &INvStorage::loadTlsPkey,
-                     import_config.tls_pkey_path);
+                     import_config.tls_pkey_path, "client TLS key");
 
   importInstalledVersions(import_config.base_path);
 }

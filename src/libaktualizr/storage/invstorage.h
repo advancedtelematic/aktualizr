@@ -167,9 +167,9 @@ class INvStorage {
 
  private:
   void importSimple(const boost::filesystem::path& base_path, store_data_t store_func, load_data_t load_func,
-                    const utils::BasedPath& imported_data_path);
+                    const utils::BasedPath& imported_data_path, const std::string& data_name);
   void importUpdateSimple(const boost::filesystem::path& base_path, store_data_t store_func, load_data_t load_func,
-                          const utils::BasedPath& imported_data_path);
+                          const utils::BasedPath& imported_data_path, const std::string& data_name);
   void importPrimaryKeys(const boost::filesystem::path& base_path, const utils::BasedPath& import_pubkey_path,
                          const utils::BasedPath& import_privkey_path);
 
