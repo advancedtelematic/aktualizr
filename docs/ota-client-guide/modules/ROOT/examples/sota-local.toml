@@ -1,6 +1,8 @@
 [provision]
 provision_path = "credentials.zip"
 primary_ecu_hardware_id = "local-fake"
+# This setting is for testing purposes only. Do not use in a real device.
+mode = "SharedCredReuse"
 
 [logger]
 loglevel = 1
@@ -10,6 +12,7 @@ path = "storage"
 
 [pacman]
 type = "none"
+images_path = "storage/images"
 
 [uptane]
 secondary_config_file = "virtualsec.json"
