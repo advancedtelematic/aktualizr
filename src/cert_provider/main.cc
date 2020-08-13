@@ -45,12 +45,12 @@ bpo::variables_map parseOptions(int argc, char** argv) {
       ("certificate-c", bpo::value<std::string>(), "value for C field in certificate subject name")
       ("certificate-st", bpo::value<std::string>(), "value for ST field in certificate subject name")
       ("certificate-o", bpo::value<std::string>(), "value for O field in certificate subject name")
-      ("certificate-cn", bpo::value<std::string>(), "value for CN field in certificate subject name")
+      ("certificate-cn", bpo::value<std::string>(), "value for CN field in certificate subject name (used for device ID)")
       ("target,t", bpo::value<std::string>(), "target device to scp credentials to (or [user@]host)")
       ("port,p", bpo::value<int>(), "target port")
-      ("directory,d", bpo::value<boost::filesystem::path>(), "directory on target to write credentials to (conflicts with -config)")
-      ("root-ca,r", "provide root CA")
-      ("server-url,u", "provide server url file")
+      ("directory,d", bpo::value<boost::filesystem::path>(), "directory on target to write credentials to (conflicts with --config)")
+      ("root-ca,r", "provide root CA certificate")
+      ("server-url,u", "provide server URL file")
       ("local,l", bpo::value<boost::filesystem::path>(), "local directory to write credentials to")
       ("config,g", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory from which to get file names")
       ("skip-checks,s", "skip strict host key checking for ssh/scp commands");
@@ -95,7 +95,7 @@ bpo::variables_map parseOptions(int argc, char** argv) {
     return false;                                                                          \
   }
 bool generateAndSign(const std::string& cacert_path, const std::string& capkey_path, std::string* pkey,
-                     std::string* cert, const bpo::variables_map& commandline_map) {
+                     std::string* cert, const bpo::variables_map& commandline_map, const std::string& newcert_cn) {
   int rsa_bits = 2048;
   if (commandline_map.count("bits") != 0) {
     rsa_bits = (commandline_map["bits"].as<int>());
@@ -136,17 +136,6 @@ bool generateAndSign(const std::string& cacert_path, const std::string& capkey_p
       return false;
     }
   };
-
-  std::string newcert_cn;
-  if (commandline_map.count("certificate-cn") != 0) {
-    newcert_cn = (commandline_map["certificate-cn"].as<std::string>());
-    if (newcert_cn.empty()) {
-      std::cerr << "Common name (--certificate-cn) can't be empty" << std::endl;
-      return false;
-    }
-  } else {
-    newcert_cn = Utils::genPrettyName();
-  }
 
   // read CA certificate
   std::string cacert_contents = Utils::readFile(cacert_path);
@@ -406,6 +395,18 @@ int main(int argc, char* argv[]) {
       serverUrl = Bootstrap::readServerUrl(credentials_path);
     }
 
+    std::string device_id;
+    if (commandline_map.count("certificate-cn") != 0) {
+      device_id = (commandline_map["certificate-cn"].as<std::string>());
+      if (device_id.empty()) {
+        std::cerr << "Common name (device ID, --certificate-cn) can't be empty" << std::endl;
+        return EXIT_FAILURE;
+      }
+    } else {
+      device_id = Utils::genPrettyName();
+      std::cout << "Random device ID is " << device_id << "\n";
+    }
+
     boost::filesystem::path directory = "/var/sota/import";
     utils::BasedPath pkey_file = utils::BasedPath("pkey.pem");
     utils::BasedPath cert_file = utils::BasedPath("client.pem");
@@ -458,10 +459,6 @@ int main(int argc, char* argv[]) {
     std::string ca;
 
     if (fleet_ca_path.empty()) {  // no fleet CA => provision with shared credentials
-
-      std::string device_id = Utils::genPrettyName();
-      std::cout << "Random device ID is " << device_id << "\n";
-
       Bootstrap boot(credentials_path, "");
       HttpClient http;
       Json::Value data;
@@ -490,7 +487,8 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
       }
     } else {  // fleet CA set => generate and sign a new certificate
-      if (!generateAndSign(fleet_ca_path.native(), fleet_ca_key_path.native(), &pkey, &cert, commandline_map)) {
+      if (!generateAndSign(fleet_ca_path.native(), fleet_ca_key_path.native(), &pkey, &cert, commandline_map,
+                           device_id)) {
         return EXIT_FAILURE;
       }
 
