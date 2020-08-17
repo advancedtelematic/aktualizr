@@ -338,45 +338,6 @@ pages:
   only:
     - master
 
-# -- veracode
-
-veracode-pkg:
-  # prepare build to be submitted for static code analysis
-  stage: test
-  only:
-    variables:
-      - $VERACODE_API_ID
-  variables:
-    TEST_BUILD_DIR: 'scan-build'
-    TEST_CMAKE_BUILD_TYPE: 'Debug'
-    TEST_WITH_TESTSUITE: '0'
-    TEST_WITH_SOTA_TOOLS: '0'
-    TEST_WITH_OSTREE: '0'
-    TEST_WITH_DEB: '0'
-  image: "$UBUNTU_BIONIC_PR_IMAGE"
-  script:
-    - ./scripts/test.sh
-    - tar -f scan.tar --append /tmp/aktualizr/usr/local/bin
-  artifacts:
-    paths:
-      - scan.tar
-
-trigger-veracode-scan:
-  stage: trigger
-  only:
-    variables:
-      - $VERACODE_API_ID
-  dependencies:
-    - veracode-pkg
-  allow_failure: true
-  image: openjdk:8
-  before_script:
-    # The latest wrapper version can be found in https://repo1.maven.org/maven2/com/veracode/vosp/api/wrappers/vosp-api-wrappers-java/
-    - wget -q -O veracode-wrapper.jar https://repo1.maven.org/maven2/com/veracode/vosp/api/wrappers/vosp-api-wrappers-java/${VERACODE_WRAPPER_VERSION}/vosp-api-wrappers-java-${VERACODE_WRAPPER_VERSION}.jar
-  script:
-    - java -jar veracode-wrapper.jar -vid ${VERACODE_API_ID} -vkey ${VERACODE_API_KEY}
-      -action UploadAndScan -appname "OTA Client" -createprofile true -autoscan true
-      -filepath scan.tar -version "job ${CI_JOB_ID} in pipeline ${CI_PIPELINE_ID} for ${CI_PROJECT_NAME} repo"
 
 # -- e2e
 
