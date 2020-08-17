@@ -11,7 +11,7 @@ namespace Primary {
 class VirtualSecondaryConfig : public ManagedSecondaryConfig {
  public:
   VirtualSecondaryConfig() : ManagedSecondaryConfig(Type) {}
-  VirtualSecondaryConfig(const Json::Value& json_config);
+  explicit VirtualSecondaryConfig(const Json::Value& json_config);
 
   static std::vector<VirtualSecondaryConfig> create_from_file(const boost::filesystem::path& file_full_path);
   void dump(const boost::filesystem::path& file_full_path) const;
