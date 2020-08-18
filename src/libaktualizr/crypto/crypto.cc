@@ -313,21 +313,20 @@ bool Crypto::parseP12(BIO *p12_bio, const std::string &p12_password, std::string
   return true;
 }
 
-bool Crypto::extractSubjectCN(const std::string &cert, std::string *cn) {
+std::string Crypto::extractSubjectCN(const std::string &cert) {
   StructGuard<BIO> bio(BIO_new_mem_buf(const_cast<char *>(cert.c_str()), static_cast<int>(cert.size())), BIO_vfree);
   StructGuard<X509> x(PEM_read_bio_X509(bio.get(), nullptr, nullptr, nullptr), X509_free);
   if (x == nullptr) {
-    return false;
+    throw std::runtime_error("Could not parse certificate");
   }
 
   int len = X509_NAME_get_text_by_NID(X509_get_subject_name(x.get()), NID_commonName, nullptr, 0);
   if (len < 0) {
-    return false;
+    throw std::runtime_error("Could not get CN from certificate");
   }
   boost::scoped_array<char> buf(new char[len + 1]);
   X509_NAME_get_text_by_NID(X509_get_subject_name(x.get()), NID_commonName, buf.get(), len + 1);
-  *cn = std::string(buf.get());
-  return true;
+  return std::string(buf.get());
 }
 
 StructGuard<EVP_PKEY> Crypto::generateRSAKeyPairEVP(KeyType key_type) {
@@ -447,6 +446,7 @@ bool Crypto::IsRsaKeyType(KeyType type) {
       return false;
   }
 }
+
 KeyType Crypto::IdentifyRSAKeyType(const std::string &public_key_pem) {
   StructGuard<BIO> bufio(BIO_new_mem_buf(reinterpret_cast<const void *>(public_key_pem.c_str()),
                                          static_cast<int>(public_key_pem.length())),

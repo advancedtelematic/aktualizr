@@ -162,7 +162,7 @@ std::string KeyManager::getCa() const {
 }
 
 std::string KeyManager::getCN() const {
-  std::string not_found_cert_message = "Certificate is not found, can't extract device_id";
+  const std::string not_found_cert_message = "Certificate is not found, can't extract device_id";
   std::string cert;
   if (config_.tls_cert_source == CryptoSource::kFile) {
     if (!backend_->loadTlsCert(&cert)) {
@@ -177,20 +177,7 @@ std::string KeyManager::getCN() const {
     }
   }
 
-  StructGuard<BIO> bio(BIO_new_mem_buf(const_cast<char *>(cert.c_str()), static_cast<int>(cert.size())), BIO_vfree);
-  StructGuard<X509> x(PEM_read_bio_X509(bio.get(), nullptr, nullptr, nullptr), X509_free);
-  if (x == nullptr) {
-    throw std::runtime_error("Could not parse certificate");
-  }
-
-  int len = X509_NAME_get_text_by_NID(X509_get_subject_name(x.get()), NID_commonName, nullptr, 0);
-  if (len < 0) {
-    throw std::runtime_error("Could not get CN from certificate");
-  }
-  boost::scoped_array<char> buf(new char[len + 1]);
-  X509_NAME_get_text_by_NID(X509_get_subject_name(x.get()), NID_commonName, buf.get(), len + 1);
-  std::string cn(buf.get());
-  return cn;
+  return Crypto::extractSubjectCN(cert);
 }
 
 void KeyManager::getCertInfo(std::string *subject, std::string *issuer, std::string *not_before,
