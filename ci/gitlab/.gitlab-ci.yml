@@ -1,6 +1,7 @@
 stages:
   - docker
   - test
+  - static scans
   - pkg-test
   - oe-checkout
   - oe-test
@@ -28,6 +29,10 @@ variables:
   BITBAKE_CHECKOUT_IMAGE: ${METAUPDATER_REGISTRY_IMAGE}:ci-master-checkout
 
 include:
+  - template: SAST.gitlab-ci.yml
+  - template: Secret-Detection.gitlab-ci.yml
+  - template: Dependency-Scanning.gitlab-ci.yml
+  - template: License-Scanning.gitlab-ci.yml
   - project: 'olp/edge/ota/connect/client/meta-updater'
     ref: 'master'
     file: 'scripts/ci/gitlab/docker.yml'
@@ -70,6 +75,24 @@ Docker Setup:
     - docker pull "$UBUNTU_XENIAL_PR_INSTALLIMAGE" || docker pull "$UBUNTU_XENIAL_MASTER_INSTALLIMAGE" || true
     - docker build --pull --cache-from "$UBUNTU_XENIAL_MASTER_INSTALLIMAGE" --cache-from "$UBUNTU_XENIAL_PR_INSTALLIMAGE" -f "$CI_PROJECT_DIR/docker/Dockerfile-test-install.ubuntu.xenial" -t "$UBUNTU_XENIAL_PR_INSTALLIMAGE" .
     - docker push "$UBUNTU_XENIAL_PR_INSTALLIMAGE"
+
+# static scans:
+
+bandit-sast:
+  stage: static scans
+
+flawfinder-sast:
+  stage: static scans
+
+license_scanning:
+  stage: static scans
+
+secret_detection:
+  stage: static scans
+
+secrets-sast:
+  stage: static scans
+
 
 coverage:
   variables:
