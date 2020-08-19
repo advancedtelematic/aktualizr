@@ -6,7 +6,6 @@
 #include <boost/filesystem.hpp>
 
 #include "libaktualizr/types.h"
-#include "logging/logging.h"
 #include "storage/sqlstorage.h"
 #include "utilities/utils.h"
 
@@ -37,7 +36,7 @@ StorageConfig MakeConfig(StorageType type, const boost::filesystem::path &storag
 }
 
 /* Load and store Primary keys. */
-TEST(storage, load_store_primary_keys) {
+TEST(StorageCommon, LoadStorePrimaryKeys) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
@@ -55,7 +54,7 @@ TEST(storage, load_store_primary_keys) {
 }
 
 /* Load and store TLS credentials. */
-TEST(storage, load_store_tls) {
+TEST(StorageCommon, LoadStoreTls) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
@@ -75,7 +74,7 @@ TEST(storage, load_store_tls) {
 }
 
 /* Load and store Uptane metadata. */
-TEST(storage, load_store_metadata) {
+TEST(StorageCommon, LoadStoreMetadata) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
@@ -174,7 +173,7 @@ TEST(storage, load_store_metadata) {
 }
 
 /* Load and store Uptane roots. */
-TEST(storage, load_store_root) {
+TEST(StorageCommon, LoadStoreRoot) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
@@ -210,7 +209,7 @@ TEST(storage, load_store_root) {
 }
 
 /* Load and store the device ID. */
-TEST(storage, load_store_deviceid) {
+TEST(StorageCommon, LoadStoreDeviceId) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
@@ -229,7 +228,7 @@ TEST(storage, load_store_deviceid) {
 /* Load and store ECU serials.
  * Preserve ECU ordering between store and load calls.
  */
-TEST(storage, load_store_ecu_serials) {
+TEST(StorageCommon, LoadStoreEcuSerials) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
@@ -249,7 +248,7 @@ TEST(storage, load_store_ecu_serials) {
 }
 
 /* Load and store a list of misconfigured ECUs. */
-TEST(storage, load_store_misconfigured_ecus) {
+TEST(StorageCommon, LoadStoreMisconfiguredEcus) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
@@ -271,7 +270,7 @@ TEST(storage, load_store_misconfigured_ecus) {
 }
 
 /* Load and store a flag indicating successful registration. */
-TEST(storage, load_store_ecu_registered) {
+TEST(StorageCommon, LoadStoreEcuRegistered) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
@@ -287,7 +286,7 @@ TEST(storage, load_store_ecu_registered) {
 }
 
 /* Load and store installed versions. */
-TEST(storage, load_store_installed_versions) {
+TEST(StorageCommon, LoadStoreInstalledVersions) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
@@ -423,7 +422,7 @@ TEST(storage, load_store_installed_versions) {
  * Load and store an ECU installation result in an SQL database.
  * Load and store a device installation result in an SQL database.
  */
-TEST(storage, load_store_installation_results) {
+TEST(StorageCommon, LoadStoreInstallationResults) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
@@ -466,7 +465,7 @@ TEST(storage, load_store_installation_results) {
       "This call will return a negative value since the installation report was cleaned!"));
 }
 
-TEST(storage, downloaded_files_info) {
+TEST(StorageCommon, DownloadedFilesInfo) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
@@ -486,7 +485,7 @@ TEST(storage, downloaded_files_info) {
   ASSERT_EQ(names.at(0), "target2");
 }
 
-TEST(storage, load_store_secondary_info) {
+TEST(StorageCommon, LoadStoreSecondaryInfo) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
@@ -528,7 +527,7 @@ TEST(storage, load_store_secondary_info) {
 
 /* Import keys and credentials from file into storage.
  * Re-import updated credentials from file into storage. */
-TEST(storage, import_data) {
+TEST(StorageImport, ImportData) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
   boost::filesystem::create_directories(temp_dir / "import");
