@@ -1,5 +1,7 @@
+set(CERT_PROVIDER_SRC main.cc)
+
 # set the name of the executable
-add_executable(aktualizr-cert-provider main.cc
+add_executable(aktualizr-cert-provider ${CERT_PROVIDER_SRC}
     $<TARGET_OBJECTS:bootstrap>
     $<TARGET_OBJECTS:config>
     $<TARGET_OBJECTS:crypto>
@@ -8,8 +10,6 @@ add_executable(aktualizr-cert-provider main.cc
     $<TARGET_OBJECTS:logging>
     $<TARGET_OBJECTS:primary_config>
     $<TARGET_OBJECTS:utilities>)
-
-set_source_files_properties(main.cc PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
 
 target_link_libraries(aktualizr-cert-provider
     ${CMAKE_THREAD_LIBS_INIT}
@@ -22,8 +22,6 @@ target_link_libraries(aktualizr-cert-provider
     ${OPENSSL_LIBRARIES}
     ${sodium_LIBRARY_RELEASE}
     )
-
-aktualizr_source_file_checks(main.cc)
 
 add_dependencies(build_tests aktualizr-cert-provider)
 
@@ -46,8 +44,7 @@ add_test(NAME aktualizr-cert-provider-option-version
          COMMAND aktualizr-cert-provider --version)
 set_tests_properties(aktualizr-cert-provider-option-version PROPERTIES PASS_REGULAR_EXPRESSION "Current aktualizr-cert-provider version is: ${AKTUALIZR_VERSION}")
 
-aktualizr_source_file_checks(${AKTUALIZR_CERT_PROVIDER_SRC}
-                             ${AKTUALIZR_CERT_HEADERS}
+aktualizr_source_file_checks(${CERT_PROVIDER_SRC}
                              cert_provider_shared_cred_test.cc
                              cert_provider_test.cc
                              cert_provider_test.h)
