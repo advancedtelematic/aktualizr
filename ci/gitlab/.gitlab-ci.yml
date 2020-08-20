@@ -78,20 +78,24 @@ Docker Setup:
 
 # static scans:
 
-bandit-sast:
-  stage: static scans
-
-flawfinder-sast:
-  stage: static scans
-
 license_scanning:
   stage: static scans
 
+bandit-sast:
+  stage: static scans
+  needs: []
+
+flawfinder-sast:
+  stage: static scans
+  needs: []
+
 secret_detection:
   stage: static scans
+  needs: []
 
 secrets-sast:
   stage: static scans
+  needs: []
 
 
 coverage:
@@ -108,6 +112,7 @@ coverage:
     TEST_SOTA_PACKED_CREDENTIALS: "$CI_PROJECT_DIR/credentials.zip"
   image: "$UBUNTU_BIONIC_PR_IMAGE"
   stage: test
+  needs: ["Docker Setup"]
   except:
     - /^20\d\d\.\d\d?-docs$/
     - /^docs\//
@@ -135,6 +140,7 @@ nop11:
     TEST_WITH_TESTSUITE: '0'
   image: "$UBUNTU_BIONIC_PR_IMAGE"
   stage: test
+  needs: ["Docker Setup"]
   except:
     - /^20\d\d\.\d\d?-docs$/
     - /^docs\//
@@ -160,6 +166,7 @@ focal-build-static:
     TEST_WITH_DOCS: '1'
   image: "$UBUNTU_FOCAL_PR_IMAGE"
   stage: test
+  needs: ["Docker Setup"]
   except:
     - /^20\d\d\.\d\d?-docs$/
     - /^docs\//
@@ -176,7 +183,23 @@ focal-build-static:
     - ./scripts/test.sh
     - xsltproc -o build-ubuntu-focal/report.xml ./third_party/junit/ctest2junit.xsl build-ubuntu-focal/Testing/**/Test.xml > /dev/null
 
+
+.u-pkg:
+  needs: ["Docker Setup"]
+  stage: test
+  except:
+    - /^20\d\d\.\d\d?-docs$/
+    - /^docs\//
+  cache:
+    key: "$CI_JOB_NAME"
+    paths:
+      - ccache/
+  script:
+    - mkdir -p $TEST_INSTALL_DESTDIR
+    - ./scripts/build_ubuntu.sh
+
 bionic-pkg:
+  extends: .u-pkg
   variables:
     GIT_CLONE_PATH: $CI_BUILDS_DIR/aktualizr-bionic-pkg-$CI_JOB_ID
     GIT_SUBMODULE_STRATEGY: 'recursive'
@@ -184,24 +207,13 @@ bionic-pkg:
     TEST_BUILD_DIR: 'build-bionic'
     TEST_INSTALL_RELEASE_NAME: '-ubuntu_18.04'
     TEST_INSTALL_DESTDIR: "$CI_PROJECT_DIR/build-bionic/pkg"
-
   image: "$UBUNTU_BIONIC_PR_IMAGE"
-  stage: test
-  except:
-    - /^20\d\d\.\d\d?-docs$/
-    - /^docs\//
-  cache:
-    key: "$CI_JOB_NAME"
-    paths:
-      - ccache/
   artifacts:
     paths:
       - build-bionic/pkg
-  script:
-    - mkdir -p $TEST_INSTALL_DESTDIR
-    - ./scripts/build_ubuntu.sh
 
 xenial-pkg:
+  extends: .u-pkg
   variables:
     GIT_CLONE_PATH: $CI_BUILDS_DIR/aktualizr-xenial-pkg-$CI_JOB_ID
     GIT_SUBMODULE_STRATEGY: 'recursive'
@@ -209,48 +221,35 @@ xenial-pkg:
     TEST_BUILD_DIR: 'build-xenial'
     TEST_INSTALL_RELEASE_NAME: '-ubuntu_16.04'
     TEST_INSTALL_DESTDIR: "$CI_PROJECT_DIR/build-xenial/pkg"
-
   image: "$UBUNTU_XENIAL_PR_IMAGE"
-  stage: test
-  except:
-    - /^20\d\d\.\d\d?-docs$/
-    - /^docs\//
-  cache:
-    key: "$CI_JOB_NAME"
-    paths:
-      - ccache/
   artifacts:
     paths:
       - build-xenial/pkg
+
+
+.pkg-test:
+  stage: pkg-test
+  except:
+    - /^20\d\d\.\d\d?-docs$/
+    - /^docs\//
   script:
-    - mkdir -p $TEST_INSTALL_DESTDIR
-    - ./scripts/build_ubuntu.sh
+    - ./scripts/test_install_garage_deploy.sh
+    - ./scripts/test_install_aktualizr.sh
 
 bionic-pkg-test:
+  extends: .pkg-test
   variables:
     TEST_INSTALL_DESTDIR: "$CI_PROJECT_DIR/build-bionic/pkg"
   needs: ["bionic-pkg"]
   image: "$UBUNTU_BIONIC_PR_INSTALLIMAGE"
-  stage: pkg-test
-  except:
-    - /^20\d\d\.\d\d?-docs$/
-    - /^docs\//
-  script:
-    - ./scripts/test_install_garage_deploy.sh
-    - ./scripts/test_install_aktualizr.sh
 
 xenial-pkg-test:
+  extends: .pkg-test
   variables:
     TEST_INSTALL_DESTDIR: "$CI_PROJECT_DIR/build-xenial/pkg"
   needs: ["xenial-pkg"]
   image: "$UBUNTU_XENIAL_PR_INSTALLIMAGE"
-  stage: pkg-test
-  except:
-    - /^20\d\d\.\d\d?-docs$/
-    - /^docs\//
-  script:
-    - ./scripts/test_install_garage_deploy.sh
-    - ./scripts/test_install_aktualizr.sh
+
 
 # -- yocto tests
 
