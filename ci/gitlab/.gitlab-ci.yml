@@ -229,10 +229,8 @@ xenial-pkg:
 bionic-pkg-test:
   variables:
     TEST_INSTALL_DESTDIR: "$CI_PROJECT_DIR/build-bionic/pkg"
-
+  needs: ["bionic-pkg"]
   image: "$UBUNTU_BIONIC_PR_INSTALLIMAGE"
-  dependencies:
-    - bionic-pkg
   stage: pkg-test
   except:
     - /^20\d\d\.\d\d?-docs$/
@@ -244,10 +242,8 @@ bionic-pkg-test:
 xenial-pkg-test:
   variables:
     TEST_INSTALL_DESTDIR: "$CI_PROJECT_DIR/build-xenial/pkg"
-
+  needs: ["xenial-pkg"]
   image: "$UBUNTU_XENIAL_PR_INSTALLIMAGE"
-  dependencies:
-    - xenial-pkg
   stage: pkg-test
   except:
     - /^20\d\d\.\d\d?-docs$/
