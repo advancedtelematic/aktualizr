@@ -1,4 +1,5 @@
-FROM advancedtelematic/aktualizr-base as builder
+ARG AKTUALIZR_BASE=advancedtelematic/aktualizr-base
+FROM $AKTUALIZR_BASE
 LABEL Description="Aktualizr application dockerfile"
 
 ADD . /aktualizr

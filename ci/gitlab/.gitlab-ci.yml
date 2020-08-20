@@ -271,7 +271,7 @@ OE Docker setup:
 OE Checkout:
   extends: .bb_checkout
   stage: oe-checkout
-  dependencies: []
+  needs: []
   variables:
       GIT_CHECKOUT: 'false'
   only:
@@ -315,10 +315,8 @@ Ptest qemux86_64:
 github-release:
   image: "$UBUNTU_BIONIC_PR_IMAGE"
   stage: deploy
-  dependencies:
-    - bionic-pkg
-    - xenial-pkg
-    - focal-build-static  # for doxygen
+  # focal-build-static is needed for doxygen
+  needs: ["bionic-pkg", "xenial-pkg", "focal-build-static"]
   script:
     # github release
     - ./scripts/make_src_archive.sh ./aktualizr_src-$CI_COMMIT_TAG.tar.gz
@@ -344,8 +342,7 @@ github-release:
 
 pages:
   stage: deploy
-  dependencies:
-    - coverage
+  needs: ["coverage"]
   script:
     - mv build-coverage/coverage/ public/
   artifacts:
@@ -368,13 +365,13 @@ app-docker-image:
     - master
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
-  dependencies: []
+  needs: []
   allow_failure: true
   before_script:
     - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
   script:
-    - sed 's@advancedtelematic/aktualizr-base@'$UBUNTU_BIONIC_MASTER_IMAGE'@' ./docker/Dockerfile.aktualizr > ./ci/gitlab/Dockerfile
-    - docker build -t $CI_REGISTRY_IMAGE/app:ci-$CI_COMMIT_REF_SLUG -f ./ci/gitlab/Dockerfile .
+    - cp ./docker/Dockerfile.aktualizr ./ci/gitlab/Dockerfile
+    - docker build --build-arg AKTUALIZR_BASE=$UBUNTU_BIONIC_MASTER_IMAGE -t $CI_REGISTRY_IMAGE/app:ci-$CI_COMMIT_REF_SLUG -f ./ci/gitlab/Dockerfile .
     - docker push $CI_REGISTRY_IMAGE/app:ci-$CI_COMMIT_REF_SLUG
 
 trigger-device-farm-pipeline:
@@ -389,8 +386,7 @@ trigger-otf-pipeline:
   image: "$UBUNTU_BIONIC_PR_IMAGE"
   stage: trigger
   when: on_success
-  dependencies:
-    - github-release
+  needs: ["github-release"]
   script:
     - curl -X POST -F "token=$CI_JOB_TOKEN" -F "ref=master" -F "variables[TEST_JOB_ONLY]=true" https://main.gitlab.in.here.com/api/v4/projects/163/trigger/pipeline
   only:
@@ -420,8 +416,7 @@ trigger-osx-build:
 
 build-osx-release:
   stage: trigger
-  dependencies:
-    - github-release
+  needs: ["github-release"]
   variables:
     VERSION: "$CI_COMMIT_TAG"
     REVISION: "$CI_COMMIT_SHA"
