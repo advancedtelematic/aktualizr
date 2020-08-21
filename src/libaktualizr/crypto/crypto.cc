@@ -481,7 +481,7 @@ KeyType Crypto::IdentifyRSAKeyType(const std::string &public_key_pem) {
 
 StructGuard<X509> Crypto::generateCert(const int rsa_bits, const int cert_days, const std::string &cert_c,
                                        const std::string &cert_st, const std::string &cert_o,
-                                       const std::string &cert_cn) {
+                                       const std::string &cert_cn, bool self_sign) {
   if (rsa_bits < 31) {  // sic!
     throw std::runtime_error("RSA key size can't be smaller than 31 bits");
   }
@@ -576,6 +576,15 @@ StructGuard<X509> Crypto::generateCert(const int rsa_bits, const int cert_days, 
 
   if (X509_gmtime_adj(X509_get_notAfter(certificate.get()), 60L * 60L * 24L * cert_days) == nullptr) {
     throw std::runtime_error(std::string("X509_gmtime_adj failed: ") + ERR_error_string(ERR_get_error(), nullptr));
+  }
+
+  // self-sign
+  if (self_sign) {
+    const EVP_MD *cert_digest = EVP_sha256();
+    if (X509_sign(certificate.get(), certificate_pkey.get(), cert_digest) == 0) {
+      throw std::runtime_error(std::string("X509_sign failed: ") + ERR_error_string(ERR_get_error(), nullptr));
+    }
+    LOG_INFO << "Successfully self-signed the generated certificate. This should not be used in production!";
   }
 
   return certificate;

@@ -94,7 +94,7 @@ class Crypto {
 
   static StructGuard<X509> generateCert(const int rsa_bits, const int cert_days, const std::string &cert_c,
                                         const std::string &cert_st, const std::string &cert_o,
-                                        const std::string &cert_cn);
+                                        const std::string &cert_cn, bool self_sign = false);
   static void signCert(const std::string &cacert_path, const std::string &capkey_path, X509 *const certificate);
   static void serializeCert(std::string *pkey, std::string *cert, X509 *const certificate);
 };
