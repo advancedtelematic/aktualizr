@@ -50,6 +50,46 @@ void INvStorage::importUpdateSimple(const boost::filesystem::path& base_path, st
   }
 }
 
+void INvStorage::importUpdateCertificate(const boost::filesystem::path& base_path,
+                                         const utils::BasedPath& imported_data_path) {
+  std::string prev_content;
+  std::string content;
+  bool update = false;
+  if (!loadTlsCert(&prev_content)) {
+    update = true;
+  } else if (!imported_data_path.empty()) {
+    content = Utils::readFile(imported_data_path.get(base_path).string());
+    if (Crypto::sha256digest(content) != Crypto::sha256digest(prev_content)) {
+      update = true;
+    }
+  }
+
+  if (update && !imported_data_path.empty()) {
+    boost::filesystem::path abs_path = imported_data_path.get(base_path);
+    if (!boost::filesystem::exists(abs_path)) {
+      LOG_ERROR << "Couldn't import client certificate: " << abs_path << " doesn't exist.";
+      return;
+    }
+    if (content.empty()) {
+      content = Utils::readFile(abs_path.string());
+    }
+
+    // Make sure the device ID of the new cert hasn't changed.
+    const std::string new_device_id = Crypto::extractSubjectCN(content);
+    std::string old_device_id;
+    if (!loadDeviceId(&old_device_id)) {
+      LOG_DEBUG << "Unable to load previous device ID.";
+    } else if (new_device_id != old_device_id) {
+      throw std::runtime_error(std::string("Certificate at ") + abs_path.string() + " has a device ID of " +
+                               new_device_id + " but the device currently is identified as " + old_device_id +
+                               ". Changing device ID is not supported!");
+    }
+
+    storeTlsCert(content);
+    LOG_DEBUG << "Successfully imported client certificate from " << abs_path;
+  }
+}
+
 void INvStorage::importPrimaryKeys(const boost::filesystem::path& base_path, const utils::BasedPath& import_pubkey_path,
                                    const utils::BasedPath& import_privkey_path) {
   if (loadPrimaryKeys(nullptr, nullptr) || import_pubkey_path.empty() || import_privkey_path.empty()) {
@@ -91,13 +131,11 @@ void INvStorage::importInstalledVersions(const boost::filesystem::path& base_pat
 void INvStorage::importData(const ImportConfig& import_config) {
   importPrimaryKeys(import_config.base_path, import_config.uptane_public_key_path,
                     import_config.uptane_private_key_path);
+  importUpdateCertificate(import_config.base_path, import_config.tls_clientcert_path);
   importUpdateSimple(import_config.base_path, &INvStorage::storeTlsCa, &INvStorage::loadTlsCa,
                      import_config.tls_cacert_path, "server CA certificate");
-  importUpdateSimple(import_config.base_path, &INvStorage::storeTlsCert, &INvStorage::loadTlsCert,
-                     import_config.tls_clientcert_path, "client certificate");
   importUpdateSimple(import_config.base_path, &INvStorage::storeTlsPkey, &INvStorage::loadTlsPkey,
                      import_config.tls_pkey_path, "client TLS key");
-
   importInstalledVersions(import_config.base_path);
 }
 
