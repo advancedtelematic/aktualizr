@@ -349,10 +349,10 @@ int main(int argc, char* argv[]) {
         }
       }
 
-      if (!Crypto::generateAndSignCert(fleet_ca_path.native(), fleet_ca_key_path.native(), &pkey, &cert, rsa_bits,
-                                       cert_days, newcert_c, newcert_st, newcert_o, device_id)) {
-        return EXIT_FAILURE;
-      }
+      StructGuard<X509> certificate =
+          Crypto::generateCert(rsa_bits, cert_days, newcert_c, newcert_st, newcert_o, device_id);
+      Crypto::signCert(fleet_ca_path.native(), fleet_ca_key_path.native(), certificate.get());
+      Crypto::serializeCert(&pkey, &cert, certificate.get());
 
       if (provide_ca) {
         // Read server root CA from server_ca.pem in archive if found (to support

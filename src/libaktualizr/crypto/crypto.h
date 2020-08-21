@@ -92,9 +92,11 @@ class Crypto {
   static bool IsRsaKeyType(KeyType type);
   static KeyType IdentifyRSAKeyType(const std::string &public_key_pem);
 
-  static bool generateAndSignCert(const std::string &cacert_path, const std::string &capkey_path, std::string *pkey,
-                                  std::string *cert, const int rsa_bits, const int cert_days, const std::string &cert_c,
-                                  const std::string &cert_st, const std::string &cert_o, const std::string &cert_cn);
+  static StructGuard<X509> generateCert(const int rsa_bits, const int cert_days, const std::string &cert_c,
+                                        const std::string &cert_st, const std::string &cert_o,
+                                        const std::string &cert_cn);
+  static void signCert(const std::string &cacert_path, const std::string &capkey_path, X509 *const certificate);
+  static void serializeCert(std::string *pkey, std::string *cert, X509 *const certificate);
 };
 
 #endif  // CRYPTO_H_
