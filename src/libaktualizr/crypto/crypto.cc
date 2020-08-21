@@ -346,32 +346,42 @@ StructGuard<EVP_PKEY> Crypto::generateRSAKeyPairEVP(KeyType key_type) {
       return {nullptr, EVP_PKEY_free};
   }
 
-  int ret;
+  return Crypto::generateRSAKeyPairEVP(bits);
+}
 
-  ret = RAND_status();
+StructGuard<EVP_PKEY> Crypto::generateRSAKeyPairEVP(const int bits) {
+  if (bits < 31) {  // sic!
+    throw std::runtime_error("RSA key size can't be smaller than 31 bits");
+  }
+
+  int ret = RAND_status();
   if (ret != 1) { /* random generator has NOT been seeded with enough data */
     ret = RAND_poll();
     if (ret != 1) { /* seed data was NOT generated */
-      return {nullptr, EVP_PKEY_free};
+      throw std::runtime_error("Random generator has not been sufficiently seeded.");
     }
   }
 
+  /* exponent - RSA_F4 is defined as 0x10001L */
   StructGuard<BIGNUM> bne(BN_new(), BN_free);
-  ret = BN_set_word(bne.get(), RSA_F4);
-  if (ret != 1) {
-    return {nullptr, EVP_PKEY_free};
+  if (BN_set_word(bne.get(), RSA_F4) != 1) {
+    throw std::runtime_error(std::string("BN_set_word failed: ") + ERR_error_string(ERR_get_error(), nullptr));
   }
+
   StructGuard<RSA> rsa(RSA_new(), RSA_free);
-  ret = RSA_generate_key_ex(rsa.get(), bits, /* number of bits for the key - 2048 is a sensible value */
-                            bne.get(),       /* exponent - RSA_F4 is defined as 0x10001L */
-                            nullptr);        /* callback argument - not needed in this case */
-  if (ret != 1) {
-    return {nullptr, EVP_PKEY_free};
+  if (RSA_generate_key_ex(rsa.get(), bits, bne.get(), nullptr) != 1) {
+    throw std::runtime_error(std::string("RSA_generate_key_ex failed: ") + ERR_error_string(ERR_get_error(), nullptr));
   }
 
   StructGuard<EVP_PKEY> pkey(EVP_PKEY_new(), EVP_PKEY_free);
+  if (pkey.get() == nullptr) {
+    throw std::runtime_error(std::string("EVP_PKEY_new failed: ") + ERR_error_string(ERR_get_error(), nullptr));
+  }
+
   // release the rsa pointer here, pkey is the new owner
-  EVP_PKEY_assign_RSA(pkey.get(), rsa.release());  // NOLINT
+  if (!EVP_PKEY_assign_RSA(pkey.get(), rsa.release())) {  // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+    throw std::runtime_error(std::string("EVP_PKEY_assign_RSA failed: ") + ERR_error_string(ERR_get_error(), nullptr));
+  }
   return pkey;
 }
 
@@ -482,10 +492,6 @@ KeyType Crypto::IdentifyRSAKeyType(const std::string &public_key_pem) {
 StructGuard<X509> Crypto::generateCert(const int rsa_bits, const int cert_days, const std::string &cert_c,
                                        const std::string &cert_st, const std::string &cert_o,
                                        const std::string &cert_cn, bool self_sign) {
-  if (rsa_bits < 31) {  // sic!
-    throw std::runtime_error("RSA key size can't be smaller than 31 bits");
-  }
-
   // create certificate
   StructGuard<X509> certificate(X509_new(), X509_free);
   if (certificate.get() == nullptr) {
@@ -542,28 +548,8 @@ StructGuard<X509> Crypto::generateCert(const int rsa_bits, const int cert_days, 
                              ERR_error_string(ERR_get_error(), nullptr));
   }
 
-  // create and set key (would be nice to reuse generateRSAKeyPairEVP but the
-  // complications with reusing certificate_rsa below make that hard).
-
-  StructGuard<BIGNUM> bne(BN_new(), BN_free);
-  if (BN_set_word(bne.get(), RSA_F4) != 1) {
-    throw std::runtime_error(std::string("BN_set_word failed: ") + ERR_error_string(ERR_get_error(), nullptr));
-  }
-
-  // freed by owner EVP_PKEY
-  RSA *certificate_rsa = RSA_new();
-  if (RSA_generate_key_ex(certificate_rsa, rsa_bits, bne.get(), nullptr) != 1) {
-    throw std::runtime_error(std::string("RSA_generate_key_ex failed: ") + ERR_error_string(ERR_get_error(), nullptr));
-  }
-
-  StructGuard<EVP_PKEY> certificate_pkey(EVP_PKEY_new(), EVP_PKEY_free);
-  if (certificate_pkey.get() == nullptr) {
-    throw std::runtime_error(std::string("EVP_PKEY_new failed: ") + ERR_error_string(ERR_get_error(), nullptr));
-  }
-
-  if (!EVP_PKEY_assign_RSA(certificate_pkey.get(), certificate_rsa)) {  // NOLINT
-    throw std::runtime_error(std::string("EVP_PKEY_assign_RSA failed: ") + ERR_error_string(ERR_get_error(), nullptr));
-  }
+  // create and set key.
+  StructGuard<EVP_PKEY> certificate_pkey(Crypto::generateRSAKeyPairEVP(rsa_bits));
 
   if (X509_set_pubkey(certificate.get(), certificate_pkey.get()) == 0) {
     throw std::runtime_error(std::string("X509_set_pubkey failed: ") + ERR_error_string(ERR_get_error(), nullptr));

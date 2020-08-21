@@ -82,6 +82,7 @@ class Crypto {
                        std::string *out_ca);
   static std::string extractSubjectCN(const std::string &cert);
   static StructGuard<EVP_PKEY> generateRSAKeyPairEVP(KeyType key_type);
+  static StructGuard<EVP_PKEY> generateRSAKeyPairEVP(const int bits);
   static bool generateRSAKeyPair(KeyType key_type, std::string *public_key, std::string *private_key);
   static bool generateEDKeyPair(std::string *public_key, std::string *private_key);
   static bool generateKeyPair(KeyType key_type, std::string *public_key, std::string *private_key);
