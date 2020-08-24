@@ -78,20 +78,24 @@ Docker Setup:
 
 # static scans:
 
-bandit-sast:
-  stage: static scans
-
-flawfinder-sast:
-  stage: static scans
-
 license_scanning:
   stage: static scans
 
+bandit-sast:
+  stage: static scans
+  needs: []
+
+flawfinder-sast:
+  stage: static scans
+  needs: []
+
 secret_detection:
   stage: static scans
+  needs: []
 
 secrets-sast:
   stage: static scans
+  needs: []
 
 
 coverage:
@@ -108,6 +112,7 @@ coverage:
     TEST_SOTA_PACKED_CREDENTIALS: "$CI_PROJECT_DIR/credentials.zip"
   image: "$UBUNTU_BIONIC_PR_IMAGE"
   stage: test
+  needs: ["Docker Setup"]
   except:
     - /^20\d\d\.\d\d?-docs$/
     - /^docs\//
@@ -135,6 +140,7 @@ nop11:
     TEST_WITH_TESTSUITE: '0'
   image: "$UBUNTU_BIONIC_PR_IMAGE"
   stage: test
+  needs: ["Docker Setup"]
   except:
     - /^20\d\d\.\d\d?-docs$/
     - /^docs\//
@@ -160,6 +166,7 @@ focal-build-static:
     TEST_WITH_DOCS: '1'
   image: "$UBUNTU_FOCAL_PR_IMAGE"
   stage: test
+  needs: ["Docker Setup"]
   except:
     - /^20\d\d\.\d\d?-docs$/
     - /^docs\//
@@ -176,7 +183,23 @@ focal-build-static:
     - ./scripts/test.sh
     - xsltproc -o build-ubuntu-focal/report.xml ./third_party/junit/ctest2junit.xsl build-ubuntu-focal/Testing/**/Test.xml > /dev/null
 
+
+.u-pkg:
+  needs: ["Docker Setup"]
+  stage: test
+  except:
+    - /^20\d\d\.\d\d?-docs$/
+    - /^docs\//
+  cache:
+    key: "$CI_JOB_NAME"
+    paths:
+      - ccache/
+  script:
+    - mkdir -p $TEST_INSTALL_DESTDIR
+    - ./scripts/build_ubuntu.sh
+
 bionic-pkg:
+  extends: .u-pkg
   variables:
     GIT_CLONE_PATH: $CI_BUILDS_DIR/aktualizr-bionic-pkg-$CI_JOB_ID
     GIT_SUBMODULE_STRATEGY: 'recursive'
@@ -184,24 +207,13 @@ bionic-pkg:
     TEST_BUILD_DIR: 'build-bionic'
     TEST_INSTALL_RELEASE_NAME: '-ubuntu_18.04'
     TEST_INSTALL_DESTDIR: "$CI_PROJECT_DIR/build-bionic/pkg"
-
   image: "$UBUNTU_BIONIC_PR_IMAGE"
-  stage: test
-  except:
-    - /^20\d\d\.\d\d?-docs$/
-    - /^docs\//
-  cache:
-    key: "$CI_JOB_NAME"
-    paths:
-      - ccache/
   artifacts:
     paths:
       - build-bionic/pkg
-  script:
-    - mkdir -p $TEST_INSTALL_DESTDIR
-    - ./scripts/build_ubuntu.sh
 
 xenial-pkg:
+  extends: .u-pkg
   variables:
     GIT_CLONE_PATH: $CI_BUILDS_DIR/aktualizr-xenial-pkg-$CI_JOB_ID
     GIT_SUBMODULE_STRATEGY: 'recursive'
@@ -209,48 +221,35 @@ xenial-pkg:
     TEST_BUILD_DIR: 'build-xenial'
     TEST_INSTALL_RELEASE_NAME: '-ubuntu_16.04'
     TEST_INSTALL_DESTDIR: "$CI_PROJECT_DIR/build-xenial/pkg"
-
   image: "$UBUNTU_XENIAL_PR_IMAGE"
-  stage: test
-  except:
-    - /^20\d\d\.\d\d?-docs$/
-    - /^docs\//
-  cache:
-    key: "$CI_JOB_NAME"
-    paths:
-      - ccache/
   artifacts:
     paths:
       - build-xenial/pkg
+
+
+.pkg-test:
+  stage: pkg-test
+  except:
+    - /^20\d\d\.\d\d?-docs$/
+    - /^docs\//
   script:
-    - mkdir -p $TEST_INSTALL_DESTDIR
-    - ./scripts/build_ubuntu.sh
+    - ./scripts/test_install_garage_deploy.sh
+    - ./scripts/test_install_aktualizr.sh
 
 bionic-pkg-test:
+  extends: .pkg-test
   variables:
     TEST_INSTALL_DESTDIR: "$CI_PROJECT_DIR/build-bionic/pkg"
   needs: ["bionic-pkg"]
   image: "$UBUNTU_BIONIC_PR_INSTALLIMAGE"
-  stage: pkg-test
-  except:
-    - /^20\d\d\.\d\d?-docs$/
-    - /^docs\//
-  script:
-    - ./scripts/test_install_garage_deploy.sh
-    - ./scripts/test_install_aktualizr.sh
 
 xenial-pkg-test:
+  extends: .pkg-test
   variables:
     TEST_INSTALL_DESTDIR: "$CI_PROJECT_DIR/build-xenial/pkg"
   needs: ["xenial-pkg"]
   image: "$UBUNTU_XENIAL_PR_INSTALLIMAGE"
-  stage: pkg-test
-  except:
-    - /^20\d\d\.\d\d?-docs$/
-    - /^docs\//
-  script:
-    - ./scripts/test_install_garage_deploy.sh
-    - ./scripts/test_install_aktualizr.sh
+
 
 # -- yocto tests
 
@@ -272,7 +271,7 @@ OE Docker setup:
 OE Checkout:
   extends: .bb_checkout
   stage: oe-checkout
-  dependencies: []
+  needs: []
   variables:
       GIT_CHECKOUT: 'false'
   only:
@@ -316,10 +315,8 @@ Ptest qemux86_64:
 github-release:
   image: "$UBUNTU_BIONIC_PR_IMAGE"
   stage: deploy
-  dependencies:
-    - bionic-pkg
-    - xenial-pkg
-    - focal-build-static  # for doxygen
+  # focal-build-static is needed for doxygen
+  needs: ["bionic-pkg", "xenial-pkg", "focal-build-static"]
   script:
     # github release
     - ./scripts/make_src_archive.sh ./aktualizr_src-$CI_COMMIT_TAG.tar.gz
@@ -345,8 +342,7 @@ github-release:
 
 pages:
   stage: deploy
-  dependencies:
-    - coverage
+  needs: ["coverage"]
   script:
     - mv build-coverage/coverage/ public/
   artifacts:
@@ -369,13 +365,13 @@ app-docker-image:
     - master
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
-  dependencies: []
+  needs: []
   allow_failure: true
   before_script:
     - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
   script:
-    - sed 's@advancedtelematic/aktualizr-base@'$UBUNTU_BIONIC_MASTER_IMAGE'@' ./docker/Dockerfile.aktualizr > ./ci/gitlab/Dockerfile
-    - docker build -t $CI_REGISTRY_IMAGE/app:ci-$CI_COMMIT_REF_SLUG -f ./ci/gitlab/Dockerfile .
+    - cp ./docker/Dockerfile.aktualizr ./ci/gitlab/Dockerfile
+    - docker build --build-arg AKTUALIZR_BASE=$UBUNTU_BIONIC_MASTER_IMAGE -t $CI_REGISTRY_IMAGE/app:ci-$CI_COMMIT_REF_SLUG -f ./ci/gitlab/Dockerfile .
     - docker push $CI_REGISTRY_IMAGE/app:ci-$CI_COMMIT_REF_SLUG
 
 trigger-device-farm-pipeline:
@@ -390,8 +386,7 @@ trigger-otf-pipeline:
   image: "$UBUNTU_BIONIC_PR_IMAGE"
   stage: trigger
   when: on_success
-  dependencies:
-    - github-release
+  needs: ["github-release"]
   script:
     - curl -X POST -F "token=$CI_JOB_TOKEN" -F "ref=master" -F "variables[TEST_JOB_ONLY]=true" https://main.gitlab.in.here.com/api/v4/projects/163/trigger/pipeline
   only:
@@ -421,8 +416,7 @@ trigger-osx-build:
 
 build-osx-release:
   stage: trigger
-  dependencies:
-    - github-release
+  needs: ["github-release"]
   variables:
     VERSION: "$CI_COMMIT_TAG"
     REVISION: "$CI_COMMIT_SHA"
