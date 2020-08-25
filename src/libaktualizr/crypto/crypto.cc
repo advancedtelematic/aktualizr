@@ -2,6 +2,7 @@
 
 #include <array>
 #include <iostream>
+#include <random>
 
 #include <sodium.h>
 #include <boost/algorithm/hex.hpp>
@@ -313,21 +314,20 @@ bool Crypto::parseP12(BIO *p12_bio, const std::string &p12_password, std::string
   return true;
 }
 
-bool Crypto::extractSubjectCN(const std::string &cert, std::string *cn) {
+std::string Crypto::extractSubjectCN(const std::string &cert) {
   StructGuard<BIO> bio(BIO_new_mem_buf(const_cast<char *>(cert.c_str()), static_cast<int>(cert.size())), BIO_vfree);
   StructGuard<X509> x(PEM_read_bio_X509(bio.get(), nullptr, nullptr, nullptr), X509_free);
   if (x == nullptr) {
-    return false;
+    throw std::runtime_error("Could not parse certificate");
   }
 
   int len = X509_NAME_get_text_by_NID(X509_get_subject_name(x.get()), NID_commonName, nullptr, 0);
   if (len < 0) {
-    return false;
+    throw std::runtime_error("Could not get CN from certificate");
   }
   boost::scoped_array<char> buf(new char[len + 1]);
   X509_NAME_get_text_by_NID(X509_get_subject_name(x.get()), NID_commonName, buf.get(), len + 1);
-  *cn = std::string(buf.get());
-  return true;
+  return std::string(buf.get());
 }
 
 StructGuard<EVP_PKEY> Crypto::generateRSAKeyPairEVP(KeyType key_type) {
@@ -346,32 +346,42 @@ StructGuard<EVP_PKEY> Crypto::generateRSAKeyPairEVP(KeyType key_type) {
       return {nullptr, EVP_PKEY_free};
   }
 
-  int ret;
+  return Crypto::generateRSAKeyPairEVP(bits);
+}
 
-  ret = RAND_status();
+StructGuard<EVP_PKEY> Crypto::generateRSAKeyPairEVP(const int bits) {
+  if (bits < 31) {  // sic!
+    throw std::runtime_error("RSA key size can't be smaller than 31 bits");
+  }
+
+  int ret = RAND_status();
   if (ret != 1) { /* random generator has NOT been seeded with enough data */
     ret = RAND_poll();
     if (ret != 1) { /* seed data was NOT generated */
-      return {nullptr, EVP_PKEY_free};
+      throw std::runtime_error("Random generator has not been sufficiently seeded.");
     }
   }
 
+  /* exponent - RSA_F4 is defined as 0x10001L */
   StructGuard<BIGNUM> bne(BN_new(), BN_free);
-  ret = BN_set_word(bne.get(), RSA_F4);
-  if (ret != 1) {
-    return {nullptr, EVP_PKEY_free};
+  if (BN_set_word(bne.get(), RSA_F4) != 1) {
+    throw std::runtime_error(std::string("BN_set_word failed: ") + ERR_error_string(ERR_get_error(), nullptr));
   }
+
   StructGuard<RSA> rsa(RSA_new(), RSA_free);
-  ret = RSA_generate_key_ex(rsa.get(), bits, /* number of bits for the key - 2048 is a sensible value */
-                            bne.get(),       /* exponent - RSA_F4 is defined as 0x10001L */
-                            nullptr);        /* callback argument - not needed in this case */
-  if (ret != 1) {
-    return {nullptr, EVP_PKEY_free};
+  if (RSA_generate_key_ex(rsa.get(), bits, bne.get(), nullptr) != 1) {
+    throw std::runtime_error(std::string("RSA_generate_key_ex failed: ") + ERR_error_string(ERR_get_error(), nullptr));
   }
 
   StructGuard<EVP_PKEY> pkey(EVP_PKEY_new(), EVP_PKEY_free);
+  if (pkey.get() == nullptr) {
+    throw std::runtime_error(std::string("EVP_PKEY_new failed: ") + ERR_error_string(ERR_get_error(), nullptr));
+  }
+
   // release the rsa pointer here, pkey is the new owner
-  EVP_PKEY_assign_RSA(pkey.get(), rsa.release());  // NOLINT
+  if (!EVP_PKEY_assign_RSA(pkey.get(), rsa.release())) {  // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+    throw std::runtime_error(std::string("EVP_PKEY_assign_RSA failed: ") + ERR_error_string(ERR_get_error(), nullptr));
+  }
   return pkey;
 }
 
@@ -447,6 +457,7 @@ bool Crypto::IsRsaKeyType(KeyType type) {
       return false;
   }
 }
+
 KeyType Crypto::IdentifyRSAKeyType(const std::string &public_key_pem) {
   StructGuard<BIO> bufio(BIO_new_mem_buf(reinterpret_cast<const void *>(public_key_pem.c_str()),
                                          static_cast<int>(public_key_pem.length())),
@@ -476,6 +487,176 @@ KeyType Crypto::IdentifyRSAKeyType(const std::string &public_key_pem) {
       LOG_WARNING << "Weird key length:" << key_length;
       return KeyType::kUnknown;
   }
+}
+
+StructGuard<X509> Crypto::generateCert(const int rsa_bits, const int cert_days, const std::string &cert_c,
+                                       const std::string &cert_st, const std::string &cert_o,
+                                       const std::string &cert_cn, bool self_sign) {
+  // create certificate
+  StructGuard<X509> certificate(X509_new(), X509_free);
+  if (certificate.get() == nullptr) {
+    throw std::runtime_error(std::string("X509_new failed: ") + ERR_error_string(ERR_get_error(), nullptr));
+  }
+
+  X509_set_version(certificate.get(), 2);  // X509v3
+
+  {
+    std::random_device urandom;
+    std::uniform_int_distribution<> serial_dist(0, (1UL << 20) - 1);
+    ASN1_INTEGER_set(X509_get_serialNumber(certificate.get()), serial_dist(urandom));
+  }
+
+  // create and set certificate subject name
+  StructGuard<X509_NAME> subj(X509_NAME_new(), X509_NAME_free);
+  if (subj.get() == nullptr) {
+    throw std::runtime_error(std::string("X509_NAME_new failed: ") + ERR_error_string(ERR_get_error(), nullptr));
+  }
+
+  if (!cert_c.empty()) {
+    if (X509_NAME_add_entry_by_txt(subj.get(), "C", MBSTRING_ASC,
+                                   reinterpret_cast<const unsigned char *>(cert_c.c_str()), -1, -1, 0) == 0) {
+      throw std::runtime_error(std::string("X509_NAME_add_entry_by_txt failed: ") +
+                               ERR_error_string(ERR_get_error(), nullptr));
+    }
+  }
+
+  if (!cert_st.empty()) {
+    if (X509_NAME_add_entry_by_txt(subj.get(), "ST", MBSTRING_ASC,
+                                   reinterpret_cast<const unsigned char *>(cert_st.c_str()), -1, -1, 0) == 0) {
+      throw std::runtime_error(std::string("X509_NAME_add_entry_by_txt failed: ") +
+                               ERR_error_string(ERR_get_error(), nullptr));
+    }
+  }
+
+  if (!cert_o.empty()) {
+    if (X509_NAME_add_entry_by_txt(subj.get(), "O", MBSTRING_ASC,
+                                   reinterpret_cast<const unsigned char *>(cert_o.c_str()), -1, -1, 0) == 0) {
+      throw std::runtime_error(std::string("X509_NAME_add_entry_by_txt failed: ") +
+                               ERR_error_string(ERR_get_error(), nullptr));
+    }
+  }
+
+  assert(!cert_cn.empty());
+  if (X509_NAME_add_entry_by_txt(subj.get(), "CN", MBSTRING_ASC,
+                                 reinterpret_cast<const unsigned char *>(cert_cn.c_str()), -1, -1, 0) == 0) {
+    throw std::runtime_error(std::string("X509_NAME_add_entry_by_txt failed: ") +
+                             ERR_error_string(ERR_get_error(), nullptr));
+  }
+
+  if (X509_set_subject_name(certificate.get(), subj.get()) == 0) {
+    throw std::runtime_error(std::string("X509_set_subject_name failed: ") +
+                             ERR_error_string(ERR_get_error(), nullptr));
+  }
+
+  // create and set key.
+  StructGuard<EVP_PKEY> certificate_pkey(Crypto::generateRSAKeyPairEVP(rsa_bits));
+
+  if (X509_set_pubkey(certificate.get(), certificate_pkey.get()) == 0) {
+    throw std::runtime_error(std::string("X509_set_pubkey failed: ") + ERR_error_string(ERR_get_error(), nullptr));
+  }
+
+  //    set validity period
+  if (X509_gmtime_adj(X509_get_notBefore(certificate.get()), 0) == nullptr) {
+    throw std::runtime_error(std::string("X509_gmtime_adj failed: ") + ERR_error_string(ERR_get_error(), nullptr));
+  }
+
+  if (X509_gmtime_adj(X509_get_notAfter(certificate.get()), 60L * 60L * 24L * cert_days) == nullptr) {
+    throw std::runtime_error(std::string("X509_gmtime_adj failed: ") + ERR_error_string(ERR_get_error(), nullptr));
+  }
+
+  // self-sign
+  if (self_sign) {
+    const EVP_MD *cert_digest = EVP_sha256();
+    if (X509_sign(certificate.get(), certificate_pkey.get(), cert_digest) == 0) {
+      throw std::runtime_error(std::string("X509_sign failed: ") + ERR_error_string(ERR_get_error(), nullptr));
+    }
+    LOG_INFO << "Successfully self-signed the generated certificate. This should not be used in production!";
+  }
+
+  return certificate;
+}
+
+void Crypto::signCert(const std::string &cacert_path, const std::string &capkey_path, X509 *const certificate) {
+  // read CA certificate
+  std::string cacert_contents = Utils::readFile(cacert_path);
+  StructGuard<BIO> bio_in_cacert(BIO_new_mem_buf(cacert_contents.c_str(), static_cast<int>(cacert_contents.size())),
+                                 BIO_free_all);
+  StructGuard<X509> ca_certificate(PEM_read_bio_X509(bio_in_cacert.get(), nullptr, nullptr, nullptr), X509_free);
+  if (ca_certificate.get() == nullptr) {
+    throw std::runtime_error(std::string("Reading CA certificate failed: ") +
+                             ERR_error_string(ERR_get_error(), nullptr));
+  }
+
+  // read CA private key
+  std::string capkey_contents = Utils::readFile(capkey_path);
+  StructGuard<BIO> bio_in_capkey(BIO_new_mem_buf(capkey_contents.c_str(), static_cast<int>(capkey_contents.size())),
+                                 BIO_free_all);
+  StructGuard<EVP_PKEY> ca_privkey(PEM_read_bio_PrivateKey(bio_in_capkey.get(), nullptr, nullptr, nullptr),
+                                   EVP_PKEY_free);
+  if (ca_privkey.get() == nullptr) {
+    throw std::runtime_error(std::string("PEM_read_bio_PrivateKey failed: ") +
+                             ERR_error_string(ERR_get_error(), nullptr));
+  }
+
+  // set issuer name
+  X509_NAME *ca_subj = X509_get_subject_name(ca_certificate.get());
+  if (ca_subj == nullptr) {
+    throw std::runtime_error(std::string("X509_get_subject_name failed: ") +
+                             ERR_error_string(ERR_get_error(), nullptr));
+  }
+
+  if (X509_set_issuer_name(certificate, ca_subj) == 0) {
+    throw std::runtime_error(std::string("X509_set_issuer_name failed: ") + ERR_error_string(ERR_get_error(), nullptr));
+  }
+
+  // sign
+  const EVP_MD *cert_digest = EVP_sha256();
+  if (X509_sign(certificate, ca_privkey.get(), cert_digest) == 0) {
+    throw std::runtime_error(std::string("X509_sign failed: ") + ERR_error_string(ERR_get_error(), nullptr));
+  }
+}
+
+void Crypto::serializeCert(std::string *pkey, std::string *cert, X509 *const certificate) {
+  // serialize private key
+  char *privkey_buf;
+  StructGuard<BIO> privkey_file(BIO_new(BIO_s_mem()), BIO_vfree);
+  if (privkey_file == nullptr) {
+    throw std::runtime_error(std::string("BIO_new failed: ") + ERR_error_string(ERR_get_error(), nullptr));
+  }
+
+  StructGuard<EVP_PKEY> certificate_pkey(X509_get_pubkey(certificate), EVP_PKEY_free);
+  if (certificate_pkey == nullptr) {
+    throw std::runtime_error(std::string("X509_get_pubkey failed: ") + ERR_error_string(ERR_get_error(), nullptr));
+  }
+
+  StructGuard<RSA> certificate_rsa(EVP_PKEY_get1_RSA(certificate_pkey.get()), RSA_free);
+  if (certificate_rsa == nullptr) {
+    throw std::runtime_error(std::string("EVP_PKEY_get1_RSA failed: ") + ERR_error_string(ERR_get_error(), nullptr));
+  }
+
+  int ret =
+      PEM_write_bio_RSAPrivateKey(privkey_file.get(), certificate_rsa.get(), nullptr, nullptr, 0, nullptr, nullptr);
+  if (ret == 0) {
+    throw std::runtime_error(std::string("PEM_write_RSAPrivateKey failed: ") +
+                             ERR_error_string(ERR_get_error(), nullptr));
+  }
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
+  auto privkey_len = BIO_get_mem_data(privkey_file.get(), &privkey_buf);
+  *pkey = std::string(privkey_buf, static_cast<size_t>(privkey_len));
+
+  // serialize certificate
+  char *cert_buf;
+  StructGuard<BIO> cert_file(BIO_new(BIO_s_mem()), BIO_vfree);
+  if (cert_file == nullptr) {
+    throw std::runtime_error(std::string("BIO_new failed: ") + ERR_error_string(ERR_get_error(), nullptr));
+  }
+  ret = PEM_write_bio_X509(cert_file.get(), certificate);
+  if (ret == 0) {
+    throw std::runtime_error(std::string("PEM_write_bio_X509 failed: ") + ERR_error_string(ERR_get_error(), nullptr));
+  }
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
+  auto cert_len = BIO_get_mem_data(cert_file.get(), &cert_buf);
+  *cert = std::string(cert_buf, static_cast<size_t>(cert_len));
 }
 
 MultiPartHasher::Ptr MultiPartHasher::create(Hash::Type hash_type) {

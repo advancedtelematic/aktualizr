@@ -101,8 +101,7 @@ TEST(crypto, certificate_pkcs11) {
   EXPECT_TRUE(res);
   if (!res) return;
 
-  std::string device_name;
-  EXPECT_TRUE(Crypto::extractSubjectCN(cert, &device_name));
+  const std::string device_name = Crypto::extractSubjectCN(cert);
   EXPECT_EQ(device_name, "cc34f7f3-481d-443b-bceb-e838a36a2d1f");
 }
 #endif

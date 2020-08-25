@@ -23,7 +23,7 @@ if(STORAGE_TYPE STREQUAL "sqlite")
   add_aktualizr_test(NAME sql_utils SOURCES sql_utils_test.cc PROJECT_WORKING_DIRECTORY)
   add_aktualizr_test(NAME sqlstorage SOURCES sqlstorage_test.cc ARGS ${CMAKE_CURRENT_SOURCE_DIR}/test)
   list(REMOVE_ITEM TEST_SOURCES sql_schemas.cc)
-  add_aktualizr_test(NAME storage SOURCES storage_common_test.cc PROJECT_WORKING_DIRECTORY)
+  add_aktualizr_test(NAME storage_common SOURCES storage_common_test.cc PROJECT_WORKING_DIRECTORY)
 
   add_test(NAME test_schema_migration
       COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/schema_migration_test.sh ${PROJECT_SOURCE_DIR}/config/sql)

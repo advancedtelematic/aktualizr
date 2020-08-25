@@ -6,7 +6,6 @@
 #include <boost/filesystem.hpp>
 
 #include "libaktualizr/types.h"
-#include "logging/logging.h"
 #include "storage/sqlstorage.h"
 #include "utilities/utils.h"
 
@@ -37,7 +36,7 @@ StorageConfig MakeConfig(StorageType type, const boost::filesystem::path &storag
 }
 
 /* Load and store Primary keys. */
-TEST(storage, load_store_primary_keys) {
+TEST(StorageCommon, LoadStorePrimaryKeys) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
@@ -55,7 +54,7 @@ TEST(storage, load_store_primary_keys) {
 }
 
 /* Load and store TLS credentials. */
-TEST(storage, load_store_tls) {
+TEST(StorageCommon, LoadStoreTls) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
@@ -75,7 +74,7 @@ TEST(storage, load_store_tls) {
 }
 
 /* Load and store Uptane metadata. */
-TEST(storage, load_store_metadata) {
+TEST(StorageCommon, LoadStoreMetadata) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
@@ -174,7 +173,7 @@ TEST(storage, load_store_metadata) {
 }
 
 /* Load and store Uptane roots. */
-TEST(storage, load_store_root) {
+TEST(StorageCommon, LoadStoreRoot) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
@@ -210,7 +209,7 @@ TEST(storage, load_store_root) {
 }
 
 /* Load and store the device ID. */
-TEST(storage, load_store_deviceid) {
+TEST(StorageCommon, LoadStoreDeviceId) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
@@ -229,7 +228,7 @@ TEST(storage, load_store_deviceid) {
 /* Load and store ECU serials.
  * Preserve ECU ordering between store and load calls.
  */
-TEST(storage, load_store_ecu_serials) {
+TEST(StorageCommon, LoadStoreEcuSerials) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
@@ -249,7 +248,7 @@ TEST(storage, load_store_ecu_serials) {
 }
 
 /* Load and store a list of misconfigured ECUs. */
-TEST(storage, load_store_misconfigured_ecus) {
+TEST(StorageCommon, LoadStoreMisconfiguredEcus) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
@@ -271,7 +270,7 @@ TEST(storage, load_store_misconfigured_ecus) {
 }
 
 /* Load and store a flag indicating successful registration. */
-TEST(storage, load_store_ecu_registered) {
+TEST(StorageCommon, LoadStoreEcuRegistered) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
@@ -287,7 +286,7 @@ TEST(storage, load_store_ecu_registered) {
 }
 
 /* Load and store installed versions. */
-TEST(storage, load_store_installed_versions) {
+TEST(StorageCommon, LoadStoreInstalledVersions) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
@@ -423,7 +422,7 @@ TEST(storage, load_store_installed_versions) {
  * Load and store an ECU installation result in an SQL database.
  * Load and store a device installation result in an SQL database.
  */
-TEST(storage, load_store_installation_results) {
+TEST(StorageCommon, LoadStoreInstallationResults) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
@@ -466,7 +465,7 @@ TEST(storage, load_store_installation_results) {
       "This call will return a negative value since the installation report was cleaned!"));
 }
 
-TEST(storage, downloaded_files_info) {
+TEST(StorageCommon, DownloadedFilesInfo) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
@@ -486,7 +485,7 @@ TEST(storage, downloaded_files_info) {
   ASSERT_EQ(names.at(0), "target2");
 }
 
-TEST(storage, load_store_secondary_info) {
+TEST(StorageCommon, LoadStoreSecondaryInfo) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
@@ -526,8 +525,10 @@ TEST(storage, load_store_secondary_info) {
   EXPECT_EQ(sec_infos[0].extra, "data1");
 }
 
-/* Import keys and credentials from file into storage. */
-TEST(storage, import_data) {
+/* Import keys and credentials from file into storage.
+ * Re-import updated credentials from file into storage.
+ * Reject new certificate with a different device ID. */
+TEST(StorageImport, ImportData) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
   boost::filesystem::create_directories(temp_dir / "import");
@@ -540,15 +541,21 @@ TEST(storage, import_data) {
   import_config.tls_clientcert_path = utils::BasedPath("cert");
   import_config.tls_pkey_path = utils::BasedPath("pkey");
 
+  std::string tls_cert_in1;
+  std::string tls_pkey_in1;
+  const std::string device_id1 = "test_id1";
+  StructGuard<X509> certificate1 = Crypto::generateCert(1024, 365, "", "", "", device_id1, true);
+  Crypto::serializeCert(&tls_pkey_in1, &tls_cert_in1, certificate1.get());
+
   Utils::writeFile(import_config.uptane_private_key_path.get(import_config.base_path).string(),
                    std::string("uptane_private_1"));
   Utils::writeFile(import_config.uptane_public_key_path.get(import_config.base_path).string(),
                    std::string("uptane_public_1"));
   Utils::writeFile(import_config.tls_cacert_path.get(import_config.base_path).string(), std::string("tls_cacert_1"));
-  Utils::writeFile(import_config.tls_clientcert_path.get(import_config.base_path).string(), std::string("tls_cert_1"));
-  Utils::writeFile(import_config.tls_pkey_path.get(import_config.base_path).string(), std::string("tls_pkey_1"));
+  Utils::writeFile(import_config.tls_clientcert_path.get(import_config.base_path).string(), tls_cert_in1);
+  Utils::writeFile(import_config.tls_pkey_path.get(import_config.base_path).string(), tls_pkey_in1);
 
-  // Initially the storage is empty
+  // Initially the storage is empty.
   EXPECT_FALSE(storage->loadPrimaryPublic(nullptr));
   EXPECT_FALSE(storage->loadPrimaryPrivate(nullptr));
   EXPECT_FALSE(storage->loadTlsCa(nullptr));
@@ -556,6 +563,8 @@ TEST(storage, import_data) {
   EXPECT_FALSE(storage->loadTlsPkey(nullptr));
 
   storage->importData(import_config);
+  // Set the device ID to simulate initialization with the given certificate.
+  storage->storeDeviceId(device_id1);
 
   std::string primary_public;
   std::string primary_private;
@@ -563,7 +572,7 @@ TEST(storage, import_data) {
   std::string tls_cert;
   std::string tls_pkey;
 
-  // the data has been imported
+  // Verify that the data has been imported.
   EXPECT_TRUE(storage->loadPrimaryPublic(&primary_public));
   EXPECT_TRUE(storage->loadPrimaryPrivate(&primary_private));
   EXPECT_TRUE(storage->loadTlsCa(&tls_ca));
@@ -573,16 +582,56 @@ TEST(storage, import_data) {
   EXPECT_EQ(primary_private, "uptane_private_1");
   EXPECT_EQ(primary_public, "uptane_public_1");
   EXPECT_EQ(tls_ca, "tls_cacert_1");
-  EXPECT_EQ(tls_cert, "tls_cert_1");
-  EXPECT_EQ(tls_pkey, "tls_pkey_1");
+  EXPECT_EQ(tls_cert, tls_cert_in1);
+  EXPECT_EQ(tls_pkey, tls_pkey_in1);
+
+  // Create second TLS cert/key (with a different device ID) and other dummy
+  // files.
+  std::string tls_cert_in2;
+  std::string tls_pkey_in2;
+  const std::string device_id2 = "test_id2";
+  StructGuard<X509> certificate2 = Crypto::generateCert(1024, 365, "", "", "", device_id2, true);
+  Crypto::serializeCert(&tls_pkey_in2, &tls_cert_in2, certificate2.get());
+  EXPECT_NE(tls_cert_in1, tls_cert_in2);
+  EXPECT_NE(tls_pkey_in1, tls_pkey_in2);
 
   Utils::writeFile(import_config.uptane_private_key_path.get(import_config.base_path).string(),
                    std::string("uptane_private_2"));
   Utils::writeFile(import_config.uptane_public_key_path.get(import_config.base_path).string(),
                    std::string("uptane_public_2"));
   Utils::writeFile(import_config.tls_cacert_path.get(import_config.base_path).string(), std::string("tls_cacert_2"));
-  Utils::writeFile(import_config.tls_clientcert_path.get(import_config.base_path).string(), std::string("tls_cert_2"));
-  Utils::writeFile(import_config.tls_pkey_path.get(import_config.base_path).string(), std::string("tls_pkey_2"));
+  Utils::writeFile(import_config.tls_clientcert_path.get(import_config.base_path).string(), tls_cert_in2);
+  Utils::writeFile(import_config.tls_pkey_path.get(import_config.base_path).string(), tls_pkey_in2);
+
+  // Attempt to re-import, but expect failure because the TLS cert's device ID
+  // changed.
+  EXPECT_THROW(storage->importData(import_config), std::runtime_error);
+
+  EXPECT_TRUE(storage->loadPrimaryPublic(&primary_public));
+  EXPECT_TRUE(storage->loadPrimaryPrivate(&primary_private));
+  EXPECT_TRUE(storage->loadTlsCa(&tls_ca));
+  EXPECT_TRUE(storage->loadTlsCert(&tls_cert));
+  EXPECT_TRUE(storage->loadTlsPkey(&tls_pkey));
+
+  // Nothing should be updated. Uptane keys cannot be updated, and the TLS
+  // credentials should have failed.
+  EXPECT_EQ(primary_private, "uptane_private_1");
+  EXPECT_EQ(primary_public, "uptane_public_1");
+  EXPECT_EQ(tls_ca, "tls_cacert_1");
+  EXPECT_EQ(tls_cert, tls_cert_in1);
+  EXPECT_EQ(tls_pkey, tls_pkey_in1);
+
+  // Create third TLS cert/key (with the same device ID as the first) and other
+  // dummy files.
+  std::string tls_cert_in3;
+  std::string tls_pkey_in3;
+  StructGuard<X509> certificate3 = Crypto::generateCert(1024, 365, "", "", "", device_id1, true);
+  Crypto::serializeCert(&tls_pkey_in3, &tls_cert_in3, certificate3.get());
+  EXPECT_NE(tls_cert_in1, tls_cert_in3);
+  EXPECT_NE(tls_pkey_in1, tls_pkey_in3);
+
+  Utils::writeFile(import_config.tls_clientcert_path.get(import_config.base_path).string(), tls_cert_in3);
+  Utils::writeFile(import_config.tls_pkey_path.get(import_config.base_path).string(), tls_pkey_in3);
 
   storage->importData(import_config);
 
@@ -592,12 +641,12 @@ TEST(storage, import_data) {
   EXPECT_TRUE(storage->loadTlsCert(&tls_cert));
   EXPECT_TRUE(storage->loadTlsPkey(&tls_pkey));
 
-  // only root cert is being updated
+  // All TLS objects should be updated.
   EXPECT_EQ(primary_private, "uptane_private_1");
   EXPECT_EQ(primary_public, "uptane_public_1");
   EXPECT_EQ(tls_ca, "tls_cacert_2");
-  EXPECT_EQ(tls_cert, "tls_cert_1");
-  EXPECT_EQ(tls_pkey, "tls_pkey_1");
+  EXPECT_EQ(tls_cert, tls_cert_in3);
+  EXPECT_EQ(tls_pkey, tls_pkey_in3);
 }
 
 #ifndef __NO_MAIN__

@@ -80,8 +80,9 @@ class Crypto {
   static std::string ED25519Sign(const std::string &private_key, const std::string &message);
   static bool parseP12(BIO *p12_bio, const std::string &p12_password, std::string *out_pkey, std::string *out_cert,
                        std::string *out_ca);
-  static bool extractSubjectCN(const std::string &cert, std::string *cn);
+  static std::string extractSubjectCN(const std::string &cert);
   static StructGuard<EVP_PKEY> generateRSAKeyPairEVP(KeyType key_type);
+  static StructGuard<EVP_PKEY> generateRSAKeyPairEVP(const int bits);
   static bool generateRSAKeyPair(KeyType key_type, std::string *public_key, std::string *private_key);
   static bool generateEDKeyPair(std::string *public_key, std::string *private_key);
   static bool generateKeyPair(KeyType key_type, std::string *public_key, std::string *private_key);
@@ -91,6 +92,12 @@ class Crypto {
 
   static bool IsRsaKeyType(KeyType type);
   static KeyType IdentifyRSAKeyType(const std::string &public_key_pem);
+
+  static StructGuard<X509> generateCert(const int rsa_bits, const int cert_days, const std::string &cert_c,
+                                        const std::string &cert_st, const std::string &cert_o,
+                                        const std::string &cert_cn, bool self_sign = false);
+  static void signCert(const std::string &cacert_path, const std::string &capkey_path, X509 *const certificate);
+  static void serializeCert(std::string *pkey, std::string *cert, X509 *const certificate);
 };
 
 #endif  // CRYPTO_H_
