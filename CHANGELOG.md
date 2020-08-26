@@ -7,6 +7,25 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 ## [upcoming release]
 
 
+## [2020.9] - 2020-08-26
+
+### Added
+
+- Exceptions thrown through the API are now [documented](include/libaktualizr/aktualizr.h): [PR](https://github.com/advancedtelematic/aktualizr/pull/1737)
+- The client TLS certifcate and key can be re-imported from the filesystem as long as the device ID is unchanged: [PR](https://github.com/advancedtelematic/aktualizr/pull/1743)
+
+### Changed
+
+- More required headers for libaktualizr usage have been refactored for easier use: [PR](https://github.com/advancedtelematic/aktualizr/pull/1719)
+- All code is now checked with clang-tidy-10: [PR](https://github.com/advancedtelematic/aktualizr/pull/1724)
+
+### Removed
+
+- The Debain package manager has been removed as it was never fully functional: [PR](https://github.com/advancedtelematic/aktualizr/pull/1739)
+- Android support has been removed as it was an unfinished prototype: [PR](https://github.com/advancedtelematic/aktualizr/pull/1732)
+- The ISO-TP Secondary has been removed as it was an unmaintained prototype: [PR](https://github.com/advancedtelematic/aktualizr/pull/1732)
+
+
 ## [2020.8] - 2020-07-09
 
 ### Special considerations
@@ -38,7 +57,7 @@ As a result of changes to the IP/POSIX Secondary protocol (see below), users of 
 
 ### Fixed
 
-- Various docker-app fixes: [PR](https://github.com/advancedtelematic/aktualizr/pull/1664) [PR](https://github.com/advancedtelematic/aktualizr/pull/1665)
+- Various docker-app fixes: [PR #1664](https://github.com/advancedtelematic/aktualizr/pull/1664) and [PR #1665](https://github.com/advancedtelematic/aktualizr/pull/1665)
 - Use ED25519 to sign manifests when set as key type: [PR](https://github.com/advancedtelematic/aktualizr/pull/1608)
 
 ## [2020.6] - 2020-04-30
@@ -252,9 +271,9 @@ As a result of changes to the IP/POSIX Secondary protocol (see below), users of 
 - Target object equality requires that hardware IDs match: [PR](https://github.com/advancedtelematic/aktualizr/pull/1258)
 - aktualizr-repo image command now requires a hardware ID: [PR](https://github.com/advancedtelematic/aktualizr/pull/1258)
 - `GetStoredTargets` and `DeleteStoredTarget` aktualizr API methods: [PR](https://github.com/advancedtelematic/aktualizr/pull/1290)
-- [aktualizr-get](https://github.com/advancedtelematic/aktualizr/blob/master/src/aktualizr_get/main.cc) debugging tool: [PR](https://github.com/advancedtelematic/aktualizr/pull/1276)
+- [aktualizr-get](src/aktualizr_get/main.cc) debugging tool: [PR](https://github.com/advancedtelematic/aktualizr/pull/1276)
 - Automatic reboot command is now customizable: [PR](https://github.com/advancedtelematic/aktualizr/pull/1274)
-- Basic [C API](https://github.com/advancedtelematic/aktualizr/blob/master/include/libaktualizr-c.h): [PR](https://github.com/advancedtelematic/aktualizr/pull/1263)
+- Basic [C API](include/libaktualizr-c.h): [PR](https://github.com/advancedtelematic/aktualizr/pull/1263)
 - Ability to pass custom headers in HTTP requests: [PR](https://github.com/advancedtelematic/aktualizr/pull/1251)
 - Mutual TLS support in garage tools: [PR #1243](https://github.com/advancedtelematic/aktualizr/pull/1243) and [PR #1288](https://github.com/advancedtelematic/aktualizr/pull/1288)
 
@@ -323,10 +342,10 @@ As a result of changes to the IP/POSIX Secondary protocol (see below), users of 
 ### Added
 
 - New tool aktualizr-lite for anonymous TUF-only updates: [PR](https://github.com/advancedtelematic/aktualizr/pull/1107)
-- [Abort() API call](src/libaktualizr/primary/aktualizr.h): [PR](https://github.com/advancedtelematic/aktualizr/pull/1122)
+- [Abort() API call](include/libaktualizr/aktualizr.h): [PR](https://github.com/advancedtelematic/aktualizr/pull/1122)
 - [Option to print delegation metadata with aktualizr-info](src/aktualizr_info/main.cc): [PR](https://github.com/advancedtelematic/aktualizr/pull/1138)
 - Support for custom URIs for downloading targets: [PR](https://github.com/advancedtelematic/aktualizr/pull/1147)
-- [SendManifest() API call](src/libaktualizr/primary/aktualizr.h): [PR](https://github.com/advancedtelematic/aktualizr/pull/1176)
+- [SendManifest() API call](include/libaktualizr/aktualizr.h): [PR](https://github.com/advancedtelematic/aktualizr/pull/1176)
 - [Support for Android package management](src/libaktualizr/package_manager/androidmanager.h): [PR](https://github.com/advancedtelematic/aktualizr/pull/1034)
 
 ### Changed
@@ -367,7 +386,7 @@ As a result of changes to the IP/POSIX Secondary protocol (see below), users of 
 
 ### Changed
 
-- [Most API calls refactored to return immediately with a future](src/libaktualizr/primary/aktualizr.h)
+- [Most API calls refactored to return immediately with a future](include/libaktualizr/aktualizr.h)
 - With an OSTree Primary, an installation is now considered successful when the device reboots with the new file system version. Before that, the installation is still considered in progress.
 - [Running modes in libaktualizr have been replaced by simpler logic in the aktualizr wrapper](src/aktualizr_primary/main.cc): [PR](https://github.com/advancedtelematic/aktualizr/pull/1039)
 - Tests now use ed25519 as the default key type: [PR](https://github.com/advancedtelematic/aktualizr/pull/1038)
@@ -393,7 +412,7 @@ As a result of changes to the IP/POSIX Secondary protocol (see below), users of 
 
 ### Added
 
-- [Ability to pause and resume binary update downloads](src/libaktualizr/primary/aktualizr.h)
+- [Ability to pause and resume binary update downloads](include/libaktualizr/aktualizr.h)
 - Expose download binary targets in API
 
 ### Changed

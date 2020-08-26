@@ -8,32 +8,24 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 endif::[]
 
 
-In OTA Connect, a device has two types of identifier: an internal device UUID, and a standard device ID.
+In OTA Connect, a device has two types of identifiers: an internal device UUID and a standard device ID. By default, OTA Connect generates a random device ID for you, but you can also create your own device ID. You can later use this unique device ID to xref:ota-web::create-custom-device-fields.adoc[create custom device fields] and xref:ota-web::create-smart-group.adoc[group devices].
 
-// MC: use xref:otaconnect-identifiers.adoc[identifier]: when topic is finished
-By default, OTA Connect generates a random device ID for you, but you can override this behavior.
+You can create a custom device ID in one of the following ways:
 
-The standard way to specify device identity is in the device certificate -- specifically, in the Subject Distinguished Name (DN) field.
+* Specify your unique device ID in the aktualizr configuration. For more information, see the xref:aktualizr-config-options.adoc#_provision[reference documentation].
 
-This method requires that you use device-credential provisioning which tells OTA Connect to use your device certificates for authentication. This method is a little more complicated than the "shared-credential" provisioning method that you might have used in the "Get Started" guide.
-
-However you can try our test procedures to specify your own Device IDs. Earlier in this guide, we showed you how to xref:generate-devicecert.adoc[generate and sign a device certificate] using a self-signed root certificate.
-
-* You can define your own device ID in the device certificate, by changing step 1 of that procedure
-
-** Replace the existing sample command:
+* If you use the device-credential provisioning method, when you xref:generate-devicecert.adoc[generate a device certificate], update the following command with your custom device ID:
 +
-`export device_id=${DEVICE_ID:-$\{DEVICE_UUID}}`
+```
+export device_id=${DEVICE_ID:-$\{DEVICE_UUID}}
+```
 +
-Update the command with your device ID instead:
-+
-`export device_id=<your-id>`
-+
-For example:
-`export device_id=1HTHCATR81H391382`
+.Custom device ID
+====
+You want to use the following link:https://en.wikipedia.org/wiki/Vehicle_identification_number[vehicle identification number (VIN)] as your device ID: `SAJWA1C78D8V38055`.
+```
+export device_id=SAJWA1C78D8V38055
+```
+====
 
-** You can then continue the test procedure to provision your device.
-
-* If you already have your own procedure for generating device certificates, then you're probably already using your own device IDs to bind each certificate to the device.
-
-In any case, OTA Connect uses the device ID that you've defined in your device certificates instead of automatically generating one.
+OTA Connect will not generate a new device ID but use the device ID that you have defined in your device certificates.
