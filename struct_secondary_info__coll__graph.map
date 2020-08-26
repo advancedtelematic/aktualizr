@@ -1,7 +1,8 @@
 <map id="SecondaryInfo" name="SecondaryInfo">
-<area shape="rect" id="node2" href="$class_uptane_1_1_hardware_identifier.html" title="Uptane::HardwareIdentifier" alt="" coords="5,96,204,123"/>
-<area shape="rect" id="node3" href="$class_uptane_1_1_ecu_serial.html" title="Uptane::EcuSerial" alt="" coords="228,96,365,123"/>
-<area shape="rect" id="node4" href="$class_public_key.html" title="PublicKey" alt="" coords="390,96,475,123"/>
-<area shape="rect" id="node5" title="STL class. " alt="" coords="500,96,587,123"/>
-<area shape="rect" id="node6" title="STL class. " alt="" coords="474,5,613,47"/>
+<area shape="rect" id="node1" title=" " alt="" coords="307,200,422,227"/>
+<area shape="rect" id="node2" href="$class_uptane_1_1_hardware_identifier.html" title=" " alt="" coords="5,96,204,123"/>
+<area shape="rect" id="node3" href="$class_uptane_1_1_ecu_serial.html" title=" " alt="" coords="228,96,365,123"/>
+<area shape="rect" id="node4" href="$class_public_key.html" title=" " alt="" coords="390,96,475,123"/>
+<area shape="rect" id="node5" title="STL class." alt="" coords="500,96,587,123"/>
+<area shape="rect" id="node6" title="STL class." alt="" coords="474,5,613,47"/>
 </map>

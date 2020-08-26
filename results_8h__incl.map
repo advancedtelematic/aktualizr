@@ -1,8 +1,13 @@
 <map id="include/libaktualizr/results.h" name="include/libaktualizr/results.h">
-<area shape="rect" id="node4" href="$campaign_8h_source.html" title="libaktualizr/campaign.h" alt="" coords="305,95,479,121"/>
-<area shape="rect" id="node13" href="$types_8h.html" title="libaktualizr/types.h" alt="" coords="733,319,880,345"/>
-<area shape="rect" id="node5" href="$httpclient_8h_source.html" title="http/httpclient.h" alt="" coords="335,169,462,196"/>
-<area shape="rect" id="node21" href="$utils_8h_source.html" title="utilities/utils.h" alt="" coords="272,319,387,345"/>
-<area shape="rect" id="node11" href="$httpinterface_8h_source.html" title="httpinterface.h" alt="" coords="462,244,581,271"/>
-<area shape="rect" id="node17" href="$logging_8h_source.html" title="logging/logging.h" alt="" coords="1005,319,1139,345"/>
+<area shape="rect" id="node1" title=" " alt="" coords="75,5,221,47"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,169,64,196"/>
+<area shape="rect" id="node3" title=" " alt="" coords="89,169,151,196"/>
+<area shape="rect" id="node4" href="$campaign_8h_source.html" title=" " alt="" coords="123,95,298,121"/>
+<area shape="rect" id="node7" href="$types_8h.html" title=" " alt="" coords="392,95,539,121"/>
+<area shape="rect" id="node5" title=" " alt="" coords="176,169,227,196"/>
+<area shape="rect" id="node6" title=" " alt="" coords="251,169,343,196"/>
+<area shape="rect" id="node8" title=" " alt="" coords="368,169,453,196"/>
+<area shape="rect" id="node9" title=" " alt="" coords="478,169,565,196"/>
+<area shape="rect" id="node10" title=" " alt="" coords="589,169,713,196"/>
+<area shape="rect" id="node11" title=" " alt="" coords="737,169,895,196"/>
 </map>

@@ -1,5 +1,7 @@
 <map id="result::UpdateCheck" name="result::UpdateCheck">
-<area shape="rect" id="node3" href="$class_uptane_1_1_target.html" title="Uptane::Target" alt="" coords="21,13,138,39"/>
-<area shape="rect" id="node4" title="STL class. " alt="" coords="187,117,273,143"/>
-<area shape="rect" id="node5" title="STL class. " alt="" coords="162,5,301,47"/>
+<area shape="rect" id="node1" title="Container for information about available updates." alt="" coords="77,213,231,240"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,109,159,151"/>
+<area shape="rect" id="node3" href="$class_uptane_1_1_target.html" title=" " alt="" coords="21,13,138,39"/>
+<area shape="rect" id="node4" title="STL class." alt="" coords="187,117,273,143"/>
+<area shape="rect" id="node5" title="STL class." alt="" coords="162,5,301,47"/>
 </map>

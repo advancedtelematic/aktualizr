@@ -1,4 +1,5 @@
 <map id="HttpFakeEcuRegistration" name="HttpFakeEcuRegistration">
-<area shape="rect" id="node2" href="$class_http_fake.html" title="HttpFake" alt="" coords="56,80,136,107"/>
-<area shape="rect" id="node3" href="$class_http_interface.html" title="HttpInterface" alt="" coords="42,5,150,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,155,187,181"/>
+<area shape="rect" id="node2" href="$class_http_fake.html" title=" " alt="" coords="57,80,135,107"/>
+<area shape="rect" id="node3" href="$class_http_interface.html" title=" " alt="" coords="42,5,150,32"/>
 </map>

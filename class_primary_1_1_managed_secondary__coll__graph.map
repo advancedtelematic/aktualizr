@@ -1,7 +1,10 @@
 <map id="Primary::ManagedSecondary" name="Primary::ManagedSecondary">
-<area shape="rect" id="node2" href="$class_secondary_interface.html" title="SecondaryInterface" alt="" coords="5,237,153,263"/>
-<area shape="rect" id="node3" href="$class_primary_1_1_managed_secondary_config.html" title="Primary::ManagedSecondary\lConfig" alt="" coords="177,229,384,271"/>
-<area shape="rect" id="node4" href="$class_primary_1_1_secondary_config.html" title="Primary::SecondaryConfig" alt="" coords="162,96,351,123"/>
-<area shape="rect" id="node5" title="STL class. " alt="" coords="383,96,469,123"/>
-<area shape="rect" id="node6" title="STL class. " alt="" coords="357,5,495,47"/>
+<area shape="rect" id="node1" title=" " alt="" coords="937,92,1145,119"/>
+<area shape="rect" id="node2" href="$class_secondary_interface.html" title=" " alt="" coords="571,5,719,32"/>
+<area shape="rect" id="node3" title=" " alt="" coords="544,57,747,98"/>
+<area shape="rect" id="node4" href="$class_secondary_provider.html" title=" " alt="" coords="216,40,360,67"/>
+<area shape="rect" id="node5" href="$class_primary_1_1_managed_secondary_config.html" title=" " alt="" coords="541,122,749,163"/>
+<area shape="rect" id="node6" href="$class_primary_1_1_secondary_config.html" title=" " alt="" coords="193,91,383,117"/>
+<area shape="rect" id="node7" title="STL class." alt="" coords="245,191,331,217"/>
+<area shape="rect" id="node8" title="STL class." alt="" coords="5,183,144,225"/>
 </map>

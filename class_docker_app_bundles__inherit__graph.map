@@ -1,4 +1,5 @@
 <map id="DockerAppBundles" name="DockerAppBundles">
-<area shape="rect" id="node2" href="$class_ostree_manager.html" title="OstreeManager" alt="" coords="40,80,161,107"/>
-<area shape="rect" id="node3" href="$class_package_manager_interface.html" title="PackageManagerInterface" alt="" coords="5,5,196,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="29,155,173,181"/>
+<area shape="rect" id="node2" href="$class_ostree_manager.html" title=" " alt="" coords="39,80,162,107"/>
+<area shape="rect" id="node3" href="$class_package_manager_interface.html" title=" " alt="" coords="5,5,196,32"/>
 </map>

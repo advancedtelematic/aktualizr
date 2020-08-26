@@ -1,7 +1,8 @@
 <map id="AktualizrSecondaryFile" name="AktualizrSecondaryFile">
-<area shape="rect" id="node2" href="$class_aktualizr_secondary.html" title="AktualizrSecondary" alt="" coords="5,172,153,199"/>
-<area shape="rect" id="node3" href="$class_msg_dispatcher.html" title="MsgDispatcher" alt="" coords="12,89,131,115"/>
-<area shape="rect" id="node4" href="$class_msg_handler.html" title="MsgHandler" alt="" coords="22,5,121,32"/>
-<area shape="rect" id="node5" title="STL class. " alt="" coords="180,172,267,199"/>
-<area shape="rect" id="node6" title="STL class. " alt="" coords="155,81,294,123"/>
+<area shape="rect" id="node1" title=" " alt="" coords="63,261,234,288"/>
+<area shape="rect" id="node2" href="$class_aktualizr_secondary.html" title=" " alt="" coords="5,172,153,199"/>
+<area shape="rect" id="node3" href="$class_msg_dispatcher.html" title=" " alt="" coords="12,89,131,115"/>
+<area shape="rect" id="node4" href="$class_msg_handler.html" title=" " alt="" coords="21,5,121,32"/>
+<area shape="rect" id="node5" title="STL class." alt="" coords="180,172,267,199"/>
+<area shape="rect" id="node6" title="STL class." alt="" coords="155,81,294,123"/>
 </map>

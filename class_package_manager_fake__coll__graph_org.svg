@@ -84,9 +84,9 @@
 <!-- Node6 -->
 <g id="node6" class="node">
 <title>Node6</title>
-<g id="a_node6"><a xlink:href="class_based_path.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="26,-432 26,-451 94,-451 94,-432 26,-432"/>
-<text text-anchor="middle" x="60" y="-439" font-family="Helvetica,sans-Serif" font-size="10.00">BasedPath</text>
+<g id="a_node6"><a xlink:href="classutils_1_1_based_path.html" target="_top" xlink:title="The BasedPath class Can represent an absolute or relative path, only readable through the BasePath::g...">
+<polygon fill="white" stroke="black" points="12.5,-432 12.5,-451 107.5,-451 107.5,-432 12.5,-432"/>
+<text text-anchor="middle" x="60" y="-439" font-family="Helvetica,sans-Serif" font-size="10.00">utils::BasedPath</text>
 </a>
 </g>
 </g>

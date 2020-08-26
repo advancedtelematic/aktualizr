@@ -1,3 +1,4 @@
 <map id="event::AllInstallsComplete" name="event::AllInstallsComplete">
-<area shape="rect" id="node2" href="$classevent_1_1_base_event.html" title="Base class for all event objects. " alt="" coords="35,5,171,32"/>
+<area shape="rect" id="node1" title="All ECU installation attempts for an update have completed." alt="" coords="5,80,200,107"/>
+<area shape="rect" id="node2" href="$classevent_1_1_base_event.html" title="Base class for all event objects." alt="" coords="35,5,171,32"/>
 </map>
