@@ -40,6 +40,7 @@ The link above is for the doxygen docs on master. Doxygen docs for the following
 * https://advancedtelematic.github.io/aktualizr/2020.6/index.html[2020.6]
 * https://advancedtelematic.github.io/aktualizr/2020.7/index.html[2020.7]
 * https://advancedtelematic.github.io/aktualizr/2020.8/index.html[2020.8]
+* https://advancedtelematic.github.io/aktualizr/2020.9/index.html[2020.9]
 ====
 
 == Release process

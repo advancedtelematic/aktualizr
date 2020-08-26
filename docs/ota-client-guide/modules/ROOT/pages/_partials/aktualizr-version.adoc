@@ -3,7 +3,7 @@
 // the version being viewed, but when we are referencing aktualizr from
 // the other, non-versioned docs, we want to make sure we're using the
 // latest version.
-:aktualizr-version: 2020.8
+:aktualizr-version: 2020.9
 
 :yocto-version: 3.0
 
