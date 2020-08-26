@@ -41,6 +41,7 @@ RUN apt-get update && apt-get -y install --no-install-suggests --no-install-reco
   libgpgme11-dev \
   libgtest-dev \
   liblzma-dev \
+  libostree-dev \
   libp11-dev \
   libsodium-dev \
   libsqlite3-dev \
@@ -51,6 +52,7 @@ RUN apt-get update && apt-get -y install --no-install-suggests --no-install-reco
   net-tools \
   ninja-build \
   opensc \
+  ostree \
   pkg-config \
   psmisc \
   python-is-python3 \
@@ -69,14 +71,6 @@ RUN apt-get update && apt-get -y install --no-install-suggests --no-install-reco
 
 RUN ln -s clang-10 /usr/bin/clang && \
     ln -s clang++-10 /usr/bin/clang++
-
-WORKDIR /ostree
-RUN git init && git remote add origin https://github.com/ostreedev/ostree
-RUN git fetch origin v2018.9 && git checkout FETCH_HEAD
-RUN NOCONFIGURE=1 ./autogen.sh
-RUN ./configure CFLAGS='-Wno-error=missing-prototypes' --with-libarchive --disable-gtk-doc --disable-gtk-doc-html --disable-gtk-doc-pdf --disable-man --with-builtin-grub2-mkconfig --with-curl --without-soup --prefix=/usr
-RUN make VERBOSE=1 -j4
-RUN make install
 
 RUN useradd testuser
 
