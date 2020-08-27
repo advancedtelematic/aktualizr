@@ -43,7 +43,6 @@ class Aktualizr {
    * before using any other aktualizr functions except AddSecondary.
    *
    * @throw Initializer::Error and subclasses
-   * @throw Uptane::Exception and subclasses
    * @throw SQLException
    * @throw boost::filesystem::filesystem_error
    * @throw std::system_error (failure to lock a mutex)
