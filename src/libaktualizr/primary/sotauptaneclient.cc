@@ -1039,7 +1039,6 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
     return std::make_tuple(result, rr);
   }();
 
-  // TODO(OTA-2178): think of exception handling; the SQLite related code can throw exceptions
   storage->storeDeviceInstallationResult(r.dev_report, raw_report, correlation_id);
 
   sendEvent<event::AllInstallsComplete>(r);

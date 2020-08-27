@@ -104,7 +104,7 @@ bool LazyTargetsList::DelegationIterator::operator==(const LazyTargetsList::Dele
 
 const Target &LazyTargetsList::DelegationIterator::operator*() {
   if (is_end_) {
-    throw std::runtime_error("Inconsistent delegation iterator");  // TODO(OTA-2178): UptaneException
+    throw std::runtime_error("Inconsistent delegation iterator");
   }
 
   if (!cur_targets_) {
@@ -112,7 +112,7 @@ const Target &LazyTargetsList::DelegationIterator::operator*() {
   }
 
   if (!cur_targets_ || target_idx_ >= cur_targets_->targets.size()) {
-    throw std::runtime_error("Inconsistent delegation iterator");  // TODO(OTA-2178): UptaneException
+    throw std::runtime_error("Inconsistent delegation iterator");
   }
 
   return cur_targets_->targets[target_idx_];
