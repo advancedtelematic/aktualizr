@@ -216,14 +216,6 @@ std::ostream &operator<<(std::ostream &os, const TimeStamp &t);
 /// General data structures.
 namespace data {
 
-using UpdateRequestId = std::string;
-struct Package {
-  std::string name;
-  std::string version;
-  Json::Value toJson() const;
-  static Package fromJson(const std::string & /*json_str*/);
-};
-
 struct ResultCode {
   // Keep these in sync with AKInstallationResultCode ASN.1 definitions.
   enum class Numeric {
