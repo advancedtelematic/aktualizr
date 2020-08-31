@@ -115,7 +115,7 @@ Target::Target(std::string filename, const Json::Value &content) : filename_(std
 
   length_ = content["length"].asUInt64();
 
-  Json::Value hashes = content["hashes"];
+  const Json::Value hashes = content["hashes"];
   for (auto i = hashes.begin(); i != hashes.end(); ++i) {
     Hash h(i.key().asString(), (*i).asString());
     if (h.HaveAlgorithm()) {
@@ -166,6 +166,15 @@ std::string Target::hashString(Hash::Type type) const {
 std::string Target::sha256Hash() const { return hashString(Hash::Type::kSha256); }
 
 std::string Target::sha512Hash() const { return hashString(Hash::Type::kSha512); }
+
+std::string Target::custom_version() const {
+  try {
+    return custom_["version"].asString();
+  } catch (const std::exception &ex) {
+    LOG_ERROR << "Unable to parse custom version: " << ex.what();
+    return "";
+  }
+}
 
 bool Target::IsOstree() const {
   // NOLINTNEXTLINE(bugprone-branch-clone)

@@ -261,32 +261,36 @@ void INvStorage::FSSToSQLS(FSStorageRead& fs_storage, SQLStorage& sql_storage) {
 
 bool INvStorage::fsReadInstalledVersions(const boost::filesystem::path& filename,
                                          std::vector<Uptane::Target>* installed_versions, size_t* current_version) {
-  std::string current_hash;
   if (access(filename.c_str(), R_OK) != 0) {
     return false;
   }
-  const Json::Value installed_versions_json = Utils::parseJSONFile(filename.string());
-  std::vector<Uptane::Target> new_versions;
-  size_t k = 0;
-  for (auto it = installed_versions_json.begin(); it != installed_versions_json.end(); ++it, ++k) {
-    if (!(*it).isObject()) {
-      // We loaded old format, migrate to new one.
-      Json::Value t_json;
-      t_json["hashes"]["sha256"] = it.key();
-      Uptane::Target t((*it).asString(), t_json);
-      new_versions.push_back(t);
-      if (current_version != nullptr) {
-        *current_version = k;
+  try {
+    const Json::Value installed_versions_json = Utils::parseJSONFile(filename.string());
+    std::vector<Uptane::Target> new_versions;
+    size_t k = 0;
+    for (auto it = installed_versions_json.begin(); it != installed_versions_json.end(); ++it, ++k) {
+      if (!(*it).isObject()) {
+        // We loaded old format, migrate to new one.
+        Json::Value t_json;
+        t_json["hashes"]["sha256"] = it.key();
+        Uptane::Target t((*it).asString(), t_json);
+        new_versions.push_back(t);
+        if (current_version != nullptr) {
+          *current_version = k;
+        }
+      } else {
+        if (current_version != nullptr && (*it)["is_current"].asBool()) {
+          *current_version = k;
+        }
+        Uptane::Target t(it.key().asString(), *it);
+        new_versions.push_back(t);
       }
-    } else {
-      if (current_version != nullptr && (*it)["is_current"].asBool()) {
-        *current_version = k;
-      }
-      Uptane::Target t(it.key().asString(), *it);
-      new_versions.push_back(t);
     }
+    *installed_versions = new_versions;
+  } catch (const std::exception& ex) {
+    LOG_ERROR << "Unable to parse installed_versions: " << ex.what();
+    return false;
   }
-  *installed_versions = new_versions;
 
   return true;
 }

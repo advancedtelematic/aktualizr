@@ -4,21 +4,40 @@
 
 namespace Uptane {
 
-std::string Manifest::filepath() const { return (*this)["signed"]["installed_image"]["filepath"].asString(); }
+std::string Manifest::filepath() const {
+  try {
+    return (*this)["signed"]["installed_image"]["filepath"].asString();
+  } catch (const std::exception &ex) {
+    LOG_ERROR << "Unable to parse manifest: " << ex.what();
+    return "";
+  }
+}
 
 Hash Manifest::installedImageHash() const {
-  // TODO: proper verification of the required fields
-  return Hash(Hash::Type::kSha256, (*this)["signed"]["installed_image"]["fileinfo"]["hashes"]["sha256"].asString());
+  try {
+    return Hash(Hash::Type::kSha256, (*this)["signed"]["installed_image"]["fileinfo"]["hashes"]["sha256"].asString());
+  } catch (const std::exception &ex) {
+    LOG_ERROR << "Unable to parse manifest: " << ex.what();
+    return Hash(Hash::Type::kUnknownAlgorithm, "");
+  }
 }
 
 std::string Manifest::signature() const {
-  // TODO: proper verification of the required fields
-  return (*this)["signatures"][0]["sig"].asString();
+  try {
+    return (*this)["signatures"][0]["sig"].asString();
+  } catch (const std::exception &ex) {
+    LOG_ERROR << "Unable to parse manifest: " << ex.what();
+    return "";
+  }
 }
 
 std::string Manifest::signedBody() const {
-  // TODO: proper verification of the required fields
-  return Utils::jsonToCanonicalStr((*this)["signed"]);
+  try {
+    return Utils::jsonToCanonicalStr((*this)["signed"]);
+  } catch (const std::exception &ex) {
+    LOG_ERROR << "Unable to parse manifest: " << ex.what();
+    return "";
+  }
 }
 
 bool Manifest::verifySignature(const PublicKey &pub_key) const {

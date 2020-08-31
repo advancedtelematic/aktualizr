@@ -29,7 +29,7 @@ class Aktualizr {
    * @throw SQLException
    * @throw boost::filesystem::filesystem_error
    * @throw std::bad_alloc (memory allocation failure)
-   * @throw std::runtime_error (filesystem and json parsing failures; libsodium initialization failure)
+   * @throw std::runtime_error (filesystem failure; libsodium initialization failure)
    */
   explicit Aktualizr(const Config& config);
 
@@ -47,10 +47,10 @@ class Aktualizr {
    * @throw boost::filesystem::filesystem_error
    * @throw std::bad_alloc (memory allocation failure)
    * @throw std::runtime_error (curl, P11, SQL, filesystem, credentials archive
-   *                            parsing, certificate parsing, json parsing
-   *                            failures; missing ECU serials or device ID;
-   *                            database inconsistency with pending updates;
-   *                            invalid OSTree deployment)
+   *                            parsing, and certificate parsing failures;
+   *                            missing ECU serials or device ID; database
+   *                            inconsistency with pending updates; invalid
+   *                            OSTree deployment)
    * @throw std::system_error (failure to lock a mutex)
    */
   void Initialize();
@@ -63,9 +63,9 @@ class Aktualizr {
    * @throw SQLException
    * @throw boost::filesystem::filesystem_error
    * @throw std::bad_alloc (memory allocation failure)
-   * @throw std::runtime_error (curl, SQL, filesystem, and json parsing failures;
-   *                            database inconsistency with pending updates;
-   *                            error getting metadata from database or filesystem)
+   * @throw std::runtime_error (curl, SQL, and filesystem failures; database
+   *                            inconsistency with pending updates; error
+   *                            getting metadata from database or filesystem)
    * @throw std::system_error (failure to lock a mutex)
    */
   std::future<void> RunForever(const Json::Value& custom_hwinfo = Json::nullValue);
@@ -84,7 +84,7 @@ class Aktualizr {
    * @return std::future object with data about available campaigns.
    *
    * @throw std::bad_alloc (memory allocation failure)
-   * @throw std::runtime_error (curl and json parsing failures)
+   * @throw std::runtime_error (curl failure)
    */
   std::future<result::CampaignCheck> CampaignCheck();
 
@@ -112,7 +112,7 @@ class Aktualizr {
    * @throw SQLException
    * @throw boost::filesystem::filesystem_error
    * @throw std::bad_alloc (memory allocation failure)
-   * @throw std::runtime_error (curl, filesystem, and json parsing failures)
+   * @throw std::runtime_error (curl and filesystem failures)
    * @throw std::system_error (failure to lock a mutex)
    */
   std::future<void> SendDeviceData(const Json::Value& custom_hwinfo = Json::nullValue);
@@ -127,8 +127,8 @@ class Aktualizr {
    * @throw SQLException
    * @throw boost::filesystem::filesystem_error
    * @throw std::bad_alloc (memory allocation failure)
-   * @throw std::runtime_error (curl, SQL, filesystem, and json parsing failures;
-   *                            database inconsistency with pending updates)
+   * @throw std::runtime_error (curl, SQL, and filesystem failures; database
+   *                            inconsistency with pending updates)
    * @throw std::system_error (failure to lock a mutex)
    */
   std::future<result::UpdateCheck> CheckUpdates();
@@ -236,7 +236,7 @@ class Aktualizr {
    *
    * @throw SQLException
    * @throw std::bad_alloc (memory allocation failure)
-   * @throw std::runtime_error (curl failures; database inconsistency with pending updates)
+   * @throw std::runtime_error (curl failure; database inconsistency with pending updates)
    * @throw std::system_error (failure to lock a mutex)
    */
   std::future<bool> SendManifest(const Json::Value& custom = Json::nullValue);
@@ -284,9 +284,9 @@ class Aktualizr {
    * @throw SQLException
    * @throw boost::filesystem::filesystem_error
    * @throw std::bad_alloc (memory allocation failure)
-   * @throw std::runtime_error (curl, SQL, filesystem, and json parsing failures;
-   *                            database inconsistency with pending updates;
-   *                            error getting metadata from database or filesystem)
+   * @throw std::runtime_error (curl, SQL, and filesystem failures; database
+   *                            inconsistency with pending updates; error
+   *                            getting metadata from database or filesystem)
    * @throw std::system_error (failure to lock a mutex)
    */
   bool UptaneCycle();

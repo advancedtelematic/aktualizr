@@ -500,7 +500,7 @@ TEST(StorageCommon, LoadStoreSecondaryInfo) {
   storage->saveSecondaryInfo(Uptane::EcuSerial("secondary_1"), "ip", PublicKey("key1", KeyType::kED25519));
 
   EXPECT_THROW(storage->saveSecondaryInfo(Uptane::EcuSerial("primary"), "ip", PublicKey("key0", KeyType::kRSA2048)),
-               std::runtime_error);
+               std::logic_error);
 
   std::vector<SecondaryInfo> sec_infos;
   EXPECT_TRUE(storage->loadSecondariesInfo(&sec_infos));

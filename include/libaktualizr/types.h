@@ -121,7 +121,7 @@ class PublicKey {
   PublicKey() = default;
   explicit PublicKey(const boost::filesystem::path &path);
 
-  explicit PublicKey(Json::Value uptane_json);
+  explicit PublicKey(const Json::Value &uptane_json);
 
   PublicKey(const std::string &value, KeyType type);
 
@@ -392,7 +392,7 @@ class Target {
   std::string sha512Hash() const;
   const std::vector<Hash> &hashes() const { return hashes_; }
   const std::vector<HardwareIdentifier> &hardwareIds() const { return hwids_; }
-  std::string custom_version() const { return custom_["version"].asString(); }
+  std::string custom_version() const;
   Json::Value custom_data() const { return custom_; }
   void updateCustom(Json::Value &custom) { custom_ = custom; }
   std::string correlation_id() const { return correlation_id_; }
