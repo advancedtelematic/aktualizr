@@ -194,7 +194,13 @@ void SotaUptaneClient::reportNetworkInfo() {
     return;
   }
 
-  const Json::Value network_info = Utils::getNetworkInfo();
+  Json::Value network_info;
+  try {
+    network_info = Utils::getNetworkInfo();
+  } catch (const std::exception &ex) {
+    LOG_ERROR << "Failed to get network info: " << ex.what();
+    return;
+  }
   const Hash new_hash = Hash::generate(Hash::Type::kSha256, Utils::jsonToCanonicalStr(network_info));
   std::string stored_hash;
   if (!(storage->loadDeviceDataHash("network_info", &stored_hash) &&
