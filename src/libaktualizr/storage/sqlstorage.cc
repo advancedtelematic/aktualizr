@@ -26,7 +26,7 @@ void SQLStorage::cleanMetaVersion(Uptane::RepositoryType repo, const Uptane::Rol
     // Nothing to do here. The log message that used to be here was confusing.
     return;
   } else if (result != SQLITE_ROW) {
-    LOG_ERROR << "Can't get " << repo.toString() << " " << role.ToString() << " metadata: " << db.errmsg();
+    LOG_ERROR << "Failed to get " << repo.toString() << " " << role.ToString() << " metadata: " << db.errmsg();
     return;
   }
   const std::string meta = std::string(reinterpret_cast<const char*>(sqlite3_column_blob(statement.get(), 0)));
@@ -42,7 +42,7 @@ void SQLStorage::cleanMetaVersion(Uptane::RepositoryType repo, const Uptane::Rol
                                                  static_cast<int>(repo), role.ToInt(), version);
 
   if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't clear " << repo.toString() << " " << role.ToString() << " metadata: " << db.errmsg();
+    LOG_ERROR << "Failed to clear " << repo.toString() << " " << role.ToString() << " metadata: " << db.errmsg();
     return;
   }
 
@@ -51,7 +51,7 @@ void SQLStorage::cleanMetaVersion(Uptane::RepositoryType repo, const Uptane::Rol
       role.ToInt(), -1);
 
   if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't update " << repo.toString() << " " << role.ToString() << " metadata: " << db.errmsg();
+    LOG_ERROR << "Failed to update " << repo.toString() << " " << role.ToString() << " metadata: " << db.errmsg();
     return;
   }
 
@@ -77,7 +77,7 @@ void SQLStorage::storePrimaryKeys(const std::string& public_key, const std::stri
   auto statement = db.prepareStatement<std::string>(
       "INSERT OR REPLACE INTO primary_keys(unique_mark,public,private) VALUES (0,?,?);", public_key, private_key);
   if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't set Primary keys: " << db.errmsg();
+    LOG_ERROR << "Failed to set Primary keys: " << db.errmsg();
     return;
   }
 }
@@ -93,10 +93,10 @@ bool SQLStorage::loadPrimaryPublic(std::string* public_key) const {
 
   int result = statement.step();
   if (result == SQLITE_DONE) {
-    LOG_TRACE << "No public key in db";
+    LOG_TRACE << "Uptane public key not found in database";
     return false;
   } else if (result != SQLITE_ROW) {
-    LOG_ERROR << "Can't get public key: " << db.errmsg();
+    LOG_ERROR << "Failed to get Uptane public key: " << db.errmsg();
     return false;
   }
 
@@ -119,10 +119,10 @@ bool SQLStorage::loadPrimaryPrivate(std::string* private_key) const {
 
   int result = statement.step();
   if (result == SQLITE_DONE) {
-    LOG_TRACE << "No private key in db";
+    LOG_TRACE << "Uptane private key not found in database";
     return false;
   } else if (result != SQLITE_ROW) {
-    LOG_ERROR << "Can't get private key: " << db.errmsg();
+    LOG_ERROR << "Failed to get Uptane private key: " << db.errmsg();
     return false;
   }
 
@@ -142,7 +142,7 @@ void SQLStorage::clearPrimaryKeys() {
   SQLite3Guard db = dbConnection();
 
   if (db.exec("DELETE FROM primary_keys;", nullptr, nullptr) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear Primary keys: " << db.errmsg();
+    LOG_ERROR << "Failed to clear Primary keys: " << db.errmsg();
     return;
   }
 }
@@ -162,7 +162,7 @@ void SQLStorage::saveSecondaryInfo(const Uptane::EcuSerial& ecu_serial, const st
   auto statement =
       db.prepareStatement<std::string>("SELECT count(*) FROM secondary_ecus WHERE serial = ?;", ecu_serial.ToString());
   if (statement.step() != SQLITE_ROW) {
-    throw SQLException(db.errmsg().insert(0, "Can't get count of secondary_ecus table: "));
+    throw SQLException(db.errmsg().insert(0, "Failed to get count of secondary_ecus table: "));
   }
 
   const char* req;
@@ -177,7 +177,7 @@ void SQLStorage::saveSecondaryInfo(const Uptane::EcuSerial& ecu_serial, const st
   statement = db.prepareStatement<std::string, std::string, std::string, std::string>(
       req, sec_type, key_type_str, public_key.Value(), ecu_serial.ToString());
   if (statement.step() != SQLITE_DONE || sqlite3_changes(db.get()) != 1) {
-    throw SQLException(db.errmsg().insert(0, "Can't save Secondary key: "));
+    throw SQLException(db.errmsg().insert(0, "Failed to set Secondary key: "));
   }
 
   db.commitTransaction();
@@ -191,7 +191,7 @@ void SQLStorage::saveSecondaryData(const Uptane::EcuSerial& ecu_serial, const st
   auto statement =
       db.prepareStatement<std::string>("SELECT count(*) FROM secondary_ecus WHERE serial = ?;", ecu_serial.ToString());
   if (statement.step() != SQLITE_ROW) {
-    throw SQLException(db.errmsg().insert(0, "Can't get count of secondary_ecus table: "));
+    throw SQLException(db.errmsg().insert(0, "Failed to get count of secondary_ecus table: "));
   }
 
   const char* req;
@@ -203,7 +203,7 @@ void SQLStorage::saveSecondaryData(const Uptane::EcuSerial& ecu_serial, const st
 
   statement = db.prepareStatement<std::string, std::string>(req, data, ecu_serial.ToString());
   if (statement.step() != SQLITE_DONE || sqlite3_changes(db.get()) != 1) {
-    throw SQLException(db.errmsg().insert(0, "Can't save Secondary data: "));
+    throw SQLException(db.errmsg().insert(0, "Failed to set Secondary data: "));
   }
 
   db.commitTransaction();
@@ -221,10 +221,10 @@ bool SQLStorage::loadSecondaryInfo(const Uptane::EcuSerial& ecu_serial, Secondar
       ecu_serial.ToString());
   int statement_state = statement.step();
   if (statement_state == SQLITE_DONE) {
-    LOG_TRACE << "Secondary ECU " << ecu_serial << " not found";
+    LOG_TRACE << "Secondary ECU " << ecu_serial << " not found in database";
     return false;
   } else if (statement_state != SQLITE_ROW) {
-    LOG_ERROR << "Cannot load Secondary info: " << db.errmsg();
+    LOG_ERROR << "Failed to load Secondary info: " << db.errmsg();
     return false;
   }
 
@@ -284,7 +284,7 @@ bool SQLStorage::loadSecondariesInfo(std::vector<SecondaryInfo>* secondaries) co
     }
   }
   if (statement_state != SQLITE_DONE) {
-    LOG_ERROR << "Can't load Secondary info" << db.errmsg();
+    LOG_ERROR << "Failed to load Secondary info" << db.errmsg();
   }
 
   if (secondaries != nullptr) {
@@ -307,7 +307,7 @@ void SQLStorage::storeTlsCa(const std::string& ca) {
 
   auto statement = db.prepareStatement("SELECT count(*) FROM tls_creds;");
   if (statement.step() != SQLITE_ROW) {
-    LOG_ERROR << "Can't get count of tls_creds table: " << db.errmsg();
+    LOG_ERROR << "Failed to get count of tls_creds table: " << db.errmsg();
     return;
   }
 
@@ -320,7 +320,7 @@ void SQLStorage::storeTlsCa(const std::string& ca) {
 
   statement = db.prepareStatement<SQLBlob>(req, SQLBlob(ca));
   if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't set ca_cert: " << db.errmsg();
+    LOG_ERROR << "Failed to set CA certificate: " << db.errmsg();
     return;
   }
 
@@ -334,7 +334,7 @@ void SQLStorage::storeTlsCert(const std::string& cert) {
 
   auto statement = db.prepareStatement("SELECT count(*) FROM tls_creds;");
   if (statement.step() != SQLITE_ROW) {
-    LOG_ERROR << "Can't get count of tls_creds table: " << db.errmsg();
+    LOG_ERROR << "Failed to get count of tls_creds table: " << db.errmsg();
     return;
   }
 
@@ -347,7 +347,7 @@ void SQLStorage::storeTlsCert(const std::string& cert) {
 
   statement = db.prepareStatement<SQLBlob>(req, SQLBlob(cert));
   if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't set client_cert: " << db.errmsg();
+    LOG_ERROR << "Failed to set client certificate: " << db.errmsg();
     return;
   }
 
@@ -361,7 +361,7 @@ void SQLStorage::storeTlsPkey(const std::string& pkey) {
 
   auto statement = db.prepareStatement("SELECT count(*) FROM tls_creds;");
   if (statement.step() != SQLITE_ROW) {
-    LOG_ERROR << "Can't get count of tls_creds table: " << db.errmsg();
+    LOG_ERROR << "Failed to get count of tls_creds table: " << db.errmsg();
     return;
   }
 
@@ -374,7 +374,7 @@ void SQLStorage::storeTlsPkey(const std::string& pkey) {
 
   statement = db.prepareStatement<SQLBlob>(req, SQLBlob(pkey));
   if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't set client_pkey: " << db.errmsg();
+    LOG_ERROR << "Failed to set client private key: " << db.errmsg();
     return;
   }
 
@@ -388,10 +388,10 @@ bool SQLStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* p
 
   int result = statement.step();
   if (result == SQLITE_DONE) {
-    LOG_TRACE << "Tls creds not present";
+    LOG_TRACE << "TLS credentials not found in database";
     return false;
   } else if (result != SQLITE_ROW) {
-    LOG_ERROR << "Can't get tls_creds: " << db.errmsg();
+    LOG_ERROR << "Failed to get TLS credentials: " << db.errmsg();
     return false;
   }
 
@@ -423,7 +423,7 @@ void SQLStorage::clearTlsCreds() {
   SQLite3Guard db = dbConnection();
 
   if (db.exec("DELETE FROM tls_creds;", nullptr, nullptr) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear tls_creds: " << db.errmsg();
+    LOG_ERROR << "Failed to clear TLS credentials: " << db.errmsg();
     return;
   }
 }
@@ -435,10 +435,10 @@ bool SQLStorage::loadTlsCa(std::string* ca) const {
 
   int result = statement.step();
   if (result == SQLITE_DONE) {
-    LOG_TRACE << "ca_cert not present";
+    LOG_TRACE << "CA certificate not found in database";
     return false;
   } else if (result != SQLITE_ROW) {
-    LOG_ERROR << "Can't get ca_cert: " << db.errmsg();
+    LOG_ERROR << "Failed to get CA certificate: " << db.errmsg();
     return false;
   }
 
@@ -461,10 +461,10 @@ bool SQLStorage::loadTlsCert(std::string* cert) const {
 
   int result = statement.step();
   if (result == SQLITE_DONE) {
-    LOG_TRACE << "client_cert not present in db";
+    LOG_TRACE << "Client certificate not found in database";
     return false;
   } else if (result != SQLITE_ROW) {
-    LOG_ERROR << "Can't get client_cert: " << db.errmsg();
+    LOG_ERROR << "Failed to get client certificate: " << db.errmsg();
     return false;
   }
 
@@ -487,10 +487,10 @@ bool SQLStorage::loadTlsPkey(std::string* pkey) const {
 
   int result = statement.step();
   if (result == SQLITE_DONE) {
-    LOG_TRACE << "client_pkey not present in db";
+    LOG_TRACE << "Client private key not found in database";
     return false;
   } else if (result != SQLITE_ROW) {
-    LOG_ERROR << "Can't get client_pkey: " << db.errmsg();
+    LOG_ERROR << "Failed to get client private key: " << db.errmsg();
     return false;
   }
 
@@ -516,7 +516,7 @@ void SQLStorage::storeRoot(const std::string& data, Uptane::RepositoryType repo,
                                          static_cast<int>(repo), Uptane::Role::Root().ToInt(), version.version());
 
   if (del_statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't clear Root metadata: " << db.errmsg();
+    LOG_ERROR << "Failed to clear Root metadata: " << db.errmsg();
     return;
   }
 
@@ -525,7 +525,7 @@ void SQLStorage::storeRoot(const std::string& data, Uptane::RepositoryType repo,
                                                                    Uptane::Role::Root().ToInt(), version.version());
 
   if (ins_statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't add metadata: " << db.errmsg();
+    LOG_ERROR << "Failed to store Root metadata: " << db.errmsg();
     return;
   }
 
@@ -541,7 +541,7 @@ void SQLStorage::storeNonRoot(const std::string& data, Uptane::RepositoryType re
                                                      static_cast<int>(repo), role.ToInt());
 
   if (del_statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't clear " << role.ToString() << " metadata: " << db.errmsg();
+    LOG_ERROR << "Failed to clear " << role.ToString() << " metadata: " << db.errmsg();
     return;
   }
 
@@ -550,7 +550,7 @@ void SQLStorage::storeNonRoot(const std::string& data, Uptane::RepositoryType re
                                                   static_cast<int>(repo), role.ToInt(), Uptane::Version().version());
 
   if (ins_statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't add " << role.ToString() << "metadata: " << db.errmsg();
+    LOG_ERROR << "Failed to add " << role.ToString() << "metadata: " << db.errmsg();
     return;
   }
 
@@ -568,10 +568,10 @@ bool SQLStorage::loadRoot(std::string* data, Uptane::RepositoryType repo, Uptane
     int result = statement.step();
 
     if (result == SQLITE_DONE) {
-      LOG_TRACE << "Root metadata not present";
+      LOG_TRACE << "Root metadata not found in database";
       return false;
     } else if (result != SQLITE_ROW) {
-      LOG_ERROR << "Can't get Root metadata: " << db.errmsg();
+      LOG_ERROR << "Failed to get Root metadata: " << db.errmsg();
       return false;
     }
     if (data != nullptr) {
@@ -585,16 +585,16 @@ bool SQLStorage::loadRoot(std::string* data, Uptane::RepositoryType repo, Uptane
     int result = statement.step();
 
     if (result == SQLITE_DONE) {
-      LOG_TRACE << "Root metadata not present";
+      LOG_TRACE << "Root metadata not found in database";
       return false;
     } else if (result != SQLITE_ROW) {
-      LOG_ERROR << "Can't get Root metadata: " << db.errmsg();
+      LOG_ERROR << "Failed to get Root metadata: " << db.errmsg();
       return false;
     }
 
     const auto* const blob = reinterpret_cast<const char*>(sqlite3_column_blob(statement.get(), 0));
     if (blob == nullptr) {
-      LOG_ERROR << "Can't get Root metadata: " << db.errmsg();
+      LOG_ERROR << "Failed to get Root metadata: " << db.errmsg();
       return false;
     }
 
@@ -615,10 +615,10 @@ bool SQLStorage::loadNonRoot(std::string* data, Uptane::RepositoryType repo, con
   int result = statement.step();
 
   if (result == SQLITE_DONE) {
-    LOG_TRACE << role.ToString() << " metadata not present";
+    LOG_TRACE << role.ToString() << " metadata not found in database";
     return false;
   } else if (result != SQLITE_ROW) {
-    LOG_ERROR << "Can't get " << role.ToString() << " metadata: " << db.errmsg();
+    LOG_ERROR << "Failed to get " << role.ToString() << " metadata: " << db.errmsg();
     return false;
   }
   if (data != nullptr) {
@@ -635,7 +635,7 @@ void SQLStorage::clearNonRootMeta(Uptane::RepositoryType repo) {
       db.prepareStatement<int>("DELETE FROM meta WHERE (repo=? AND meta_type != 0);", static_cast<int>(repo));
 
   if (del_statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't clear metadata: " << db.errmsg();
+    LOG_ERROR << "Failed to clear metadata: " << db.errmsg();
   }
 }
 
@@ -643,7 +643,7 @@ void SQLStorage::clearMetadata() {
   SQLite3Guard db = dbConnection();
 
   if (db.exec("DELETE FROM meta;", nullptr, nullptr) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear metadata: " << db.errmsg();
+    LOG_ERROR << "Failed to clear metadata: " << db.errmsg();
     return;
   }
 }
@@ -654,7 +654,7 @@ void SQLStorage::storeDelegation(const std::string& data, const Uptane::Role rol
   auto statement = db.prepareStatement<SQLBlob, std::string>("INSERT OR REPLACE INTO delegations VALUES (?, ?);",
                                                              SQLBlob(data), role.ToString());
   if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't add delegation metadata: " << db.errmsg();
+    LOG_ERROR << "Failed to store delegation metadata: " << db.errmsg();
     return;
   }
 }
@@ -667,10 +667,10 @@ bool SQLStorage::loadDelegation(std::string* data, const Uptane::Role role) cons
   int result = statement.step();
 
   if (result == SQLITE_DONE) {
-    LOG_TRACE << "Delegations metadata not present";
+    LOG_TRACE << "Delegations metadata not found in database";
     return false;
   } else if (result != SQLITE_ROW) {
-    LOG_ERROR << "Can't get delegations metadata: " << db.errmsg();
+    LOG_ERROR << "Failed to get delegations metadata: " << db.errmsg();
     return false;
   }
   if (data != nullptr) {
@@ -690,10 +690,10 @@ bool SQLStorage::loadAllDelegations(std::vector<std::pair<Uptane::Role, std::str
     auto statement_state = statement.step();
 
     if (statement_state == SQLITE_DONE) {
-      LOG_TRACE << "Delegations metadata are not present";
+      LOG_TRACE << "Delegations metadata not found in database";
       return true;
     } else if (statement_state != SQLITE_ROW) {
-      LOG_ERROR << "Can't get delegations metadata: " << db.errmsg();
+      LOG_ERROR << "Failed to get delegations metadata: " << db.errmsg();
       return false;
     }
 
@@ -726,7 +726,7 @@ void SQLStorage::clearDelegations() {
   SQLite3Guard db = dbConnection();
 
   if (db.exec("DELETE FROM delegations;", nullptr, nullptr) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear delegations metadata: " << db.errmsg();
+    LOG_ERROR << "Failed to clear delegations metadata: " << db.errmsg();
   }
 }
 
@@ -736,7 +736,7 @@ void SQLStorage::storeDeviceId(const std::string& device_id) {
   auto statement = db.prepareStatement<std::string>(
       "INSERT OR REPLACE INTO device_info(unique_mark,device_id,is_registered) VALUES(0,?,0);", device_id);
   if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't set device ID: " << db.errmsg();
+    LOG_ERROR << "Failed to set device ID: " << db.errmsg();
     return;
   }
 }
@@ -748,16 +748,16 @@ bool SQLStorage::loadDeviceId(std::string* device_id) const {
 
   int result = statement.step();
   if (result == SQLITE_DONE) {
-    LOG_TRACE << "device_id not present in db";
+    LOG_TRACE << "Device ID key not found in database";
     return false;
   } else if (result != SQLITE_ROW) {
-    LOG_ERROR << "Can't get device ID: " << db.errmsg();
+    LOG_ERROR << "Failed to get device ID: " << db.errmsg();
     return false;
   }
 
   auto did = statement.get_result_col_str(0);
   if (did == boost::none) {
-    LOG_ERROR << "Empty device ID" << db.errmsg();
+    LOG_ERROR << "Empty device ID: " << db.errmsg();
     return false;
   }
 
@@ -772,7 +772,7 @@ void SQLStorage::clearDeviceId() {
   SQLite3Guard db = dbConnection();
 
   if (db.exec("DELETE FROM device_info;", nullptr, nullptr) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear device ID: " << db.errmsg();
+    LOG_ERROR << "Failed to clear device ID: " << db.errmsg();
     return;
   }
 }
@@ -784,15 +784,15 @@ void SQLStorage::storeEcuRegistered() {
 
   auto statement = db.prepareStatement("SELECT count(*) FROM device_info;");
   if (statement.step() != SQLITE_ROW) {
-    throw SQLException("Could not get device_info count");
+    throw SQLException(std::string("Failed to get device_info count: ") + db.errmsg());
   }
   if (statement.get_result_col_int(0) != 1) {
-    throw SQLException("Cannot set ECU registered if no device_info set");
+    throw SQLException("Failed to set ECU registered because device info is empty.");
   }
 
   std::string req = "UPDATE device_info SET is_registered = 1";
   if (db.exec(req.c_str(), nullptr, nullptr) != SQLITE_OK) {
-    LOG_ERROR << "Can't set is_registered: " << db.errmsg();
+    LOG_ERROR << "Failed to set registration flag: " << db.errmsg();
     return;
   }
 
@@ -806,9 +806,10 @@ bool SQLStorage::loadEcuRegistered() const {
 
   int result = statement.step();
   if (result == SQLITE_DONE) {
+    LOG_TRACE << "Registration flag not found in database";
     return false;
   } else if (result != SQLITE_ROW) {
-    LOG_ERROR << "Can't get is_registered in device_info " << db.errmsg();
+    LOG_ERROR << "Failed to get registration flag: " << db.errmsg();
     return false;
   }
 
@@ -821,7 +822,7 @@ void SQLStorage::clearEcuRegistered() {
   // note: if the table is empty, nothing is done but that's fine
   std::string req = "UPDATE device_info SET is_registered = 0";
   if (db.exec(req.c_str(), nullptr, nullptr) != SQLITE_OK) {
-    LOG_ERROR << "Can't set is_registered: " << db.errmsg();
+    LOG_ERROR << "Failed to clear registration flag: " << db.errmsg();
     return;
   }
 }
@@ -831,7 +832,7 @@ void SQLStorage::storeNeedReboot() {
 
   auto statement = db.prepareStatement<int>("INSERT OR REPLACE INTO need_reboot(unique_mark,flag) VALUES(0,?);", 1);
   if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't set need_reboot: " << db.errmsg();
+    LOG_ERROR << "Failed to set reboot flag: " << db.errmsg();
     return;
   }
 }
@@ -848,7 +849,7 @@ bool SQLStorage::loadNeedReboot(bool* need_reboot) const {
     }
     return true;
   } else if (result != SQLITE_ROW) {
-    LOG_ERROR << "Can't get need_reboot: " << db.errmsg();
+    LOG_ERROR << "Failed to get reboot flag: " << db.errmsg();
     return false;
   }
 
@@ -864,7 +865,7 @@ void SQLStorage::clearNeedReboot() {
   SQLite3Guard db = dbConnection();
 
   if (db.exec("DELETE FROM need_reboot;", nullptr, nullptr) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear need_reboot: " << db.errmsg();
+    LOG_ERROR << "Failed to clear reboot flag: " << db.errmsg();
     return;
   }
 }
@@ -876,7 +877,7 @@ void SQLStorage::storeEcuSerials(const EcuSerials& serials) {
     db.beginTransaction();
 
     if (db.exec("DELETE FROM ecus;", nullptr, nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Can't clear ecus: " << db.errmsg();
+      LOG_ERROR << "Failed to clear ECU serials: " << db.errmsg();
       return;
     }
 
@@ -887,7 +888,7 @@ void SQLStorage::storeEcuSerials(const EcuSerials& serials) {
       auto statement = db.prepareStatement<std::string, std::string>(
           "INSERT INTO ecus(id, serial,hardware_id,is_primary) VALUES (0, ?,?,1);", serial, hwid);
       if (statement.step() != SQLITE_DONE) {
-        LOG_ERROR << "Can't set ecu_serial: " << db.errmsg();
+        LOG_ERROR << "Failed to store ECU serials: " << db.errmsg();
         return;
       }
 
@@ -896,7 +897,7 @@ void SQLStorage::storeEcuSerials(const EcuSerials& serials) {
           "UPDATE installed_versions SET ecu_serial = ? WHERE ecu_serial = '';", serial);
 
       if (statement_ivupdate.step() != SQLITE_DONE) {
-        LOG_ERROR << "Can't set ecu_serial: " << db.errmsg();
+        LOG_ERROR << "Failed to store ECU serials: " << db.errmsg();
         return;
       }
     }
@@ -907,7 +908,7 @@ void SQLStorage::storeEcuSerials(const EcuSerials& serials) {
           it->second.ToString());
 
       if (statement.step() != SQLITE_DONE) {
-        LOG_ERROR << "Can't set ecu_serial: " << db.errmsg();
+        LOG_ERROR << "Failed to store ECU serials: " << db.errmsg();
         return;
       }
     }
@@ -936,7 +937,7 @@ bool SQLStorage::loadEcuSerials(EcuSerials* serials) const {
   }
 
   if (statement_state != SQLITE_DONE) {
-    LOG_ERROR << "Can't get ECU serials: " << db.errmsg();
+    LOG_ERROR << "Failed to get ECU serials: " << db.errmsg();
     return false;
   }
 
@@ -953,12 +954,12 @@ void SQLStorage::clearEcuSerials() {
   db.beginTransaction();
 
   if (db.exec("DELETE FROM ecus;", nullptr, nullptr) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear ECUs: " << db.errmsg();
+    LOG_ERROR << "Failed to clear ECU serials: " << db.errmsg();
     return;
   }
 
   if (db.exec("DELETE FROM secondary_ecus;", nullptr, nullptr) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear Secondary ECUs: " << db.errmsg();
+    LOG_ERROR << "Failed to clear Secondary ECUs: " << db.errmsg();
     return;
   }
 
@@ -971,7 +972,7 @@ void SQLStorage::storeCachedEcuManifest(const Uptane::EcuSerial& ecu_serial, con
   auto statement = db.prepareStatement<std::string, std::string>(
       "UPDATE secondary_ecus SET manifest = ? WHERE (serial = ?);", manifest, ecu_serial.ToString());
   if (statement.step() != SQLITE_DONE || sqlite3_changes(db.get()) != 1) {
-    LOG_ERROR << "Can't save Secondary manifest: " << db.errmsg();
+    LOG_ERROR << "Failed to store Secondary manifest: " << db.errmsg();
     return;
   }
 }
@@ -1009,7 +1010,7 @@ void SQLStorage::saveMisconfiguredEcu(const MisconfiguredEcu& ecu) {
       "INSERT OR REPLACE INTO misconfigured_ecus VALUES (?,?,?);", ecu.serial.ToString(), ecu.hardware_id.ToString(),
       static_cast<int>(ecu.state));
   if (statement.step() != SQLITE_DONE) {
-    throw SQLException(db.errmsg().insert(0, "Can't save misconfigured_ecus: "));
+    throw SQLException(db.errmsg().insert(0, "Failed to set misconfigured ECUs: "));
   }
 }
 
@@ -1033,7 +1034,7 @@ bool SQLStorage::loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) cons
   }
 
   if (statement_state != SQLITE_DONE) {
-    LOG_ERROR << "Can't get misconfigured_ecus: " << db.errmsg();
+    LOG_ERROR << "Failed to get misconfigured ECUs: " << db.errmsg();
     return false;
   }
 
@@ -1048,7 +1049,7 @@ void SQLStorage::clearMisconfiguredEcus() {
   SQLite3Guard db = dbConnection();
 
   if (db.exec("DELETE FROM misconfigured_ecus;", nullptr, nullptr) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear misconfigured_ecus: " << db.errmsg();
+    LOG_ERROR << "Failed to clear misconfigured ECUs: " << db.errmsg();
     return;
   }
 }
@@ -1101,7 +1102,7 @@ void SQLStorage::saveInstalledVersion(const std::string& ecu_serial, const Uptan
     auto statement = db.prepareStatement<std::string>(
         "UPDATE installed_versions SET is_current = 0, is_pending = 0 WHERE ecu_serial = ?", ecu_serial_real);
     if (statement.step() != SQLITE_DONE) {
-      LOG_ERROR << "Can't set installed_versions: " << db.errmsg();
+      LOG_ERROR << "Failed to save installed versions: " << db.errmsg();
       return;
     }
   } else if (update_mode == InstalledVersionUpdateMode::kPending) {
@@ -1109,7 +1110,7 @@ void SQLStorage::saveInstalledVersion(const std::string& ecu_serial, const Uptan
     auto statement = db.prepareStatement<std::string>(
         "UPDATE installed_versions SET is_pending = 0 WHERE ecu_serial = ?", ecu_serial_real);
     if (statement.step() != SQLITE_DONE) {
-      LOG_ERROR << "Can't set installed_versions: " << db.errmsg();
+      LOG_ERROR << "Failed to save installed versions: " << db.errmsg();
       return;
     }
   }
@@ -1123,7 +1124,7 @@ void SQLStorage::saveInstalledVersion(const std::string& ecu_serial, const Uptan
         static_cast<int>(update_mode == InstalledVersionUpdateMode::kCurrent || old_was_installed), old_id.value());
 
     if (statement.step() != SQLITE_DONE) {
-      LOG_ERROR << "Can't set installed_versions: " << db.errmsg();
+      LOG_ERROR << "Failed to save installed versions: " << db.errmsg();
       return;
     }
   } else {
@@ -1138,7 +1139,7 @@ void SQLStorage::saveInstalledVersion(const std::string& ecu_serial, const Uptan
         static_cast<int>(update_mode == InstalledVersionUpdateMode::kCurrent));
 
     if (statement.step() != SQLITE_DONE) {
-      LOG_ERROR << "Can't set installed_versions: " << db.errmsg();
+      LOG_ERROR << "Failed to save installed versions: " << db.errmsg();
       return;
     }
   }
@@ -1233,13 +1234,13 @@ bool SQLStorage::loadInstallationLog(const std::string& ecu_serial, std::vector<
       ids_map[id] = k;
       k++;
     } catch (const boost::bad_optional_access&) {
-      LOG_ERROR << "Incompleted installed version, keeping old one";
+      LOG_ERROR << "Incomplete installed version list; keeping previous entries.";
       return false;
     }
   }
 
   if (statement_state != SQLITE_DONE) {
-    LOG_ERROR << "Can't get installed_versions: " << db.errmsg();
+    LOG_ERROR << "Failed to get installed versions: " << db.errmsg();
     return false;
   }
 
@@ -1307,7 +1308,7 @@ bool SQLStorage::loadInstalledVersions(const std::string& ecu_serial, boost::opt
         return false;
       }
     } else {
-      LOG_TRACE << "Cannot get current installed version: " << db.errmsg();
+      LOG_TRACE << "Failed to get current installed version: " << db.errmsg();
       *current_version = boost::none;
     }
   }
@@ -1326,7 +1327,7 @@ bool SQLStorage::loadInstalledVersions(const std::string& ecu_serial, boost::opt
         return false;
       }
     } else {
-      LOG_TRACE << "Cannot get pending installed version: " << db.errmsg();
+      LOG_TRACE << "Failed to get pending installed version: " << db.errmsg();
       *pending_version = boost::none;
     }
   }
@@ -1339,8 +1340,8 @@ bool SQLStorage::hasPendingInstall() {
 
   auto statement = db.prepareStatement("SELECT count(*) FROM installed_versions where is_pending = 1");
   if (statement.step() != SQLITE_ROW) {
-    LOG_ERROR << "Can't get tables count: " << db.errmsg();
-    throw SQLException("Could not count pending installations");
+    LOG_ERROR << "Failed to get pending installation count: " << db.errmsg();
+    throw SQLException(std::string("Failed to get pending installation count: ") + db.errmsg());
   }
 
   return statement.get_result_col_int(0) > 0;
@@ -1358,7 +1359,7 @@ void SQLStorage::getPendingEcus(std::vector<std::pair<Uptane::EcuSerial, Hash>>*
   std::vector<std::pair<Uptane::EcuSerial, Hash>> ecu_res;
 
   if (statement_result == SQLITE_DONE) {
-    // if there are no any record in the DB
+    // if there are not any records in the DB
     return;
   }
 
@@ -1377,7 +1378,7 @@ void SQLStorage::clearInstalledVersions() {
   SQLite3Guard db = dbConnection();
 
   if (db.exec("DELETE FROM installed_versions;", nullptr, nullptr) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear installed_versions: " << db.errmsg();
+    LOG_ERROR << "Failed to clear installed versions: " << db.errmsg();
     return;
   }
 }
@@ -1391,7 +1392,7 @@ void SQLStorage::saveEcuInstallationResult(const Uptane::EcuSerial& ecu_serial,
       "(?,?,?,?);",
       ecu_serial.ToString(), static_cast<int>(result.success), result.result_code.toRepr(), result.description);
   if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't set ECU installation result: " << db.errmsg();
+    LOG_ERROR << "Failed to set ECU installation result: " << db.errmsg();
     return;
   }
 }
@@ -1408,12 +1409,12 @@ bool SQLStorage::loadEcuInstallationResults(
       "ecus.serial = ecu_serial ORDER BY ecus.id;");
   int statement_result = statement.step();
   if (statement_result != SQLITE_DONE && statement_result != SQLITE_ROW) {
-    LOG_ERROR << "Can't get ecu_installation_results: " << db.errmsg();
+    LOG_ERROR << "Failed to get ECU installation results: " << db.errmsg();
     return false;
   }
 
   if (statement_result == SQLITE_DONE) {
-    // if there are no any record in the DB
+    // if there are not any records in the DB
     return false;
   }
 
@@ -1447,7 +1448,7 @@ void SQLStorage::storeDeviceInstallationResult(const data::InstallationResult& r
       "VALUES (0,?,?,?,?,?);",
       static_cast<int>(result.success), result.result_code.toRepr(), result.description, raw_report, correlation_id);
   if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't set device installation result: " << db.errmsg();
+    LOG_ERROR << "Failed to store device installation result: " << db.errmsg();
     return;
   }
 }
@@ -1456,7 +1457,7 @@ bool SQLStorage::storeDeviceInstallationRawReport(const std::string& raw_report)
   SQLite3Guard db = dbConnection();
   auto statement = db.prepareStatement<std::string>("UPDATE device_installation_result SET raw_report=?;", raw_report);
   if (statement.step() != SQLITE_DONE || sqlite3_changes(db.get()) != 1) {
-    LOG_ERROR << "Can't set device raw report result: " << db.errmsg();
+    LOG_ERROR << "Failed to store device installation raw report: " << db.errmsg();
     return false;
   }
   return true;
@@ -1474,10 +1475,10 @@ bool SQLStorage::loadDeviceInstallationResult(data::InstallationResult* result, 
       "SELECT success, result_code, description, raw_report, correlation_id FROM device_installation_result;");
   int statement_result = statement.step();
   if (statement_result == SQLITE_DONE) {
-    LOG_TRACE << "No device installation result in db";
+    LOG_TRACE << "Device installation result not found in database";
     return false;
   } else if (statement_result != SQLITE_ROW) {
-    LOG_ERROR << "Can't get device_installation_result: " << db.errmsg();
+    LOG_ERROR << "Failed to get device installation result: " << db.errmsg();
     return false;
   }
 
@@ -1516,7 +1517,7 @@ void SQLStorage::saveEcuReportCounter(const Uptane::EcuSerial& ecu_serial, const
       "(?,?);",
       ecu_serial.ToString(), counter);
   if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't set ECU counter: " << db.errmsg();
+    LOG_ERROR << "Failed to set ECU report counter: " << db.errmsg();
     return;
   }
 }
@@ -1532,12 +1533,12 @@ bool SQLStorage::loadEcuReportCounter(std::vector<std::pair<Uptane::EcuSerial, i
       "ecus.serial = ecu_serial ORDER BY ecus.id;");
   int statement_result = statement.step();
   if (statement_result != SQLITE_DONE && statement_result != SQLITE_ROW) {
-    LOG_ERROR << "Can't get ecu_report_counter: " << db.errmsg();
+    LOG_ERROR << "Failed to get ECU report counter: " << db.errmsg();
     return false;
   }
 
   if (statement_result == SQLITE_DONE) {
-    // if there are no any record in the DB
+    // if there are not any records in the DB
     return false;
   }
 
@@ -1565,7 +1566,7 @@ void SQLStorage::saveReportEvent(const Json::Value& json_value) {
   auto statement = db.prepareStatement<std::string>(
       "INSERT INTO report_events SELECT MAX(id) + 1, ? FROM report_events", json_string);
   if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't save report event: " << db.errmsg();
+    LOG_ERROR << "Failed to save report event: " << db.errmsg();
     return;
   }
 }
@@ -1575,11 +1576,11 @@ bool SQLStorage::loadReportEvents(Json::Value* report_array, int64_t* id_max) co
   auto statement = db.prepareStatement("SELECT id, json_string FROM report_events;");
   int statement_result = statement.step();
   if (statement_result != SQLITE_DONE && statement_result != SQLITE_ROW) {
-    LOG_ERROR << "Can't get report_events: " << db.errmsg();
+    LOG_ERROR << "Failed to get report events: " << db.errmsg();
     return false;
   }
   if (statement_result == SQLITE_DONE) {
-    // if there are no any record in the DB
+    // if there are not any records in the DB
     return false;
   }
   *id_max = 0;
@@ -1609,7 +1610,7 @@ void SQLStorage::deleteReportEvents(int64_t id_max) {
 
   auto statement = db.prepareStatement<int64_t>("DELETE FROM report_events WHERE id <= ?;", id_max);
   if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't delete report_events";
+    LOG_ERROR << "Failed to clear report events: " << db.errmsg();
   }
 }
 
@@ -1619,12 +1620,12 @@ void SQLStorage::clearInstallationResults() {
   db.beginTransaction();
 
   if (db.exec("DELETE FROM device_installation_result;", nullptr, nullptr) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear device_installation_result: " << db.errmsg();
+    LOG_ERROR << "Failed to clear device installation result: " << db.errmsg();
     return;
   }
 
   if (db.exec("DELETE FROM ecu_installation_results;", nullptr, nullptr) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear ecu_installation_results: " << db.errmsg();
+    LOG_ERROR << "Failed to clear ECU installation results: " << db.errmsg();
     return;
   }
 
@@ -1637,8 +1638,8 @@ void SQLStorage::storeDeviceDataHash(const std::string& data_type, const std::st
   auto statement = db.prepareStatement<std::string, std::string>(
       "INSERT OR REPLACE INTO device_data(data_type,hash) VALUES (?,?);", data_type, hash);
   if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't set " << data_type << " hash: " << db.errmsg();
-    throw SQLException("Can't set " + data_type + " hash: " + db.errmsg());
+    LOG_ERROR << "Failed to store " << data_type << " hash: " << db.errmsg();
+    throw SQLException("Failed to store " + data_type + " hash: " + db.errmsg());
   }
 }
 
@@ -1650,10 +1651,10 @@ bool SQLStorage::loadDeviceDataHash(const std::string& data_type, std::string* h
 
   int result = statement.step();
   if (result == SQLITE_DONE) {
-    LOG_TRACE << data_type << " hash not present in db";
+    LOG_TRACE << data_type << " hash not found in database";
     return false;
   } else if (result != SQLITE_ROW) {
-    LOG_ERROR << "Can't get " << data_type << " hash: " << db.errmsg();
+    LOG_ERROR << "Failed to get " << data_type << " hash: " << db.errmsg();
     return false;
   }
 
@@ -1668,7 +1669,7 @@ void SQLStorage::clearDeviceData() {
   SQLite3Guard db = dbConnection();
 
   if (db.exec("DELETE FROM device_data;", nullptr, nullptr) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear device_data: " << db.errmsg();
+    LOG_ERROR << "Failed to clear device data: " << db.errmsg();
     return;
   }
 }
@@ -1679,8 +1680,8 @@ void SQLStorage::storeTargetFilename(const std::string& targetname, const std::s
       "INSERT OR REPLACE INTO target_images (targetname, filename) VALUES (?, ?);", targetname, filename);
 
   if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Statement step failure: " << db.errmsg();
-    throw SQLException("Could not write to db");
+    LOG_ERROR << "Failed to store Target filename: " << db.errmsg();
+    throw SQLException(std::string("Failed to store Target filename: ") + db.errmsg());
   }
 }
 
@@ -1696,7 +1697,7 @@ std::string SQLStorage::getTargetFilename(const std::string& targetname) const {
     case SQLITE_DONE:
       return {};
     default:
-      throw SQLException(db.errmsg().insert(0, "Error reading target filename from db: "));
+      throw SQLException(db.errmsg().insert(0, "Failed to read Target filename from database: "));
   }
 }
 
@@ -1710,8 +1711,8 @@ std::vector<std::string> SQLStorage::getAllTargetNames() const {
   int result = statement.step();
   while (result != SQLITE_DONE) {
     if (result != SQLITE_ROW) {
-      LOG_ERROR << "Statement step failure: " << db.errmsg();
-      throw SQLException("Error getting target files");
+      LOG_ERROR << "Failed to get Target filenames: " << db.errmsg();
+      throw SQLException(std::string("Failed to get Target filenames: ") + db.errmsg());
     }
     names.push_back(statement.get_result_col_str(0).value());
     result = statement.step();
@@ -1725,8 +1726,8 @@ void SQLStorage::deleteTargetInfo(const std::string& targetname) const {
   auto statement = db.prepareStatement<std::string>("DELETE FROM target_images WHERE targetname=?;", targetname);
 
   if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Statement step failure: " << db.errmsg();
-    throw SQLException("Could not remove target file");
+    LOG_ERROR << "Failed to clear Target filenames: " << db.errmsg();
+    throw SQLException(std::string("Failed to clear Target filenames: ") + db.errmsg());
   }
 }
 
