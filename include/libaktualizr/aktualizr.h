@@ -46,7 +46,7 @@ class Aktualizr {
    * @throw SQLException
    * @throw boost::filesystem::filesystem_error
    * @throw std::bad_alloc (memory allocation failure)
-   * @throw std::runtime_error (curl, P11, SQL, filesystem, credentials archive
+   * @throw std::runtime_error (curl, P11, filesystem, credentials archive
    *                            parsing, and certificate parsing failures;
    *                            missing ECU serials or device ID; database
    *                            inconsistency with pending updates; invalid
@@ -63,7 +63,7 @@ class Aktualizr {
    * @throw SQLException
    * @throw boost::filesystem::filesystem_error
    * @throw std::bad_alloc (memory allocation failure)
-   * @throw std::runtime_error (curl, SQL, and filesystem failures; database
+   * @throw std::runtime_error (curl and filesystem failures; database
    *                            inconsistency with pending updates; error
    *                            getting metadata from database or filesystem)
    * @throw std::system_error (failure to lock a mutex)
@@ -127,7 +127,7 @@ class Aktualizr {
    * @throw SQLException
    * @throw boost::filesystem::filesystem_error
    * @throw std::bad_alloc (memory allocation failure)
-   * @throw std::runtime_error (curl, SQL, and filesystem failures; database
+   * @throw std::runtime_error (curl and filesystem failures; database
    *                            inconsistency with pending updates)
    * @throw std::system_error (failure to lock a mutex)
    */
@@ -284,7 +284,7 @@ class Aktualizr {
    * @throw SQLException
    * @throw boost::filesystem::filesystem_error
    * @throw std::bad_alloc (memory allocation failure)
-   * @throw std::runtime_error (curl, SQL, and filesystem failures; database
+   * @throw std::runtime_error (curl and filesystem failures; database
    *                            inconsistency with pending updates; error
    *                            getting metadata from database or filesystem)
    * @throw std::system_error (failure to lock a mutex)
@@ -305,7 +305,6 @@ class Aktualizr {
    * be retrieved later through `GetSecondaries`
    *
    * @throw SQLException
-   * @throw std::runtime_error (SQL failure)
    */
   void SetSecondaryData(const Uptane::EcuSerial& ecu, const std::string& data);
 

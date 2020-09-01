@@ -162,7 +162,7 @@ void SQLStorage::saveSecondaryInfo(const Uptane::EcuSerial& ecu_serial, const st
   auto statement =
       db.prepareStatement<std::string>("SELECT count(*) FROM secondary_ecus WHERE serial = ?;", ecu_serial.ToString());
   if (statement.step() != SQLITE_ROW) {
-    throw std::runtime_error(db.errmsg().insert(0, "Can't get count of secondary_ecus table: "));
+    throw SQLException(db.errmsg().insert(0, "Can't get count of secondary_ecus table: "));
   }
 
   const char* req;
@@ -177,7 +177,7 @@ void SQLStorage::saveSecondaryInfo(const Uptane::EcuSerial& ecu_serial, const st
   statement = db.prepareStatement<std::string, std::string, std::string, std::string>(
       req, sec_type, key_type_str, public_key.Value(), ecu_serial.ToString());
   if (statement.step() != SQLITE_DONE || sqlite3_changes(db.get()) != 1) {
-    throw std::runtime_error(db.errmsg().insert(0, "Can't save Secondary key: "));
+    throw SQLException(db.errmsg().insert(0, "Can't save Secondary key: "));
   }
 
   db.commitTransaction();
@@ -191,7 +191,7 @@ void SQLStorage::saveSecondaryData(const Uptane::EcuSerial& ecu_serial, const st
   auto statement =
       db.prepareStatement<std::string>("SELECT count(*) FROM secondary_ecus WHERE serial = ?;", ecu_serial.ToString());
   if (statement.step() != SQLITE_ROW) {
-    throw std::runtime_error(db.errmsg().insert(0, "Can't get count of secondary_ecus table: "));
+    throw SQLException(db.errmsg().insert(0, "Can't get count of secondary_ecus table: "));
   }
 
   const char* req;
@@ -203,7 +203,7 @@ void SQLStorage::saveSecondaryData(const Uptane::EcuSerial& ecu_serial, const st
 
   statement = db.prepareStatement<std::string, std::string>(req, data, ecu_serial.ToString());
   if (statement.step() != SQLITE_DONE || sqlite3_changes(db.get()) != 1) {
-    throw std::runtime_error(db.errmsg().insert(0, "Can't save Secondary data: "));
+    throw SQLException(db.errmsg().insert(0, "Can't save Secondary data: "));
   }
 
   db.commitTransaction();
@@ -784,10 +784,10 @@ void SQLStorage::storeEcuRegistered() {
 
   auto statement = db.prepareStatement("SELECT count(*) FROM device_info;");
   if (statement.step() != SQLITE_ROW) {
-    throw std::runtime_error("Could not get device_info count");
+    throw SQLException("Could not get device_info count");
   }
   if (statement.get_result_col_int(0) != 1) {
-    throw std::runtime_error("Cannot set ECU registered if no device_info set");
+    throw SQLException("Cannot set ECU registered if no device_info set");
   }
 
   std::string req = "UPDATE device_info SET is_registered = 1";
@@ -1009,7 +1009,7 @@ void SQLStorage::saveMisconfiguredEcu(const MisconfiguredEcu& ecu) {
       "INSERT OR REPLACE INTO misconfigured_ecus VALUES (?,?,?);", ecu.serial.ToString(), ecu.hardware_id.ToString(),
       static_cast<int>(ecu.state));
   if (statement.step() != SQLITE_DONE) {
-    throw std::runtime_error(db.errmsg().insert(0, "Can't save misconfigured_ecus: "));
+    throw SQLException(db.errmsg().insert(0, "Can't save misconfigured_ecus: "));
   }
 }
 
@@ -1340,7 +1340,7 @@ bool SQLStorage::hasPendingInstall() {
   auto statement = db.prepareStatement("SELECT count(*) FROM installed_versions where is_pending = 1");
   if (statement.step() != SQLITE_ROW) {
     LOG_ERROR << "Can't get tables count: " << db.errmsg();
-    throw std::runtime_error("Could not count pending installations");
+    throw SQLException("Could not count pending installations");
   }
 
   return statement.get_result_col_int(0) > 0;
@@ -1352,7 +1352,7 @@ void SQLStorage::getPendingEcus(std::vector<std::pair<Uptane::EcuSerial, Hash>>*
   auto statement = db.prepareStatement("SELECT ecu_serial, sha256 FROM installed_versions where is_pending = 1");
   int statement_result = statement.step();
   if (statement_result != SQLITE_DONE && statement_result != SQLITE_ROW) {
-    throw std::runtime_error("Failed to get ECUs with a pending target installation: " + db.errmsg());
+    throw SQLException("Failed to get ECUs with a pending target installation: " + db.errmsg());
   }
 
   std::vector<std::pair<Uptane::EcuSerial, Hash>> ecu_res;
@@ -1638,7 +1638,7 @@ void SQLStorage::storeDeviceDataHash(const std::string& data_type, const std::st
       "INSERT OR REPLACE INTO device_data(data_type,hash) VALUES (?,?);", data_type, hash);
   if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't set " << data_type << " hash: " << db.errmsg();
-    throw std::runtime_error("Can't set " + data_type + " hash: " + db.errmsg());
+    throw SQLException("Can't set " + data_type + " hash: " + db.errmsg());
   }
 }
 
@@ -1680,7 +1680,7 @@ void SQLStorage::storeTargetFilename(const std::string& targetname, const std::s
 
   if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Statement step failure: " << db.errmsg();
-    throw std::runtime_error("Could not write to db");
+    throw SQLException("Could not write to db");
   }
 }
 
@@ -1696,7 +1696,7 @@ std::string SQLStorage::getTargetFilename(const std::string& targetname) const {
     case SQLITE_DONE:
       return {};
     default:
-      throw std::runtime_error(db.errmsg().insert(0, "Error reading target filename from db: "));
+      throw SQLException(db.errmsg().insert(0, "Error reading target filename from db: "));
   }
 }
 
@@ -1711,7 +1711,7 @@ std::vector<std::string> SQLStorage::getAllTargetNames() const {
   while (result != SQLITE_DONE) {
     if (result != SQLITE_ROW) {
       LOG_ERROR << "Statement step failure: " << db.errmsg();
-      throw std::runtime_error("Error getting target files");
+      throw SQLException("Error getting target files");
     }
     names.push_back(statement.get_result_col_str(0).value());
     result = statement.step();
@@ -1726,7 +1726,7 @@ void SQLStorage::deleteTargetInfo(const std::string& targetname) const {
 
   if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Statement step failure: " << db.errmsg();
-    throw std::runtime_error("Could not remove target file");
+    throw SQLException("Could not remove target file");
   }
 }
 
