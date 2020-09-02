@@ -25,6 +25,12 @@ class SQLException : public std::runtime_error {
   ~SQLException() noexcept override = default;
 };
 
+class SQLInternalException : public SQLException {
+ public:
+  SQLInternalException(const std::string& what = "SQL internal error") : SQLException(what) {}
+  ~SQLInternalException() noexcept override = default;
+};
+
 class SQLiteStatement {
  public:
   template <typename... Types>
@@ -34,7 +40,7 @@ class SQLiteStatement {
 
     if (sqlite3_prepare_v2(db_, zSql.c_str(), -1, &statement, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Could not prepare statement: " << sqlite3_errmsg(db_);
-      throw SQLException();
+      throw SQLInternalException(std::string("Could not prepare statement: ") + sqlite3_errmsg(db_));
     }
     stmt_.reset(statement);
 
@@ -68,14 +74,14 @@ class SQLiteStatement {
   void bindArgument(int v) {
     if (sqlite3_bind_int(stmt_.get(), bind_cnt_, v) != SQLITE_OK) {
       LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db_);
-      throw SQLException("SQLite bind error");
+      throw SQLInternalException(std::string("SQLite bind error: ") + sqlite3_errmsg(db_));
     }
   }
 
   void bindArgument(int64_t v) {
     if (sqlite3_bind_int64(stmt_.get(), bind_cnt_, v) != SQLITE_OK) {
       LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db_);
-      throw SQLException("SQLite bind error");
+      throw SQLInternalException(std::string("SQLite bind error: ") + sqlite3_errmsg(db_));
     }
   }
 
@@ -85,7 +91,7 @@ class SQLiteStatement {
 
     if (sqlite3_bind_text(stmt_.get(), bind_cnt_, oe.c_str(), -1, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db_);
-      throw SQLException("SQLite bind error");
+      throw SQLInternalException(std::string("SQLite bind error: ") + sqlite3_errmsg(db_));
     }
   }
 
@@ -98,7 +104,7 @@ class SQLiteStatement {
     if (sqlite3_bind_blob(stmt_.get(), bind_cnt_, oe.c_str(), static_cast<int>(oe.size()), SQLITE_STATIC) !=
         SQLITE_OK) {
       LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db_);
-      throw SQLException("SQLite bind error");
+      throw SQLInternalException("SQLite bind error");
     }
   }
 
@@ -133,7 +139,7 @@ class SQLite3Guard {
       m_->lock();
     }
     if (sqlite3_threadsafe() == 0) {
-      throw SQLException("sqlite3 has been compiled without multitheading support");
+      throw SQLInternalException("sqlite3 has been compiled without multitheading support");
     }
     sqlite3* h;
     if (readonly) {
@@ -188,21 +194,21 @@ class SQLite3Guard {
     // transaction was open on the same connection
     if (exec("BEGIN TRANSACTION;", nullptr, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Can't begin transaction: " << errmsg();
-      throw SQLException("Transaction error");
+      throw SQLInternalException(std::string("Can't begin transaction: ") + errmsg());
     }
   }
 
   void commitTransaction() {
     if (exec("COMMIT TRANSACTION;", nullptr, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Can't commit transaction: " << errmsg();
-      throw SQLException("Transaction error");
+      throw SQLInternalException(std::string("Can't begin transaction: ") + errmsg());
     }
   }
 
   void rollbackTransaction() {
     if (exec("ROLLBACK TRANSACTION;", nullptr, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Can't rollback transaction: " << errmsg();
-      throw SQLException("Transaction error");
+      throw SQLInternalException(std::string("Can't begin transaction: ") + errmsg());
     }
   }
 

@@ -194,7 +194,13 @@ void SotaUptaneClient::reportNetworkInfo() {
     return;
   }
 
-  const Json::Value network_info = Utils::getNetworkInfo();
+  Json::Value network_info;
+  try {
+    network_info = Utils::getNetworkInfo();
+  } catch (const std::exception &ex) {
+    LOG_ERROR << "Failed to get network info: " << ex.what();
+    return;
+  }
   const Hash new_hash = Hash::generate(Hash::Type::kSha256, Utils::jsonToCanonicalStr(network_info));
   std::string stored_hash;
   if (!(storage->loadDeviceDataHash("network_info", &stored_hash) &&
@@ -254,29 +260,43 @@ Json::Value SotaUptaneClient::AssembleManifest() {
 
   for (auto it = secondaries.begin(); it != secondaries.end(); it++) {
     const Uptane::EcuSerial &ecu_serial = it->first;
-    Uptane::Manifest secmanifest = it->second->getManifest();
+    Uptane::Manifest secmanifest;
+    try {
+      secmanifest = it->second->getManifest();
+    } catch (const std::exception &ex) {
+      // Not critical; it might just be temporarily offline.
+      LOG_DEBUG << "Failed to get manifest from Secondary with serial " << ecu_serial << ": " << ex.what();
+    }
 
     bool from_cache = false;
     if (secmanifest.empty()) {
-      // could not get the Secondary manifest, a cached value will be provided
+      // Could not get the Secondary manifest directly, so just use a cached value.
       std::string cached;
       if (storage->loadCachedEcuManifest(ecu_serial, &cached)) {
         LOG_WARNING << "Could not reach Secondary " << ecu_serial << ", sending a cached version of its manifest";
         secmanifest = Utils::parseJSON(cached);
         from_cache = true;
       } else {
-        LOG_ERROR << "Could not fetch a valid Secondary manifest from cache";
+        LOG_ERROR << "Failed to get a valid manifest from Secondary with serial " << ecu_serial << " or from cache!";
+        continue;
       }
     }
 
-    if (secmanifest.verifySignature(it->second->getPublicKey())) {
+    bool verified = false;
+    try {
+      verified = secmanifest.verifySignature(it->second->getPublicKey());
+    } catch (const std::exception &ex) {
+      LOG_ERROR << "Failed to get public key from Secondary with serial " << ecu_serial << ": " << ex.what();
+    }
+    if (verified) {
       version_manifest[ecu_serial.ToString()] = secmanifest;
       if (!from_cache) {
         storage->storeCachedEcuManifest(ecu_serial, Utils::jsonToCanonicalStr(secmanifest));
       }
     } else {
       // TODO(OTA-4305): send a corresponding event/report in this case
-      LOG_ERROR << "Secondary manifest is corrupted or not signed, or signature is invalid manifest: " << secmanifest;
+      LOG_ERROR << "Invalid manifest or signature reported by Secondary: "
+                << " serial: " << ecu_serial << " manifest: " << secmanifest;
     }
   }
   manifest["ecu_version_manifests"] = version_manifest;
@@ -340,7 +360,11 @@ void SotaUptaneClient::initialize() {
   LOG_INFO << "Primary ECU serial: " << primary_ecu_serial_ << " with hardware ID: " << primary_ecu_hw_id_;
 
   for (auto it = secondaries.begin(); it != secondaries.end(); ++it) {
-    it->second->init(secondary_provider_);
+    try {
+      it->second->init(secondary_provider_);
+    } catch (const std::exception &ex) {
+      LOG_ERROR << "Failed to initialize Secondary with serial " << it->first << ": " << ex.what();
+    }
   }
 
   std::string device_id;
@@ -1039,7 +1063,6 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
     return std::make_tuple(result, rr);
   }();
 
-  // TODO(OTA-2178): think of exception handling; the SQLite related code can throw exceptions
   storage->storeDeviceInstallationResult(r.dev_report, raw_report, correlation_id);
 
   sendEvent<event::AllInstallsComplete>(r);
@@ -1141,7 +1164,7 @@ bool SotaUptaneClient::waitSecondariesReachable(const std::vector<Uptane::Target
       }
       auto f = secondaries.find(ecu.first);
       if (f == secondaries.end()) {
-        LOG_ERROR << "Target " << t << " has unknown ECU ID";
+        LOG_ERROR << "Target " << t << " has an unknown ECU serial.";
         continue;
       }
 
@@ -1162,7 +1185,13 @@ bool SotaUptaneClient::waitSecondariesReachable(const std::vector<Uptane::Target
     }
 
     for (auto sec_it = targeted_secondaries.begin(); sec_it != targeted_secondaries.end();) {
-      if (sec_it->second->ping()) {
+      bool connected = false;
+      try {
+        connected = sec_it->second->ping();
+      } catch (const std::exception &ex) {
+        LOG_DEBUG << "Failed to ping Secondary with serial " << sec_it->first << ": " << ex.what();
+      }
+      if (connected) {
         sec_it = targeted_secondaries.erase(sec_it);
       } else {
         sec_it++;
@@ -1171,10 +1200,8 @@ bool SotaUptaneClient::waitSecondariesReachable(const std::vector<Uptane::Target
     std::this_thread::sleep_for(std::chrono::seconds(1));
   }
 
-  LOG_ERROR << "Secondaries did not connect: ";
-
   for (const auto &sec : targeted_secondaries) {
-    LOG_ERROR << sec.second->getSerial();
+    LOG_ERROR << "Secondary with serial " << sec.second->getSerial() << " failed to connect!";
   }
 
   return false;
@@ -1217,7 +1244,11 @@ data::InstallationResult SotaUptaneClient::rotateSecondaryRoot(Uptane::Repositor
           break;
         }
       }
-      result = secondary.putRoot(root, repo == Uptane::RepositoryType::Director());
+      try {
+        result = secondary.putRoot(root, repo == Uptane::RepositoryType::Director());
+      } catch (const std::exception &ex) {
+        result = data::InstallationResult(data::ResultCode::Numeric::kInternalError, ex.what());
+      }
       if (!result.isSuccess()) {
         LOG_ERROR << "Sending metadata to " << secondary.getSerial() << " failed: " << result.result_code << " "
                   << result.description;
@@ -1255,7 +1286,11 @@ void SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &tar
           final_result = local_result;
           break;
         }
-        local_result = sec->second->putMetadata(target);
+        try {
+          local_result = sec->second->putMetadata(target);
+        } catch (const std::exception &ex) {
+          local_result = data::InstallationResult(data::ResultCode::Numeric::kInternalError, ex.what());
+        }
       } while (false);
       if (!local_result.isSuccess()) {
         LOG_ERROR << "Sending metadata to " << sec->first << " failed: " << local_result.result_code << " "
@@ -1289,10 +1324,14 @@ std::future<data::InstallationResult> SotaUptaneClient::sendFirmwareAsync(Second
     sendEvent<event::InstallStarted>(secondary.getSerial());
     report_queue->enqueue(std_::make_unique<EcuInstallationStartedReport>(secondary.getSerial(), correlation_id));
 
-    data::InstallationResult result = secondary.sendFirmware(target);
-
-    if (result.isSuccess()) {
-      result = secondary.install(target);
+    data::InstallationResult result;
+    try {
+      result = secondary.sendFirmware(target);
+      if (result.isSuccess()) {
+        result = secondary.install(target);
+      }
+    } catch (const std::exception &ex) {
+      result = data::InstallationResult(data::ResultCode::Numeric::kInternalError, ex.what());
     }
 
     if (result.result_code == data::ResultCode::Numeric::kNeedCompletion) {
@@ -1325,8 +1364,8 @@ std::vector<result::Install::EcuReport> SotaUptaneClient::sendImagesToEcus(const
 
       auto f = secondaries.find(ecu_serial);
       if (f == secondaries.end()) {
-        LOG_ERROR << "Target " << *targets_it << " has unknown ECU ID";
-        throw Uptane::BadEcuId(targets_it->filename());
+        LOG_ERROR << "Target " << *targets_it << " has an unknown ECU serial";
+        continue;
       }
 
       SecondaryInterface &sec = *f->second;
@@ -1365,13 +1404,25 @@ void SotaUptaneClient::checkAndUpdatePendingSecondaries() {
       continue;
     }
     auto &sec = secondaries[pending_ecu.first];
-    const auto &manifest = sec->getManifest();
-    if (manifest.empty()) {
-      LOG_DEBUG << "Failed to get a manifest from Secondary: " << sec->getSerial();
+    Uptane::Manifest manifest;
+    try {
+      manifest = sec->getManifest();
+    } catch (const std::exception &ex) {
+      LOG_DEBUG << "Failed to get manifest from Secondary with serial " << pending_ecu.first << ": " << ex.what();
       continue;
     }
-    if (!manifest.verifySignature(sec->getPublicKey())) {
-      LOG_ERROR << "Invalid signature of the manifest reported by Secondary: "
+    if (manifest.empty()) {
+      LOG_DEBUG << "Failed to get manifest from Secondary with serial " << pending_ecu.first;
+      continue;
+    }
+    bool verified = false;
+    try {
+      verified = manifest.verifySignature(sec->getPublicKey());
+    } catch (const std::exception &ex) {
+      LOG_ERROR << "Failed to get public key from Secondary with serial " << pending_ecu.first << ": " << ex.what();
+    }
+    if (!verified) {
+      LOG_ERROR << "Invalid manifest or signature reported by Secondary: "
                 << " serial: " << pending_ecu.first << " manifest: " << manifest;
       continue;
     }

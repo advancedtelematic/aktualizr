@@ -233,12 +233,17 @@ bool FSStorageRead::loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) c
   if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "misconfigured_ecus"))) {
     return false;
   }
-  Json::Value content_json = Utils::parseJSONFile(Utils::absolutePath(config_.path, "misconfigured_ecus").string());
 
-  for (auto it = content_json.begin(); it != content_json.end(); ++it) {
-    ecus->push_back(MisconfiguredEcu(Uptane::EcuSerial((*it)["serial"].asString()),
-                                     Uptane::HardwareIdentifier((*it)["hardware_id"].asString()),
-                                     static_cast<EcuState>((*it)["state"].asInt())));
+  try {
+    Json::Value content_json = Utils::parseJSONFile(Utils::absolutePath(config_.path, "misconfigured_ecus").string());
+    for (auto it = content_json.begin(); it != content_json.end(); ++it) {
+      ecus->push_back(MisconfiguredEcu(Uptane::EcuSerial((*it)["serial"].asString()),
+                                       Uptane::HardwareIdentifier((*it)["hardware_id"].asString()),
+                                       static_cast<EcuState>((*it)["state"].asInt())));
+    }
+  } catch (const std::exception& ex) {
+    LOG_ERROR << "Unable to parse misconfigured_ecus: " << ex.what();
+    return false;
   }
   return true;
 }

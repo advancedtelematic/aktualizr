@@ -156,7 +156,13 @@ void Initializer::initTlsCreds() {
   data["ttl"] = config_.expiry_days;
   HttpResponse response = http_client_->post(config_.server + "/devices", data);
   if (!response.isOk()) {
-    Json::Value resp_code = response.getJson()["code"];
+    Json::Value resp_code;
+    try {
+      resp_code = response.getJson()["code"];
+    } catch (const std::exception& ex) {
+      LOG_ERROR << "Unable to parse reponse code from device registration: " << ex.what();
+      throw ServerError(ex.what());
+    }
     if (resp_code.isString() && resp_code.asString() == "device_already_registered") {
       LOG_ERROR << "Device ID " << device_id << " is already registered.";
       throw ServerOccupied();

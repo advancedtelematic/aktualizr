@@ -77,7 +77,7 @@ SQLStorageBase::SQLStorageBase(boost::filesystem::path sqldb_path, bool readonly
 SQLite3Guard SQLStorageBase::dbConnection() const {
   SQLite3Guard db(dbPath(), readonly_, mutex_);
   if (db.get_rc() != SQLITE_OK) {
-    throw SQLException(std::string("Can't open database: ") + db.errmsg());
+    throw SQLInternalException(std::string("Can't open database: ") + db.errmsg());
   }
   return db;
 }

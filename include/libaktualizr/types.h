@@ -121,7 +121,7 @@ class PublicKey {
   PublicKey() = default;
   explicit PublicKey(const boost::filesystem::path &path);
 
-  explicit PublicKey(Json::Value uptane_json);
+  explicit PublicKey(const Json::Value &uptane_json);
 
   PublicKey(const std::string &value, KeyType type);
 
@@ -215,14 +215,6 @@ std::ostream &operator<<(std::ostream &os, const TimeStamp &t);
 
 /// General data structures.
 namespace data {
-
-using UpdateRequestId = std::string;
-struct Package {
-  std::string name;
-  std::string version;
-  Json::Value toJson() const;
-  static Package fromJson(const std::string & /*json_str*/);
-};
 
 struct ResultCode {
   // Keep these in sync with AKInstallationResultCode ASN.1 definitions.
@@ -400,7 +392,7 @@ class Target {
   std::string sha512Hash() const;
   const std::vector<Hash> &hashes() const { return hashes_; }
   const std::vector<HardwareIdentifier> &hardwareIds() const { return hwids_; }
-  std::string custom_version() const { return custom_["version"].asString(); }
+  std::string custom_version() const;
   Json::Value custom_data() const { return custom_; }
   void updateCustom(Json::Value &custom) { custom_ = custom; }
   std::string correlation_id() const { return correlation_id_; }

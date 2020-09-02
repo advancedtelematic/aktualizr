@@ -138,8 +138,12 @@ void DirectorRepository::updateMeta(INvStorage& storage, const IMetadataFetcher&
 }
 
 void DirectorRepository::dropTargets(INvStorage& storage) {
-  storage.clearNonRootMeta(RepositoryType::Director());
-  resetMeta();
+  try {
+    storage.clearNonRootMeta(RepositoryType::Director());
+    resetMeta();
+  } catch (const Uptane::Exception& ex) {
+    LOG_ERROR << "Failed to reset Director Targets metadata: " << ex.what();
+  }
 }
 
 bool DirectorRepository::matchTargetsWithImageTargets(const Uptane::Targets& image_targets) const {

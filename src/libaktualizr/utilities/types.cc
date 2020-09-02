@@ -71,22 +71,6 @@ std::ostream &operator<<(std::ostream &os, const TimeStamp &t) {
 }
 
 namespace data {
-Json::Value Package::toJson() const {
-  Json::Value json;
-  json["name"] = name;
-  json["version"] = version;
-  return json;
-}
-
-Package Package::fromJson(const std::string &json_str) {
-  std::istringstream jsonss(json_str);
-  Json::Value json;
-  Json::parseFromStream(Json::CharReaderBuilder(), jsonss, &json, nullptr);
-  Package package;
-  package.name = json["name"].asString();
-  package.version = json["version"].asString();
-  return package;
-}
 
 const std::map<data::ResultCode::Numeric, const char *> data::ResultCode::string_repr{
     {ResultCode::Numeric::kOk, "OK"},

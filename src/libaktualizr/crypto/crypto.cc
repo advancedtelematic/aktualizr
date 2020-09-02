@@ -17,23 +17,32 @@ PublicKey::PublicKey(const boost::filesystem::path &path) : value_(Utils::readFi
   type_ = Crypto::IdentifyRSAKeyType(value_);
 }
 
-PublicKey::PublicKey(Json::Value uptane_json) {
-  if (!uptane_json["keytype"].isString()) {
-    type_ = KeyType::kUnknown;
-    return;
-  }
-  if (!uptane_json["keyval"].isObject()) {
-    type_ = KeyType::kUnknown;
-    return;
-  }
+PublicKey::PublicKey(const Json::Value &uptane_json) {
+  std::string keytype;
+  std::string keyvalue;
 
-  if (!uptane_json["keyval"]["public"].isString()) {
+  try {
+    if (!uptane_json["keytype"].isString()) {
+      type_ = KeyType::kUnknown;
+      return;
+    }
+    if (!uptane_json["keyval"].isObject()) {
+      type_ = KeyType::kUnknown;
+      return;
+    }
+
+    if (!uptane_json["keyval"]["public"].isString()) {
+      type_ = KeyType::kUnknown;
+      return;
+    }
+
+    keytype = uptane_json["keytype"].asString();
+    keyvalue = uptane_json["keyval"]["public"].asString();
+  } catch (const std::exception &ex) {
+    LOG_ERROR << "Failed to initialize public key: " << ex.what();
     type_ = KeyType::kUnknown;
     return;
   }
-
-  std::string keytype = uptane_json["keytype"].asString();
-  std::string keyvalue = uptane_json["keyval"]["public"].asString();
 
   std::transform(keytype.begin(), keytype.end(), keytype.begin(), ::tolower);
 
@@ -55,7 +64,7 @@ PublicKey::PublicKey(Json::Value uptane_json) {
 PublicKey::PublicKey(const std::string &value, KeyType type) : value_(value), type_(type) {
   if (Crypto::IsRsaKeyType(type)) {
     if (type != Crypto::IdentifyRSAKeyType(value)) {
-      std::logic_error("RSA key length is incorrect");
+      throw std::logic_error("RSA key length is incorrect");
     }
   }
 }
