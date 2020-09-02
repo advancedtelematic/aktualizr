@@ -18,6 +18,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 - More required headers for libaktualizr usage have been refactored for easier use: [PR](https://github.com/advancedtelematic/aktualizr/pull/1719)
 - All code is now checked with clang-tidy-10: [PR](https://github.com/advancedtelematic/aktualizr/pull/1724)
+- Default/recommended Yocto branch is dunfell (3.1): [PR](https://github.com/advancedtelematic/aktualizr/pull/1740)
 
 ### Removed
 
@@ -131,9 +132,9 @@ As a result of changes to the IP/POSIX Secondary protocol (see below), users of 
 ### Fixed
 
 - Apply pending updates even if their metadata expired if the installation was initiated before the expiration: [PR](https://github.com/advancedtelematic/aktualizr/pull/1548)
-- Add a mising include to fix building libaktualizr out-of-tree: [PR](https://github.com/advancedtelematic/aktualizr/pull/1572)
+- Add a missing include to fix building libaktualizr out-of-tree: [PR](https://github.com/advancedtelematic/aktualizr/pull/1572)
 - Restore interrupted downloads correctly: [PR](https://github.com/advancedtelematic/aktualizr/pull/1571)
-- Use uintmax_t for storing file length to support files greater than 4 GB: [PR](https://github.com/advancedtelematic/aktualizr/pull/1571)
+- Use `uintmax_t` for storing file length to support files greater than 4 GB: [PR](https://github.com/advancedtelematic/aktualizr/pull/1571)
 
 
 ## [2020.2] - 2020-01-30
@@ -268,7 +269,6 @@ As a result of changes to the IP/POSIX Secondary protocol (see below), users of 
 
 - garage-sign metadata expiration parameters: [PR](https://github.com/advancedtelematic/ota-tuf/pull/237)
 - aktualizr-info --wait-until-provisioned flag: [PR](https://github.com/advancedtelematic/aktualizr/pull/1253)
-- Target object equality requires that hardware IDs match: [PR](https://github.com/advancedtelematic/aktualizr/pull/1258)
 - aktualizr-repo image command now requires a hardware ID: [PR](https://github.com/advancedtelematic/aktualizr/pull/1258)
 - `GetStoredTargets` and `DeleteStoredTarget` aktualizr API methods: [PR](https://github.com/advancedtelematic/aktualizr/pull/1290)
 - [aktualizr-get](src/aktualizr_get/main.cc) debugging tool: [PR](https://github.com/advancedtelematic/aktualizr/pull/1276)
@@ -293,7 +293,7 @@ As a result of changes to the IP/POSIX Secondary protocol (see below), users of 
 
 - TLS support by aktualizr-lite: [PR](https://github.com/advancedtelematic/aktualizr/pull/1237)
 - automatic garage-check usage at the end of garage-push/deploy: [PR](https://github.com/advancedtelematic/aktualizr/pull/1244)
-- ccache support: [PR] (https://github.com/advancedtelematic/aktualizr/pull/1248, https://github.com/advancedtelematic/aktualizr/pull/1249)
+- ccache support: [PR #1248](https://github.com/advancedtelematic/aktualizr/pull/1248) and [PR #1249](https://github.com/advancedtelematic/aktualizr/pull/1249)
 - doc on Primary and Secondary bitbaking for RPi: [PR](https://github.com/advancedtelematic/aktualizr/pull/1238)
 
 ### Changed
@@ -311,7 +311,7 @@ As a result of changes to the IP/POSIX Secondary protocol (see below), users of 
 ### Fixed
 
 - Logic of finding the latest version by aktualizr-lite: [PR](https://github.com/advancedtelematic/aktualizr/pull/1247)
-- Test regression in docker-app-mgr: [PR] (https://github.com/advancedtelematic/aktualizr/pull/1250)
+- Test regression in docker-app-mgr: [PR](https://github.com/advancedtelematic/aktualizr/pull/1250)
 - Some more lintian fixes: [PR](https://github.com/advancedtelematic/aktualizr/pull/1242)
 
 
@@ -327,7 +327,7 @@ As a result of changes to the IP/POSIX Secondary protocol (see below), users of 
 
 ### Changed
 
-- [Provisioning methods have been renamed](https://github.com/advancedtelematic/aktualizr/blob/master/docs/ota-client-guide/modules/ROOT/pages/client-provisioning-methods.adoc). "Autoprovisioning" or "automatic provisioning" is now known as "shared credential provisioning". "Implicit provisioning" is now known as "device credential provisioning". "HSM provisioning" was always a misnomer, so it is now refered to as "device credential provisioning with an HSM". [PR# 1208](https://github.com/advancedtelematic/aktualizr/pull/1208) and [PR #1220](https://github.com/advancedtelematic/aktualizr/pull/1220)
+- [Provisioning methods have been renamed](https://github.com/advancedtelematic/aktualizr/blob/master/docs/ota-client-guide/modules/ROOT/pages/client-provisioning-methods.adoc). "Autoprovisioning" or "automatic provisioning" is now known as "shared credential provisioning". "Implicit provisioning" is now known as "device credential provisioning". "HSM provisioning" was always a misnomer, so it is now refered to as "device credential provisioning with an HSM". [PR #1208](https://github.com/advancedtelematic/aktualizr/pull/1208) and [PR #1220](https://github.com/advancedtelematic/aktualizr/pull/1220)
 - aktualizr-cert-provider is now included in the garage_deploy.deb releases: [PR](https://github.com/advancedtelematic/aktualizr/pull/1218)
 - aktualizr-info metadata and key output is now printed without additional text for easier machine parsing (and piping to jq): [PR](https://github.com/advancedtelematic/aktualizr/pull/1215)
 - The IP Secondary implementation has been substantially refactored and improved with support for POSIX sockets and easier configuration: [PR #1183](https://github.com/advancedtelematic/aktualizr/pull/1183) and [PR #1198](https://github.com/advancedtelematic/aktualizr/pull/1198)
