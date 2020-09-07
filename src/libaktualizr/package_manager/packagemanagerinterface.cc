@@ -1,4 +1,5 @@
 #include <sys/statvfs.h>
+#include <chrono>
 
 #include "libaktualizr/packagemanagerinterface.h"
 
@@ -34,6 +35,8 @@ struct DownloadMetaStruct {
   Uptane::Target target;
   const api::FlowControlToken* token;
   FetcherProgressCb progress_cb;
+  std::chrono::time_point<std::chrono::steady_clock> time_start; //download start time
+  std::chrono::time_point<std::chrono::steady_clock> time_lastreport; // each XXX sec report dowload progress to user to do not stuck with bit files
 
  private:
   MultiPartSHA256Hasher sha256_hasher;
@@ -55,6 +58,8 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
   return downloaded;
 }
 
+static constexpr int64_t LogProgressInterval = 15000;
+
 static int ProgressHandler(void* clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) {
   (void)dltotal;
   (void)dlnow;
@@ -67,6 +72,16 @@ static int ProgressHandler(void* clientp, curl_off_t dltotal, curl_off_t dlnow, 
   if (ds->progress_cb && progress > ds->last_progress) {
     ds->last_progress = progress;
     ds->progress_cb(ds->target, "Downloading", progress);
+    //OTA-4864:Improve binary file download progress logging. Report each XX sec report event that notify user
+    if (!ds->target.IsOstree()) {      
+      auto now = std::chrono::steady_clock::now();
+      auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - ds->time_lastreport);
+      if(milliseconds.count() > LogProgressInterval || progress == 100) {
+        auto clocktime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+        LOG_INFO << std::put_time(std::localtime(&clocktime), "%T") <<" Downloading "<< ds->target.filename() <<" progress " << progress << std::endl;
+        ds->time_lastreport = now;
+      }
+    }
   }
   if (ds->token != nullptr && !ds->token->canContinue(false)) {
     return 1;
@@ -98,6 +113,7 @@ bool PackageManagerInterface::fetchTarget(const Uptane::Target& target, Uptane::
       return true;
     }
     std::unique_ptr<DownloadMetaStruct> ds = std_::make_unique<DownloadMetaStruct>(target, progress_cb, token);
+    ds->time_start = ds->time_lastreport = std::chrono::steady_clock::now(); //use this time to report download progress it download take long time
     if (target.length() == 0) {
       LOG_INFO << "Skipping download of target with length 0";
       ds->fhandle = createTargetFile(target);
