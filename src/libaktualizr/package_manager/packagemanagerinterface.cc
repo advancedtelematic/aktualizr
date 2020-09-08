@@ -35,7 +35,6 @@ struct DownloadMetaStruct {
   Uptane::Target target;
   const api::FlowControlToken* token;
   FetcherProgressCb progress_cb;
-  std::chrono::time_point<std::chrono::steady_clock> time_start;  // download start time
   std::chrono::time_point<std::chrono::steady_clock>
       time_lastreport;  // each XXX sec report dowload progress to user to do not stuck with bit files
 
@@ -74,13 +73,11 @@ static int ProgressHandler(void* clientp, curl_off_t dltotal, curl_off_t dlnow, 
     ds->last_progress = progress;
     ds->progress_cb(ds->target, "Downloading", progress);
     // OTA-4864:Improve binary file download progress logging. Report each XX sec report event that notify user
-    if (!ds->target.IsOstree()) {
-      auto now = std::chrono::steady_clock::now();
-      auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - ds->time_lastreport);
-      if (milliseconds.count() > LogProgressInterval || progress == 100) {
-        LOG_INFO << "Download progress for file " << ds->target.filename() << ": " << progress << std::endl;
-        ds->time_lastreport = now;
-      }
+    auto now = std::chrono::steady_clock::now();
+    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - ds->time_lastreport);
+    if (milliseconds.count() > LogProgressInterval) {
+      LOG_INFO << "Download progress for file " << ds->target.filename() << ": " << progress << "%";
+      ds->time_lastreport = now;
     }
   }
   if (ds->token != nullptr && !ds->token->canContinue(false)) {
@@ -113,7 +110,7 @@ bool PackageManagerInterface::fetchTarget(const Uptane::Target& target, Uptane::
       return true;
     }
     std::unique_ptr<DownloadMetaStruct> ds = std_::make_unique<DownloadMetaStruct>(target, progress_cb, token);
-    ds->time_start = ds->time_lastreport =
+    ds->time_lastreport =
         std::chrono::steady_clock::now();  // use this time to report download progress it download take long time
     if (target.length() == 0) {
       LOG_INFO << "Skipping download of target with length 0";
