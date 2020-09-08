@@ -77,8 +77,7 @@ static int ProgressHandler(void* clientp, curl_off_t dltotal, curl_off_t dlnow, 
       auto now = std::chrono::steady_clock::now();
       auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - ds->time_lastreport);
       if(milliseconds.count() > LogProgressInterval || progress == 100) {
-        auto clocktime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-        LOG_INFO << std::put_time(std::localtime(&clocktime), "%T") <<" Downloading "<< ds->target.filename() <<" progress " << progress << std::endl;
+        LOG_INFO << "Download progress for file " << ds->target.filename() <<": " << progress << std::endl;
         ds->time_lastreport = now;
       }
     }
