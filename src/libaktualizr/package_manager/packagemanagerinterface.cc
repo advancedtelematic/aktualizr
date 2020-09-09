@@ -1,4 +1,5 @@
 #include <sys/statvfs.h>
+#include <chrono>
 
 #include "libaktualizr/packagemanagerinterface.h"
 
@@ -16,7 +17,8 @@ struct DownloadMetaStruct {
       : hash_type{target_in.hashes()[0].type()},
         target{std::move(target_in)},
         token{token_in},
-        progress_cb{std::move(progress_cb_in)} {}
+        progress_cb{std::move(progress_cb_in)},
+        time_lastreport{std::chrono::steady_clock::now()} {}
   uintmax_t downloaded_length{0};
   unsigned int last_progress{0};
   std::ofstream fhandle;
@@ -34,6 +36,8 @@ struct DownloadMetaStruct {
   Uptane::Target target;
   const api::FlowControlToken* token;
   FetcherProgressCb progress_cb;
+  // each LogProgressInterval msec log dowload progress for big files
+  std::chrono::time_point<std::chrono::steady_clock> time_lastreport;
 
  private:
   MultiPartSHA256Hasher sha256_hasher;
@@ -55,6 +59,8 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
   return downloaded;
 }
 
+static constexpr int64_t LogProgressInterval = 15000;
+
 static int ProgressHandler(void* clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) {
   (void)dltotal;
   (void)dlnow;
@@ -67,6 +73,13 @@ static int ProgressHandler(void* clientp, curl_off_t dltotal, curl_off_t dlnow, 
   if (ds->progress_cb && progress > ds->last_progress) {
     ds->last_progress = progress;
     ds->progress_cb(ds->target, "Downloading", progress);
+    // OTA-4864:Improve binary file download progress logging. Report each XX sec report event that notify user
+    auto now = std::chrono::steady_clock::now();
+    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - ds->time_lastreport);
+    if (milliseconds.count() > LogProgressInterval) {
+      LOG_INFO << "Download progress for file " << ds->target.filename() << ": " << progress << "%";
+      ds->time_lastreport = now;
+    }
   }
   if (ds->token != nullptr && !ds->token->canContinue(false)) {
     return 1;
