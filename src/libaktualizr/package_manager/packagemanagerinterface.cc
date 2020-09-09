@@ -17,7 +17,8 @@ struct DownloadMetaStruct {
       : hash_type{target_in.hashes()[0].type()},
         target{std::move(target_in)},
         token{token_in},
-        progress_cb{std::move(progress_cb_in)} {}
+        progress_cb{std::move(progress_cb_in)},
+        time_lastreport{std::chrono::steady_clock::now()} {}
   uintmax_t downloaded_length{0};
   unsigned int last_progress{0};
   std::ofstream fhandle;
@@ -35,8 +36,8 @@ struct DownloadMetaStruct {
   Uptane::Target target;
   const api::FlowControlToken* token;
   FetcherProgressCb progress_cb;
-  std::chrono::time_point<std::chrono::steady_clock>
-      time_lastreport;  // each XXX sec report dowload progress to user to do not stuck with bit files
+  // each LogProgressInterval msec log dowload progress for big files
+  std::chrono::time_point<std::chrono::steady_clock> time_lastreport;
 
  private:
   MultiPartSHA256Hasher sha256_hasher;
@@ -110,8 +111,6 @@ bool PackageManagerInterface::fetchTarget(const Uptane::Target& target, Uptane::
       return true;
     }
     std::unique_ptr<DownloadMetaStruct> ds = std_::make_unique<DownloadMetaStruct>(target, progress_cb, token);
-    ds->time_lastreport =
-        std::chrono::steady_clock::now();  // use this time to report download progress it download take long time
     if (target.length() == 0) {
       LOG_INFO << "Skipping download of target with length 0";
       ds->fhandle = createTargetFile(target);
