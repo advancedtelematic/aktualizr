@@ -64,7 +64,7 @@ struct ProvisionConfig {
 };
 
 struct UptaneConfig {
-  uint64_t polling_sec{10U};
+  uint64_t polling_sec{300U};
   std::string director_server;
   std::string repo_server;
   CryptoSource key_source{CryptoSource::kFile};
@@ -194,7 +194,9 @@ class BaseConfig {
     }
   }
 
-  std::vector<boost::filesystem::path> config_dirs_ = {"/usr/lib/sota/conf.d", "/etc/sota/conf.d/"};
+  std::vector<boost::filesystem::path> config_dirs_ = {"/usr/lib/sota/conf.d", "/var/sota/sota.toml",
+                                                       "/etc/sota/conf.d/"};
+
 };
 
 /**
