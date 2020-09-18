@@ -149,7 +149,7 @@ struct TelemetryConfig {
   void writeToStream(std::ostream& out_stream) const;
 };
 
-enum class RollbackMode { kBootloaderNone = 0, kUbootGeneric, kUbootMasked };
+enum class RollbackMode { kBootloaderNone = 0, kUbootGeneric, kUbootMasked, kFioVB };
 std::ostream& operator<<(std::ostream& os, RollbackMode mode);
 
 struct BootloaderConfig {
@@ -196,7 +196,6 @@ class BaseConfig {
 
   std::vector<boost::filesystem::path> config_dirs_ = {"/usr/lib/sota/conf.d", "/var/sota/sota.toml",
                                                        "/etc/sota/conf.d/"};
-
 };
 
 /**

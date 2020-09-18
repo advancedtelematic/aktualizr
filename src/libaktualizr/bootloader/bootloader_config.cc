@@ -10,6 +10,9 @@ std::ostream& operator<<(std::ostream& os, RollbackMode mode) {
     case RollbackMode::kUbootMasked:
       mode_s = "uboot_masked";
       break;
+    case RollbackMode::kFioVB:
+      mode_s = "fiovb";
+      break;
     default:
       mode_s = "none";
       break;
@@ -27,6 +30,8 @@ inline void CopyFromConfig(RollbackMode& dest, const std::string& option_name, c
       dest = RollbackMode::kUbootGeneric;
     } else if (mode == "uboot_masked") {
       dest = RollbackMode::kUbootMasked;
+    } else if (mode == "fiovb") {
+      dest = RollbackMode::kFioVB;
     } else {
       dest = RollbackMode::kBootloaderNone;
     }
