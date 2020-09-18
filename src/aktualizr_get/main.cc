@@ -12,7 +12,7 @@
 namespace bpo = boost::program_options;
 
 void check_info_options(const bpo::options_description &description, const bpo::variables_map &vm) {
-  if (vm.count("help") != 0 || (vm.count("command") == 0 && vm.count("version") == 0)) {
+  if (vm.count("help") != 0 || (vm.count("url") == 0 && vm.count("version") == 0)) {
     std::cout << description << '\n';
     exit(EXIT_SUCCESS);
   }
@@ -31,9 +31,9 @@ bpo::variables_map parse_options(int argc, char **argv) {
   description.add_options()
       ("help,h", "print usage")
       ("version,v", "Current aktualizr-get version")
-      ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
+      ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory, by default /var/sota")
       ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
-      ("url,u", bpo::value<std::string>(), "url to get");
+      ("url,u", bpo::value<std::string>(), "url to get, mandatory");
   // clang-format on
 
   bpo::variables_map vm;
