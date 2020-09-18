@@ -394,7 +394,7 @@ class Target {
   const std::vector<HardwareIdentifier> &hardwareIds() const { return hwids_; }
   std::string custom_version() const;
   Json::Value custom_data() const { return custom_; }
-  void updateCustom(Json::Value &custom) { custom_ = custom; }
+  void updateCustom(const Json::Value &custom);
   std::string correlation_id() const { return correlation_id_; }
   void setCorrelationId(std::string correlation_id) { correlation_id_ = std::move(correlation_id); }
   uint64_t length() const { return length_; }
