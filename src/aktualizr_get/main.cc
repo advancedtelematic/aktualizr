@@ -32,6 +32,7 @@ bpo::variables_map parse_options(int argc, char **argv) {
       ("help,h", "print usage")
       ("version,v", "Current aktualizr-get version")
       ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory, by default /var/sota")
+      ("header,H", bpo::value<std::vector<std::string> >()->composing(), "Additional headers to pass")
       ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
       ("url,u", bpo::value<std::string>(), "url to get, mandatory");
   // clang-format on
@@ -65,7 +66,11 @@ int main(int argc, char *argv[]) {
   int r = EXIT_FAILURE;
   try {
     Config config(commandline_map);
-    std::string body = aktualizrGet(config, commandline_map["url"].as<std::string>());
+    std::vector<std::string> headers;
+    if (commandline_map.count("header") == 1) {
+      headers = commandline_map["header"].as<std::vector<std::string>>();
+    }
+    std::string body = aktualizrGet(config, commandline_map["url"].as<std::string>(), headers);
     std::cout << body;
 
     r = EXIT_SUCCESS;
