@@ -80,7 +80,6 @@ struct UptaneConfig {
 // TODO: move these to their corresponding headers
 #define PACKAGE_MANAGER_NONE "none"
 #define PACKAGE_MANAGER_OSTREE "ostree"
-#define PACKAGE_MANAGER_OSTREEDOCKERAPP "ostree+docker-app"
 
 #ifdef BUILD_OSTREE
 #define PACKAGE_MANAGER_DEFAULT PACKAGE_MANAGER_OSTREE

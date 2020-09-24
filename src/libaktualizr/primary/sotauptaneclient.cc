@@ -546,8 +546,7 @@ void SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
       // TODO(OTA-4939): Unify this with the check in
       // PackageManagerFake::fetchTarget() and make it more generic.
       if (primary_ecu_serial == ecu_serial) {
-        if (!target.IsOstree() &&
-            (config.pacman.type == PACKAGE_MANAGER_OSTREE || config.pacman.type == PACKAGE_MANAGER_OSTREEDOCKERAPP)) {
+        if (!target.IsOstree() && config.pacman.type == PACKAGE_MANAGER_OSTREE) {
           LOG_ERROR << "Cannot install a non-OSTree package on an OSTree system";
           throw Uptane::InvalidTarget(target.filename());
         }
