@@ -12,7 +12,8 @@ TEST(aktualizr_get, good) {
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
 
-  std::string body = aktualizrGet(config, server + "/path/1/2/3");
+  std::vector<std::string> headers;
+  std::string body = aktualizrGet(config, server + "/path/1/2/3", headers);
   EXPECT_EQ("{\"path\": \"/path/1/2/3\"}", body);
 }
 

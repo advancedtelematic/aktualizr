@@ -3,11 +3,11 @@
 #include "http/httpclient.h"
 #include "storage/invstorage.h"
 
-std::string aktualizrGet(Config &config, const std::string &url) {
+std::string aktualizrGet(Config &config, const std::string &url, const std::vector<std::string> &headers) {
   auto storage = INvStorage::newStorage(config.storage);
   storage->importData(config.import);
 
-  auto client = std_::make_unique<HttpClient>();
+  auto client = std_::make_unique<HttpClient>(&headers);
   KeyManager keys(storage, config.keymanagerConfig());
   keys.copyCertsToCurl(*client);
   auto resp = client->get(url, HttpInterface::kNoLimit);
