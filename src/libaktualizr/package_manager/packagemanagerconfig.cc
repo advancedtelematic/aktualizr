@@ -40,6 +40,6 @@ void PackageConfig::writeToStream(std::ostream& out_stream) const {
   // note that this is imperfect as it will not print default values deduced
   // from users of `extra`
   for (const auto& e : extra) {
-    writeOption(out_stream, e.first, e.second);
+    writeOption(out_stream, e.second, e.first);
   }
 }
