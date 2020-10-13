@@ -73,6 +73,7 @@ ifndef::env-github[:pageroot:]
 ** xref:{pageroot}install-garage-sign-deploy.adoc[Install the garage-deploy tool]
 ** xref:{pageroot}keep-local-repo-on-external-storage.adoc[Keep your repository on external storage]
 ** xref:{pageroot}rotating-signing-keys.adoc[Rotate keys for Root and Targets metadata]
+** xref:{pageroot}finding-unsigned-metadata.adoc[Find the unsigned Root and Targets metadata]
 ** xref:{pageroot}change-signature-thresholds.adoc[Change signature thresholds]
 ** xref:{pageroot}metadata-expiry.adoc[Manage metadata expiry dates]
 

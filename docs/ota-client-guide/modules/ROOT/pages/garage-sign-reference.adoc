@@ -194,12 +194,14 @@ Global options
 +++</div></details>+++
 
 +++<details><summary>+++
-`root [pull|push|key|sign]`: Manages root-of-trust metadata for a repository.
+`root [pull|push|get-unsigned|key|sign]`: Manages root-of-trust metadata for a repository.
 +++</summary><div>+++
 
 `root pull`: Pulls the current `root.json` file from OTA Connect.
 
 `root push`: Uploads local `root.json` file to OTA Connect. If the file does not have a valid signature, it will be rejected by the server.
+
+`root get-unsigned`: Generates an unsigned `root.json` file in a canonical JSON form.
 
 +++<details><summary>+++
 `root key [add|remove]`: Manages keys that are permitted to sign the root-of-trust metadata.
@@ -256,7 +258,7 @@ Global options
 +++</div></details>+++
 
 +++<details><summary>+++
-`targets [init|add|add-uploaded|delete|sign|pull|push|upload|delegations]`: (Only for repositories of type `reposerver`) Manages Targets metadata.
+`targets [init|add|add-uploaded|delete|sign|pull|push|get-unsigned|upload|delegations]`: (Only for repositories of type `reposerver`) Manages Targets metadata.
 // tag::target-term[]
 *Target* is a term from Uptane. Each Target corresponds to a software version available in your OTA Connect software repository.
 // end::target-term[]
@@ -321,6 +323,8 @@ Global options
 
 `targets push`: Pushes the latest `targets.json` file to the server.
 If the Targets file is invalid, for example because of a bad signature or a non-increasing version number, this `push` will fail with exit code 2.
+
+`targets get-unsigned`: Generates the unsigned `targets.json` file in a canonical JSON form.
 
 +++<details><summary>+++
 `targets upload`: Uploads a binary to the repository.
