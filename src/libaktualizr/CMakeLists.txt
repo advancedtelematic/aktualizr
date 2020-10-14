@@ -73,5 +73,3 @@ add_library(aktualizr_lib SHARED
 target_link_libraries(aktualizr_lib ${AKTUALIZR_EXTERNAL_LIBS})
 set_target_properties(aktualizr_lib PROPERTIES LIBRARY_OUTPUT_NAME aktualizr)
 install(TARGETS aktualizr_lib LIBRARY DESTINATION lib COMPONENT aktualizr)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/libaktualizr DESTINATION include)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/../../jsoncpp/json/json.h DESTINATION include/libaktualizr/json)
