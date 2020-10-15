@@ -397,6 +397,7 @@ To learn how to use the garage-sign tool, see the following documentation:
 
 * xref:keep-local-repo-on-external-storage.adoc[Keep your repository on external storage]
 * xref:rotating-signing-keys.adoc[Rotate keys for Root and Targets metadata]
+* xref:finding-unsigned-metadata.adoc[Find the unsigned Root and Targets metadata]
 * xref:change-signature-thresholds.adoc[Change signature thresholds]
 * xref:metadata-expiry.adoc[Manage metadata expiry dates]
 * xref:customise-targets-metadata.adoc[Add custom metadata fields to Targets metadata]
