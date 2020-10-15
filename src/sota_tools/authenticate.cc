@@ -12,7 +12,7 @@ int authenticate(const string &cacerts, const ServerCredentials &creds, TreehubS
       break;
     }
     case AuthMethod::kOauth2: {
-      OAuth2 oauth2(creds.GetAuthServer(), creds.GetClientId(), creds.GetClientSecret(), cacerts);
+      OAuth2 oauth2(creds.GetAuthServer(), creds.GetClientId(), creds.GetClientSecret(), creds.GetScope(), cacerts);
 
       if (!creds.GetClientId().empty()) {
         if (oauth2.Authenticate() != AuthenticationResult::kSuccess) {

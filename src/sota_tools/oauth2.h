@@ -11,10 +11,11 @@ class OAuth2 {
   /**
    * Doesn't perform any authentication
    */
-  OAuth2(std::string server, std::string client_id, std::string client_secret, std::string ca_certs)
+  OAuth2(std::string server, std::string client_id, std::string client_secret, std::string scope, std::string ca_certs)
       : server_(std::move(server)),
         client_id_(std::move(client_id)),
         client_secret_(std::move(client_secret)),
+        scope_(std::move(scope)),
         ca_certs_(std::move(ca_certs)) {}
 
   /**
@@ -28,6 +29,7 @@ class OAuth2 {
   const std::string server_;
   const std::string client_id_;
   const std::string client_secret_;
+  const std::string scope_;
   const std::string ca_certs_;
   std::string token_;
 };
