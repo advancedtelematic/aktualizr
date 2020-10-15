@@ -102,6 +102,7 @@ ServerCredentials::ServerCredentials(const boost::filesystem::path &credentials_
       auth_server_ = ap_pt->get<std::string>("server", "");
       client_id_ = ap_pt->get<std::string>("client_id", "");
       client_secret_ = ap_pt->get<std::string>("client_secret", "");
+      scope_ = ap_pt->get<std::string>("scope", "");
     } else if (optional<ptree &> ba_pt = pt.get_child_optional("basic_auth")) {
       method_ = AuthMethod::kBasic;
       auth_user_ = ba_pt->get<std::string>("user", "");

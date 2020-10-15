@@ -13,35 +13,6 @@
 
 boost::filesystem::path certs_dir;
 
-/* Authenticate with OAuth2.
- * Parse authentication information from treehub.json. */
-TEST(authenticate, good_zip) {
-  // Authenticates with the ATS portal to the SaaS instance.
-  boost::filesystem::path filepath = "tests/sota_tools/auth_test_good.zip";
-  ServerCredentials creds(filepath);
-  EXPECT_EQ(creds.GetMethod(), AuthMethod::kOauth2);
-  TreehubServer treehub;
-  int r = authenticate("", creds, treehub);
-  EXPECT_EQ(0, r);
-}
-
-/* Authenticate with TLS credentials.
- * Parse images repository URL from a provided archive. */
-TEST(authenticate, good_cert_zip) {
-  // Authenticates with tls_server on port 1443.
-  boost::filesystem::path filepath = certs_dir / "good.zip";
-  ServerCredentials creds(filepath);
-  EXPECT_EQ(creds.GetMethod(), AuthMethod::kTls);
-  TreehubServer treehub;
-  int r = authenticate("tests/fake_http_server/server.crt", creds, treehub);
-  EXPECT_EQ(0, r);
-  CurlEasyWrapper curl_handle;
-  curlEasySetoptWrapper(curl_handle.get(), CURLOPT_VERBOSE, 1);
-  treehub.InjectIntoCurl("test.txt", curl_handle.get());
-  CURLcode rc = curl_easy_perform(curl_handle.get());
-  EXPECT_EQ(CURLE_OK, rc);
-}
-
 /* Authenticate with nothing (no auth).
  * Parse authentication information from treehub.json.
  * Parse images repository URL from a provided archive. */
@@ -91,15 +62,6 @@ TEST(authenticate, bad_zip) {
 TEST(authenticate, no_json_zip) {
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_no_json.zip";
   EXPECT_THROW(ServerCredentials creds(filepath), BadCredentialsContent);
-}
-
-/* Extract credentials from a provided JSON file. */
-TEST(authenticate, good_json) {
-  // Authenticates with the ATS portal to the SaaS instance.
-  boost::filesystem::path filepath = "tests/sota_tools/auth_test_good.json";
-  TreehubServer treehub;
-  int r = authenticate("", ServerCredentials(filepath), treehub);
-  EXPECT_EQ(0, r);
 }
 
 /* Reject a bogus provided JSON file. */
