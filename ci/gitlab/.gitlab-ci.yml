@@ -93,11 +93,6 @@ secret_detection:
   stage: static scans
   needs: []
 
-secrets-sast:
-  stage: static scans
-  needs: []
-
-
 coverage:
   variables:
     GIT_CLONE_PATH: $CI_BUILDS_DIR/aktualizr-coverage-$CI_JOB_ID
