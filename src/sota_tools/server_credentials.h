@@ -35,6 +35,7 @@ class ServerCredentials {
   std::string GetOSTreeServer() const { return ostree_server_; };
   std::string GetClientId() const { return client_id_; };
   std::string GetClientSecret() const { return client_secret_; };
+  std::string GetScope() const { return scope_; };
 
   /**
    * Path to the original credentials.zip on disk.  Needed to hand off to
@@ -52,6 +53,7 @@ class ServerCredentials {
   std::string ostree_server_;
   std::string client_id_;
   std::string client_secret_;
+  std::string scope_;
   boost::filesystem::path credentials_path_;
 };
 

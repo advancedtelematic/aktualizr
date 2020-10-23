@@ -6,6 +6,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ## [upcoming release]
 
+- Update garage-push and garage-deploy tools to support the latest backend changes. Both are backward compatible. Previous versions have the server URL *without* the token path, so it needs to be hardcoded. The new version has the full URL with the */oauth2/token* path at the end. Also, treehub.json has an additional parameter *scope*: [PR](https://github.com/advancedtelematic/aktualizr/pull/1767)
 
 ## [2020.9] - 2020-08-26
 

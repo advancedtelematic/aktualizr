@@ -17,6 +17,7 @@ boost::filesystem::path certs_dir;
  * Parse authentication information from treehub.json. */
 TEST(authenticate, good_zip) {
   // Authenticates with the ATS portal to the SaaS instance.
+  // It is outdated test. kepp it for backward compatibility
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_good.zip";
   ServerCredentials creds(filepath);
   EXPECT_EQ(creds.GetMethod(), AuthMethod::kOauth2);
@@ -98,9 +99,23 @@ TEST(authenticate, no_json_zip) {
 /* Extract credentials from a provided JSON file. */
 TEST(authenticate, good_json) {
   // Authenticates with the ATS portal to the SaaS instance.
+  // Outdated. we can probably get rid of the whole json-only authentication at this point. T
+  // he last time that was officially supported was over three years ago(2017)
+  // and it's been "deprecated" ever since.
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_good.json";
   TreehubServer treehub;
   int r = authenticate("", ServerCredentials(filepath), treehub);
+  EXPECT_EQ(0, r);
+}
+
+TEST(authenticate, good_json_v2) {
+  // Authenticates with new backend.
+  // Note: update auth_test_good_v2.json after deploy on prod. current file uses HAT
+  boost::filesystem::path filepath = "tests/sota_tools/auth_test_good_v2.json";
+  TreehubServer treehub;
+  // Note: enable it in https://saeljira.it.here.com/browse/OTA-5341 and
+  // use stable server instead of HAT env in auth_test_good_v2.json
+  int r = 0;  // authenticate("", ServerCredentials(filepath), treehub);
   EXPECT_EQ(0, r);
 }
 
