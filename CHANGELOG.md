@@ -6,7 +6,21 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ## [upcoming release]
 
-- Update garage-push and garage-deploy tools to support the latest backend changes. Both are backward compatible. Previous versions have the server URL *without* the token path, so it needs to be hardcoded. The new version has the full URL with the */oauth2/token* path at the end. Also, treehub.json has an additional parameter *scope*: [PR](https://github.com/advancedtelematic/aktualizr/pull/1767)
+## [2020.10] - 2020-10-27
+
+### Added
+- Updated the `garage-push` and `garage-deploy` tools. Now, they support new back-end token generation to authenticate API requests. Also, we updated the `treehub.json` format for the new back-end. It now has the additional  `scope` parameter. The changes are backward compatible. Previous versions have the server URL **without** the token path, so it needs to be hardcoded. The new version has the full URL with the `/oauth2/token` path at the end: [PR](https://github.com/advancedtelematic/aktualizr/pull/1767)
+
+### Changed
+- Ubuntu Focal Dockerfile now uses the default OSTree package: [PR](https://github.com/advancedtelematic/aktualizr/pull/1751)
+- Improved libaktualizr API exceptions: [PR](https://github.com/advancedtelematic/aktualizr/pull/1754)
+- Improved binary file download progress: [PR](https://github.com/advancedtelematic/aktualizr/pull/1756)
+- Allowed passing HTTP headers in `aktualizr-get`: [PR](https://github.com/advancedtelematic/aktualizr/pull/1762)
+- Moved aktualizr-lite to its own [aktualizr-lite repository](https://github.com/foundriesio/aktualizr-lite): [PR](https://github.com/advancedtelematic/aktualizr/pull/1763)
+
+### Fixed
+- Fixed the issue with the parameters check in `aktualizr-get`: [PR](https://github.com/advancedtelematic/aktualizr/pull/1760)
+- Fixed the output of the pacman configuration: [PR](https://github.com/advancedtelematic/aktualizr/pull/1761)
 
 ## [2020.9] - 2020-08-26
 
