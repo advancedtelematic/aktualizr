@@ -305,178 +305,183 @@ $(function() {
 <div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;  <span class="keywordflow">if</span> (!boost::filesystem::exists(Utils::absolutePath(config_.path, <span class="stringliteral">&quot;misconfigured_ecus&quot;</span>))) {</div>
 <div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
 <div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;  }</div>
-<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;  Json::Value content_json = Utils::parseJSONFile(Utils::absolutePath(config_.path, <span class="stringliteral">&quot;misconfigured_ecus&quot;</span>).string());</div>
-<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160; </div>
-<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;  <span class="keywordflow">for</span> (<span class="keyword">auto</span> it = content_json.begin(); it != content_json.end(); ++it) {</div>
-<div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160;    ecus-&gt;push_back(<a class="code" href="struct_misconfigured_ecu.html">MisconfiguredEcu</a>(<a class="code" href="class_uptane_1_1_ecu_serial.html">Uptane::EcuSerial</a>((*it)[<span class="stringliteral">&quot;serial&quot;</span>].asString()),</div>
-<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;                                     <a class="code" href="class_uptane_1_1_hardware_identifier.html">Uptane::HardwareIdentifier</a>((*it)[<span class="stringliteral">&quot;hardware_id&quot;</span>].asString()),</div>
-<div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;                                     <span class="keyword">static_cast&lt;</span>EcuState<span class="keyword">&gt;</span>((*it)[<span class="stringliteral">&quot;state&quot;</span>].asInt())));</div>
-<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;  }</div>
-<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;  <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;}</div>
-<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160; </div>
-<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;<span class="keywordtype">bool</span> FSStorageRead::loadInstalledVersions(std::vector&lt;Uptane::Target&gt;* installed_versions,</div>
-<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;                                          <span class="keywordtype">size_t</span>* current_version)<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;  <span class="keyword">const</span> boost::filesystem::path path = Utils::absolutePath(config_.path, <span class="stringliteral">&quot;installed_versions&quot;</span>);</div>
-<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;  <span class="keywordflow">return</span> INvStorage::fsReadInstalledVersions(path, installed_versions, current_version);</div>
-<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;}</div>
-<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160; </div>
-<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;<span class="keywordtype">bool</span> FSStorageRead::splitNameRoleVersion(<span class="keyword">const</span> std::string&amp; full_name, std::string* role_name, <span class="keywordtype">int</span>* version) {</div>
-<div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;  <span class="keywordtype">size_t</span> dot_pos = full_name.find(<span class="charliteral">&#39;.&#39;</span>);</div>
-<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160; </div>
-<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;  <span class="comment">// doesn&#39;t have a dot</span></div>
-<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;  <span class="keywordflow">if</span> (dot_pos == std::string::npos) {</div>
-<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;  }</div>
-<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;  std::string prefix = full_name.substr(0, dot_pos);</div>
-<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;  <span class="keywordflow">if</span> (role_name != <span class="keyword">nullptr</span>) {</div>
-<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;    *role_name = full_name.substr(dot_pos + 1);</div>
-<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;  }</div>
-<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160; </div>
-<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;  <span class="keywordflow">try</span> {</div>
-<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;    <span class="keyword">auto</span> v = boost::lexical_cast&lt;int&gt;(prefix);</div>
-<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;    <span class="keywordflow">if</span> (version != <span class="keyword">nullptr</span>) {</div>
-<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;      *version = v;</div>
-<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;    }</div>
-<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;  } <span class="keywordflow">catch</span> (<span class="keyword">const</span> boost::bad_lexical_cast&amp;) {</div>
-<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;  }</div>
-<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;  <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;}</div>
-<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160; </div>
-<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;<a class="code" href="class_uptane_1_1_version.html">Uptane::Version</a> FSStorageRead::findMaxVersion(<span class="keyword">const</span> boost::filesystem::path&amp; meta_directory, <span class="keyword">const</span> <a class="code" href="class_uptane_1_1_role.html">Uptane::Role</a>&amp; role) {</div>
-<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;  <span class="keywordtype">int</span> version = -1;</div>
-<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;  <span class="keywordflow">if</span> (!boost::filesystem::exists(meta_directory)) {</div>
-<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;    <span class="keywordflow">return</span> {};</div>
-<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;  }</div>
-<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160; </div>
-<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;  boost::filesystem::directory_iterator it{meta_directory};</div>
-<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;  <span class="keywordflow">for</span> (; it != boost::filesystem::directory_iterator(); ++it) {</div>
-<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;    <span class="keywordflow">if</span> (!boost::filesystem::is_regular_file(it-&gt;path())) {</div>
-<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;      <span class="keywordflow">continue</span>;</div>
-<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;    }</div>
-<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;    std::string name = it-&gt;path().filename().native();</div>
-<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;    <span class="keywordtype">int</span> file_version;</div>
-<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;    std::string file_role;</div>
-<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;    <span class="keywordflow">if</span> (splitNameRoleVersion(name, &amp;file_role, &amp;file_version)) {</div>
-<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;      <span class="keywordflow">if</span> (file_role == <a class="code" href="class_uptane_1_1_version.html">Uptane::Version</a>().RoleFileName(role) &amp;&amp; file_version &gt; version) {</div>
-<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;        version = file_version;</div>
-<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;      }</div>
-<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160;    }</div>
-<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;  }</div>
-<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160; </div>
-<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;  <span class="keywordflow">return</span> <a class="code" href="class_uptane_1_1_version.html">Uptane::Version</a>(version);</div>
-<div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;}</div>
-<div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160; </div>
-<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;<span class="comment">// clear methods, to clean the storage files after a migration</span></div>
+<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160; </div>
+<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;  <span class="keywordflow">try</span> {</div>
+<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;    Json::Value content_json = Utils::parseJSONFile(Utils::absolutePath(config_.path, <span class="stringliteral">&quot;misconfigured_ecus&quot;</span>).string());</div>
+<div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160;    <span class="keywordflow">for</span> (<span class="keyword">auto</span> it = content_json.begin(); it != content_json.end(); ++it) {</div>
+<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;      ecus-&gt;push_back(<a class="code" href="struct_misconfigured_ecu.html">MisconfiguredEcu</a>(<a class="code" href="class_uptane_1_1_ecu_serial.html">Uptane::EcuSerial</a>((*it)[<span class="stringliteral">&quot;serial&quot;</span>].asString()),</div>
+<div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;                                       <a class="code" href="class_uptane_1_1_hardware_identifier.html">Uptane::HardwareIdentifier</a>((*it)[<span class="stringliteral">&quot;hardware_id&quot;</span>].asString()),</div>
+<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;                                       <span class="keyword">static_cast&lt;</span>EcuState<span class="keyword">&gt;</span>((*it)[<span class="stringliteral">&quot;state&quot;</span>].asInt())));</div>
+<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;    }</div>
+<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;  } <span class="keywordflow">catch</span> (<span class="keyword">const</span> std::exception&amp; ex) {</div>
+<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;    LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Unable to parse misconfigured_ecus: &quot;</span> &lt;&lt; ex.what();</div>
+<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;  }</div>
+<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;  <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;}</div>
+<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160; </div>
+<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;<span class="keywordtype">bool</span> FSStorageRead::loadInstalledVersions(std::vector&lt;Uptane::Target&gt;* installed_versions,</div>
+<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;                                          <span class="keywordtype">size_t</span>* current_version)<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;  <span class="keyword">const</span> boost::filesystem::path path = Utils::absolutePath(config_.path, <span class="stringliteral">&quot;installed_versions&quot;</span>);</div>
+<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;  <span class="keywordflow">return</span> INvStorage::fsReadInstalledVersions(path, installed_versions, current_version);</div>
+<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;}</div>
+<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160; </div>
+<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;<span class="keywordtype">bool</span> FSStorageRead::splitNameRoleVersion(<span class="keyword">const</span> std::string&amp; full_name, std::string* role_name, <span class="keywordtype">int</span>* version) {</div>
+<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;  <span class="keywordtype">size_t</span> dot_pos = full_name.find(<span class="charliteral">&#39;.&#39;</span>);</div>
+<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160; </div>
+<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;  <span class="comment">// doesn&#39;t have a dot</span></div>
+<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;  <span class="keywordflow">if</span> (dot_pos == std::string::npos) {</div>
+<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;  }</div>
+<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;  std::string prefix = full_name.substr(0, dot_pos);</div>
+<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;  <span class="keywordflow">if</span> (role_name != <span class="keyword">nullptr</span>) {</div>
+<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;    *role_name = full_name.substr(dot_pos + 1);</div>
+<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;  }</div>
+<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160; </div>
+<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;  <span class="keywordflow">try</span> {</div>
+<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;    <span class="keyword">auto</span> v = boost::lexical_cast&lt;int&gt;(prefix);</div>
+<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;    <span class="keywordflow">if</span> (version != <span class="keyword">nullptr</span>) {</div>
+<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;      *version = v;</div>
+<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;    }</div>
+<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;  } <span class="keywordflow">catch</span> (<span class="keyword">const</span> boost::bad_lexical_cast&amp;) {</div>
+<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;  }</div>
+<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;  <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;}</div>
+<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160; </div>
+<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;<a class="code" href="class_uptane_1_1_version.html">Uptane::Version</a> FSStorageRead::findMaxVersion(<span class="keyword">const</span> boost::filesystem::path&amp; meta_directory, <span class="keyword">const</span> <a class="code" href="class_uptane_1_1_role.html">Uptane::Role</a>&amp; role) {</div>
+<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;  <span class="keywordtype">int</span> version = -1;</div>
+<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;  <span class="keywordflow">if</span> (!boost::filesystem::exists(meta_directory)) {</div>
+<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;    <span class="keywordflow">return</span> {};</div>
+<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;  }</div>
+<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160; </div>
+<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;  boost::filesystem::directory_iterator it{meta_directory};</div>
+<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;  <span class="keywordflow">for</span> (; it != boost::filesystem::directory_iterator(); ++it) {</div>
+<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;    <span class="keywordflow">if</span> (!boost::filesystem::is_regular_file(it-&gt;path())) {</div>
+<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;      <span class="keywordflow">continue</span>;</div>
+<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;    }</div>
+<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;    std::string name = it-&gt;path().filename().native();</div>
+<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;    <span class="keywordtype">int</span> file_version;</div>
+<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160;    std::string file_role;</div>
+<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;    <span class="keywordflow">if</span> (splitNameRoleVersion(name, &amp;file_role, &amp;file_version)) {</div>
+<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;      <span class="keywordflow">if</span> (file_role == <a class="code" href="class_uptane_1_1_version.html">Uptane::Version</a>().RoleFileName(role) &amp;&amp; file_version &gt; version) {</div>
+<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;        version = file_version;</div>
+<div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;      }</div>
+<div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;    }</div>
+<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;  }</div>
 <div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160; </div>
-<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;<span class="keywordtype">void</span> FSStorageRead::clearPrimaryKeys() {</div>
-<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;  boost::filesystem::remove(config_.uptane_public_key_path.get(config_.path));</div>
-<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;  boost::filesystem::remove(config_.uptane_private_key_path.get(config_.path));</div>
-<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;}</div>
+<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;  <span class="keywordflow">return</span> <a class="code" href="class_uptane_1_1_version.html">Uptane::Version</a>(version);</div>
+<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;}</div>
+<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160; </div>
+<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;<span class="comment">// clear methods, to clean the storage files after a migration</span></div>
 <div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160; </div>
-<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;<span class="keywordtype">void</span> FSStorageRead::clearTlsCreds() {</div>
-<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;  boost::filesystem::remove(config_.tls_cacert_path.get(config_.path));</div>
-<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;  boost::filesystem::remove(config_.tls_clientcert_path.get(config_.path));</div>
-<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;  boost::filesystem::remove(config_.tls_pkey_path.get(config_.path));</div>
-<div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160;}</div>
-<div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160; </div>
-<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160;<span class="keywordtype">void</span> FSStorageRead::clearNonRootMeta(<a class="code" href="class_uptane_1_1_repository_type.html">Uptane::RepositoryType</a> repo) {</div>
-<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;  boost::filesystem::path meta_path;</div>
-<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;  <span class="keywordflow">switch</span> (repo) {</div>
-<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;    <span class="keywordflow">case</span> Uptane::RepositoryType::Image():</div>
-<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;      meta_path = config_.uptane_metadata_path.get(config_.path) / <span class="stringliteral">&quot;repo&quot;</span>;</div>
-<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;      <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;    <span class="keywordflow">case</span> Uptane::RepositoryType::Director():</div>
-<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;      meta_path = config_.uptane_metadata_path.get(config_.path) / <span class="stringliteral">&quot;director&quot;</span>;</div>
-<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;      <span class="keywordflow">break</span>;</div>
-<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;    <span class="keywordflow">default</span>:</div>
-<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160;      <span class="keywordflow">return</span>;</div>
-<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;  }</div>
-<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160; </div>
-<div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160;  boost::filesystem::directory_iterator it{meta_path};</div>
-<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160;  <span class="keywordflow">for</span> (; it != boost::filesystem::directory_iterator(); ++it) {</div>
-<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; role : Uptane::Role::Roles()) {</div>
-<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160;      <span class="keywordflow">if</span> (role == Uptane::Role::Root()) {</div>
-<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;        <span class="keywordflow">continue</span>;</div>
-<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;      }</div>
-<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;      std::string role_name;</div>
-<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;      std::string fn = it-&gt;path().filename().native();</div>
-<div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;      <span class="keywordflow">if</span> (fn == <a class="code" href="class_uptane_1_1_version.html">Uptane::Version</a>().RoleFileName(role) ||</div>
-<div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160;          (splitNameRoleVersion(fn, &amp;role_name, <span class="keyword">nullptr</span>) &amp;&amp; (role_name == <a class="code" href="class_uptane_1_1_version.html">Uptane::Version</a>().RoleFileName(role)))) {</div>
-<div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;        boost::filesystem::remove(it-&gt;path());</div>
-<div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;      }</div>
-<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;    }</div>
-<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;  }</div>
-<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;}</div>
-<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160; </div>
-<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;<span class="keywordtype">void</span> FSStorageRead::clearMetadata() {</div>
-<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; meta_path : {config_.uptane_metadata_path.get(config_.path) / <span class="stringliteral">&quot;repo&quot;</span>,</div>
-<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;                                config_.uptane_metadata_path.get(config_.path) / <span class="stringliteral">&quot;director&quot;</span>}) {</div>
-<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;    <span class="keywordflow">if</span> (!boost::filesystem::exists(meta_path)) {</div>
-<div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160;      <span class="keywordflow">return</span>;</div>
-<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160;    }</div>
-<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160; </div>
-<div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160;    boost::filesystem::directory_iterator it{meta_path};</div>
-<div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160;    <span class="keywordflow">for</span> (; it != boost::filesystem::directory_iterator(); ++it) {</div>
-<div class="line"><a name="l00350"></a><span class="lineno">  350</span>&#160;      boost::filesystem::remove(it-&gt;path());</div>
+<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;<span class="keywordtype">void</span> FSStorageRead::clearPrimaryKeys() {</div>
+<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;  boost::filesystem::remove(config_.uptane_public_key_path.get(config_.path));</div>
+<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;  boost::filesystem::remove(config_.uptane_private_key_path.get(config_.path));</div>
+<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;}</div>
+<div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160; </div>
+<div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160;<span class="keywordtype">void</span> FSStorageRead::clearTlsCreds() {</div>
+<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160;  boost::filesystem::remove(config_.tls_cacert_path.get(config_.path));</div>
+<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;  boost::filesystem::remove(config_.tls_clientcert_path.get(config_.path));</div>
+<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;  boost::filesystem::remove(config_.tls_pkey_path.get(config_.path));</div>
+<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;}</div>
+<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160; </div>
+<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;<span class="keywordtype">void</span> FSStorageRead::clearNonRootMeta(<a class="code" href="class_uptane_1_1_repository_type.html">Uptane::RepositoryType</a> repo) {</div>
+<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;  boost::filesystem::path meta_path;</div>
+<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;  <span class="keywordflow">switch</span> (repo) {</div>
+<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;    <span class="keywordflow">case</span> Uptane::RepositoryType::Image():</div>
+<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;      meta_path = config_.uptane_metadata_path.get(config_.path) / <span class="stringliteral">&quot;repo&quot;</span>;</div>
+<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160;      <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;    <span class="keywordflow">case</span> Uptane::RepositoryType::Director():</div>
+<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160;      meta_path = config_.uptane_metadata_path.get(config_.path) / <span class="stringliteral">&quot;director&quot;</span>;</div>
+<div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160;      <span class="keywordflow">break</span>;</div>
+<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160;    <span class="keywordflow">default</span>:</div>
+<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;      <span class="keywordflow">return</span>;</div>
+<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160;  }</div>
+<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160; </div>
+<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;  boost::filesystem::directory_iterator it{meta_path};</div>
+<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;  <span class="keywordflow">for</span> (; it != boost::filesystem::directory_iterator(); ++it) {</div>
+<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; role : Uptane::Role::Roles()) {</div>
+<div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;      <span class="keywordflow">if</span> (role == Uptane::Role::Root()) {</div>
+<div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160;        <span class="keywordflow">continue</span>;</div>
+<div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;      }</div>
+<div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;      std::string role_name;</div>
+<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;      std::string fn = it-&gt;path().filename().native();</div>
+<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;      <span class="keywordflow">if</span> (fn == <a class="code" href="class_uptane_1_1_version.html">Uptane::Version</a>().RoleFileName(role) ||</div>
+<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;          (splitNameRoleVersion(fn, &amp;role_name, <span class="keyword">nullptr</span>) &amp;&amp; (role_name == <a class="code" href="class_uptane_1_1_version.html">Uptane::Version</a>().RoleFileName(role)))) {</div>
+<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;        boost::filesystem::remove(it-&gt;path());</div>
+<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;      }</div>
+<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;    }</div>
+<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;  }</div>
+<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;}</div>
+<div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160; </div>
+<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160;<span class="keywordtype">void</span> FSStorageRead::clearMetadata() {</div>
+<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; meta_path : {config_.uptane_metadata_path.get(config_.path) / <span class="stringliteral">&quot;repo&quot;</span>,</div>
+<div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160;                                config_.uptane_metadata_path.get(config_.path) / <span class="stringliteral">&quot;director&quot;</span>}) {</div>
+<div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160;    <span class="keywordflow">if</span> (!boost::filesystem::exists(meta_path)) {</div>
+<div class="line"><a name="l00350"></a><span class="lineno">  350</span>&#160;      <span class="keywordflow">return</span>;</div>
 <div class="line"><a name="l00351"></a><span class="lineno">  351</span>&#160;    }</div>
-<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160;  }</div>
-<div class="line"><a name="l00353"></a><span class="lineno">  353</span>&#160;}</div>
-<div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160; </div>
-<div class="line"><a name="l00355"></a><span class="lineno">  355</span>&#160;<span class="keywordtype">void</span> FSStorageRead::clearDeviceId() { boost::filesystem::remove(Utils::absolutePath(config_.path, <span class="stringliteral">&quot;device_id&quot;</span>)); }</div>
-<div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160; </div>
-<div class="line"><a name="l00357"></a><span class="lineno">  357</span>&#160;<span class="keywordtype">void</span> FSStorageRead::clearEcuRegistered() {</div>
-<div class="line"><a name="l00358"></a><span class="lineno">  358</span>&#160;  boost::filesystem::remove(Utils::absolutePath(config_.path, <span class="stringliteral">&quot;is_registered&quot;</span>));</div>
-<div class="line"><a name="l00359"></a><span class="lineno">  359</span>&#160;}</div>
-<div class="line"><a name="l00360"></a><span class="lineno">  360</span>&#160; </div>
-<div class="line"><a name="l00361"></a><span class="lineno">  361</span>&#160;<span class="keywordtype">void</span> FSStorageRead::clearEcuSerials() {</div>
-<div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;  boost::filesystem::remove(Utils::absolutePath(config_.path, <span class="stringliteral">&quot;primary_ecu_serial&quot;</span>));</div>
-<div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160;  boost::filesystem::remove(Utils::absolutePath(config_.path, <span class="stringliteral">&quot;primary_ecu_hardware_id&quot;</span>));</div>
-<div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160;  boost::filesystem::remove(Utils::absolutePath(config_.path, <span class="stringliteral">&quot;secondaries_list&quot;</span>));</div>
-<div class="line"><a name="l00365"></a><span class="lineno">  365</span>&#160;}</div>
-<div class="line"><a name="l00366"></a><span class="lineno">  366</span>&#160; </div>
-<div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160;<span class="keywordtype">void</span> FSStorageRead::clearMisconfiguredEcus() {</div>
-<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;  boost::filesystem::remove(Utils::absolutePath(config_.path, <span class="stringliteral">&quot;misconfigured_ecus&quot;</span>));</div>
-<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;}</div>
-<div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160; </div>
-<div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160;<span class="keywordtype">void</span> FSStorageRead::clearInstalledVersions() {</div>
-<div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;  <span class="keywordflow">if</span> (boost::filesystem::exists(Utils::absolutePath(config_.path, <span class="stringliteral">&quot;installed_versions&quot;</span>))) {</div>
-<div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160;    boost::filesystem::remove(Utils::absolutePath(config_.path, <span class="stringliteral">&quot;installed_versions&quot;</span>));</div>
-<div class="line"><a name="l00374"></a><span class="lineno">  374</span>&#160;  }</div>
-<div class="line"><a name="l00375"></a><span class="lineno">  375</span>&#160;}</div>
-<div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160; </div>
-<div class="line"><a name="l00377"></a><span class="lineno">  377</span>&#160;<span class="keywordtype">void</span> FSStorageRead::clearInstallationResult() {</div>
-<div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;  boost::filesystem::remove(Utils::absolutePath(config_.path, <span class="stringliteral">&quot;installation_result&quot;</span>));</div>
-<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;}</div>
-<div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160; </div>
-<div class="line"><a name="l00381"></a><span class="lineno">  381</span>&#160;<span class="keywordtype">void</span> FSStorageRead::cleanUpAll() {</div>
-<div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160;  clearPrimaryKeys();</div>
-<div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;  clearTlsCreds();</div>
-<div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160;  clearDeviceId();</div>
-<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;  clearEcuSerials();</div>
-<div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160;  clearEcuRegistered();</div>
-<div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;  clearMisconfiguredEcus();</div>
-<div class="line"><a name="l00388"></a><span class="lineno">  388</span>&#160;  clearInstalledVersions();</div>
-<div class="line"><a name="l00389"></a><span class="lineno">  389</span>&#160;  clearInstallationResult();</div>
-<div class="line"><a name="l00390"></a><span class="lineno">  390</span>&#160;  clearMetadata();</div>
-<div class="line"><a name="l00391"></a><span class="lineno">  391</span>&#160; </div>
-<div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160;  boost::filesystem::remove_all(config_.uptane_metadata_path.get(config_.path));</div>
-<div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;  boost::filesystem::remove_all(config_.path / <span class="stringliteral">&quot;targets&quot;</span>);</div>
-<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;}</div>
-<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160; </div>
-<div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160;<span class="keywordtype">bool</span> FSStorageRead::FSStoragePresent(<span class="keyword">const</span> <a class="code" href="struct_storage_config.html">StorageConfig</a>&amp; config) {</div>
-<div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;  <span class="keywordflow">return</span> boost::filesystem::exists(Utils::absolutePath(config.path, <span class="stringliteral">&quot;is_registered&quot;</span>).string());</div>
-<div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160;}</div>
+<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160; </div>
+<div class="line"><a name="l00353"></a><span class="lineno">  353</span>&#160;    boost::filesystem::directory_iterator it{meta_path};</div>
+<div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160;    <span class="keywordflow">for</span> (; it != boost::filesystem::directory_iterator(); ++it) {</div>
+<div class="line"><a name="l00355"></a><span class="lineno">  355</span>&#160;      boost::filesystem::remove(it-&gt;path());</div>
+<div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160;    }</div>
+<div class="line"><a name="l00357"></a><span class="lineno">  357</span>&#160;  }</div>
+<div class="line"><a name="l00358"></a><span class="lineno">  358</span>&#160;}</div>
+<div class="line"><a name="l00359"></a><span class="lineno">  359</span>&#160; </div>
+<div class="line"><a name="l00360"></a><span class="lineno">  360</span>&#160;<span class="keywordtype">void</span> FSStorageRead::clearDeviceId() { boost::filesystem::remove(Utils::absolutePath(config_.path, <span class="stringliteral">&quot;device_id&quot;</span>)); }</div>
+<div class="line"><a name="l00361"></a><span class="lineno">  361</span>&#160; </div>
+<div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;<span class="keywordtype">void</span> FSStorageRead::clearEcuRegistered() {</div>
+<div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160;  boost::filesystem::remove(Utils::absolutePath(config_.path, <span class="stringliteral">&quot;is_registered&quot;</span>));</div>
+<div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160;}</div>
+<div class="line"><a name="l00365"></a><span class="lineno">  365</span>&#160; </div>
+<div class="line"><a name="l00366"></a><span class="lineno">  366</span>&#160;<span class="keywordtype">void</span> FSStorageRead::clearEcuSerials() {</div>
+<div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160;  boost::filesystem::remove(Utils::absolutePath(config_.path, <span class="stringliteral">&quot;primary_ecu_serial&quot;</span>));</div>
+<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;  boost::filesystem::remove(Utils::absolutePath(config_.path, <span class="stringliteral">&quot;primary_ecu_hardware_id&quot;</span>));</div>
+<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;  boost::filesystem::remove(Utils::absolutePath(config_.path, <span class="stringliteral">&quot;secondaries_list&quot;</span>));</div>
+<div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;}</div>
+<div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160; </div>
+<div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;<span class="keywordtype">void</span> FSStorageRead::clearMisconfiguredEcus() {</div>
+<div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160;  boost::filesystem::remove(Utils::absolutePath(config_.path, <span class="stringliteral">&quot;misconfigured_ecus&quot;</span>));</div>
+<div class="line"><a name="l00374"></a><span class="lineno">  374</span>&#160;}</div>
+<div class="line"><a name="l00375"></a><span class="lineno">  375</span>&#160; </div>
+<div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160;<span class="keywordtype">void</span> FSStorageRead::clearInstalledVersions() {</div>
+<div class="line"><a name="l00377"></a><span class="lineno">  377</span>&#160;  <span class="keywordflow">if</span> (boost::filesystem::exists(Utils::absolutePath(config_.path, <span class="stringliteral">&quot;installed_versions&quot;</span>))) {</div>
+<div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;    boost::filesystem::remove(Utils::absolutePath(config_.path, <span class="stringliteral">&quot;installed_versions&quot;</span>));</div>
+<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;  }</div>
+<div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160;}</div>
+<div class="line"><a name="l00381"></a><span class="lineno">  381</span>&#160; </div>
+<div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160;<span class="keywordtype">void</span> FSStorageRead::clearInstallationResult() {</div>
+<div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;  boost::filesystem::remove(Utils::absolutePath(config_.path, <span class="stringliteral">&quot;installation_result&quot;</span>));</div>
+<div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160;}</div>
+<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160; </div>
+<div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160;<span class="keywordtype">void</span> FSStorageRead::cleanUpAll() {</div>
+<div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;  clearPrimaryKeys();</div>
+<div class="line"><a name="l00388"></a><span class="lineno">  388</span>&#160;  clearTlsCreds();</div>
+<div class="line"><a name="l00389"></a><span class="lineno">  389</span>&#160;  clearDeviceId();</div>
+<div class="line"><a name="l00390"></a><span class="lineno">  390</span>&#160;  clearEcuSerials();</div>
+<div class="line"><a name="l00391"></a><span class="lineno">  391</span>&#160;  clearEcuRegistered();</div>
+<div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160;  clearMisconfiguredEcus();</div>
+<div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;  clearInstalledVersions();</div>
+<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;  clearInstallationResult();</div>
+<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;  clearMetadata();</div>
+<div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160; </div>
+<div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;  boost::filesystem::remove_all(config_.uptane_metadata_path.get(config_.path));</div>
+<div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160;  boost::filesystem::remove_all(config_.path / <span class="stringliteral">&quot;targets&quot;</span>);</div>
+<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160;}</div>
+<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160; </div>
+<div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160;<span class="keywordtype">bool</span> FSStorageRead::FSStoragePresent(<span class="keyword">const</span> <a class="code" href="struct_storage_config.html">StorageConfig</a>&amp; config) {</div>
+<div class="line"><a name="l00402"></a><span class="lineno">  402</span>&#160;  <span class="keywordflow">return</span> boost::filesystem::exists(Utils::absolutePath(config.path, <span class="stringliteral">&quot;is_registered&quot;</span>).string());</div>
+<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160;}</div>
 </div><!-- fragment --></div><!-- contents -->
 <div class="ttc" id="aclass_uptane_1_1_version_html"><div class="ttname"><a href="class_uptane_1_1_version.html">Uptane::Version</a></div><div class="ttdoc">Metadata version numbers.</div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00120">tuf.h:120</a></div></div>
 <div class="ttc" id="astruct_storage_config_html"><div class="ttname"><a href="struct_storage_config.html">StorageConfig</a></div><div class="ttdef"><b>Definition:</b> <a href="config_8h_source.html#l00111">config.h:111</a></div></div>
 <div class="ttc" id="astruct_misconfigured_ecu_html"><div class="ttname"><a href="struct_misconfigured_ecu.html">MisconfiguredEcu</a></div><div class="ttdef"><b>Definition:</b> <a href="invstorage_8h_source.html#l00029">invstorage.h:29</a></div></div>
 <div class="ttc" id="anamespacedata_html"><div class="ttname"><a href="namespacedata.html">data</a></div><div class="ttdoc">General data structures.</div><div class="ttdef"><b>Definition:</b> <a href="types_8h_source.html#l00217">types.h:217</a></div></div>
-<div class="ttc" id="aclass_uptane_1_1_hardware_identifier_html"><div class="ttname"><a href="class_uptane_1_1_hardware_identifier.html">Uptane::HardwareIdentifier</a></div><div class="ttdef"><b>Definition:</b> <a href="types_8h_source.html#l00323">types.h:323</a></div></div>
+<div class="ttc" id="aclass_uptane_1_1_hardware_identifier_html"><div class="ttname"><a href="class_uptane_1_1_hardware_identifier.html">Uptane::HardwareIdentifier</a></div><div class="ttdef"><b>Definition:</b> <a href="types_8h_source.html#l00315">types.h:315</a></div></div>
 <div class="ttc" id="aclassutils_1_1_based_path_html"><div class="ttname"><a href="classutils_1_1_based_path.html">utils::BasedPath</a></div><div class="ttdoc">The BasedPath class Can represent an absolute or relative path, only readable through the BasePath::g...</div><div class="ttdef"><b>Definition:</b> <a href="types_8h_source.html#l00031">types.h:31</a></div></div>
 <div class="ttc" id="aclass_uptane_1_1_repository_type_html"><div class="ttname"><a href="class_uptane_1_1_repository_type.html">Uptane::RepositoryType</a></div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00021">tuf.h:21</a></div></div>
-<div class="ttc" id="aclass_uptane_1_1_ecu_serial_html"><div class="ttname"><a href="class_uptane_1_1_ecu_serial.html">Uptane::EcuSerial</a></div><div class="ttdef"><b>Definition:</b> <a href="types_8h_source.html#l00354">types.h:354</a></div></div>
+<div class="ttc" id="aclass_uptane_1_1_ecu_serial_html"><div class="ttname"><a href="class_uptane_1_1_ecu_serial.html">Uptane::EcuSerial</a></div><div class="ttdef"><b>Definition:</b> <a href="types_8h_source.html#l00346">types.h:346</a></div></div>
 <div class="ttc" id="aclass_uptane_1_1_role_html"><div class="ttname"><a href="class_uptane_1_1_role.html">Uptane::Role</a></div><div class="ttdoc">TUF Roles.</div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00061">tuf.h:61</a></div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

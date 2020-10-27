@@ -75,11 +75,11 @@ $(function() {
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="preprocessor">#include &quot;http/httpclient.h&quot;</span></div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;storage/invstorage.h&quot;</span></div>
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160; </div>
-<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;std::string aktualizrGet(<a class="code" href="class_config.html">Config</a> &amp;config, <span class="keyword">const</span> std::string &amp;url) {</div>
+<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;std::string aktualizrGet(<a class="code" href="class_config.html">Config</a> &amp;config, <span class="keyword">const</span> std::string &amp;url, <span class="keyword">const</span> std::vector&lt;std::string&gt; &amp;headers) {</div>
 <div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;  <span class="keyword">auto</span> storage = INvStorage::newStorage(config.storage);</div>
 <div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;  storage-&gt;importData(config.import);</div>
 <div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160; </div>
-<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;  <span class="keyword">auto</span> client = std_::make_unique&lt;HttpClient&gt;();</div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;  <span class="keyword">auto</span> client = std_::make_unique&lt;HttpClient&gt;(&amp;headers);</div>
 <div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;  <a class="code" href="class_key_manager.html">KeyManager</a> keys(storage, config.keymanagerConfig());</div>
 <div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;  keys.copyCertsToCurl(*client);</div>
 <div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;  <span class="keyword">auto</span> resp = client-&gt;get(url, HttpInterface::kNoLimit);</div>

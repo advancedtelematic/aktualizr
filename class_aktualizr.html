@@ -233,8 +233,8 @@ std::shared_ptr&lt; <a class="el" href="class_sota_uptane_client.html">SotaUptan
   <table class="exception">
     <tr><td class="paramname"><a class="el" href="class_s_q_l_exception.html">SQLException</a></td><td></td></tr>
     <tr><td class="paramname">boost::filesystem::filesystem_error</td><td></td></tr>
-    <tr><td class="paramname">std::bad_alloc</td><td></td></tr>
-    <tr><td class="paramname">std::runtime_error</td><td>(filesystem and json parsing failures; libsodium initialization failure) </td></tr>
+    <tr><td class="paramname">std::bad_alloc</td><td>(memory allocation failure) </td></tr>
+    <tr><td class="paramname">std::runtime_error</td><td>(filesystem failure; libsodium initialization failure) </td></tr>
   </table>
   </dd>
 </dl>
@@ -326,7 +326,8 @@ std::shared_ptr&lt; <a class="el" href="class_sota_uptane_client.html">SotaUptan
 <p>Campaigns are a concept outside of <a class="el" href="namespace_uptane.html" title="Base data types that are used in The Update Framework (TUF), part of Uptane.">Uptane</a>, and allow for user approval of updates before the contents of the update are known. </p><dl class="section return"><dt>Returns</dt><dd>std::future object with data about available campaigns.</dd></dl>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
-    <tr><td class="paramname">std::runtime_error</td><td>(curl and json parsing failures) </td></tr>
+    <tr><td class="paramname">std::bad_alloc</td><td>(memory allocation failure) </td></tr>
+    <tr><td class="paramname">std::runtime_error</td><td>(curl failure) </td></tr>
   </table>
   </dd>
 </dl>
@@ -373,6 +374,7 @@ std::shared_ptr&lt; <a class="el" href="class_sota_uptane_client.html">SotaUptan
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
     <tr><td class="paramname">std::bad_alloc</td><td>(memory allocation failure) </td></tr>
+    <tr><td class="paramname">std::system_error</td><td>(failure to lock a mutex) </td></tr>
   </table>
   </dd>
 </dl>
@@ -402,8 +404,9 @@ std::shared_ptr&lt; <a class="el" href="class_sota_uptane_client.html">SotaUptan
   <table class="exception">
     <tr><td class="paramname"><a class="el" href="class_s_q_l_exception.html">SQLException</a></td><td></td></tr>
     <tr><td class="paramname">boost::filesystem::filesystem_error</td><td></td></tr>
-    <tr><td class="paramname">std::bad_alloc</td><td></td></tr>
-    <tr><td class="paramname">std::runtime_error</td><td>(curl, SQL, filesystem, and json parsing failures; database inconsistency with pending updates) </td></tr>
+    <tr><td class="paramname">std::bad_alloc</td><td>(memory allocation failure) </td></tr>
+    <tr><td class="paramname">std::runtime_error</td><td>(curl and filesystem failures; database inconsistency with pending updates) </td></tr>
+    <tr><td class="paramname">std::system_error</td><td>(failure to lock a mutex) </td></tr>
   </table>
   </dd>
 </dl>
@@ -475,6 +478,7 @@ std::shared_ptr&lt; <a class="el" href="class_sota_uptane_client.html">SotaUptan
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
     <tr><td class="paramname"><a class="el" href="class_s_q_l_exception.html">SQLException</a></td><td></td></tr>
+    <tr><td class="paramname">std::bad_alloc</td><td>(memory allocation failure) </td></tr>
     <tr><td class="paramname">std::system_error</td><td>(failure to lock a mutex) </td></tr>
   </table>
   </dd>
@@ -593,12 +597,11 @@ std::shared_ptr&lt; <a class="el" href="class_sota_uptane_client.html">SotaUptan
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
     <tr><td class="paramname"><a class="el" href="class_initializer_1_1_error.html">Initializer::Error</a></td><td>and subclasses </td></tr>
-    <tr><td class="paramname"><a class="el" href="class_uptane_1_1_exception.html">Uptane::Exception</a></td><td>and subclasses </td></tr>
     <tr><td class="paramname"><a class="el" href="class_s_q_l_exception.html">SQLException</a></td><td></td></tr>
     <tr><td class="paramname">boost::filesystem::filesystem_error</td><td></td></tr>
-    <tr><td class="paramname">std::system_error</td><td>(failure to lock a mutex) </td></tr>
     <tr><td class="paramname">std::bad_alloc</td><td>(memory allocation failure) </td></tr>
-    <tr><td class="paramname">std::runtime_error</td><td>(curl, P11, SQL, filesystem, credentials archive parsing, certificate parsing, json parsing failures; missing ECU serials or device ID; database inconsistency with pending updates; invalid OSTree deployment) </td></tr>
+    <tr><td class="paramname">std::runtime_error</td><td>(curl, P11, filesystem, credentials archive parsing, and certificate parsing failures; missing ECU serials or device ID; database inconsistency with pending updates; invalid OSTree deployment) </td></tr>
+    <tr><td class="paramname">std::system_error</td><td>(failure to lock a mutex) </td></tr>
   </table>
   </dd>
 </dl>
@@ -634,7 +637,9 @@ std::shared_ptr&lt; <a class="el" href="class_sota_uptane_client.html">SotaUptan
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
     <tr><td class="paramname"><a class="el" href="class_s_q_l_exception.html">SQLException</a></td><td></td></tr>
+    <tr><td class="paramname">std::bad_alloc</td><td>(memory allocation failure) </td></tr>
     <tr><td class="paramname">std::runtime_error</td><td>(error getting metadata from database or filesystem) </td></tr>
+    <tr><td class="paramname">std::system_error</td><td>(failure to lock a mutex) </td></tr>
   </table>
   </dd>
 </dl>
@@ -699,8 +704,8 @@ std::shared_ptr&lt; <a class="el" href="class_sota_uptane_client.html">SotaUptan
 <dl class="section return"><dt>Returns</dt><dd>Information about pause results.</dd></dl>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
+    <tr><td class="paramname">std::bad_alloc</td><td>(memory allocation failure) </td></tr>
     <tr><td class="paramname">std::system_error</td><td>(failure to lock a mutex) </td></tr>
-    <tr><td class="paramname">std::bad_alloc</td><td></td></tr>
   </table>
   </dd>
 </dl>
@@ -729,8 +734,8 @@ std::shared_ptr&lt; <a class="el" href="class_sota_uptane_client.html">SotaUptan
 <dl class="section return"><dt>Returns</dt><dd>Information about resume results.</dd></dl>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
+    <tr><td class="paramname">std::bad_alloc</td><td>(memory allocation failure) </td></tr>
     <tr><td class="paramname">std::system_error</td><td>(failure to lock a mutex) </td></tr>
-    <tr><td class="paramname">std::bad_alloc</td><td></td></tr>
   </table>
   </dd>
 </dl>
@@ -767,9 +772,9 @@ std::shared_ptr&lt; <a class="el" href="class_sota_uptane_client.html">SotaUptan
   <table class="exception">
     <tr><td class="paramname"><a class="el" href="class_s_q_l_exception.html">SQLException</a></td><td></td></tr>
     <tr><td class="paramname">boost::filesystem::filesystem_error</td><td></td></tr>
+    <tr><td class="paramname">std::bad_alloc</td><td>(memory allocation failure) </td></tr>
+    <tr><td class="paramname">std::runtime_error</td><td>(curl and filesystem failures; database inconsistency with pending updates; error getting metadata from database or filesystem) </td></tr>
     <tr><td class="paramname">std::system_error</td><td>(failure to lock a mutex) </td></tr>
-    <tr><td class="paramname">std::bad_alloc</td><td></td></tr>
-    <tr><td class="paramname">std::runtime_error</td><td>(curl, SQL, filesystem, and json parsing failures; database inconsistency with pending updates; error getting metadata from database or filesystem) </td></tr>
   </table>
   </dd>
 </dl>
@@ -806,8 +811,9 @@ std::shared_ptr&lt; <a class="el" href="class_sota_uptane_client.html">SotaUptan
   <table class="exception">
     <tr><td class="paramname"><a class="el" href="class_s_q_l_exception.html">SQLException</a></td><td></td></tr>
     <tr><td class="paramname">boost::filesystem::filesystem_error</td><td></td></tr>
-    <tr><td class="paramname">std::bad_alloc</td><td></td></tr>
-    <tr><td class="paramname">std::runtime_error</td><td>(curl, filesystem, and json parsing failures) </td></tr>
+    <tr><td class="paramname">std::bad_alloc</td><td>(memory allocation failure) </td></tr>
+    <tr><td class="paramname">std::runtime_error</td><td>(curl and filesystem failures) </td></tr>
+    <tr><td class="paramname">std::system_error</td><td>(failure to lock a mutex) </td></tr>
   </table>
   </dd>
 </dl>
@@ -844,7 +850,9 @@ std::shared_ptr&lt; <a class="el" href="class_sota_uptane_client.html">SotaUptan
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
     <tr><td class="paramname"><a class="el" href="class_s_q_l_exception.html">SQLException</a></td><td></td></tr>
-    <tr><td class="paramname">std::runtime_error</td><td>(curl failures; database inconsistency with pending updates) </td></tr>
+    <tr><td class="paramname">std::bad_alloc</td><td>(memory allocation failure) </td></tr>
+    <tr><td class="paramname">std::runtime_error</td><td>(curl failure; database inconsistency with pending updates) </td></tr>
+    <tr><td class="paramname">std::system_error</td><td>(failure to lock a mutex) </td></tr>
   </table>
   </dd>
 </dl>
@@ -919,7 +927,6 @@ std::shared_ptr&lt; <a class="el" href="class_sota_uptane_client.html">SotaUptan
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
     <tr><td class="paramname"><a class="el" href="class_s_q_l_exception.html">SQLException</a></td><td></td></tr>
-    <tr><td class="paramname">std::runtime_error</td><td>(SQL failure) </td></tr>
   </table>
   </dd>
 </dl>
@@ -1005,9 +1012,9 @@ std::shared_ptr&lt; <a class="el" href="class_sota_uptane_client.html">SotaUptan
   <table class="exception">
     <tr><td class="paramname"><a class="el" href="class_s_q_l_exception.html">SQLException</a></td><td></td></tr>
     <tr><td class="paramname">boost::filesystem::filesystem_error</td><td></td></tr>
+    <tr><td class="paramname">std::bad_alloc</td><td>(memory allocation failure) </td></tr>
+    <tr><td class="paramname">std::runtime_error</td><td>(curl and filesystem failures; database inconsistency with pending updates; error getting metadata from database or filesystem) </td></tr>
     <tr><td class="paramname">std::system_error</td><td>(failure to lock a mutex) </td></tr>
-    <tr><td class="paramname">std::bad_alloc</td><td></td></tr>
-    <tr><td class="paramname">std::runtime_error</td><td>(curl, SQL, filesystem, and json parsing failures; database inconsistency with pending updates; error getting metadata from database or filesystem) </td></tr>
   </table>
   </dd>
 </dl>

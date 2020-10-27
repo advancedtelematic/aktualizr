@@ -84,7 +84,7 @@ $(function() {
 <div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;      <span class="keywordflow">break</span>;</div>
 <div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;    }</div>
 <div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;    <span class="keywordflow">case</span> AuthMethod::kOauth2: {</div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;      <a class="code" href="class_o_auth2.html">OAuth2</a> oauth2(creds.GetAuthServer(), creds.GetClientId(), creds.GetClientSecret(), cacerts);</div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;      <a class="code" href="class_o_auth2.html">OAuth2</a> oauth2(creds.GetAuthServer(), creds.GetClientId(), creds.GetClientSecret(), creds.GetScope(), cacerts);</div>
 <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160; </div>
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;      <span class="keywordflow">if</span> (!creds.GetClientId().empty()) {</div>
 <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;        <span class="keywordflow">if</span> (oauth2.Authenticate() != AuthenticationResult::kSuccess) {</div>

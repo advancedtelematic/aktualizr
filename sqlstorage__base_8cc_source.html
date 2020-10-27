@@ -149,7 +149,7 @@ $(function() {
 <div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;<a class="code" href="class_s_q_lite3_guard.html">SQLite3Guard</a> SQLStorageBase::dbConnection()<span class="keyword"> const </span>{</div>
 <div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;  <a class="code" href="class_s_q_lite3_guard.html">SQLite3Guard</a> db(dbPath(), readonly_, mutex_);</div>
 <div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;  <span class="keywordflow">if</span> (db.get_rc() != SQLITE_OK) {</div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;    <span class="keywordflow">throw</span> <a class="code" href="class_s_q_l_exception.html">SQLException</a>(std::string(<span class="stringliteral">&quot;Can&#39;t open database: &quot;</span>) + db.errmsg());</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;    <span class="keywordflow">throw</span> <a class="code" href="class_s_q_l_internal_exception.html">SQLInternalException</a>(std::string(<span class="stringliteral">&quot;Can&#39;t open database: &quot;</span>) + db.errmsg());</div>
 <div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;  }</div>
 <div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;  <span class="keywordflow">return</span> db;</div>
 <div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;}</div>
@@ -346,8 +346,9 @@ $(function() {
 </div><!-- fragment --></div><!-- contents -->
 <div class="ttc" id="aclass_storage_lock_html"><div class="ttname"><a href="class_storage_lock.html">StorageLock</a></div><div class="ttdef"><b>Definition:</b> <a href="sqlstorage__base_8h_source.html#l00013">sqlstorage_base.h:13</a></div></div>
 <div class="ttc" id="aclass_storage_exception_html"><div class="ttname"><a href="class_storage_exception.html">StorageException</a></div><div class="ttdef"><b>Definition:</b> <a href="storage__exception_8h_source.html#l00004">storage_exception.h:4</a></div></div>
+<div class="ttc" id="aclass_s_q_l_internal_exception_html"><div class="ttname"><a href="class_s_q_l_internal_exception.html">SQLInternalException</a></div><div class="ttdef"><b>Definition:</b> <a href="sql__utils_8h_source.html#l00028">sql_utils.h:28</a></div></div>
 <div class="ttc" id="aclass_storage_lock_1_1locked__exception_html"><div class="ttname"><a href="class_storage_lock_1_1locked__exception.html">StorageLock::locked_exception</a></div><div class="ttdef"><b>Definition:</b> <a href="sqlstorage__base_8h_source.html#l00023">sqlstorage_base.h:23</a></div></div>
-<div class="ttc" id="aclass_s_q_lite3_guard_html"><div class="ttname"><a href="class_s_q_lite3_guard.html">SQLite3Guard</a></div><div class="ttdef"><b>Definition:</b> <a href="sql__utils_8h_source.html#l00125">sql_utils.h:125</a></div></div>
+<div class="ttc" id="aclass_s_q_lite3_guard_html"><div class="ttname"><a href="class_s_q_lite3_guard.html">SQLite3Guard</a></div><div class="ttdef"><b>Definition:</b> <a href="sql__utils_8h_source.html#l00131">sql_utils.h:131</a></div></div>
 <div class="ttc" id="aclass_s_q_l_exception_html"><div class="ttname"><a href="class_s_q_l_exception.html">SQLException</a></div><div class="ttdef"><b>Definition:</b> <a href="sql__utils_8h_source.html#l00022">sql_utils.h:22</a></div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

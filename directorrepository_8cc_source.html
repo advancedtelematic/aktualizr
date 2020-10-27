@@ -210,34 +210,38 @@ $(function() {
 <div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160;}</div>
 <div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160; </div>
 <div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160;<span class="keywordtype">void</span> DirectorRepository::dropTargets(<a class="code" href="class_i_nv_storage.html">INvStorage</a>&amp; storage) {</div>
-<div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160;  storage.clearNonRootMeta(RepositoryType::Director());</div>
-<div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160;  resetMeta();</div>
-<div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160;}</div>
-<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160; </div>
-<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;<span class="keywordtype">bool</span> DirectorRepository::matchTargetsWithImageTargets(<span class="keyword">const</span> <a class="code" href="class_uptane_1_1_targets.html">Uptane::Targets</a>&amp; image_targets)<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;  <span class="comment">// step 10 of https://uptane.github.io/papers/ieee-isto-6100.1.0.0.uptane-standard.html#rfc.section.5.4.4.2</span></div>
-<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;  <span class="comment">// TODO(OTA-4800): support delegations. Consider reusing findTargetInDelegationTree(),</span></div>
-<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;  <span class="comment">// but it would need to be moved into a common place to be resued by Primary and Secondary.</span></div>
-<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;  <span class="comment">// Currently this is only used by aktualizr-secondary, but according to the</span></div>
-<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;  <span class="comment">// Standard, &quot;A Secondary ECU MAY elect to perform this check only on the</span></div>
-<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;  <span class="comment">// metadata for the image it will install&quot;.</span></div>
-<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;  <span class="keyword">const</span> <span class="keyword">auto</span>&amp; image_target_array = image_targets.targets;</div>
-<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;  <span class="keyword">const</span> <span class="keyword">auto</span>&amp; director_target_array = targets.targets;</div>
-<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160; </div>
-<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; director_target : director_target_array) {</div>
-<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;    <span class="keyword">auto</span> found_it = std::find_if(</div>
-<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;        image_target_array.begin(), image_target_array.end(),</div>
-<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;        [&amp;director_target](<span class="keyword">const</span> Target&amp; image_target) { return director_target.MatchTarget(image_target); });</div>
-<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160; </div>
-<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;    <span class="keywordflow">if</span> (found_it == image_target_array.end()) {</div>
-<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;      <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;    }</div>
-<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160;  }</div>
-<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160; </div>
-<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;  <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;}</div>
-<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160; </div>
-<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;}  <span class="comment">// namespace Uptane</span></div>
+<div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160;  <span class="keywordflow">try</span> {</div>
+<div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160;    storage.clearNonRootMeta(RepositoryType::Director());</div>
+<div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160;    resetMeta();</div>
+<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160;  } <span class="keywordflow">catch</span> (<span class="keyword">const</span> <a class="code" href="class_uptane_1_1_exception.html">Uptane::Exception</a>&amp; ex) {</div>
+<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;    LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Failed to reset Director Targets metadata: &quot;</span> &lt;&lt; ex.what();</div>
+<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;  }</div>
+<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;}</div>
+<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160; </div>
+<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;<span class="keywordtype">bool</span> DirectorRepository::matchTargetsWithImageTargets(<span class="keyword">const</span> <a class="code" href="class_uptane_1_1_targets.html">Uptane::Targets</a>&amp; image_targets)<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;  <span class="comment">// step 10 of https://uptane.github.io/papers/ieee-isto-6100.1.0.0.uptane-standard.html#rfc.section.5.4.4.2</span></div>
+<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;  <span class="comment">// TODO(OTA-4800): support delegations. Consider reusing findTargetInDelegationTree(),</span></div>
+<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;  <span class="comment">// but it would need to be moved into a common place to be resued by Primary and Secondary.</span></div>
+<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;  <span class="comment">// Currently this is only used by aktualizr-secondary, but according to the</span></div>
+<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;  <span class="comment">// Standard, &quot;A Secondary ECU MAY elect to perform this check only on the</span></div>
+<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;  <span class="comment">// metadata for the image it will install&quot;.</span></div>
+<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;  <span class="keyword">const</span> <span class="keyword">auto</span>&amp; image_target_array = image_targets.targets;</div>
+<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;  <span class="keyword">const</span> <span class="keyword">auto</span>&amp; director_target_array = targets.targets;</div>
+<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160; </div>
+<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; director_target : director_target_array) {</div>
+<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;    <span class="keyword">auto</span> found_it = std::find_if(</div>
+<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;        image_target_array.begin(), image_target_array.end(),</div>
+<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;        [&amp;director_target](<span class="keyword">const</span> Target&amp; image_target) { return director_target.MatchTarget(image_target); });</div>
+<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160; </div>
+<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;    <span class="keywordflow">if</span> (found_it == image_target_array.end()) {</div>
+<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;      <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;    }</div>
+<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;  }</div>
+<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160; </div>
+<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;  <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;}</div>
+<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160; </div>
+<div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;}  <span class="comment">// namespace Uptane</span></div>
 </div><!-- fragment --></div><!-- contents -->
 <div class="ttc" id="aclass_uptane_1_1_invalid_metadata_html"><div class="ttname"><a href="class_uptane_1_1_invalid_metadata.html">Uptane::InvalidMetadata</a></div><div class="ttdef"><b>Definition:</b> <a href="uptane_2exceptions_8h_source.html#l00081">exceptions.h:81</a></div></div>
 <div class="ttc" id="aclass_uptane_1_1_expired_metadata_html"><div class="ttname"><a href="class_uptane_1_1_expired_metadata.html">Uptane::ExpiredMetadata</a></div><div class="ttdef"><b>Definition:</b> <a href="uptane_2exceptions_8h_source.html#l00074">exceptions.h:74</a></div></div>

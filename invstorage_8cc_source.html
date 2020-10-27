@@ -333,41 +333,45 @@ $(function() {
 <div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160; </div>
 <div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;<span class="keywordtype">bool</span> INvStorage::fsReadInstalledVersions(<span class="keyword">const</span> boost::filesystem::path&amp; filename,</div>
 <div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;                                         std::vector&lt;Uptane::Target&gt;* installed_versions, <span class="keywordtype">size_t</span>* current_version) {</div>
-<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;  std::string current_hash;</div>
-<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;  <span class="keywordflow">if</span> (access(filename.c_str(), R_OK) != 0) {</div>
-<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;  }</div>
-<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;  <span class="keyword">const</span> Json::Value installed_versions_json = Utils::parseJSONFile(filename.string());</div>
-<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;  std::vector&lt;Uptane::Target&gt; new_versions;</div>
-<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;  <span class="keywordtype">size_t</span> k = 0;</div>
-<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;  <span class="keywordflow">for</span> (<span class="keyword">auto</span> it = installed_versions_json.begin(); it != installed_versions_json.end(); ++it, ++k) {</div>
-<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;    <span class="keywordflow">if</span> (!(*it).isObject()) {</div>
-<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;      <span class="comment">// We loaded old format, migrate to new one.</span></div>
-<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;      Json::Value t_json;</div>
-<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;      t_json[<span class="stringliteral">&quot;hashes&quot;</span>][<span class="stringliteral">&quot;sha256&quot;</span>] = it.key();</div>
-<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;      <a class="code" href="class_uptane_1_1_target.html">Uptane::Target</a> t((*it).asString(), t_json);</div>
-<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;      new_versions.push_back(t);</div>
-<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;      <span class="keywordflow">if</span> (current_version != <span class="keyword">nullptr</span>) {</div>
-<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;        *current_version = k;</div>
-<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;      }</div>
-<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;    } <span class="keywordflow">else</span> {</div>
-<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;      <span class="keywordflow">if</span> (current_version != <span class="keyword">nullptr</span> &amp;&amp; (*it)[<span class="stringliteral">&quot;is_current&quot;</span>].asBool()) {</div>
-<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;        *current_version = k;</div>
-<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;      }</div>
-<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;      <a class="code" href="class_uptane_1_1_target.html">Uptane::Target</a> t(it.key().asString(), *it);</div>
-<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;      new_versions.push_back(t);</div>
-<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;    }</div>
-<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;  }</div>
-<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;  *installed_versions = new_versions;</div>
-<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160; </div>
-<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;  <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;}</div>
+<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;  <span class="keywordflow">if</span> (access(filename.c_str(), R_OK) != 0) {</div>
+<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;  }</div>
+<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;  <span class="keywordflow">try</span> {</div>
+<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;    <span class="keyword">const</span> Json::Value installed_versions_json = Utils::parseJSONFile(filename.string());</div>
+<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;    std::vector&lt;Uptane::Target&gt; new_versions;</div>
+<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;    <span class="keywordtype">size_t</span> k = 0;</div>
+<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;    <span class="keywordflow">for</span> (<span class="keyword">auto</span> it = installed_versions_json.begin(); it != installed_versions_json.end(); ++it, ++k) {</div>
+<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;      <span class="keywordflow">if</span> (!(*it).isObject()) {</div>
+<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;        <span class="comment">// We loaded old format, migrate to new one.</span></div>
+<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;        Json::Value t_json;</div>
+<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;        t_json[<span class="stringliteral">&quot;hashes&quot;</span>][<span class="stringliteral">&quot;sha256&quot;</span>] = it.key();</div>
+<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;        <a class="code" href="class_uptane_1_1_target.html">Uptane::Target</a> t((*it).asString(), t_json);</div>
+<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;        new_versions.push_back(t);</div>
+<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;        <span class="keywordflow">if</span> (current_version != <span class="keyword">nullptr</span>) {</div>
+<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;          *current_version = k;</div>
+<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;        }</div>
+<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;      } <span class="keywordflow">else</span> {</div>
+<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;        <span class="keywordflow">if</span> (current_version != <span class="keyword">nullptr</span> &amp;&amp; (*it)[<span class="stringliteral">&quot;is_current&quot;</span>].asBool()) {</div>
+<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;          *current_version = k;</div>
+<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;        }</div>
+<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;        <a class="code" href="class_uptane_1_1_target.html">Uptane::Target</a> t(it.key().asString(), *it);</div>
+<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;        new_versions.push_back(t);</div>
+<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;      }</div>
+<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;    }</div>
+<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;    *installed_versions = new_versions;</div>
+<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;  } <span class="keywordflow">catch</span> (<span class="keyword">const</span> std::exception&amp; ex) {</div>
+<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;    LOG_ERROR &lt;&lt; <span class="stringliteral">&quot;Unable to parse installed_versions: &quot;</span> &lt;&lt; ex.what();</div>
+<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160;  }</div>
+<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160; </div>
+<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;  <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;}</div>
 </div><!-- fragment --></div><!-- contents -->
 <div class="ttc" id="aclass_uptane_1_1_version_html"><div class="ttname"><a href="class_uptane_1_1_version.html">Uptane::Version</a></div><div class="ttdoc">Metadata version numbers.</div><div class="ttdef"><b>Definition:</b> <a href="tuf_8h_source.html#l00120">tuf.h:120</a></div></div>
 <div class="ttc" id="aclass_storage_exception_html"><div class="ttname"><a href="class_storage_exception.html">StorageException</a></div><div class="ttdef"><b>Definition:</b> <a href="storage__exception_8h_source.html#l00004">storage_exception.h:4</a></div></div>
 <div class="ttc" id="astruct_storage_config_html"><div class="ttname"><a href="struct_storage_config.html">StorageConfig</a></div><div class="ttdef"><b>Definition:</b> <a href="config_8h_source.html#l00111">config.h:111</a></div></div>
 <div class="ttc" id="aclassutils_1_1_based_path_html"><div class="ttname"><a href="classutils_1_1_based_path.html">utils::BasedPath</a></div><div class="ttdoc">The BasedPath class Can represent an absolute or relative path, only readable through the BasePath::g...</div><div class="ttdef"><b>Definition:</b> <a href="types_8h_source.html#l00031">types.h:31</a></div></div>
-<div class="ttc" id="aclass_uptane_1_1_target_html"><div class="ttname"><a href="class_uptane_1_1_target.html">Uptane::Target</a></div><div class="ttdef"><b>Definition:</b> <a href="types_8h_source.html#l00387">types.h:387</a></div></div>
+<div class="ttc" id="aclass_uptane_1_1_target_html"><div class="ttname"><a href="class_uptane_1_1_target.html">Uptane::Target</a></div><div class="ttdef"><b>Definition:</b> <a href="types_8h_source.html#l00379">types.h:379</a></div></div>
 <div class="ttc" id="aclass_s_q_l_storage_html"><div class="ttname"><a href="class_s_q_l_storage.html">SQLStorage</a></div><div class="ttdef"><b>Definition:</b> <a href="sqlstorage_8h_source.html#l00018">sqlstorage.h:18</a></div></div>
 <div class="ttc" id="aclass_f_s_storage_read_html"><div class="ttname"><a href="class_f_s_storage_read.html">FSStorageRead</a></div><div class="ttdef"><b>Definition:</b> <a href="fsstorage__read_8h_source.html#l00007">fsstorage_read.h:7</a></div></div>
 <div class="ttc" id="astruct_import_config_html"><div class="ttname"><a href="struct_import_config.html">ImportConfig</a></div><div class="ttdef"><b>Definition:</b> <a href="config_8h_source.html#l00130">config.h:130</a></div></div>

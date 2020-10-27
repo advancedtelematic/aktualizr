@@ -69,6 +69,24 @@ $(function() {
 <div class="textblock"><p>This file summarizes notable changes introduced in aktualizr version. It roughly follows the guidelines from <a href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a>.</p>
 <p>Our versioning scheme is <code>YEAR.N</code> where <code>N</code> is incremented whenever a new release is issued. Thus <code>N</code> does not necessarily map to months of the year.</p>
 <h1>[upcoming release]</h1>
+<h1>[2020.10] - 2020-10-27</h1>
+<h2>Added</h2>
+<ul>
+<li>Updated the <code>garage-push</code> and <code>garage-deploy</code> tools. Now, they support new back-end token generation to authenticate API requests. Also, we updated the <code>treehub.json</code> format for the new back-end. It now has the additional <code>scope</code> parameter. The changes are backward compatible. Previous versions have the server URL <b>without</b> the token path, so it needs to be hardcoded. The new version has the full URL with the <code>/oauth2/token</code> path at the end: <a href="https://github.com/advancedtelematic/aktualizr/pull/1767">PR</a></li>
+</ul>
+<h2>Changed</h2>
+<ul>
+<li>Ubuntu Focal Dockerfile now uses the default OSTree package: <a href="https://github.com/advancedtelematic/aktualizr/pull/1751">PR</a></li>
+<li>Improved libaktualizr API exceptions: <a href="https://github.com/advancedtelematic/aktualizr/pull/1754">PR</a></li>
+<li>Improved binary file download progress: <a href="https://github.com/advancedtelematic/aktualizr/pull/1756">PR</a></li>
+<li>Allowed passing HTTP headers in <code>aktualizr-get</code>: <a href="https://github.com/advancedtelematic/aktualizr/pull/1762">PR</a></li>
+<li>Moved aktualizr-lite to its own <a href="https://github.com/foundriesio/aktualizr-lite">aktualizr-lite repository</a>: <a href="https://github.com/advancedtelematic/aktualizr/pull/1763">PR</a></li>
+</ul>
+<h2>Fixed</h2>
+<ul>
+<li>Fixed the issue with the parameters check in <code>aktualizr-get</code>: <a href="https://github.com/advancedtelematic/aktualizr/pull/1760">PR</a></li>
+<li>Fixed the output of the pacman configuration: <a href="https://github.com/advancedtelematic/aktualizr/pull/1761">PR</a></li>
+</ul>
 <h1>[2020.9] - 2020-08-26</h1>
 <h2>Added</h2>
 <ul>
@@ -79,6 +97,7 @@ $(function() {
 <ul>
 <li>More required headers for libaktualizr usage have been refactored for easier use: <a href="https://github.com/advancedtelematic/aktualizr/pull/1719">PR</a></li>
 <li>All code is now checked with clang-tidy-10: <a href="https://github.com/advancedtelematic/aktualizr/pull/1724">PR</a></li>
+<li>Default/recommended Yocto branch is dunfell (3.1): <a href="https://github.com/advancedtelematic/aktualizr/pull/1740">PR</a></li>
 </ul>
 <h2>Removed</h2>
 <ul>
@@ -179,9 +198,9 @@ $(function() {
 <h2>Fixed</h2>
 <ul>
 <li>Apply pending updates even if their metadata expired if the installation was initiated before the expiration: <a href="https://github.com/advancedtelematic/aktualizr/pull/1548">PR</a></li>
-<li>Add a mising include to fix building libaktualizr out-of-tree: <a href="https://github.com/advancedtelematic/aktualizr/pull/1572">PR</a></li>
+<li>Add a missing include to fix building libaktualizr out-of-tree: <a href="https://github.com/advancedtelematic/aktualizr/pull/1572">PR</a></li>
 <li>Restore interrupted downloads correctly: <a href="https://github.com/advancedtelematic/aktualizr/pull/1571">PR</a></li>
-<li>Use uintmax_t for storing file length to support files greater than 4 GB: <a href="https://github.com/advancedtelematic/aktualizr/pull/1571">PR</a></li>
+<li>Use <code>uintmax_t</code> for storing file length to support files greater than 4 GB: <a href="https://github.com/advancedtelematic/aktualizr/pull/1571">PR</a></li>
 </ul>
 <h1>[2020.2] - 2020-01-30</h1>
 <h2>Changed</h2>
@@ -301,7 +320,6 @@ $(function() {
 <ul>
 <li>garage-sign metadata expiration parameters: <a href="https://github.com/advancedtelematic/ota-tuf/pull/237">PR</a></li>
 <li>aktualizr-info &ndash;wait-until-provisioned flag: <a href="https://github.com/advancedtelematic/aktualizr/pull/1253">PR</a></li>
-<li>Target object equality requires that hardware IDs match: <a href="https://github.com/advancedtelematic/aktualizr/pull/1258">PR</a></li>
 <li>aktualizr-repo image command now requires a hardware ID: <a href="https://github.com/advancedtelematic/aktualizr/pull/1258">PR</a></li>
 <li><code>GetStoredTargets</code> and <code>DeleteStoredTarget</code> aktualizr API methods: <a href="https://github.com/advancedtelematic/aktualizr/pull/1290">PR</a></li>
 <li><a href="src/aktualizr_get/main.cc">aktualizr-get</a> debugging tool: <a href="https://github.com/advancedtelematic/aktualizr/pull/1276">PR</a></li>
@@ -324,7 +342,7 @@ $(function() {
 <ul>
 <li>TLS support by aktualizr-lite: <a href="https://github.com/advancedtelematic/aktualizr/pull/1237">PR</a></li>
 <li>automatic garage-check usage at the end of garage-push/deploy: <a href="https://github.com/advancedtelematic/aktualizr/pull/1244">PR</a></li>
-<li>ccache support: <a href="https://github.com/advancedtelematic/aktualizr/pull/1248, https://github.com/advancedtelematic/aktualizr/pull/1249">PR</a></li>
+<li>ccache support: <a href="https://github.com/advancedtelematic/aktualizr/pull/1248">PR #1248</a> and <a href="https://github.com/advancedtelematic/aktualizr/pull/1249">PR #1249</a></li>
 <li>doc on Primary and Secondary bitbaking for RPi: <a href="https://github.com/advancedtelematic/aktualizr/pull/1238">PR</a></li>
 </ul>
 <h2>Changed</h2>
@@ -356,7 +374,7 @@ $(function() {
 </ul>
 <h2>Changed</h2>
 <ul>
-<li><a href="https://github.com/advancedtelematic/aktualizr/blob/master/docs/ota-client-guide/modules/ROOT/pages/client-provisioning-methods.adoc">Provisioning methods have been renamed</a>. "Autoprovisioning" or "automatic provisioning" is now known as "shared credential provisioning". "Implicit provisioning" is now known as "device credential provisioning". "HSM provisioning" was always a misnomer, so it is now refered to as "device credential provisioning with an HSM". <a href="https://github.com/advancedtelematic/aktualizr/pull/1208">PR# 1208</a> and <a href="https://github.com/advancedtelematic/aktualizr/pull/1220">PR #1220</a></li>
+<li><a href="https://github.com/advancedtelematic/aktualizr/blob/master/docs/ota-client-guide/modules/ROOT/pages/client-provisioning-methods.adoc">Provisioning methods have been renamed</a>. "Autoprovisioning" or "automatic provisioning" is now known as "shared credential provisioning". "Implicit provisioning" is now known as "device credential provisioning". "HSM provisioning" was always a misnomer, so it is now refered to as "device credential provisioning with an HSM". <a href="https://github.com/advancedtelematic/aktualizr/pull/1208">PR #1208</a> and <a href="https://github.com/advancedtelematic/aktualizr/pull/1220">PR #1220</a></li>
 <li>aktualizr-cert-provider is now included in the garage_deploy.deb releases: <a href="https://github.com/advancedtelematic/aktualizr/pull/1218">PR</a></li>
 <li>aktualizr-info metadata and key output is now printed without additional text for easier machine parsing (and piping to jq): <a href="https://github.com/advancedtelematic/aktualizr/pull/1215">PR</a></li>
 <li>The IP Secondary implementation has been substantially refactored and improved with support for POSIX sockets and easier configuration: <a href="https://github.com/advancedtelematic/aktualizr/pull/1183">PR #1183</a> and <a href="https://github.com/advancedtelematic/aktualizr/pull/1198">PR #1198</a></li>

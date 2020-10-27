@@ -5,7 +5,7 @@
 <area shape="rect" id="node4" href="$class_o_s_tree_commit_parse_error.html" title=" " alt="" coords="189,385,374,412"/>
 <area shape="rect" id="node5" href="$class_o_s_tree_object_missing.html" title="Thrown by GetObject when the object requested is not present in the repository." alt="" coords="202,436,361,463"/>
 <area shape="rect" id="node6" title="STL class." alt="" coords="222,487,341,513"/>
-<area shape="rect" id="node32" title="STL class." alt="" coords="212,1111,351,1137"/>
+<area shape="rect" id="node32" title="STL class." alt="" coords="212,1136,351,1163"/>
 <area shape="rect" id="node7" href="$class_fatal_exception.html" title=" " alt="" coords="482,385,599,412"/>
 <area shape="rect" id="node8" href="$class_not_implemented_exception.html" title=" " alt="" coords="443,436,639,463"/>
 <area shape="rect" id="node9" title="STL class." alt="" coords="472,487,609,513"/>
@@ -31,15 +31,16 @@
 <area shape="rect" id="node29" href="$class_uptane_1_1_target_mismatch.html" title=" " alt="" coords="719,917,900,944"/>
 <area shape="rect" id="node30" href="$class_uptane_1_1_unmet_threshold.html" title=" " alt="" coords="717,968,902,995"/>
 <area shape="rect" id="node31" href="$class_uptane_1_1_version_mismatch.html" title=" " alt="" coords="715,1019,904,1045"/>
-<area shape="rect" id="node33" href="$class_bad_credentials_archive.html" title=" " alt="" coords="455,984,626,1011"/>
-<area shape="rect" id="node34" href="$class_bad_credentials_content.html" title=" " alt="" coords="455,1035,627,1061"/>
-<area shape="rect" id="node35" href="$class_bad_credentials_json.html" title=" " alt="" coords="467,1085,615,1112"/>
-<area shape="rect" id="node36" href="$class_initializer_1_1_error.html" title=" " alt="" coords="479,1136,602,1163"/>
-<area shape="rect" id="node41" href="$class_s_q_l_exception.html" title=" " alt="" coords="485,1187,596,1213"/>
-<area shape="rect" id="node42" href="$class_storage_exception.html" title=" " alt="" coords="473,1237,609,1264"/>
-<area shape="rect" id="node43" href="$class_storage_lock_1_1locked__exception.html" title=" " alt="" coords="465,1289,617,1330"/>
+<area shape="rect" id="node33" href="$class_bad_credentials_archive.html" title=" " alt="" coords="455,1009,626,1036"/>
+<area shape="rect" id="node34" href="$class_bad_credentials_content.html" title=" " alt="" coords="455,1060,627,1087"/>
+<area shape="rect" id="node35" href="$class_bad_credentials_json.html" title=" " alt="" coords="467,1111,615,1137"/>
+<area shape="rect" id="node36" href="$class_initializer_1_1_error.html" title=" " alt="" coords="479,1161,602,1188"/>
+<area shape="rect" id="node41" href="$class_s_q_l_exception.html" title=" " alt="" coords="485,1212,596,1239"/>
+<area shape="rect" id="node43" href="$class_storage_exception.html" title=" " alt="" coords="473,1263,609,1289"/>
+<area shape="rect" id="node44" href="$class_storage_lock_1_1locked__exception.html" title=" " alt="" coords="465,1314,617,1355"/>
 <area shape="rect" id="node37" href="$class_initializer_1_1_key_generation_error.html" title=" " alt="" coords="716,1070,903,1111"/>
 <area shape="rect" id="node38" href="$class_initializer_1_1_server_error.html" title=" " alt="" coords="727,1136,891,1163"/>
 <area shape="rect" id="node39" href="$class_initializer_1_1_server_occupied.html" title=" " alt="" coords="713,1187,906,1213"/>
 <area shape="rect" id="node40" href="$class_initializer_1_1_storage_error.html" title=" " alt="" coords="723,1237,895,1264"/>
+<area shape="rect" id="node42" href="$class_s_q_l_internal_exception.html" title=" " alt="" coords="729,1288,890,1315"/>
 </map>
