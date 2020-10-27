@@ -206,5 +206,6 @@ Options for configuring boot-specific behavior
 | `rollback_mode`        | `"none"`                        | Controls rollback on supported platforms, see xref:rollback.adoc[]. Options: `"none"`, `"uboot_generic"`, `"uboot_masked"`
 | `reboot_sentinel_dir`  | `"/var/run/aktualizr-session"`  | Base directory for reboot detection sentinel. Must reside in a temporary file system.
 | `reboot_sentinel_name` | `"need_reboot"`                 | Name of the reboot detection sentinel.
+| `reboot_command`       | `"/sbin/reboot"`                | Command to reboot the system after update completes. Applicable only if `uptane::force_install_completion` is set to `true`.
 |==========================================================================================
 
