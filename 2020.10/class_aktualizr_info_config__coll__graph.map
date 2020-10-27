@@ -1,0 +1,13 @@
+<map id="AktualizrInfoConfig" name="AktualizrInfoConfig">
+<area shape="rect" id="node1" title=" " alt="" coords="1040,211,1187,238"/>
+<area shape="rect" id="node2" href="$class_base_config.html" title="The BaseConfig class." alt="" coords="829,62,924,89"/>
+<area shape="rect" id="node3" title=" " alt="" coords="453,5,603,47"/>
+<area shape="rect" id="node4" href="$struct_storage_config.html" title=" " alt="" coords="820,161,933,187"/>
+<area shape="rect" id="node5" href="$classutils_1_1_based_path.html" title="The BasedPath class Can represent an absolute or relative path, only readable through the BasePath::g..." alt="" coords="465,161,591,187"/>
+<area shape="rect" id="node6" href="$struct_logger_config.html" title=" " alt="" coords="823,211,930,238"/>
+<area shape="rect" id="node7" href="$struct_package_config.html" title=" " alt="" coords="819,262,935,289"/>
+<area shape="rect" id="node8" title=" " alt="" coords="447,304,609,345"/>
+<area shape="rect" id="node9" title="STL class." alt="" coords="193,311,280,338"/>
+<area shape="rect" id="node11" href="$struct_bootloader_config.html" title=" " alt="" coords="647,349,781,375"/>
+<area shape="rect" id="node10" title="STL class." alt="" coords="5,304,144,345"/>
+</map>

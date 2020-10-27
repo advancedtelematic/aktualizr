@@ -1,0 +1,13 @@
+<map id="SecondaryOstreeTest" name="SecondaryOstreeTest">
+<area shape="rect" id="node1" title=" " alt="" coords="800,131,959,157"/>
+<area shape="rect" id="node2" title=" " alt="" coords="447,5,495,32"/>
+<area shape="rect" id="node3" title=" " alt="" coords="353,56,588,83"/>
+<area shape="rect" id="node4" href="$class_ostree_rootfs.html" title=" " alt="" coords="51,52,158,79"/>
+<area shape="rect" id="node5" title=" " alt="" coords="371,107,571,133"/>
+<area shape="rect" id="node6" href="$class_treehub.html" title=" " alt="" coords="68,103,141,129"/>
+<area shape="rect" id="node7" href="$class_aktualizr_secondary_wrapper.html" title=" " alt="" coords="369,157,572,184"/>
+<area shape="rect" id="node8" title=" " alt="" coords="5,154,204,195"/>
+<area shape="rect" id="node9" title="STL class." alt="" coords="427,208,514,235"/>
+<area shape="rect" id="node10" title="STL class." alt="" coords="35,219,174,261"/>
+<area shape="rect" id="node11" href="$class_uptane_repo_wrapper.html" title=" " alt="" coords="392,259,549,285"/>
+</map>

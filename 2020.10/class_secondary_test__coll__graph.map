@@ -1,0 +1,8 @@
+<map id="SecondaryTest" name="SecondaryTest">
+<area shape="rect" id="node1" title=" " alt="" coords="266,199,382,225"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,109,53,136"/>
+<area shape="rect" id="node3" href="$class_aktualizr_secondary_wrapper.html" title=" " alt="" coords="77,109,280,136"/>
+<area shape="rect" id="node4" title=" " alt="" coords="79,5,278,47"/>
+<area shape="rect" id="node5" href="$class_temporary_directory.html" title=" " alt="" coords="305,109,455,136"/>
+<area shape="rect" id="node6" href="$class_uptane_repo_wrapper.html" title=" " alt="" coords="480,109,637,136"/>
+</map>
