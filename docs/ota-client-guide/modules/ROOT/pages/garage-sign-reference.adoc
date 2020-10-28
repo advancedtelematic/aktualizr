@@ -194,7 +194,7 @@ Global options
 +++</div></details>+++
 
 +++<details><summary>+++
-`root [pull|push|get-unsigned|key|sign]`: Manages root-of-trust metadata for a repository.
+`root [pull|push|get-unsigned|increment-version|key|sign]`: Manages root-of-trust metadata for a repository.
 +++</summary><div>+++
 
 `root pull`: Pulls the current `root.json` file from OTA Connect.
@@ -202,6 +202,8 @@ Global options
 `root push`: Uploads local `root.json` file to OTA Connect. If the file does not have a valid signature, it will be rejected by the server.
 
 `root get-unsigned`: Generates an unsigned `root.json` file in a canonical JSON form.
+
+`root increment-version`: Explicitly increments the version of the unsigned `root.json` file.
 
 +++<details><summary>+++
 `root key [add|remove]`: Manages keys that are permitted to sign the root-of-trust metadata.
@@ -242,6 +244,8 @@ Global options
 [cols="15m,75a"]
 |====================
 | -k, --key-name | The path to the public key to use for signing.
+| --old-root-alias | The path to the old public key to use for signing with external signatures.
+| --signatures | Key-value pairs in the `keyname=signature` form for signing with externally generated signatures. `keyname` is the name of the key that you used to generate a signature.
 | --expires | {expires}
 | --expire-after | {expire-after}
 | --force | {force}
@@ -258,7 +262,7 @@ Global options
 +++</div></details>+++
 
 +++<details><summary>+++
-`targets [init|add|add-uploaded|delete|sign|pull|push|get-unsigned|upload|delegations]`: (Only for repositories of type `reposerver`) Manages Targets metadata.
+`targets [init|add|add-uploaded|delete|sign|pull|push|increment-version|get-unsigned|upload|delegations]`: (Only for repositories of the `reposerver` type) Manages Targets metadata.
 // tag::target-term[]
 *Target* is a term from Uptane. Each Target corresponds to a software version available in your OTA Connect software repository.
 // end::target-term[]
@@ -312,7 +316,8 @@ Global options
 [cols="15m,75a"]
 |====================
 | --key-name | The path to the public key to use for signing.
-|--version | The version number to use for the signed metadata. Overrides the version in the unsigned `targets.json`.
+| --signatures | Key-value pairs in the `keyname=signature` form for signing with externally generated signatures. `keyname` is the name of the key that you used to generate a signature.
+| --version | The version number to use for the signed metadata. Overrides the version in the unsigned `targets.json` file.
 | --expires | {expires}
 | --expire-after | {expire-after}
 | --force | {force}
@@ -323,6 +328,8 @@ Global options
 
 `targets push`: Pushes the latest `targets.json` file to the server.
 If the Targets file is invalid, for example because of a bad signature or a non-increasing version number, this `push` will fail with exit code 2.
+
+`targets increment-version`: Explicitly increments the version of the unsigned `targets.json` file.
 
 `targets get-unsigned`: Generates the unsigned `targets.json` file in a canonical JSON form.
 
@@ -398,6 +405,7 @@ To learn how to use the garage-sign tool, see the following documentation:
 * xref:keep-local-repo-on-external-storage.adoc[Keep your repository on external storage]
 * xref:rotating-signing-keys.adoc[Rotate keys for Root and Targets metadata]
 * xref:finding-unsigned-metadata.adoc[Find the unsigned Root and Targets metadata]
+* xref:sign-with-external-signature.adoc[Sign metadata with an externally generated signature]
 * xref:change-signature-thresholds.adoc[Change signature thresholds]
 * xref:metadata-expiry.adoc[Manage metadata expiry dates]
 * xref:customise-targets-metadata.adoc[Add custom metadata fields to Targets metadata]

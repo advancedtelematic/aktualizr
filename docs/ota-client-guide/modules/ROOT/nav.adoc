@@ -74,6 +74,7 @@ ifndef::env-github[:pageroot:]
 ** xref:{pageroot}keep-local-repo-on-external-storage.adoc[Keep your repository on external storage]
 ** xref:{pageroot}rotating-signing-keys.adoc[Rotate keys for Root and Targets metadata]
 ** xref:{pageroot}finding-unsigned-metadata.adoc[Find the unsigned Root and Targets metadata]
+** xref:sign-with-external-signature.adoc[Sign metadata with an externally generated signature]
 ** xref:{pageroot}change-signature-thresholds.adoc[Change signature thresholds]
 ** xref:{pageroot}metadata-expiry.adoc[Manage metadata expiry dates]
 
