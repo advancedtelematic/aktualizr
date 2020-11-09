@@ -7,7 +7,7 @@ We recommend that you link:https://docs.ota.here.com/ota-client/latest/{docname}
 ====
 endif::[]
 
-If you want to upload large binary files (up to 3 GB) or your xref:ota-client::rotating-signing-keys.adoc[software signing keys are offline], use the `garage-sign` tool on the command line.
+If you want to upload large binary files (up to 15 GB) or your xref:ota-client::rotating-signing-keys.adoc[software signing keys are offline], use the `garage-sign` tool on the command line.
 
 NOTE: You can upload software packages of up to 1 GB on the OTA Connect Portal. For instructions, see xref:ota-web::upload-software-ui.adoc[Upload software versions] in the OTA Connect User Guide.
 
@@ -30,7 +30,7 @@ garage-sign init \
   --credentials </path/to/credentials.zip>
 ----
 // end::gs-initialize[]
-
++
 // tag::gs-pull-targets[]
 . Pull the latest version of the `targets.json` file.
 +
@@ -54,7 +54,7 @@ garage-sign targets upload \
 +
 include::garage-sign-reference.adoc[tags=targets-upload-note]
 
-. If the upload is successful, add it to your local Targets metadata. 
+. If the upload is successful, add it to your local Targets metadata.
 +
 The binary name and version must be the same as in step 5.
 +
@@ -67,7 +67,7 @@ garage-sign targets add-uploaded \
   --version <target-version> \
   --hardwareids <hardware-id1>,<hardware-id2>
 ----
-
++
 // tag::gs-sign-targets[]
 . Sign the new `targets.json` file with your Targets key.
 +
@@ -78,7 +78,7 @@ garage-sign targets sign \
   --key-name mytargets
 ----
 // end::gs-sign-targets[]
-
++
 // tag::gs-push-targets[]
 . Push the new `targets.json` file to OTA Connect.
 +
