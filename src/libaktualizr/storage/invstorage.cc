@@ -80,9 +80,8 @@ void INvStorage::importUpdateCertificate(const boost::filesystem::path& base_pat
     if (!loadDeviceId(&old_device_id)) {
       LOG_DEBUG << "Unable to load previous device ID.";
     } else if (new_device_id != old_device_id) {
-      throw std::runtime_error(std::string("Certificate at ") + abs_path.string() + " has a device ID of " +
-                               new_device_id + " but the device currently is identified as " + old_device_id +
-                               ". Changing device ID is not supported!");
+      LOG_WARNING << "Certificate at " << abs_path.string() << " has a CN that may be used as device ID of "
+                  << new_device_id << " but the device currently is identified as " << old_device_id;
     }
 
     storeTlsCert(content);
@@ -92,7 +91,12 @@ void INvStorage::importUpdateCertificate(const boost::filesystem::path& base_pat
 
 void INvStorage::importPrimaryKeys(const boost::filesystem::path& base_path, const utils::BasedPath& import_pubkey_path,
                                    const utils::BasedPath& import_privkey_path) {
-  if (loadPrimaryKeys(nullptr, nullptr) || import_pubkey_path.empty() || import_privkey_path.empty()) {
+  if (import_pubkey_path.empty() || import_privkey_path.empty()) {
+    LOG_ERROR << "Couldn`t import data: empty path received";
+    return;
+  }
+  if (loadPrimaryKeys(nullptr, nullptr)) {
+    LOG_INFO << "Couldn`t import data: primary keys already in storage";
     return;
   }
   const boost::filesystem::path pubkey_abs_path = import_pubkey_path.get(base_path);

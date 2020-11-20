@@ -200,6 +200,51 @@ TEST(DeviceCredProv, Success) {
   EXPECT_NO_THROW(Initializer(config.provision, storage, http, keys, {}));
 }
 
+/**
+ * Verify that aktualizr can reimport cert and keeps device name.
+ */
+TEST(DeviceCredProv, ReImportCert) {
+  RecordProperty("zephyr_key", "OLPSUP-12477");
+  TemporaryDirectory temp_dir;
+  Config config;
+  Utils::createDirectories(temp_dir / "import", S_IRWXU);
+  boost::filesystem::copy_file("tests/test_data/device_cred_prov/ca.pem", temp_dir / "import/ca.pem");
+  boost::filesystem::copy_file("tests/test_data/device_cred_prov/client.pem", temp_dir / "import/client.pem");
+  boost::filesystem::copy_file("tests/test_data/device_cred_prov/pkey.pem", temp_dir / "import/pkey.pem");
+  /*use any cert with non empty CN*/
+  boost::filesystem::copy_file("tests/test_data/prov/client.pem", temp_dir / "import/newcert.pem");
+  config.storage.path = temp_dir.Path();
+  config.import.base_path = temp_dir / "import";
+  config.import.tls_cacert_path = utils::BasedPath("ca.pem");
+  config.import.tls_clientcert_path = utils::BasedPath("client.pem");
+  config.import.tls_pkey_path = utils::BasedPath("pkey.pem");
+  EXPECT_EQ(config.provision.mode, ProvisionMode::kDeviceCred);
+  config.provision.device_id = "AnYsTrInG";
+  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+
+  {
+    /* prepare storage initialized with device_id from config where cert CN and device id are differen*/
+    auto storage = INvStorage::newStorage(config.storage);
+    storage->importData(config.import);
+    KeyManager keys(storage, config.keymanagerConfig());
+    EXPECT_NO_THROW(Initializer(config.provision, storage, http, keys, {}));
+    std::string device_id;
+    EXPECT_TRUE(storage->loadDeviceId(&device_id));
+    EXPECT_EQ(device_id, "AnYsTrInG");
+  }
+
+  {
+    config.import.tls_clientcert_path = utils::BasedPath("newcert.pem");
+    auto storage = INvStorage::newStorage(config.storage);
+    EXPECT_NO_THROW(storage->importData(config.import));
+    KeyManager keys(storage, config.keymanagerConfig());
+    EXPECT_NO_THROW(Initializer(config.provision, storage, http, keys, {}));
+    std::string device_id;
+    EXPECT_TRUE(storage->loadDeviceId(&device_id));
+    EXPECT_EQ(device_id, "AnYsTrInG");
+  }
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
