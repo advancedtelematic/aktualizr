@@ -108,17 +108,6 @@ TEST(authenticate, good_json) {
   EXPECT_EQ(0, r);
 }
 
-TEST(authenticate, good_json_v2) {
-  // Authenticates with new backend.
-  // Note: update auth_test_good_v2.json after deploy on prod. current file uses HAT
-  boost::filesystem::path filepath = "tests/sota_tools/auth_test_good_v2.json";
-  TreehubServer treehub;
-  // Note: enable it in https://saeljira.it.here.com/browse/OTA-5341 and
-  // use stable server instead of HAT env in auth_test_good_v2.json
-  int r = 0;  // authenticate("", ServerCredentials(filepath), treehub);
-  EXPECT_EQ(0, r);
-}
-
 /* Reject a bogus provided JSON file. */
 TEST(authenticate, bad_json) {
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_bad.json";
