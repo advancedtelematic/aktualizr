@@ -1,10 +1,11 @@
 {
-  "oauth2": {
-    "server": "https://auth-plus.atsgarage.com",
-    "client_id": "045dd735-061e-4b45-8352-1c517b0225a0",
-    "client_secret": "6QrLTSOmnZ"
+  "oauth2" : {
+    "server" : "https://ota-dev.auth.eu-west-1.amazoncognito.com/oauth2/token",
+    "client_id" : "4c9i3ihgo9oai2m0od0psqf9uc",
+    "client_secret" : "komln2kdj07j5u3mro3nq7af1ddkpho8npcsh22dtlneh00mlst",
+    "scope" : "ota-0/namespace.urn:here-ota:namespace:2e0d26c2-852b-425d-8722-cc9ccd3abddc"
   },
-  "ostree": {
-    "server": "https://treehub.atsgarage.com/api/v3"
+  "ostree" : {
+    "server" : "https://ota-treehub-dev.borg-rd.nw.ops.here.com:443/api/v3"
   }
 }
