@@ -64,7 +64,8 @@ RUN apt-get update && apt-get -y install --no-install-suggests --no-install-reco
   valgrind \
   wget \
   xsltproc \
-  zip
+  zip \
+  unzip
 
 WORKDIR /ostree
 RUN git init && git remote add origin https://github.com/ostreedev/ostree

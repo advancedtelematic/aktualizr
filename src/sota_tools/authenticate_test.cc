@@ -13,19 +13,6 @@
 
 boost::filesystem::path certs_dir;
 
-/* Authenticate with OAuth2.
- * Parse authentication information from treehub.json. */
-TEST(authenticate, good_zip) {
-  // Authenticates with the ATS portal to the SaaS instance.
-  // It is outdated test. kepp it for backward compatibility
-  boost::filesystem::path filepath = "tests/sota_tools/auth_test_good.zip";
-  ServerCredentials creds(filepath);
-  EXPECT_EQ(creds.GetMethod(), AuthMethod::kOauth2);
-  TreehubServer treehub;
-  int r = authenticate("", creds, treehub);
-  EXPECT_EQ(0, r);
-}
-
 /* Authenticate with TLS credentials.
  * Parse Image repository URL from a provided archive. */
 TEST(authenticate, good_cert_zip) {
@@ -94,18 +81,6 @@ TEST(authenticate, bad_zip) {
 TEST(authenticate, no_json_zip) {
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_no_json.zip";
   EXPECT_THROW(ServerCredentials creds(filepath), BadCredentialsContent);
-}
-
-/* Extract credentials from a provided JSON file. */
-TEST(authenticate, good_json) {
-  // Authenticates with the ATS portal to the SaaS instance.
-  // Outdated. we can probably get rid of the whole json-only authentication at this point. T
-  // he last time that was officially supported was over three years ago(2017)
-  // and it's been "deprecated" ever since.
-  boost::filesystem::path filepath = "tests/sota_tools/auth_test_good.json";
-  TreehubServer treehub;
-  int r = authenticate("", ServerCredentials(filepath), treehub);
-  EXPECT_EQ(0, r);
 }
 
 /* Reject a bogus provided JSON file. */
