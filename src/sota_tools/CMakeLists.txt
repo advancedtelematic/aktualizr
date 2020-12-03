@@ -224,6 +224,7 @@ if (BUILD_SOTA_TOOLS)
     # Abort when given a bogus OSTree ref.
     add_test(NAME garage-push-missing-ref
         COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-missing-ref $<TARGET_FILE:garage-push>
+        ${SOTA_PACKED_CREDENTIALS}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/tests/)
 
     # Abort when given nonexistent credentials.
@@ -314,15 +315,15 @@ if (BUILD_SOTA_TOOLS)
 
     # Support debug logging.
     add_test(NAME garage-deploy-debug-logging
-        COMMAND garage-deploy -f tests/sota_tools/auth_test_good.zip -p tests/sota_tools/auth_test_good.zip --commit 123 -h 3 --name 123 -v
+        COMMAND garage-deploy -f ${SOTA_PACKED_CREDENTIALS} -p ${SOTA_PACKED_CREDENTIALS} --commit 123 -h 3 --name 123 -v
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-    set_tests_properties(garage-deploy-debug-logging PROPERTIES PASS_REGULAR_EXPRESSION "Debug level debugging enabled")
+    set_tests_properties(garage-deploy-debug-logging PROPERTIES PASS_REGULAR_EXPRESSION "Debug level debugging enabled"  LABELS "credentials")
 
     # Support trace logging.
     add_test(NAME garage-deploy-trace-logging
-        COMMAND garage-deploy -f tests/sota_tools/auth_test_good.zip -p tests/sota_tools/auth_test_good.zip --commit 16ef2f2629dc9263fdf3c0f032563a2d757623bbc11cf99df25c3c3f258dccbe -h 3 --name 123 --loglevel 0
+        COMMAND garage-deploy -f ${SOTA_PACKED_CREDENTIALS} -p ${SOTA_PACKED_CREDENTIALS} --commit 16ef2f2629dc9263fdf3c0f032563a2d757623bbc11cf99df25c3c3f258dccbe -h 3 --name 123 --loglevel 0
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-    set_tests_properties(garage-deploy-trace-logging PROPERTIES PASS_REGULAR_EXPRESSION "Loglevel set to 0")
+    set_tests_properties(garage-deploy-trace-logging PROPERTIES PASS_REGULAR_EXPRESSION "Loglevel set to 0"  LABELS "credentials")
 
     # Support dry run with local repos.
     add_test(NAME garage-deploy-dry-run
@@ -350,12 +351,15 @@ if (BUILD_SOTA_TOOLS)
     # Abort when given bogus fetch credentials.
     add_test(NAME garage-deploy-missing-fetch-credentials
     COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-garage-deploy-missing-fetch-credentials $<TARGET_FILE:garage-deploy>
+    ${SOTA_PACKED_CREDENTIALS}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
     # Abort when given bogus push credentials.
     add_test(NAME garage-deploy-missing-push-credentials
     COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-garage-deploy-missing-push-credentials $<TARGET_FILE:garage-deploy>
+    ${SOTA_PACKED_CREDENTIALS}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    set_tests_properties(garage-deploy-missing-push-credentials PROPERTIES LABELS "credentials")
 
     if(SOTA_PACKED_CREDENTIALS)
         # Use garage-sign to offline sign targets for destination repository.
