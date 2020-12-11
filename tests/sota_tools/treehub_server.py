@@ -8,6 +8,7 @@ import ssl
 import subprocess
 import sys
 import time
+import hashlib
 from contextlib import ExitStack
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from random import seed, randrange
@@ -104,7 +105,7 @@ def sig_handler(signum, frame):
     sys.exit(0)
 
 
-def create_repo(path):
+def create_repo(path, system_rootfs=False):
     """
     Creates a new OSTree repository with persistent object checksums.
     To achive persistency, we generate files with the same seed(0).
@@ -114,7 +115,25 @@ def create_repo(path):
     timestamp in commit.
     """
     tree = Path(path) / 'tree'
-    tree.mkdir(mode=0o755)
+    tree.mkdir(mode=0o755, parents=True)
+
+    if system_rootfs:
+        # make it look like a system rootfs,
+        # `ostree deploy` command checks for /boot/vmlinuz-<sha256> and /usr/etc/os-release
+        boot_dir = os.path.join(tree, 'boot')
+        etc_dir = os.path.join(tree, 'usr/etc')
+
+        os.makedirs(boot_dir, mode=0o755)
+        os.makedirs(etc_dir, mode=0o755)
+
+        kernel_file_content = 'I am kernel'
+        kernel_file_sha = hashlib.sha256(kernel_file_content.encode('utf-8')).hexdigest()
+        with open(os.path.join(boot_dir, 'vmlinuz-' + kernel_file_sha), 'w') as kernel_file:
+            kernel_file.write(kernel_file_content)
+
+        with open(os.path.join(etc_dir, 'os-release'), 'w') as os_release:
+            os_release.write('ID="dummy-os"\nNAME="Generated OSTree-enabled OS\nVERSION="4.14159"')
+
     seed(0)  # to generate same files each time
     try:
         for i in range(10):
@@ -140,6 +159,8 @@ if __name__ == "__main__":
                         help='listening port')
     parser.add_argument('-c', '--create', action='store_true',
                         help='create new OSTree repo')
+    parser.add_argument('-cs', '--system', action='store_true',
+                        help='make it look like a system rootfs to OSTree', default=False)
     parser.add_argument('-d', '--dir', help='OSTree repo directory')
     parser.add_argument('-f', '--fail', type=int, help='fail every nth request')
     parser.add_argument('-s', '--sleep', type=float,
@@ -156,7 +177,7 @@ if __name__ == "__main__":
             else:
                 repo_path = stack.enter_context(TemporaryDirectory(prefix='treehub-'))
             if args.create:
-                create_repo(repo_path)
+                create_repo(repo_path, args.system)
             httpd = HTTPServer(('', args.port), TreehubServerHandler)
             if args.tls:
                 httpd.socket = ssl.wrap_socket(httpd.socket,
