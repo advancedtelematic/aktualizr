@@ -102,7 +102,6 @@ coverage:
     TEST_CMAKE_BUILD_TYPE: 'Valgrind'
     TEST_WITH_COVERAGE: '1'
     TEST_WITH_P11: '1'
-    TEST_WITH_DOCKERAPP: '1'
     TEST_WITH_FAULT_INJECTION: '1'
     TEST_SOTA_PACKED_CREDENTIALS: "$CI_PROJECT_DIR/credentials.zip"
   image: "$UBUNTU_BIONIC_PR_IMAGE"
@@ -404,7 +403,7 @@ trigger-osx-build:
   stage: trigger
   trigger:
     project: olp/edge/ota/connect/client/homebrew-otaconnect
-    branch: master 
+    branch: master
   rules:
     - if: $OSX_BUILD
       when: always

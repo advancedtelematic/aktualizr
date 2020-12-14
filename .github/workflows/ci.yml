@@ -20,7 +20,6 @@ jobs:
         -eTEST_CMAKE_BUILD_TYPE=Valgrind
         -eTEST_WITH_COVERAGE=1
         -eTEST_WITH_P11=1
-        -eTEST_WITH_DOCKERAPP=1
         -eTEST_WITH_FAULT_INJECTION=1
         -eTEST_TESTSUITE_EXCLUDE=credentials
         -eTEST_SOTA_PACKED_CREDENTIALS=dummy-credentials
