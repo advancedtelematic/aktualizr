@@ -21,7 +21,9 @@ Aktualizr::Aktualizr(Config config, std::shared_ptr<INvStorage> storage_in,
   if (sodium_init() == -1) {  // Note that sodium_init doesn't require a matching 'sodium_deinit'
     throw std::runtime_error("Unable to initialize libsodium");
   }
-
+#ifdef USE_OSCP
+  http_in->setUseOscpStapling(true);
+#endif
   storage_ = std::move(storage_in);
   storage_->importData(config_.import);
 

@@ -29,6 +29,7 @@ option(FAULT_INJECTION "Set to ON to enable fault injection" OFF)
 option(INSTALL_LIB "Set to ON to install library and headers" OFF)
 option(TESTSUITE_VALGRIND "Set to ON to make tests to run under valgrind (default when CMAKE_BUILD_TYPE=Valgrind)" ${TESTSUITE_VALGRIND_DEFAULT})
 option(CCACHE "Set to ON to use ccache if available" ON)
+option(USE_OSCP "Set to ON to use OCSP stapling by setting CURLOPT_SSL_VERIFYSTATUS" OFF)
 
 set(SOTA_PACKED_CREDENTIALS "" CACHE STRING "Credentials.zip for tests involving the server")
 
@@ -51,6 +52,10 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # To ensure better support of large files on 32-bit systems.
 # See https://www.gnu.org/software/libc/manual/html_node/Feature-Test-Macros.html
 add_definitions("-D_FILE_OFFSET_BITS=64")
+
+if (USE_OSCP)
+    add_definitions(-DUSE_OSCP)
+endif (USE_OSCP)
 
 if (CCACHE)
     find_program(CCACHE_PROGRAM ccache)
@@ -407,5 +412,8 @@ set_source_files_properties(tags PROPERTIES GENERATED true)
 add_custom_target(tags
     COMMAND ctags -R --c++-kinds=+p --fields=+iaS --extra=+q src
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+# Needed to suppress cmake warning.
+set(ignoreMe "${USE_OSCP}")
 
 # vim: set tabstop=4 shiftwidth=4 expandtab:

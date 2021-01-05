@@ -6,11 +6,12 @@
         {
             "label": "build",
             "type": "shell",
-            "command": "ninja -C build",
+            "command": "ninja -j 7 -C build all",
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+            "problemMatcher": []
         },
         {
             "label": "qa",

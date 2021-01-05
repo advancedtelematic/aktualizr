@@ -52,6 +52,7 @@ class HttpInterface {
                                                   CurlHandler *easyp) = 0;
   virtual void setCerts(const std::string &ca, CryptoSource ca_source, const std::string &cert,
                         CryptoSource cert_source, const std::string &pkey, CryptoSource pkey_source) = 0;
+  virtual void setUseOscpStapling(bool oscp) = 0;
   static constexpr int64_t kNoLimit = 0;  // no limit the size of downloaded data
   static constexpr int64_t kPostRespLimit = 64 * 1024;
   static constexpr int64_t kPutRespLimit = 64 * 1024;

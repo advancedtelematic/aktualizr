@@ -44,6 +44,7 @@ class HttpClient : public HttpInterface {
   void setCerts(const std::string &ca, CryptoSource ca_source, const std::string &cert, CryptoSource cert_source,
                 const std::string &pkey, CryptoSource pkey_source) override;
   bool updateHeader(const std::string &name, const std::string &value);
+  void setUseOscpStapling(bool oscp);
 
  private:
   FRIEND_TEST(GetTest, download_speed_limit);
@@ -70,5 +71,6 @@ class HttpClient : public HttpInterface {
   }
   bool pkcs11_key{false};
   bool pkcs11_cert{false};
+  bool oscp_stapling{false};
 };
 #endif
