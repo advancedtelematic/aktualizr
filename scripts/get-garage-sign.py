@@ -12,14 +12,18 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 
-aws_bucket_url = 'https://tuf-cli-releases.ota.here.com/'
+#aws_bucket_url = 'https://tuf-cli-releases.ota.here.com/'
+aws_bucket_url = 'https://storage.googleapis.com/public-shared-artifacts-fio/mirrors/ota-tuf-cli-releases/'
+default_version_name = 'cli-0.7.2-48-gf606131.tgz'
+default_version_sha256 = 'f20c9f3e08fff277a78786025105298322c54874ca66a753e7ad0b2ffb239502'
+default_version_size = '59517659'
 
 
 def main():
     parser = argparse.ArgumentParser(description='Download a specific or the latest version of garage-sign')
     parser.add_argument('-a', '--archive', help='static local archive')
-    parser.add_argument('-n', '--name', help='specific version to download')
-    parser.add_argument('-s', '--sha256', help='expected hash of requested version')
+    parser.add_argument('-n', '--name', help='specific version to download', default=default_version_name)
+    parser.add_argument('-s', '--sha256', help='expected hash of requested version', default=default_version_sha256)
     parser.add_argument('-o', '--output', type=Path, default=Path('.'), help='download directory')
     args = parser.parse_args()
 
@@ -30,7 +34,7 @@ def main():
     if args.archive:
         path = args.archive
     else:
-        path = find_version(args.name, args.sha256, args.output)
+        path = download_garage_cli_tools(args.name, args.sha256, args.output)
         if path is None:
             return 1
 
@@ -98,6 +102,17 @@ def download(name, path, size, sha256_hash):
     with path.open(mode='wb') as f:
         shutil.copyfileobj(r, f)
     return verify(name, path, size, sha256_hash)
+
+
+def download_garage_cli_tools(name, sha256, output):
+    path = output.joinpath(name)
+    download_url = os.path.join(aws_bucket_url, name)
+    print('Downloading ' + name + ' from server, url: {}...'.format(download_url))
+    if download(name, path, default_version_size, sha256):
+        print(name + ' successfully downloaded and validated.')
+        return path
+    else:
+        return None
 
 
 def verify(name, path, size, sha256_hash):
