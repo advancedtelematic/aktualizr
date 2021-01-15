@@ -37,7 +37,7 @@ bpo::variables_map parseOptions(int argc, char **argv) {
       ("version,v", "Current aktualizr version")
       ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
       ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
-      ("run-mode", bpo::value<std::string>(), "run mode of aktualizr: full, once, campaign_check, campaign_accept, campaign_decline, campaign_postpone, check, download, or install")
+      ("run-mode", bpo::value<std::string>(), "run mode of aktualizr: full, once, campaign_check, campaign_accept, campaign_decline, campaign_postpone, check, download, install or sendDeviceData")
       ("tls-server", bpo::value<std::string>(), "URL of device gateway")
       ("repo-server", bpo::value<std::string>(), "URL of the Uptane Image repository")
       ("director-server", bpo::value<std::string>(), "URL of the Uptane Director repository")
@@ -181,6 +181,8 @@ int main(int argc, char *argv[]) {
     } else if (run_mode == "once") {
       aktualizr.SendDeviceData(hwinfo).get();
       aktualizr.UptaneCycle();
+    } else if (run_mode == "sendDeviceData") {
+      aktualizr.SendDeviceData(hwinfo).get();
     } else {
       boost::signals2::connection ac_conn =
           aktualizr.SetSignalHandler(std::bind(targets_autoclean_cb, std::ref(aktualizr), std::placeholders::_1));
