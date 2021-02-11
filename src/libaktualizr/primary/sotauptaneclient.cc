@@ -888,6 +888,7 @@ result::UpdateCheck SotaUptaneClient::checkUpdates() {
     }
   } catch (const std::exception &e) {
     last_exception = std::current_exception();
+    LOG_ERROR << e.what();
     result = result::UpdateCheck({}, 0, result::UpdateStatus::kError, Utils::parseJSON(director_targets),
                                  "Target mismatch.");
     storeInstallationFailure(
