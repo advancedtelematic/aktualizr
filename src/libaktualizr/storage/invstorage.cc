@@ -91,6 +91,10 @@ void INvStorage::importUpdateCertificate(const boost::filesystem::path& base_pat
 
 void INvStorage::importPrimaryKeys(const boost::filesystem::path& base_path, const utils::BasedPath& import_pubkey_path,
                                    const utils::BasedPath& import_privkey_path) {
+  if (client_ == StorageClient::kTUF) {
+    LOG_DEBUG << "TUF instance, primary keys not required";
+    return;
+  }
   if (import_pubkey_path.empty() || import_privkey_path.empty()) {
     LOG_ERROR << "Couldn`t import data: empty path received";
     return;
@@ -143,7 +147,7 @@ void INvStorage::importData(const ImportConfig& import_config) {
   importInstalledVersions(import_config.base_path);
 }
 
-std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, const bool readonly) {
+std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, const bool readonly, StorageClient client) {
   switch (config.type) {
     case StorageType::kSqlite: {
       boost::filesystem::path db_path = config.sqldb_path.get(config.path);
@@ -162,7 +166,7 @@ std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, 
         old_config.type = StorageType::kFileSystem;
         old_config.path = config.path;
 
-        auto sql_storage = std::make_shared<SQLStorage>(config, readonly);
+        auto sql_storage = std::make_shared<SQLStorage>(config, readonly, client);
         FSStorageRead fs_storage(old_config);
         INvStorage::FSSToSQLS(fs_storage, *sql_storage);
         return sql_storage;
@@ -172,7 +176,7 @@ std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, 
       } else {
         LOG_INFO << "Use existing SQL storage: " << db_path;
       }
-      return std::make_shared<SQLStorage>(config, readonly);
+      return std::make_shared<SQLStorage>(config, readonly, client);
     }
     case StorageType::kFileSystem:
     default:
