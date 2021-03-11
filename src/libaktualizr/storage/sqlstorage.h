@@ -19,7 +19,8 @@ class SQLStorage : public SQLStorageBase, public INvStorage {
  public:
   friend class SQLTargetWHandle;
   friend class SQLTargetRHandle;
-  explicit SQLStorage(const StorageConfig& config, bool readonly, StorageClient storage_client = StorageClient::kUptane);
+  explicit SQLStorage(const StorageConfig& config, bool readonly,
+                      StorageClient storage_client = StorageClient::kUptane);
   ~SQLStorage() override = default;
   void storePrimaryKeys(const std::string& public_key, const std::string& private_key) override;
   bool loadPrimaryKeys(std::string* public_key, std::string* private_key) const override;
