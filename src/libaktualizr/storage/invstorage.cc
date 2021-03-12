@@ -147,7 +147,8 @@ void INvStorage::importData(const ImportConfig& import_config) {
   importInstalledVersions(import_config.base_path);
 }
 
-std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, const bool readonly, StorageClient client) {
+std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, const bool readonly,
+                                                   StorageClient client) {
   switch (config.type) {
     case StorageType::kSqlite: {
       boost::filesystem::path db_path = config.sqldb_path.get(config.path);
