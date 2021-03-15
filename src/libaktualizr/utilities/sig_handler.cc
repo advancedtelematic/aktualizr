@@ -36,7 +36,7 @@ void SigHandler::start(const std::function<void()>& on_signal) {
     while (true) {
       auto got_signal = signal_marker_.exchange(0);
 
-      if (got_signal) {
+      if (static_cast<bool>(got_signal)) {
         on_signal();
         return;
       }
