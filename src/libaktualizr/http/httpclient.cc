@@ -253,7 +253,54 @@ std::future<HttpResponse> HttpClient::downloadAsync(const std::string& url, curl
       .detach();
   return resp_future;
 }
+std::future<HttpResponse> HttpClient::downloadRangeAsync(const std::string& url, curl_write_callback write_cb,
+                                                         curl_xferinfo_callback progress_cb, void* userp,
+                                                         curl_off_t from, curl_off_t to, CurlHandler* easyp) {
+  CURL* curl_download = Utils::curlDupHandleWrapper(curl, pkcs11_key);
 
+  CurlHandler curlp = CurlHandler(curl_download, curl_easy_cleanup);
+
+  if (easyp != nullptr) {
+    *easyp = curlp;
+  }
+
+  curlEasySetoptWrapper(curl_download, CURLOPT_URL, url.c_str());
+  curlEasySetoptWrapper(curl_download, CURLOPT_HTTPGET, 1L);
+  curlEasySetoptWrapper(curl_download, CURLOPT_FOLLOWLOCATION, 1L);
+  curlEasySetoptWrapper(curl_download, CURLOPT_MAXREDIRS, 10L);
+  curlEasySetoptWrapper(curl_download, CURLOPT_WRITEFUNCTION, write_cb);
+  curlEasySetoptWrapper(curl_download, CURLOPT_WRITEDATA, userp);
+  if (progress_cb != nullptr) {
+    curlEasySetoptWrapper(curl_download, CURLOPT_NOPROGRESS, 0);
+    curlEasySetoptWrapper(curl_download, CURLOPT_XFERINFOFUNCTION, progress_cb);
+    curlEasySetoptWrapper(curl_download, CURLOPT_XFERINFODATA, userp);
+  }
+  curlEasySetoptWrapper(curl_download, CURLOPT_TIMEOUT, 0);
+  curlEasySetoptWrapper(curl_download, CURLOPT_LOW_SPEED_TIME, speed_limit_time_interval_);
+  curlEasySetoptWrapper(curl_download, CURLOPT_LOW_SPEED_LIMIT, speed_limit_bytes_per_sec_);
+
+  //curl range in form "from-to" for CURLOPT_RANGE
+  //btw. beware of result of ss.str();  do not use ss object after this 
+  //beacuse calls to it e.g. str() may corrupt previouslu returned string and affect curl
+  std::stringstream ss;
+  ss << from << "-" << to;
+  auto s = ss.str();
+  curlEasySetoptWrapper(curl_download, CURLOPT_RANGE, s.data());
+
+  std::promise<HttpResponse> resp_promise;
+  auto resp_future = resp_promise.get_future();
+  std::thread(
+      [curlp](std::promise<HttpResponse> promise) {
+        CURLcode result = curl_easy_perform(curlp.get());
+        long http_code;  // NOLINT(google-runtime-int)
+        curl_easy_getinfo(curlp.get(), CURLINFO_RESPONSE_CODE, &http_code);
+        HttpResponse response("", http_code, result, (result != CURLE_OK) ? curl_easy_strerror(result) : "");
+        promise.set_value(response);
+      },
+      std::move(resp_promise))
+      .detach();
+  return resp_future;
+}
 bool HttpClient::updateHeader(const std::string& name, const std::string& value) {
   curl_slist* item = headers;
   std::string lookfor(name + ": ");

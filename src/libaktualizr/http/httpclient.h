@@ -41,6 +41,9 @@ class HttpClient : public HttpInterface {
   std::future<HttpResponse> downloadAsync(const std::string &url, curl_write_callback write_cb,
                                           curl_xferinfo_callback progress_cb, void *userp, curl_off_t from,
                                           CurlHandler *easyp) override;
+  std::future<HttpResponse> downloadRangeAsync(const std::string &url, curl_write_callback write_cb,
+                                               curl_xferinfo_callback progress_cb, void *userp, curl_off_t from,
+                                               curl_off_t to, CurlHandler *easyp) override;
   void setCerts(const std::string &ca, CryptoSource ca_source, const std::string &cert, CryptoSource cert_source,
                 const std::string &pkey, CryptoSource pkey_source) override;
   bool updateHeader(const std::string &name, const std::string &value);

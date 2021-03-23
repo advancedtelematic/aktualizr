@@ -50,6 +50,9 @@ class HttpInterface {
   virtual std::future<HttpResponse> downloadAsync(const std::string &url, curl_write_callback write_cb,
                                                   curl_xferinfo_callback progress_cb, void *userp, curl_off_t from,
                                                   CurlHandler *easyp) = 0;
+  virtual std::future<HttpResponse> downloadRangeAsync(const std::string &url, curl_write_callback write_cb,
+                                                       curl_xferinfo_callback progress_cb, void *userp, curl_off_t from,
+                                                       curl_off_t to, CurlHandler *easyp) = 0;
   virtual void setCerts(const std::string &ca, CryptoSource ca_source, const std::string &cert,
                         CryptoSource cert_source, const std::string &pkey, CryptoSource pkey_source) = 0;
   static constexpr int64_t kNoLimit = 0;  // no limit the size of downloaded data

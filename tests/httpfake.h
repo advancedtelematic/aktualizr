@@ -152,6 +152,13 @@ class HttpFake : public HttpInterface {
     return resp_future;
   }
 
+  std::future<HttpResponse> downloadRangeAsync(const std::string &url, curl_write_callback write_cb,
+                                               curl_xferinfo_callback progress_cb, void *userp, curl_off_t from,
+                                               curl_off_t to, CurlHandler *easyp) override {
+    (void)to;
+    return downloadAsync(url, write_cb, progress_cb, userp, from, easyp);
+  }
+
   HttpResponse download(const std::string &url, curl_write_callback write_cb, curl_xferinfo_callback progress_cb,
                         void *userp, curl_off_t from) override {
     return downloadAsync(url, write_cb, progress_cb, userp, from, nullptr).get();
