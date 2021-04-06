@@ -19,19 +19,20 @@ class Initializer {
 
   class Error : public std::runtime_error {
    public:
-    Error(const std::string& what) : std::runtime_error(std::string("Initializer error: ") + what) {}
+    explicit Error(const std::string& what) : std::runtime_error(std::string("Initializer error: ") + what) {}
   };
   class KeyGenerationError : public Error {
    public:
-    KeyGenerationError(const std::string& what) : Error(std::string("Could not generate Uptane key pair: ") + what) {}
+    explicit KeyGenerationError(const std::string& what)
+        : Error(std::string("Could not generate Uptane key pair: ") + what) {}
   };
   class StorageError : public Error {
    public:
-    StorageError(const std::string& what) : Error(std::string("Storage error: ") + what) {}
+    explicit StorageError(const std::string& what) : Error(std::string("Storage error: ") + what) {}
   };
   class ServerError : public Error {
    public:
-    ServerError(const std::string& what) : Error(std::string("Server error: ") + what) {}
+    explicit ServerError(const std::string& what) : Error(std::string("Server error: ") + what) {}
   };
   class ServerOccupied : public Error {
    public:

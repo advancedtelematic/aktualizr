@@ -95,7 +95,6 @@ class SotaUptaneClient {
   void checkImageMetaOffline();
   data::InstallationResult PackageInstall(const Uptane::Target &target);
   TargetStatus VerifyTarget(const Uptane::Target &target) const { return package_manager_->verifyTarget(target); }
-  std::string treehubCredentials() const;
 
  private:
   FRIEND_TEST(Aktualizr, FullNoUpdates);

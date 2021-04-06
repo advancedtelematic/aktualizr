@@ -150,7 +150,7 @@ class DelegationMissing : public Exception {
 
 class InvalidTarget : public Exception {
  public:
-  InvalidTarget(const std::string& reponame)
+  explicit InvalidTarget(const std::string& reponame)
       : Exception(reponame, "The target had a non-OSTree package that can not be installed on an OSTree system.") {}
   ~InvalidTarget() noexcept override = default;
 };
