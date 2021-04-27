@@ -77,14 +77,14 @@ openssl genpkey -algorithm RSA -out targets_private.pem -pkeyopt rsa_keygen_bits
 openssl rsa -pubout -in targets_private.pem -out targets_public.pem
 
 # Perform initial pulling of the unsigned metadata.
-garage_sign targets pull
+garage_sign targets pull --repo example_repo
 garage_sign move-offline --repo example_repo --old-root-alias origroot
 garage_sign root pull --repo example_repo
 
 # Import your Root and Targets public keys.
-garage_sign user-keys importpub --keyname root_public --input ${root_pem_path}
+garage_sign user-keys importpub --repo example_repo --key-name root_public --input ${root_pem_path}
 garage_sign root key add --repo example_repo --key-name root_public
-garage_sign user-keys importpub --keyname targets_public --input ${targets_pem_path}
+garage_sign user-keys importpub --repo example_repo --key-name targets_public --input ${targets_pem_path}
 garage_sign root targets-key add --repo example_repo --key-name targets_public
 
 # Sign and push the Root metadata.
