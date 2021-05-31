@@ -29,7 +29,7 @@ class HttpFake : public HttpInterface {
     }
   }
 
-  virtual ~HttpFake() {}
+  ~HttpFake() override = default;
 
   void setCerts(const std::string &ca, CryptoSource ca_source, const std::string &cert, CryptoSource cert_source,
                 const std::string &pkey, CryptoSource pkey_source) override {
