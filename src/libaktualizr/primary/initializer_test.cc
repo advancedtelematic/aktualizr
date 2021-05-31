@@ -267,7 +267,7 @@ enum class InitRetCode { kOk, kOccupied, kServerFailure, kStorageFailure, kSecon
 
 class HttpFakeDeviceRegistration : public HttpFake {
  public:
-  HttpFakeDeviceRegistration(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in) {}
+  explicit HttpFakeDeviceRegistration(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in) {}
 
   HttpResponse post(const std::string& url, const Json::Value& data) override {
     if (url.find("/devices") != std::string::npos) {
