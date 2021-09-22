@@ -72,6 +72,7 @@ void ProvisionConfig::updateFromPropertyTree(const boost::property_tree::ptree& 
   CopyFromConfig(primary_ecu_hardware_id, "primary_ecu_hardware_id", pt);
   CopyFromConfig(ecu_registration_endpoint, "ecu_registration_endpoint", pt);
   CopyFromConfig(mode, "mode", pt);
+  CopyFromConfig(curl_proxy, "curl_proxy", pt);
 }
 
 void ProvisionConfig::writeToStream(std::ostream& out_stream) const {
@@ -84,6 +85,7 @@ void ProvisionConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, primary_ecu_hardware_id, "primary_ecu_hardware_id");
   writeOption(out_stream, ecu_registration_endpoint, "ecu_registration_endpoint");
   writeOption(out_stream, mode, "mode");
+  writeOption(out_stream, curl_proxy, "curl_proxy");
 }
 
 void UptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {

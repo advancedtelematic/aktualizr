@@ -58,6 +58,7 @@ struct ProvisionConfig {
   std::string primary_ecu_serial;
   std::string primary_ecu_hardware_id;
   std::string ecu_registration_endpoint;
+  std::string curl_proxy;
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;

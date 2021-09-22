@@ -63,7 +63,8 @@ HttpClient::HttpClient(const std::vector<std::string>* extra_headers) {
   curlEasySetoptWrapper(curl, CURLOPT_USERAGENT, Utils::getUserAgent());
 }
 
-HttpClient::HttpClient(const HttpClient& curl_in) : pkcs11_key(curl_in.pkcs11_key), pkcs11_cert(curl_in.pkcs11_key) {
+HttpClient::HttpClient(const HttpClient& curl_in)
+    : pkcs11_key(curl_in.pkcs11_key), pkcs11_cert(curl_in.pkcs11_key), proxy(curl_in.proxy) {
   curl = curl_easy_duphandle(curl_in.curl);
   headers = curl_slist_dup(curl_in.headers);
 }
@@ -125,6 +126,9 @@ HttpResponse HttpClient::get(const std::string& url, int64_t maxsize) {
     curlEasySetoptWrapper(curl_get, CURLOPT_SSLCERTTYPE, "ENG");
   }
 
+  if (!proxy.empty()) {
+    curlEasySetoptWrapper(curl_get, CURLOPT_PROXY, proxy.c_str());
+  }
   // Clear POSTFIELDS to remove any lingering references to strings that have
   // probably since been deallocated.
   curlEasySetoptWrapper(curl_get, CURLOPT_POSTFIELDS, "");
@@ -141,6 +145,9 @@ HttpResponse HttpClient::post(const std::string& url, const std::string& content
   curl_slist* req_headers = curl_slist_dup(headers);
   req_headers = curl_slist_append(req_headers, (std::string("Content-Type: ") + content_type).c_str());
   curlEasySetoptWrapper(curl_post, CURLOPT_HTTPHEADER, req_headers);
+  if (!proxy.empty()) {
+    curlEasySetoptWrapper(curl_post, CURLOPT_PROXY, proxy.c_str());
+  }
   curlEasySetoptWrapper(curl_post, CURLOPT_URL, url.c_str());
   curlEasySetoptWrapper(curl_post, CURLOPT_POST, 1);
   curlEasySetoptWrapper(curl_post, CURLOPT_POSTFIELDS, data.c_str());
@@ -161,6 +168,9 @@ HttpResponse HttpClient::put(const std::string& url, const std::string& content_
   curl_slist* req_headers = curl_slist_dup(headers);
   req_headers = curl_slist_append(req_headers, (std::string("Content-Type: ") + content_type).c_str());
   curlEasySetoptWrapper(curl_put, CURLOPT_HTTPHEADER, req_headers);
+  if (!proxy.empty()) {
+    curlEasySetoptWrapper(curl_put, CURLOPT_PROXY, proxy.c_str());
+  }
   curlEasySetoptWrapper(curl_put, CURLOPT_URL, url.c_str());
   curlEasySetoptWrapper(curl_put, CURLOPT_POSTFIELDS, data.c_str());
   curlEasySetoptWrapper(curl_put, CURLOPT_CUSTOMREQUEST, "PUT");
@@ -184,7 +194,9 @@ HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times, int64_t si
   }
   curlEasySetoptWrapper(curl_handler, CURLOPT_LOW_SPEED_TIME, speed_limit_time_interval_);
   curlEasySetoptWrapper(curl_handler, CURLOPT_LOW_SPEED_LIMIT, speed_limit_bytes_per_sec_);
-
+  if (!proxy.empty()) {
+    curlEasySetoptWrapper(curl_handler, CURLOPT_PROXY, proxy.c_str());
+  }
   WriteStringArg response_arg;
   response_arg.limit = size_limit;
   curlEasySetoptWrapper(curl_handler, CURLOPT_WRITEDATA, static_cast<void*>(&response_arg));
@@ -222,7 +234,9 @@ std::future<HttpResponse> HttpClient::downloadAsync(const std::string& url, curl
   if (easyp != nullptr) {
     *easyp = curlp;
   }
-
+  if (!proxy.empty()) {
+    curlEasySetoptWrapper(curl_download, CURLOPT_PROXY, proxy.c_str());
+  }
   curlEasySetoptWrapper(curl_download, CURLOPT_URL, url.c_str());
   curlEasySetoptWrapper(curl_download, CURLOPT_HTTPGET, 1L);
   curlEasySetoptWrapper(curl_download, CURLOPT_FOLLOWLOCATION, 1L);
@@ -279,5 +293,7 @@ curl_slist* HttpClient::curl_slist_dup(curl_slist* sl) {
 
   return new_list;
 }
+
+void HttpClient::setProxy(std::string proxy_url) { proxy = proxy_url; }
 
 // vim: set tabstop=2 shiftwidth=2 expandtab:

@@ -44,6 +44,12 @@ class HttpClient : public HttpInterface {
   void setCerts(const std::string &ca, CryptoSource ca_source, const std::string &cert, CryptoSource cert_source,
                 const std::string &pkey, CryptoSource pkey_source) override;
   bool updateHeader(const std::string &name, const std::string &value);
+  /**
+   * @brief use proxy_url as CURLOPT_PROXY parameter
+   *
+   * @param proxy_url Proxy and port, scheme is mandatory. Passing it to libcurl as CURLOPT_PROXY
+   */
+  void setProxy(std::string proxy_url) override;
 
  private:
   FRIEND_TEST(GetTest, download_speed_limit);
@@ -70,5 +76,6 @@ class HttpClient : public HttpInterface {
   }
   bool pkcs11_key{false};
   bool pkcs11_cert{false};
+  std::string proxy;
 };
 #endif

@@ -46,6 +46,9 @@ class SotaUptaneClient {
         events_channel(std::move(events_channel_in)),
         primary_ecu_serial_(primary_serial),
         primary_ecu_hw_id_(hwid) {
+    if (!config.provision.curl_proxy.empty()) {
+      http->setProxy(config.provision.curl_proxy);
+    }
     report_queue = std_::make_unique<ReportQueue>(config, http, storage);
     secondary_provider_ = SecondaryProviderBuilder::Build(config, storage, package_manager_);
   }

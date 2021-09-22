@@ -14,6 +14,7 @@
 #include "utilities/utils.h"
 
 static std::string server = "http://127.0.0.1:";
+static std::string unavailable_proxy_url = "socks5://user:MYPWD@localhost:1080";
 
 TEST(CopyConstructorTest, copied) {
   HttpClient http;
@@ -28,6 +29,13 @@ TEST(GetTest, get_performed) {
   std::string path = "/path/1/2/3";
   Json::Value response = http.get(server + path, HttpInterface::kNoLimit).getJson();
   EXPECT_EQ(response["path"].asString(), path);
+}
+
+TEST(GetTest, get_performed_proxy) {
+  HttpClient http;
+  std::string path = "/path/1/2/3";
+  http.setProxy(unavailable_proxy_url);
+  EXPECT_FALSE(http.get(server + path, HttpInterface::kNoLimit).isOk());
 }
 
 TEST(GetTestWithHeaders, get_performed) {
@@ -68,6 +76,15 @@ TEST(PostTest, post_performed) {
   EXPECT_EQ(response["data"]["key"].asString(), "val");
 }
 
+TEST(PostTest, post_performed_proxy) {
+  HttpClient http;
+  std::string path = "/path/1/2/3";
+  Json::Value data;
+  data["key"] = "val";
+  http.setProxy(unavailable_proxy_url);
+  EXPECT_FALSE(http.post(server + path, data).isOk());
+}
+
 TEST(PostTest, put_performed) {
   HttpClient http;
   std::string path = "/path/1/2/3";
@@ -78,6 +95,16 @@ TEST(PostTest, put_performed) {
 
   EXPECT_EQ(json["path"].asString(), path);
   EXPECT_EQ(json["data"]["key"].asString(), "val");
+}
+
+TEST(PostTest, put_performed_proxy) {
+  HttpClient http;
+  std::string path = "/path/1/2/3";
+  Json::Value data;
+  data["key"] = "val";
+
+  http.setProxy(unavailable_proxy_url);
+  EXPECT_FALSE(http.put(server + path, data).isOk());
 }
 
 TEST(HttpClient, user_agent) {
