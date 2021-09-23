@@ -55,7 +55,13 @@ class SotaUptaneClient {
 
   SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in,
                    std::shared_ptr<HttpInterface> http_in)
-      : SotaUptaneClient(config_in, storage_in, std::move(http_in), nullptr) {}
+      : SotaUptaneClient(config_in, storage_in, std::move(http_in), nullptr) {
+#ifdef USE_OSCP
+    http_in->setUseOscpStapling(true);
+#else
+    LOG_INFO << "SotaUptaneClient build without OSCP";
+#endif
+  }
 
   SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in)
       : SotaUptaneClient(config_in, storage_in, std::make_shared<HttpClient>()) {}

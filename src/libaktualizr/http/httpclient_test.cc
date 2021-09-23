@@ -84,6 +84,26 @@ TEST(PostTest, post_performed_proxy) {
   http.setProxy(unavailable_proxy_url);
   EXPECT_FALSE(http.post(server + path, data).isOk());
 }
+TEST(GetTest, oscp_get_performed) {
+  HttpClient http;
+  std::string path = "/path/1/2/3";
+  http.setUseOscpStapling(true);
+  auto response = http.get(server + path, HttpInterface::kNoLimit);
+  // expecting to fail  when OSCP enabled. local server does not support it
+  EXPECT_EQ(response.curl_code, 0);
+}
+
+TEST(PostTest, oscp_post_performed) {
+  HttpClient http;
+  std::string path = "/path/1/2/3";
+  Json::Value data;
+  data["key"] = "val";
+
+  http.setUseOscpStapling(true);
+  auto response = http.post(server + path, data);
+  // expecting to fail  when OSCP enabled. local server does not support it
+  EXPECT_EQ(response.curl_code, 0);
+}
 
 TEST(PostTest, put_performed) {
   HttpClient http;
