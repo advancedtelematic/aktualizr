@@ -203,10 +203,7 @@ HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times, int64_t si
   curlEasySetoptWrapper(curl, CURLOPT_ERRORBUFFER, errbuf);
   // OSCP enable check, needs curl 7.41.0+
   if (oscp_stapling) {
-    LOG_DEBUG << "httpclient CURLOPT_SSL_VERIFYSTATUS";
     curlEasySetoptWrapper(curl_handler, CURLOPT_SSL_VERIFYSTATUS, 1L);
-  } else {
-    LOG_DEBUG << "httpclient no CURLOPT_SSL_VERIFYSTATUS";
   }
   // set the error buffer as empty before performing a request
   errbuf[0] = 0;

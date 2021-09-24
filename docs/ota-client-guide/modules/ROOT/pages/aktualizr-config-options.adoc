@@ -108,7 +108,6 @@ Options for how the device is provisioned with the backend.
 | `primary_ecu_hardware_id`   |                | The hardware ID of the Primary ECU (e.g., `"raspberry-pi"`). If left empty, the hostname of the device will be used.
 | `ecu_registration_endpoint` |                | ECU registration URL. If empty, set to `uptane.director_server` with `/ecus` appended.
 | `mode`                      | `"SharedCred"` | See the xref:client-provisioning-methods.html[provisioning documentation] for more details. Options: `"DeviceCred"`, `"SharedCred"`, `"SharedCredReuse"`. The last is intended solely for testing purposes.
-| `curl_proxy`                |                | Proxy to use. Initialize libcurl based  http client with  https://curl.se/libcurl/c/CURLOPT_PROXY.html[CURLOPT_PROXY]. For string format see documentation on https://curl.se/libcurl/c/CURLOPT_PROXY.html[CURLOPT_PROXY]
 |==========================================================================================
 
 If you intend to provision with a server by using https://github.com/advancedtelematic/meta-updater[meta-updater], you will probably want to set `provision.provision_path = "/var/sota/sota_provisioning_credentials.zip"`.
@@ -187,7 +186,7 @@ Options for importing data from the filesystem into the storage.
 | `tls_clientcert_path`     |                          | Path to the TLS client certificate.
 |==========================================================================================
 
-=== `telemetry`
+=== `telemetry
 
 Options for configuring how aktualizr communicates with the server.
 
@@ -210,3 +209,13 @@ Options for configuring boot-specific behavior
 | `reboot_command`       | `"/sbin/reboot"`                | Command to reboot the system after update completes. Applicable only if `uptane::force_install_completion` is set to `true`.
 |==========================================================================================
 
+=== `network`
+
+Options for configuring network related parameters
+
+|==========================================================================================
+| Name                   | Default               | Description
+| `curl_proxy`           |                       | Proxy to use. Initialize libcurl based  http client with  https://curl.se/libcurl/c/CURLOPT_PROXY.html[CURLOPT_PROXY]. For string format see documentation on https://curl.se/libcurl/c/CURLOPT_PROXY.html[CURLOPT_PROXY]. This options has no effect when downloading  OSTREE update.
+| `curl_bandwith`        |    0                  | Use it to limit curl download speed. Aktualizr use this value for https://curl.se/libcurl/c/CURLOPT_MAX_SEND_SPEED_LARGE.html[CURLOPT_MAX_RECV_SPEED_LARGE] needs curl 7.41.0+. Default 0 removes all limitations. This options has no effect when downloading  OSTREE update.
+| `use_oscp`             | false                 | Verify the certificate's status. If enabled it initialize default libCURL based http client with https://curl.se/libcurl/c/CURLOPT_SSL_VERIFYSTATUS.html[CURLOPT_SSL_VERIFYSTATUS]. It is dessable by default. But it is possible define macro USE_OSCP to enable it by default. This options has no effect when downloading  OSTREE update.
+|==========================================================================================
