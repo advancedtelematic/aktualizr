@@ -1464,3 +1464,8 @@ boost::optional<Uptane::HardwareIdentifier> SotaUptaneClient::getEcuHwId(const U
 
   return boost::none;
 }
+
+void SotaUptaneClient::useProxy(const std::string &proxy, const std::string &username, const std::string &pwd) {
+  http->setProxy(proxy);
+  http->setProxyCredentials(username, pwd);
+}

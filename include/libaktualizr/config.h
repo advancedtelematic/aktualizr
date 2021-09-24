@@ -58,7 +58,6 @@ struct ProvisionConfig {
   std::string primary_ecu_serial;
   std::string primary_ecu_hardware_id;
   std::string ecu_registration_endpoint;
-  std::string curl_proxy;
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;
@@ -134,6 +133,19 @@ struct ImportConfig {
   utils::BasedPath tls_cacert_path{""};
   utils::BasedPath tls_pkey_path{""};
   utils::BasedPath tls_clientcert_path{""};
+
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
+};
+
+struct NetworkConfig {
+  std::string curl_proxy;
+  long curl_bandwith{0U};
+#ifdef USE_OSCP
+  bool use_oscp{true};
+#else
+  bool use_oscp{false};
+#endif
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;
@@ -230,6 +242,7 @@ class Config : public BaseConfig {
   ImportConfig import;
   TelemetryConfig telemetry;
   BootloaderConfig bootloader;
+  NetworkConfig network;
 
  private:
   void updateFromPropertyTree(const boost::property_tree::ptree& pt) override;

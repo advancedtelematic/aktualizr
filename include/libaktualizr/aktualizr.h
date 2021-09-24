@@ -330,6 +330,15 @@ class Aktualizr {
    */
   boost::signals2::connection SetSignalHandler(const SigHandler& handler);
 
+  /**
+   * @brief 
+   * 
+   * @param proxy Proxy to use. Initialize libcurl based  http client with https://curl.se/libcurl/c/CURLOPT_PROXY.html[CURLOPT_PROXY]. For string format see documentation on https://curl.se/libcurl/c/CURLOPT_PROXY.html[CURLOPT_PROXY]. This options has no effect when downloading OSTREE update.
+   * @param username User name for proxy server (may be empty)
+   * @param pwd Password for proxy server (may be empty)
+   */
+  void useProxy(const std::string& proxy, const std::string& username = std::string(), const std::string& pwd = std::string());
+  
  private:
   // Make sure this is declared before SotaUptaneClient to prevent Valgrind
   // complaints with destructors.

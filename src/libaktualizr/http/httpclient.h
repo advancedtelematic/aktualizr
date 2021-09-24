@@ -50,8 +50,10 @@ class HttpClient : public HttpInterface {
    *
    * @param proxy_url Proxy and port, scheme is mandatory. Passing it to libcurl as CURLOPT_PROXY
    */
-  void setProxy(std::string proxy_url) override;
-  void setUseOscpStapling(bool oscp);
+  void setProxy(const std::string &proxy_url) override;
+  void setProxyCredentials(const std::string &username, const std::string &password) override;
+  void setUseOscpStapling(bool oscp) override;
+  void setBandwidth(long maxspeed) override;
 
  private:
   FRIEND_TEST(GetTest, download_speed_limit);
@@ -60,6 +62,7 @@ class HttpClient : public HttpInterface {
   CURL *curl;
   curl_slist *headers;
   HttpResponse perform(CURL *curl_handler, int retry_times, int64_t size_limit);
+  void setOptProxy(CURL *curl_handler);
   static curl_slist *curl_slist_dup(curl_slist *sl);
 
   static CURLcode sslCtxFunction(CURL *handle, void *sslctx, void *parm);
@@ -79,6 +82,9 @@ class HttpClient : public HttpInterface {
   bool pkcs11_key{false};
   bool pkcs11_cert{false};
   std::string proxy;
+  std::string proxy_user;
+  std::string proxy_pwd;
   bool oscp_stapling{false};
+  long bandwidth{0};  // 0 means "no limitations"
 };
 #endif

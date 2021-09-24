@@ -72,7 +72,6 @@ void ProvisionConfig::updateFromPropertyTree(const boost::property_tree::ptree& 
   CopyFromConfig(primary_ecu_hardware_id, "primary_ecu_hardware_id", pt);
   CopyFromConfig(ecu_registration_endpoint, "ecu_registration_endpoint", pt);
   CopyFromConfig(mode, "mode", pt);
-  CopyFromConfig(curl_proxy, "curl_proxy", pt);
 }
 
 void ProvisionConfig::writeToStream(std::ostream& out_stream) const {
@@ -85,7 +84,6 @@ void ProvisionConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, primary_ecu_hardware_id, "primary_ecu_hardware_id");
   writeOption(out_stream, ecu_registration_endpoint, "ecu_registration_endpoint");
   writeOption(out_stream, mode, "mode");
-  writeOption(out_stream, curl_proxy, "curl_proxy");
 }
 
 void UptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
@@ -108,6 +106,18 @@ void UptaneConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, force_install_completion, "force_install_completion");
   writeOption(out_stream, secondary_config_file, "secondary_config_file");
   writeOption(out_stream, secondary_preinstall_wait_sec, "secondary_preinstall_wait_sec");
+}
+
+void NetworkConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
+  CopyFromConfig(curl_proxy, "curl_proxy", pt);
+  CopyFromConfig(curl_bandwith, "curl_bandwith", pt);
+  CopyFromConfig(use_oscp, "use_oscp", pt);
+}
+
+void NetworkConfig::writeToStream(std::ostream& out_stream) const {
+  writeOption(out_stream, curl_proxy, "curl_proxy");
+  writeOption(out_stream, curl_bandwith, "curl_bandwith");
+  writeOption(out_stream, use_oscp, "use_oscp");
 }
 
 /**
@@ -235,6 +245,7 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopySubtreeFromConfig(import, "import", pt);
   CopySubtreeFromConfig(telemetry, "telemetry", pt);
   CopySubtreeFromConfig(bootloader, "bootloader", pt);
+  CopySubtreeFromConfig(network, "network", pt);
 }
 
 void Config::updateFromCommandLine(const boost::program_options::variables_map& cmd) {
@@ -275,4 +286,5 @@ void Config::writeToStream(std::ostream& sink) const {
   WriteSectionToStream(import, "import", sink);
   WriteSectionToStream(telemetry, "telemetry", sink);
   WriteSectionToStream(bootloader, "bootloader", sink);
+  WriteSectionToStream(network, "network", sink);
 }

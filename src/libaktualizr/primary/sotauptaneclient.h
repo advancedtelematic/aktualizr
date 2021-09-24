@@ -46,8 +46,10 @@ class SotaUptaneClient {
         events_channel(std::move(events_channel_in)),
         primary_ecu_serial_(primary_serial),
         primary_ecu_hw_id_(hwid) {
-    if (!config.provision.curl_proxy.empty()) {
-      http->setProxy(config.provision.curl_proxy);
+    http->setUseOscpStapling(config.network.use_oscp);
+    if (!config.network.curl_proxy.empty()) {
+      http->setProxy(config.network.curl_proxy);
+      http->setBandwidth(config.network.curl_bandwith);
     }
     report_queue = std_::make_unique<ReportQueue>(config, http, storage);
     secondary_provider_ = SecondaryProviderBuilder::Build(config, storage, package_manager_);
@@ -55,13 +57,7 @@ class SotaUptaneClient {
 
   SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in,
                    std::shared_ptr<HttpInterface> http_in)
-      : SotaUptaneClient(config_in, storage_in, std::move(http_in), nullptr) {
-#ifdef USE_OSCP
-    http_in->setUseOscpStapling(true);
-#else
-    LOG_INFO << "SotaUptaneClient build without OSCP";
-#endif
-  }
+      : SotaUptaneClient(config_in, storage_in, std::move(http_in), nullptr) {}
 
   SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in)
       : SotaUptaneClient(config_in, storage_in, std::make_shared<HttpClient>()) {}
@@ -104,6 +100,8 @@ class SotaUptaneClient {
   void checkImageMetaOffline();
   data::InstallationResult PackageInstall(const Uptane::Target &target);
   TargetStatus VerifyTarget(const Uptane::Target &target) const { return package_manager_->verifyTarget(target); }
+  void useProxy(const std::string &proxy, const std::string &username = std::string(),
+                const std::string &pwd = std::string());
 
  private:
   FRIEND_TEST(Aktualizr, FullNoUpdates);

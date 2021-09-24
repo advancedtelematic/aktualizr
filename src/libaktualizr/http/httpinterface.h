@@ -53,14 +53,24 @@ class HttpInterface {
   virtual void setCerts(const std::string &ca, CryptoSource ca_source, const std::string &cert,
                         CryptoSource cert_source, const std::string &pkey, CryptoSource pkey_source) = 0;
 
-  virtual void setProxy(std::string proxy_url) {
+  virtual void setProxy(const std::string &proxy_url) {
     (void)proxy_url;
     LOG_WARNING << "HttpInterface::setProxy() not implemented";
   }
 
+  virtual void setProxyCredentials(const std::string &username, const std::string &password) {
+    (void)username;
+    (void)password;
+    LOG_WARNING << "HttpInterface::setProxy() not implemented";
+  }
   virtual void setUseOscpStapling(bool oscp) {
     (void)oscp;
     LOG_WARNING << "HttpInterface::setUseOscpStapling() not implemented";
+  }
+
+  virtual void setBandwidth(long maxspeed) {
+    (void)maxspeed;
+    LOG_WARNING << "HttpInterface::setBandwidth() not implemented";
   }
 
   static constexpr int64_t kNoLimit = 0;  // no limit the size of downloaded data

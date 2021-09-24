@@ -29,7 +29,7 @@ option(FAULT_INJECTION "Set to ON to enable fault injection" OFF)
 option(INSTALL_LIB "Set to ON to install library and headers" OFF)
 option(TESTSUITE_VALGRIND "Set to ON to make tests to run under valgrind (default when CMAKE_BUILD_TYPE=Valgrind)" ${TESTSUITE_VALGRIND_DEFAULT})
 option(CCACHE "Set to ON to use ccache if available" ON)
-option(USE_OSCP "Set to ON to use OCSP stapling by setting CURLOPT_SSL_VERIFYSTATUS" OFF)
+option(USE_OSCP "Set to ON to use OCSP stapling by default via CURLOPT_SSL_VERIFYSTATUS" OFF)
 
 set(SOTA_PACKED_CREDENTIALS "" CACHE STRING "Credentials.zip for tests involving the server")
 
