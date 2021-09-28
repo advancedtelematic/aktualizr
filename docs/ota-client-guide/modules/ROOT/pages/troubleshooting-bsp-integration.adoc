@@ -34,9 +34,9 @@ Building an integration with a new board involves dealing with several different
 ** https://www.yoctoproject.org/docs/{yocto-version}/bsp-guide/bsp-guide.html[Yocto BSP Developer's Guide, v{yocto-version}]
 ** https://www.yoctoproject.org/docs/{yocto-version}/bitbake-user-manual/bitbake-user-manual.html[Bitbake User Manual, v{yocto-version}]
 
-* https://ostree.readthedocs.io/en/latest/[libostree reference documentation]
-** https://ostree.readthedocs.io/en/latest/manual/deployment/[Deployments]
-** https://ostree.readthedocs.io/en/latest/manual/atomic-upgrades/[Atomic Upgrades]
+* https://ostreedev.github.io/ostree/[libostree reference documentation]
+** https://ostreedev.github.io/ostree/deployment/[Deployments]
+** https://ostreedev.github.io/ostree/atomic-upgrades/[Atomic Upgrades]
 
 * https://www.denx.de/wiki/DULG/Manual[U-Boot reference documentation]
 ** https://www.denx.de/wiki/view/DULG/UBootCommandLineInterface[CLI]
