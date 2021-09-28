@@ -17,7 +17,7 @@ Here, we provide reference documentation on how to configure link:https://github
 | Option | Description
 | `OSTREE_BRANCHNAME`|OSTree branch name. Defaults to `$\{SOTA_HARDWARE_ID}`. Particularly useful for grouping similar images. Should only contain characters from the character set `[a-zA-Z0-9_-]`.
 | `OSTREE_REPO`|Path to your OSTree repository. Defaults to `$\{DEPLOY_DIR_IMAGE}/ostree_repo`
-| `OSTREE_OSNAME`|OS deployment name on your target device. For more information about deployments and osnames see the https://ostree.readthedocs.io/en/latest/manual/deployment/[OSTree documentation]. Defaults to "poky".
+| `OSTREE_OSNAME`|OS deployment name on your target device. For more information about deployments and osnames see the https://ostreedev.github.io/ostree/deployment/[OSTree documentation]. Defaults to "poky".
 | `OSTREE_COMMIT_BODY`|Message attached to OSTree commit. Empty by default.
 | `OSTREE_COMMIT_SUBJECT`|Commit subject used by OSTree. Defaults to `Commit-id: $\{IMAGE_NAME}`
 | `OSTREE_UPDATE_SUMMARY`|Set this to '1' to update summary of OSTree repository on each commit. '0' by default.
