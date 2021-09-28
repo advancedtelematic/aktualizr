@@ -27,7 +27,7 @@ DISTRO_FEATURES_append = " sota systemd usrmerge"
 ----
 4.  {app-url}/#/profile/access-keys[Create a provisioning key, window="_blank"] and add it to your `local.conf`.
 
-You can then build your image as usual, with bitbake. After building the root file system, bitbake will then create an https://ostree.readthedocs.io/en/latest/manual/adapting-existing/[OSTree-enabled version] of it, commit it to your local OSTree repo, and push it to OTA Connect. Additionally, a live disk image will be created (normally named `$\{IMAGE_NAME}.wic` e.g. `core-image-minimal-raspberrypi3.wic`).
+You can then build your image as usual, with bitbake. After building the root file system, bitbake will then create an https://ostreedev.github.io/ostree/adapting-existing/[OSTree-enabled version] of it, commit it to your local OSTree repo, and push it to OTA Connect. Additionally, a live disk image will be created (normally named `$\{IMAGE_NAME}.wic` e.g. `core-image-minimal-raspberrypi3.wic`).
 
 See also:
 
