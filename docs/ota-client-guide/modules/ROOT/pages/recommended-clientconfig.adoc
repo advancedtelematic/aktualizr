@@ -38,7 +38,7 @@ include::partial$config-descriptions.adoc[tags=autorebootconfig-dev]
 |
 `IMAGE_INSTALL_append += " systemd-journald-persistent"`
 |
-To troubleshoot problems that you might encounter during development, we recommend that you enable persistent `systemd` logging. This setting is enabled by default for newly configured environments (see link:https://github.com/advancedtelematic/meta-updater/tree/master/conf/local.conf.sample.append[local.conf.sample.append]).
+To troubleshoot problems that you might encounter during development, we recommend that you enable persistent `systemd` logging. This setting is enabled by default for newly configured environments (see link:https://github.com/advancedtelematic/meta-updater/tree/master/conf/local.conf.systemd.append[local.conf.systemd.append]).
 |
 `IMAGE_INSTALL_append += " aktualizr-log-debug"`
 |
