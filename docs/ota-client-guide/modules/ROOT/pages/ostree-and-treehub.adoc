@@ -10,7 +10,7 @@ endif::[]
 == OSTree
 
 
-link:http://ostree.readthedocs.io/en/latest/[OSTree] is an open-source tool that combines a "git-like" model for committing and downloading bootable filesystem trees, along with a layer for deploying them and managing the bootloader configuration. It is actively developed and support by Red Hat, and used in link:http://flatpak.org/[flatpak] and link:http://www.projectatomic.io/[Project Atomic].
+link:http://ostree.readthedocs.io/en/latest/[OSTree] is an open-source tool that combines a "git-like" model for committing and downloading bootable filesystem trees, along with a layer for deploying them and managing the bootloader configuration. It is actively developed and support by Red Hat, and used in link:http://flatpak.org/[flatpak] and link:https://github.com/projectatomic/[Project Atomic].
 
 For more on why OSTree is the best tool for the job of doing embedded device updates, you can also jump straight to  xref:comparing-full-filesystem-update-strategies.adoc[Comparing full-filesystem update strategies].
 
