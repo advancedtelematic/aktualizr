@@ -11,7 +11,8 @@ std::string aktualizrGet(Config &config, const std::string &url, const std::vect
   KeyManager keys(storage, config.keymanagerConfig());
   keys.copyCertsToCurl(*client);
   client->setUseOscpStapling(config.network.use_oscp);
-
+  client->setProxy(config.network.curl_proxy);
+  client->setBandwidth(config.network.curl_bandwith);
   auto resp = client->get(url, HttpInterface::kNoLimit);
   if (resp.http_status_code != 200) {
     throw std::runtime_error("Unable to get " + url + ": HTTP_" + std::to_string(resp.http_status_code) + "\n" +

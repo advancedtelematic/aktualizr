@@ -140,7 +140,7 @@ struct ImportConfig {
 
 struct NetworkConfig {
   std::string curl_proxy;
-  uint64_t curl_bandwith{0U};
+  long curl_bandwith{0U};
 #ifdef USE_OSCP
   bool use_oscp{true};
 #else
