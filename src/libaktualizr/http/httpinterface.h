@@ -73,6 +73,7 @@ class HttpInterface {
     LOG_WARNING << "HttpInterface::setBandwidth() not implemented";
   }
 
+  virtual void reset() { LOG_WARNING << "HttpInterface::reset() not implemented"; }
   static constexpr int64_t kNoLimit = 0;  // no limit the size of downloaded data
   static constexpr int64_t kPostRespLimit = 64 * 1024;
   static constexpr int64_t kPutRespLimit = 64 * 1024;

@@ -49,8 +49,8 @@ class SotaUptaneClient {
     http->setUseOscpStapling(config.network.use_oscp);
     if (!config.network.curl_proxy.empty()) {
       http->setProxy(config.network.curl_proxy);
-      http->setBandwidth(config.network.curl_bandwith);
     }
+    http->setBandwidth(config.network.curl_bandwith);
     report_queue = std_::make_unique<ReportQueue>(config, http, storage);
     secondary_provider_ = SecondaryProviderBuilder::Build(config, storage, package_manager_);
   }
@@ -102,6 +102,7 @@ class SotaUptaneClient {
   TargetStatus VerifyTarget(const Uptane::Target &target) const { return package_manager_->verifyTarget(target); }
   void useProxy(const std::string &proxy, const std::string &username = std::string(),
                 const std::string &pwd = std::string());
+  void setDownloadBandwidth(long maxspeed, bool restart_downloads = false);
 
  private:
   FRIEND_TEST(Aktualizr, FullNoUpdates);

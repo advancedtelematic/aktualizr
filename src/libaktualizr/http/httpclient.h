@@ -5,6 +5,7 @@
 #include <memory>
 
 #include <curl/curl.h>
+#include <tuple>
 #include "gtest/gtest_prod.h"
 #include "json/json.h"
 
@@ -53,7 +54,16 @@ class HttpClient : public HttpInterface {
   void setProxy(const std::string &proxy_url) override;
   void setProxyCredentials(const std::string &username, const std::string &password) override;
   void setUseOscpStapling(bool oscp) override;
+
+  /**
+   * @brief If a download exceeds this maxspeed (counted in bytes per second) the transfer will
+   * pause to keep the speed less than or equal to the parameter value. Defaults to unlimited speed.
+   *
+   * @param maxspeed counted in bytes per second
+   */
   void setBandwidth(long maxspeed) override;
+
+  void reset() override;
 
  private:
   FRIEND_TEST(GetTest, download_speed_limit);
@@ -85,6 +95,11 @@ class HttpClient : public HttpInterface {
   std::string proxy_user;
   std::string proxy_pwd;
   bool oscp_stapling{false};
-  long bandwidth{0};  // 0 means "no limitations"
+  long bandwidth{0};  // 0 means "no limitations",  counted in bytes per second
+
+  CurlHandler curlp;         // handler for current downloadAsync(), keep it to reset current download
+  std::atomic<bool> reset_;  // use to detect reset during downloadAsync()
+  // save cert configuration from last setCerts() call and use it for reset
+  std::tuple<bool, std::string, CryptoSource, std::string, CryptoSource, std::string, CryptoSource> certs_in_use;
 };
 #endif

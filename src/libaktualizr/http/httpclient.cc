@@ -78,6 +78,7 @@ HttpClient::~HttpClient() {
 
 void HttpClient::setCerts(const std::string& ca, CryptoSource ca_source, const std::string& cert,
                           CryptoSource cert_source, const std::string& pkey, CryptoSource pkey_source) {
+  certs_in_use = std::make_tuple(true, ca, ca_source, cert, cert_source, pkey, pkey_source);
   curlEasySetoptWrapper(curl, CURLOPT_SSL_VERIFYPEER, 1);
   curlEasySetoptWrapper(curl, CURLOPT_SSL_VERIFYHOST, 2);
   curlEasySetoptWrapper(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
@@ -188,6 +189,9 @@ HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times, int64_t si
   }
   curlEasySetoptWrapper(curl_handler, CURLOPT_LOW_SPEED_TIME, speed_limit_time_interval_);
   curlEasySetoptWrapper(curl_handler, CURLOPT_LOW_SPEED_LIMIT, speed_limit_bytes_per_sec_);
+  if (bandwidth > 0) {
+    curlEasySetoptWrapper(curl_handler, CURLOPT_MAX_RECV_SPEED_LARGE, (curl_off_t)bandwidth);
+  }
   setOptProxy(curl_handler);
   curlEasySetoptWrapper(curl, CURLOPT_ERRORBUFFER, errbuf);
   // OSCP enable check, needs curl 7.41.0+
@@ -231,9 +235,9 @@ std::future<HttpResponse> HttpClient::downloadAsync(const std::string& url, curl
                                                     curl_xferinfo_callback progress_cb, void* userp, curl_off_t from,
                                                     CurlHandler* easyp) {
   CURL* curl_download = Utils::curlDupHandleWrapper(curl, pkcs11_key);
-
-  CurlHandler curlp = CurlHandler(curl_download, curl_easy_cleanup);
-
+  reset_.store(false);
+  curlp = CurlHandler(curl_download, curl_easy_cleanup);
+  LOG_INFO << "downloadAsync: " << url;
   if (easyp != nullptr) {
     *easyp = curlp;
   }
@@ -252,16 +256,25 @@ std::future<HttpResponse> HttpClient::downloadAsync(const std::string& url, curl
   curlEasySetoptWrapper(curl_download, CURLOPT_TIMEOUT, 0);
   curlEasySetoptWrapper(curl_download, CURLOPT_LOW_SPEED_TIME, speed_limit_time_interval_);
   curlEasySetoptWrapper(curl_download, CURLOPT_LOW_SPEED_LIMIT, speed_limit_bytes_per_sec_);
+
+  if (bandwidth > 0) {
+    curlEasySetoptWrapper(curl_download, CURLOPT_MAX_RECV_SPEED_LARGE, (curl_off_t)bandwidth);
+  }
   curlEasySetoptWrapper(curl_download, CURLOPT_RESUME_FROM_LARGE, from);
 
   std::promise<HttpResponse> resp_promise;
   auto resp_future = resp_promise.get_future();
   std::thread(
-      [curlp](std::promise<HttpResponse> promise) {
+      [this](std::promise<HttpResponse> promise) {
         CURLcode result = curl_easy_perform(curlp.get());
         long http_code;  // NOLINT(google-runtime-int)
         curl_easy_getinfo(curlp.get(), CURLINFO_RESPONSE_CODE, &http_code);
         HttpResponse response("", http_code, result, (result != CURLE_OK) ? curl_easy_strerror(result) : "");
+        if (reset_.load()) {
+          LOG_INFO << "HttpClient::downloadAsync interrupted by reset(), current bandwith: " << bandwidth;
+          // reset is not error, so set code to return true from HttpResponse.wasInterrupted()
+          response.curl_code = CURLE_ABORTED_BY_CALLBACK;
+        }
         promise.set_value(response);
       },
       std::move(resp_promise))
@@ -320,6 +333,37 @@ void HttpClient::setOptProxy(CURL* curl_handler) {
         curlEasySetoptWrapper(curl_handler, CURLOPT_PROXYUSERPWD, strm.str().c_str());
       }
     }
+  }
+}
+
+void HttpClient::reset() {
+  if (curlp != nullptr) {
+    reset_.store(true);
+    curlp.reset();
+  }
+  curl_easy_cleanup(curl);
+
+  curl = curl_easy_init();
+  if (curl == nullptr) {
+    throw std::runtime_error("Could not initialize curl aster reset");
+  }
+
+  curlEasySetoptWrapper(curl, CURLOPT_NOSIGNAL, 1L);
+  curlEasySetoptWrapper(curl, CURLOPT_TIMEOUT, 60L);
+  curlEasySetoptWrapper(curl, CURLOPT_CONNECTTIMEOUT, 60L);
+  curlEasySetoptWrapper(curl, CURLOPT_CAPATH, Utils::getCaPath());
+
+  // let curl use our write function
+  curlEasySetoptWrapper(curl, CURLOPT_WRITEFUNCTION, writeString);
+  curlEasySetoptWrapper(curl, CURLOPT_WRITEDATA, NULL);
+
+  curlEasySetoptWrapper(curl, CURLOPT_VERBOSE, get_curlopt_verbose());
+
+  curlEasySetoptWrapper(curl, CURLOPT_USERAGENT, Utils::getUserAgent());
+
+  if (std::get<0>(certs_in_use)) {
+    setCerts(std::get<1>(certs_in_use), std::get<2>(certs_in_use), std::get<3>(certs_in_use), std::get<4>(certs_in_use),
+             std::get<5>(certs_in_use), std::get<6>(certs_in_use));
   }
 }
 // vim: set tabstop=2 shiftwidth=2 expandtab:
