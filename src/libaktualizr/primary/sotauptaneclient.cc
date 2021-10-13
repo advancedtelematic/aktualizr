@@ -15,6 +15,8 @@
 #include "utilities/fault_injection.h"
 #include "utilities/utils.h"
 
+#define LOG_ENTRY_CALL() std::cout << "TRACE: " << __func__ << std::endl;
+
 static void report_progress_cb(event::Channel *channel, const Uptane::Target &target, const std::string &description,
                                unsigned int progress) {
   if (channel == nullptr) {
@@ -25,6 +27,7 @@ static void report_progress_cb(event::Channel *channel, const Uptane::Target &ta
 }
 
 void SotaUptaneClient::addSecondary(const std::shared_ptr<SecondaryInterface> &sec) {
+  LOG_ENTRY_CALL();
   Uptane::EcuSerial serial = sec->getSerial();
 
   const auto map_it = secondaries.find(serial);
@@ -57,6 +60,7 @@ data::InstallationResult SotaUptaneClient::PackageInstall(const Uptane::Target &
 }
 
 void SotaUptaneClient::finalizeAfterReboot() {
+  LOG_ENTRY_CALL();
   // TODO: consider bringing checkAndUpdatePendingSecondaries and the following functionality
   // to the common denominator
   if (!hasPendingUpdates()) {
@@ -108,6 +112,7 @@ void SotaUptaneClient::finalizeAfterReboot() {
 }
 
 data::InstallationResult SotaUptaneClient::PackageInstallSetResult(const Uptane::Target &target) {
+  LOG_ENTRY_CALL();
   data::InstallationResult result;
   Uptane::EcuSerial ecu_serial = primaryEcuSerial();
 
@@ -139,6 +144,7 @@ data::InstallationResult SotaUptaneClient::PackageInstallSetResult(const Uptane:
  * However, users can provide custom info via the API, and that will be sent if
  * it has changed. */
 void SotaUptaneClient::reportHwInfo(const Json::Value &custom_hwinfo) {
+  LOG_ENTRY_CALL();
   Json::Value system_info;
   std::string stored_hash;
   storage->loadDeviceDataHash("hardware_info", &stored_hash);
@@ -173,6 +179,7 @@ void SotaUptaneClient::reportHwInfo(const Json::Value &custom_hwinfo) {
 }
 
 void SotaUptaneClient::reportInstalledPackages() {
+  LOG_ENTRY_CALL();
   const Json::Value packages = package_manager_->getInstalledPackages();
   const Hash new_hash = Hash::generate(Hash::Type::kSha256, Utils::jsonToCanonicalStr(packages));
   std::string stored_hash;
@@ -189,6 +196,7 @@ void SotaUptaneClient::reportInstalledPackages() {
 }
 
 void SotaUptaneClient::reportNetworkInfo() {
+  LOG_ENTRY_CALL();
   if (!config.telemetry.report_network) {
     LOG_TRACE << "Not reporting network information because telemetry is disabled";
     return;
@@ -216,6 +224,7 @@ void SotaUptaneClient::reportNetworkInfo() {
 }
 
 void SotaUptaneClient::reportAktualizrConfiguration() {
+  LOG_ENTRY_CALL();
   if (!config.telemetry.report_config) {
     LOG_TRACE << "Not reporting libaktualizr configuration because telemetry is disabled";
     return;
@@ -239,6 +248,7 @@ void SotaUptaneClient::reportAktualizrConfiguration() {
 }
 
 Json::Value SotaUptaneClient::AssembleManifest() {
+  LOG_ENTRY_CALL();
   Json::Value manifest;  // signed top-level
   Uptane::EcuSerial primary_ecu_serial = primaryEcuSerial();
   manifest["primary_ecu_serial"] = primary_ecu_serial.ToString();
@@ -343,6 +353,7 @@ Json::Value SotaUptaneClient::AssembleManifest() {
 bool SotaUptaneClient::hasPendingUpdates() const { return storage->hasPendingInstall(); }
 
 void SotaUptaneClient::initialize() {
+  LOG_ENTRY_CALL();
   LOG_DEBUG << "Checking if device is provisioned...";
   auto keys = std::make_shared<KeyManager>(storage, config.keymanagerConfig());
 
@@ -388,6 +399,7 @@ void SotaUptaneClient::initialize() {
 }
 
 void SotaUptaneClient::updateDirectorMeta() {
+  LOG_ENTRY_CALL();
   try {
     director_repo.updateMeta(*storage, *uptane_fetcher);
   } catch (const std::exception &e) {
@@ -397,6 +409,7 @@ void SotaUptaneClient::updateDirectorMeta() {
 }
 
 void SotaUptaneClient::updateImageMeta() {
+  LOG_ENTRY_CALL();
   try {
     image_repo.updateMeta(*storage, *uptane_fetcher);
   } catch (const std::exception &e) {
@@ -406,6 +419,7 @@ void SotaUptaneClient::updateImageMeta() {
 }
 
 void SotaUptaneClient::checkDirectorMetaOffline() {
+  LOG_ENTRY_CALL();
   try {
     director_repo.checkMetaOffline(*storage);
   } catch (const std::exception &e) {
@@ -415,6 +429,7 @@ void SotaUptaneClient::checkDirectorMetaOffline() {
 }
 
 void SotaUptaneClient::checkImageMetaOffline() {
+  LOG_ENTRY_CALL();
   try {
     image_repo.checkMetaOffline(*storage);
   } catch (const std::exception &e) {
@@ -424,6 +439,7 @@ void SotaUptaneClient::checkImageMetaOffline() {
 
 void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult *result,
                                                        std::string *raw_installation_report) const {
+LOG_ENTRY_CALL();                                                         
   data::InstallationResult device_installation_result =
       data::InstallationResult(data::ResultCode::Numeric::kOk, "Device has been successfully installed");
   std::string raw_ir = "Installation succesful";
@@ -495,6 +511,7 @@ void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult 
 }
 
 void SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, unsigned int *ecus_count) {
+  LOG_ENTRY_CALL();
   const std::vector<Uptane::Target> targets = director_repo.getTargets().targets;
   const Uptane::EcuSerial primary_ecu_serial = primaryEcuSerial();
   if (ecus_count != nullptr) {
@@ -567,6 +584,7 @@ std::unique_ptr<Uptane::Target> SotaUptaneClient::findTargetHelper(const Uptane:
                                                                    const Uptane::Target &queried_target,
                                                                    const int level, const bool terminating,
                                                                    const bool offline) {
+  LOG_ENTRY_CALL();
   TargetCompare target_comp(queried_target);
   const auto it = std::find_if(cur_targets.targets.cbegin(), cur_targets.targets.cend(), target_comp);
   if (it != cur_targets.targets.cend()) {
@@ -619,6 +637,7 @@ std::unique_ptr<Uptane::Target> SotaUptaneClient::findTargetHelper(const Uptane:
 
 std::unique_ptr<Uptane::Target> SotaUptaneClient::findTargetInDelegationTree(const Uptane::Target &target,
                                                                              const bool offline) {
+  LOG_ENTRY_CALL();
   auto toplevel_targets = image_repo.getTargets();
   if (toplevel_targets == nullptr) {
     return std::unique_ptr<Uptane::Target>(nullptr);
@@ -629,6 +648,7 @@ std::unique_ptr<Uptane::Target> SotaUptaneClient::findTargetInDelegationTree(con
 
 result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets,
                                                   const api::FlowControlToken *token) {
+  LOG_ENTRY_CALL();
   // Uptane step 4 - download all the images and verify them against the metadata (for OSTree - pull without
   // deploying)
   std::lock_guard<std::mutex> guard(download_mutex);
@@ -641,6 +661,33 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
   } catch (const std::exception &e) {
     last_exception = std::current_exception();
     update_status = result::UpdateStatus::kError;
+  }
+
+//Check campaing status
+  try {
+    const std::string &correlation_id = director_repo.getCorrelationId(); //use this for correlation id. value inside Target is empty
+    LOG_INFO << "Downloads correlation_id = " << correlation_id;
+    auto dasm = campaign::DeviceAssignments::fetchDeviceAssignments(*http, config.tls.server);
+    for(auto d : dasm) {
+      LOG_INFO << "Has DeviceAssignments correlation: " << d.correlationId << " cancel:" << d.cancelRequested 
+        << " ecu:" << d.ecuId << " target: " << d.ecuTargetId;
+      if(d.cancelRequested) {
+        if(correlation_id == d.correlationId) {
+            LOG_INFO << "Correlation id is canceled";            
+            result = result::Download({}, result::DownloadStatus::kError, "Failed by backend cancel campaing");
+            storeInstallationFailure(data::InstallationResult(data::ResultCode::Numeric::kInternalError, "Campaing canceled."));
+            sendEvent<event::AllDownloadsComplete>(result);
+            LOG_ERROR << "CANCELED CAMPAIGN";
+            return result;
+        } else {
+          LOG_INFO << "target not canceled";
+        }
+      } else {
+        LOG_DEBUG << "Device assigment is active";
+      }
+    }
+  } catch(...) {
+    LOG_ERROR << "errors while checkijng device assignments";
   }
 
   if (update_status == result::UpdateStatus::kNoUpdatesAvailable) {
@@ -682,17 +729,20 @@ result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Targ
 }
 
 void SotaUptaneClient::reportPause() {
+  LOG_ENTRY_CALL();
   const std::string &correlation_id = director_repo.getCorrelationId();
   report_queue->enqueue(std_::make_unique<DevicePausedReport>(correlation_id));
 }
 
 void SotaUptaneClient::reportResume() {
+  LOG_ENTRY_CALL();
   const std::string &correlation_id = director_repo.getCorrelationId();
   report_queue->enqueue(std_::make_unique<DeviceResumedReport>(correlation_id));
 }
 
 std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(const Uptane::Target &target,
                                                                 const api::FlowControlToken *token) {
+  LOG_ENTRY_CALL();
   const std::string &correlation_id = director_repo.getCorrelationId();
   // send an event for all ECUs that are touched by this target
   for (const auto &ecu : target.ecus()) {
@@ -756,6 +806,7 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(const Uptane::Ta
 }
 
 void SotaUptaneClient::uptaneIteration(std::vector<Uptane::Target> *targets, unsigned int *ecus_count) {
+  LOG_ENTRY_CALL();
   updateDirectorMeta();
 
   std::vector<Uptane::Target> tmp_targets;
@@ -781,6 +832,7 @@ void SotaUptaneClient::uptaneIteration(std::vector<Uptane::Target> *targets, uns
 }
 
 void SotaUptaneClient::uptaneOfflineIteration(std::vector<Uptane::Target> *targets, unsigned int *ecus_count) {
+  LOG_ENTRY_CALL();
   checkDirectorMetaOffline();
 
   std::vector<Uptane::Target> tmp_targets;
@@ -806,6 +858,7 @@ void SotaUptaneClient::uptaneOfflineIteration(std::vector<Uptane::Target> *targe
 }
 
 void SotaUptaneClient::sendDeviceData(const Json::Value &custom_hwinfo) {
+  LOG_ENTRY_CALL();
   reportHwInfo(custom_hwinfo);
   reportInstalledPackages();
   reportNetworkInfo();
@@ -814,6 +867,7 @@ void SotaUptaneClient::sendDeviceData(const Json::Value &custom_hwinfo) {
 }
 
 result::UpdateCheck SotaUptaneClient::fetchMeta() {
+  LOG_ENTRY_CALL();
   result::UpdateCheck result;
 
   reportNetworkInfo();
@@ -843,6 +897,7 @@ result::UpdateCheck SotaUptaneClient::fetchMeta() {
 }
 
 result::UpdateCheck SotaUptaneClient::checkUpdates() {
+  LOG_ENTRY_CALL();
   result::UpdateCheck result;
 
   std::vector<Uptane::Target> updates;
@@ -907,6 +962,7 @@ result::UpdateCheck SotaUptaneClient::checkUpdates() {
 }
 
 result::UpdateStatus SotaUptaneClient::checkUpdatesOffline(const std::vector<Uptane::Target> &targets) {
+  LOG_ENTRY_CALL();
   if (hasPendingUpdates()) {
     // no need in update checking if there are some pending updates
     LOG_INFO << "An update is pending. Skipping stored metadata check until installation is complete.";
@@ -955,6 +1011,7 @@ result::UpdateStatus SotaUptaneClient::checkUpdatesOffline(const std::vector<Upt
 }
 
 result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> &updates) {
+  LOG_ENTRY_CALL();
   const std::string &correlation_id = director_repo.getCorrelationId();
 
   // put most of the logic in a lambda so that we can take care of common
@@ -1071,6 +1128,7 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
 }
 
 result::CampaignCheck SotaUptaneClient::campaignCheck() {
+  LOG_ENTRY_CALL();
   auto campaigns = campaign::Campaign::fetchAvailableCampaigns(*http, config.tls.server);
   for (const auto &c : campaigns) {
     LOG_INFO << "Campaign: " << c.name;
@@ -1080,26 +1138,41 @@ result::CampaignCheck SotaUptaneClient::campaignCheck() {
     LOG_INFO << "Message: " << c.description;
   }
   result::CampaignCheck result(campaigns);
+  
+  try {
+    auto dasm = campaign::DeviceAssignments::fetchDeviceAssignments(*http, config.tls.server);
+    for(auto d : dasm) {
+      LOG_INFO << "Found DeviceAssignments correlation: " << d.correlationId << " cancel:" << d.cancelRequested
+        << " ecu:" << d.ecuId << " target: " << d.ecuTargetId;
+    }
+  } catch(...) {
+    LOG_ERROR << "errors while checkijng device assignments";
+  }
+  
   sendEvent<event::CampaignCheckComplete>(result);
   return result;
 }
 
 void SotaUptaneClient::campaignAccept(const std::string &campaign_id) {
+  LOG_ENTRY_CALL();
   sendEvent<event::CampaignAcceptComplete>();
   report_queue->enqueue(std_::make_unique<CampaignAcceptedReport>(campaign_id));
 }
 
 void SotaUptaneClient::campaignDecline(const std::string &campaign_id) {
+  LOG_ENTRY_CALL();
   sendEvent<event::CampaignDeclineComplete>();
   report_queue->enqueue(std_::make_unique<CampaignDeclinedReport>(campaign_id));
 }
 
 void SotaUptaneClient::campaignPostpone(const std::string &campaign_id) {
+  LOG_ENTRY_CALL();
   sendEvent<event::CampaignPostponeComplete>();
   report_queue->enqueue(std_::make_unique<CampaignPostponedReport>(campaign_id));
 }
 
 bool SotaUptaneClient::isInstallCompletionRequired() const {
+  LOG_ENTRY_CALL();
   std::vector<std::pair<Uptane::EcuSerial, Hash>> pending_ecus;
   storage->getPendingEcus(&pending_ecus);
   bool pending_for_ecu = std::find_if(pending_ecus.begin(), pending_ecus.end(),
@@ -1111,12 +1184,14 @@ bool SotaUptaneClient::isInstallCompletionRequired() const {
 }
 
 void SotaUptaneClient::completeInstall() const {
+  LOG_ENTRY_CALL();
   if (isInstallCompletionRequired()) {
     package_manager_->completeInstall();
   }
 }
 
 bool SotaUptaneClient::putManifestSimple(const Json::Value &custom) {
+  LOG_ENTRY_CALL();
   // does not send event, so it can be used as a subset of other steps
   if (hasPendingUpdates()) {
     // Debug level here because info level is annoying if the update check
@@ -1149,12 +1224,14 @@ bool SotaUptaneClient::putManifestSimple(const Json::Value &custom) {
 }
 
 bool SotaUptaneClient::putManifest(const Json::Value &custom) {
+  LOG_ENTRY_CALL();
   bool success = putManifestSimple(custom);
   sendEvent<event::PutManifestComplete>(success);
   return success;
 }
 
 bool SotaUptaneClient::waitSecondariesReachable(const std::vector<Uptane::Target> &updates) {
+  LOG_ENTRY_CALL();
   std::map<Uptane::EcuSerial, SecondaryInterface *> targeted_secondaries;
   const Uptane::EcuSerial &primary_ecu_serial = primaryEcuSerial();
   for (const auto &t : updates) {
@@ -1208,6 +1285,7 @@ bool SotaUptaneClient::waitSecondariesReachable(const std::vector<Uptane::Target
 }
 
 void SotaUptaneClient::storeInstallationFailure(const data::InstallationResult &result) {
+  LOG_ENTRY_CALL();
   // Store installation report to inform Director of the update failure before
   // we actually got to the install step.
   const std::string &correlation_id = director_repo.getCorrelationId();
@@ -1220,6 +1298,7 @@ void SotaUptaneClient::storeInstallationFailure(const data::InstallationResult &
  * with the incremental steps from what it has now. */
 data::InstallationResult SotaUptaneClient::rotateSecondaryRoot(Uptane::RepositoryType repo,
                                                                SecondaryInterface &secondary) {
+  LOG_ENTRY_CALL();
   std::string latest_root;
   if (!storage->loadLatestRoot(&latest_root, repo)) {
     LOG_ERROR << "Error reading Root metadata";
@@ -1262,6 +1341,7 @@ data::InstallationResult SotaUptaneClient::rotateSecondaryRoot(Uptane::Repositor
 // TODO: the function blocks until it updates all the Secondaries. Consider non-blocking operation.
 void SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &targets, data::InstallationResult *result,
                                           std::string *raw_installation_report) {
+  LOG_ENTRY_CALL();
   data::InstallationResult final_result{data::ResultCode::Numeric::kOk, ""};
   std::string result_code_err_str;
   for (const auto &target : targets) {
@@ -1318,6 +1398,7 @@ void SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &tar
 
 std::future<data::InstallationResult> SotaUptaneClient::sendFirmwareAsync(SecondaryInterface &secondary,
                                                                           const Uptane::Target &target) {
+  LOG_ENTRY_CALL();
   auto f = [this, &secondary, target]() {
     const std::string &correlation_id = director_repo.getCorrelationId();
 
@@ -1349,6 +1430,7 @@ std::future<data::InstallationResult> SotaUptaneClient::sendFirmwareAsync(Second
 }
 
 std::vector<result::Install::EcuReport> SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targets) {
+  LOG_ENTRY_CALL();
   std::vector<result::Install::EcuReport> reports;
   std::vector<std::pair<result::Install::EcuReport, std::future<data::InstallationResult>>> firmwareFutures;
 
@@ -1396,6 +1478,7 @@ Uptane::LazyTargetsList SotaUptaneClient::allTargets() const {
 }
 
 void SotaUptaneClient::checkAndUpdatePendingSecondaries() {
+  LOG_ENTRY_CALL();
   std::vector<std::pair<Uptane::EcuSerial, Hash>> pending_ecus;
   storage->getPendingEcus(&pending_ecus);
 
@@ -1450,6 +1533,7 @@ void SotaUptaneClient::checkAndUpdatePendingSecondaries() {
 }
 
 boost::optional<Uptane::HardwareIdentifier> SotaUptaneClient::getEcuHwId(const Uptane::EcuSerial &serial) const {
+  LOG_ENTRY_CALL();
   if (serial == primary_ecu_serial_ || serial.ToString().empty()) {
     if (primary_ecu_hw_id_ == Uptane::HardwareIdentifier::Unknown()) {
       return boost::none;
@@ -1466,11 +1550,13 @@ boost::optional<Uptane::HardwareIdentifier> SotaUptaneClient::getEcuHwId(const U
 }
 
 void SotaUptaneClient::useProxy(const std::string &proxy, const std::string &username, const std::string &pwd) {
+  LOG_ENTRY_CALL();
   http->setProxy(proxy);
   http->setProxyCredentials(username, pwd);
 }
 
 void SotaUptaneClient::setDownloadBandwidth(long maxspeed, bool restart_downloads) {
+  LOG_ENTRY_CALL();
   http->setBandwidth(maxspeed);
   if (restart_downloads) {
     http->reset();

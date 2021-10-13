@@ -121,4 +121,53 @@ std::vector<Campaign> Campaign::fetchAvailableCampaigns(HttpInterface &http_clie
 
   return campaignsFromJson(json);
 }
+
+std::vector<DeviceAssignments> DeviceAssignments::fetchDeviceAssignments(HttpInterface &http_client, const std::string &tls_server) {
+  HttpResponse response = http_client.get(tls_server + "/director/assignments", kMaxCampaignsMetaSize);
+  if (!response.isOk()) {
+    LOG_ERROR << "Failed to fetch list of available campaigns";
+    return {};
+  }
+
+  auto json = response.getJson();
+
+  LOG_TRACE << "DeviceAssignments: " << json;
+  return DeviceAssignmentsFromJson(json);
+}
+
+DeviceAssignments::DeviceAssignments(const Json::Value &json) {
+  try {
+    if (!json.isObject()) {
+      throw std::runtime_error("cannot parse DeviceAssignments, !json.isObject()");
+    }
+    cancelRequested = json.get("cancelRequested", false).asBool();
+    correlationId = json["correlationId"].asString();
+    deviceId = json[""].asString();
+    ecuId = json["ecuId"].asString();
+    ecuTargetId = json["ecuTargetId"].asString();
+    inFlight = json.get("inFlight", false).asBool();
+    ns = json["na"].asString();
+  } catch (const std::runtime_error &exc) {
+    LOG_ERROR << exc.what();
+    throw;
+  } catch (...) {
+    throw std::runtime_error("cannot parse DeviceAssignments");
+  }
+}
+
+std::vector<DeviceAssignments> DeviceAssignments::DeviceAssignmentsFromJson(const Json::Value &json) {
+  std::vector<DeviceAssignments> result;
+  if (!json.isArray()) {
+    return result;
+  }
+  for (const auto &d : json) {
+    try {
+      result.emplace_back(DeviceAssignments(d));
+    } catch (std::runtime_error &ex) {
+      LOG_ERROR << "skip DeviceAssignments parsing error";
+    }
+  }
+  return result;
+}
+
 }  // namespace campaign

@@ -55,6 +55,24 @@ class Campaign {
   int estPreparationDuration{0};
 };
 
+// todo: just for quick PoC, 
+class DeviceAssignments {
+public:
+  static std::vector<DeviceAssignments> fetchDeviceAssignments(HttpInterface &http_client, const std::string &tls_server);
+  static std::vector<DeviceAssignments> DeviceAssignmentsFromJson(const Json::Value &json);
+
+public:
+  DeviceAssignments(const Json::Value &json);
+  bool cancelRequested{false};
+  std::string correlationId;
+  std::string deviceId;
+  std::string ecuId;
+  std::string ecuTargetId;
+  bool inFlight{false};
+  std::string ns;
+
+};
+
 }  // namespace campaign
 
 #endif
