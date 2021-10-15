@@ -50,7 +50,7 @@ class SotaUptaneClient {
     if (!config.network.curl_proxy.empty()) {
       http->setProxy(config.network.curl_proxy);
     }
-    http->setBandwidth(config.network.curl_bandwith);
+    http->setBandwidth(config.network.curl_bandwidth);
     report_queue = std_::make_unique<ReportQueue>(config, http, storage);
     secondary_provider_ = SecondaryProviderBuilder::Build(config, storage, package_manager_);
   }

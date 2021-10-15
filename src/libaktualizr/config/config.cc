@@ -110,13 +110,13 @@ void UptaneConfig::writeToStream(std::ostream& out_stream) const {
 
 void NetworkConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(curl_proxy, "curl_proxy", pt);
-  CopyFromConfig(curl_bandwith, "curl_bandwith", pt);
+  CopyFromConfig(curl_bandwidth, "curl_bandwidth", pt);
   CopyFromConfig(use_oscp, "use_oscp", pt);
 }
 
 void NetworkConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, curl_proxy, "curl_proxy");
-  writeOption(out_stream, curl_bandwith, "curl_bandwith");
+  writeOption(out_stream, curl_bandwidth, "curl_bandwidth");
   writeOption(out_stream, use_oscp, "use_oscp");
 }
 

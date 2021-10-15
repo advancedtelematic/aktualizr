@@ -271,7 +271,7 @@ std::future<HttpResponse> HttpClient::downloadAsync(const std::string& url, curl
         curl_easy_getinfo(curlp.get(), CURLINFO_RESPONSE_CODE, &http_code);
         HttpResponse response("", http_code, result, (result != CURLE_OK) ? curl_easy_strerror(result) : "");
         if (reset_.load()) {
-          LOG_INFO << "HttpClient::downloadAsync interrupted by reset(), current bandwith: " << bandwidth;
+          LOG_INFO << "HttpClient::downloadAsync interrupted by reset(), current bandwidth: " << bandwidth;
           // reset is not error, so set code to return true from HttpResponse.wasInterrupted()
           response.curl_code = CURLE_ABORTED_BY_CALLBACK;
         }
