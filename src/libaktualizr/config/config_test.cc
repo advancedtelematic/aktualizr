@@ -20,6 +20,9 @@ TEST(config, DefaultValues) {
   Config conf;
   EXPECT_EQ(conf.uptane.key_type, KeyType::kRSA2048);
   EXPECT_EQ(conf.uptane.polling_sec, 10u);
+  EXPECT_FALSE(conf.network.use_oscp);
+  EXPECT_EQ(conf.network.curl_proxy, "");
+  EXPECT_TRUE(conf.network.curl_bandwith == 0);
 }
 
 TEST(config, TomlBasic) {

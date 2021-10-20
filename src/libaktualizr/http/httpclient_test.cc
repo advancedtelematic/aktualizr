@@ -2,6 +2,7 @@
 
 #include <errno.h>
 #include <stdio.h>
+#include <chrono>
 #include <cstdlib>
 
 #include <boost/process.hpp>
@@ -63,6 +64,29 @@ TEST(GetTest, download_speed_limit) {
   http.overrideSpeedLimitParams(3, 5000);
   HttpResponse resp = http.get(server + path, HttpInterface::kNoLimit);
   EXPECT_EQ(resp.curl_code, CURLE_OPERATION_TIMEDOUT);
+}
+
+/* Check that download() uses correct speed limit */
+static size_t fake_write_callback(char* contents, size_t size, size_t nmemb, void* userp) {
+  (void)userp;
+  (void)contents;
+  size_t downloaded = size * nmemb;
+  return downloaded;
+}
+
+TEST(GetTest, download_bandwidth) {
+  HttpClient http;
+  std::string path = "/large_file";
+
+  http.setBandwidth(7000000);  // about 14.9 second to download /large_file
+  auto start = std::chrono::system_clock::now();
+
+  HttpResponse resp = http.download(server + path, fake_write_callback, nullptr, nullptr, 0);
+
+  auto stop = std::chrono::system_clock::now();
+  EXPECT_EQ(resp.curl_code, CURLE_OK);
+  std::chrono::duration<double> elapsed_seconds = stop - start;
+  EXPECT_LT(14.0l, elapsed_seconds.count());
 }
 
 TEST(PostTest, post_performed) {
