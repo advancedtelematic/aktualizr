@@ -14,7 +14,7 @@
 class MetaFake {
  public:
   MetaFake(const boost::filesystem::path &meta_dir_in)
-      : meta_dir(meta_dir_in), work_dir(meta_dir / "fake_meta"), repo(work_dir, "2021-07-04T16:33:27Z", "id0") {
+      : meta_dir(meta_dir_in), work_dir(meta_dir / "fake_meta"), repo(work_dir, "2025-07-04T16:33:27Z", "id0") {
     repo.generateRepo(KeyType::kED25519);
     backup();
     create_image();

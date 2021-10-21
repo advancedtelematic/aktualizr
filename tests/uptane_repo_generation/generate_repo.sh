@@ -44,7 +44,7 @@ trap 'rm -rf "$IMAGES"' exit
 PRIMARY_FIRMWARE="$IMAGES/primary.txt"
 echo "primary" > "$PRIMARY_FIRMWARE"
 
-uptane_gen --command generate --expires 2021-07-04T16:33:27Z
+uptane_gen --command generate --expires 2025-07-04T16:33:27Z
 uptane_gen --command image --filename "$PRIMARY_FIRMWARE" --targetname primary.txt --hwid primary_hw
 uptane_gen --command addtarget --hwid primary_hw --serial CA:FE:A6:D2:84:9D --targetname primary.txt
 
