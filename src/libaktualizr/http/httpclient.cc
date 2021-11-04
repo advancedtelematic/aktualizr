@@ -181,7 +181,6 @@ HttpResponse HttpClient::put(const std::string& url, const Json::Value& data) {
 }
 
 HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times, int64_t size_limit) {
-  char errbuf[CURL_ERROR_SIZE];
   if (size_limit >= 0) {
     // it will only take effect if the server declares the size in advance,
     //    writeString callback takes care of the other case
@@ -193,13 +192,10 @@ HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times, int64_t si
     curlEasySetoptWrapper(curl_handler, CURLOPT_MAX_RECV_SPEED_LARGE, (curl_off_t)bandwidth);
   }
   setOptProxy(curl_handler);
-  curlEasySetoptWrapper(curl, CURLOPT_ERRORBUFFER, errbuf);
   // OSCP enable check, needs curl 7.41.0+
   if (oscp_stapling) {
     curlEasySetoptWrapper(curl_handler, CURLOPT_SSL_VERIFYSTATUS, 1L);
   }
-  // set the error buffer as empty before performing a request
-  errbuf[0] = 0;
 
   WriteStringArg response_arg;
   response_arg.limit = size_limit;
@@ -213,9 +209,6 @@ HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times, int64_t si
     error_message << "curl error " << response.curl_code << " (http code " << response.http_status_code
                   << "): " << response.error_message;
     LOG_ERROR << error_message.str();
-    if (strlen(errbuf) > 0) {
-      LOG_TRACE << "curl error buffer: " << errbuf;
-    }
     if (retry_times != 0) {
       sleep(1);
       response = perform(curl_handler, --retry_times, size_limit);

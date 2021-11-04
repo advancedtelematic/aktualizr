@@ -22,7 +22,7 @@ TEST(config, DefaultValues) {
   EXPECT_EQ(conf.uptane.polling_sec, 10u);
   EXPECT_FALSE(conf.network.use_oscp);
   EXPECT_EQ(conf.network.curl_proxy, "");
-  EXPECT_TRUE(conf.network.curl_bandwith == 0);
+  EXPECT_TRUE(conf.network.curl_bandwidth == 0);
 }
 
 TEST(config, TomlBasic) {
