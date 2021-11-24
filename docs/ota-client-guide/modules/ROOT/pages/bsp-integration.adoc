@@ -26,8 +26,8 @@ OSTree image deployments are installed inside the `/ostree` directory, and then 
 +
 On an OSTree-managed system, OSTree can tell the bootloader which kernel, initramfs, and device tree blob to load. There are two basic ways to do this:
 +
-* on a system with link:https://gitlab.denx.de/u-boot/u-boot/raw/master/doc/README.distro[distroboot], OSTree sets u-boot environment variables to the appropriate values when it switches to a new deployment.
-* In systems that don’t support distroboot (e.g. GRUB) there will be a very minimal, simple bootloader configuration script that is fixed in the bootloader’s partition. The minimal script then points the bootloader to a second, "real" bootloader script, which is managed by OSTree. The way OSTree switches to a new deployment is by replacing the second script so that it points to the new deployment.
+* On a system with link:https://source.denx.de/u-boot/u-boot/raw/master/doc/develop/distro.rst[Distro Boot], OSTree sets the U-Boot environment variables to the appropriate values when OSTree switches to a new deployment.
+* Systems that do not support Distro Boot (for example, GRUB) have a very minimal, simple bootloader configuration script that is fixed in the bootloader partition. This script points the bootloader to a second bootloader script, which is managed by OSTree. OSTree switches to a new deployment by replacing the second script with a new one which points to the new deployment.
 +
 NOTE: OSTree will only switch to the new deployment once it has verified that the complete filesystem tree is present; libaktualizr will only instruct OSTree to switch once it has performed xref:uptane.adoc[Uptane] verification on the metadata directing it to switch.
 . *meta-updater*
