@@ -68,7 +68,7 @@ class HttpInterface {
     LOG_WARNING << "HttpInterface::setUseOscpStapling() not implemented";
   }
 
-  virtual void setBandwidth(long maxspeed) {
+  virtual void setBandwidth(int64_t maxspeed) {
     (void)maxspeed;
     LOG_WARNING << "HttpInterface::setBandwidth() not implemented";
   }

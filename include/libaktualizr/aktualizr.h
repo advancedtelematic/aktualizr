@@ -342,9 +342,10 @@ class Aktualizr {
   /**
    * @brief  If a download exceeds this maxspeed (counted in bytes per second) the transfer will pause to keep the speed less than or equal to the parameter value. Defaults to unlimited speed.
    * 
-   * @param maxspeed
+   * @param maxspeed Rate limit data download speed (counted in bytes per second)
+   * @param restart_downloads Set true to interrupt and restart current download in progress
    */ 
-  void setDownloadBandwidth(long maxspeed, bool restart_downloads = false);
+  void setDownloadBandwidth(int64_t maxspeed, bool restart_downloads = false);
 
  private:
   // Make sure this is declared before SotaUptaneClient to prevent Valgrind

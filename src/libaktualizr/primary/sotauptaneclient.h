@@ -102,7 +102,7 @@ class SotaUptaneClient {
   TargetStatus VerifyTarget(const Uptane::Target &target) const { return package_manager_->verifyTarget(target); }
   void useProxy(const std::string &proxy, const std::string &username = std::string(),
                 const std::string &pwd = std::string());
-  void setDownloadBandwidth(long maxspeed, bool restart_downloads = false);
+  void setDownloadBandwidth(int64_t maxspeed, bool restart_downloads = false);
 
  private:
   FRIEND_TEST(Aktualizr, FullNoUpdates);

@@ -222,6 +222,6 @@ std::ifstream Aktualizr::OpenStoredTarget(const Uptane::Target &target) {
   return uptane_client_->openStoredTarget(target);
 }
 
-void Aktualizr::setDownloadBandwidth(long maxspeed, bool restart_downloads) {
+void Aktualizr::setDownloadBandwidth(int64_t maxspeed, bool restart_downloads) {
   uptane_client_->setDownloadBandwidth(maxspeed, restart_downloads);
 }

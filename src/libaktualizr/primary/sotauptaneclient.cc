@@ -1470,7 +1470,7 @@ void SotaUptaneClient::useProxy(const std::string &proxy, const std::string &use
   http->setProxyCredentials(username, pwd);
 }
 
-void SotaUptaneClient::setDownloadBandwidth(long maxspeed, bool restart_downloads) {
+void SotaUptaneClient::setDownloadBandwidth(int64_t maxspeed, bool restart_downloads) {
   http->setBandwidth(maxspeed);
   if (restart_downloads) {
     http->reset();

@@ -61,7 +61,7 @@ class HttpClient : public HttpInterface {
    *
    * @param maxspeed counted in bytes per second
    */
-  void setBandwidth(long maxspeed) override;
+  void setBandwidth(int64_t maxspeed) override;
 
   void reset() override;
 
@@ -95,10 +95,10 @@ class HttpClient : public HttpInterface {
   std::string proxy_user;
   std::string proxy_pwd;
   bool oscp_stapling{false};
-  long bandwidth{0};  // 0 means "no limitations",  counted in bytes per second
+  curl_off_t bandwidth{0};  // 0 means "no limitations",  counted in bytes per second
 
-  CurlHandler curlp;         // handler for current downloadAsync(), keep it to reset current download
-  std::atomic<bool> reset_;  // use to detect reset during downloadAsync()
+  CurlHandler curlp;                // handler for current downloadAsync(), keep it to reset current download
+  std::atomic<bool> reset_{false};  // use to detect reset during downloadAsync()
   // save cert configuration from last setCerts() call and use it for reset
   std::tuple<bool, std::string, CryptoSource, std::string, CryptoSource, std::string, CryptoSource> certs_in_use;
 };

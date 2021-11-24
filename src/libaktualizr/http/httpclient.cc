@@ -189,7 +189,7 @@ HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times, int64_t si
   curlEasySetoptWrapper(curl_handler, CURLOPT_LOW_SPEED_TIME, speed_limit_time_interval_);
   curlEasySetoptWrapper(curl_handler, CURLOPT_LOW_SPEED_LIMIT, speed_limit_bytes_per_sec_);
   if (bandwidth > 0) {
-    curlEasySetoptWrapper(curl_handler, CURLOPT_MAX_RECV_SPEED_LARGE, (curl_off_t)bandwidth);
+    curlEasySetoptWrapper(curl_handler, CURLOPT_MAX_RECV_SPEED_LARGE, bandwidth);
   }
   setOptProxy(curl_handler);
   // OSCP enable check, needs curl 7.41.0+
@@ -251,7 +251,7 @@ std::future<HttpResponse> HttpClient::downloadAsync(const std::string& url, curl
   curlEasySetoptWrapper(curl_download, CURLOPT_LOW_SPEED_LIMIT, speed_limit_bytes_per_sec_);
 
   if (bandwidth > 0) {
-    curlEasySetoptWrapper(curl_download, CURLOPT_MAX_RECV_SPEED_LARGE, (curl_off_t)bandwidth);
+    curlEasySetoptWrapper(curl_download, CURLOPT_MAX_RECV_SPEED_LARGE, bandwidth);
   }
   curlEasySetoptWrapper(curl_download, CURLOPT_RESUME_FROM_LARGE, from);
 
@@ -313,7 +313,7 @@ void HttpClient::setProxyCredentials(const std::string& username, const std::str
   proxy_pwd = password;
 }
 
-void HttpClient::setBandwidth(long maxspeed) { bandwidth = maxspeed; }
+void HttpClient::setBandwidth(int64_t maxspeed) { bandwidth = maxspeed; }
 
 void HttpClient::setOptProxy(CURL* curl_handler) {
   if (!proxy.empty()) {
