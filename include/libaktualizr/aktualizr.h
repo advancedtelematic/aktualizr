@@ -330,6 +330,23 @@ class Aktualizr {
    */
   boost::signals2::connection SetSignalHandler(const SigHandler& handler);
 
+  /**
+   * @brief Initialize libcurl based  http client with https://curl.se/libcurl/c/CURLOPT_PROXY.html[CURLOPT_PROXY]. For string format see documentation on https://curl.se/libcurl/c/CURLOPT_PROXY.html[CURLOPT_PROXY]. This options has no effect when downloading OSTREE update. Call it before call to Aktualizr::Initialize()
+   * 
+   * @param proxy Proxy to use.
+   * @param username User name for proxy server (may be empty)
+   * @param pwd Password for proxy server (may be empty)
+   */
+  void useProxy(const std::string& proxy, const std::string& username = std::string(), const std::string& pwd = std::string());
+  
+  /**
+   * @brief  If a download exceeds this maxspeed (counted in bytes per second) the transfer will pause to keep the speed less than or equal to the parameter value. Defaults to unlimited speed.
+   * 
+   * @param maxspeed Rate limit data download speed (counted in bytes per second)
+   * @param restart_downloads Set true to interrupt and restart current download in progress
+   */ 
+  void setDownloadBandwidth(int64_t maxspeed, bool restart_downloads = false);
+
  private:
   // Make sure this is declared before SotaUptaneClient to prevent Valgrind
   // complaints with destructors.

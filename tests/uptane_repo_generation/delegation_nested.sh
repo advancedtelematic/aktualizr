@@ -33,7 +33,7 @@ if [[ "$REVOKE" = "revoke" ]]; then
     uptane_gen --command revokedelegation --dname role-abc
 else
     echo "NORMAL"
-    uptane_gen --command generate --expires 2021-07-04T16:33:27Z
+    uptane_gen --command generate --expires 2025-07-04T16:33:27Z
     uptane_gen --command adddelegation --dname delegation-top --dpattern "ab*"
     uptane_gen --command adddelegation --dname role-abc --dpattern "abc/*" --dparent delegation-top
     uptane_gen --command adddelegation --dname role-bcd --dpattern "bcd/*" --dparent delegation-top

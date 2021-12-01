@@ -99,6 +99,7 @@ TEST(Aktualizr, FullNoUpdates) {
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
   aktualizr.Initialize();
+  aktualizr.setDownloadBandwidth(1000000);
   aktualizr.UptaneCycle();
   // Run the cycle twice so that we can check for a second UpdateCheckComplete
   // and guarantee that nothing unexpected happened after the first fetch.
@@ -347,6 +348,7 @@ TEST(Aktualizr, FullWithUpdates) {
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
   aktualizr.Initialize();
+  aktualizr.setDownloadBandwidth(1000000);
   aktualizr.UptaneCycle();
   auto status = ev_state.future.wait_for(std::chrono::seconds(20));
   if (status != std::future_status::ready) {
@@ -1588,7 +1590,7 @@ TEST(Aktualizr, TargetAutoremove) {
   Utils::createDirectories(local_metadir, S_IRWXU);
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "", local_metadir / "repo");
 
-  UptaneRepo repo{local_metadir, "2021-07-04T16:33:27Z", "id0"};
+  UptaneRepo repo{local_metadir, "2025-07-04T16:33:27Z", "id0"};
   repo.generateRepo(KeyType::kED25519);
   const std::string hwid = "primary_hw";
   repo.addImage(fake_meta_dir / "fake_meta/primary_firmware.txt", "primary_firmware.txt", hwid, "", {});

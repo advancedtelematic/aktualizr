@@ -63,7 +63,8 @@ HttpClient::HttpClient(const std::vector<std::string>* extra_headers) {
   curlEasySetoptWrapper(curl, CURLOPT_USERAGENT, Utils::getUserAgent());
 }
 
-HttpClient::HttpClient(const HttpClient& curl_in) : pkcs11_key(curl_in.pkcs11_key), pkcs11_cert(curl_in.pkcs11_key) {
+HttpClient::HttpClient(const HttpClient& curl_in)
+    : pkcs11_key(curl_in.pkcs11_key), pkcs11_cert(curl_in.pkcs11_key), proxy(curl_in.proxy) {
   curl = curl_easy_duphandle(curl_in.curl);
   headers = curl_slist_dup(curl_in.headers);
 }
@@ -77,6 +78,7 @@ HttpClient::~HttpClient() {
 
 void HttpClient::setCerts(const std::string& ca, CryptoSource ca_source, const std::string& cert,
                           CryptoSource cert_source, const std::string& pkey, CryptoSource pkey_source) {
+  certs_in_use = std::make_tuple(true, ca, ca_source, cert, cert_source, pkey, pkey_source);
   curlEasySetoptWrapper(curl, CURLOPT_SSL_VERIFYPEER, 1);
   curlEasySetoptWrapper(curl, CURLOPT_SSL_VERIFYHOST, 2);
   curlEasySetoptWrapper(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
@@ -124,7 +126,7 @@ HttpResponse HttpClient::get(const std::string& url, int64_t maxsize) {
   if (pkcs11_cert) {
     curlEasySetoptWrapper(curl_get, CURLOPT_SSLCERTTYPE, "ENG");
   }
-
+  setOptProxy(curl_get);
   // Clear POSTFIELDS to remove any lingering references to strings that have
   // probably since been deallocated.
   curlEasySetoptWrapper(curl_get, CURLOPT_POSTFIELDS, "");
@@ -141,6 +143,7 @@ HttpResponse HttpClient::post(const std::string& url, const std::string& content
   curl_slist* req_headers = curl_slist_dup(headers);
   req_headers = curl_slist_append(req_headers, (std::string("Content-Type: ") + content_type).c_str());
   curlEasySetoptWrapper(curl_post, CURLOPT_HTTPHEADER, req_headers);
+  setOptProxy(curl_post);
   curlEasySetoptWrapper(curl_post, CURLOPT_URL, url.c_str());
   curlEasySetoptWrapper(curl_post, CURLOPT_POST, 1);
   curlEasySetoptWrapper(curl_post, CURLOPT_POSTFIELDS, data.c_str());
@@ -161,6 +164,7 @@ HttpResponse HttpClient::put(const std::string& url, const std::string& content_
   curl_slist* req_headers = curl_slist_dup(headers);
   req_headers = curl_slist_append(req_headers, (std::string("Content-Type: ") + content_type).c_str());
   curlEasySetoptWrapper(curl_put, CURLOPT_HTTPHEADER, req_headers);
+  setOptProxy(curl_put);
   curlEasySetoptWrapper(curl_put, CURLOPT_URL, url.c_str());
   curlEasySetoptWrapper(curl_put, CURLOPT_POSTFIELDS, data.c_str());
   curlEasySetoptWrapper(curl_put, CURLOPT_CUSTOMREQUEST, "PUT");
@@ -184,6 +188,14 @@ HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times, int64_t si
   }
   curlEasySetoptWrapper(curl_handler, CURLOPT_LOW_SPEED_TIME, speed_limit_time_interval_);
   curlEasySetoptWrapper(curl_handler, CURLOPT_LOW_SPEED_LIMIT, speed_limit_bytes_per_sec_);
+  if (bandwidth > 0) {
+    curlEasySetoptWrapper(curl_handler, CURLOPT_MAX_RECV_SPEED_LARGE, bandwidth);
+  }
+  setOptProxy(curl_handler);
+  // OSCP enable check, needs curl 7.41.0+
+  if (oscp_stapling) {
+    curlEasySetoptWrapper(curl_handler, CURLOPT_SSL_VERIFYSTATUS, 1L);
+  }
 
   WriteStringArg response_arg;
   response_arg.limit = size_limit;
@@ -216,13 +228,13 @@ std::future<HttpResponse> HttpClient::downloadAsync(const std::string& url, curl
                                                     curl_xferinfo_callback progress_cb, void* userp, curl_off_t from,
                                                     CurlHandler* easyp) {
   CURL* curl_download = Utils::curlDupHandleWrapper(curl, pkcs11_key);
-
-  CurlHandler curlp = CurlHandler(curl_download, curl_easy_cleanup);
-
+  reset_.store(false);
+  curlp = CurlHandler(curl_download, curl_easy_cleanup);
+  LOG_INFO << "downloadAsync: " << url;
   if (easyp != nullptr) {
     *easyp = curlp;
   }
-
+  setOptProxy(curl_download);
   curlEasySetoptWrapper(curl_download, CURLOPT_URL, url.c_str());
   curlEasySetoptWrapper(curl_download, CURLOPT_HTTPGET, 1L);
   curlEasySetoptWrapper(curl_download, CURLOPT_FOLLOWLOCATION, 1L);
@@ -237,16 +249,25 @@ std::future<HttpResponse> HttpClient::downloadAsync(const std::string& url, curl
   curlEasySetoptWrapper(curl_download, CURLOPT_TIMEOUT, 0);
   curlEasySetoptWrapper(curl_download, CURLOPT_LOW_SPEED_TIME, speed_limit_time_interval_);
   curlEasySetoptWrapper(curl_download, CURLOPT_LOW_SPEED_LIMIT, speed_limit_bytes_per_sec_);
+
+  if (bandwidth > 0) {
+    curlEasySetoptWrapper(curl_download, CURLOPT_MAX_RECV_SPEED_LARGE, bandwidth);
+  }
   curlEasySetoptWrapper(curl_download, CURLOPT_RESUME_FROM_LARGE, from);
 
   std::promise<HttpResponse> resp_promise;
   auto resp_future = resp_promise.get_future();
   std::thread(
-      [curlp](std::promise<HttpResponse> promise) {
+      [this](std::promise<HttpResponse> promise) {
         CURLcode result = curl_easy_perform(curlp.get());
         long http_code;  // NOLINT(google-runtime-int)
         curl_easy_getinfo(curlp.get(), CURLINFO_RESPONSE_CODE, &http_code);
         HttpResponse response("", http_code, result, (result != CURLE_OK) ? curl_easy_strerror(result) : "");
+        if (reset_.load()) {
+          LOG_INFO << "HttpClient::downloadAsync interrupted by reset(), current bandwidth: " << bandwidth;
+          // reset is not error, so set code to return true from HttpResponse.wasInterrupted()
+          response.curl_code = CURLE_ABORTED_BY_CALLBACK;
+        }
         promise.set_value(response);
       },
       std::move(resp_promise))
@@ -270,6 +291,11 @@ bool HttpClient::updateHeader(const std::string& name, const std::string& value)
   return false;
 }
 
+void HttpClient::setUseOscpStapling(bool oscp) {
+  LOG_DEBUG << "setUseOscpStapling: " << oscp;
+  oscp_stapling = oscp;
+}
+
 curl_slist* HttpClient::curl_slist_dup(curl_slist* sl) {
   curl_slist* new_list = nullptr;
 
@@ -280,4 +306,57 @@ curl_slist* HttpClient::curl_slist_dup(curl_slist* sl) {
   return new_list;
 }
 
+void HttpClient::setProxy(const std::string& proxy_url) { proxy = proxy_url; }
+
+void HttpClient::setProxyCredentials(const std::string& username, const std::string& password) {
+  proxy_user = username;
+  proxy_pwd = password;
+}
+
+void HttpClient::setBandwidth(int64_t maxspeed) { bandwidth = maxspeed; }
+
+void HttpClient::setOptProxy(CURL* curl_handler) {
+  if (!proxy.empty()) {
+    curlEasySetoptWrapper(curl_handler, CURLOPT_PROXY, proxy.c_str());
+    if (!proxy_user.empty()) {
+      std::stringstream strm;
+      strm << Utils::urlEncode(proxy_user);
+      if (!proxy_pwd.empty()) {
+        strm << ":" << Utils::urlEncode(proxy_pwd);
+        curlEasySetoptWrapper(curl_handler, CURLOPT_PROXYUSERPWD, strm.str().c_str());
+      }
+    }
+  }
+}
+
+void HttpClient::reset() {
+  if (curlp != nullptr) {
+    reset_.store(true);
+    curlp.reset();
+  }
+  curl_easy_cleanup(curl);
+
+  curl = curl_easy_init();
+  if (curl == nullptr) {
+    throw std::runtime_error("Could not initialize curl aster reset");
+  }
+
+  curlEasySetoptWrapper(curl, CURLOPT_NOSIGNAL, 1L);
+  curlEasySetoptWrapper(curl, CURLOPT_TIMEOUT, 60L);
+  curlEasySetoptWrapper(curl, CURLOPT_CONNECTTIMEOUT, 60L);
+  curlEasySetoptWrapper(curl, CURLOPT_CAPATH, Utils::getCaPath());
+
+  // let curl use our write function
+  curlEasySetoptWrapper(curl, CURLOPT_WRITEFUNCTION, writeString);
+  curlEasySetoptWrapper(curl, CURLOPT_WRITEDATA, NULL);
+
+  curlEasySetoptWrapper(curl, CURLOPT_VERBOSE, get_curlopt_verbose());
+
+  curlEasySetoptWrapper(curl, CURLOPT_USERAGENT, Utils::getUserAgent());
+
+  if (std::get<0>(certs_in_use)) {
+    setCerts(std::get<1>(certs_in_use), std::get<2>(certs_in_use), std::get<3>(certs_in_use), std::get<4>(certs_in_use),
+             std::get<5>(certs_in_use), std::get<6>(certs_in_use));
+  }
+}
 // vim: set tabstop=2 shiftwidth=2 expandtab:

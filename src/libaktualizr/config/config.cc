@@ -108,6 +108,18 @@ void UptaneConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, secondary_preinstall_wait_sec, "secondary_preinstall_wait_sec");
 }
 
+void NetworkConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
+  CopyFromConfig(curl_proxy, "curl_proxy", pt);
+  CopyFromConfig(curl_bandwidth, "curl_bandwidth", pt);
+  CopyFromConfig(use_oscp, "use_oscp", pt);
+}
+
+void NetworkConfig::writeToStream(std::ostream& out_stream) const {
+  writeOption(out_stream, curl_proxy, "curl_proxy");
+  writeOption(out_stream, curl_bandwidth, "curl_bandwidth");
+  writeOption(out_stream, use_oscp, "use_oscp");
+}
+
 /**
  * \par Description:
  *    Overload the << operator for the configuration class allowing
@@ -233,6 +245,7 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopySubtreeFromConfig(import, "import", pt);
   CopySubtreeFromConfig(telemetry, "telemetry", pt);
   CopySubtreeFromConfig(bootloader, "bootloader", pt);
+  CopySubtreeFromConfig(network, "network", pt);
 }
 
 void Config::updateFromCommandLine(const boost::program_options::variables_map& cmd) {
@@ -273,4 +286,5 @@ void Config::writeToStream(std::ostream& sink) const {
   WriteSectionToStream(import, "import", sink);
   WriteSectionToStream(telemetry, "telemetry", sink);
   WriteSectionToStream(bootloader, "bootloader", sink);
+  WriteSectionToStream(network, "network", sink);
 }

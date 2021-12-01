@@ -30,7 +30,7 @@ echo "secondary" > "$SECONDARY_FIRMWARE"
 if [[ "$REVOKE" = "revoke" ]]; then
     uptane_gen --command revokedelegation --dname new-role
 else
-    uptane_gen --command generate --expires 2021-07-04T16:33:27Z
+    uptane_gen --command generate --expires 2025-07-04T16:33:27Z
     uptane_gen --command adddelegation --dname new-role --dpattern "abc/*" --keytype ed25519
     uptane_gen --command image --filename "$PRIMARY_FIRMWARE" --targetname primary.txt --hwid primary_hw
     uptane_gen --command image --filename "$SECONDARY_FIRMWARE" --targetname "abc/secondary.txt" --dname new-role --hwid secondary_hw

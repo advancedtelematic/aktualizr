@@ -138,6 +138,19 @@ struct ImportConfig {
   void writeToStream(std::ostream& out_stream) const;
 };
 
+struct NetworkConfig {
+  std::string curl_proxy;
+  long curl_bandwidth{0U};
+#ifdef USE_OSCP
+  bool use_oscp{true};
+#else
+  bool use_oscp{false};
+#endif
+
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
+};
+
 /**
  * @brief The TelemetryConfig struct
  * Report device network information: IP address, hostname, MAC address.
@@ -229,6 +242,7 @@ class Config : public BaseConfig {
   ImportConfig import;
   TelemetryConfig telemetry;
   BootloaderConfig bootloader;
+  NetworkConfig network;
 
  private:
   void updateFromPropertyTree(const boost::property_tree::ptree& pt) override;

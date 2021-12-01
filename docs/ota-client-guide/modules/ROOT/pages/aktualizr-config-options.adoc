@@ -209,3 +209,13 @@ Options for configuring boot-specific behavior
 | `reboot_command`       | `"/sbin/reboot"`                | Command to reboot the system after update completes. Applicable only if `uptane::force_install_completion` is set to `true`.
 |==========================================================================================
 
+=== `network`
+
+Options for configuring network related parameters
+
+|==========================================================================================
+| Name                   | Default               | Description
+| `curl_proxy`           |                       | Proxy to use. Initialize libcurl based  http client with  https://curl.se/libcurl/c/CURLOPT_PROXY.html[CURLOPT_PROXY]. For string format see documentation on https://curl.se/libcurl/c/CURLOPT_PROXY.html[CURLOPT_PROXY]. This options has no effect when downloading  OSTREE update.
+| `curl_bandwidth`       |    0                  | Use it to limit curl download speed (counted in bytes per second). Aktualizr use this value for https://curl.se/libcurl/c/CURLOPT_MAX_SEND_SPEED_LARGE.html[CURLOPT_MAX_RECV_SPEED_LARGE] needs curl 7.41.0+. Default 0 removes all limitations. This options has no effect when downloading  OSTREE update.
+| `use_oscp`             | false                 | Verify the certificate's status. If enabled it initialize default libCURL based http client with https://curl.se/libcurl/c/CURLOPT_SSL_VERIFYSTATUS.html[CURLOPT_SSL_VERIFYSTATUS]. It is dissabled by default. But it is possible define macro USE_OSCP to enable it by default. This options has no effect when downloading  OSTREE update.
+|==========================================================================================

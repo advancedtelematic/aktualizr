@@ -2,6 +2,7 @@
 
 #include <errno.h>
 #include <stdio.h>
+#include <chrono>
 #include <cstdlib>
 
 #include <boost/process.hpp>
@@ -14,6 +15,7 @@
 #include "utilities/utils.h"
 
 static std::string server = "http://127.0.0.1:";
+static std::string unavailable_proxy_url = "socks5://user:MYPWD@localhost:1080";
 
 TEST(CopyConstructorTest, copied) {
   HttpClient http;
@@ -28,6 +30,13 @@ TEST(GetTest, get_performed) {
   std::string path = "/path/1/2/3";
   Json::Value response = http.get(server + path, HttpInterface::kNoLimit).getJson();
   EXPECT_EQ(response["path"].asString(), path);
+}
+
+TEST(GetTest, get_performed_proxy) {
+  HttpClient http;
+  std::string path = "/path/1/2/3";
+  http.setProxy(unavailable_proxy_url);
+  EXPECT_FALSE(http.get(server + path, HttpInterface::kNoLimit).isOk());
 }
 
 TEST(GetTestWithHeaders, get_performed) {
@@ -57,6 +66,29 @@ TEST(GetTest, download_speed_limit) {
   EXPECT_EQ(resp.curl_code, CURLE_OPERATION_TIMEDOUT);
 }
 
+/* Check that download() uses correct speed limit */
+static size_t fake_write_callback(char* contents, size_t size, size_t nmemb, void* userp) {
+  (void)userp;
+  (void)contents;
+  size_t downloaded = size * nmemb;
+  return downloaded;
+}
+
+TEST(GetTest, download_bandwidth) {
+  HttpClient http;
+  std::string path = "/large_file";
+
+  http.setBandwidth(7000000);  // about 14.9 second to download /large_file
+  auto start = std::chrono::system_clock::now();
+
+  HttpResponse resp = http.download(server + path, fake_write_callback, nullptr, nullptr, 0);
+
+  auto stop = std::chrono::system_clock::now();
+  EXPECT_EQ(resp.curl_code, CURLE_OK);
+  std::chrono::duration<double> elapsed_seconds = stop - start;
+  EXPECT_LT(14.0l, elapsed_seconds.count());
+}
+
 TEST(PostTest, post_performed) {
   HttpClient http;
   std::string path = "/path/1/2/3";
@@ -66,6 +98,35 @@ TEST(PostTest, post_performed) {
   Json::Value response = http.post(server + path, data).getJson();
   EXPECT_EQ(response["path"].asString(), path);
   EXPECT_EQ(response["data"]["key"].asString(), "val");
+}
+
+TEST(PostTest, post_performed_proxy) {
+  HttpClient http;
+  std::string path = "/path/1/2/3";
+  Json::Value data;
+  data["key"] = "val";
+  http.setProxy(unavailable_proxy_url);
+  EXPECT_FALSE(http.post(server + path, data).isOk());
+}
+TEST(GetTest, oscp_get_performed) {
+  HttpClient http;
+  std::string path = "/path/1/2/3";
+  http.setUseOscpStapling(true);
+  auto response = http.get(server + path, HttpInterface::kNoLimit);
+  // expecting to fail  when OSCP enabled. local server does not support it
+  EXPECT_EQ(response.curl_code, 0);
+}
+
+TEST(PostTest, oscp_post_performed) {
+  HttpClient http;
+  std::string path = "/path/1/2/3";
+  Json::Value data;
+  data["key"] = "val";
+
+  http.setUseOscpStapling(true);
+  auto response = http.post(server + path, data);
+  // expecting to fail  when OSCP enabled. local server does not support it
+  EXPECT_EQ(response.curl_code, 0);
 }
 
 TEST(PostTest, put_performed) {
@@ -78,6 +139,16 @@ TEST(PostTest, put_performed) {
 
   EXPECT_EQ(json["path"].asString(), path);
   EXPECT_EQ(json["data"]["key"].asString(), "val");
+}
+
+TEST(PostTest, put_performed_proxy) {
+  HttpClient http;
+  std::string path = "/path/1/2/3";
+  Json::Value data;
+  data["key"] = "val";
+
+  http.setProxy(unavailable_proxy_url);
+  EXPECT_FALSE(http.put(server + path, data).isOk());
 }
 
 TEST(HttpClient, user_agent) {

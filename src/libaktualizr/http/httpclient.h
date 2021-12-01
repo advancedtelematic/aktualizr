@@ -5,6 +5,7 @@
 #include <memory>
 
 #include <curl/curl.h>
+#include <tuple>
 #include "gtest/gtest_prod.h"
 #include "json/json.h"
 
@@ -45,6 +46,25 @@ class HttpClient : public HttpInterface {
                 const std::string &pkey, CryptoSource pkey_source) override;
   bool updateHeader(const std::string &name, const std::string &value);
 
+  /**
+   * @brief use proxy_url as CURLOPT_PROXY parameter
+   *
+   * @param proxy_url Proxy and port, scheme is mandatory. Passing it to libcurl as CURLOPT_PROXY
+   */
+  void setProxy(const std::string &proxy_url) override;
+  void setProxyCredentials(const std::string &username, const std::string &password) override;
+  void setUseOscpStapling(bool oscp) override;
+
+  /**
+   * @brief If a download exceeds this maxspeed (counted in bytes per second) the transfer will
+   * pause to keep the speed less than or equal to the parameter value. Defaults to unlimited speed.
+   *
+   * @param maxspeed counted in bytes per second
+   */
+  void setBandwidth(int64_t maxspeed) override;
+
+  void reset() override;
+
  private:
   FRIEND_TEST(GetTest, download_speed_limit);
 
@@ -52,6 +72,7 @@ class HttpClient : public HttpInterface {
   CURL *curl;
   curl_slist *headers;
   HttpResponse perform(CURL *curl_handler, int retry_times, int64_t size_limit);
+  void setOptProxy(CURL *curl_handler);
   static curl_slist *curl_slist_dup(curl_slist *sl);
 
   static CURLcode sslCtxFunction(CURL *handle, void *sslctx, void *parm);
@@ -70,5 +91,15 @@ class HttpClient : public HttpInterface {
   }
   bool pkcs11_key{false};
   bool pkcs11_cert{false};
+  std::string proxy;
+  std::string proxy_user;
+  std::string proxy_pwd;
+  bool oscp_stapling{false};
+  curl_off_t bandwidth{0};  // 0 means "no limitations",  counted in bytes per second
+
+  CurlHandler curlp;                // handler for current downloadAsync(), keep it to reset current download
+  std::atomic<bool> reset_{false};  // use to detect reset during downloadAsync()
+  // save cert configuration from last setCerts() call and use it for reset
+  std::tuple<bool, std::string, CryptoSource, std::string, CryptoSource, std::string, CryptoSource> certs_in_use;
 };
 #endif
