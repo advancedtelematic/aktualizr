@@ -227,3 +227,7 @@ std::ifstream Aktualizr::OpenStoredTarget(const Uptane::Target &target) {
 void Aktualizr::setDownloadBandwidth(int64_t maxspeed, bool restart_downloads) {
   uptane_client_->setDownloadBandwidth(maxspeed, restart_downloads);
 }
+
+void Aktualizr::useProxy(const std::string &proxy, const std::string &username, const std::string &pwd) {
+  uptane_client_->useProxy(proxy, username, pwd);
+}

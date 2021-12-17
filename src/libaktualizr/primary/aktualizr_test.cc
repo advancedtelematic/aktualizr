@@ -2337,6 +2337,19 @@ class HttpSystemInfo : public HttpFake {
   std::string hwinfo_ep_{"/system_info"};
 };
 
+TEST(Aktualizr, FailedWidhBadProxy) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates", fake_meta_dir);
+  Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  UptaneTestCommon::TestAktualizr aktualizr(conf, storage, http);
+  // it is FakeHttp, so any values works.
+  aktualizr.useProxy("socks5h://127.0.0.1:1080", "uname", "badpasword");
+  aktualizr.Initialize();
+  EXPECT_TRUE(aktualizr.SendManifest().get());
+}
+
 TEST(Aktualizr, CustomHwInfo) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpSystemInfo>(temp_dir.Path(), fake_meta_dir);
