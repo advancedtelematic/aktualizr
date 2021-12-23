@@ -26,8 +26,7 @@ You can try out OTA Connect without having to build a whole device image. This c
 
 == Install aktualizr locally
 
-The first step is to install an aktualizr binary on your system. You can install packages for Ubuntu 16.04, or Ubuntu 18.04. If you use a different system, you will need to build from source.
-
+The first step is to install an aktualizr binary on your system. You can install packages for Ubuntu 16.04 or Ubuntu 18.04. If you use a different system, build the aktualizr binary from source.
 [{tabs}]
 ====
 Ubuntu 16.04 package::

@@ -67,7 +67,7 @@ openssl x509 -req -days 365 -extfile "${fleet_name}/devices/device_cert.ext" \
   -CA "${fleet_name}/fleet_root_ca.crt" -CAcreateserial -out "${device_dir}/client.pem"
 ----
 +
-WARNING: These command string is designed for openssl 1.1 or higher. If you are using an older version, or if you are using LibreSSL, it may not work.
+WARNING: This command string is designed for OpenSSL 1.1 or higher. If you use an older version or LibreSSL, it may not work.
 . Get the URL and certificate for your account's device gateway
 .. You can get the URL from the `credentials.zip` that you download from the OTA Connect Portal. If you haven't done so already, xref:generating-provisioning-credentials.adoc[download a provisioning key].
 .. Extract the contents of the `credentials.zip` file to a local folder.
