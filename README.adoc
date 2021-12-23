@@ -195,7 +195,7 @@ Additional command line options can be found link:./src/aktualizr_primary/main.c
 Aktualizr is generally intended to run on embedded devices, but you may find it convenient to run it on your local system for development or testing. To get a binary you can run locally, you can:
 
 * follow the <<building,build instructions>>,
-* install a Ubuntu packages from the https://github.com/advancedtelematic/aktualizr/releases[Releases page]
+* install Ubuntu packages from the https://github.com/advancedtelematic/aktualizr/releases[Releases page]
 
 Some more detailed instructions on how to configure a fake device can be found on https://docs.ota.here.com/quickstarts/install-a-client-locally-with-fake-secondaries.html[the OTA Connect docs site].
 
