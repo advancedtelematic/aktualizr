@@ -114,55 +114,6 @@ The pages should be updated a few minutes after a successful release pipeline ex
 
 Once the release is ready on github, it should be edited to include a link to the changelog and doxygen documentation for that particular release. You can use a previous release as a model of how to format these links.
 
-== Update the homebrew recipe for aktualizr
-
-The https://github.com/advancedtelematic/homebrew-otaconnect/blob/master/aktualizr.rb[homebrew aktualizr formula] should be updated with the new release.
-
-There is the gitlab CI job that will automatically update the formula, build a bottle, and upload the bottle to the github release page when a new release is created.
-
-Also, this job will make a pull request to update the formula in the tap. The pull request should be listed https://github.com/advancedtelematic/homebrew-otaconnect/pulls/[here]. You should merge it to a master branch of the https://github.com/advancedtelematic/homebrew-otaconnect/[homebrew-otaconnect repo], so mac users can install the latest aktualizr release.
-
-=== Fallback: manually build a bottle and update the homebrew recipe
-
-If the CI job failed for some reason, you might need to manually create the new bottle and edit the recipe. Here are the steps to follow (you'll need a Mac with homebrew installed):
-
-. Clone a repo/tap that contains the aktualizr recipe unless it has already been done
-+
-----
-brew tap advancedtelematic/otaconnect
-----
-. Edit the recipe on your local system with `brew edit aktualizr`, and replace the old version and revision with the new one.
-. Build it, and then bottle it:
-+
-----
-brew uninstall -f aktualizr
-brew install -v --build-bottle aktualizr
-brew bottle --json --no-rebuild --force-core-tap --root-url=${RELEASE_BASE_URL}/${VERSION} aktualizr
-where RELEASE_BASE_URL=https://github.com/advancedtelematic/aktualizr/releases/download and VERSION is the new version tag
-----
-+
-This will create a bottle file named `+aktualizr--VERSION.mojave.bottle.tar.gz+`, and output a block of Ruby code that looks something like this:
-+
-----
-  bottle do
-    cellar :any
-    sha256 "391bc242685d86fd4fc69d90d98e10a464e6feebca943d3f48f848615c898085" => :mojave
-  end
-----
-. Update the recipe with the new bottle block
-+
-----
-brew bottle --merge --write --no-commit ./aktualizr--${VERSION}.mojave.bottle.json
-----
-. Rename the file, removing one of the dashes. I don't know why the generated filename is always wrong, but it is.
-+
-----
-mv aktualizr--${VERSION}.mojave.bottle.tar.gz aktualizr-${VERSION}.mojave.bottle.tar.gz
-----
-. Add the renamed bottle file as an artifact to the release on the https://github.com/advancedtelematic/aktualizr/releases[aktualizr releases page].
-. Test the recipe locally, including installing from the bottle: `brew reinstall --force-bottle aktualizr`.
-. Open a PR on the https://github.com/advancedtelematic/homebrew-otaconnect[homebrew-otaconnect] repo to update the recipe with all your changes.
-
 == Verify the released Debian packages
 
 Newly created releases automatically trigger an OTF pipeline in gitlab. Currently, you still need to manually verify that the pipeline actually succeeded.
