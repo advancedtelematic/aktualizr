@@ -21,12 +21,12 @@ You can try out OTA Connect without having to build a whole device image. This c
 
 == Prerequisites
 
-* A Linux or MacOS machine to run aktualizr on
+* A Linux machine to run aktualizr on
 * xref:ota-client::generating-provisioning-credentials.adoc[Provisioning credentials] (`credentials.zip` file)
 
 == Install aktualizr locally
 
-The first step is to install an aktualizr binary on your system. You can install packages for MacOS (with https://brew.sh[homebrew]), Ubuntu 16.04, or Ubuntu 18.04. If you use a different system, you will need to build from source.
+The first step is to install an aktualizr binary on your system. You can install packages for Ubuntu 16.04, or Ubuntu 18.04. If you use a different system, you will need to build from source.
 
 [{tabs}]
 ====
@@ -71,16 +71,6 @@ sudo apt install ./aktualizr-ubuntu_18.04.deb
 ----
 sudo systemctl stop aktualizr.service
 sudo systemctl disable aktualizr.service
-----
---
-
-MacOS (homebrew)::
-+
---
-[source,sh,role="secondary"]
-----
-brew tap advancedtelematic/otaconnect
-brew install aktualizr
 ----
 --
 
