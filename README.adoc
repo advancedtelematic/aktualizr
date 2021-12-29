@@ -66,56 +66,6 @@ Some features also require additional packages:
 * For PKCS#11 support, you will need `libp11-3 libp11-dev`.
 * For fault injection, you will need `fiu-utils libfiu-dev`.
 
-==== Mac support
-
-You can install the latest release of aktualizr on MacOS (mostly useful for trying out a SOTA server with a <<fake-device,fake device>>) using https://brew.sh[homebrew]:
-
-----
-brew tap advancedtelematic/otaconnect
-brew install aktualizr
-----
-
-You can build and install the latest development version of aktualizr on MacOS (current head of the development branch):
-----
-brew tap advancedtelematic/otaconnect
-brew install --HEAD aktualizr
-----
-
-If any of the previous release versions of aktualizr has been installed before make sure you `unlink` it prior to installing the HEAD version:
-----
-brew unlink aktualizr
-brew install --HEAD aktualizr
-----
-
-You can switch back to the release version by unlinking and installing again:
-----
-brew unlink aktualizr
-brew install aktualizr
-----
-
-You can also build it yourself, with basic dependencies from homebrew. You can install the necessary dependencies as follows:
-
-----
-brew install asn1c boost cmake libarchive libsodium pkgconfig python3
-----
-
-and run the following from the aktualizr project directory:
-----
-export CXXFLAGS=-w
-cmake -S . -B build -DBoost_USE_MULTITHREADED=ON
-cmake --build build --target all -- -j8
-
-./build/src/aktualizr_primary/aktualizr --version
-----
-
-If you also want to compile the SOTA tools:
-
-----
-brew install gettext && brew unlink gettext && brew link --force gettext
-----
-
-and run cmake with `-DBUILD_SOTA_TOOLS=ON`.
-
 === Building
 
 This project uses *git submodules*. To checkout the code:
@@ -245,8 +195,7 @@ Additional command line options can be found link:./src/aktualizr_primary/main.c
 Aktualizr is generally intended to run on embedded devices, but you may find it convenient to run it on your local system for development or testing. To get a binary you can run locally, you can:
 
 * follow the <<building,build instructions>>,
-* install a Ubuntu packages from the https://github.com/advancedtelematic/aktualizr/releases[Releases page], or
-* install through <<mac-support,Homebrew on MacOS>>
+* install Ubuntu packages from the https://github.com/advancedtelematic/aktualizr/releases[Releases page]
 
 Some more detailed instructions on how to configure a fake device can be found on https://docs.ota.here.com/quickstarts/install-a-client-locally-with-fake-secondaries.html[the OTA Connect docs site].
 
