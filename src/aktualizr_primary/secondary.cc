@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "fwsecondary.h"
 #include "ipuptanesecondary.h"
 #include "logging/logging.h"
 #include "secondary.h"
@@ -34,6 +35,12 @@ static SecondaryFactoryRegistry sec_factory_registry = {
        (void)aktualizr;
        auto virtual_sec_cgf = dynamic_cast<const VirtualSecondaryConfig&>(config);
        return Secondaries({std::make_shared<VirtualSecondary>(virtual_sec_cgf)});
+     }},
+    {FirmwareFileSecondaryConfig::Type,
+     [](const SecondaryConfig& config, Aktualizr& aktualizr) {
+       (void)aktualizr;
+       auto cfg = dynamic_cast<const FirmwareFileSecondaryConfig&>(config);
+       return Secondaries({std::make_shared<FirmwareFileSecondary>(cfg)});
      }},
     //  {
     //     Add another secondary factory here
