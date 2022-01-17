@@ -62,7 +62,8 @@ void TreehubServer::InjectIntoCurl(const string& url_suffix, CURL* curl_handle, 
   boost::trim_if(url, boost::is_any_of(" \t\r\n"));
 
   curlEasySetoptWrapper(curl_handle, CURLOPT_URL, (url + url_suffix).c_str());
-
+  curlEasySetoptWrapper(curl_handle, CURLOPT_FOLLOWLOCATION, 1L);
+  curlEasySetoptWrapper(curl_handle, CURLOPT_MAXREDIRS, 10L);
   curlEasySetoptWrapper(curl_handle, CURLOPT_HTTPHEADER, &auth_header_);
   // If we need authentication but don't have an OAuth2 token or TLS
   // credentials, fall back to legacy username/password.
