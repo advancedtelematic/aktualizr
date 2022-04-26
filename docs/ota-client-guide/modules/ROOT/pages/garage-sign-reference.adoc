@@ -35,7 +35,7 @@ Global options
 +++</div></details>+++
 
 +++<details><summary>+++
-`user-keys [gen|id]`: Manages keys stored outside of a specific repository's directory.
+`user-keys [gen|id|importpub]`: Manages keys stored outside of a specific repository's directory.
 +++ </summary><div> +++
 
 +++<details><summary>+++
@@ -59,6 +59,20 @@ Global options
 [.release_notes]
 [cols="15m,75a"]
 |====================
+| -i, --input | The path to the file with your public key.
+|====================
+
++++</div></details>+++
+
++++<details><summary>+++
+`user-keys importpub`: Imports a public key and stores it in a configurable location
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| -r, --repo | The name of the local repository. This repository should be a directory in your `tuf` repository. You can create the repository with the `init` command.
+| -k, --key-name | The path to the public key that you want to add.
 | -i, --input | The path to the file with your public key.
 |====================
 
@@ -185,7 +199,7 @@ Global options
 [cols="15m,75a"]
 |====================
 | -r, --repo | The name of the local repository where you want to rotate keys. This repository should be a directory in your `tuf` repository. You can create the repository with the `init` command.
-| --new-root | The new Root key that you want to add to the `root.json` file (should already exist).
+| --new-root | (Optional) The new Root key that you want to add to the `root.json` file (should already exist).
 | --new-targets | (Only for the repo server) The new Targets key that you want to add to the `root.json` file (should already exist).
 | --old-root-alias | The alias of the old Root key. The old Root key will be saved under this name.
 | --old-keyid | (Optional) The ID of the key that you want to remove from the `root.json` file. This app will try to use the last key defined in the current `root.json` file.
@@ -194,7 +208,7 @@ Global options
 +++</div></details>+++
 
 +++<details><summary>+++
-`root [pull|push|get-unsigned|increment-version|key|sign]`: Manages root-of-trust metadata for a repository.
+`root [pull|push|get-unsigned|increment-version|key|targets-key|sign|set-threshold]`: Manages root-of-trust metadata for a repository.
 +++</summary><div>+++
 
 `root pull`: Pulls the current `root.json` file from OTA Connect.
@@ -237,6 +251,37 @@ Global options
 +++</div></details>+++
 
 +++<details><summary>+++
+`root targets-key [add|remove]`: Manages keys that are permitted to sign the targets metadata.
++++</summary><div>+++
+
++++<details><summary>+++
+`root targets-key add`: Adds a specific key to the list of keys authorized to sign the targets metadata.
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| -k, --key-name | The path to the public key that you want to add.
+|====================
+
++++</div></details>+++
+
++++<details><summary>+++
+`root targets-key remove`: Removes a specific key from the list of keys authorized to sign the targets metadata.
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| -k, --key-name | The name of the file with the keys that you want to remove. You can use the `--key-id` command instead.
+| --key-id | The ID of the public key that you want to remove. You can use the `--key-name` command instead.
+|====================
+
++++</div></details>+++
+
++++</div></details>+++
+
++++<details><summary>+++
 `root sign`: Signs your root-of-trust metadata with a specific key and sets the expiry.
 +++</summary><div>+++
 
@@ -253,6 +298,18 @@ Global options
 
 +++</div></details>+++
 
++++<details><summary>+++
+`root set-threshold`: Set threshold for Root role
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| -t, --threshold | Threshold for Root role
+|====================
+
++++</div></details>+++
+
 [.release_notes]
 [cols="15m,75a"]
 |====================
@@ -262,7 +319,7 @@ Global options
 +++</div></details>+++
 
 +++<details><summary>+++
-`targets [init|add|add-uploaded|delete|sign|pull|push|increment-version|get-unsigned|upload|delegations]`: (Only for repositories of the `reposerver` type) Manages Targets metadata.
+`targets [init|add|add-uploaded|verify-uploaded|delete|sign|pull|push|increment-version|get-unsigned|upload|delegations|set-threshold]`: (Only for repositories of the `reposerver` type) Manages Targets metadata.
 // tag::target-term[]
 *Target* is a term from Uptane. Each Target corresponds to a software version available in your OTA Connect software repository.
 // end::target-term[]
@@ -361,6 +418,20 @@ Note that this *will not* make the binary available on its own. After the upload
 | --name | The name of the target.
 | --version | {version}
 | --hardwareids | {hardware-ids}
+| --verifyIntegrity | Verify integrity of a target that you previously uploaded before adding to metadata.
+|====================
++++</div></details>+++
+
++++<details><summary>+++
+`targets verify-uploaded`: Adds a target that you previously uploaded to OTA Connect using the `targets upload` command.
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| -i, --input | The path to the binary file.
+| --name | The name of the target.
+| --version | {version}
 |====================
 +++</div></details>+++
 
@@ -376,6 +447,17 @@ Note that this *will not* make the binary available on its own. After the upload
 | -n, --name | The name of the target.
 | -p, --prefix | The path prefix of the image that you want to delegate.
 | -k, --key | The path to the public key that you want to add as a delegation key.
+|====================
++++</div></details>+++
+
++++<details><summary>+++
+`targets set-threshold`: Set threshold for Targets role
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| -t, --threshold | Threshold for Targets role
 |====================
 +++</div></details>+++
 
@@ -397,6 +479,19 @@ Note that this *will not* make the binary available on its own. After the upload
 | -r, --repo | The name of your local repository. This repository should be a directory in your `tuf` repository. You can create the repository with the `init` command.
 | -k, --key-name | The name of the file with your private and public keys that you want to export.
 | -o, --output | The name of the file to which you want to export our credentials.
+|====================
++++</div></details>+++
+
++++<details><summary>+++
+`import-client-cert`: Imports a client certificate into the existing repository.
++++</summary><div>+++
+
+[.release_notes]
+[cols="15m,75a"]
+|====================
+| -r, --repo | The name of the local repository. This repository should be a directory in your `tuf` repository. You can create the repository with the `init` command.
+| -c, --client-cert | The path to the valid PKCS#12 file that can be used to authenticate to a remote tuf repository.
+| -s, --server-cert | The path to the valid PKCS# file that can be used as a trust store to validate a remote `tuf` repository certificate.
 |====================
 +++</div></details>+++
 
