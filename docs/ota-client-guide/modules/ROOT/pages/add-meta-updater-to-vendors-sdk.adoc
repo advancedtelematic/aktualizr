@@ -13,7 +13,7 @@ To avoid conflicts and certain classes of bugs, we require the use of `usrmerge`
 
 If a board vendor’s BSP has recipes like this, they will need to be patched so that the files install to the correct locations. In older Yocto versions, the only way to do this was to create a new BSP-specific layer with the patches, and only include that BSP-specific layer when the corresponding BSP was in use. (Otherwise, the recipes would fail to parse.)
 
-Now, however, the https://patchwork.openembedded.org/patch/148271/[dynamic-layers] feature allows us to conditionally patch recipes from BSP layers if and only if they are present. This is the approach we took to support the NXP board for our example.
+Now, however, the dynamic-layers feature allows us to conditionally patch recipes from BSP layers if and only if they are present. This is the approach we took to support the NXP board for our example.
 
 Several recipes needed to be patched in our example. One example patch can be seen here of the  https://git.yoctoproject.org/cgit/cgit.cgi/meta-virtualization/tree/recipes-containers/cgroup-lite/cgroup-lite_1.15.bb[cgroup-lite-recipe], and this can be included in the meta-updater as the file `dynamic-layers/virtualization-layer/recipes-containers/cgroup-lite/cgroup-lite_%.bbappend`:
 
