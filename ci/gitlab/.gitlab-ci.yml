@@ -101,7 +101,7 @@ coverage:
     TEST_BUILD_DIR: 'build-coverage'
     TEST_CMAKE_BUILD_TYPE: 'Valgrind'
     TEST_WITH_COVERAGE: '1'
-    TEST_WITH_P11: '1'
+    TEST_WITH_P11: '0'
     TEST_WITH_FAULT_INJECTION: '1'
     TEST_SOTA_PACKED_CREDENTIALS: "$CI_PROJECT_DIR/credentials.zip"
   image: "$UBUNTU_BIONIC_PR_IMAGE"
