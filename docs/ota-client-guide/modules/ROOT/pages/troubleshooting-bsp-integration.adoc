@@ -38,6 +38,6 @@ Building an integration with a new board involves dealing with several different
 ** https://ostreedev.github.io/ostree/deployment/[Deployments]
 ** https://ostreedev.github.io/ostree/atomic-upgrades/[Atomic Upgrades]
 
-* https://www.denx.de/wiki/DULG/Manual[U-Boot reference documentation]
-** https://www.denx.de/wiki/view/DULG/UBootCommandLineInterface[CLI]
-** https://www.denx.de/wiki/view/DULG/UBootScripts[Scripting]
+* https://www.denx.de/wiki/Knowhow/DULG/Manual[U-Boot reference documentation]
+** https://www.denx.de/wiki/Knowhow/DULG/UBootCommandLineInterface[CLI]
+** https://www.denx.de/wiki/Knowhow/DULG/UBootScripts[Scripting]
