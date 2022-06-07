@@ -62,6 +62,7 @@ TEST(crypto, sign_verify_rsa_p11) {
   config.module = TEST_PKCS11_MODULE_PATH;
   config.pass = "1234";
   config.uptane_key_id = "03";
+  config.tls_clientcert_id = "01";  // for test: Read a TLS certificate via PKCS#11.
 
   P11EngineGuard p11(config);
   std::string text = "This is text for sign";
@@ -72,30 +73,15 @@ TEST(crypto, sign_verify_rsa_p11) {
   std::string signature = Utils::toBase64(Crypto::RSAPSSSign(p11->getEngine(), private_key, text));
   bool signe_is_ok = pkey.VerifySignature(signature, text);
   EXPECT_TRUE(signe_is_ok);
-}
 
-/* Generate RSA keypairs via PKCS#11. */
-TEST(crypto, generate_rsa_keypair_p11) {
-  P11Config config;
-  config.module = TEST_PKCS11_MODULE_PATH;
-  config.pass = "1234";
-  config.uptane_key_id = "05";
-
-  P11EngineGuard p11(config);
-  std::string key_content;
+  // testing: Generate RSA keypairs via PKCS#11.
+  const_cast<P11Config *>(&p11->config_)->uptane_key_id = "05";
+  key_content.clear();
   EXPECT_FALSE(p11->readUptanePublicKey(&key_content));
   EXPECT_TRUE(p11->generateUptaneKeyPair());
   EXPECT_TRUE(p11->readUptanePublicKey(&key_content));
-}
 
-/* Read a TLS certificate via PKCS#11. */
-TEST(crypto, certificate_pkcs11) {
-  P11Config p11_conf;
-  p11_conf.module = TEST_PKCS11_MODULE_PATH;
-  p11_conf.pass = "1234";
-  p11_conf.tls_clientcert_id = "01";
-  P11EngineGuard p11(p11_conf);
-
+  // testing: Read a TLS certificate via PKCS#11.
   std::string cert;
   bool res = p11->readTlsCert(&cert);
   EXPECT_TRUE(res);
@@ -104,6 +90,7 @@ TEST(crypto, certificate_pkcs11) {
   const std::string device_name = Crypto::extractSubjectCN(cert);
   EXPECT_EQ(device_name, "cc34f7f3-481d-443b-bceb-e838a36a2d1f");
 }
+
 #endif
 
 /* Refuse to sign with an invalid key. */
