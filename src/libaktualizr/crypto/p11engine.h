@@ -77,6 +77,7 @@ class P11Engine {
   friend class P11EngineGuard;
   FRIEND_TEST(crypto, findPkcsLibrary);
   FRIEND_TEST(crypto, sign_verify_rsa_p11);
+  FRIEND_TEST(KeyManager, AllTestsPkcs11);
 };
 
 class P11EngineGuard {

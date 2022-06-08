@@ -40,6 +40,8 @@ class KeyManager {
   std::unique_ptr<TemporaryFile> tmp_pkey_file;
   std::unique_ptr<TemporaryFile> tmp_cert_file;
   std::unique_ptr<TemporaryFile> tmp_ca_file;
+
+  FRIEND_TEST(KeyManager, AllTestsPkcs11);
 };
 
 #endif  // KEYMANAGER_H_

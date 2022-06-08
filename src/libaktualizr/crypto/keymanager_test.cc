@@ -111,34 +111,8 @@ TEST(KeyManager, InitFileValid) {
 }
 
 #ifdef BUILD_P11
-/* Sign and verify a file with RSA via PKCS#11. */
-// TEST(KeyManager, SignTufPkcs11) {
-//   Json::Value tosign_json;
-//   tosign_json["mykey"] = "value";
-
-//   P11Config p11_conf;
-//   p11_conf.module = TEST_PKCS11_MODULE_PATH;
-//   p11_conf.pass = "1234";
-//   p11_conf.uptane_key_id = "03";
-//   Config config;
-//   config.p11 = p11_conf;
-//   config.uptane.key_source = CryptoSource::kPkcs11;
-
-//   TemporaryDirectory temp_dir;
-//   config.storage.path = temp_dir.Path();
-//   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
-//   KeyManager keys(storage, config.keymanagerConfig());
-
-//   EXPECT_GT(keys.UptanePublicKey().Value().size(), 0);
-//   Json::Value signed_json = keys.signTuf(tosign_json);
-//   EXPECT_EQ(signed_json["signed"]["mykey"].asString(), "value");
-//   EXPECT_EQ(signed_json["signatures"][0]["keyid"].asString(),
-//             "6a809c62b4f6c2ae11abfb260a6a9a57d205fc2887ab9c83bd6be0790293e187");
-//   EXPECT_NE(signed_json["signatures"][0]["sig"].asString().size(), 0);
-// }
-
 /* Generate Uptane keys, use them for signing, and verify them. */
-TEST(KeyManager, GenSignTufPkcs11) {
+TEST(KeyManager, AllTestsPkcs11) {
   Json::Value tosign_json;
   tosign_json["mykey"] = "value";
 
@@ -184,6 +158,19 @@ TEST(KeyManager, GenSignTufPkcs11) {
   EXPECT_FALSE(keys.getCaFile().empty());
   EXPECT_FALSE(keys.getPkeyFile().empty());
   EXPECT_FALSE(keys.getCertFile().empty());
+
+  // Sign and verify a file with RSA via PKCS#11.
+  Json::Value tosign_json2;
+  tosign_json2["mykey"] = "value";
+
+  const_cast<P11Config*>(&((*keys.p11_)->config_))->uptane_key_id = "03";
+
+  EXPECT_GT(keys.UptanePublicKey().Value().size(), 0);
+  signed_json = keys.signTuf(tosign_json2);
+  EXPECT_EQ(signed_json["signed"]["mykey"].asString(), "value");
+  EXPECT_EQ(signed_json["signatures"][0]["keyid"].asString(),
+            "6a809c62b4f6c2ae11abfb260a6a9a57d205fc2887ab9c83bd6be0790293e187");
+  EXPECT_NE(signed_json["signatures"][0]["sig"].asString().size(), 0);
 }
 #endif
 
