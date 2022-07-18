@@ -19,7 +19,7 @@ Currently only U-boot 'bootcount' rollback mechanism is supported.
 
 == U-boot
 
-More info about bootcount feature you can find in U-boot https://www.denx.de/wiki/Knowhow/DULG/UBootBootCountLimit[documentation].
+More info about bootcount feature you can find in U-boot https://u-boot.readthedocs.io/en/latest/index.html[documentation].
 
 When using 'bootcount' the system can be in one of three states:
 
