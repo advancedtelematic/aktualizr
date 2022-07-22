@@ -52,6 +52,7 @@ Docker Setup:
   services:
     - docker:18-dind
   before_script:
+    - docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_PASSWORD"
     - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
   script:
     # main images
@@ -362,6 +363,7 @@ app-docker-image:
   needs: []
   allow_failure: true
   before_script:
+    - docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_PASSWORD"
     - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
   script:
     - cp ./docker/Dockerfile.aktualizr ./ci/gitlab/Dockerfile
