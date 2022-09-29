@@ -1,6 +1,6 @@
 = Manage targets keys and set thresholds
 
-You can <<add, add>> and <<remove, remove>> target keys or <<set, change>> the number of keys needed to sign for targets.json.
+You can <<add, add>> and <<remove, remove>> target keys or <<set, change>> the number of keys needed to sign targets.json.
 
 [[add]]
 == Add a targets key
