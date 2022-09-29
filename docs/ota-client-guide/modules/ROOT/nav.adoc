@@ -93,6 +93,7 @@ ifndef::env-github[:pageroot:]
 * xref:{pageroot}remove-sw-version.adoc[Remove a software version]
 * xref:{pageroot}push-images-with-bitbake.adoc[Upload Yocto images using offline credentials]
 * xref:{pageroot}virtual-secondaries.adoc[Use Virtual Secondaries]
+* xref:{pageroot}add-remove-targets-key.adoc[Manage targets keys and set thresholds]
 
 .Reference
 // MC: Do in second iteration: * xref:{pageroot}otaconnect-identifiers.adoc[Identifiers]
