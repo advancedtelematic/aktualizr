@@ -1,0 +1,88 @@
+= Manage targets keys and set thresholds
+
+You can <<add, add>> and <<remove, remove>> target keys or <<set, change>> the number of keys needed to sign targets.json.
+
+[[add]]
+== Add a targets key
+
+You may need to create multiple targets keys to do the following:
+
+* Sign targets metadata with multiple keys if a threshold is more than 1.
+* Use separate keys for OEM and 3rd parties.
+
+*To create a new key that can be used to sign targets.json:*
+
+. Generate the new key.
++
+----
+garage-sign key generate --name my-key --type rsa --repo my-repo
+----
+
+. Add the generated key to a list of keys allowed to sign targets.json.
++
+----
+garage-sign root targets-key add --key-name my-key --repo my-repo
+----
+
+. Sign root.json and push it to the server.
++
+----
+garage-sign root sign --key-name root-key --repo my-repo
+garage-sign root push --repo my-repo
+----
+
+Now, you can use the new key to sign targets.json.
+
+[[set]]
+== Set a threshold for targets.json
+
+If, for security reasons, you need to use several keys, you should change the threshold.
+
+*To set the minimum number of keys required to sign targets.json:*
+
+. Set the new threshold for targets.json.
++
+----
+garage-sign targets set-threshold --threshold 2 --repo my-repo
+----
++
+The threshold value is updated in root.json.
+
+. Sign root.json and push it to the server.
++
+----
+garage-sign root sign --key-name root-key --repo my-repo
+garage-sign root push --repo my-repo
+----
+
+. To validate targets.json, sign it with keys.
++
+NOTE: The number of keys used to sign targets.json has to be equal to or more than the threshold number.
++
+----
+garage-sign targets sign --key-name key1 --key-name key2 --repo my-repo
+----
++
+If targets.json is signed with fewer keys than the threshold number, when you push targets.json to the server, the "Invalid offline targets" error is returned.
+
+[[remove]]
+== Remove a targets key
+
+If you no longer need a targets key, you can remove it.
+
+*To remove a targets key:*
+
+. Remove the key from targets.json.
++
+----
+garage-sign root targets-key remove --key-name my-key --repo my-repo
+----
+
+. Sign root.json and push it to the server:
++
+----
+garage-sign root sign --key-name root-key --repo my-repo
+garage-sign root push --repo my-repo
+----
+
+The key is removed from root.json and cannot be used anymore.
