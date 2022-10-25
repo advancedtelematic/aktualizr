@@ -82,6 +82,8 @@ garage-sign targets sign \
 // tag::gs-push-targets[]
 . Push the new `targets.json` file to OTA Connect.
 +
+NOTE: The size of the targets.json file cannot be larger than 8,286,208 bytes (approximately 8 MB). When targets.json reaches 75% of its size limit, you get a warning message after each push to the server. When the limit is reached, new software versions cannot be uploaded. In this case, delete unnecessary versions.
++
 [source,bash]
 ----
 garage-sign targets push \
