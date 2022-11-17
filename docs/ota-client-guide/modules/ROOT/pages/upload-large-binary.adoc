@@ -51,6 +51,7 @@ garage-sign targets upload \
   --name <name-of-target> \
   --version <target-version>
 ----
+NOTE: Not to check if the file is in targets, run the command with the `--force` option.
 +
 include::garage-sign-reference.adoc[tags=targets-upload-note]
 
@@ -67,6 +68,7 @@ garage-sign targets add-uploaded \
   --version <target-version> \
   --hardwareids <hardware-id1>,<hardware-id2>
 ----
+NOTE: If you need to verify the integrity of the previously uploaded target before adding it to the metadata, use the `--verifyIntegrity` option.
 +
 // tag::gs-sign-targets[]
 . Sign the new `targets.json` file with your Targets key.

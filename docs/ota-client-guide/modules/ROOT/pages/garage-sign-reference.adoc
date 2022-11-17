@@ -404,6 +404,7 @@ Note that this *will not* make the binary available on its own. After the upload
 | --name | The name of the target.
 | --version | {version}
 | --timeout | The timeout for the HTTP request of the upload, in seconds.
+| --force | Force upload of a binary file. Skips checking whether the file has already been added to the targets.
 |====================
 +++</div></details>+++
 
