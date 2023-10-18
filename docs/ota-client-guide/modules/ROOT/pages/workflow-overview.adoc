@@ -30,7 +30,7 @@ NOTE: If you don't want OTA Connect to issue your device certificates, you can a
 
 == Building the image
 
-The way OTA Connect does full-filesystem updates is unique, and offers xref:ostree-and-treehub.adoc#_comparing_full_filesystem_update_strategies[significant benefits over other systems]. OTA Connect makes use of link:http://ostree.readthedocs.io/en/latest/[libOSTree] to store the whole filesystem in a git-like repository (content-addressed object store). File objects in the repository are then hardlinked into their place in the filesystem at boot time by a specially configured boot loader.
+The way OTA Connect does full-filesystem updates is unique, and offers xref:ostree-and-treehub.adoc#_comparing_full_filesystem_update_strategies[significant benefits over other systems]. OTA Connect makes use of link:https://ostreedev.github.io/ostree/[libOSTree] to store the whole filesystem in a git-like repository (content-addressed object store). File objects in the repository are then hardlinked into their place in the filesystem at boot time by a specially configured boot loader.
 
 When you do a Yocto build integrating our open-source link:https://github.com/advancedtelematic/meta-updater[meta-updater] layer, you get two different artifacts:
 
