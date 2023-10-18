@@ -32,7 +32,7 @@ TEST_TESTSUITE_EXCLUDE=${TEST_TESTSUITE_EXCLUDE:-}
 TEST_PKCS11_MODULE_PATH=${TEST_PKCS11_MODULE_PATH:-/usr/lib/softhsm/libsofthsm2.so}
 # note: on Ubuntu bionic, use /usr/lib/engines/engine_pkcs11.so on xenial
 TEST_PKCS11_ENGINE_PATH=${TEST_PKCS11_ENGINE_PATH:-/usr/lib/x86_64-linux-gnu/engines-1.1/libpkcs11.so}
-
+git config --global --add safe.directory /home/runner/work/aktualizr/aktualizr
 # Build CMake arguments
 CMAKE_ARGS=()
 CMAKE_ARGS+=("-G$TEST_CMAKE_GENERATOR")
