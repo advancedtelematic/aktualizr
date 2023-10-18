@@ -1,7 +1,7 @@
 name: Aktualizr CI
 on:
   push:
-    branches: [ master, fix-ci ]
+    branches: [ master ]
   pull_request:
     branches: [ master ]
 env:
@@ -28,8 +28,6 @@ jobs:
         with:
           submodules: recursive
       - run: git fetch --prune --unshallow
-      - name: Git exeption
-        run: git config --global --add safe.directory /home/runner/work/aktualizr/aktualizr
       - name: Docker login
         if: github.token
         run: echo ${{ github.token }} | docker login docker.pkg.github.com -u advancedtelematic --password-stdin
