@@ -11,7 +11,7 @@ endif::[]
 
 The goal of this doc is to guide a reader on configuring and running two executables that can be built out of the given repository source code and act as Primary and Secondary correspondingly.
 
-The term `Secondary` is being used as it is defined by link:https://uptane.github.io/uptane-standard/uptane-standard.html[the Uptane standard].
+The term `Secondary` is being used as it is defined by link:https://uptane.org/docs/latest/standard/uptane-standard[the Uptane standard].
 It refers to ECU, software/firmware/package updates of which are managed by another ECU that hosts and runs Uptane compliant software. The later ECU is called Primary and the sotfware it runs in our case is called aktualizr.
 
 A key component of this repository is libaktualizr which is a library implementing Uptane protocol and providing customers and community with capability to build application(s) one of the purposes of which is to update software/firmware/packages in compliance with the Uptane standard. In addition to libaktualizr, a user can find in this repo another two components:
