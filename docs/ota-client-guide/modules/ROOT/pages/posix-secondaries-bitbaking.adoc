@@ -12,7 +12,7 @@ endif::[]
 The goal of this doc is to guide a reader on bitbaking of two type of images, `primary` and `secondary`, that are targeted for QEMU or Raspberry Pi
 and running of which on the target makes it act as `Primary` and `Secondary` ECU of a single device.
 
-Refer to link:https://uptane.github.io/uptane-standard/uptane-standard.html[the Uptane standard] in order to grok the meaning of the `Primary` and `Secondary` terms in the given context from a theoretical standpoint.
+Refer to link:https://uptane.org/docs/latest/standard/uptane-standard[the Uptane standard] in order to grok the meaning of the `Primary` and `Secondary` terms in the given context from a theoretical standpoint.
 Check out xref:posix-secondaries.adoc[this doc] to understand these terms from a practical standpoint and to learn how `Primary` and `Secondary` can be emulated locally on an user's host.
 It is highly advisable to follow the doc instructions and play with emulated `Primary` and `Secondary` prior to running steps described further in this doc.
 
