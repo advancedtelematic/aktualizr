@@ -55,7 +55,7 @@ In OTA Connect, we generally assume that updates will be OSTree images or comple
 ****
 . The client polls OTA Connect servers periodically to check if there are any new updates.
 . If there are, the client receives a metadata file directing it to install a particular image.
-. The metadata is cryptographically checked for validity following the https://uptane.github.io[Uptane] https://uptane.github.io/uptane-standard/uptane-standard.html[specification].
+. The metadata is cryptographically checked for validity following the https://uptane.github.io[Uptane] https://uptane.org/docs/latest/standard/uptane-standard[specification].
 . If all the checks pass, the client downloads the image. In the case of an OSTree update, the commit representing the image is downloaded from TreeHub, which only actually requires downloading any objects missing on the client.
 . Each object's SHA256 is checked for correctness.
 . Once all objects are downloaded and verified, a flag is set telling OSTree to boot into the new filesystem the next time the device restarts.
